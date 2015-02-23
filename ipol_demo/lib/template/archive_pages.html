@@ -1,0 +1,27 @@
+<div class="archive_pages">
+%if nbpage > 1:
+pages:
+%if page != 0:
+<a href="?page=0" title="first">&lt;&lt;</a>
+<a href="?page=${page - 1}" title="previous">&lt;</a>
+%else:
+&lt;&lt;
+&lt;
+%endif
+%if page != nbpage - 1:
+<a href="?page=${page + 1}" title="next">&gt;</a>
+<a href="?page=${nbpage - 1}" title="last">&gt;&gt;</a>
+%else:
+&gt;
+&gt;&gt;
+%endif
+-
+%for p in range(nbpage):
+%if p == page:
+[${p + 1}]
+%else:
+<a href="?page=${p}">${p + 1}</a>
+%endif
+%endfor
+%endif
+</div>

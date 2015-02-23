@@ -1,0 +1,35 @@
+# don't rewrite the deployed conf file
+demo.conf
+
+# compiled Python code
+*.pyc
+
+# download, source and binary files
+app/*/dl
+app/*/src
+app/*/bin
+# build log
+app/*/*.log
+
+# Special demos with lots of input images.
+# IMPORTANT: very special cases. To be corrected ASAP
+app/20/input
+app/26/input
+app/44/input
+app/46/input
+app/47/input
+app/57/input
+app/105/input
+app/118/input
+app/119/input
+
+# temporary and archive files
+app/*/tmp
+app/*/archive
+
+# ignore the thumbnails
+app/*/input/.__*
+
+#ignore backup files
+*~
+

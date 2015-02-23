@@ -1,0 +1,9 @@
+<ul id="xlinks">
+%if app.xlink_article:
+<li class="algo"><a href="${app.xlink_article}">article</a></li>
+%else:
+<li class="algo"><a href="">article</a></li>
+%endif
+<li class="demo"><a href="${app.base_url}">demo</a></li>
+<li class="archive"><a href="${app.base_url}archive/">archive</a></li>
+</ul>

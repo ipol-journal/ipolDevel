@@ -1,0 +1,262 @@
+<%include file="header-jquery.html" />
+
+<script type="text/javascript">
+<%include file="js/createlinkedslider.js" />
+</script>
+
+<p> 
+Percentile Signal-dependent Noise Estimation Algorithm.
+</p>
+
+<br />
+
+<form action="${app.base_url + 'rectangle'}" method="get">
+  <div class="action">
+    <input type="hidden" name="key" value="${app.key}">
+
+<!-- Percentile -->
+- <b>Percentile</b>:
+    <select name="percentile">
+<%
+contents = (('0.0001', '0.01%'), ('0.0010', '0.1%'), ('0.0050', '0.5%'), ('0.0500', '5%'), ('0.1000', '10%'), ('0.5000', '50%'))
+
+try:
+   sel = '%.4f' % percentile
+except Exception:
+   sel = '0.0050'
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+
+<!-- Prefilter operator -->
+- <b>Pre-filter operator</b>: 
+    <select name="operator">
+<%
+contents = ((8, 'Identity (without prefiltering)'), (0, 'Directional derivative'), (1, 'Laplacian'), (2, 'Laplacian, 2 iterations'), (3 ,'Laplacian, 3 iterations'), (4 ,'Laplacian, 4 iterations'), (5 ,'DCT with support 7x7'), (6 ,'DCT with support 5x5'), (7 ,'DCT with support 3x3'), (9, 'FNVE article'))
+
+try:
+   sel = int(operator)
+except Exception:
+   sel = 5
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Block side -->
+- <b>Block size</b>: 
+    <select name="block">
+<%
+contents = ((3,'3 x 3'), (7,'7 x 7'), (8,'8 x 8'), (15,'15 x 15'), (21,'21 x 21'))
+
+try:
+   sel = int(block)
+except Exception:
+   sel = 21
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Curve filter iterations -->
+- <b>Curve filter iterations</b>: 
+    <select name="curvefilter">
+<%
+contents = ((0,'None'), (1,'1 iteration'), (2,'2 iterations'), (3,'3 iterations'), (4,'4 iterations'), (5,'5 iterations'), (6,'6 iterations'), (7,'7 iterations'))
+
+try:
+   sel = int(curvefilter)
+except Exception:
+   sel = 5
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Remove pixels with 2x2 blocks of the same pixel -->
+- <b>Treatment of groups (2x2) of equal pixels</b>: 
+    <select name="removeequals">
+<%
+contents = ((0,'Use all the pixels in the image'), (1,'Ignore that kind of pixels'))
+
+try:
+   sel = int(removeequals)
+except Exception:
+   sel = 1
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Remove outliers inside each bin -->
+<input type="hidden" name="removeoutliers" value="0">
+
+<!-- number of bins -->
+- <b>Number of bins</b> (0 = automatic selection):
+<%
+try:
+   sel = int(bins)
+except Exception:
+   sel = 0
+%>
+    <br/>
+
+<!-- code for slider -->
+<div style="float:left;padding-right:25px">
+    bins: <input type="text" style="font-family:monospace;text-align:right"
+    size="4" id="bins" name="bins" value="${sel}" />
+</div>
+<div id="bins_slider" name="bins_slider" style="width:280px;float:left;margin-top:4px;font-size:10pt"></div>
+<script type="text/javascript">
+// Turn DIV slider into a slider linked to scale
+$(document).ready(function() {
+      createLinkedSlider('#bins', '#bins_slider', 0, 150, 1); 
+});
+</script>
+<div style="clear:both"> </div>
+<!-- end of code for slider -->
+
+<!-- Correction type -->
+- <b>Correction</b>: 
+    <select name="correction">
+<%
+contents = ((0,'None'), (1,'Percentile compensation'))
+
+try:
+   sel = int(correction)
+except Exception:
+   sel = 1
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Additional noise level -->
+<%
+try:
+   sel = float(anoise)
+except Exception:
+   sel = 0
+%>
+- <b>Noise variance</b> (<i>A</i>+<i>B</i><b>u</b>, where <b>u</b> is the input noisy image. Set <i>B</i>=0 for uniform noise): <br/>
+<!-- code for slider -->
+<div style="float:left;padding-right:25px">
+    A: <input type="text" style="font-family:monospace;text-align:right"
+    size="6" id="anoise" name="anoise" value="${sel}" />
+</div>
+<div id="A_slider" style="width:280px;float:left;margin-top:4px;font-size:10pt"></div>
+<script type="text/javascript">
+// Turn DIV slider into a slider linked to scale
+$(document).ready(function() {
+      createLinkedSlider('#anoise', '#A_slider', 0.0, 10000.0, 0.1); 
+});
+</script>
+<div style="clear:both"> </div>
+<!-- end of code for slider -->
+
+<!-- code for slider -->
+<%
+try:
+   sel = float(bnoise)
+except Exception:
+   sel = 0
+%>
+<div style="float:left;padding-right:25px">
+    B: <input type="text" style="font-family:monospace;text-align:right"
+    size="6" id="bnoise" name="bnoise" value="${sel}" />
+</div>
+<div id="B_slider" style="width:280px;float:left;margin-top:4px;font-size:10pt"></div>
+<script type="text/javascript">
+// Turn DIV slider into a slider linked to scale
+$(document).ready(function() {
+      createLinkedSlider('#bnoise', '#B_slider', 0.0, 39.0, 0.1); 
+});
+</script>
+<div style="clear:both"> </div>
+<!-- end of code for slider -->
+
+<!-- Number of scales -->
+<input type="hidden" name="scales" value="4">
+
+%if x0 and y0 and x1 and y1:
+    <input type="hidden" name="x0" value="${x0}">
+    <input type="hidden" name="y0" value="${y0}">
+    <input type="hidden" name="x" value="${x1}">
+    <input type="hidden" name="y" value="${y1}">
+    <p>
+      <input type="submit" name="action" value="run" />
+    <p/>
+    <img src="${app.work_url + 'input_0.sel.png'}" />
+%else:
+    <p>
+      Now you can run the algorithm on the whole image:
+      <input type="submit" name="action" value="run" />
+    </p>
+    <p>
+    %if selectable:
+      Or you can run it after selecting a subimage, 
+      by clicking on two opposite corners of the sub-image.
+    %endif
+    </p>
+  %if x0 and y0:
+    <input type="hidden" name="x0" value="${x0}">
+    <input type="hidden" name="y0" value="${y0}">
+
+    %if selectable:
+      <input type="image" style="cursor:crosshair;" name=""
+             src="${app.work_url + 'input.png?xy=%i,%i' % (x0, y0)}" />
+    %else:
+      <img src="${app.work_url + 'input.png?xy=%i,%i' % (x0, y0)}" />
+    %endif
+
+  %else:
+    %if selectable:
+      <input type="image" style="cursor:crosshair;" name=""
+             src="${app.work_url + 'input_0.png'}" />
+    %else:
+      <img src="${app.work_url + 'input_0.png'}" />
+    %endif
+  %endif
+%endif
+  </div>
+</form>
+
+<%include file="footer.html" />
