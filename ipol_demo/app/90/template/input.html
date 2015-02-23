@@ -1,0 +1,17 @@
+<%include file="header.html" />
+
+This algoritm estimates the amount of noise (standard deviation) of the given image.<br/><br/>
+
+The test images are divided into three groups:<br/>
+<br/>
+<ul>
+<li>Raw images with white balance and gamma correction, downscaled by 2 to have one raw value (R, G, B) at each pixel. In the list, they are are refered to as "<b>WB+TC</b>".</li>
+<li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as "<b>no noise</b>".</li>
+<li>JPEG images, being denoised by JPEG at the first scales. In the list, they are refered to as "<b>JPEG</b>".</li>
+</ul>
+
+<%include file="input_form_select.html" />
+
+<%include file="input_form_upload.html" />
+
+<%include file="footer.html" />

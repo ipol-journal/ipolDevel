@@ -1,0 +1,13 @@
+<%include file="header.html" />
+
+<%include file="wait_info.html" />
+
+<hr />
+
+<div>
+  %for fname in input:
+  <img src="${app.work_url + fname}" alt="" />
+  %endfor
+</div>
+
+<%include file="footer.html" />
