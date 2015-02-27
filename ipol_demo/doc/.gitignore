@@ -1,0 +1,12 @@
+*.bst
+*.aux
+*.bbl
+*.blg
+*.log
+ipol.pdf
+*.lof
+*.toc
+
+# ignore backups
+*~
+
