@@ -674,6 +674,15 @@ class base_app(empty_app):
                 http.redir_303(self.base_url + "wait?key=%s" % ((self.key)))
             return
 
+    @cherrypy.expose
+    @init_app
+    def wait(self):
+        """
+        run redirection
+        """
+        http.refresh(self.base_url + 'run?key=%s' % self.key)
+        return self.tmpl_out("wait.html")
+
 
     #
     # ARCHIVE
