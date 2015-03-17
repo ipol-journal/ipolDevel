@@ -1,8 +1,8 @@
 """
-Percentile noise estimation IPOL demo web app
+Ponomarenko et al. IPOL demo web app
 
 Miguel Colom
-http://mcolom.perso.math.cnrs.fr/
+http://mcolom.info/
 """
 
 from lib import base_app, build, http, image
@@ -19,9 +19,9 @@ from math import sqrt
 
 
 class app(base_app):
-    """ Percentile noise estimation app """
+    """ Ponomarenko et al. noise estimation app """
 
-    title = "Analysis and Extension of the Percentile Method, " \
+    title = "Analysis and Extension of the Ponomarenko et al Method, " \
         + "Estimating a Noise Curve from a Single Image"
     input_nb = 1
     input_max_pixels = 5000 * 5000 # max size (in pixels) of an input image
@@ -31,7 +31,7 @@ class app(base_app):
     input_ext = '.png' # input image expected extension (ie file format)
     is_test = False
 
-    xlink_article = 'http://www.ipol.im/pub/art/2013/90/'
+    xlink_article = 'http://www.ipol.im/pub/art/2013/45/'
 
     def __init__(self):
         """
@@ -55,16 +55,16 @@ class app(base_app):
         """
         program build/update
         """
-        version = 1
-        zip_filename = 'percentile_v%d.zip' % ((version))
-        src_dir_name = 'percentile_v%d' % ((version))
-        prog_filename = 'percentile'
+        version = 4
+        zip_filename = 'ponomarenko_v%d.zip' % ((version))
+        src_dir_name = 'ponomarenko_v%d' % ((version))
+        prog_filename = 'ponomarenko'
         # store common file path in variables
         tgz_file = self.dl_dir + zip_filename
         prog_file = self.bin_dir + prog_filename
         log_file = self.base_dir + "build.log"
         # get the latest source archive
-        build.download('http://www.ipol.im/pub/art/2013/90/' + \
+        build.download('http://www.ipol.im/pub/art/2013/45/' + \
                        zip_filename, tgz_file)
 
         # test if the dest file is missing, or too old
@@ -82,14 +82,13 @@ class app(base_app):
             os.mkdir(self.bin_dir)
 
             # build the programs
-            programs = ('fnoise', 'subscale', 'percentile')
+            programs = ('fnoise', 'subscale', 'ponomarenko')
             for program in programs:
                 # build
                 build.run("make -j4 -C %s %s" %
                        (
-                         os.path.join(self.src_dir,
-                           src_dir_name, program),
-                           os.path.join(".", program)
+                         os.path.join(self.src_dir, src_dir_name, program),
+                         os.path.join(".", program)
                        ), stdout=log_file)
                 # move binary to bin dir
                 shutil.copy(os.path.join(self.src_dir, \
@@ -97,27 +96,21 @@ class app(base_app):
                                          program, program),
                             os.path.join(self.bin_dir, program))
 
-            # Move corrections and scripts to the base dir
-            dir_to = os.path.join(src_dir_name, src_dir_name, self.bin_dir)
-
-            from_dirs = ('per_corrections', '../scripts')
-            for from_dir in from_dirs:
-                dir_from = os.path.join(self.src_dir,
-                                        src_dir_name, prog_filename,
-                                        from_dir)
-                # Put them into bin, to prevent them from deletion
-                shutil.move(dir_from, dir_to)
+            # Move scripts to the base dir
+            corr_dirs = ['../scripts']
+            for corr_dir in corr_dirs:
+                shutil.move(os.path.join(self.src_dir, src_dir_name,    \
+                                         prog_filename, corr_dir), \
+                            os.path.join(src_dir_name, self.base_dir))
 
             # Give exec permission to the script
             os.chmod(
                      os.path.join(
-                                  src_dir_name, src_dir_name, \
-                                  self.bin_dir, \
+                                  src_dir_name, self.base_dir,
                                   "scripts", "writeNoiseCurve.sh"
                                  ),
-                     stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC | \
-                     stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP | \
-                     stat.S_IROTH)
+                     stat.S_IREAD | stat.S_IEXEC
+                    )
 
             # cleanup the source dir
             shutil.rmtree(self.src_dir)
@@ -127,48 +120,13 @@ class app(base_app):
     # PARAMETER HANDLING
     #
 
-
-    def select_subimage(self, x0, y0, x1, y1):
-        """
-        cut subimage from original image
-        """
-        # draw selected rectangle on the image
-        imgS = image(self.work_dir + 'input_0.png')
-        imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
-                       color="red")
-        imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
-                        (x0+1, y1-1), (x0+1, y0+1)], color="white")
-        imgS.save(self.work_dir + 'input_0s.png')
-        # crop the image
-        # try cropping from the original input image
-        # (if different from input_1)
-        im0 = image(self.work_dir + 'input_0.orig.png')
-        dx0 = im0.size[0]
-        img = image(self.work_dir + 'input_0.png')
-        dx = img.size[0]
-        if (dx != dx0) :
-            z = float(dx0)/float(dx)
-            im0.crop((int(x0*z), int(y0*z), int(x1*z), int(y1*z)))
-            # resize if cropped image is too big
-            if (self.input_max_pixels
-                and prod(im0.size) > self.input_max_pixels):
-                im0.resize(self.input_max_pixels, method="antialias")
-            img = im0
-        else :
-            img.crop((x0, y0, x1, y1))
-        # save result
-        img.save(self.work_dir + 'input_0.sel.png')
-        return
-
-
     @cherrypy.expose
     @init_app
     def params(self, newrun=False, msg=None, \
                x0=None, y0=None, x1=None, y1=None, \
-               percentile=None, operator=None, block=None, \
+               percentile=None, block=None, \
                curvefilter=None, removeequals=None, bins=None, \
-               anoise=None, bnoise=None, correction=None, \
-               removeoutliers=None, scales=None):
+               anoise=None, bnoise=None, mean_type=None):
         """
         configure the algo execution
         """
@@ -179,161 +137,17 @@ class app(base_app):
         if x0:
             self.select_subimage(int(x0), int(y0), int(x1), int(y1))
 
+        perc_val = float(percentile) if percentile is not None else 0.005
         return self.tmpl_out("params.html",
                              msg=msg, x0=x0, y0=y0, x1=x1, y1=y1, \
-                             percentile=percentile,
-                             operator=operator, \
+                             percentile='%.4f' % perc_val, \
                              block=block, \
                              curvefilter=curvefilter, \
                              removeequals=removeequals, \
                              bins=bins, \
-                             correction=correction, \
-                             removeoutliers=removeoutliers, \
-                             scales=scales, \
                              anoise=anoise, \
-                             bnoise=bnoise)
-
-    @cherrypy.expose
-    @init_app
-    def rectangle(self, action=None, percentile=None, \
-                  operator=None, block=None, curvefilter=None, \
-                  bins=None, removeequals=None, correction=None, \
-                  removeoutliers=None, scales=None, \
-                  anoise=None, bnoise=None, \
-                  x=None, y=None, x0=None, y0=None):
-        """
-        params handling 
-        """
-        if action == 'run':
-            if x == None:
-                #save parameters
-                try:
-                    self.cfg['param'] = {
-                                         'percentile':percentile, \
-                                         'operator':operator, \
-                                         'block':block, \
-                                         'curvefilter':curvefilter, \
-                                         'removeequals':removeequals, \
-                                         'bins':bins, \
-                                         'correction':correction, \
-                                         'removeoutliers':removeoutliers, \
-                                         'scales':scales, \
-                                         'anoise':anoise, \
-                                         'bnoise':bnoise
-                                         }
-                    self.cfg.save()
-                except ValueError:
-                    return self.error(errcode='badparams',
-                                      errmsg="Incorrect values.")
-            else:
-                #save parameters
-                try:
-                    self.cfg['param'] = {
-                                         'percentile':percentile, \
-                                         'operator':operator, \
-                                         'block':block, \
-                                         'curvefilter':curvefilter, \
-                                         'removeequals':removeequals, \
-                                         'bins':bins, \
-                                         'correction':correction, \
-                                         'removeoutliers':removeoutliers, \
-                                         'scales':scales, \
-                                         'anoise':anoise, \
-                                         'bnoise':bnoise, \
-                                         'x0' : int(x0),
-                                         'y0' : int(y0),
-                                         'x1' : int(x),
-                                         'y1' : int(y)}
-                    self.cfg.save()
-                except ValueError:
-                    return self.error(errcode='badparams',
-                                      errmsg="Incorrect parameters.")
-        
-            # use the whole image if no subimage is available
-            try:
-                img = image(self.work_dir + 'input_0.sel.png')
-            except IOError:
-                if self.input_copy_png:
-                    shutil.copy(self.work_dir + 'input_0.png',
-                                self.work_dir + 'input_0.sel.png')
-                else:
-                    img = image(self.work_dir + 'input_0.png')
-                    img.save(self.work_dir + 'input_0.sel.png')
-
-            # go to the wait page, with the key
-            http.redir_303(self.base_url + "wait?key=%s" % self.key)
-            return
-        else:
-            # use a part of the image
-            if x0 == None:
-                # first corner selection
-                x = int(x)
-                y = int(y)
-                # draw a cross at the first corner
-                img = image(self.work_dir + 'input_0.png')
-                img.draw_cross((x, y), size=4, color="white")
-                img.draw_cross((x, y), size=2, color="red")
-                img.save(self.work_dir + 'input.png')
-                return self.tmpl_out("params.html", \
-                                      percentile=percentile, \
-                                      operator=operator, \
-                                      block=block, \
-                                      curvefilter=curvefilter, \
-                                      removeequals=removeequals, \
-                                      bins=bins, \
-                                      correction=correction, \
-                                      removeoutliers=removeoutliers, \
-                                      scales=scales, \
-                                      anoise=anoise, \
-                                      bnoise=bnoise, \
-                                      x0=x, y0=y)
-            else:
-                # second corner selection
-                x0 = int(x0)
-                y0 = int(y0)
-                x1 = int(x)
-                y1 = int(y)
-                # reorder the corners
-                (x0, x1) = (min(x0, x1), max(x0, x1))
-                (y0, y1) = (min(y0, y1), max(y0, y1))
-                assert (x1 - x0) > 0
-                assert (y1 - y0) > 0
-                #save parameters
-                try:
-                    self.cfg['param'] = {
-                                         'percentile':percentile, \
-                                         'operator':operator, \
-                                         'block':block, \
-                                         'curvefilter':curvefilter, \
-                                         'removeequals':removeequals, \
-                                         'bins':bins, \
-                                         'correction':correction, \
-                                         'removeoutliers':removeoutliers, \
-                                         'scales':scales, \
-                                         'anoise':anoise, \
-                                         'bnoise':bnoise, \
-                                         'x0' : x0,
-                                         'y0' : y0,
-                                         'x1' : x1,
-                                         'y1' : y1}
-                    self.cfg.save()
-                except ValueError:
-                    return self.error(errcode='badparams',
-                                      errmsg="Incorrect parameters.")
-                #select subimage
-                self.select_subimage(x0, y0, x1, y1)
-                # go to the wait page, with the key
-                http.redir_303(self.base_url + "wait?key=%s" % self.key)
-            return
-
-    @cherrypy.expose
-    @init_app
-    def wait(self):
-        """
-        run redirection
-        """
-        http.refresh(self.base_url + 'run?key=%s' % self.key)
-        return self.tmpl_out("wait.html")
+                             bnoise=bnoise, \
+                             mean_type=mean_type)
 
     @cherrypy.expose
     @init_app
@@ -344,22 +158,20 @@ class app(base_app):
 
         # read the parameters
         percentile = self.cfg['param']['percentile']
-        operator = self.cfg['param']['operator']
         block = self.cfg['param']['block']
         curvefilter = self.cfg['param']['curvefilter']
         removeequals = self.cfg['param']['removeequals']
         bins = self.cfg['param']['bins']
-        correction = self.cfg['param']['correction']
-        removeoutliers = self.cfg['param']['removeoutliers']
-        scales = self.cfg['param']['scales']
         anoise = self.cfg['param']['anoise']
         bnoise = self.cfg['param']['bnoise']
+        mean_type = self.cfg['param']['mean_type']
+
         # run the algorithm
         try:
             run_time = time.time()
-            self.run_algo(percentile, operator, \
-                          block, curvefilter, bins, removeequals, \
-                          correction, removeoutliers, anoise, bnoise)
+            self.run_algo(percentile, \
+                          block, curvefilter, removeequals, bins, \
+                          anoise, bnoise, mean_type)
             self.cfg['info']['run_time'] = time.time() - run_time
             self.cfg.save()
         except TimeoutError:
@@ -376,16 +188,13 @@ class app(base_app):
             ar.add_file("input_0.sel.png", info="selected subimage")
             #
             ar.add_info({"percentile": percentile})
-            ar.add_info({"operator": operator})
             ar.add_info({"block": block})
             ar.add_info({"curvefilter": curvefilter})
-            ar.add_info({"bins": bins})
             ar.add_info({"removeequals": removeequals})
-            ar.add_info({"correction": correction})
-            ar.add_info({"removeoutliers": removeoutliers})
-            ar.add_info({"scales": scales})
+            ar.add_info({"bins": bins})
             ar.add_info({"anoise": anoise})
             ar.add_info({"bnoise": bnoise})
+            ar.add_info({"mean_type": mean_type})
             #
             ar.save()
         return self.tmpl_out("run.html")
@@ -538,15 +347,13 @@ class app(base_app):
         f.close()
 
 
-    def run_algo(self, percentile, operator, block, \
-                 curvefilter, bins, removeequals, correction, removeoutliers, \
-                 anoise, bnoise, timeout=False):
+    def run_algo(self, percentile, block, \
+                 curvefilter, removeequals, bins, \
+                 anoise, bnoise, mean_type, timeout=False):
         """
         the core algo runner
         could also be called by a batch processor
         """
-
-        removeoutliers = removeoutliers # Avoid pylint warning
 
         # Increment the number of bins, since the last will be
         # removed later
@@ -600,6 +407,7 @@ class app(base_app):
                 procDesc = self.run_proc(procOptions)
                 self.wait_proc(procDesc, timeout*0.8)
 
+
         # Estimate the noise, in parallel,
         processes = []
         fds = []
@@ -612,23 +420,25 @@ if bins == 0 else bins / 2**scale)
 
             # Estimate noise
             fd = open(self.work_dir + 'estimation_s%d.txt' % scale, "w")
-            #
-            correction_type = correction
+            if percentile < 0:
+                percentile = 0 # Use algorithm's K
 
-            param_remove_equals = '-r' if \
-              removeequals == 1 else '-g%d' % curvefilter
-         
-            procOptions = ['percentile', \
+            procOptions = ['ponomarenko', \
                            '-p%.4f' % percentile , \
                            '-b%d' % num_bins, \
-                           '-w%d' % block , \
-                           '-f%d' % operator, \
-                           '-g%d' % curvefilter, \
-                           param_remove_equals,
-                           '-c%d' % correction_type, \
-                           '-e%s' % os.path.join(self.bin_dir, \
-                                 'per_corrections'), \
-                         'scale_s%d.rgb' % scale]
+                           '-w%d' % block, \
+                           '-m%d' % mean_type, \
+                           '-g%d' % curvefilter]
+            #          
+            if removeequals == 1:
+                procOptions.append('-r')
+            #
+            procOptions.append('scale_s%d.rgb' % scale)
+
+            # Run
+            #pid = self.run_proc(procOptions, stdout=fd, stderr=fd)
+            #self.wait_proc(pid, timeout*0.8)
+            #fd.close()
 
             processes.append(self.run_proc(procOptions, stdout=fd, stderr=fd))
             fds.append(fd)
@@ -636,7 +446,7 @@ if bins == 0 else bins / 2**scale)
         # Wait for the parallel processes to end
         self.wait_proc(processes, timeout*0.8)
 
-        # Close file descriptors
+        # Close the file descriptors
         for fd in fds:
             fd.close()
 
@@ -661,7 +471,7 @@ if bins == 0 else bins / 2**scale)
             num_channels = self.get_num_channels(estimation_filename)
 
             # Generate figure
-            procOptions = [os.path.join(self.bin_dir, \
+            procOptions = [os.path.join(self.base_dir, \
                            'scripts', \
                            'writeNoiseCurve.sh'), \
                            'estimation_s%d.txt' % scale, \
@@ -679,7 +489,7 @@ if bins == 0 else bins / 2**scale)
         # Cleanup
         for i in range(num_scales):
             os.unlink(self.work_dir + 'scale_s%d.rgb' % ((i)))
-        
+
     @cherrypy.expose
     @init_app
     def result(self):
@@ -689,16 +499,14 @@ if bins == 0 else bins / 2**scale)
 
         # read parameters
         percentile = self.cfg['param']['percentile']
-        operator = self.cfg['param']['operator']
         block = self.cfg['param']['block']
         curvefilter = self.cfg['param']['curvefilter']
         removeequals = self.cfg['param']['removeequals']
         bins = self.cfg['param']['bins']
-        correction = self.cfg['param']['correction']
-        removeoutliers = self.cfg['param']['removeoutliers']
         scales = self.cfg['param']['scales']
         anoise = self.cfg['param']['anoise']
         bnoise = self.cfg['param']['bnoise']
+        mean_type = self.cfg['param']['mean_type']
         RMSEs = self.cfg['param']['rmses']
 
         try:
@@ -721,18 +529,17 @@ if bins == 0 else bins / 2**scale)
         (sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size
         zoom_factor = None
 
+        perc_val = float(percentile) if percentile is not None else 0.005
         return self.tmpl_out("result.html",
-                             percentile=percentile, \
-                             operator=operator, \
+                             percentile='%.4f' % perc_val, \
                              block=block, \
                              curvefilter=curvefilter, \
-                             removeequals=removeequals,
+                             removeequals=removeequals, \
                              bins=bins, \
-                             correction=correction, \
-                             removeoutliers=removeoutliers, \
                              scales=scales, \
                              anoise=anoise, \
                              bnoise=bnoise, \
+                             mean_type=mean_type, \
                              RMSEs=RMSEs, \
                              x0=x0, y0=y0, x1=x1, y1=y1, \
                              sizeX=sizeX, sizeY=sizeY, \
