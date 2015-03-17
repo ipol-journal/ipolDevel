@@ -1,11 +1,9 @@
 <%include file="header-jquery.html" />
 
-<script type="text/javascript">
-<%include file="js/createlinkedslider.js" />
-</script>
+<script type="text/javascript" src="http://demo.ipol.im/demo/js/createlinkedslider.js"></script>
 
 <p> 
-Percentile Signal-dependent Noise Estimation Algorithm.
+Ponomarenko signal-dependent noise estimation algorithm.
 </p>
 
 <br />
@@ -18,34 +16,12 @@ Percentile Signal-dependent Noise Estimation Algorithm.
 - <b>Percentile</b>:
     <select name="percentile">
 <%
-contents = (('0.0001', '0.01%'), ('0.0010', '0.1%'), ('0.0050', '0.5%'), ('0.0500', '5%'), ('0.1000', '10%'), ('0.5000', '50%'))
+contents = (('-999.999', "Auto (algorithm's K)"), ('0.0001', '0.01%'), ('0.0010', '0.1%'), ('0.0050', '0.5%'), ('0.0500', '5%'), ('0.1000', '10%'), ('0.5000', '50%'))
 
 try:
-   sel = '%.4f' % percentile
+   sel = '%.4f' % float(percentile)
 except Exception:
    sel = '0.0050'
-%>
-
-%for i in range(len(contents)):
-<%
-  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
-%>
-      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
-%endfor
-    </select>
-    <br/>
-
-
-<!-- Prefilter operator -->
-- <b>Pre-filter operator</b>: 
-    <select name="operator">
-<%
-contents = ((8, 'Identity (without prefiltering)'), (0, 'Directional derivative'), (1, 'Laplacian'), (2, 'Laplacian, 2 iterations'), (3 ,'Laplacian, 3 iterations'), (4 ,'Laplacian, 4 iterations'), (5 ,'DCT with support 7x7'), (6 ,'DCT with support 5x5'), (7 ,'DCT with support 3x3'), (9, 'FNVE article'))
-
-try:
-   sel = int(operator)
-except Exception:
-   sel = 5
 %>
 
 %for i in range(len(contents)):
@@ -61,12 +37,33 @@ except Exception:
 - <b>Block size</b>: 
     <select name="block">
 <%
-contents = ((3,'3 x 3'), (7,'7 x 7'), (8,'8 x 8'), (15,'15 x 15'), (21,'21 x 21'))
+contents = ((3,'3 x 3'), (5,'5 x 5'), (7,'7 x 7'), (8,'8 x 8'), (11,'11 x 11'), (15,'15 x 15'), (21,'21 x 21'))
 
 try:
    sel = int(block)
 except Exception:
-   sel = 21
+   sel = 8
+%>
+
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>
+    <br/>
+
+<!-- Mean type -->
+- <b>Mean of blocks computation</b>: 
+    <select name="mean_type">
+<%
+contents = ((1,'Mean'), (2,'Median'))
+
+try:
+   sel = int(mean_type)
+except Exception:
+   sel = 2
 %>
 
 %for i in range(len(contents)):
@@ -120,9 +117,6 @@ except Exception:
     </select>
     <br/>
 
-<!-- Remove outliers inside each bin -->
-<input type="hidden" name="removeoutliers" value="0">
-
 <!-- number of bins -->
 - <b>Number of bins</b> (0 = automatic selection):
 <%
@@ -147,27 +141,6 @@ $(document).ready(function() {
 </script>
 <div style="clear:both"> </div>
 <!-- end of code for slider -->
-
-<!-- Correction type -->
-- <b>Correction</b>: 
-    <select name="correction">
-<%
-contents = ((0,'None'), (1,'Percentile compensation'))
-
-try:
-   sel = int(correction)
-except Exception:
-   sel = 1
-%>
-
-%for i in range(len(contents)):
-<%
-  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
-%>
-      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
-%endfor
-    </select>
-    <br/>
 
 <!-- Additional noise level -->
 <%
@@ -213,9 +186,6 @@ $(document).ready(function() {
 <div style="clear:both"> </div>
 <!-- end of code for slider -->
 
-<!-- Number of scales -->
-<input type="hidden" name="scales" value="4">
-
 %if x0 and y0 and x1 and y1:
     <input type="hidden" name="x0" value="${x0}">
     <input type="hidden" name="y0" value="${y0}">
@@ -231,29 +201,19 @@ $(document).ready(function() {
       <input type="submit" name="action" value="run" />
     </p>
     <p>
-    %if selectable:
-      Or you can run it after selecting a subimage, 
-      by clicking on two opposite corners of the sub-image.
-    %endif
+    Or you can run it after selecting a subimage, 
+    by clicking on two opposite corners of the sub-image.
     </p>
   %if x0 and y0:
     <input type="hidden" name="x0" value="${x0}">
     <input type="hidden" name="y0" value="${y0}">
 
-    %if selectable:
-      <input type="image" style="cursor:crosshair;" name=""
+    <input type="image" style="cursor:crosshair;" name=""
              src="${app.work_url + 'input.png?xy=%i,%i' % (x0, y0)}" />
-    %else:
-      <img src="${app.work_url + 'input.png?xy=%i,%i' % (x0, y0)}" />
-    %endif
 
   %else:
-    %if selectable:
-      <input type="image" style="cursor:crosshair;" name=""
+    <input type="image" style="cursor:crosshair;" name=""
              src="${app.work_url + 'input_0.png'}" />
-    %else:
-      <img src="${app.work_url + 'input_0.png'}" />
-    %endif
   %endif
 %endif
   </div>
