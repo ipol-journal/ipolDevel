@@ -126,7 +126,7 @@ class app(base_app):
                x0=None, y0=None, x1=None, y1=None, \
                percentile=None, block=None, \
                curvefilter=None, removeequals=None, bins=None, \
-               anoise=None, bnoise=None, mean_type=None, prueba=None):
+               anoise=None, bnoise=None, mean_type=None):
         """
         configure the algo execution
         """
@@ -147,8 +147,7 @@ class app(base_app):
                              bins=bins, \
                              anoise=anoise, \
                              bnoise=bnoise, \
-                             mean_type=mean_type, \
-                             prueba=prueba)
+                             mean_type=mean_type)
 
     @cherrypy.expose
     @init_app
