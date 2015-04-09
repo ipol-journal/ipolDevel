@@ -4,5 +4,13 @@
   ${msg | h}
 </p>
 
+<b>Stack dump follows:</b><br>
+<br>
+
+%for traceback_line in traceback:
+${traceback_line}<br>
+%endfor
+
+
 <%include file="footer.html" />
 

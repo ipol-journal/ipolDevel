@@ -493,7 +493,9 @@ class base_app(empty_app):
                 'returncode' : 'Error: execution failed. '}
         msg = msgd.get(errcode, 'Error: an unknown error occured. ') + errmsg
 
-        return self.tmpl_out("error.html", msg=msg)
+        # Extract stack calls to print them in the error template
+        tb = traceback.extract_stack()
+        return self.tmpl_out("error.html", msg=msg, traceback=tb)
 
     #
     # PARAMETER HANDLING
