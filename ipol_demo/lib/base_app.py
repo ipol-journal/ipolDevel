@@ -7,6 +7,7 @@ includes interaction and rendering
 
 import shutil
 from mako.lookup import TemplateLookup
+import traceback
 import cherrypy
 import os.path
 import math
