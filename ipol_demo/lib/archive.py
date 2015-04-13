@@ -253,12 +253,18 @@ def _add_record(cursor, ar):
                                   info=ar.cfg['fileinfo'].get(fname, '')))
                             for fname in filter(_filter_listdir,
                                                 os.listdir(ar.path))])
-    # reorder the files
+
+    # sort files
     files = []
-    try:
-        files = [unordered_files.pop(fname)
-                 for fname in ar.cfg['meta'].get('files', '').split()]
-    except KeyError:
+    missing = False
+    for fname in ar.cfg['meta'].get('files', '').split():
+        if fname in unordered_files:
+            my_file = unordered_files.pop(fname)
+            files.append(my_file)
+        else:
+            missing = True
+
+    if missing:
         cherrypy.log("missing archive file in %s" % (ar.path),
                      context='DEBUG', traceback=False)
 
@@ -275,6 +281,7 @@ def _add_record(cursor, ar):
                     int(ar.cfg['meta'].get('public', True)),
                     pickle.dumps((files, meta, info))))
     return
+
 
 def index_rebuild(indexdb, path):
     """
