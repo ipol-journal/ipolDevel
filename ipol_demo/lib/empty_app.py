@@ -206,12 +206,25 @@ class empty_app(object):
         newenv = os.environ.copy()
         # add local environment settings
         newenv.update(env)
+
         # TODO clear the PATH, hard-rewrite the exec arg0
         # TODO use shell-string execution
-        newenv.update({'PATH' : self.bin_dir})
+
+        # Add PATH in configuration
+        path = self.bin_dir
+        if 'PATH' in env:
+            path = path + ":" + env['PATH']
+        # Check if there are extra paths (for example, for MATLAB)
+        if 'server.extra_path' in cherrypy.config:
+            path = path + ":" + cherrypy.config['server.extra_path']
+        #
+        newenv.update({'PATH' : path})
+
         # run
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
                      env=newenv, cwd=self.work_dir)
+
+
 
     @staticmethod
     def wait_proc(process, timeout=False):
