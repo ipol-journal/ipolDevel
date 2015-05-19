@@ -342,8 +342,12 @@ class base_app(empty_app):
             threads = []
             # save a working copy:
             if self.input_ext != ".png":
-                threads.append(threading.Thread(target=self.save_image,
-                               args = (im_converted, self.work_dir + 'input_%i' % i + self.input_ext)))
+                # Problem with PIL or our image class: this call seems to be
+                # problematic when saving PGM files. Not reentrant?? In any
+                # case, avoid calling it from a thread.
+                #threads.append(threading.Thread(target=self.save_image,
+                #               args = (im_converted, self.work_dir + 'input_%i' % i + self.input_ext)))
+                self.save_image(im_converted, self.work_dir + 'input_%i' % i + self.input_ext)
 
             # save a web viewable copy
             threads.append(threading.Thread(target=self.save_image,
