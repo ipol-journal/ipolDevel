@@ -131,6 +131,16 @@ class empty_app(object):
         self.cfg.setdefault('info', {})
         self.cfg.setdefault('meta', {})
 
+    def get_MATLAB_path(self):
+        '''
+        Getter for the MATLAB path
+        '''
+        if 'demo.matlab_path' in cherrypy.config:
+            return cherrypy.config['demo.matlab_path']
+        else:
+            return None
+
+
     #
     # UPDATE
     #
@@ -212,18 +222,23 @@ class empty_app(object):
 
         # Add PATH in configuration
         path = self.bin_dir
-        if 'PATH' in env:
-            path = path + ":" + env['PATH']
-        # Check if there are extra paths (for example, for MATLAB)
-        if 'server.extra_path' in cherrypy.config:
-            path = path + ":" + cherrypy.config['server.extra_path']
+        # Check if there are extra paths
+        if 'demo.extra_path' in cherrypy.config:
+            p = cherrypy.config['demo.extra_path']
+            path = path + ":" + p
+        #
+        p = self.get_MATLAB_path()
+        if p is None:
+            cherrypy.log("warning: MATLAB path directory %s does not exist" % p,
+                         context='SETUP/%s' % self.id, traceback=False)
+        else:
+            path = path + ":" + p
         #
         newenv.update({'PATH' : path})
 
         # run
         return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
                      env=newenv, cwd=self.work_dir)
-
 
 
     @staticmethod
