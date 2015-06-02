@@ -59,7 +59,7 @@ def mtime(path, fmt="struct"):
 # GZIP
 #
 
-def gzip(fname_in, fname_out=None):
+def gzip(fname_in, fname_out=None, delete=True):
     """
     compress a file with gzip, like the command-line utility
     """
@@ -73,10 +73,11 @@ def gzip(fname_in, fname_out=None):
     f_out.close()
     f_in.close()
     # delete fname_in
-    os.unlink(fname_in)
+    if delete:
+        os.unlink(fname_in)
     return
 
-def gunzip(fname_in, fname_out=None):
+def gunzip(fname_in, fname_out=None, delete=True):
     """
     uncompress a file with gzip, like the command-line utility
     """
@@ -91,5 +92,7 @@ def gunzip(fname_in, fname_out=None):
     f_out.close()
     f_in.close()
     # delete fname_in
-    os.unlink(fname_in)
+    if delete:
+        os.unlink(fname_in)
     return
+
