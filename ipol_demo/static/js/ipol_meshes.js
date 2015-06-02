@@ -1,151 +1,172 @@
 // IPOL meshes API
-// By Miguel Colom, 2014
+// By Miguel Colom - http://mcolom.info
 
 // Global variables
-var container, stats;
-var camera_light;
-
-var camera, scene, renderer;
+var container = [];
+var camera_light = [];
+var camera = [];
+var scene = [];
+var renderer = [];
+var controls = [];
 
 var mouseX = 0, mouseY = 0;
+var current_i;
 
 var windowHalfX = window.innerWidth;
 var windowHalfY = window.innerHeight;
 
 var init_cam_pos = [0, 0, 0];
 
-// Mesh initialization
-function init_mesh(div_id, init_cam_pos, obj_filename) {
-  //container = document.createElement( 'div' );
-  container = document.getElementById(div_id);
-  //document.body.appendChild( container );
-
-  scene = new THREE.Scene();
-
-  var aspect_ratio = 1;
-
-  //camera = new THREE.PerspectiveCamera( 45, aspect_ratio, 1, 2000);
-  camera = new THREE.PerspectiveCamera( 35, aspect_ratio, 0.1, 10000);
-
-                
-  // These variables set the camera behaviour and sensitivity.
-  controls = new THREE.TrackballControls( camera, container );
-  controls.rotateSpeed = 0.5;
-  controls.zoomSpeed = 5;
-  controls.panSpeed = 2;
-  controls.noZoom = false;
-  controls.noPan = true;
-  controls.staticMoving = true;
-  controls.dynamicDampingFactor = 0.3;
-                
-  scene.add( camera );
-
-  var ambient = new THREE.AmbientLight(0x080808);
-  scene.add(ambient);
-  scene.add(ambient.target);
-
-
-  light_intensity = 0.6;
-  light_distance = 0;
-  camera_light = new THREE.PointLight(0xffffff, light_intensity, light_distance);
-  camera_light.position.set( 0, 0, 1 ).normalize();
-  scene.add( camera_light );
-  scene.add( camera_light.target );
-
+function init(divs, init_cam_pos, obj_filenames) {
   var loader = new THREE.OBJLoader();
-  //var loader = new THREE.PLYLoader();
-  loader.load( obj_filename, function ( object ) {
-               scene.add( object );
+
+  for (i in divs) {
+    container.push(document.getElementById(divs[i]));
+
+    // New scene
+    scene.push(new THREE.Scene());
+
+    // Cameras
+    camera.push(new THREE.PerspectiveCamera( 45, aspect_ratio, 0.001, 300000));
+    scene[i].add( camera[i] );
+
+    // These variables set the camera behaviour and sensitivity.
+    var aspect_ratio = 1;
+    controls.push(new THREE.TrackballControls( camera[i], container[0] ));
+    controls[i].rotateSpeed = 1.0;
+    controls[i].zoomSpeed = 5;
+    controls[i].panSpeed = 2;
+    controls[i].noZoom = false;
+    controls[i].noPan = false;
+    controls[i].staticMoving = true;
+    controls[i].dynamicDampingFactor = 0.3;
+    controls[i].maxPolarAngle = Math.PI*2;
+
+    // Scene lights
+    var ambient = new THREE.AmbientLight( 0x101030 );
+    scene[i].add(ambient);
+
+    var light_intensity = 0.5;
+    var light_distance = 0;
+    camera_light.push(new THREE.PointLight(0xffeedd, light_intensity, light_distance));
+    camera_light[i].position.set( 0, 0, 1 ).normalize();
+    scene[i].add( camera_light[i] );
+
+    // ToDo: look for a way to do this in a while, instead of the following switch!
+    /*loader.load( obj_filenames[i], function ( ojb ) {
+                  ojb.position.y = - 0;
+                  scene[i].add( ojb );
+              } );*/
+  }
+
+  switch (obj_filenames.length) {
+    case 4:
+      loader.load( obj_filenames[3], function ( ojb ) {
+                    ojb.position.y = - 0;
+                    scene[3].add( ojb );
                 } );
+    case 3:
+      loader.load( obj_filenames[2], function ( ojb ) {
+                    ojb.position.y = - 0;
+                    scene[2].add( ojb );
+                } );
+    case 2:
+      loader.load( obj_filenames[1], function ( ojb ) {
+                    ojb.position.y = - 0;
+                    scene[1].add( ojb );
+                } );
+    case 1:
+      loader.load( obj_filenames[0], function ( ojb ) {
+                    ojb.position.y = - 0;
+                    scene[0].add( ojb );
+                } );
+  }
 
-  // RENDERER
-  renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+  for (i in divs) {
+    // Renderer
+    renderer.push(new THREE.WebGLRenderer());
+    renderer[i].setSize(container[i].clientWidth, container[i].clientHeight);
+    container[i].appendChild( renderer[i].domElement );
 
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild( renderer.domElement );
-
-  // Event listeners
-  //window.addEventListener('resize', onWindowResize, false );
-
-  camera.position.x = init_cam_pos[0];
-  camera.position.y = init_cam_pos[1];
-  camera.position.z = init_cam_pos[2];
-
-  //camera.lookAt(scene.position);
-  camera.lookAt([0,0,0]);
+    // Setup camera positions and make them look to the center of the scene
+    camera[i].position.x = init_cam_pos[0];
+    camera[i].position.y = init_cam_pos[1];
+    camera[i].position.z = init_cam_pos[2];
+    camera[i].lookAt(scene[0].position);
+  }
 }
 
 
-// Scene animation
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
+  for (i in container) {
+    controls[i].update();
+  }
   render();
 }
 
-// Scene rendering
+
 function render() {
-  //camera.position.x += ( mouseX - camera.position.x ) * .05;
-  //camera.position.y += ( - mouseY - camera.position.y ) * .05;
-
-  camera_light.position = camera.position;
-
-  renderer.render(scene, camera);
+  for (var i in container) {
+    camera_light[i].position = camera[0].position;
+    renderer[i].render(scene[i], camera[i]);
+  }
 }
+
 
 // API
 
-// Reset camera position
 function camera_reset() {
-  camera.position.x = init_cam_pos[0];
-  camera.position.y = init_cam_pos[1];
-  camera.position.z = init_cam_pos[2];
+  for (var i in container) {
+    camera[i].position.x = init_cam_pos[0];
+    camera[i].position.y = init_cam_pos[1];
+    camera[i].position.z = init_cam_pos[2];
+  }
 }
 
-// Getter for the camera position
-function get_camera_position() {
-  return camera.position;
+function get_camera_position(i) {
+  return camera[i].position;
 }
 
-// Functions to control camera and scene positions
 function camera_add_x(inc) {
-  camera.position.x += inc;
+  for (var i in container) {
+    camera[i].position.x += inc;
+  }
 }
 
 function camera_add_y(inc) {
-  camera.position.y += inc;
+  for (var i in container) {
+    camera[i].position.y += inc;
+  }
 }
 
 function camera_add_z(inc) {
-  camera.position.z += inc;
+  for (var i in containe) {
+    camera[i].position.z += inc;
+  }
 }
 
 function scene_add_x(inc) {
-  scene.position.x += inc;
+  for (var i in containe) {
+    scene[i].position.x += inc;
+  }
 }
 
 function scene_add_y(inc) {
-  scene.position.y += inc;
+  for (var i in containe) {
+    scene[i].position.y += inc;
+  }
 }
 
 function scene_add_z(inc) {
-  scene.position.z += inc;
+  for (var i in containe) {
+    scene[i].position.z += inc;
+  }
 }
 
-// Event listener
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  controls.handleResize();
-}
-
-// IPOL entry point
-function ipol_start_mesh(div_id, pinit_cam_pos, obj_filename) {
+function ipol_start_mesh(divs, pinit_cam_pos, obj_filenames) {
   init_cam_pos = pinit_cam_pos;
-
-  init_mesh(div_id, pinit_cam_pos, obj_filename);
+  init(divs, pinit_cam_pos, obj_filenames);
   animate();
 }
 
