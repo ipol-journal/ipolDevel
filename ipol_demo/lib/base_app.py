@@ -499,7 +499,8 @@ class base_app(empty_app):
         msg = msgd.get(errcode, 'Error: an unknown error occured. ') + errmsg
 
         # Extract stack calls to print them in the error template
-        tb = traceback.extract_stack()
+        # In case of a timeout, don't print the traceback
+        tb = traceback.extract_stack() if errcode != "timeout" else None
         return self.tmpl_out("error.html", msg=msg, traceback=tb)
 
     #
