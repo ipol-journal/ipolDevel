@@ -2,7 +2,7 @@ BLOB (Binary Large OBject) module
 
 Introduction:
 
-In the context of IPOL project, this module aims to create a new system of magement file
+In the context of IPOL project, this module aims to create a new system of management file
 for demo.
 
 This module is divided in three parts following MVC pattern:
@@ -45,6 +45,7 @@ final directory, where files are stored.
 The shell script init allows to reset an empty database and to remove temporary
 and final directories.
 
-Usage of this script: ./init.sh blobs.conf
+Usage of this script: ./init [-g] blobs.conf
 
-
+      -g (git option)
+		remove blob.db file

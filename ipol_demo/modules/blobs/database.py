@@ -5,14 +5,17 @@
 This file implements database class
 """
 
+import inspect
 import sqlite3 as lite
+from error import DatabaseInsertError, DatabaseSelectError, \
+DatabaseDeleteError, DatabaseError
 
 class   Database(object):
     """
     This class implements database management
     The database architecture is defined in file /db/blob.sql
     """
-    def __init__(self, ptr):
+    def __init__(self, name):
         """
         Initialize database class
         Connect to databse
@@ -21,31 +24,36 @@ class   Database(object):
         :type ptr: string
         """
         self.formats = ('audio', 'image', 'video')
-        self.db = lite.connect(ptr, check_same_thread=False)
-        self.cursor = self.db.cursor()
-        self.initTagsColumn()
+        self.database = lite.connect(name, check_same_thread=False)
+        self.database.isolation_level = None
+        self.cursor = self.database.cursor()
+        self.init_tags_column()
 
-    def addAppInDatabase(self, app):
+    def add_demo_in_database(self, demo):
         """
-        Add name app in app column in database
+        Add name demo in demo column in database
 
-        :param app: name app
-        :type app: string
-        :return: id app in database
+        :param demo: name demo
+        :type demo: string
+        :return: id demo in database
         :rtype: integer (primary key autoincrement)
         """
-        self.cursor.execute("INSERT INTO app(name) VALUES(?)", (app,))
+        try:
+            self.cursor.execute("INSERT INTO demo(name) VALUES(?)", (demo,))
+        except self.database.Error:
+            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
         return self.cursor.lastrowid
 
-    def addBlobInDatabase(self, appid, hash_blob, fileformat, tags, blobid=-1):
+    def add_blob_in_database(self, demoid, hash_blob, fileformat,
+                             tags, blobid=-1):
         """
         Add hash blob content and format blob in blob column in database
-        Add blob and app ids in column blob_app in database
+        Add blob and demo ids in column blob_demo in database
         (necesary for many to many in DBMS)
         Add also tags in database : call addTagsInDatabase function
 
-        :param appid: app id in database
-        :type appid: integer (primary key autoincrement)
+        :param demoid: demo id in database
+        :type demoid: integer (primary key autoincrement)
         :param hash_blob: hash content blob
         :type hash_blob: string
         :param fileformat: type format of blob
@@ -57,154 +65,206 @@ class   Database(object):
         :type blobid: integer
         """
         if blobid == -1:
-            self.cursor.execute("INSERT INTO blob(hash, format) VALUES(?, ?)",
-                                (hash_blob, fileformat,))
-            blobid = self.cursor.lastrowid
+            try:
+                self.cursor.execute('''
+                INSERT INTO blob(hash, format)
+                VALUES(?, ?)''', \
+                (hash_blob, fileformat,))
+                blobid = self.cursor.lastrowid
+            except self.database.Error:
+                raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
-        self.cursor.execute("INSERT OR REPLACE INTO blob_app(id_blob, id_app) VALUES(?, ?)",
-                            (blobid, appid,))
+        try:
+            self.cursor.execute(
+                '''INSERT OR REPLACE INTO
+                blob_demo(id_blob, id_demo)
+                VALUES(?, ?)''', \
+                (blobid, demoid,))
+
+        except self.database.Error:
+            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
         tagsid = -1
-        if self.tagsIsInDatabase(tags):
-            tagsid = self.idTags(tags)
+        if self.tags_is_in_database(tags):
+            tagsid = self.id_tags(tags)
 
-        self.addTagsInDatabase(blobid, tags, tagsid)
+        self.add_tags_in_database(blobid, tags, tagsid)
 
-    def addTagsInDatabase(self, blobid, tags, tagsid=-1):
+    def add_tags_in_database(self, blobid, tags, tagsid=-1):
         """
-        Add a new tag in tags column in database if it's necessary
-        Add blob and tag ids in blob_tags in database
+        Add a new tagin tags columnin database if it's necessary
+        Add blob and tag idsin blob_tagsin database
 
-        :param blobid: blob id in database
-        :type blobid: integer (primary key autoincrement)
+        :param blobid: blob idin database
+        :type blobid:integer (primary key autoincrement)
         :param tags: name tag
         :type tags: string
         :param tagsid: if blobid is omitted (= -1), then add tag to database
         else not add
-        :type tagsid: integer
+        :type tagsid:integer
         """
         if tagsid == -1:
-            self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", (tags,))
-            tagsid = self.cursor.lastrowid
+            try:
+                self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", (tags,))
+                tagsid = self.cursor.lastrowid
+            except self.database.Error:
+                raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
-        self.cursor.execute("INSERT INTO blob_tags(id_blob, id_tags) VALUES(?, ?)", (blobid, tagsid,))
+        try:
+            self.cursor.execute('''
+            INSERT OR REPLACE INTO
+            blob_tags(id_blob, id_tags)
+            VALUES(?, ?)''', \
+            (blobid, tagsid,))
+        except self.database.Error:
+            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
-    def appIsInDatabase(self, app):
+    def demo_is_in_database(self, demo):
         """
-        Check if app is in database, in column app
+        Check if demo isin database,in column demo
 
-        :param app: name app
-        :type app: string
-        :return: name app if it is in database else None
+        :param demo: name demo
+        :type demo: string
+        :return: name demo if it isin database else None
         :rtype: string
         """
-        self.cursor.execute("SELECT name FROM app WHERE name=?", (app,))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute("SELECT name FROM demo WHERE name=?", (demo,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
-    def blobIsInDatabase(self, hash_blob):
+    def blob_is_in_database(self, hash_blob):
         """
-        Check if hash blob is in database, in column blob
+        Check if hash blob isin database,in column blob
 
         :param hash_blob: hash blob content
         :type who: string
-        :return: hash if it is in database else None
+        :return: hash if it isin database else None
         :rtype: string
         """
-        self.cursor.execute("SELECT hash FROM blob WHERE hash=?", (hash_blob,))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute('''
+            SELECT hash FROM blob WHERE hash=?''',
+            (hash_blob,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
-    def tagsIsInDatabase(self, tag):
+    def tags_is_in_database(self, tag):
         """
-        Check if tags is in database, in column tags
+        Check if tags isin database,in column tags
 
         :param tag: name tag
         :type tag: string
-        :return: tag name if it is in database else None
+        :return: tag name if it isin database else None
         :rtype: string
         """
-        self.cursor.execute("SELECT tags FROM tags WHERE tags=?", (tag,))
-        something = self.cursor.fetchone()
+        something = None
+        try:
+            self.cursor.execute("SELECT tags FROM tags WHERE tags=?", (tag,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
-    def formatIsGood(self, fileformat):
+    def format_is_good(self, fileformat):
         """
-        Check format file comparing the fileformat returned by imghdr.what()
+        Check format file comparing the fileformat returned by python-magic
         with extension list (self.formats)
 
         :param fileformat: format file
         :type fileformat: string
-        :return: True if the extension matches with the value given in paramater (check) else False
+        :return: True if the extension matches with the value given
+        in paramater (check) else False
         :rtype: bool
         """
         return any(fileformat in s for s in self.formats)
 
-    def idBlob(self, hash_blob):
+    def id_blob(self, hash_blob):
         """
         Get id blob from hash blob
 
         :param hash_blob: hash content blob
         :type hash_blob: string
         :return: first case of tuple returned by request SQL
-        :rtype: integer (primary key autoincrement)
+        :rtype:integer (primary key autoincrement)
         """
-        self.cursor.execute("SELECT id_blob FROM blob_app JOIN blob ON id_blob=id WHERE hash=?", (hash_blob,))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute('''
+            SELECT id_blob FROM blob_demo
+            JOIN blob ON id_blob=id WHERE hash=?''',\
+            (hash_blob,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
 
-    def idApp(self, app):
+    def id_demo(self, demo):
         """
-        Get id app from name app
+        Get id demo from name demo
 
-        :param app: name app
-        :type app: string
+        :param demo: name demo
+        :type demo: string
         :return: first case of tuple returned by request SQL
-        :rtype: integer (primary key autoincrement)
+        :rtype:integer (primary key autoincrement)
         """
-        self.cursor.execute("SELECT id_app FROM blob_app JOIN app ON id_app=id WHERE name=?", (app,))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute('''
+            SELECT id_demo FROM blob_demo
+            JOIN demo ON id_demo=id
+            WHERE name=?''', (demo,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
 
-    def idTags(self, tag):
+    def id_tags(self, tag):
         """
         Get id tags from name tag
 
         :param tag: name tag
         :type tag: string
         :return: fist case of tuple returned by request SQL
-        :rtype: integer (primary key autoincrement)
+        :rtype:integer (primary key autoincrement)
         """
-        self.cursor.execute("SELECT id FROM tags WHERE tags=?", (tag,))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute("SELECT id FROM tags WHERE tags=?", (tag,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-    def deleteApp(self, appid):
+    def delete_demo(self, demoid):
         """
-        Delete row (name, idapp) corresponding to id app
+        Delete row (name, iddemo) corresponding to id demo
 
-        :param appid: id app
-        :type appid: integer (primary key autoincrement)
+        :param demoid: id demo
+        :type demoid:integer (primary key autoincrement)
         """
-        self.cursor.execute("DELETE FROM app WHERE id=?", (appid,))
+        try:
+            self.cursor.execute("DELETE FROM demo WHERE id=?", (demoid,))
+        except self.database.Error:
+            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-
-    def commit(self):
+    def return_list(self):
         """
-        Commit instruction(SELECT, DELETE or INSERT INTO) to database
-        """
-        self.db.commit()
-
-    def returnList(self):
-        """
-        Return tuple list of name app and hash blob
+        Return tuple list of name demo and hash blob
 
         :return: list tuple [(name, hash_blob)]
         :rtype: list
         """
-        something = self.cursor.execute("SELECT name, hash FROM app JOIN blob_app ON app.id=id_app JOIN blob ON id_blob=blob.id")
+        try:
+            something = self.cursor.execute('''
+            SELECT name, hash FROM demo
+            JOIN blob_demo ON demo.id=id_demo
+            JOIN blob ON id_blob=blob.id''')
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = []
         for item in something:
@@ -212,39 +272,55 @@ class   Database(object):
 
         return lis
 
-    def getAppOfHash(self, hash_blob):
+    def get_demo_of_hash(self, hash_blob):
         """
-        Return list of app associated with hash blob
+        Return list of demo associated with hash blob
 
-        :param app: hash blob
-        :type app: string
-        :return: list of apps
+        :param demo: hash blob
+        :type demo: string
+        :return: list of demos
         :rtype: list
         """
-        something = self.cursor.execute("SELECT name FROM app JOIN blob_app ON app.id=id_app JOIN blob ON id_blob=blob.id WHERE hash=?", (hash_blob,))
+        try:
+            something = self.cursor.execute('''
+            SELECT name FROM demo
+            JOIN blob_demo ON demo.id=id_demo
+            JOIN blob ON id_blob=blob.id
+            WHERE hash=?''', \
+            (hash_blob,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = []
         for item in something:
             lis.append(item[0])
         return lis
 
-    def getHashOfApp(self, app):
+    def get_hash_of_demo(self, demo):
         """
-        Return list of hash blob associated with app
+        Return list of hash blob associated with demo
 
-        :param app: name app
-        :type app: string
+        :param demo: name demo
+        :type demo: string
         :return: list of hash blobs
         :rtype: list
         """
-        something = self.cursor.execute("SELECT hash FROM blob JOIN blob_app ON blob.id=id_blob JOIN app ON id_app=app.id WHERE name=?", (app,))
+        try:
+            something = self.cursor.execute('''
+            SELECT hash FROM blob
+            JOIN blob_demo ON blob.id=id_blob
+            JOIN demo ON id_demo=demo.id
+            WHERE name=?''', \
+            (demo,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = []
         for item in something:
             lis.append(item[0])
         return lis
 
-    def getBlobOfTags(self, tag):
+    def get_blob_of_tags(self, tag):
         """
         Return list of blob associated with tag
 
@@ -253,14 +329,22 @@ class   Database(object):
         :return: list of hash blobs
         :rtype: list
         """
-        something = self.cursor.execute("SELECT hash FROM blob JOIN blob_tags ON blob.id=id_blob JOIN tags ON id_tags=tags.id WHERE tags=?", (tag,))
+        try:
+            something = self.cursor.execute('''
+            SELECT hash FROM blob
+            JOIN blob_tags ON blob.id=id_blob
+            JOIN tags ON id_tags=tags.id
+            WHERE tags=?''', \
+            (tag,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = []
         for item in something:
             lis.append(item[0])
         return lis
 
-    def getTagsOfBlob(self, hash_blob):
+    def get_tags_of_blob(self, hash_blob):
         """
         Return list of tag associated with hash blob
 
@@ -269,88 +353,171 @@ class   Database(object):
         :return: list of tags
         :rtype: list
         """
-        something = self.cursor.execute("SELECT tags FROM tags JOIN blob_tags ON tags.id=id_tags JOIN blob ON id_blob=blob.id WHERE hash=?", (hash_blob,))
+        try:
+            something = self.cursor.execute('''
+            SELECT tags FROM tags
+            JOIN blob_tags ON tags.id=id_tags
+            JOIN blob ON id_blob=blob.id
+            WHERE hash=?''', \
+            (hash_blob,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = []
         for item in something:
             lis.append(item[0])
         return lis
 
-    def appIsEmpty(self, app):
+    def demo_is_empty(self, demo):
         """
-        Check if app is not associated with a blob
-        If it's empty, delete row corresponding in app column
+        Check if demo is not associated with a blob
+        If it's empty, delete row correspondingin demo column
 
-        :param name: name app
+        :param name: name demo
         :type name: string
         """
-        self.cursor.execute("SELECT COUNT(*) FROM blob_app JOIN app ON id_app=id WHERE name=?", ((app,)))
-        something2 = self.cursor.fetchone()
+        try:
+            self.cursor.execute('''
+            SELECT COUNT(*) FROM blob_demo
+            JOIN demo ON id_demo=id
+            WHERE name=?''', \
+            (demo,))
+            something2 = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         if something2[0] == 0:
-            self.cursor.execute("DELETE FROM app WHERE name=?", ((app,)))
+            try:
+                self.cursor.execute("DELETE FROM demo WHERE name=?", (demo,))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-    def blobIsEmpty(self, hash_blob):
+    def blob_is_empty(self, hash_blob):
         """
-        Check if blob named by hash is not associated with an app
-        If it's empty delete row corresponding in blob column
+        Check if blob named by hash is not associated with a demo
+        If it's empty delete row correspondingin blob column
 
         :param hash_blob: hash blob
         :type hash_blob: string
         :return: number of blob assigned by hash
-        :rtype: integer
+        :rtype:integer
         """
-        self.cursor.execute("SELECT COUNT(*) FROM blob WHERE hash=?", ((hash_blob,)))
-        something = self.cursor.fetchone()
+        try:
+            self.cursor.execute('''
+            SELECT COUNT(*) FROM blob_demo
+            JOIN blob ON id_blob=id
+            WHERE hash=?''', \
+            (hash_blob,))
+            something = self.cursor.fetchone()
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
-        self.cursor.execute("SELECT COUNT(*) FROM blob_app JOIN blob ON id_blob=id WHERE hash=?", ((hash_blob,)))
-        something2 = self.cursor.fetchone()
+        if something[0] == 0:
+            try:
+                self.cursor.execute('''
+                DELETE FROM blob
+                WHERE hash=?''', \
+                (hash_blob,))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        return None if not something[0] else something[0]
 
-        if something2[0] == 0:
-            self.cursor.execute("DELETE FROM blob WHERE hash=?", ((hash_blob,)))
-        return True if something[0] == 0 else False
-
-    def deleteFromBlobApp(self, app, hash_blob):
+    def delete_from_blob_demo(self, demo, hash_blob):
         """
-        Delete link between app and hash blob from blob_app column in database
-        Delete app row named by name app if app has no blob
-        Delete blob row named by hash blob if blob has no app
+        Delete link between demo and hash blob from blob_demo columnin database
+        Delete demo row named by name demo if demo has no blob
+        Delete blob row named by hash blob if blob has no demo
 
-        :param app: name app
-        :type app: string
+        :param demo: name demo
+        :type demo: string
         :param hash_blob: hash blob
         :type hash_blob: string
-        :return: True if blob named by hash hasn't app associated else False
+        :return: True if blob named by hash hasn't demo associated else False
         :rtype: bool
         """
-        something = self.cursor.execute("SELECT id_blob, id_app FROM blob_app JOIN app ON id_app=app.id JOIN blob ON id_blob=blob.id WHERE name=? AND hash=?", (app, hash_blob,))
+        try:
+            something = self.cursor.execute('''
+            SELECT id_blob, id_demo FROM blob_demo
+            JOIN demo ON id_demo=demo.id
+            JOIN blob ON id_blob=blob.id
+            WHERE name=? AND hash=?''',\
+            (demo, hash_blob,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         value = ()
         for item in something:
             value = (item[0], item[1])
 
         if value:
-            self.cursor.execute("DELETE FROM blob_app WHERE id_blob=? AND id_app=?", (value[0], value[1],))
+            try:
+                self.cursor.execute('''
+                DELETE FROM blob_demo
+                WHERE id_blob=? AND id_demo=?''',\
+                (value[0], value[1],))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-        something = self.cursor.execute("SELECT id_blob, id_tags FROM blob_tags JOIN blob ON id_blob=blob.id AND hash=?", (hash_blob,))
+        try:
+            something = self.cursor.execute('''
+            SELECT id_blob, id_tags FROM blob_tags
+            JOIN blob ON id_blob=blob.id AND hash=?''',\
+            (hash_blob,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         value = ()
         for item in something:
             value = (item[0], item[1])
 
         if value:
-            self.cursor.execute("DELETE FROM blob_tags WHERE id_blob=? AND id_tags=?", (value[0], value[1],))
+            try:
+                self.cursor.execute('''
+                DELETE FROM blob_tags
+                WHERE id_blob=? AND id_tags=?''',\
+                (value[0], value[1],))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-        self.appIsEmpty(app)
-        return self.blobIsEmpty(hash_blob)
+        self.demo_is_empty(demo)
+        return self.blob_is_empty(hash_blob)
 
-    def initTagsColumn(self):
+    def init_tags_column(self):
         """
-        Insert in tags column defaults tags
+       insertin tags column defaults tags
         """
-        if not self.tagsIsInDatabase("BW"):
-            self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", ("BW",))
-            self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", ("Textured",))
-            self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", ("Coloured",))
-            self.cursor.execute("INSERT INTO tags(tags) VALUES(?)", ("Classic",))
-            self.commit()
+        try:
+            if not self.tags_is_in_database("BW"):
+
+                self.cursor.execute("INSERT INTO tags(tags) VALUES(?)",
+                                    ("BW",))
+                self.cursor.execute("INSERT INTO tags(tags) VALUES(?)",
+                                    ("Textured",))
+                self.cursor.execute("INSERT INTO tags(tags) VALUES(?)",
+                                    ("Coloured",))
+                self.cursor.execute("INSERT INTO tags(tags) VALUES(?)",
+                                    ("Classic",))
+
+        except (self.database.Error, DatabaseError):
+            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+
+    def commit(self):
+        """
+        Commit instruction(SELECT, DELETE or INSERT INTO) to database
+        """
+        self.database.commit()
+
+    def start_transaction(self):
+        """
+        This instruction allows to start changes on database
+        End Transaction is called by commit function
+        """
+        self.cursor.execute("BEGIN")
+
+    def rollback(self):
+        """
+        Call rollback functionnality database
+        This function is called when exception is caught
+        """
+        self.database.rollback()
+

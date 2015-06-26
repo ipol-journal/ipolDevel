@@ -1,0 +1,108 @@
+---Test Function---
+
+
+In loop: 0
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 0 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 0 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 0
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 0
+Result: OK
+In loop: 1
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 1 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 1 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 1
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 1
+Result: OK
+In loop: 2
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 2 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 2 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 2
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 2
+Result: OK
+In loop: 3
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 3 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 3 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 3
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 3
+Result: OK
+In loop: 4
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 4 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 4 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 4
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 4
+Result: OK
+In loop: 5
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 5 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 5 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 5
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 5
+Result: OK
+In loop: 6
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 6 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 6 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 6
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 6
+Result: OK
+In loop: 7
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote.jpg with demo 7 and tags BW
+Result: OK
+Add image /home/firmin_v/ipol/ipol/v2/test/pi_numbers_quote2.jpg with demo 7 and tags BW
+Result: OK
+Get demo from hash:             ab2d59991b4b30b637ac4defa1f932ade774345b
+Result: OK
+Get demo from tags: BW
+Result: OK
+Delete ab2d59991b4b30b637ac4defa1f932ade774345b             and demo: 7
+Result: OK
+Delete 241fc136dc85b7b73987061930c14b5827cb0114             and demo: 7
+Result: OK
+---End of Test function---
