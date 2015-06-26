@@ -1,3 +1,4 @@
 # ignore backups
 *~
 
+/ipol_demo/modules/blobs/blob.db
