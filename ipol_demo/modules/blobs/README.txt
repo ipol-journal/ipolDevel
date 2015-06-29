@@ -36,7 +36,7 @@ Features:
  - Get file from name of the tag
  - Get tags from name of the file
 
-Usage: python main.py
+Usage: python main.py blobs.conf
 
 Blobs configuration file allows to set adress and port to server.
 It allows also to set name of the temporary directory, where uploaded file are temporary put, and
