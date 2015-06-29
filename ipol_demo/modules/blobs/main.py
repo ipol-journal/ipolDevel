@@ -24,13 +24,15 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF_FILE)
 
+    FINAL = cherrypy.config['final.dir']
+
     conf = {
         '/' : {
             'tools.staticdir.root': os.getcwd(),
         },
         '/blob_directory': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': cherrypy.config['final.dir']
+            'tools.staticdir.dir': FINAL
         }
     }
 
