@@ -18,6 +18,7 @@ import os
 import os.path
 import sys
 import yaml
+import mimetypes
 from database import Database
 from error import DatabaseError, print_exception_function
 from collections import defaultdict
@@ -76,7 +77,7 @@ class   Blob(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, name, path, tag):
+    def add_blob_ws(self, name, path, tag, ext):
         """
         This function implements get request (from '/add_blob_ws')
         It allows to check if demo given by name and blob given by hash
@@ -88,6 +89,8 @@ class   Blob(object):
         :type path: string
         :param tag: name tag
         :type tag: string
+        :param ext: extension of blob
+        :type ext: string
         :return: tuple(list of name and hash, hash current blob)
         :rtype: json format tuple (list, string)
         """
@@ -108,7 +111,7 @@ class   Blob(object):
             if not self.data.blob_is_in_database(hash_blob):
                 if self.data.format_is_good(fileformat):
                     self.data.add_blob_in_database(demoid, hash_blob,
-                                                   fileformat, tag)
+                                                   fileformat, ext, tag)
                     hash_tmp = hash_blob
                 else:
                     if demoid_tmp != -1:
@@ -116,7 +119,7 @@ class   Blob(object):
             else:
                 blobid = self.data.id_blob(hash_blob)
                 self.data.add_blob_in_database(demoid, hash_blob, fileformat,
-                                               tag, blobid)
+                                               ext, tag, blobid)
 
             self.data.commit()
 
@@ -127,6 +130,7 @@ class   Blob(object):
             print_exception_function(error, "Cannot add item in database")
             self.data.rollback()
 
+        print list_sort
         return json.dumps((list_sort, hash_tmp))
 
     @cherrypy.expose
@@ -144,6 +148,7 @@ class   Blob(object):
         tag = kwargs.pop('demo[tag]', [])
         blob = kwargs.pop('demo[blob]', [])
 
+        _, ext = os.path.splitext(blob.filename)
         assert isinstance(blob, cherrypy._cpreqbody.Part)
 
         tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
@@ -151,12 +156,11 @@ class   Blob(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(blob, tmp_directory)
-        data = {"name": demo, "path": path, "tag": tag}
+        data = {"name": demo, "path": path, "tag": tag, "ext": ext}
         res = use_web_service('/add_blob_ws/', data)
 
-        print res[0]
         if res[1] != -1:
-            self.move_to_input_directory(path, res[1])
+            self.move_to_input_directory(path, res[1], ext)
         else:
             os.remove(path)
 
@@ -180,7 +184,7 @@ class   Blob(object):
         list_sort = []
         value_return = None
         try:
-            value_return = self.data.delete_from_blob_demo(demo, hash_blob)
+            value_return = self.data.delete_blob_from_demo(demo, hash_blob)
             self.data.commit()
 
             list_ddb = self.data.return_list()
@@ -214,7 +218,8 @@ class   Blob(object):
         if not res[1]:
             path_file = os.path.join(self.current_directory, self.final_dir,
                                      blob)
-            os.remove(path_file)
+            if os.path.isfile(path_file):
+                os.remove(path_file)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("list.html").render(the_list=res[0])
@@ -316,7 +321,7 @@ class   Blob(object):
         """
         lis = []
         try:
-            lis = self.data.get_blob_of_tags(tag)
+            lis = self.data.get_blob_of_tag(tag)
         except DatabaseError as error:
             print_exception_function(error, "Cannot acces to blob from tag")
         return json.dumps(lis)
@@ -355,7 +360,7 @@ class   Blob(object):
         """
         lis = []
         try:
-            lis = self.data.get_tags_of_blob(blob)
+            lis = self.data.get_tag_of_blob(blob)
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to tag from blob")
         return json.dumps(lis)
@@ -395,7 +400,7 @@ class   Blob(object):
 
         for i in range(0, 8):
             print >> error_file, "In loop: %d" % i
-            print >> error_file, "Add image %s with demo %d and tags %s" % (image, i, "BW")
+            print >> error_file, "Add image %s with demo %d and tag %s" % (image, i, "BW")
             data = {"name": i, "path": image, "tag": "BW"}
             res = use_web_service('/add_blob_ws', data)
 
@@ -404,7 +409,7 @@ class   Blob(object):
             else:
                 print >> error_file, "Result: FAILED"
 
-            print >> error_file, "Add image %s with demo %d and tags %s" % (image2, i, "BW")
+            print >> error_file, "Add image %s with demo %d and tag %s" % (image2, i, "BW")
             data = {"name": i, "path": image2, "tag": "BW"}
             res = use_web_service('/add_blob_ws', data)
 
@@ -456,7 +461,7 @@ class   Blob(object):
         print >> error_file, "---End of Test function---"
         error_file.close()
 
-    def move_to_input_directory(self, path, the_hash):
+    def move_to_input_directory(self, path, the_hash, extension):
         """
         Create final blob directory if it doesn't exist
         Move the temporary blob in this directory
@@ -466,11 +471,13 @@ class   Blob(object):
         :type path: string
         :param the_hash: hash content blob
         :type the_hash: string
+        :param extension: extension of blob
+        :type extension: string
         """
         file_directory = os.path.join(self.current_directory, self.final_dir)
         if not os.path.exists(file_directory):
             os.makedirs(file_directory)
-        file_dest = os.path.join(file_directory, the_hash)
+        file_dest = os.path.join(file_directory, (the_hash + extension))
         shutil.move(path, file_dest)
 
 

@@ -8,21 +8,22 @@ echo "Script $0 processing"
 
 SCRIPT=`readlink -f "$0"`
 PATH_SCRIPT=`dirname $SCRIPT`
-DB='/blob.db'
-SQL='/blob.sql'
-PATH_DB=$PATH_SCRIPT$DB
-PATH_SQL=$PATH_SCRIPT$SQL
+DB='blob.db'
+SQL='blob.sql'
+SLASH='/'
+PATH_DB=$PATH_SCRIPT$SLASH$DB
+PATH_SQL=$PATH_SCRIPT$SLASH$SQL
 DEST=${PATH_SCRIPT%/*}
 
 
 if [ -f $PATH_DB ]
 then
-    /bin/rm $PATH_DB
+    rm $PATH_DB
 fi
 
-/usr/bin/sqlite3 $PATH_DB < $PATH_SQL
-/bin/cp $PATH_DB $DEST
-/bin/rm $PATH_DB
+sqlite3 $PATH_DB < $PATH_SQL
+cp $PATH_DB $DEST
+rm $PATH_DB
 
 echo "Script $0 ending"
 
