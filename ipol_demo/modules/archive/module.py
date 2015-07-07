@@ -11,7 +11,6 @@
 # GNU General Public License for more details.
 
 # Module written by Alexis Mongin. Contact : alexis.mongin #~AT~# outlook.com
-#
 
 import errno
 import hashlib
