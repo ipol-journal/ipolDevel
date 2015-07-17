@@ -51,7 +51,7 @@ Usage of this script: ./init [-g] blobs.conf
 		remove blob.db file
 
 
-For launch test program. Test program will test only the web service, so
+Test program will test only the web service, so
 the management of the database (ADD, DELETE, GET).
 
 Usage: python test.py blobs.conf
