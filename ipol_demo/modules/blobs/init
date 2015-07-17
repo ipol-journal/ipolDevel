@@ -8,6 +8,7 @@ SCRIPT=`readlink -f "$0"`
 PATH_INIT=`dirname $SCRIPT`
 DB_SCRIPT='/db/script'
 DATABASE='blob.db'
+TEST='test/error.txt'
 SLASH='/'
 DEL=false
 PATH_SCRIPT=$PATH_INIT$DB_SCRIPT
@@ -40,20 +41,28 @@ do
     elif [[ "${MAPFILE[i]}" =~ "final.dir" ]]
     then
 	INPUT_DIR=${MAPFILE[i]:13:-2}
+    elif [[ "${MAPFILE[i]}" =~ "thumbnail.dir" ]]
+    then
+	THUMB=${MAPFILE[i]:17:-2}
     fi
     (( i++ ))
 done
+
+PATH_ERROR=$PATH_INIT$SLASH$TEST
 
 if [[ "$INPUT_DIR" != "" ]]
 then
     PATH_DIR=$PATH_INIT$SLASH$INPUT_DIR
     PATH_TMP=$PATH_INIT$SLASH$TMP
+    PATH_THUMB=$PATH_INIT$SLASH$THUMB
 fi
 
 if [ -e $PATH_DIR ]
 then
     rm -r $PATH_DIR
     rm -r $PATH_TMP
+    rm -r $PATH_THUMB
+    rm $PATH_ERROR
 fi
 
 bash $PATH_SCRIPT
@@ -61,6 +70,7 @@ bash $PATH_SCRIPT
 if [ $DEL == true ]
 then
     rm $PATH_DB
+    rm $PATH_ERROR
 fi
 
 echo "Script $0 ending"

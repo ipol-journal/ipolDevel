@@ -14,6 +14,7 @@ class   Database(object):
     """
     This class implements database management
     The database architecture is defined in file /db/blob.sql
+    One instance of this object represents one connection to the database
     """
     def __init__(self, name):
         """
@@ -24,10 +25,16 @@ class   Database(object):
         :type ptr: string
         """
         self.formats = ('audio', 'image', 'video')
+        self.name = name
         self.database = lite.connect(name, check_same_thread=False)
-        self.database.isolation_level = None
         self.cursor = self.database.cursor()
         self.init_tag_column()
+
+    def __del__(self):
+        """
+        Destructor: Close the connection
+        """
+        self.database.close()
 
     def add_demo_in_database(self, demo):
         """
@@ -86,15 +93,11 @@ class   Database(object):
         except self.database.Error:
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
-        tagid = -1
-        if self.tag_is_in_database(tag):
-            tagid = self.id_tag(tag)
+        self.add_tag_in_database(blobid, tag)
 
-        self.add_tag_in_database(blobid, tag, tagid)
-
-    def add_tag_in_database(self, blobid, tag, tagid=-1):
+    def add_tag_in_database(self, blobid, tag):
         """
-        Add a new tagin tag columnin database if it's necessary
+        Add a new tag in tag columnin database if it's necessary
         Add blob and tag idsin blob_tagin database
 
         :param blobid: blob idin database
@@ -105,21 +108,27 @@ class   Database(object):
         else not add
         :type tagid:integer
         """
-        if tagid == -1:
+        for item in tag:
+            tagid = -1
+            if self.tag_is_in_database(item):
+                tagid = self.id_tag(item)
+
+            if tagid == -1:
+                try:
+                    self.cursor.execute("INSERT INTO tag(name) VALUES(?)", \
+                                        (item,))
+                    tagid = self.cursor.lastrowid
+                except self.database.Error:
+                    raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+
             try:
-                self.cursor.execute("INSERT INTO tag(name) VALUES(?)", (tag,))
-                tagid = self.cursor.lastrowid
+                self.cursor.execute('''
+                INSERT OR REPLACE INTO
+                blob_tag(id_blob, id_tag)
+                VALUES(?, ?)''', \
+                (blobid, tagid,))
             except self.database.Error:
                 raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
-
-        try:
-            self.cursor.execute('''
-            INSERT OR REPLACE INTO
-            blob_tag(id_blob, id_tag)
-            VALUES(?, ?)''', \
-            (blobid, tagid,))
-        except self.database.Error:
-            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
     def demo_is_in_database(self, demo):
         """
@@ -204,7 +213,6 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-
     def id_demo(self, demo):
         """
         Get id demo from name demo
@@ -241,7 +249,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-    def delete_demo(self, demoid):
+    def delete_demo_existed(self, demoid):
         """
         Delete row (name, iddemo) corresponding to id demo
 
@@ -324,10 +332,10 @@ class   Database(object):
 
     def get_blob_of_tag(self, tag):
         """
-        Return list of blob associated with tag
+        Return list of blob associated with list of tag
 
-        :param tag: name tag
-        :type tag: string
+        :param tag: list name tag
+        :type tag: list of string
         :return: list of hash blobs
         :rtype: list
         """
@@ -336,8 +344,8 @@ class   Database(object):
             SELECT hash FROM blob
             INNER JOIN blob_tag ON blob.id=blob_tag.id_blob
             INNER JOIN tag ON blob_tag.id_tag=tag.id
-            WHERE tag.name=?''', \
-            (tag,))
+            WHERE tag.name IN (%s)''' % \
+            ("?," * len(tag))[:-1], tag)
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
@@ -508,25 +516,6 @@ class   Database(object):
         self.delete_blob(hash_blob, blob_is_reducible)
         return None if not blob_is_reducible[0] else blob_is_reducible[0]
 
-    def init_tag_column(self):
-        """
-       insertin tag column defaults tag
-        """
-        try:
-            if not self.tag_is_in_database("BW"):
-
-                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
-                                    ("BW",))
-                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
-                                    ("Textured",))
-                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
-                                    ("Coloured",))
-                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
-                                    ("Classic",))
-
-        except (self.database.Error, DatabaseError):
-            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
-
     def commit(self):
         """
         Commit instruction(SELECT, DELETE or INSERT INTO) to database
@@ -547,3 +536,32 @@ class   Database(object):
         """
         self.database.rollback()
 
+    def get_list_tags(self):
+        """
+        Return the list of tag present in database
+
+        :return: list of name tag
+        :rtype: list of string
+        """
+        something = self.cursor.execute("SELECT name FROM tag")
+        lis = []
+        for item in something:
+            lis.append(item[0])
+        return lis
+
+    def init_tag_column(self):
+        """
+        insertin tag column defaults tag
+        """
+        try:
+            if not self.tag_is_in_database("BW"):
+                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
+                                    ("BW",))
+                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
+                                    ("Textured",))
+                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
+                                    ("Coloured",))
+                self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
+                                    ("Classic",))
+        except (self.database.Error, DatabaseError):
+            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
