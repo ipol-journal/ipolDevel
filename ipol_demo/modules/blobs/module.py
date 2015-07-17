@@ -18,12 +18,16 @@ import os
 import os.path
 import sys
 import yaml
-import mimetypes
+import tarfile
+import zipfile
+import PIL.Image
+import inspect
+import ConfigParser as configparser
 from database import Database
-from error import DatabaseError, print_exception_function
+from error import DatabaseError, print_exception_function,\
+print_exception_thumbnail, print_exception_zip
 from collections import defaultdict
 from mako.lookup import TemplateLookup
-
 
 class MyFieldStorage(cherrypy._cpreqbody.Part):
     """
@@ -48,19 +52,17 @@ class   Blob(object):
         """
         Initialize Blob class
         """
+
+        self.list_of_tags = []
+
         self.tmp_dir = cherrypy.config['tmp.dir']
         self.final_dir = cherrypy.config['final.dir']
+        self.thumb_dir = cherrypy.config['thumbnail.dir']
+        self.test_dir = cherrypy.config['test.dir']
 
         self.current_directory = os.getcwd()
         self.html_dir = os.path.join(self.current_directory,
                                      cherrypy.config['html.dir'])
-        try:
-            self.data = Database("blob.db")
-        except DatabaseError as error:
-            print_exception_function(error,
-                                     "Cannot instantiate Database Object")
-            sys.exit(1)
-
 
     @cherrypy.expose
     def index(self):
@@ -71,9 +73,22 @@ class   Blob(object):
         :return: mako templated html page (refer to index.html)
         :rtype: mako.lookup.TemplatedLookup
         """
+        data = instance_database()
+        list_of_tags = data.get_list_tags()
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("index.html").render()
+        return tmpl_lookup.get_template("index.html").render(
+            the_list=list_of_tags)
 
+    @cherrypy.expose
+    def zip(self):
+        """
+        Function used for upload zip file from '/zip'
+
+        :return: mako templated html page (refer to index.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
+        return tmpl_lookup.get_template("zip.html").render()
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -100,35 +115,36 @@ class   Blob(object):
         hash_tmp = -1
         list_ddb = []
         list_sort = []
+        data = instance_database()
 
         try:
-            self.data.start_transaction()
-            if not self.data.demo_is_in_database(name):
-                demoid_tmp = self.data.add_demo_in_database(name)
+            data.start_transaction()
+            if not data.demo_is_in_database(name):
+                demoid_tmp = data.add_demo_in_database(name)
                 demoid = demoid_tmp
             else:
-                demoid = self.data.id_demo(name)
-            if not self.data.blob_is_in_database(hash_blob):
-                if self.data.format_is_good(fileformat):
-                    self.data.add_blob_in_database(demoid, hash_blob,
+                demoid = data.id_demo(name)
+            if not data.blob_is_in_database(hash_blob):
+                if data.format_is_good(fileformat):
+                    data.add_blob_in_database(demoid, hash_blob,
                                                    fileformat, ext, tag)
                     hash_tmp = hash_blob
                 else:
                     if demoid_tmp != -1:
-                        self.data.delete_demo(demoid)
+                        data.delete_demo_existed(demoid)
             else:
-                blobid = self.data.id_blob(hash_blob)
-                self.data.add_blob_in_database(demoid, hash_blob, fileformat,
+                blobid = data.id_blob(hash_blob)
+                data.add_blob_in_database(demoid, hash_blob, fileformat,
                                                ext, tag, blobid)
 
-            self.data.commit()
+            data.commit()
 
-            list_ddb = self.data.return_list()
+            list_ddb = data.return_list()
             list_sort = dict_from_list(list_ddb)
 
         except DatabaseError as error:
             print_exception_function(error, "Cannot add item in database")
-            self.data.rollback()
+            data.rollback()
 
         print list_sort
         return json.dumps((list_sort, hash_tmp))
@@ -145,7 +161,7 @@ class   Blob(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         demo = kwargs.pop('demo[name]', [])
-        tag = kwargs.pop('demo[tag]', [])
+        tag = kwargs.pop('demo[tag][]', [])
         blob = kwargs.pop('demo[blob]', [])
 
         _, ext = os.path.splitext(blob.filename)
@@ -160,12 +176,43 @@ class   Blob(object):
         res = use_web_service('/add_blob_ws/', data)
 
         if res[1] != -1:
-            self.move_to_input_directory(path, res[1], ext)
+            file_dest = self.move_to_input_directory(path, res[1], ext)
+            self.create_thumbnail(file_dest)
         else:
             os.remove(path)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("list.html").render(the_list=res[0])
+
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="text/plain")
+    def add_from_zip(self, **kwargs):
+        """
+        This function implements post request for /zip
+        It corresponds to upload of the zip file
+
+        :param kwargs:
+        :type kwargs: dictionnary
+        :return: mako templated html page refer to list.html
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        the_zip = kwargs.pop('zip', [])
+        print type(the_zip)
+
+        _, ext = os.path.splitext(the_zip.filename)
+        print ext
+        assert isinstance(the_zip, cherrypy._cpreqbody.Part)
+
+        tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
+        if not os.path.exists(tmp_directory):
+            os.makedirs(tmp_directory)
+
+        path = create_tmp_file(the_zip, tmp_directory)
+        self.parse_archive(ext, path, tmp_directory, the_zip.filename)
+
+        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
+        #return tmpl_lookup.get_template("list.html").render()
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -183,16 +230,17 @@ class   Blob(object):
         """
         list_sort = []
         value_return = None
+        data = instance_database()
         try:
-            value_return = self.data.delete_blob_from_demo(demo, hash_blob)
-            self.data.commit()
+            value_return = data.delete_blob_from_demo(demo, hash_blob)
+            data.commit()
 
-            list_ddb = self.data.return_list()
+            list_ddb = data.return_list()
             list_sort = dict_from_list(list_ddb)
 
         except DatabaseError as error:
             print_exception_function(error, "Cannot delete item in database")
-            self.data.rollback()
+            data.rollback()
 
         return json.dumps((list_sort, value_return))
 
@@ -238,11 +286,12 @@ class   Blob(object):
         :rtype: json format list
         """
         lis = []
+        data = instance_database()
         try:
-            lis = self.data.get_demo_of_hash(hash_blob)
+            lis = data.get_demo_of_hash(hash_blob)
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to demo from hash")
-            self.data.rollback()
+            data.rollback()
 
         return json.dumps(lis)
 
@@ -279,11 +328,12 @@ class   Blob(object):
         :rtype: json format list
         """
         lis = []
+        data = instance_database()
         try:
-            lis = self.data.get_hash_of_demo(demo)
+            lis = data.get_hash_of_demo(demo)
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from demo")
-            self.data.rollback()
+            data.rollback()
 
         return json.dumps(lis)
 
@@ -314,14 +364,15 @@ class   Blob(object):
         It returns list of hash blob corresponding to demo given in parameter
         List is empty if not any blob is associated to demo
 
-        :param tag: name tag
-        :type tag: string
+        :param tag: list name tag
+        :type tag: list of string
         :return: list of hash blob
         :rtype: json format list
         """
         lis = []
+        data = instance_database()
         try:
-            lis = self.data.get_blob_of_tag(tag)
+            lis = data.get_blob_of_tag(tag)
         except DatabaseError as error:
             print_exception_function(error, "Cannot acces to blob from tag")
         return json.dumps(lis)
@@ -333,11 +384,15 @@ class   Blob(object):
         This functions implements get request from '/get_blob_of_tag'
         Call Webservice associated
 
-        :param tag: name tag
-        :type tag: string
+        :param tag: list name tag
+        :type tag: list of string
         :return: mako templated html page (refer to get.html)
         :rtype: mako.lookup.TemplatedLookup
         """
+        tag = list(tag.split(','))
+        tag = [x.encode('UTF8') for x in tag]
+        if len(tag) == 1:
+            tag.append('')
         data = {"tag": tag}
         res = use_web_service('/get_blob_ws', data)
 
@@ -359,8 +414,9 @@ class   Blob(object):
         :rtype: json format list
         """
         lis = []
+        data = instance_database()
         try:
-            lis = self.data.get_tag_of_blob(blob)
+            lis = data.get_tag_of_blob(blob)
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to tag from blob")
         return json.dumps(lis)
@@ -379,87 +435,11 @@ class   Blob(object):
         """
         data = {"blob": blob}
         res = use_web_service('/get_tag_ws', data)
+        print res
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("get.html").render(the_list=res,
                                                            val=blob)
-
-    @cherrypy.expose
-    def test_function(self):
-        """
-        Launch test on web service about: add, get and delete
-        Write infos on error.txt in test file
-        """
-        path_to_test = os.path.join(self.current_directory, cherrypy.config['test.dir'])
-        image = os.path.join(path_to_test, 'pi_numbers_quote.jpg')
-        image2 = os.path.join(path_to_test, 'pi_numbers_quote2.jpg')
-        error_path = os.path.join(path_to_test, "error.txt")
-        error_file = open(error_path, "w")
-
-        print >> error_file, "---Test Function---\n\n"
-
-        for i in range(0, 8):
-            print >> error_file, "In loop: %d" % i
-            print >> error_file, "Add image %s with demo %d and tag %s" % (image, i, "BW")
-            data = {"name": i, "path": image, "tag": "BW"}
-            res = use_web_service('/add_blob_ws', data)
-
-            if res[0] != []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-            print >> error_file, "Add image %s with demo %d and tag %s" % (image2, i, "BW")
-            data = {"name": i, "path": image2, "tag": "BW"}
-            res = use_web_service('/add_blob_ws', data)
-
-            if res[0] != []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-            print >> error_file, "Get demo from hash: \
-            ab2d59991b4b30b637ac4defa1f932ade774345b"
-            data = {"hash_blob": 'ab2d59991b4b30b637ac4defa1f932ade774345b'}
-            res = use_web_service('/get_demo_ws', data)
-
-            if res[0] != []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-            print >> error_file, "Get demo from tags: BW"
-            data = {"tag": 'BW'}
-            res = use_web_service('/get_blob_ws', data)
-
-            if res[0] != []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-            print >> error_file, "Delete ab2d59991b4b30b637ac4defa1f932ade774345b \
-            and demo: %s" % i
-            data = {"demo": i, "hash_blob": "ab2d59991b4b30b637ac4defa1f932ade774345b"}
-            res = use_web_service('/delete_blob_ws', data)
-
-            if res[0] != []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-            print >> error_file, "Delete 241fc136dc85b7b73987061930c14b5827cb0114 \
-            and demo: %s" % i
-            data = {"demo": i, "hash_blob": "241fc136dc85b7b73987061930c14b5827cb0114"}
-            res = use_web_service('/delete_blob_ws', data)
-
-            if res[0] == []:
-                print >> error_file, "Result: OK"
-            else:
-                print >> error_file, "Result: FAILED"
-
-
-        print >> error_file, "---End of Test function---"
-        error_file.close()
 
     def move_to_input_directory(self, path, the_hash, extension):
         """
@@ -479,7 +459,80 @@ class   Blob(object):
             os.makedirs(file_directory)
         file_dest = os.path.join(file_directory, (the_hash + extension))
         shutil.move(path, file_dest)
+        return file_dest
 
+    def create_thumbnail(self, src):
+        """
+        Create thumbnail with source path of the image
+        Needed to improve it for sound and video !
+
+        :param src: source path of the blob
+        :type src: string
+        """
+        file_directory = os.path.join(self.current_directory, self.thumb_dir)
+        if not os.path.exists(file_directory):
+            os.makedirs(file_directory)
+        name = os.path.basename(src)
+        file_dest = os.path.join(file_directory, ('thumbnail_' + name))
+        name = "thumbnail_" + name
+        try:
+            image = PIL.Image.open(src)
+            image.thumbnail((256, 256))
+            image.save(file_dest)
+        except IOError:
+            print_exception_thumbnail("Cannot create thumbnail",\
+                inspect.currentframe().f_code.co_name)
+
+    def parse_archive(self, ext, path, tmp_directory, the_zip):
+        """
+        Open archive (zip, tar) file
+        Extract blob object in function informations in 'index.cfg' file
+        Call Web service '/add_blob_ws' to add blob to the database
+
+        :param ext: extension of the archive
+        :type ext: string
+        :param path: path of the archive
+        :type path: string
+        :param tmp_directory: path of the temporary directory
+        :type tmp_directory: string
+        :param the_zip: name zip file
+        :type the_zip: string
+        """
+        if ext == '.zip':
+            src = zipfile.ZipFile(path)
+            files = src.namelist()
+        else:
+            src = tarfile.open(path)
+            files = src.getnames()
+
+        if 'index.cfg' in files:
+            src.extract('index.cfg', path=tmp_directory)
+            index_path = os.path.join(tmp_directory, 'index.cfg')
+            buff = configparser.ConfigParser()
+            buff.readfp(open(index_path))
+            for item in buff.sections():
+                the_file = buff.get(item, "files")
+                if the_file and the_file in files:
+                    title = buff.get(item, 'title')
+                    credit = buff.get(item, 'credit')
+                    src.extract(the_file, path=tmp_directory)
+                    tmp_path = os.path.join(tmp_directory, the_file)
+                    _, ext = os.path.splitext(tmp_path)
+
+                    data = {"name": "", "path": tmp_path, "tag": "", "ext": ext}
+                    res = use_web_service('/add_blob_ws/', data)
+
+                    if res[1] != -1:
+                        file_dest = self.move_to_input_directory(tmp_path,
+                                                     res[1], ext)
+                        self.create_thumbnail(file_dest)
+                    else:
+                        os.remove(tmp_path)
+                else:
+                    pass
+        else:
+            print_exception_zip(inspect.currentframe().f_code.co_name,\
+                                the_zip)
 
 def create_tmp_file(blob, path):
     """
@@ -508,7 +561,7 @@ def use_web_service(req, data):
     :return: json decode
     :rtype: list
     """
-    urls_values = urllib.urlencode(data)
+    urls_values = urllib.urlencode(data, True)
     url = cherrypy.server.base() + req + '?' + urls_values
     res = urllib2.urlopen(url)
     buff = res.read()
@@ -570,4 +623,21 @@ def file_format(the_file):
     mime = magic.Magic(mime=True)
     fileformat = mime.from_file(the_file)
     return fileformat[:5]
+
+
+def instance_database():
+    """
+    Create an instance of the Database object
+    If an exception is catched, close the program
+
+    :return: a connection to the database
+    :rtype: Database object
+    """
+    try:
+        data = Database("blob.db")
+        return data
+    except DatabaseError as error:
+        print_exception_function(error,
+                                 "Cannot instantiate Database Object")
+        sys.exit(1)
 
