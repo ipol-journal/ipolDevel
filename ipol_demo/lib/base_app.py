@@ -283,9 +283,11 @@ class base_app(empty_app):
                                             self.input_dir + f, (tn_size, \
                                                                  tn_size)))) \
                                            for f in fname]
+
             inputd[input_id]['url'] = [os.path.join(self.input_url, \
-                                                    os.path.basename(f)) \
-                                        for f in fname]
+                                       os.path.dirname(f), \
+                                       os.path.basename(f)) \
+                                           for f in fname]
 
         return self.tmpl_out("input.html",
                               inputd=inputd)
