@@ -5,9 +5,41 @@
     </head>
     <body>
       <ul>
+	<h1>List of blobs of ${demo[demo_id]["name"]}</h1>
+	This demo is a template:
+	%if demo[demo_id]["is_template"] == 1:
+	Yes
+	%else:
+	No
+	%if demo[demo_id]["id_template"] == 0:
+	<br>
+	You don't use template.<br>
+	Do you want use a template ?
+	%else:
+	<br>
+	You use template: ${demo["use_template"]["name"]}<br>
+	Do you want to change template used ?
+	%endif
+	<form action="/use_template" method="post">
+	  <input type="hidden" name="demo[id]" value="${demo_id}">
+	  <select name="name_template" value="">
+	    %for item in res_tmpl:
+	    <option>${res_tmpl[item]["name"]}</option>
+	    %endfor
+	  </select>
+	  <br>
+	  <input type="submit" value="Submit">
+	</form>
+	%endif
+	<br>
+	<a href="blob?demo_id=${demo_id}">add blob</a><br>
+	<a href="zip?demo_id=${demo_id}">add zip</a><br>
+	<a href="op_remove_demo?demo_id=${demo_id}">remove this demo</a><br><br>
 	%for item in the_list:
-	${val} <br></br>
-	<li> ${item} </li>
+	<a href="edit_blob?blob_id=${item["id"]}">
+	  <img src="${item["url_thumb"]}"> </img></a>
+	<a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${item["id"]}">delete</a>
+	<br>
 	%endfor
       </ul>
     </body>
