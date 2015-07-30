@@ -62,7 +62,10 @@ then
     rm -r $PATH_DIR
     rm -r $PATH_TMP
     rm -r $PATH_THUMB
-    rm $PATH_ERROR
+    if [ -e $PATH_ERROR ]
+    then
+	rm $PATH_ERROR
+    fi
 fi
 
 bash $PATH_SCRIPT

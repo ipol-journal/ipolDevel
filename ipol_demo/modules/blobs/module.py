@@ -22,6 +22,8 @@ import tarfile
 import zipfile
 import PIL.Image
 import inspect
+import string
+import re
 import ConfigParser as configparser
 from database import Database
 from error import DatabaseError, print_exception_function,\
@@ -53,8 +55,6 @@ class   Blob(object):
         Initialize Blob class
         """
 
-        self.list_of_tags = []
-
         self.tmp_dir = cherrypy.config['tmp.dir']
         self.final_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
@@ -70,17 +70,28 @@ class   Blob(object):
         Function exposed corresponding to '/' in url adress
         Return "index" html page for cherrypy.server.socket_host
 
-        :return: mako templated html page (refer to index.html)
+        :return: mako templated html page (refer to demos.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = instance_database()
-        list_of_tags = data.get_list_tags()
+        data = {}
+        res = use_web_service('/demos_ws', data)
+
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("index.html").render(
-            the_list=list_of_tags)
+        return tmpl_lookup.get_template("demos.html").render(the_list=res["list_demos"])
 
     @cherrypy.expose
-    def zip(self):
+    def blob(self, demo_id):
+        """
+        Web page used to upload one blob to one demo
+
+        :return: mako templated html page (refer to demos.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
+        return tmpl_lookup.get_template("add_blob.html").render(demo_id=demo_id)
+
+    @cherrypy.expose
+    def zip(self, demo_id):
         """
         Function used for upload zip file from '/zip'
 
@@ -88,11 +99,11 @@ class   Blob(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("zip.html").render()
+        return tmpl_lookup.get_template("add_zip.html").render(demo_id=demo_id)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, name, path, tag, ext):
+    def add_blob_ws(self, demo_id, path, tag, ext, the_set, title, credit):
         """
         This function implements get request (from '/add_blob_ws')
         It allows to check if demo given by name and blob given by hash
@@ -111,43 +122,34 @@ class   Blob(object):
         """
         hash_blob = get_hash_blob(path)
         fileformat = file_format(path)
-        demoid_tmp = -1
         hash_tmp = -1
-        list_ddb = []
-        list_sort = []
+        dic = {}
         data = instance_database()
 
         try:
             data.start_transaction()
-            if not data.demo_is_in_database(name):
-                demoid_tmp = data.add_demo_in_database(name)
-                demoid = demoid_tmp
-            else:
-                demoid = data.id_demo(name)
             if not data.blob_is_in_database(hash_blob):
                 if data.format_is_good(fileformat):
-                    data.add_blob_in_database(demoid, hash_blob,
-                                                   fileformat, ext, tag)
+                    data.add_blob_in_database(demo_id, hash_blob,
+                                              fileformat, ext, tag,
+                                              the_set, title, credit)
                     hash_tmp = hash_blob
-                else:
-                    if demoid_tmp != -1:
-                        data.delete_demo_existed(demoid)
             else:
                 blobid = data.id_blob(hash_blob)
-                data.add_blob_in_database(demoid, hash_blob, fileformat,
-                                               ext, tag, blobid)
+                data.add_blob_in_database(demo_id, hash_blob, fileformat,
+                                          ext, tag, the_set,
+                                          title, credit, blobid)
 
             data.commit()
-
-            list_ddb = data.return_list()
-            list_sort = dict_from_list(list_ddb)
-
+            dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot add item in database")
             data.rollback()
+            dic["return"] = "KO"
 
-        print list_sort
-        return json.dumps((list_sort, hash_tmp))
+        dic["the_hash"] = hash_tmp
+
+        return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
@@ -160,9 +162,18 @@ class   Blob(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo = kwargs.pop('demo[name]', [])
-        tag = kwargs.pop('demo[tag][]', [])
-        blob = kwargs.pop('demo[blob]', [])
+        demo = kwargs['demo[id]']
+        tag = kwargs['demo[tag]']
+        blob = kwargs['demo[blob]']
+        the_set = kwargs['demo[set]']
+        title = kwargs['demo[title]']
+        credit = kwargs['demo[credit]']
+
+        pattern = re.compile("^\s+|\s*,\s*|\s+$")
+        list_tag = [x for x in pattern.split(tag) if x]
+
+        if not list_tag:
+            list_tag = [""]
 
         _, ext = os.path.splitext(blob.filename)
         assert isinstance(blob, cherrypy._cpreqbody.Part)
@@ -172,18 +183,137 @@ class   Blob(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(blob, tmp_directory)
-        data = {"name": demo, "path": path, "tag": tag, "ext": ext}
+        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, "the_set": the_set,
+                "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
 
-        if res[1] != -1:
-            file_dest = self.move_to_input_directory(path, res[1], ext)
+        if res["the_hash"] != -1 and res["return"] == "OK":
+            file_dest = self.move_to_input_directory(path, res["the_hash"], ext)
             self.create_thumbnail(file_dest)
         else:
             os.remove(path)
 
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("list.html").render(the_list=res[0])
+        return self.get_blobs_of_demo(demo)
 
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def demos_ws(self):
+        """
+        Web service used to show the list of demos in database
+
+        :return: list of demos
+        :rtype: dictionnary
+        """
+        data = instance_database()
+        dic = {}
+        dic["list_demos"] = {}
+        try:
+            dic["list_demos"] = data.list_of_demos()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot have the list of demos")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def get_template_demo(self):
+        data = instance_database()
+        dic = {}
+        dic["list_template"] = {}
+        try:
+            dic["list_template"] = data.list_of_template()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot have the list of templates demos")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    def demo(self):
+        """
+        """
+        data = {}
+        res = use_web_service('/get_template_demo', data)
+
+        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
+        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["list_template"])
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def set_template_ws(self, demo_id, name):
+        """
+        """
+        data = instance_database()
+        dic = {}
+        try:
+            id_template = data.id_demo(name)
+            data.update_template(demo_id, id_template)
+            data.commit()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot update template used")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="text/plain")
+    def use_template(self, **kwargs):
+        """
+        """
+        demo_id = kwargs["demo[id]"]
+        print "id"
+        print demo_id
+        name_tmpl = kwargs["name_template"]
+        print "template"
+        print name_tmpl
+        data = {"demo_id": demo_id, "name": name_tmpl}
+
+        res = use_web_service('/set_template_ws', data)
+
+        return self.get_blobs_of_demo(demo_id)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def add_demo_ws(self, name, is_template, template):
+        data = instance_database()
+        dic = {}
+        try:
+            id_tmpl = 0
+            if template:
+                id_tmpl = data.id_demo(template)
+            data.add_demo_in_database(name, is_template, id_tmpl)
+            data.commit()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot have the list of templates demos")
+            data.rollback()
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="text/plain")
+    def add_demo(self, **kwargs):
+        demo_name = kwargs["demo"]
+        is_tmpl = kwargs["template"]
+        is_template = 0
+        template = kwargs["name_template"]
+        print template
+
+        if is_tmpl != '0':
+            is_template = 1
+            template = ""
+
+        print template
+        data = {"name": demo_name, "is_template": is_template, "template": template}
+        res = use_web_service('/add_demo_ws', data)
+
+        return self.index()
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
@@ -197,11 +327,12 @@ class   Blob(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        the_zip = kwargs.pop('zip', [])
-        print type(the_zip)
+        demo_id = kwargs['demo[id]']
+        the_zip = kwargs['zip']
+
+        print demo_id
 
         _, ext = os.path.splitext(the_zip.filename)
-        print ext
         assert isinstance(the_zip, cherrypy._cpreqbody.Part)
 
         tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
@@ -209,114 +340,166 @@ class   Blob(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(the_zip, tmp_directory)
-        self.parse_archive(ext, path, tmp_directory, the_zip.filename)
+        self.parse_archive(ext, path, tmp_directory, the_zip.filename, demo_id)
 
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        #return tmpl_lookup.get_template("list.html").render()
+        return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def delete_blob_ws(self, demo, hash_blob):
+    def delete_blob_ws(self, demo_id, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
         Delete blob from demo name and hash blob in database
 
-        :param demo: name demo
-        :type demo: string
-        :param hash_blob: hash blob
-        :type hash_blob: string
-        return: True if blob is not associated to any demo else False
-        :rtype: json format bool
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        return: name of the blob if it is not associated to demo and
+        "OK" if not error else "KO"
+        :rtype: dictionnary
         """
-        list_sort = []
-        value_return = None
         data = instance_database()
+        dic = {}
+        dic["delete"] = ""
         try:
-            value_return = data.delete_blob_from_demo(demo, hash_blob)
+            blob_name = data.get_name_blob(blob_id)
+            value_return = data.delete_blob_from_demo(demo_id, blob_id)
             data.commit()
 
-            list_ddb = data.return_list()
-            list_sort = dict_from_list(list_ddb)
+            if not value_return:
+                dic["delete"] = blob_name
+            dic["return"] = "OK"
 
         except DatabaseError as error:
             print_exception_function(error, "Cannot delete item in database")
             data.rollback()
+            dic["return"] = "KO"
 
-        return json.dumps((list_sort, value_return))
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def delete_blob(self, demo, blob):
-        """
-        Call WebService '/delete_blob_ws' associated
-        Delete blob in final directory if it's necessary
-
-        :param demo: name demo
-        :type demo: string
-        :param blob: hash blob
-        :type blob: string
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {"demo": demo, "hash_blob": blob}
-        res = use_web_service('/delete_blob_ws', data)
-
-        print res[1]
-
-        if not res[1]:
-            path_file = os.path.join(self.current_directory, self.final_dir,
-                                     blob)
-            if os.path.isfile(path_file):
-                os.remove(path_file)
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("list.html").render(the_list=res[0])
+        return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def get_demo_ws(self, hash_blob):
+    def add_tag_to_blob_ws(self, blob_id, tag):
         """
-        This function implements get request from '/get_demo_ws' (Web Service)
-        It returns list of demo corresponding to hash blob given in parameter
-        List is empty if not any demo is associated to blob
+        Web service of '/op_add_tag_to_blob'
 
-        :param hash_blob: hash blob
-        :type hash_blob: string
-        :return: list of demo
-        :rtype: json format list
+        :param blob_id: id blob
+        :type blob_id: integer
+        :param tag: list of tag
+        :type tag: list
+        :return: "OK" if not error else "KO"
+        :rtype: dictionnary
         """
-        lis = []
         data = instance_database()
+        dic = {}
         try:
-            lis = data.get_demo_of_hash(hash_blob)
+            res = data.add_tag_in_database(blob_id, tag)
+            data.commit()
+            dic["return"] = "OK"
         except DatabaseError as error:
-            print_exception_function(error, "Cannot access to demo from hash")
+            print_exception_function(error, "Cannot add tag in database")
             data.rollback()
+            dic["return"] = "KO"
 
-        return json.dumps(lis)
+        return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    def get_demo_of_hash(self, hash_blob):
+    def op_add_tag_to_blob(self, **kwargs):
         """
-        This functions implements get request from '/get_demo_of_hash'
-        Call Webservice associated
+        Add tag to blob (POST Request)
 
-        :param hash_blob: hash blob
-        :type hash_blob: string
+        :param kwargs: list arguments
+        :type kwargs: dictionnary
+        :return: mako templated html page (refer to edit_blob.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        tag = kwargs['tag']
+        blob_id = kwargs['blob_id']
+        pattern = re.compile("^\s+|\s*,\s*|\s+$")
+        list_tag = [x for x in pattern.split(tag) if x]
+
+        if not list_tag:
+            list_tag = [""]
+
+        data = {"blob_id": blob_id, "tag": list_tag}
+        res = use_web_service("/add_tag_to_blob_ws", data)
+
+        return self.edit_blob(blob_id)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def remove_tag_from_blob_ws(self, tag_id, blob_id):
+        """
+        Web service of '/op_remove_tag_from_blob'
+
+        :param tag_id: id tag
+        :type tag_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: 'OK' if not error else 'KO'
+        :rtype: dictionnary
+        """
+        data = instance_database()
+        dic = {}
+        try:
+            res = data.delete_tag_from_blob(tag_id, blob_id)
+            data.commit()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot delete item in database")
+            data.rollback()
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    def op_remove_tag_from_blob(self, tag_id, blob_id):
+        """
+        Remove one tag from blob
+
+        :param tag_id: id tag
+        :type tag_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: mako templated html page (refer to edit_blob.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        data = {"tag_id": tag_id, "blob_id": blob_id}
+        res = use_web_service("/remove_tag_from_blob_ws", data)
+        return self.edit_blob(blob_id)
+
+    @cherrypy.expose
+    def op_remove_blob_from_demo(self, demo_id, blob_id):
+        """
+        Delete one blob from demo
+
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
         :return: mako templated html page (refer to get.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = {"hash_blob": hash_blob}
-        res = use_web_service('/get_demo_ws', data)
+        data = {"demo_id": demo_id, "blob_id": blob_id}
+        res = use_web_service('/delete_blob_ws', data)
 
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(the_list=res,
-                                                           val=hash_blob)
+        if (res["return"] == "OK" and res["delete"]):
+            path_file = os.path.join(self.current_directory, self.final_dir,
+                                     res["delete"])
+            path_thumb = os.path.join(self.current_directory, self.thumb_dir,
+                                      ("thumbnail_" + res["delete"]))
+            if os.path.isfile(path_file):
+                os.remove(path_file)
+            if os.path.isfile(path_thumb):
+                os.remove(path_thumb)
+
+        return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def get_hash_ws(self, demo):
+    def get_blobs_of_demo_ws(self, demo):
         """
         This function implements get request from '/get_hash' (Web Service)
         It returns list of hash blob corresponding to demo given in parameter
@@ -327,21 +510,38 @@ class   Blob(object):
         :return: list of hash blob
         :rtype: json format list
         """
-        lis = []
+        dic  = {}
         data = instance_database()
         try:
-            lis = data.get_hash_of_demo(demo)
+            dic = data.get_demo_name_from_id(demo)
+            dic["use_template"] = data.demo_use_template(demo)
+            dic["blobs"] = data.get_blobs_of_demo(demo)
+            dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from demo")
-            data.rollback()
+            dic["return"] = "KO"
 
-        return json.dumps(lis)
+        return json.dumps(dic)
 
     @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def get_hash_of_demo(self, demo):
+    @cherrypy.tools.accept(media="application/json")
+    def get_blob_from_template_ws(self, is_template, template):
         """
-        This functions implements get request from '/get_hash_of_demo'
+        """
+        dic = {}
+        data = instance_database()
+        try:
+            dic["template"] = data.get_blob_from_template(template)
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot access to blob from template demo")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    def get_blobs_of_demo(self, demo_id):
+        """
         Call Webservice associated
 
         :param demo: name demo
@@ -349,97 +549,127 @@ class   Blob(object):
         :return: mako templated html page (refer to get.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = {"demo": demo}
-        res = use_web_service('/get_hash_ws', data)
+        data = {"demo": demo_id}
+        res = use_web_service('/get_blobs_of_demo_ws', data)
+        data = {}
+        result = use_web_service('/get_template_demo', data)
+
+        print "template id"
+        print res["use_template"]
+
+        for item in res["blobs"]:
+            item["physical_location"] = os.path.join(self.current_directory,
+                                                     self.final_dir,
+                                                     (item["hash"] + item["extension"]))
+            item["url"] = "http://localhost:7777/blob_directory/" + item["hash"] \
+                          + item["extension"]
+            item["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+                                "thumbnail_" + item["hash"] + item["extension"]
+
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(the_list=res,
-                                                           val=demo)
+        return tmpl_lookup.get_template("get.html").render(the_list=res["blobs"],
+                                                           demo_id=demo_id,
+                                                           demo=res,
+                                                           res_tmpl=result["list_template"])
 
     @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blob_ws(self, tag):
+    def edit_blob(self, blob_id):
         """
-        This function implements get request from '/get_blob' (Web Service)
-        It returns list of hash blob corresponding to demo given in parameter
-        List is empty if not any blob is associated to demo
+        HTML Page : show thumbnail of one blob, add tag or remove tag
 
-        :param tag: list name tag
-        :type tag: list of string
-        :return: list of hash blob
-        :rtype: json format list
-        """
-        lis = []
-        data = instance_database()
-        try:
-            lis = data.get_blob_of_tag(tag)
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot acces to blob from tag")
-        return json.dumps(lis)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def get_blob_of_tag(self, tag):
-        """
-        This functions implements get request from '/get_blob_of_tag'
-        Call Webservice associated
-
-        :param tag: list name tag
-        :type tag: list of string
-        :return: mako templated html page (refer to get.html)
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: mako templated html page (refer to edit_blob.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        tag = list(tag.split(','))
-        tag = [x.encode('UTF8') for x in tag]
-        if len(tag) == 1:
-            tag.append('')
-        data = {"tag": tag}
+        data = {"blob_id": blob_id}
         res = use_web_service('/get_blob_ws', data)
 
+        if res["return"] == "OK":
+            res["physical_location"] = os.path.join(self.current_directory,
+                                                    self.final_dir,
+                                                    (res["hash"] + res["extension"]))
+            res["url"] = "http://localhost:7777/blob_directory/" + res["hash"] \
+                         + res["extension"]
+            res["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+                               "thumbnail_" + res["hash"] + res["extension"]
+
+            res["tags"] = use_web_service('/get_tags_ws', data)
+
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(the_list=res,
-                                                           val=tag)
+        return tmpl_lookup.get_template("edit_blob.html").render(blob_info=res)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def get_tag_ws(self, blob):
+    def get_blob_ws(self, blob_id):
         """
-        This function implements get request from '/get_tag' (Web Service)
-        It returns list of hash blob corresponding to demo given in parameter
-        List is empty if not any blob is associated to demo
+        Return informations of blob from id
 
-        :param blob: name blob
-        :type blo: string
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: extension, id, hash, credit of blob
+        :rtype: dictionnary
+        """
+        data = instance_database()
+        dic = {}
+        try:
+            dic = data.get_blob(blob_id)
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot access to blob from id blob")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def get_tags_ws(self, blob_id):
+        """
+
+        :param blob_id: id blob
+        :type blob_id: integer
         :return: list of hash blob
         :rtype: json format list
         """
         lis = []
         data = instance_database()
         try:
-            lis = data.get_tag_of_blob(blob)
+            lis = data.get_tags_of_blob(blob_id)
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to tag from blob")
         return json.dumps(lis)
 
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def get_tag_of_blob(self, blob):
-        """
-        This functions implements get request from '/get_tag_of_blobp'
-        Call Webservice associated
 
-        :param blob: name blob
-        :type blob: string
-        :return: mako templated html page (refer to get.html)
-        :rtype: mako.lookup.TemplatedLookup
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def op_remove_demo_ws(self, demo_id):
         """
-        data = {"blob": blob}
-        res = use_web_service('/get_tag_ws', data)
-        print res
+        """
+        data = instance_database()
+        dic = {}
+        try:
+            data.remove_demo(demo_id)
+            data.commit()
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot delete demo")
+            data.rollback()
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    def op_remove_demo(self, demo_id):
+        """
+        """
+        data = {"demo_id": demo_id}
+        resul = use_web_service('/op_remove_demo_ws', data)
+        data = {}
+        res = use_web_service('/demos_ws', data)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(the_list=res,
-                                                           val=blob)
+        return tmpl_lookup.get_template("demos.html").render(the_list=res["list_demos"])
 
     def move_to_input_directory(self, path, the_hash, extension):
         """
@@ -475,15 +705,17 @@ class   Blob(object):
         name = os.path.basename(src)
         file_dest = os.path.join(file_directory, ('thumbnail_' + name))
         name = "thumbnail_" + name
+        fil_format = file_format(src)
         try:
-            image = PIL.Image.open(src)
-            image.thumbnail((256, 256))
-            image.save(file_dest)
+            if fil_format == 'image':
+                image = PIL.Image.open(src)
+                image.thumbnail((256, 256))
+                image.save(file_dest)
         except IOError:
             print_exception_thumbnail("Cannot create thumbnail",\
                 inspect.currentframe().f_code.co_name)
 
-    def parse_archive(self, ext, path, tmp_directory, the_zip):
+    def parse_archive(self, ext, path, tmp_directory, the_zip, demo_id):
         """
         Open archive (zip, tar) file
         Extract blob object in function informations in 'index.cfg' file
@@ -512,24 +744,30 @@ class   Blob(object):
             buff.readfp(open(index_path))
             for item in buff.sections():
                 the_file = buff.get(item, "files")
-                if the_file and the_file in files:
-                    title = buff.get(item, 'title')
-                    credit = buff.get(item, 'credit')
-                    src.extract(the_file, path=tmp_directory)
-                    tmp_path = os.path.join(tmp_directory, the_file)
-                    _, ext = os.path.splitext(tmp_path)
+                list_file = the_file.split()
+                for the_item in list_file:
+                    if the_item and the_item in files:
+                        title = buff.get(item, 'title')
+                        credit = buff.get(item, 'credit')
+                        src.extract(the_item, path=tmp_directory)
+                        tmp_path = os.path.join(tmp_directory, the_item)
+                        _, ext = os.path.splitext(tmp_path)
 
-                    data = {"name": "", "path": tmp_path, "tag": "", "ext": ext}
-                    res = use_web_service('/add_blob_ws/', data)
+                        data = {"demo_id": demo_id, "path": tmp_path, "tag": "",
+                                "ext": ext, "the_set": item, "title": title,
+                                "credit": credit}
+                        res = use_web_service('/add_blob_ws/', data)
 
-                    if res[1] != -1:
-                        file_dest = self.move_to_input_directory(tmp_path,
-                                                     res[1], ext)
-                        self.create_thumbnail(file_dest)
+                        the_hash = res["the_hash"]
+                        if the_hash != -1 and res["return"] == "OK":
+                            file_dest = self.move_to_input_directory(tmp_path,
+                                                                     the_hash,
+                                                                     ext)
+                            self.create_thumbnail(file_dest)
+                        else:
+                            os.remove(tmp_path)
                     else:
-                        os.remove(tmp_path)
-                else:
-                    pass
+                        pass
         else:
             print_exception_zip(inspect.currentframe().f_code.co_name,\
                                 the_zip)
@@ -564,39 +802,8 @@ def use_web_service(req, data):
     urls_values = urllib.urlencode(data, True)
     url = cherrypy.server.base() + req + '?' + urls_values
     res = urllib2.urlopen(url)
-    buff = res.read()
-    return yaml.safe_load(buff)
-
-def dict_from_list(list_ddb, way=0):
-    """
-    This function creates dict (json) from list of tuple
-    It takes another parameter. If way equals zero, it means that you want
-    create dictionnary: name demo in function hash of blob associated (=list),
-    else it's the opposite
-
-    :param list_ddb: list of tuple [(name demo, hash blob)]
-    :type list_ddb: list of tuple [string, string)]
-    :param way: conditional parameter
-    :type way: integer
-    :return: dict according way parameter
-    :rtype: dict {}
-    """
-    the_dict = defaultdict(list)
-    for key, value in list_ddb:
-        if way == 0:
-            the_dict[key].append(value)
-        else:
-            the_dict[value].append(key)
-
-    if way == 0:
-        d_sort = sorted(the_dict.iteritems(), key=lambda (k, v): k,
-                        reverse=False)
-    else:
-        d_sort = []
-        for item in sorted(the_dict, key=the_dict.get):
-            the_dict[item] = sorted(the_dict[item])
-            d_sort.append([item, the_dict[item]])
-    return d_sort
+    tmp = res.read()
+    return json.loads(tmp)
 
 def get_hash_blob(path):
     """
@@ -640,4 +847,5 @@ def instance_database():
         print_exception_function(error,
                                  "Cannot instantiate Database Object")
         sys.exit(1)
+
 

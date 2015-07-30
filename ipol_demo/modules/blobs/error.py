@@ -31,6 +31,11 @@ class   DatabaseDeleteError(DatabaseError):
     """
     pass
 
+class DatabaseUpdateError(DatabaseError):
+    """
+    """
+    pass
+
 class PrintColors(object):
     """
     Defined ANSI printing codes
