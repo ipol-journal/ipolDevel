@@ -5,6 +5,7 @@
     </head>
     <body>
       <ul>
+	<a href="index">return</a>
 	<h1>List of blobs of ${demo[demo_id]["name"]}</h1>
 	This demo is a template:
 	%if demo[demo_id]["is_template"] == 1:
@@ -35,10 +36,21 @@
 	<a href="blob?demo_id=${demo_id}">add blob</a><br>
 	<a href="zip?demo_id=${demo_id}">add zip</a><br>
 	<a href="op_remove_demo?demo_id=${demo_id}">remove this demo</a><br><br>
+	%if len(the_list):
+	<h1>List of blob of this demo</h1>
+	%endif
 	%for item in the_list:
-	<a href="edit_blob?blob_id=${item["id"]}">
+	<a href="edit_blob?blob_id=${item["id"]}&demo_id=${demo_id}">
 	  <img src="${item["url_thumb"]}"> </img></a>
 	<a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${item["id"]}">delete</a>
+	<br>
+	%endfor
+	%if len(list_tmpl):
+	<h1>List of blob of the demo template</h1>
+	%endif
+	%for item in list_tmpl:
+	<a href="edit_blob?blob_id=${item["id"]}&demo_id=${demo_id}">
+	  <img src="${item["url_thumb"]}"> </img></a>
 	<br>
 	%endfor
       </ul>

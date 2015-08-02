@@ -27,12 +27,13 @@ class   DatabaseSelectError(DatabaseError):
 
 class   DatabaseDeleteError(DatabaseError):
     """
-    Exception used when delte instruction failed in database
+    Exception used when delete instruction failed in database
     """
     pass
 
 class DatabaseUpdateError(DatabaseError):
     """
+    Exception used when update instruction failed in database
     """
     pass
 
