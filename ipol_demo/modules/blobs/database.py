@@ -21,8 +21,8 @@ class   Database(object):
         Initialize database class
         Connect to databse
 
-        :param ptr: database name
-        :type ptr: string
+        :param name: database name
+        :type name: string
         """
         self.formats = ('audio', 'image', 'video')
         self.name = name
@@ -42,21 +42,27 @@ class   Database(object):
 
         :param demo: name demo
         :type demo: string
-        :return: id demo in database
-        :rtype: integer (primary key autoincrement)
+        :param is_template: if demo is template equal 1 else 0
+        :type is_template: boolean cast in integer
+        :param id_template: id templated demo used
+        :type id_template: integer
         """
         try:
             if not self.demo_is_in_database(demo):
                 if is_template == '0':
-                    self.cursor.execute('''
-                    INSERT INTO demo(name, id_template)
-                    VALUES(?, ?)''', (demo, id_template,))
+                    if id_template == None:
+                        self.cursor.execute('''
+                        INSERT INTO demo(name)
+                        VALUES(?)''', (demo,))
+                    else:
+                        self.cursor.execute('''
+                        INSERT INTO demo(name, id_template)
+                        VALUES(?, ?)''', (demo, id_template,))
                 else:
                     self.cursor.execute('''
                     INSERT INTO demo(name, is_template) VALUES(?, ?)''', (demo, is_template,))
         except self.database.Error:
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
-        #return self.cursor.lastrowid
 
     def add_blob_in_database(self, demoid, hash_blob, fileformat,
                              ext, tag, the_set,
@@ -77,7 +83,7 @@ class   Database(object):
         :type ext: string
         :param tag: name tag
         :type tag: string
-        :param the_set:
+        :param the_set: set of blob
         :type the_set: string
         :param title: title blob
         :type title: string
@@ -169,7 +175,7 @@ class   Database(object):
 
     def demo_is_in_database(self, demo):
         """
-        Check if demo isin database,in column demo
+        Check if demo is in database,in column demo
 
         :param demo: name demo
         :type demo: string
@@ -286,7 +292,7 @@ class   Database(object):
 
     def delete_demo_existed(self, demoid):
         """
-        Delete row (name, iddemo) corresponding to id demo
+        Delete row (name, id, is_template, id_template) corresponding to id demo
 
         :param demoid: id demo
         :type demoid:integer (primary key autoincrement)
@@ -327,8 +333,8 @@ class   Database(object):
 
         :param demo_id: id demo
         ::type demo_id: integer
-        :return: name of the demo
-        :rtype: string
+        :return: name, is template, id template
+        :rtype: dictionnary
         """
         dic = {}
         try:
@@ -374,10 +380,10 @@ class   Database(object):
         """
         Return list of tag associated with hash blob
 
-        :param hash_blob: hash blob
-        :type hash_blob: string
+        :param blob_id: id blob
+        :type blob_id: integer
         :return: list of tag
-        :rtype: list
+        :rtype: dictionnary
         """
         try:
             something = self.cursor.execute('''
@@ -398,8 +404,8 @@ class   Database(object):
         """
         Check if demo is not associated with a blob
 
-        :param demo: name demo
-        :type demo: string
+        :param demo_id: id demo
+        :type demo_id: integer
         :return: number of demo present in database
         :rtype: tuple of integer or None
         """
@@ -420,8 +426,8 @@ class   Database(object):
         """
         If demo is empty, delete row corresponding in demo column
 
-        :param demo: name demo
-        :type demo: string
+        :param demo_id: id demo
+        :type demo_id: integer
         :param demo_is_reducible: tuple of integer
         :type demo_is_reducible: tuple or None
         """
@@ -435,8 +441,8 @@ class   Database(object):
         """
         Check if blob named by hash is not associated with a demo
 
-        :param hash_blob: hash blob
-        :type hash_blob: string
+        :param blob_id: id blob
+        :type blob_id: string
         :return: number of blob present in database
         :rtype: tuple of integer
         """
@@ -456,8 +462,8 @@ class   Database(object):
         """
         If blob is empty delete row corresponding in blob column
 
-        :param hash_blob: hash blob
-        :type hash_blob: string
+        :param blob_id: id blob
+        :type blob_id: integer
         :param blob_is_reducible: tuple of integer
         :type blob_is_reducible: tuple or None
         """
@@ -497,6 +503,8 @@ class   Database(object):
 
         :param tag_id: id tag
         :type tag_id: integer
+        :param tag_is_reducible: tag is empty (not associated to any blob)
+        :type tag_is_reducible: integer
         """
         if tag_is_reducible[0] == 0:
             try:
@@ -515,11 +523,11 @@ class   Database(object):
         Delete tag row associated to blob if tag has no blob
         Delete blob row named by hash blob if blob has no demo
 
-        :param demo: name demo
-        :type demo: string
-        :param hash_blob: hash blob
-        :type hash_blob: string
-        :return: True if blob named by hash hasn't demo associated else False
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: True if blob named by id hasn't demo associated else False
         :rtype: bool
         """
         try:
@@ -606,7 +614,7 @@ class   Database(object):
 
     def init_tag_column(self):
         """
-        insertin tag column defaults tag
+        Inserting tag column defaults tag
         """
         try:
             if not self.tag_is_in_database("BW"):
@@ -662,7 +670,7 @@ class   Database(object):
         for item in something:
             value = (item[0], item[1])
 
-        return value[0] + value[1]
+        return value[0] + value[1] if value else value
 
     def get_blob(self, blob_id):
         """
@@ -706,7 +714,6 @@ class   Database(object):
             raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
         demo_is_reducible = self.tag_is_empty(tag_id)
-        print "remove %d" % demo_is_reducible[0]
         self.delete_tag(tag_id, demo_is_reducible)
 
 
@@ -728,7 +735,7 @@ class   Database(object):
             something = self.cursor.fetchone()
             if something:
                 for item in something:
-                    self.remove_tag_from_blob(item, blob_id)
+                    self.delete_tag_from_blob(item, blob_id)
 
         except self.database.Error, DatabaseDeleteError:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -736,6 +743,10 @@ class   Database(object):
 
     def list_of_template(self):
         """
+        Return the list templated demo
+
+        :return: list of templated demo
+        :type: dictionnary
         """
         try:
             something = self.cursor.execute('''
@@ -753,8 +764,13 @@ class   Database(object):
 
     def remove_demo(self, demo_id):
         """
+        Remove demo of the database, and blob and tag associated
+
+        :param demo_id: id demo
+        :type demo_id: integer
         """
         try:
+            self.list_templated_demo_using_from_demo(demo_id)
             something = self.cursor.execute('''
             SELECT blob.id FROM blob
             INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
@@ -773,28 +789,14 @@ class   Database(object):
             raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
 
-    def get_blob_from_template(self, template):
-        """
-        """
-        dic = {}
-        try:
-            something = self.execute('''
-            SELECT id, hash, extension, credit FROM blob
-            INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
-            INNER JOIN demo ON blob_demo.id_demo=id_demo
-            WHERE demo.id_template=?''', \
-            (template,))
-            #something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
-
-        for item in something:
-            dic[item[0]] = {"hash": item[1], "extension": item[2],
-                            "credit": item[3]}
-        return dic
-
     def demo_use_template(self, demo_id):
         """
+        Return the name of the templated demo used by another demo
+
+        :param demo_id: id demo
+        :type demo_id: integer
+        :return: name of templated demo used
+        :rtype: dictionnary
         """
         dic = {}
         try:
@@ -804,7 +806,7 @@ class   Database(object):
             WHERE demo.id=?''',\
             (demo_id,))
             something = self.cursor.fetchone()
-            if something[0] == 0:
+            if something[0] == 0 and something[1] != 0:
                 dic = self.get_demo_name_from_id(something[1])[something[1]]
         except DatabaseError, DatabaseSelectError:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -814,11 +816,32 @@ class   Database(object):
 
     def update_template(self, demo_id, id_template):
         """
+        Update the template used by another demo
+
+        :param demo_id: id demo (current demo)
+        :type demo_id: integer
+        :param id_template: id demo templated used by current demo
+        :type id_template: integer
         """
         try:
             self.cursor.execute('''
             UPDATE demo SET id_template=?
             WHERE demo.id=?''', \
             (id_template, demo_id,))
+        except DatabaseError:
+            raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)
+
+    def list_templated_demo_using_from_demo(self, id_demo):
+        """
+        Update id template of demo using templated demo defined by id
+
+        :param id_demo: id demo
+        :type id_demo: integer
+        """
+        try:
+            self.cursor.execute('''
+            UPDATE demo SET id_template=0
+            WHERE id_template=?''',\
+            (id_demo,))
         except DatabaseError:
             raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)

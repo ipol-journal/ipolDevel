@@ -47,35 +47,35 @@ class   Test(threading.Thread):
 
         print >> self.error_file, "\n\n---Test Function---\n\n"
 
-        i = 42
+        i = 1
 
-        data = {"name": i, "path": image, "tag": ["BW", ""], "ext": ".png"}
+        data = {"name": "denoising", "is_template": 0, "template": ""}
+        res = use_web_service('/add_demo_ws', data)
+
+        print >> self.error_file, res["return"]
+
+        data = {"demo_id": i, "path": image, "tag": ["BW", ""], "ext": ".png",
+                "the_set": "", "title": "", "credit": ""}
         res = use_web_service('/add_blob_ws', data)
 
-        print >> self.error_file, res[0]
+        print >> self.error_file, res["return"]
 
-        data = {"name": i, "path": image2, "tag": ["BW", ""], "ext": ".png"}
+        data = {"demo_id": i, "path": image2, "tag": ["BW", ""], "ext": ".png",
+                "the_set": "", "title": "", "credit": ""}
         res = use_web_service('/add_blob_ws', data)
-        print >> self.error_file, res[0]
+        print >> self.error_file, res["return"]
 
-        data = {"hash_blob": '87659853a31b299f62785552ecf00a6b64b9b6a0'}
-        res = use_web_service('/get_demo_ws', data)
-
-        print >> self.error_file, res[0]
-
-        data = {"tag": 'BW'}
-        res = use_web_service('/get_blob_ws', data)
-        print >> self.error_file, res
-
-        data = {"demo": i, "hash_blob":
-                "87659853a31b299f62785552ecf00a6b64b9b6a0"}
+        data = {"demo_id": i, "blob_id": 1}
         res = use_web_service('/delete_blob_ws', data)
-        print >> self.error_file, res[0]
+        print >> self.error_file, res["return"]
 
-        data = {"demo": i, "hash_blob":
-                "20692be1e865ca4149a1c6894579e03b8575dc3"}
+        data = {"demo_id": i, "blob_id": 2}
         res = use_web_service('/delete_blob_ws', data)
-        print >> self.error_file, res[0]
+        print >> self.error_file, res["return"]
+
+        data = {"demo_id": i}
+        res = use_web_service('/op_remove_demo_ws', data)
+        print >> self.error_file, res["return"]
 
         print >> self.error_file, "---End of Test function---"
 

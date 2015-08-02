@@ -27,14 +27,15 @@ Requirements:
 
 Features:
  - Upload file (audio, image, video)
+ - Upload zip contents file
+ - Created demo (templated, using templated demo or normal demo)
+ - Add file for this demo from uploaded file
+ - Add tag for these file
+ - Delete demo with his id
+ - Delete one file with his id and his id demo associated
+ - Delete tag with id file associated
  - Add uploaded file in directory defined in blobs conf file
- - Add in database what file was uploaded with which demo associated
- - Add in database what file was uploaded with which tags associated
- - Delete one file with his hash and his demo associated
- - Get file from name of the demo
- - Get demo from name of the file
- - Get file from name of the tag
- - Get tags from name of the file
+ - Created thumbnail of uploaded file in directory defined in blobs conf file
 
 Usage: python main.py blobs.conf
 
@@ -49,7 +50,6 @@ Usage of this script: ./init [-g] blobs.conf
 
       -g (git option)
 		remove blob.db file
-
 
 Test program will test only the web service, so
 the management of the database (ADD, DELETE, GET).
