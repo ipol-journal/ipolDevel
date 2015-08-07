@@ -27,7 +27,13 @@ class   DatabaseSelectError(DatabaseError):
 
 class   DatabaseDeleteError(DatabaseError):
     """
-    Exception used when delte instruction failed in database
+    Exception used when delete instruction failed in database
+    """
+    pass
+
+class DatabaseUpdateError(DatabaseError):
+    """
+    Exception used when update instruction failed in database
     """
     pass
 
@@ -47,6 +53,7 @@ class PrintColors(object):
 def print_exception_function(the_class, result):
     """
     This function prints exception message with color
+    during access to the database
 
     :param the_class: exception class
     :type the_class: DatabaseError
@@ -74,3 +81,35 @@ def print_usage_function(executable):
     mess += "[Usage]: " + executable + " file.conf"
 
     print >> sys.stderr, mess
+
+def print_exception_thumbnail(result, name_function):
+    """
+    This function prints exception message for the creation of thumbnails
+
+    :param name_function: name of the current function
+    :type name_function: string
+    """
+    mess = PrintColors.FAIL
+    mess += "[Exception message]:\n\t[Type]: IOError"
+    mess += "\n\t[Location]: " + name_function
+    mess += "\n\t[Result]: " + result + PrintColors.ENDC
+
+    print >> sys.stderr, mess
+
+def print_exception_zip(name_function, name_zip):
+    """
+    This function prints exception message for the decompress zip file
+
+    :param name_function: name of the current function
+    :type name_function: string
+    :param name_zip: name of the zip file
+    :type name_zip: string
+    """
+    mess = PrintColors.FAIL
+    mess += "[Exception message]:\n\t[Type]: ZipError"
+    mess += "\n\t[Location]: " + name_function
+    mess += "\n\t[Result]: index.cfg missing in " + name_zip
+    mess += ": Cannot add item in database" + PrintColors.ENDC
+
+    print >> sys.stderr, mess
+

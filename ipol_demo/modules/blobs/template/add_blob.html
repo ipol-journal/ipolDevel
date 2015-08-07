@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC>
+<html>
+    <head>
+      <meta charset="utf-8" />
+    </head>
+    <body>
+      <form action="/add_blob" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="demo[id]" value="${demo_id}">
+	The set: <br>
+	<input type="text" name="demo[set]" value="">
+	<br></br>
+	Tag: <br>
+	<input type="text" name="demo[tag]" value="">
+	<br></br>
+	Title: <br>
+	<input type="text" name="demo[title]" value="">
+	<br></br>
+	Credit: <br>
+	<input type="text" name="demo[credit]" value="">
+	<br></br>
+	<input type="file" name="demo[blob]">
+	<br></br>
+	<input type="submit" value="Submit">
+	</div>
+      </form>
+    </body>
+</html>

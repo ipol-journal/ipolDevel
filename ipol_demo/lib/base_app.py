@@ -244,6 +244,17 @@ class base_app(empty_app):
     # INDEX
     #
 
+    def valid_paths(self, fname):
+        '''
+        Checks if the given list of paths is safe
+        '''
+        for filename in fname:
+            idx_dd = filename.find("..")
+            if idx_dd != -1:
+                return False
+        return True
+    
+
     def index(self):
         """
         demo presentation and input menu
@@ -257,15 +268,29 @@ class base_app(empty_app):
             # by splitting at blank characters
             # and generate thumbnails and thumbnail urls
             fname = input_info['files'].split()
-            tn_fname = [thumbnail(self.input_dir + f, (tn_size, tn_size))
-                        for f in fname]
-            inputd[input_id]['url'] = [self.input_url + os.path.basename(f)
-                                       for f in fname]
-            inputd[input_id]['tn_url'] = [self.input_url + os.path.basename(f)
-                                          for f in tn_fname]
+
+            if not self.valid_paths(fname):
+                self.log("Invalid path in demo %s: %s" % ((self.title, str(fname))))
+                inputd[input_id]['tn_url'] = []
+                inputd[input_id]['url'] = []
+                continue
+
+             # this generates thumbnails even if the files are in a
+             # subdirectory of input
+            inputd[input_id]['tn_url'] = [os.path.join(self.input_url, \
+                                          os.path.dirname(f), \
+                                          os.path.basename(thumbnail(\
+                                            self.input_dir + f, (tn_size, \
+                                                                 tn_size)))) \
+                                           for f in fname]
+
+            inputd[input_id]['url'] = [os.path.join(self.input_url, \
+                                       os.path.dirname(f), \
+                                       os.path.basename(f)) \
+                                           for f in fname]
 
         return self.tmpl_out("input.html",
-                             inputd=inputd)
+                              inputd=inputd)
 
     #
     # INPUT HANDLING TOOLS
