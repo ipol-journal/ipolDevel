@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS `blob` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `demo` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `name` VARCHAR(30) NULL);
+  `name` VARCHAR(30) NULL,
+  `is_template` BOOLEAN DEFAULT 0,
+  `id_template` INTEGER DEFAULT 0);
 
 
 -- -----------------------------------------------------
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS `tag` (
 CREATE TABLE IF NOT EXISTS `blob_demo` (
   `id_blob` INTEGER,
   `id_demo` INTEGER,
+  `set_blob` VARCHAR(70) DEFAULT NULL,
   PRIMARY KEY (`id_blob`, `id_demo`),
   CONSTRAINT `fk_blob_has_demo_blob1`
     FOREIGN KEY (`id_blob`)

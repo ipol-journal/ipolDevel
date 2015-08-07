@@ -5,20 +5,18 @@
     </head>
     <body>
       <form action="/add_blob" method="post" enctype="multipart/form-data">
-	<div>
-	Name demo: <br>
-	<input type="text" name="demo[name]" value="">
+	<input type="hidden" name="demo[id]" value="${demo_id}">
+	The set: <br>
+	<input type="text" name="demo[set]" value="">
 	<br></br>
-	Tag:
-	<select name="demo[tag][]" multiple="multiple">
-	  %for item in the_list:
-	  <option >${item}</option>
-	  %endfor
-	</select>
+	Tag: <br>
+	<input type="text" name="demo[tag]" value="">
 	<br></br>
-	<input type="text" name="demo[tag][]" value="">
+	Title: <br>
+	<input type="text" name="demo[title]" value="">
 	<br></br>
-	<input type="text" name="demo[tag][]" value="">
+	Credit: <br>
+	<input type="text" name="demo[credit]" value="">
 	<br></br>
 	<input type="file" name="demo[blob]">
 	<br></br>
