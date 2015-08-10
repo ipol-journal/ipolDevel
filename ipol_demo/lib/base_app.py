@@ -435,20 +435,22 @@ class base_app(empty_app):
         """
 
         # When we arrive here, self.key should be empty.
-        # If not, it means that another execution is concurrent.
-        # In that case, we need to clone the app object
+        # If not, it means that the execution belongs to another thread
+        # and therefore we need to reuse the app object
         key_is_empty = (self.key == "")
         if key_is_empty:
+            # New execution: create new app object
             self2 = base_app(self.base_dir)
             self2.__class__ = self.__class__
             self2.__dict__.update(self.__dict__)
         else:
+            # Already known execution
             self2 = self
 
         self2.new_key()
         self2.init_cfg()
 
-        # Add to app object pool
+        # Add app to object pool
         if key_is_empty:
             pool = AppPool.get_instance() # Singleton pattern
             pool.add_app(self2.key, self2)
