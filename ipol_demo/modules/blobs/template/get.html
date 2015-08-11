@@ -24,6 +24,7 @@
 	<form action="/use_template" method="post">
 	  <input type="hidden" name="demo[id]" value="${demo_id}">
 	  <select name="name_template" value="">
+	    <option>None</option>
 	    %for item in res_tmpl:
 	    <option>${res_tmpl[item]["name"]}</option>
 	    %endfor

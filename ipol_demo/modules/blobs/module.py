@@ -279,6 +279,8 @@ class   Blob(object):
         dic = {}
         try:
             id_template = data.id_demo(name)
+            if name == 'None':
+                id_template = 0
             data.update_template(demo_id, id_template)
             data.commit()
             dic["return"] = "OK"
@@ -301,6 +303,7 @@ class   Blob(object):
         """
         demo_id = kwargs["demo[id]"]
         name_tmpl = kwargs["name_template"]
+
         data = {"demo_id": demo_id, "name": name_tmpl}
 
         res = use_web_service('/set_template_ws', data)
