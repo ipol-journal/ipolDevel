@@ -18,6 +18,7 @@ for calculations and experiments done with IPOL.
 """
 
 import sqlite3 as lite
+import sys
 import errno
 import hashlib
 import logging
@@ -28,6 +29,7 @@ import os.path
 import magic
 import shutil
 import Image
+from mako.template import Template
 
 class Archive(object):
     """
@@ -44,9 +46,6 @@ class Archive(object):
         """
         Implement the UNIX shell command "mkdir -p"
         with given path as parameter.
-
-        :param path: path to be made, with all the parents directories
-        :type path: string
         """
         try:
             os.makedirs(path)
@@ -77,9 +76,6 @@ class Archive(object):
         """
         Return the extension of a file using its magic number.
 
-        :param path: path to the file
-        :type path: string
-        :return: the extension of the file
         :rtype: string
         """
         return magic.from_file(path).split(' ', 1)[0].lower()
@@ -89,8 +85,6 @@ class Archive(object):
         """
         Return sha1 hash of given blob
 
-        :param path: path file
-        :type path: string
         :return: sha1 of the blob
         :rtype: string
         """
@@ -102,8 +96,6 @@ class Archive(object):
         """
         Return format of the file
 
-        :param the_file: path of the file
-        :type the_file: string
         :return: format of file (audio, image or video)
         :rtype: string
         """
@@ -117,35 +109,39 @@ class Archive(object):
         Attribute status should be checked after each initialisation.
         It is false if something went wrong.
         """
-        thumbs_s = int()
+        thumbs_s = None
         cherrypy.config.update("./archive.conf")
         self.status = self.check_config()
         if not self.status:
-            return
+            sys.exit(1)
+
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
         self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
+        self.url = "http://127.0.0.1:7777/"
+
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))
         except Exception:
             thumbs_s = 256
+
         try:
             self.nb_exp_by_pages = int(cherrypy.config.get("nb_exp_by_pages"))
         except Exception:
             self.nb_exp_by_pages = 12
         self.thumbs_size = (thumbs_s, thumbs_s)
-        try:
-            self.mkdir_p(self.logs_dir)
-            self.mkdir_p(self.database_dir)
-            self.mkdir_p(self.blobs_dir)
-            self.mkdir_p(self.blobs_thumbs_dir)
-        except Exception as ex:
-            print "Error : " + str(ex)
-            return
+
+        self.mkdir_p(self.logs_dir)
+        self.mkdir_p(self.database_dir)
+        self.mkdir_p(self.blobs_dir)
+        self.mkdir_p(self.blobs_thumbs_dir)
+        
         self.logger = self.init_logging()
         self.database_file = os.path.join(self.database_dir, "archive.db")
         self.status = self.init_database()
+        if not self.status:
+            sys.exit("Initialisation of database failed. Check the logs.")
 
     def init_logging(self):
         """
@@ -164,12 +160,6 @@ class Archive(object):
     def error_log(self, function_name, error):
         """
         Write an error log in the logs_dir defined in archive.conf
-
-        :param function_name: name of the function calling error_log for
-            locating the error
-        :type function_name: string
-        :param error: string of the error description.
-        :type error: string
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
@@ -231,11 +221,6 @@ class Archive(object):
     def make_thumbnail(self, path, name):
         """
         This function make a thumbnail of path.
-
-        :param path: path to the file.
-        :type path: string.
-        :param name: name of the file without extension..
-        :type name: string.
         """
         img = Image.open(path)
         img.thumbnail(self.thumbs_size, Image.ANTIALIAS)
@@ -247,10 +232,6 @@ class Archive(object):
             the id is returned. If not, the blob is added, then the id
             is returned.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param path: path to the temporary file.
-        :type path: string.
         :return: id of the blob in the database.
         :rtype: integer.
         """
@@ -265,6 +246,7 @@ class Archive(object):
         SELECT * FROM blobs WHERE hash = ?
         ''', (hash_file,))
         tmp = cursor_db.fetchone()
+
         if not tmp:
             cursor_db.execute('''
             INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
@@ -272,11 +254,15 @@ class Archive(object):
             path_new_file = os.path.join(self.blobs_dir,
                                          hash_file) + '.' + type_file
             shutil.copyfile(path, path_new_file)
-            self.make_thumbnail(path_new_file, hash_file)
+
+            if format_file == "image":
+                self.make_thumbnail(path_new_file, hash_file)
+
             cursor_db.execute('''
             SELECT * FROM blobs WHERE hash = ?
             ''', (hash_file,))
             tmp = cursor_db.fetchone()
+
         id_blob = int(tmp[0])
         return id_blob
 
@@ -284,15 +270,6 @@ class Archive(object):
         """
         This function update the experiment table.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param demo_id: id of the demo used for the experiment.
-        :type demo_id: integer.
-        :param blobs: blobs locations and their given names in the experiment
-            as keys/values encoded in JSON.
-        :type blobs: JSON formatted string.
-        :param parameters: parameters used as keys/values encoded in JSON.
-        :type parameters: JSON formatted string.
         :return: Return the id of the newly created experiment in the database.
         :rtype: integer.
         """
@@ -311,65 +288,51 @@ class Archive(object):
             It return a dictionary of data to be added
             to the correspondence table.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param blobs: blobs locations and their given names in the experiment
-            as keys/values encoded in JSON.
-        :type blobs: JSON formatted string.
         :return: a dictionary of data to be added to the correspondence table.
         :rtype: dict
         """
         id_blob = int()
         dict_blobs = json.loads(blobs)
         dict_corresp = {}
+
         for keys, values in dict_blobs.items():
             id_blob = self.add_to_blob_table(conn, keys)
             dict_corresp[id_blob] = values
+
         return dict_corresp
 
     def update_correspondence_table(self, conn, id_experiment, dict_corresp):
         """
         This function update the correspondence table, associating
             blobs, experiments, and descriptions of blobs.
-
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param id_experiment: Id of the experiment in the database.
-        :type id_experiment: integer
-        :param dict_corresp: dict with blob ids as keys and the description
-            of their blobs as values.
-        :type dict_corresp: dict
         """
         cursor_db = conn.cursor()
+
         for keys, values in dict_corresp.items():
             cursor_db.execute('''
             INSERT INTO
             correspondence (id_experiment, id_blob, name)
             VALUES (?, ?, ?)''', (id_experiment, keys, values))
 
+    @cherrypy.expose
     def add_experiment(self, demo_id, blobs, parameters):
         """
         This function add an experiment with all its datas to the archive.
             In case of failure, False will be returned.
 
-        :param demo_id: id of the demo used for the experiment.
-        :type demo_id: integer.
-        :param blobs: blobs locations and their given names in the experiment
-            as keys/values encoded in JSON.
-        :type blobs: JSON formatted string.
-        :param parameters: parameters used as keys/values encoded in JSON.
-        :type parameters: JSON formatted string.
         :return: status of the operation
-        :rtype: bool
+        :rtype: JSON formatted string.
         """
-        status = True
+        status = {"status" : "KO"}
         try:
+            demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
             id_experiment = self.update_exp_table(conn, demo_id, parameters)
             dict_corresp = self.update_blob_table(conn, blobs)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
             conn.close()
+            status["status"] = "OK"
         except Exception as ex:
             self.error_log("add_experiment", str(ex))
             status = False
@@ -390,10 +353,6 @@ class Archive(object):
             for a given demo, and the number of experiments done with this
             demo.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param id_demo: id of the demo.
-        :type id_demo: integer.
         :return: a dict with the number and pages and the number of experiments
         :rtype: dict
         """
@@ -403,31 +362,28 @@ class Archive(object):
         SELECT COUNT(*) FROM experiments WHERE id_demo = ?""", (id_demo,))
         nb_exp = cursor_db.fetchone()[0]
         dict_pages["nb_exp"] = nb_exp
+
         if nb_exp % self.nb_exp_by_pages != 0:
             pages_to_add = 1
         else:
             pages_to_add = 0
+
         nb_pages = (nb_exp / self.nb_exp_by_pages) + pages_to_add
         dict_pages["nb_pages"] = nb_pages
         return dict_pages
 
-    def get_dict_file(self, path_file, path_thumb, name):
+    def get_dict_file(self, path_file, path_thumb, name, id_blob):
         """
         Build a dict containing the path to the file, the path to the thumb
             and the name of the file.
 
-        :param path_file: path to the file
-        :type path_file: string
-        :param path_thumb: path to the thumb
-        :type path_thumb: string
-        :param name: name of the file
-        :type nape: string
         :rtype: dict
         """
         dict_file = {}
-        dict_file["url"] = "http://127.0.0.1:7777/" + path_file
-        dict_file["url_thumb"] = "http://127.0.0.1:7777/" + path_thumb
+        dict_file["url"] = self.url + path_file
+        dict_file["url_thumb"] = self.url + path_thumb
         dict_file["name"] = name
+        dict_file["id"] = id_blob
         return dict_file
 
     def get_data_experiment(self, conn, id_exp, parameters, date):
@@ -435,12 +391,6 @@ class Archive(object):
         Build a dictionnary containing all the datas needed on a given
             experiment for building the archive page.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param id_exp: id of the experiment.
-        :type id_exp: integer
-        :param parameters: json formatted strings with the params of the exp.
-        :type parameters: string
         :return: dictionnary with infos on the given experiment.
         :rtype: dict
         """
@@ -449,16 +399,19 @@ class Archive(object):
         path_file = str()
         path_thumb = str()
         cursor_db = conn.cursor()
+
         for row in cursor_db.execute("""
-        SELECT img.hash, img.type, cor.name FROM blobs img
-        INNER JOIN correspondence cor ON img.id=cor.id_blob
+        SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
+        INNER JOIN correspondence cor ON blb.id=cor.id_blob
         INNER JOIN experiments exp ON cor.id_experiment=exp.id
         WHERE id_experiment = ?""", (id_exp,)):
             path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
             path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
             list_files.append(self.get_dict_file(path_file,
                                                  path_thumb,
-                                                 row[2]))
+                                                 row[2],
+                                                 row[3]))
+
         dict_exp["id"] = id_exp
         dict_exp["date"] = date
         dict_exp["parameters"] = json.loads(parameters)
@@ -470,20 +423,13 @@ class Archive(object):
         This function return a list of dicts with all the informations needed
             for displaying the experiments on a given page.
 
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param id_demo: id of the demo
-        :type id_demo: integer
-        :param page: number of the page to be built
-        :type page: integer
-        :param dict_pages: dict created with count_pages
-        :type dict_pages: dict
         :return: list with infos on experiments
         :rtype: list
         """
         data_exp = []
         cursor_db = conn.cursor()
         starting_index = ((page - 1) * self.nb_exp_by_pages)
+
         for row in cursor_db.execute("""
         SELECT id, params, timestamp
         FROM experiments WHERE id_demo = ?
@@ -500,10 +446,6 @@ class Archive(object):
         This function return a JSON string with all the informations needed
             to build the given page for the given demo.
 
-        :param id_demo: id of the demo
-        :type id_demo: integer
-        :param page: number of the page to be built
-        :type page: integer
         :return: JSON string
         :rtype: string
         """
@@ -512,16 +454,18 @@ class Archive(object):
         try:
             conn = lite.connect(self.database_file)
             dict_pages = self.count_pages(conn, id_demo)
+
             if page > dict_pages["nb_pages"] or page < 0:
                 raise ValueError("Page requested don't exist.")
             elif page == 0:
                 page = 1
+
             data["id_demo"] = id_demo
             data["nb_pages"] = dict_pages["nb_pages"]
             data["experiments"] = self.get_experiment_page(conn,
-                                                          id_demo,
-                                                          page,
-                                                          dict_pages)
+                                                           id_demo,
+                                                           page,
+                                                           dict_pages)
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
@@ -538,10 +482,6 @@ class Archive(object):
         Return a JSON string with all the infos on a given pave of archive
             for a given id.
 
-        :param demo_id: number of the demo
-        :type demo_id: string
-        :param page: number of page
-        :type page: string
         :rtype: JSON formatted string
         """
         self.echo_database()
@@ -554,11 +494,6 @@ class Archive(object):
     def delete_blob(self, conn, id_blob):
         """
         This function delete the given id_blob, in the database and physically.
-
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param id_blob: id of the blob to be removed.
-        :type id_blob: integer
         """
         cursor_db = conn.cursor()
         cursor_db.execute("""
@@ -576,51 +511,55 @@ class Archive(object):
         This function check if the blobs are use in only one experiment.
             If this is the case, they are deleted both in the database
             and physically.
-
-        :param conn: connection to the database.
-        :type conn: sqlite3 connection
-        :param ids_blobs: ids of the blobs to be checked and removed.
-        :type ids_blobs: list
         """
         cursor_db = conn.cursor()
+
         for blob in ids_blobs:
             cursor_db.execute("""
             SELECT COUNT(*) FROM correspondence WHERE id_blob = ?""",
             (blob,))
+
             if cursor_db.fetchone()[0] == 1:
                 self.delete_blob(conn, blob)
+
+    def delete_exp_w_deps(self, conn, experiment_id):
+        """
+        This function remove, in the database, an experiment from
+            the experiment table, and its dependencies in the correspondence
+            table. If the blobs are used only in this experiment, they will be
+            removed too.
+        """
+        ids_blobs = []
+        cursor_db = conn.cursor()
+        cursor_db.execute("""
+        PRAGMA foreign_keys=ON""")
+
+        for row in cursor_db.execute("""
+        SELECT * FROM correspondence where id_experiment = ?""",
+        (experiment_id,)):
+            ids_blobs.append(row[2])
+
+        self.purge_unique_blobs(conn, ids_blobs)
+        cursor_db.execute("""
+        DELETE FROM experiments WHERE id = ?
+        """, (experiment_id,))
+        cursor_db.execute("""
+        DELETE FROM correspondence WHERE id_experiment = ?
+        """, (experiment_id,))
+        cursor_db.execute("VACUUM")
 
     @cherrypy.expose
     def delete_experiment(self, experiment_id):
         """
-        This function remove, in the database, an experiment,
-            from the experiment table, and its dependencies
-            in the correspondence table.
-            If the blobs are used only in this experiment, they will be
-            removed too.
+        Encapsulation of the delete_exp_w_deps function for removing an
+            experiment.
 
-        :param experiment_id: id of the experiment to be removed.
-        :type experiment_id: integer
+        :rtype: JSON formatted string
         """
         status = {"status" : "KO"}
         try:
-            ids_blobs = []
             conn = lite.connect(self.database_file)
-            cursor_db = conn.cursor()
-            cursor_db.execute("""
-            PRAGMA foreign_keys=ON""")
-            for row in cursor_db.execute("""
-            SELECT * FROM correspondence where id_experiment = ?""",
-            (experiment_id,)):
-                ids_blobs.append(row[2])
-            self.purge_unique_blobs(conn, ids_blobs)
-            cursor_db.execute("""
-            DELETE FROM experiments WHERE id = ?
-            """, (experiment_id,))
-            cursor_db.execute("""
-            DELETE FROM correspondence WHERE id_experiment = ?
-            """, (experiment_id))
-            cursor_db.execute("VACUUM")
+            self.delete_exp_w_deps(conn, experiment_id)
             conn.commit()
             conn.close()
             status["status"] = "OK"
@@ -634,64 +573,7 @@ class Archive(object):
         return json.dumps(status)
 
 #####
-# deleting a blob v1
-#####
-
-    # def delete_deps(self, conn, id_blob):
-    #     """
-    #     Remove depencies of a blob in the database.
-
-    #     :param conn: connection to the database.
-    #     :type conn: sqlite3 connection
-    #     :param id_blob: id of the blob
-    #     :type id_blob: integer
-    #     """
-    #     cursor_db = conn.cursor()
-    #     print "k"
-    #     list_tmp = []
-    #     for row in cursor_db.execute("""
-    #     SELECT id_experiment FROM correspondence WHERE id_blob = ?""",
-    #     (id_blob,)):
-    #         list_tmp.append(row[0])
-    #     str_tmp = '('
-    #     str_tmp += ' OR '.join(('id = ' + str(n) for n in list_tmp))
-    #     str_tmp += ')'
-    #     cursor_db.execute("""DELETE FROM experiments WHERE ?""",
-    #     (str_tmp,))
-    #     cursor_db.execute("""
-    #     DELETE FROM correspondence WHERE id_experiment = ?""", (id_blob))
-    #     cursor_db.execute("VACUUM")
-
-    # @cherrypy.expose
-    # def delete_blob_w_deps(self, id_blob):
-    #     """
-    #     Remove a blob, both physically and in the database,
-    #         with all its dependencies.
-
-    #     :param id_blob: id of the blob in the database.
-    #     :type id_blob: integer
-    #     :return: status of experiment
-    #     :rtype: json formatted string
-    #     """
-    #     status = {"status" : "KO"}
-    #     try:
-    #         conn = lite.connect(self.database_file)
-    #         self.delete_blob(conn, id_blob)
-    #         self.delete_deps(conn, id_blob)
-    #         conn.commit()
-    #         conn.close()
-    #         status["status"] = "OK"
-    #     except Exception as ex:
-    #         self.error_log("delete_blob_w_deps", str(ex))
-    #         try:
-    #             conn.rollback()
-    #             conn.close()
-    #         except Exception as ex:
-    #             pass
-    #     return json.dumps(status)
-
-#####
-# deleting a blob v2
+# deleting a blob
 #####
 
     @cherrypy.expose
@@ -699,38 +581,143 @@ class Archive(object):
         """
         Remove a blob, both physically and in the database,
             with all its dependencies.
+        Encapsulation of the delete_exp_w_deps function for removing a blob.
 
-        :param id_blob: id of the blob in the database.
-        :type id_blob: integer
         :return: status of experiment
-        :rtype: json formatted string
+        :rtype: JSON formatted string
         """
         status = {"status" : "KO"}
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
             list_tmp = []
+
             for row in cursor_db.execute("""
             SELECT id_experiment FROM correspondence WHERE id_blob = ?""",
             (id_blob,)):
                 tmp = unicode(str(row[0]), "utf-8")
                 list_tmp.append(tmp)
+
+            for value in list_tmp:
+                self.delete_exp_w_deps(conn, value)
+
+            conn.commit()
             conn.close()
+            status["status"] = "OK"
         except Exception as ex:
             self.error_log("delete_blob_w_deps", str(ex))
+            try:
+                conn.rollback()
+                conn.close()
+            except Exception as ex:
+                pass
+        return json.dumps(status)
+
+#####
+# admin mode for removing blobs
+#####
+
+    @cherrypy.expose
+    def archive_admin(self, demo_id, page):
+        """
+        Implement the administrator interface for removing blobs.
+        """
+        try:
+            demo_id = int(demo_id)
+            page = int(page)
+            test_json = self.echo_page(demo_id, page)
+            template = Template(filename='archive_admin_tmp.html')
+            return template.render(demo=demo_id,
+                                   test=test_json,
+                                   num_page=page,
+                                   url=self.url,
+                                   func_name="archive_admin")
+        except Exception as ex:
+            template = Template(filename='error.html')
+            return template.render()
+
+    @cherrypy.expose
+    def delete_blob_w_deps_web(self, id_blob, demo_id):
+        """
+        HTML rendering for deleting blobs.
+        """
+        status = self.delete_blob_w_deps(id_blob)
+        if status["status"] != "OK":
+            template = Template(filename='error.html')
+            return template.render()
+        else:
+            return self.archive_admin(demo_id, 0)
+
+    @cherrypy.expose
+    def delete_experiment_web(self, experiment_id, demo_id):
+        """
+        HTML rendering for deleting experiments.
+        """
+        status = self.delete_experiment(experiment_id)
+        if status["status"] != "OK":
+            template = Template(filename='error.html')
+            return template.render()
+        else:
+            return self.archive_admin(demo_id, 0)
+
+#####
+# web utilities
+#####
+
+    @cherrypy.expose
+    def ping(self):
+        """
+        Ping pong.
+        :rtype: JSON formatted string
+        """
+        data = {}
+        data["status"] = "OK"
+        data["ping"] = "pong"
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def shutdown(self):
+        """
+        Shutdown the module.
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            cherrypy.engine.exit()
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("shutdown", str(ex))
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def stats(self):
+        """
+        return the stats of the module.
+        :rtype: json formatted string
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+            cursor_db.execute("""
+            SELECT COUNT(*) FROM experiments""")
+            data["nb_experiments"] = cursor_db.fetchone()[0]
+            cursor_db.execute("""
+            SELECT COUNT(*) FROM blobs""")
+            data["nb_blobs"] = cursor_db.fetchone()[0]
+            conn.close()
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("stats", str(ex))
             try:
                 conn.close()
             except Exception as ex:
                 pass
-        for value in list_tmp:
-            tmp = self.delete_experiment(value)
-            if tmp["status"] != "OK":
-                return json.dumps(status)
-        status["status"] = "OK"
-        return json.dumps(status)
+        return json.dumps(data)
 
 #####
-#below it that's test
+# test
 #####
 
     def echo_database(self):
@@ -741,18 +728,22 @@ class Archive(object):
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
             print "Archive Database :"
+
             print "table experiments (id, id_demo, parameters) :"
             for row in cursor_db.execute("""
             SELECT * FROM experiments ORDER BY id"""):
                 print row
+
             print "table blobs (id, hash, type, format) :"
             for row in cursor_db.execute("""
             SELECT * FROM blobs ORDER BY id"""):
                 print row
+
             print "table correspondence (id, id_exp, id_blob, name, time):"
             for row in cursor_db.execute("""
             SELECT * FROM correspondence ORDER BY id"""):
                 print row
+
             conn.close()
         except Exception as ex:
             self.error_log("echo_database", str(ex))
@@ -768,13 +759,16 @@ class Archive(object):
         """
         tmp_dir = "blobs_tmp"
         dict_blobs = {os.path.join(tmp_dir, "charmander") : "input",
-                       os.path.join(tmp_dir, "squirtle") : "water"}
+                      os.path.join(tmp_dir, "squirtle") : "water"}
         str_blobs = json.dumps(dict_blobs)
         str_test = json.dumps("test")
         demo_id = 42
-        test = self.add_experiment(demo_id, str_blobs, str_test)
+        test = self.add_experiment(unicode(demo_id),
+                                   unicode(str_blobs),
+                                   unicode(str_test))
         self.echo_database()
         return str(test)
+
 
     @cherrypy.expose
     def echo(self):
