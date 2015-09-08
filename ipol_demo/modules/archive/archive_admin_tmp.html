@@ -1,0 +1,56 @@
+<html>
+<title>IPOL blobs removal</title>
+<body>
+
+<h1>IPOL blobs removal</h1>
+<p>${test}</p><br>
+
+status: ${test["status"]}
+
+<p>
+Page ${num_page} of ${test["nb_pages"]}. <br>
+% if num_page != test["nb_pages"]: 
+    <a href="${url}${func_name}?demo_id=${demo}&page=${num_page + 1}">
+      Next.</a> <br>
+% endif
+% if num_page != 1 and num_page != 0:
+    <a href="${url}${func_name}?demo_id=${demo}&page=${num_page - 1}">
+      Prev.</a> <br>
+% endif
+</p>
+
+<p>
+% for exp in test["experiments"]:
+    <h2>experiment ${exp["id"]}</h2>
+    Date of the experiment : ${exp["date"]} <br>
+    <a href="${url}delete_experiment_web?experiment_id=${exp["id"]}&demo_id=${demo}">
+      Remove experiment.</a> <br> <br>
+    Files : <br>
+    % for file in exp["files"]:
+        <img src="${file['url_thumb']}" alt="${file['name']}"> <br>
+        name : ${file["name"]} <br>
+	url : ${file["url"]} <br>
+	id : ${file["id"]} <br>
+	<a href="${url}delete_blob_w_deps_web?id_blob=${file["id"]}&demo_id=${demo}">
+	  Remove.
+	</a> <br>
+	_____________________________________
+	<br> <br>
+    % endfor
+% endfor
+</p>
+
+<p>
+Page ${num_page} of ${test["nb_pages"]}. <br>
+% if num_page != test["nb_pages"]: 
+    <a href="${url}${func_name}?demo_id=${demo}&page=${num_page + 1}">
+      Next.</a> <br>
+% endif
+% if num_page != 1 and num_page != 0:
+    <a href="${url}${func_name}?demo_id=${demo}&page=${num_page - 1}">
+      Prev.</a> <br>
+% endif
+</p>
+
+</body>
+</html>
