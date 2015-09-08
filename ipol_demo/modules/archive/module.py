@@ -136,7 +136,7 @@ class Archive(object):
         self.mkdir_p(self.database_dir)
         self.mkdir_p(self.blobs_dir)
         self.mkdir_p(self.blobs_thumbs_dir)
-        
+
         self.logger = self.init_logging()
         self.database_file = os.path.join(self.database_dir, "archive.db")
         self.status = self.init_database()
@@ -418,7 +418,7 @@ class Archive(object):
         dict_exp["files"] = list_files
         return dict_exp
 
-    def get_experiment_page(self, conn, id_demo, page, dict_pages):
+    def get_experiment_page(self, conn, id_demo, page):
         """
         This function return a list of dicts with all the informations needed
             for displaying the experiments on a given page.
@@ -464,8 +464,7 @@ class Archive(object):
             data["nb_pages"] = dict_pages["nb_pages"]
             data["experiments"] = self.get_experiment_page(conn,
                                                            id_demo,
-                                                           page,
-                                                           dict_pages)
+                                                           page)
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
@@ -632,7 +631,7 @@ class Archive(object):
                                    num_page=page,
                                    url=self.url,
                                    func_name="archive_admin")
-        except Exception as ex:
+        except Exception:
             template = Template(filename='error.html')
             return template.render()
 
@@ -641,7 +640,7 @@ class Archive(object):
         """
         HTML rendering for deleting blobs.
         """
-        status = self.delete_blob_w_deps(id_blob)
+        status = json.loads(self.delete_blob_w_deps(id_blob))
         if status["status"] != "OK":
             template = Template(filename='error.html')
             return template.render()
@@ -653,7 +652,7 @@ class Archive(object):
         """
         HTML rendering for deleting experiments.
         """
-        status = self.delete_experiment(experiment_id)
+        status = json.loads(self.delete_experiment(experiment_id))
         if status["status"] != "OK":
             template = Template(filename='error.html')
             return template.render()
@@ -716,6 +715,12 @@ class Archive(object):
                 pass
         return json.dumps(data)
 
+    @cherrypy.expose
+    def index(self):
+        """
+        Small index for the archive.
+        """
+        return ("Welcome to IPOL archive !")
 #####
 # test
 #####
