@@ -14,7 +14,13 @@ import sys
 from module import Blob
 from error import print_usage_function
 
+def CORS(): 
+  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+
 if __name__ == '__main__':
+
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
+
     if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
         VALUE = sys.argv[1]
     else:
