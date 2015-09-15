@@ -308,12 +308,12 @@ class   Database(object):
 
         :param demo_id: id demo
         :type demo_id: integer
-        :return: blob infos associated to demo
+        :return: blob infos (id, hash, extension, format, title) associated to demo
         :rtype: list of dictionnary
         """
         try:
             something = self.cursor.execute('''
-            SELECT blob.id, blob.hash, blob.extension, blob.format FROM blob
+            SELECT blob.id, blob.hash, blob.extension, blob.format, blob.title FROM blob
             INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
             INNER JOIN demo ON blob_demo.id_demo=demo.id
             WHERE demo.id=?''', \
@@ -324,7 +324,7 @@ class   Database(object):
         lis = []
         for item in something:
             lis.append({"id": item[0], "hash" : item[1], "extension": item[2],
-                        "format": item[3]})
+                        "format": item[3], "title":item[4]})
         return lis
 
     def get_demo_name_from_id(self, demo_id):
@@ -343,6 +343,32 @@ class   Database(object):
             FROM demo
             WHERE demo.id=?''',\
             (demo_id,))
+            something = self.cursor.fetchone()
+            dic[something[0]] = {"name": something[1], "is_template": something[2],
+                                 "id_template": something[3]}
+
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+
+        return dic
+
+    def get_demo_info_from_name(self, demo_name):
+        """
+        Return name of the demo info: name, is_template, id_template from the 
+        demo name
+
+        :param demo_name: demo name
+        ::type demo_name: string
+        :return: name, is template, id template
+        :rtype: dictionnary
+        """
+        dic = {}
+        try:
+            self.cursor.execute('''
+            SELECT id, name, is_template, id_template
+            FROM demo
+            WHERE demo.name=?''',\
+            (demo_name,))
             something = self.cursor.fetchone()
             dic[something[0]] = {"name": something[1], "is_template": something[2],
                                  "id_template": something[3]}
