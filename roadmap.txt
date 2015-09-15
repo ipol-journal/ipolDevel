@@ -1,0 +1,125 @@
+Development roadmap for the IPOL demo system
+-------------------------------------------------------------------------------
+
+Global objectives: create a modular demo system for IPOL capable of interpreting a textual description of each demo and rendering the corresponding pages (input, params, results) automatically.
+
+The modular architecture allows to simplify the system by splitting it into parts which isolate core functionalities, such as the archive, the management of binary large objects (blobs), or the demo execution. In general, all modules offer an RESTful webservice API to allow the system to perform operations.
+
+The benefits of a modular system compared to a monolithic one are several:
+	- Easier to develop the system in parallel
+	- Responsibility isolation at each module. Easier to track and correct bugs.
+	- Scalability
+	- Possibility of distributing the system into several machines if needed in the future.
+	- For the software point of view, it decouple totally the objects signature coupling and abstracts each unit by allow only communication via a known webservice API.
+
+Even if the system is split into several isolated modules, it needs to work in a coordinated way. Therefore, the core system acts as a passive webservice entry point and acts as a proxy with respect to the other modules.
+
+In the new system there is no need to write Python code or HTML templates to write a new demo. A textual description format (known as the Demo Description Language - DDL) is used to describe each demo and the system should be able to interpret the DDL and to generate automatically the corresponding pages.
+
+There exists an unique document along with the source code of the project which needs to be updated during development (introductions, techniques used, APIs to communicate with the modules, etc).
+
+
+Tasks in progress or completed:
+
+Input blobs module (Vincent Firmin)
+-----------------------------------
+* Create a module to manage input blobs (images, video, audio, 3D data).
+Requirements:
+	- Take care of duplicates
+	- Allow grouping of blobs (for example, a stereovision demo needs groups of two images)
+	- Implement a proper API to communicate with the core system
+
+Status:
+	- Code of the module: completed
+	- Documentation: done. But incomplete. Some errors in the API description.
+	- Integration: pending. Someone needs to be assigned to this task.
+	- The student has finished his internship.
+
+
+Archive module (Alexis Mongin)
+------------------------------
+* Create a module to manage the archive.
+
+Requirements:
+	- Take care of duplicates
+	- Allow deletion of single experiments or given blobs. If a particular blob is deleted, all experiments in all demos using that blob are removed too.
+	- Implement a proper API to communicate with the core system
+
+Status:
+	- Code of the module: completed
+	- Documentation: in progress...
+	- Integration: in progress...
+
+
+Terminal application (Alexis Mongin)
+------------------------------------
+* Create a simple terminal to allow interaction with the system.
+It is a minimal tool to start and stop modules, but not to manage data.
+
+Requirements:
+	- Simple text terminal to send commands to modules.
+	- Minimal commands for each module: start, stop, ping, stats.
+
+Status:
+	- Code of the application: in progress...
+	- Documentation: in progress...
+
+
+Control panel (Alexis Mongin)
+-----------------------------
+* Create a web application to control the whole system.
+The system consists in several isolated modules, but a central control panel is needed to give a coordinated view and administration of the whole system.
+
+Requirements:
+	- Create a web application
+	- Allow to administrate add, remove, and configure demos.
+	- Allow to administrate the archive (browse and remove blobs and experiments)
+	- In general, interact with all modules and administrate the data.
+
+Status:
+	- Code of the application: in progress...
+	- Documentation: in progress...
+
+
+Automatic demo generation (Karl Krissian)
+-----------------------------------------
+* Modify the current system in order to avoid writing Python code and HTML templates for each demo. Instead, use the DDL description of the demos to generate the corresponding pages.
+
+Requirements:
+	- Dynamic control generation done in the client, not in the server.
+	- All operations which can be done in the client should be done in the client, never in the server. For example, choosing the crop of an image.
+	- In general, minimize the communication between client and server.
+	- Complete the DDL if needed. It should be able to describe properly most of the current IPOL demos. Communicate regularly with the IPOL editors at CMLA to check that the current description is complete or needs to be improved.
+	- Modify the Blobs module API if needed.
+	- Integrate into the current system.
+	- In general, keep the current functionality but with automatic control generation by interpreting the DDL.
+
+Tasks:
+	- Change the input page where the input blobs (say, images) are shown by a new page where the controls are rendered automatically.
+	- Change the parameters page.
+	- Change the results page.
+	- Write general documentation. In particular, write documentation about how to use the AngularJS tool for the automatic control generation.
+
+Having automatic input, parameters, and results pages is a minimal requirement which needs to be completed. However, it seems a better option to have a single page which combines one or more of these steps in the same page (say, parameters and results). This can be explored, but should not prevent having a fully functional system at the end due to lack of time.
+
+Status:
+	- Client code: in progress...
+	- Documentation: in progress...
+	- Integration: in progress...
+
+Since most of the code is executed in the client side, there is no need to create a new module.
+
+
+
+Algorithm execution (TBA)
+-------------------------
+* Create a new module for the demo execution.
+
+Requirements:
+	- Execute demos experiments
+	- Take care of concurrent executions (this is important, since we had a very serious bug regarding this).
+	- Store temporal results.
+
+Status:
+	- No one assigned to this task yet.
+

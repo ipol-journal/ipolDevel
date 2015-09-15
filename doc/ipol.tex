@@ -1,15 +1,3 @@
-\documentclass[a4paper,10pt]{article}
-\usepackage[utf8]{inputenc}
-\usepackage{color}
-\usepackage{graphicx}
-\usepackage[paperheight=11in,paperwidth=8.5in]{geometry}
-
-% Definitions and commands
-\def \np{\vskip 0.25 cm}
-\def \ap{\vskip 0.15 cm}
-
-\newcommand{\ToDo}[1]{\textcolor{magenta}{\textbf{[ToDo]} \textbf{#1}}}
-
 % Instructions to modify this document:
 % * Remember to ALWAYS execute a git pull BEFORE any commit you make
 % * Use the \ToDo{...} command to remark tasks which still need to be done
@@ -21,19 +9,82 @@
 % 2) Export it as .eps
 % 3) use epstopdf to convert to PDF
 
-\begin{document}
-\title{The IPOL demo system}
-%\author{...}
 
-\maketitle
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,graphicx}
+\usepackage{bm}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{subfigure}
+\usepackage{ifpdf}
+\usepackage{url}
+\usepackage{color}
+\usepackage[hidelinks]{hyperref}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{float} % To put figures in their exact place with \begin{figure}[H]
+
+% Definitions and commands
+\def \np{\vskip 0.25 cm}
+\def \ap{\vskip 0.15 cm}
+
+\newcommand{\ToDo}[1]{\textcolor{magenta}{\textbf{[ToDo]} \textbf{#1}}}
+
+
+\begin{document}
+
+
+\begin{titlepage}
+
+\begin{center}
+\vspace*{-1in}
+
+%Universitat Oberta de Catalunya\\
+\vspace*{0.6in}
+\begin{Large}
+\textbf{The IPOL Demo System} \\
+\end{Large}
+\vspace*{0.6in}
+\rule{80mm}{0.1mm}\\
+\vspace*{0.1in}
+\end{center}
+
+\end{titlepage}
+
+%\maketitle
+\newpage
 
 \tableofcontents
-%\listoffigures
+\newpage
+\listoffigures
+\newpage
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Skeleton}
-\ToDo{Skeleton}
+% The Blobs module
+\input{blobs/blobs.tex}
+
+% The Archive module
+\input{archive/archive.tex}
+
+% The Demo Description Language and automatic demo generation
+\input{ddl/ddl.tex}
+
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\section{The control terminal}
+\ToDo{The control terminal}
+
+\section{The control panel web application}
+\ToDo{The control panel web application}
+
+\section{Algorithm execution}
+\ToDo{Algorithm execution}
+
+
 
 \end{document}
 % End of document
