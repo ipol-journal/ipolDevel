@@ -574,6 +574,33 @@ class   Blob(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
+    def get_blobs_of_demo_by_name_ws(self, demo_name):
+        """
+        This function implements get request from '/get_hash' (Web Service)
+        It returns list of hash blob corresponding to demo given in parameter
+        List is empty if not any blob is associated to demo
+
+        :param demo: name demo
+        :type demo: string
+        :return: list of hash blob
+        :rtype: json format list
+        """
+        dic  = {}
+        data = instance_database()
+        try:
+            dic = data.get_demo_info_from_name(demo_name)
+            demo_id = dic.keys()[0]
+            dic["use_template"] = data.demo_use_template(demo_id)
+            dic["blobs"] = data.get_blobs_of_demo(demo_id)
+            dic["return"] = "OK"
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot access to blob from demo")
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
     def get_blobs_of_demo_ws(self, demo):
         """
         This function implements get request from '/get_hash' (Web Service)
@@ -597,6 +624,7 @@ class   Blob(object):
             dic["return"] = "KO"
 
         return json.dumps(dic)
+
 
     @cherrypy.expose
     def get_blobs_of_demo(self, demo_id):
@@ -912,10 +940,14 @@ def file_format(the_file):
     :return: format of file (audio, image or video)
     :rtype: string
     """
-    mime = magic.Magic(mime=True)
-    fileformat = mime.from_file(the_file)
+    # older version of python-magic
+    #mime = magic.Magic()
+    #fileformat = mime.from_file(the_file)
+    #return fileformat[:5]
+    m = magic.open(magic.MAGIC_MIME)
+    m.load()
+    fileformat = m.file(the_file)
     return fileformat[:5]
-
 
 def instance_database():
     """
