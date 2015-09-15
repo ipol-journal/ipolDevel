@@ -1,5 +1,288 @@
 \section{The Blobs module}
 
+
 \subsection{Introduction}
 \label{sec:blobs_introduction}
-The Blobs module introduction
+Necessarily, management of this part is very important. Nowadays, each demo owns images.
+Even if they are not heavy (minus 1 MB),
+when there are fifty different demos on system and each demo is downloaded using
+\textbf{GitHub\footnote{\cite{GitHub}}} then the compilation of system takes too much time.
+Knowing that each
+demo details a mathematic theory with complex calculations and several demos use
+same images, it will be preferable to create a system to manage theses images. \\
+\setlength{\parindent}{0cm}
+
+Before specifing this abstract system, it must be known with precision how the actual system
+works.\\
+\setlength{\parindent}{0cm}
+
+According to the provided UML (\ref{img:IPOL_diagram_class}), one class "image" implements
+functions changing image characteristics. To do it, it uses \textbf{PIL\footnote{\cite{PIL}}}.
+Images have two formats: thumbnail and an input image. Thumbnail allows the user visualize
+and select an input image on client side. Input image is which use to apply algorithm on it,
+algorithm specific to the demo. This part is made in the implementation of demo.
+Moreover, configuration file allows to customize the default input files.
+The images are stored in a directory ("/input"). When using client side of the demo to test
+it, new images are generated and stored in a temporary directory in ("/tmp").\\
+\setlength{\parindent}{0cm}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=20.0cm, angle=90]{blobs/images/IPOL_diagram_class.pdf}
+  \caption{UML diagram class of current system.}
+  \label{img:IPOL_diagram_class}
+\end{figure}
+
+To conclude this part, images are result of demo and the management of these is important
+for the project.
+
+\subsection{Demo}
+During introduction, demo system will claim like "God Object". It is excessive term in
+order to represent the system with a metaphor. It is just a complex object.
+In this section, it will detail functionalities to clarify objective thereof and
+look how it is possible to improve it.\\
+\setlength{\parindent}{0cm}
+
+Firstly, this object introduce here (\ref{img:IPOL_diagram_class}), has many ways to
+interact with user. It implements all features of project. For example, it manages
+interaction with client side. To do so, it is a part of webserver developed in
+\textbf{CherryPy\footnote{\cite{CherryPy}}}.
+Communication between the client and the server is done using an
+\textbf{HTTP\footnote{\cite{HTTP}}}. Indeed, when users call a functionality,
+this object allows to search the expected result. For example, when users call an algorithm,
+it runs the corresponding binary in "bin/" file, manage images archiving the result
+and call the HTTP response using the \textbf{Mako Template Library\footnote{\cite{Mako}}}.
+Knowing these possibilities, it is very difficult to add new functionalities to this object.
+\\
+\setlength{\parindent}{0cm}
+
+To conclude this part, the demo is a powerful object but to go further, it needs to create
+separate module which communicate with the core system.
+
+\subsection{Solution}
+\setlength{\parindent}{1cm}
+\hspace{1cm}
+
+Since the problematic have been detailled, it will be necessary to solve it. In this part,
+it will present to you \textbf{MVC pattern}, \textbf{Factory pattern}, \textbf{Database}.
+
+\subsubsection{MVC pattern}
+\setlength{\parindent}{1cm}
+\hspace{1cm}
+
+MVC, alias Model-View-Controller, is architectural pattern used in interface implementation.
+It consists of create three separates parts. The model manage database and it is observable
+object. The aim of view is to update data from model and to notify event, which by user,
+to controler. The controler receive notification from view and update the model.
+\setlength{\parindent}{0cm}
+In our case, the model will be protocol used to interact with database of images.
+The view is client side which look by users using them browser.
+It will be updates in the control of the web page on client side.
+The controler will be the code used to manage new module implementing functionalities.
+
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=3.5in]{blobs/images/MVC-Process}
+  \caption{The MVC pattern}
+  \label{img:MVC-Process}
+\end{figure}
+
+\subsubsection{Factory pattern}
+\setlength{\parindent}{1cm}
+\hspace{1cm}
+
+Factory is a \textbf{design pattern\footnote{\cite{GoF}}} allowing to create other objects.
+In order to explain the Factory pattern, it must know what is an inheritance.
+In inheritance based on object-oriented
+programming, it is possible to create an interface (or abstract class) which two different
+classes inherit. The most famous example should be the interface Animal which is defined that
+Animal could have and it must have to be animal. Dog and Cat are two different classes
+inheriting each one from Animal class.
+Factory, in this case, could be Farm class. In function to the type of animal which you want
+to create (ex: 1 for Cat and 2 for Dog), the Farm will instantiated one of two ways like
+Animal class. To do that, it can use implicit or specific cast, it depends of language of
+programming.
+\bigbreak
+\setlength{\parindent}{0cm}
+In our case, it will have two versions of demos. The first one like it is nowadays, and the
+second one which will be interact with new module. The aim factory is to create just one
+object instantiating one of two ways. Consequently, it will be easier to make it work both
+version on the same system.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{blobs/images/Example_Factory_Pattern}
+  \caption{An example of Factory pattern}
+  \label{img:Example_Factory_Pattern}
+\end{figure}
+
+\subsubsection{Database}
+
+To solve the problem of images management, it will have a database. It will use a
+back-end and will be created with \textbf{SQLite\footnote{\cite{SQLite}}}.
+It will have different tables
+containing all informations about images. In this way, it will be more easier to
+add functionalities and access to images from anything demo. According MVC pattern,
+this database will be very useful.\\
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{blobs/images/images_bdd}
+  \caption{An example of database}
+  %\footnotesize
+  %\caption*{Realized with MySQL Workbench}
+  \label{img:images_bdd}
+\end{figure}
+
+\subsection{Remarks}
+\subsubsection{Concurrent accesses}
+\setlength{\parindent}{1cm}
+\hspace{1cm}
+The library used to insert, select or update database is
+\textbf{SQLite\footnote{\cite{SQLite}}}. This thereof manages, internally,
+the concurrent access to database. Indeed, when two people want to
+access to the database : the first one will do his request while
+the other will be locked by mutex. This principle is also used by transactions
+(BEGIN or END/COMMIT).
+Therefore, at the beginning of development, it was thought only need a
+connection to the database.\\
+The problem of the concurrent accesses has been raised during errors occured.
+Indeed, when errors occured, the program throws exception and call "roll back"
+database's function. Imagine that some people try access to the same data and to
+modify it, but some successed it and some failed. The problem of using a only
+connection is how to know what changes have been taken into account knowing
+that for certain, the database rolled back.\\
+Therefore for each request requiring the database,
+a new instance (new connection) is used. Thus, the problems
+of "roll back" are avoided. Nevertheless, it would be preferable to use a decorator
+to avoid the redundance of the code.
+
+\subsubsection{Consistency check}
+
+The consistency check in database management system (DBMS) is the fact
+to verify the consistency between the information present on hard disk and
+those present on database.\\
+There are two ways to do this: running database consistency check manually and
+automatically. The program uses consistency check manually in order to
+having the control on the error occuring.\\
+That is why, when the program uses the action database (SELECT, DELETE, UPDATE),
+each information is checked. If errors occurs, an database's exception is caught
+and custom exception is throwed to called function.
+The consistency check manually is also used because the design databse
+has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
+
+\subsubsection{Use case: Web service}
+
+\begin{tabular}{|c||c|c|c|}
+  \hline
+  Name function & Usage & Paramaters & Return \tabularnewline
+  \hline
+  \multirow{7}{*}{add\_blob\_ws}
+  &                      & demo\_id & \{ \\
+  &                      & path & "return": \\
+  & add blob             & tag  & "OK" or "KO", \\
+  & to database          & ext  & "the\_hash": \\
+  &                      & the\_set & "..." \\
+  &                      & title    & \} \\
+  &                      & credit &   \\
+  \hline
+  \multirow{4}{*}{add\_demo\_ws}
+  &                      & name & \{ \\
+  & add demo             & is\_template & "return": \\
+  & to database          & template & "OK" or "KO" \\
+  &                      &      & \} \\
+  \hline
+  \multirow{4}{*}{add\_tag\_to\_blob\_ws}
+  &                      &       & \{ \\
+  & add tag              & blob\_id & "return": \\
+  & to database          & tag  & "OK" or "KO" \\
+  &                      &      & \} \\
+  \hline
+  \multirow{6}{*}{delete\_blob\_ws}
+  &                      &      & \{ \\
+  &                      &       & "return": \\
+  & delete blob from     & demo\_id & "OK" or "KO", \\
+  & id demo and id blob  & tag  & "delete":  \\
+  &                      &      & ("hash", "extension")  \\
+  &                      &      & \} \\
+  \hline
+  \multirow{6}{*}{demos\_ws}
+  &                      &      & \{ \\
+  &                      &      & "return": \\
+  & list demos present   &      & "OK" or "KO", \\
+  & in database          &      & "list\_demos": \{"id": "name", \\
+  &                      &      & "id\_template", "template"\} \\
+  &                      &      & \} \\
+  \hline
+\end{tabular}
+
+
+\newpage
+\begin{tabular}{|c||c|c|c|}
+  \hline
+  Name function & Usage & Paramaters & Return \tabularnewline
+  \hline
+  \multirow{6}{*}{get\_blobs\_from\_template\_ws}
+  &                      &      & \{ \\
+  &                      &      & "return": \\
+  & list blobs from      & template  & "OK" or "KO", \\
+  & name template        &      & "blobs": \{"id", "hash", \\
+  &                      &      & "extension", "format"\} \\
+  &                      &      & \} \\
+  \hline
+  \multirow{7}{*}{get\_blobs\_of\_demo\_ws}
+  &                      &      & \{ \\
+  &                      &      & "return": \\
+  & list blobs from      & demo id & "OK" or "KO", \\
+  & name demo            &      & "blobs": \{"id", "hash", \\
+  &                      &      & "extension", "format"\} \\
+  &                      &      & "use\_template": \{"id": "name", \\
+  &                      &      & "is\_template", "id\_template"\} \} \\
+  \hline
+  \multirow{6}{*}{get\_blobs\_ws}
+  &                      &      & \{ \\
+  &                      &      & "return": \\
+  & return list blob     & blob id & "OK" or "KO", \\
+  & from blob id         &      & \{"id", "hash", \\
+  &                      &      & "extension", "credit" \} \\
+  &                      &      & \} \\
+  \hline
+  \multirow{4}{*}{get\_tags\_ws}
+  &                      &      & \{ \\
+  & return list tags     &      & \{"id": "name"\} \\
+  & from blob id         & blob id & \} \\
+  &                      &       &  \\
+  \hline
+\end{tabular}
+
+\newpage
+\begin{tabular}{|c||c|c|c|}
+  \hline
+  Name function & Usage & Paramaters & Return \tabularnewline
+  \hline
+  \multirow{4}{*}{get\_template\_demo\_ws}
+  &                      &      & \{ \\
+  & return list demos    &      & \{"return": \\
+  & templated            &      & "OK" or "KO", \\
+  &                      &       &  "list\_template": \{"id": \\
+  &                      &       & "name"\} \} \\
+  \hline
+  \multirow{4}{*}{op\_remove\_demo\_ws}
+  &                      &      & \{ \\
+  & remove demo          &      & \{"return": \\
+  & from id demo         & id demo & "OK" or "KO", \\
+  &                      &       & \} \\
+  &                      &       &  \\
+  \hline
+  \multirow{4}{*}{remove\_tag\_from\_blob\_ws}
+  &                      &      & \{ \\
+  & remove tag for       & id tag     & \{"return": \\
+  & a blob from id tag   & id blob & "OK" or "KO", \\
+  & and id blob          &       & \} \\
+  &                      &       &  \\
+  \hline
+\end{tabular}
+
+
