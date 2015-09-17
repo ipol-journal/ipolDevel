@@ -24,6 +24,7 @@
 \usepackage{color}
 \usepackage[hidelinks]{hyperref}
 \usepackage{multirow}
+\usepackage{datetime}
 \usepackage{comment}
 \usepackage{float} % To put figures in their exact place with \begin{figure}[H]
 
@@ -45,8 +46,13 @@
 %Universitat Oberta de Catalunya\\
 \vspace*{0.6in}
 \begin{Large}
-\textbf{The IPOL Demo System} \\
+\textbf{The IPOL Demo System\\Technical documentation} \\
 \end{Large}
+
+\vspace*{0.6in}
+
+\small{Compiled on \today\ at \currenttime}
+
 \vspace*{0.6in}
 \rule{80mm}{0.1mm}\\
 \vspace*{0.1in}
@@ -62,6 +68,8 @@
 \listoffigures
 \newpage
 
+\section{Introduction}
+\ToDo{Introduction}
 
 % The Blobs module
 \input{blobs/blobs.tex}
