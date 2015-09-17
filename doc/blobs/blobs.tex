@@ -92,6 +92,9 @@ The controler will be the code used to manage new module implementing functional
 \subsubsection{Factory pattern}
 \setlength{\parindent}{1cm}
 \hspace{1cm}
+\ToDo{[Miguel] The factory pattern is not used in the new system, since finally
+backwards compatibility needs not to be ensure. 
+This section should be removed.}
 
 Factory is a \textbf{design pattern\footnote{\cite{GoF}}} allowing to create other objects.
 In order to explain the Factory pattern, it must know what is an inheritance.
@@ -130,7 +133,7 @@ this database will be very useful.\\
 \begin{figure}[H]
   \centering
   \includegraphics[width=5in]{blobs/images/images_bdd}
-  \caption{An example of database}
+  \caption{Database schema for the Blobs module. \ToDo{The image contains a large black at the end and fills out all the page! Fix this.}}
   %\footnotesize
   %\caption*{Realized with MySQL Workbench}
   \label{img:images_bdd}
@@ -174,6 +177,8 @@ The consistency check manually is also used because the design databse
 has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 
 \subsubsection{Use case: Web service}
+\ToDo{Some of the information here is inconsistent with the actual API implemented in the module. Fix it.}
+\ToDo{Think of a better way to describe the webservice API, rather than a table.}
 
 \begin{tabular}{|c||c|c|c|}
   \hline
