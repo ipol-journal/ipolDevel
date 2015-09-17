@@ -483,7 +483,6 @@ class Archive(object):
 
         :rtype: JSON formatted string
         """
-        self.echo_database()
         return json.dumps(self.echo_page(int(demo_id), int(page)))
 
 #####
