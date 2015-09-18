@@ -50,16 +50,57 @@ The correspondence table is defined as such : the id field ; the id of the exper
 \subsection{Services}
 
 \paragraph{Adding an experiment to the archive} \hspace{0pt} \\
-The method ``add\_experiment'' take in entry the id of the demo used ; a JSON string of the format : [\{url\_blob : name\}, ... ] containing a description of each blobs used by and produced by the experiment, with their temporary URLs and names ; and a JSON string describing the parameters of the demo used for the experiment. It will add an experiment to the database by creating a new entry in the experiment table. If the blobs used by and produced by the experiment aren't already in the database, it will copy them in the directory given in the configuration file, and, for the images, create a thumbnail. It will return a json string containing the status of the operation, OK it succeeded, KO if there was an error and the operation wasn't performed. In the last case, a log will be written describing the error.
+The method ``add\_experiment'' take in entry the id of the demo used ; a JSON string of the format : 
+
+\begin{tabbing}
+tabs \= tabs \kill
+\{ \\
+\>url\_blob : name\}, \\
+\> ... \\
+\} \\
+\end{tabbing}
+
+containing a description of each blobs used by and produced by the experiment, with their temporary URLs and names ; and a JSON string describing the parameters of the demo used for the experiment. It will add an experiment to the database by creating a new entry in the experiment table. If the blobs used by and produced by the experiment aren't already in the database, it will copy them in the directory given in the configuration file, and, for the images, create a thumbnail. It will return a json string containing the status of the operation, OK uf it succeeded, KO if there was an error and the operation wasn't performed, as such :
+
+\begin{tabbing}
+tabs \= tabs \kill
+\{ \\
+\>status : OK/KO\}, \\
+\} \\
+\end{tabbing}
+
+If status is KO, a log describing the error will be written.
 
 \paragraph{Deleting an experiment from the archive} \hspace{0pt} \\
-When removing an experiment from the database via the method ``delete\_experiment'', every blobs linked to this experiment and only to this experiment are removed. After that, all the entries in the correspondence table referencing this experiment are removed automatically due to a foreign key constraint. It return a json response containing the status of the operation.
+When removing an experiment from the database via the method ``delete\_experiment'', every blobs linked to this experiment and only to this experiment are removed. After that, all the entries in the correspondence table referencing this experiment are removed automatically due to a foreign key constraint. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''.
 
 \paragraph{Deleting a blob from the archive} \hspace{0pt} \\
-Due to a many-to-many link between blobs and experiments in the database, a blob has a lot of dependencies : it has of course the experiments using this blobs, but also the blobs linked to these experiments. For deleting a blob from the archive, the precedent service is called on each experiment the blob is part of, assuring that no orphans datas stay in the database (for exemple, experiments linked to removed blobs or blobs linked to removed experiments). The method implementing this service is ``delete\_blob\_w\_deps''. It return a json response containing the status of the operation.
+Due to a many-to-many link between blobs and experiments in the database, a blob has a lot of dependencies : it has of course the experiments using this blobs, but also the blobs linked to these experiments. For deleting a blob from the archive, the precedent service is called on each experiment the blob is part of, assuring that no orphans datas stay in the database (for exemple, experiments linked to removed blobs or blobs linked to removed experiments). The method implementing this service is ``delete\_blob\_w\_deps''. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''.
 
 \paragraph{Getting datas from an archive page} \hspace{0pt} \\
-The method ``page'' return in a JSON response, for a given page of a given demo, all the datas of the experiments that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in the browser, the JSON response should be parsed and interpreted in a dedicated template furnished by the front-end of another module. The JSON response is formatted this way : \{status :  OK/KO, experiments : [\{date : timestamp\_example, files : [\{url : url\_example, id : id\_example, name : name\_example, url\_thumb : url\_thumbnail\_example\}, ... ], ... ], id\_demo : id\_demo\_example, nb\_pages : nb\_pages\_example\}.
+The method ``page'' return in a JSON response, for a given page of a given demo, all the datas of the experiments that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in the browser, the JSON response should be parsed and interpreted in a dedicated template furnished by the front-end of another module. The JSON response is formatted this way : 
+\begin{tabbing}
+tabs \= tabs \= tabs \= tabs \= tabs \= tabs \kill
+\{ \\
+\> status :  OK/KO, \\
+\> experiments : [ \\
+\> \> \{ \\
+\> \> \> date : timestamp\_example, \\ 
+\> \> \> files : [ \\
+\> \> \> \>  \{ \\
+\> \> \> \> \> url : url\_example, \\
+\> \> \> \> \> id : id\_example, \\
+\> \> \> \> \> name : name\_example, \\
+\> \> \> \> \> url\_thumb : url\_thumbnail\_example \\
+\> \> \> \> \} \\
+\> \> \> ... ], \\
+\> \> \> id : id\_example, \\
+\> \> \> parameters = \{parameters\_example...\} \\
+\> ... ], \\
+\> id\_demo : id\_demo\_example, \\
+\> nb\_pages : nb\_pages\_example \\
+\} \\
+\end{tabbing} 
 
 \paragraph{User interface for removing blobs/experiments} \hspace{0pt} \\
 The only user interface furnished by the archive module is for removing blobs or experiment in a convenient manner. It use the json response of the precedent service and render the ``archive\_admin\_tmp.html'' template displaying a page of archive for given demo, allowing the deletion of both blobs and experiments by simply linking to two other services calling deletion methods and updating the template. In case of error, for example when invalid datas are given through URL, ``error.html'' is rendered.
@@ -68,4 +109,12 @@ The only user interface furnished by the archive module is for removing blobs or
 The method ``Shutdown'' shutdown the archive application when called. It return a json response containing the status of the operation.
 
 \paragraph{Other services}
-Other services features the method ``ping'', simply for checking if the module is up, and the method ``stats'', formatted this way : \{status : OK/KO, nb\_experiments : x, nb\_blobs : y\}.
+Other services features the method ``ping'', simply for checking if the module is up, and the method ``stats'', formatted this way :
+\begin{tabbing}
+tabs \= tabs \kill
+\{ \\
+\> status : OK/KO, \\
+\> nb\_experiments : x, \\
+\> nb\_blobs : y \\
+\} \\
+\end{tabbing}
