@@ -52,22 +52,20 @@ The correspondence table is defined as such : the id field ; the id of the exper
 \paragraph{Adding an experiment to the archive} \hspace{0pt} \\
 The method ``add\_experiment'' take in entry the id of the demo used ; a JSON string of the format : 
 
-\begin{tabbing}
-tabs \= tabs \kill
-\{ \\
-\>url\_blob : name\}, \\
-\> ... \\
-\} \\
-\end{tabbing}
+\begin{verbatim}
+{
+    url_blob : name,
+    ...
+}
+\end{verbatim}
 
 containing a description of each blobs used by and produced by the experiment, with their temporary URLs and names ; and a JSON string describing the parameters of the demo used for the experiment. It will add an experiment to the database by creating a new entry in the experiment table. If the blobs used by and produced by the experiment aren't already in the database, it will copy them in the directory given in the configuration file, and, for the images, create a thumbnail. It will return a json string containing the status of the operation, OK uf it succeeded, KO if there was an error and the operation wasn't performed, as such :
 
-\begin{tabbing}
-tabs \= tabs \kill
-\{ \\
-\>status : OK/KO\}, \\
-\} \\
-\end{tabbing}
+\begin{verbatim}
+{
+    status : OK/KO
+}
+\end{verbatim}
 
 If status is KO, a log describing the error will be written.
 
@@ -79,28 +77,27 @@ Due to a many-to-many link between blobs and experiments in the database, a blob
 
 \paragraph{Getting datas from an archive page} \hspace{0pt} \\
 The method ``page'' return in a JSON response, for a given page of a given demo, all the datas of the experiments that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in the browser, the JSON response should be parsed and interpreted in a dedicated template furnished by the front-end of another module. The JSON response is formatted this way : 
-\begin{tabbing}
-tabs \= tabs \= tabs \= tabs \= tabs \= tabs \kill
-\{ \\
-\> status :  OK/KO, \\
-\> experiments : [ \\
-\> \> \{ \\
-\> \> \> date : timestamp\_example, \\ 
-\> \> \> files : [ \\
-\> \> \> \>  \{ \\
-\> \> \> \> \> url : url\_example, \\
-\> \> \> \> \> id : id\_example, \\
-\> \> \> \> \> name : name\_example, \\
-\> \> \> \> \> url\_thumb : url\_thumbnail\_example \\
-\> \> \> \> \} \\
-\> \> \> ... ], \\
-\> \> \> id : id\_example, \\
-\> \> \> parameters = \{parameters\_example...\} \\
-\> ... ], \\
-\> id\_demo : id\_demo\_example, \\
-\> nb\_pages : nb\_pages\_example \\
-\} \\
-\end{tabbing} 
+\begin{verbatim}
+{
+    status :  OK/KO,
+    experiments : [
+        {
+            date : timestamp_example, 
+            files : [
+                {
+                    url : url_example,
+                    id : id_example,
+                    name : name_example,
+                    url_thumb : url_thumbnail_example
+                }
+            ... ],
+            id : id_example,
+            parameters = {parameters_example...}
+    ... ],
+    id_demo : id_demo_example,
+    nb_pages : nb_pages_example
+}
+\end{verbatim} 
 
 \paragraph{User interface for removing blobs/experiments} \hspace{0pt} \\
 The only user interface furnished by the archive module is for removing blobs or experiment in a convenient manner. It use the json response of the precedent service and render the ``archive\_admin\_tmp.html'' template displaying a page of archive for given demo, allowing the deletion of both blobs and experiments by simply linking to two other services calling deletion methods and updating the template. In case of error, for example when invalid datas are given through URL, ``error.html'' is rendered.
@@ -110,11 +107,10 @@ The method ``Shutdown'' shutdown the archive application when called. It return 
 
 \paragraph{Other services}
 Other services features the method ``ping'', simply for checking if the module is up, and the method ``stats'', formatted this way :
-\begin{tabbing}
-tabs \= tabs \kill
-\{ \\
-\> status : OK/KO, \\
-\> nb\_experiments : x, \\
-\> nb\_blobs : y \\
-\} \\
-\end{tabbing}
+\begin{verbatim}
+{
+    status : OK/KO,
+    nb_experiments : x,
+    nb_blobs : y
+}
+\end{verbatim}
