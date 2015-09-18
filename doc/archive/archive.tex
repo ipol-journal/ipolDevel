@@ -4,10 +4,10 @@
 \label{sec:archive_introduction}
 
 %\paragraph{Introduction} \hspace{0pt} \\
-The archive module is a standalone application destinated to communicate with other modules using webservices. It is designed to implement a stable, simple and scalable system for archiving all experiments done with IPOL.
+The archive module is a standalone application destined to communicate with other modules using webservices. It is designed to implement a stable, simple and scalable system for archiving all experiments done with IPOL.
 
 \paragraph{Technologies used} \hspace{0pt} \\
-The archive module is written in Python, is using the cherrypy framework for webservices, the mako template library for webpage rendering, the Python Image Library for thumbnails creations, and the python-magic library available on pip (not to be mistaken with python-magic5 which is the one available on default ubuntu's APT repositories). The module communicate using JSON, both in input and output. The database engine used is SQLite.
+The archive module, written in Python, is using the cherrypy framework for webservices, the mako template library for webpage rendering, Python Image Library for thumbnails creations, and the python-magic library available on pip (not to be mistaken with python-magic5 which is the one available on ubuntu's default APT repositories). The module communicates using JSON, both in input and output. The database engine used is SQLite.
 
 \subsection{Architecture}
 
@@ -15,10 +15,10 @@ The archive module is written in Python, is using the cherrypy framework for web
 The module is composed of very few files, the code itself in ``module.py'', a cherrypy configuration file ``archive.conf'', two mako HTML templates, and a database. It will also need 4 directories, respectively for storing blobs, thumbnails, the database and logs.
 
 \paragraph{Module architecture} \hspace{0pt} \\
-The module is composed of a class, Archive, encapsulating the datas needed to function. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making available the methods as webservices. \\
-Upon starting the module, the cherrypy engine is launched, an object of the Archive class is created, and the cherrypy configuration is loaded from ``archive.conf''. If they don't exists, both the database and the directories needed for the storage of blobs, logs, the database and thumbnails will be created, provided that the user launching the module has the necessary rights. Otherwise, the module will not start. These directories are indicated in the cherrypy configuration for maximum configurability, if they are missing from it, the module will not start. \\
+The module is composed of a class, 'Archive', encapsulating the data needed to function. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making the methods available as webservices. \\
+Upon starting the module, the cherrypy engine is launched, an object of the Archive class is created, and the cherrypy configuration is loaded from ``archive.conf''. If they don't exist, both the database and the directories needed for the storage of blobs, logs, the database and thumbnails will be created, provided that the user launching the module has the necessary rights. Otherwise, the module will not start. These directories are indicated in the cherrypy configuration for maximum configurability, if they are missing from it, the module will not start. \\
 The webservices communicate with the server via arguments given through URL, as unicode strings directly passed to the methods. \\
-The services all connect to the database in a thread-safe way, instanciating its own connection when called, commiting when done if there is modifications, or rollbacking if there is an error, and closing the connection. \\
+The services all connect to the database in a thread-safe way, instanciating its own connection when called, commiting when done if there are modifications, or rollbacking, if there is an error, and closing the connection. \\
 There is a logger initialised with the Archive object, writing errors in ``error.log'' in the logs directory given in the configuration file.
 
 \subsection{Database design}
@@ -38,19 +38,24 @@ Each experiments, and each blobs are defined individually, and linked to each-ot
 \end{tabular} \\
 
 \paragraph{Experiments table} \hspace{0pt} \\
-The experiments table is defined as such : the id field, that store the unique id of the experiment ; the id\_demo field, that store the id of the IPOL demo used for the experiment ; the params field, which is a JSON string whose format vary from demo to demo ; and finally the timestamp field.
+The experiments table is defined as such : the id field, that stores the unique id of the experiment ; the id\_demo field, that stores the id of the IPOL demo used for the experiment ; the params field, which is a JSON string whose format varies from demo to demo ; and finally the timestamp field.
 
 \paragraph{Blobs table} \hspace{0pt} \\
-The blobs table is defined as such : the id field, that store the unique id of the blob ; the hash field, that store the hash of the blob computed with sha1, the type field, that store the extension of the blob (exemple ``jpeg'' or ``png''), and the format field, that store the media format of the blob : it is a string, either ``audio'', ``video'' or ``image''. \\
-The physical location of a blob is ``blob\_dir defined in configuration file'' + ``hash of the blob'' + ``.'' + ``type of the blob''.
+The blobs table is defined as such : the id field, that stores the unique id of the blob ; the hash field, that stores the hash of the blob computed with sha1, the type field, that stores the extension of the blob (e.g. ``jpeg'' or ``png''), and the format field, that stores the media format of the blob : it is a string, either ``audio'', ``video'' or ``image''. \\
+The physical location of a blob is ``blob\_dir as defined in the configuration file'' + ``hash of the blob'' + ``.'' + ``type of the blob''.
 
 \paragraph{Correspondence table} \hspace{0pt} \\
-The correspondence table is defined as such : the id field ; the id of the experiment and the id of the blob that is linked to said experiment, and the name field, which indicate the role of the blob in the experiment (example : ``input'' or ``denoised''). A foreign key constraint allowing cascade delete is put on the field id\_experiment, referencing the id of an entry in the experiment table, for automatic data deletion.
+The correspondence table is defined as such : the id field ; the id of the experiment and the id of the blob that is linked to said experiment, and the name field, which indicates the role of the blob in the experiment (example : ``input'' or ``denoised''). A foreign key constraint allowing cascade delete is put on the field id\_experiment, referencing the id of an entry in the experiment table, for automatic data deletion.
 
 \subsection{Services}
 
 \paragraph{Adding an experiment to the archive} \hspace{0pt} \\
-The method ``add\_experiment'' take in entry the id of the demo used ; a JSON string of the format : 
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/add_exp_test?demo_id=42&blobs=
+<json_blobs>&parameters=<json_parameters>
+\end{verbatim}
+The method ``add\_experiment'' takes in the entry of the id of the demo used ; a JSON string of the format : 
 
 \begin{verbatim}
 {
@@ -59,7 +64,7 @@ The method ``add\_experiment'' take in entry the id of the demo used ; a JSON st
 }
 \end{verbatim}
 
-containing a description of each blobs used by and produced by the experiment, with their temporary URLs and names ; and a JSON string describing the parameters of the demo used for the experiment. It will add an experiment to the database by creating a new entry in the experiment table. If the blobs used by and produced by the experiment aren't already in the database, it will copy them in the directory given in the configuration file, and, for the images, create a thumbnail. It will return a json string containing the status of the operation, OK uf it succeeded, KO if there was an error and the operation wasn't performed, as such :
+containing a description of each blob used by and produced by the experiment, with their temporary URLs and names ; and a JSON string describing the parameters of the demo used for the experiment. It will add an experiment to the database by creating a new entry in the experiment table. If the blobs used by and produced by the experiment aren't already in the database, it will copy them in the directory given in the configuration file, and create a thumbnail for the images. It will return a json string containing the status of the operation, OK if it succeeded, KO if there was an error and the operation wasn't performed, as such :
 
 \begin{verbatim}
 {
@@ -70,13 +75,17 @@ containing a description of each blobs used by and produced by the experiment, w
 If status is KO, a log describing the error will be written.
 
 \paragraph{Deleting an experiment from the archive} \hspace{0pt} \\
-When removing an experiment from the database via the method ``delete\_experiment'', every blobs linked to this experiment and only to this experiment are removed. After that, all the entries in the correspondence table referencing this experiment are removed automatically due to a foreign key constraint. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''.
+When removing an experiment from the database via the method ``delete\_experiment'', every blob linked to this experiment and only to this experiment is removed. After that, all the entries in the correspondence table referencing this experiment are removed automatically due to a foreign key constraint. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''. The method shouldn't be called anywhere else than through the user interface described later.
 
 \paragraph{Deleting a blob from the archive} \hspace{0pt} \\
-Due to a many-to-many link between blobs and experiments in the database, a blob has a lot of dependencies : it has of course the experiments using this blobs, but also the blobs linked to these experiments. For deleting a blob from the archive, the precedent service is called on each experiment the blob is part of, assuring that no orphans datas stay in the database (for exemple, experiments linked to removed blobs or blobs linked to removed experiments). The method implementing this service is ``delete\_blob\_w\_deps''. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''.
+Due to a many-to-many link between blobs and experiments in the database, a blob has a lot of dependencies : it has of course the experiments using this blobs, but also the blobs linked to these experiments. For deletion of a blob from the archive, the precedent service is called on each experiment the blob is part of, assuring that no orphan data stay in the database (e.g. experiments linked to removed blobs or blobs linked to removed experiments). The method implementing this service is ``delete\_blob\_w\_deps''. It return a json response containing the status of the operation in the same format as the return of the method ``add\_experiment''. The method shouldn't be called anywhere else than through the user interface described later.
 
 \paragraph{Getting datas from an archive page} \hspace{0pt} \\
-The method ``page'' return in a JSON response, for a given page of a given demo, all the datas of the experiments that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in the browser, the JSON response should be parsed and interpreted in a dedicated template furnished by the front-end of another module. The JSON response is formatted this way : 
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/page?demo_id=42&page=3
+\end{verbatim}
+The method ``page'' returns a JSON response with, for a given page of a given demo, all the data of the experiments that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in the browser, the JSON response should be parsed and interpreted in a dedicated template furnished by the front-end of another module. The JSON response is formatted this way : 
 \begin{verbatim}
 {
     status :  OK/KO,
@@ -99,11 +108,19 @@ The method ``page'' return in a JSON response, for a given page of a given demo,
 }
 \end{verbatim} 
 
-\paragraph{User interface for removing blobs/experiments} \hspace{0pt} \\
-The only user interface furnished by the archive module is for removing blobs or experiment in a convenient manner. It use the json response of the precedent service and render the ``archive\_admin\_tmp.html'' template displaying a page of archive for given demo, allowing the deletion of both blobs and experiments by simply linking to two other services calling deletion methods and updating the template. In case of error, for example when invalid datas are given through URL, ``error.html'' is rendered.
+\paragraph{Administrator interface for removing blobs/experiments} \hspace{0pt} \\
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/archive_admin?demo_id=42&page=3
+\end{verbatim}
+The only user interface furnished by the archive module is for removing blobs or experiment in a convenient manner. It uses the json response of the precedent service and renders the ``archive\_admin\_tmp.html'' template displaying a page of archives for given demo, allowing the deletion of both blobs and experiments by simply linking to two other services calling deletion methods and updating the template. In case of error, for example when invalid data is given through URL, ``error.html'' is rendered.
 
 \paragraph{Shutdown} \hspace{0pt} \\
-The method ``Shutdown'' shutdown the archive application when called. It return a json response containing the status of the operation.
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/shutdown
+\end{verbatim}
+The method ``Shutdown'' shuts down the archive application when called. It returns a json response containing the status of the operation.
 
 \paragraph{Other services}
 Other services features the method ``ping'', simply for checking if the module is up, and the method ``stats'', formatted this way :
@@ -113,4 +130,12 @@ Other services features the method ``ping'', simply for checking if the module i
     nb_experiments : x,
     nb_blobs : y
 }
+\end{verbatim}
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/ping
+\end{verbatim}
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/stats
 \end{verbatim}
