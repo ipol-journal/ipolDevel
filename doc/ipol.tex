@@ -27,6 +27,13 @@
 \usepackage{datetime}
 \usepackage{comment}
 \usepackage{float} % To put figures in their exact place with \begin{figure}[H]
+\usepackage{longtable}
+\usepackage{tabularx}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
 
 % Definitions and commands
 \def \np{\vskip 0.25 cm}

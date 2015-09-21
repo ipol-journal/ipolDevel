@@ -180,114 +180,96 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 \ToDo{Some of the information here is inconsistent with the actual API implemented in the module. Fix it.}
 \ToDo{Think of a better way to describe the webservice API, rather than a table.}
 
-\begin{tabular}{|c||c|c|c|}
+\begin{flushleft}
+\begin{longtable}
+                   {|C{\dimexpr 0.40\linewidth-2\tabcolsep}
+                     ||
+                    L{\dimexpr 0.6\linewidth-2\tabcolsep}|}
+% {|C{\dimexpr 0.30\linewidth-2\tabcolsep}||
+%                     C{\dimexpr 0.20\linewidth-2\tabcolsep}|
+%                     C{\dimexpr 0.18\linewidth-2\tabcolsep}|
+%                     C{\dimexpr 0.32\linewidth-2\tabcolsep}|}
+%   \hline
+%   {\bf Function Name} & {\bf Description} & {\bf Param.} & {\bf Return} \tabularnewline
   \hline
-  Name function & Usage & Paramaters & Return \tabularnewline
+  {add\_blob\_ws}
+                  & add blob to database \\
+                  & {demo\_id path tag ext the\_set title credit} \\
+                  & {\{  return:OK or KO, the\_hash: ...  \}} \\
   \hline
-  \multirow{7}{*}{add\_blob\_ws}
-  &                      & demo\_id & \{ \\
-  &                      & path & "return": \\
-  & add blob             & tag  & "OK" or "KO", \\
-  & to database          & ext  & "the\_hash": \\
-  &                      & the\_set & "..." \\
-  &                      & title    & \} \\
-  &                      & credit &   \\
+  {add\_demo\_ws}
+                  & add demo to database \\
+                  & {name is\_template template }\\
+                  & { \{ return:OK or KO \} }\\
   \hline
-  \multirow{4}{*}{add\_demo\_ws}
-  &                      & name & \{ \\
-  & add demo             & is\_template & "return": \\
-  & to database          & template & "OK" or "KO" \\
-  &                      &      & \} \\
+  {add\_tag\-\_to\_blob\_ws}
+                  & add tag to database \\
+                  & { blob\_id tag }\\
+                  & { \{ return:OK or KO \} }\\
   \hline
-  \multirow{4}{*}{add\_tag\_to\_blob\_ws}
-  &                      &       & \{ \\
-  & add tag              & blob\_id & "return": \\
-  & to database          & tag  & "OK" or "KO" \\
-  &                      &      & \} \\
+  {delete\_blob\_ws}
+                  & delete blob from id demo and id blob \\
+                  & {demo\_id blob\_id} \\
+                  & { \{ return:OK or KO, delete: (hash, extension) \}} \\
   \hline
-  \multirow{6}{*}{delete\_blob\_ws}
-  &                      &      & \{ \\
-  &                      &       & "return": \\
-  & delete blob from     & demo\_id & "OK" or "KO", \\
-  & id demo and id blob  & tag  & "delete":  \\
-  &                      &      & ("hash", "extension")  \\
-  &                      &      & \} \\
+  {demos\_ws}
+                  & list demos present  in database \\
+%                   & { }\\
+                  & {\{ return:OK or KO,
+                        list\_demos: \{id:name, id\_template, template \} \}} \\
   \hline
-  \multirow{6}{*}{demos\_ws}
-  &                      &      & \{ \\
-  &                      &      & "return": \\
-  & list demos present   &      & "OK" or "KO", \\
-  & in database          &      & "list\_demos": \{"id": "name", \\
-  &                      &      & "id\_template", "template"\} \\
-  &                      &      & \} \\
+  {get\_blob\_ws}
+                  & return blob information from id \\
+                  & {blob\_id }\\
+                  &  {\{ return:OK or KO,
+                        \{id, hash,  extension, credit \} \} }\\
   \hline
-\end{tabular}
-
-
-\newpage
-\begin{tabular}{|c||c|c|c|}
+  {get\_blobs\-\_from\-\_template\_ws}
+                  & list blobs from name template \\
+                  & {template} \\
+                  & { \{ return:OK or KO,
+                        blobs: \{id, hash,  extension, format \} \} }\\
   \hline
-  Name function & Usage & Paramaters & Return \tabularnewline
+  {get\_blobs\-\_of\-\_demo\-\_by\_name\_ws}
+                  & list blobs from demo name \\
+                  & {demo\_name }\\
+                  & { \{ return:OK or KO,
+                        blobs: \{id, hash,  extension, format \},
+                        use\_template: \{id: name, is\_template, id\_template\}\} }\\
   \hline
-  \multirow{6}{*}{get\_blobs\_from\_template\_ws}
-  &                      &      & \{ \\
-  &                      &      & "return": \\
-  & list blobs from      & template  & "OK" or "KO", \\
-  & name template        &      & "blobs": \{"id", "hash", \\
-  &                      &      & "extension", "format"\} \\
-  &                      &      & \} \\
+  {get\_blobs\-\_of\-\_demo\-\_ws}
+                  & list blobs from demo id \\
+                  & {demo }\\
+                  & { \{ return:OK or KO,
+                        blobs: \{id, hash,  extension, format \},
+                        use\_template: \{id: name, is\_template, id\_template\}\}}\\
   \hline
-  \multirow{7}{*}{get\_blobs\_of\_demo\_ws}
-  &                      &      & \{ \\
-  &                      &      & "return": \\
-  & list blobs from      & demo id & "OK" or "KO", \\
-  & name demo            &      & "blobs": \{"id", "hash", \\
-  &                      &      & "extension", "format"\} \\
-  &                      &      & "use\_template": \{"id": "name", \\
-  &                      &      & "is\_template", "id\_template"\} \} \\
+  {get\_tags\_ws}
+                  & return list tags from blob id \\
+                  & {blob\_id} \\
+                  & { \{ \{id: name\} \} }\\
   \hline
-  \multirow{6}{*}{get\_blobs\_ws}
-  &                      &      & \{ \\
-  &                      &      & "return": \\
-  & return list blob     & blob id & "OK" or "KO", \\
-  & from blob id         &      & \{"id", "hash", \\
-  &                      &      & "extension", "credit" \} \\
-  &                      &      & \} \\
+  {get\_tem\-plate\-\_demo\-\_ws} 
+                  & return list demos templated \\
+                  &  {}\\
+                  &  {\{ return:OK or KO, list\_template: \{id: name\} \}} \\
   \hline
-  \multirow{4}{*}{get\_tags\_ws}
-  &                      &      & \{ \\
-  & return list tags     &      & \{"id": "name"\} \\
-  & from blob id         & blob id & \} \\
-  &                      &       &  \\
+  {op\_remove\-\_demo\_ws}
+                  & remove demo from id demo  \\
+                  & {demo\_id }\\
+                  & { \{ return:OK or KO \} }\\
   \hline
-\end{tabular}
-
-\newpage
-\begin{tabular}{|c||c|c|c|}
+  {remove\_tag\-\_from\-\_blob\-\_ws}
+                  & remove tag for a blob from id tag and id blob  \\
+                  & { id tag\_id blob\_id }\\
+                  & { \{ return:OK or KO \} }\\
   \hline
-  Name function & Usage & Paramaters & Return \tabularnewline
+  {set\-\_template\-\_ws}
+                  & change the current template used by a demo \\
+                  & { demo\_id id name }\\
+                  & { \{ return:OK or KO \} }\\
   \hline
-  \multirow{4}{*}{get\_template\_demo\_ws}
-  &                      &      & \{ \\
-  & return list demos    &      & \{"return": \\
-  & templated            &      & "OK" or "KO", \\
-  &                      &       &  "list\_template": \{"id": \\
-  &                      &       & "name"\} \} \\
-  \hline
-  \multirow{4}{*}{op\_remove\_demo\_ws}
-  &                      &      & \{ \\
-  & remove demo          &      & \{"return": \\
-  & from id demo         & id demo & "OK" or "KO", \\
-  &                      &       & \} \\
-  &                      &       &  \\
-  \hline
-  \multirow{4}{*}{remove\_tag\_from\_blob\_ws}
-  &                      &      & \{ \\
-  & remove tag for       & id tag     & \{"return": \\
-  & a blob from id tag   & id blob & "OK" or "KO", \\
-  & and id blob          &       & \} \\
-  &                      &       &  \\
-  \hline
-\end{tabular}
+\end{longtable}
+\end{flushleft}
 
 
