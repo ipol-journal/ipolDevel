@@ -884,6 +884,34 @@ class   Blob(object):
         else:
             print_exception_zip(inspect.currentframe().f_code.co_name,\
                                 the_zip)
+    
+    @cherrypy.expose
+    def ping(self):
+        """
+        Ping pong.
+        :rtype: JSON formatted string
+        """
+        data = {}
+        data["status"] = "OK"
+        data["ping"] = "pong"
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def shutdown(self):
+        """
+        Shutdown the module.
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            cherrypy.engine.exit()
+            data["status"] = "OK"
+        except Exception as ex:
+            print "something went wrong in blobs module"
+            sys.exit(1)
+        return json.dumps(data)
+
+
 
 def create_tmp_file(blob, path):
     """

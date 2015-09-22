@@ -780,5 +780,3 @@ class Archive(object):
         test for displaying database.
         """
         self.echo_database()
-
-cherrypy.quickstart(Archive(), config="archive.conf")
