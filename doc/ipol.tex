@@ -113,14 +113,16 @@ Nelson Monzón
 
 \section{DemoInfo module}
 This module store the textual description of the demo and allows to ask for specific sections of it. It also stores other demo-related information, as the demo authors, their emails, etc.
+
+It can obtain the system load from {\tt /proc/loadavg}. The first three numbers are the load averages for the past 1, 5, and 15 minutes. Load averages are not normalized for the number of CPUs in a system, so a load  average  of 1 means a single CPU system is loaded all the time while on a 4 CPU system it means it was idle 75\% of the time.
 \ToDo{Document it!}
 
 \section{DemoDispatcher module}
-In order to distribute the charge in several machines, this module checks the work charge of each known DemoRunner modules and starts an algorithm demo execution on the less charged machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
+In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
 \ToDo{Document it!}
 
 \section{DemoRunner module}
-The DemoRunner module has two main tasks. The first is to inform the DemoDispatcher about the charge of the machine where it is running. The second task is to execute an algorithm given the parameters and store the results in a temporary directory. It is a requirement that the temporal results can be accessed by different users using the URL (for example, it may contain a key which identifies a specific experiment).
+The DemoRunner module has two main tasks. The first is to inform the DemoDispatcher about the load of the machine where it is running. The second task is to execute an algorithm given the parameters and store the results in a temporary directory. It is a requirement that the temporal results can be accessed by different users using the URL (for example, it may contain a key which identifies a specific experiment).
 \ToDo{Document it!}
 
 \section{The Control Terminal}
