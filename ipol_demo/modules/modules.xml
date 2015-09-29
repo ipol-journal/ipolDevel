@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+<module name="archive">
+  <url>http://127.0.0.1:8080/</url>
+  <command>start</command>
+  <command>shutdown</command>
+  <command>restart</command>
+  <command>ping</command>
+</module>
+<module name="blobs">
+  <url>http://127.0.0.1:7777/</url>
+  <command>start</command>
+  <command>shutdown</command>
+  <command>restart</command>
+  <command>ping</command>
+</module>
+</data>
