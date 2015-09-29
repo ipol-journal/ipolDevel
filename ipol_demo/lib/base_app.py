@@ -303,18 +303,23 @@ class base_app(empty_app):
         im.save(fullpath)
 
 
-    def convert_and_resize(self, im):
+    def convert_and_resize(self, im, dtype=None, maxpix=None):
         '''
         Convert and resize an image object
         '''
-        im.convert(self.input_dtype)
+        if dtype == None:
+            dtype = self.input_dtype
+        if maxpix == None:
+            dtype = self.input_max_pixels
+
+        im.convert(dtype)
 
         # check max size
-        resize = self.input_max_pixels and prod(im.size) > self.input_max_pixels
+        resize = maxpix and prod(im.size) > maxpix
         
         if resize:
             self.log("input resize")
-            im.resize(self.input_max_pixels)
+            im.resize(maxpix)
 
 
 
@@ -322,13 +327,42 @@ class base_app(empty_app):
     def process_input(self):
         """
         pre-process the input data
+        this function has two behaviors:
+        * when self.inputs is defined optional inputs are allowed
+        * when it is not, the legacy behavior is that all the 
+          self.input_nb must be present
+        Example self.inputs dictionary
+
+         inputs = [        # ordered list of inputs 
+                 {'id': 'input_0',       # not used
+                  'description':  'image to be denoised',       
+                  'optional': False,     # used 
+                  'dtype': '3x8i',       # used 
+                  'max_pixels': 500*500  # used
+                  'type': 'image',       # not used   
+                  'type_format': '.png', # not used 
+                 }
+               ]
+        TODO: the self.inputs dictionary also contains format 
+        information for each individual input file
         """
         msg = None
-        for i in range(self.input_nb):
+        # determine number of inputs and description format
+        use_inputs = False
+        num_inputs = 0        # default
+        if 'inputs' not in self.__dict__:
+            num_inputs = len(self.inputs)
+            use_inputs = True
+        else:
+            num_inputs = self.input_nb
+
+        for i in range(num_inputs):
             # open the file as an image
             try:
                 im = image(self.work_dir + 'input_%i' % i)
             except IOError:
+                if use_inputs and self.inputs[i]['optional']:
+                    continue
                 raise cherrypy.HTTPError(400, # Bad Request
                                          "Bad input file")
 
@@ -337,7 +371,12 @@ class base_app(empty_app):
 
             # convert to the expected input format
             im_converted = im.clone()
-            threads.append(threading.Thread(target=self.convert_and_resize, args = (im_converted, )))
+            if use_inputs:
+               dtype  = self.inputs[i]['dtype']
+               maxpix = self.inputs[i]['max_pixels']
+               threads.append(threading.Thread(target=self.convert_and_resize, args = (im_converted, dtype, maxpix, )))
+            else:
+               threads.append(threading.Thread(target=self.convert_and_resize, args = (im_converted, )))
 
             # Save the original file as PNG
             #
@@ -421,7 +460,7 @@ class base_app(empty_app):
     # INPUT STEP
     #
 
-    def input_select_callback(self, fnames):
+    def input_select_callback(self, fnames, input_id=None):
         '''
         Callback for the users to give the opportunity
         to process non-standard input
@@ -470,25 +509,48 @@ class base_app(empty_app):
         self2.cfg.save()
 
         # Let users copy non-standard input into the work dir
-        self2.input_select_callback(fnames)
+        from inspect import getargspec
+        if len(getargspec(self2.input_select_callback).args) == 3:
+            # default callback filenames and input_id
+            self2.input_select_callback(fnames, input_id)
+        else:
+            # legacy callback only the filenames 
+            self2.input_select_callback(fnames)
 
         # jump to the params page
         return self2.params(msg=msg, key=self2.key)
 
 
+
+
     def input_upload(self, **kwargs):
         """
         use the uploaded input images
+        this function has two behaviors:
+        * when self.inputs is defined optional inputs are allowed
+        * when it is not, the legacy behavior is that all the 
+          self.input_nb must be present
         """
+        # determine number of inputs and description format
+        use_inputs = False
+        num_inputs = 0        # default
+        if 'inputs' not in self.__dict__:
+            num_inputs = len(self.inputs)
+            use_inputs = True
+        else:
+            num_inputs = self.input_nb
+
         self.new_key()
         self.init_cfg()
-        for i in range(self.input_nb):
+        for i in range(num_inputs):
             file_up = kwargs['file_%i' % i]
             file_save = file(self.work_dir + 'input_%i' % i, 'wb')
             if '' == file_up.filename:
+                if use_inputs and self.inputs[i]['optional']:
+                    continue
                 # missing file
                 raise cherrypy.HTTPError(400, # Bad Request
-                                         "Missing input file")
+                                         "Missing input file %d" % i)
             size = 0
             while True:
                 # TODO larger data size
