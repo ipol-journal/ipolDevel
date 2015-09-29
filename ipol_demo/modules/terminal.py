@@ -21,7 +21,7 @@ import subprocess
 import urllib
 import xml.etree.ElementTree as ET
 
-class Controller(object):
+class Terminal(object):
     """
     This is the terminal.
     """
@@ -52,7 +52,7 @@ class Controller(object):
         return dict_modules
 
     @staticmethod
-    def do_nothing():
+    def do_nothing(_unused):
         """
         Do nothing :)
         """
@@ -77,10 +77,31 @@ class Controller(object):
         self.dict_modules = self.get_dict_modules()
         self.active_modules = self.get_actives_modules()
 
-    def ping_module(self, module):
+    def check_module_input(self, command, args_array):
+        """
+        This function assure that, for commands taking a module as parameter,
+        the given module exist and the command is valid for it.
+        """
+        status = bool()
+        if len(args_array) == 0:
+            print "Missing module parameter"
+            status = False
+        elif command not in self.dict_modules[args_array[0]]["commands"]:
+            status = False
+            print ("command " + command + " unavailable for module"
+                   + args_array[0])
+        else:
+            status = True
+        return status
+
+    def ping_module(self, args_array):
         """
         Ping specified module.
         """
+        if not self.check_module_input("ping", args_array):
+            return
+
+        module = args_array[0]
         if module not in self.active_modules:
             print "Module not active."
             try:
@@ -99,10 +120,14 @@ class Controller(object):
                 print ("Module active, unresponsive. " +
                        "(check your connection)")
 
-    def shutdown_module(self, module):
+    def shutdown_module(self, args_array):
         """
         Shutdown specified module.
         """
+        if not self.check_module_input("shutdown", args_array):
+            return
+
+        module = args_array[0]
         try:
             netobjct = urllib.urlopen(self.dict_modules[module]["url"]
                                       + "shutdown")
@@ -110,12 +135,16 @@ class Controller(object):
             print module + " shut down."
         except IOError:
             pass
-            print "Service unreachable."
+            print "Shutdown : service unreachable."
             
-    def start_module(self, module):
+    def start_module(self, args_array):
         """
         Start specified module.
         """
+        if not self.check_module_input("start", args_array):
+            return
+
+        module = args_array[0]
         try:
             if module not in self.active_modules:
                 os.chdir(module)
@@ -130,17 +159,21 @@ class Controller(object):
         except Exception as ex:
             print ex
 
-    def restart_module(self, module):
+    def restart_module(self, args_array):
         """
         restart specified module.
         """
-        self.shutdown_module(module)
-        self.start_module(module)
+        self.shutdown_module(args_array)
+        self.start_module(args_array)
 
-    def info_module(self, module):
+    def info_module(self, args_array):
         """
         Give user info on specified module.
         """
+        if not self.check_module_input("info", args_array):
+            return
+
+        module = args_array[0]
         if module in self.active_modules:
             status = "active."
         else:
@@ -153,36 +186,23 @@ class Controller(object):
                 print "    " + command
         print ""
 
-    def process_command(self, tab_input, entry_buffer):
-        """
-        Check if the input is valid by verifying if the given module
-        exist, and if the command given is authorized for the given module.
-        """
-        if tab_input[1] in self.dict_modules.keys():
-
-            if tab_input[0] in self.dict_modules[tab_input[1]]["commands"]:
-                entry_buffer[tab_input[0]](tab_input[1])
-            else:
-                print ("Requested command isn't available for module " +
-                       tab_input[1])
-
-        else:
-            print "Module " + tab_input[1] + " don't exist."
-
-    def display_modules(self):
+    def display_modules(self, _unused):
         """
         Display the modules.
         """
+        del _unused
+
         for module in self.dict_modules.keys():
             if module in self.active_modules:
                 print module + " : active"
             else:
                 print module + " : unactive"
 
-    def display_help(self):
+    def display_help(self, _unused):
         """
         Help of the terminal
         """
+        del _unused
         print "Read the freaking manual" # temporary
 
     def exec_loop(self):
@@ -190,19 +210,17 @@ class Controller(object):
         Execution loop of the terminal.
         """
         str_input = str()
-        entry_buffer_modules = {
+        entry_buffer = {
             "start" : self.start_module,
             "shutdown" : self.shutdown_module,
             "restart" : self.restart_module,
             "ping" : self.ping_module,
-            "info" : self.info_module
-        }
-        entry_buffer_terminal = {
-            "exit" : self.do_nothing,
-            "" : self.do_nothing,
+            "info" : self.info_module,
             "modules": self.display_modules,
             "module": self.display_modules,
-            "help" : self.display_help
+            "help" : self.display_help,
+            "exit" : self.do_nothing,
+            "" : self.do_nothing
         }
 
         print "Welcome to the Ipol control terminal."
@@ -218,26 +236,20 @@ class Controller(object):
                 str_input = raw_input("admin@IPOL:~>")
                 tab_input = str_input.split(" ", -1)
 
-                if tab_input[0] in entry_buffer_terminal.keys():
-                    entry_buffer_terminal[tab_input[0]]()
-                elif tab_input[0] in entry_buffer_modules.keys():
-                    if len(tab_input) < 2:
-                        print "Invalid command."
-                    else:
-                        self.process_command(tab_input, entry_buffer_modules)
+                if tab_input[0] in entry_buffer.keys():
+                    entry_buffer[tab_input[0]](tab_input[1:])
                 else:
                     print "Invalid command."
 
         except EOFError:
             str_input = "exit"
             print
-            pass
 
 def main():
     """
     Main function of the program.
     """
-    terminal = Controller()
+    terminal = Terminal()
     terminal.exec_loop()
 
 if __name__ == "__main__":
