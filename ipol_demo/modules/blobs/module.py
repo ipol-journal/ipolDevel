@@ -265,7 +265,7 @@ class   Blob(object):
     @cherrypy.tools.accept(media="application/json")
     def set_template_ws(self, demo_id, name):
         """
-        Web service used to change the current template used by another
+        Web service used to change the current template used by a demo
         demo
 
         :param demo_id: id demo
