@@ -1,12 +1,14 @@
 \section{The Blobs module}
 
+\ToDo{[Miguel]: the English at this section is bad, and some parts are vage or difficult to follow. It needs a rewrite.}
 
 \subsection{Introduction}
 \label{sec:blobs_introduction}
+\ToDo{[Miguel]: this should be moved to a more general section, about the current system.}
 Necessarily, management of this part is very important. Nowadays, each demo owns images.
 Even if they are not heavy (minus 1 MB),
 when there are fifty different demos on system and each demo is downloaded using
-\textbf{GitHub\footnote{\cite{GitHub}}} then the compilation of system takes too much time.
+\emph{GitHub} \cite{GitHub} then the compilation of system takes too much time.
 Knowing that each
 demo details a mathematic theory with complex calculations and several demos use
 same images, it will be preferable to create a system to manage theses images. \\
@@ -17,7 +19,7 @@ works.\\
 \setlength{\parindent}{0cm}
 
 According to the provided UML (\ref{img:IPOL_diagram_class}), one class "image" implements
-functions changing image characteristics. To do it, it uses \textbf{PIL\footnote{\cite{PIL}}}.
+functions changing image characteristics. To do it, it uses \emph{PIL} \cite{PIL}.
 Images have two formats: thumbnail and an input image. Thumbnail allows the user visualize
 and select an input image on client side. Input image is which use to apply algorithm on it,
 algorithm specific to the demo. This part is made in the implementation of demo.
@@ -29,7 +31,7 @@ it, new images are generated and stored in a temporary directory in ("/tmp").\\
 \begin{figure}[H]
   \centering
   \includegraphics[width=20.0cm, angle=90]{blobs/images/IPOL_diagram_class.pdf}
-  \caption{UML diagram class of current system.}
+  \caption{UML diagram class of current system. \ToDo{[Miguel]: this should be moved to a more general section.}}
   \label{img:IPOL_diagram_class}
 \end{figure}
 
@@ -37,6 +39,7 @@ To conclude this part, images are result of demo and the management of these is 
 for the project.
 
 \subsection{Demo}
+\ToDo{[Miguel]: this should be moved to a more general section, about the current system.}
 During introduction, demo system will claim like "God Object". It is excessive term in
 order to represent the system with a metaphor. It is just a complex object.
 In this section, it will detail functionalities to clarify objective thereof and
@@ -46,12 +49,12 @@ look how it is possible to improve it.\\
 Firstly, this object introduce here (\ref{img:IPOL_diagram_class}), has many ways to
 interact with user. It implements all features of project. For example, it manages
 interaction with client side. To do so, it is a part of webserver developed in
-\textbf{CherryPy\footnote{\cite{CherryPy}}}.
+\emph{CherryPy} \cite{CherryPy}.
 Communication between the client and the server is done using an
-\textbf{HTTP\footnote{\cite{HTTP}}}. Indeed, when users call a functionality,
+\emph{HTTP} \cite{HTTP}. Indeed, when users call a functionality,
 this object allows to search the expected result. For example, when users call an algorithm,
 it runs the corresponding binary in "bin/" file, manage images archiving the result
-and call the HTTP response using the \textbf{Mako Template Library\footnote{\cite{Mako}}}.
+and call the HTTP response using the \emph{Mako Template Library} \cite{Mako}.
 Knowing these possibilities, it is very difficult to add new functionalities to this object.
 \\
 \setlength{\parindent}{0cm}
@@ -65,10 +68,13 @@ separate module which communicate with the core system.
 
 Since the problematic have been detailled, it will be necessary to solve it. In this part,
 it will present to you \textbf{MVC pattern}, \textbf{Factory pattern}, \textbf{Database}.
+\ToDo{[Miguel]: the Factory pattern is not used, but it can be discussed why.}
 
 \subsubsection{MVC pattern}
 \setlength{\parindent}{1cm}
 \hspace{1cm}
+
+\ToDo{[Miguel]: this should be moved to a more general section.}
 
 MVC, alias Model-View-Controller, is architectural pattern used in interface implementation.
 It consists of create three separates parts. The model manage database and it is observable
@@ -89,6 +95,7 @@ The controler will be the code used to manage new module implementing functional
   \label{img:MVC-Process}
 \end{figure}
 
+\begin{comment}
 \subsubsection{Factory pattern}
 \setlength{\parindent}{1cm}
 \hspace{1cm}
@@ -120,15 +127,16 @@ version on the same system.
   \caption{An example of Factory pattern}
   \label{img:Example_Factory_Pattern}
 \end{figure}
+\end{comment}
 
 \subsubsection{Database}
 
 To solve the problem of images management, it will have a database. It will use a
-back-end and will be created with \textbf{SQLite\footnote{\cite{SQLite}}}.
+back-end and will be created with \emph{SQLite} \cite{SQLite}.
 It will have different tables
-containing all informations about images. In this way, it will be more easier to
+containing all informations about images. In this way, it will be easier to
 add functionalities and access to images from anything demo. According MVC pattern,
-this database will be very useful.\\
+this database will be very useful. \ToDo{[Miguel]: this last claim does not make any sense.}
 
 \begin{figure}[H]
   \centering
@@ -143,8 +151,9 @@ this database will be very useful.\\
 \subsubsection{Concurrent accesses}
 \setlength{\parindent}{1cm}
 \hspace{1cm}
+\ToDo{[Miguel]: this should be moved to a more general section, because it applies to all modules.}
 The library used to insert, select or update database is
-\textbf{SQLite\footnote{\cite{SQLite}}}. This thereof manages, internally,
+\emph{SQLite} \cite{SQLite}. This thereof manages, internally,
 the concurrent access to database. Indeed, when two people want to
 access to the database : the first one will do his request while
 the other will be locked by mutex. This principle is also used by transactions
@@ -163,6 +172,7 @@ of "roll back" are avoided. Nevertheless, it would be preferable to use a decora
 to avoid the redundance of the code.
 
 \subsubsection{Consistency check}
+\ToDo{[Miguel]: this should be moved to a more general section.}
 
 The consistency check in database management system (DBMS) is the fact
 to verify the consistency between the information present on hard disk and
@@ -176,7 +186,7 @@ and custom exception is throwed to called function.
 The consistency check manually is also used because the design databse
 has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 
-\subsubsection{Use case: Web service}
+\subsubsection{Reference of the module services}
 \ToDo{Some of the information here is inconsistent with the actual API implemented in the module. Fix it.}
 \ToDo{Think of a better way to describe the webservice API, rather than a table.}
 
