@@ -308,12 +308,12 @@ class   Database(object):
 
         :param demo_id: id demo
         :type demo_id: integer
-        :return: blob infos (id, hash, extension, format, title) associated to demo
+        :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
         try:
             something = self.cursor.execute('''
-            SELECT blob.id, blob.hash, blob.extension, blob.format, blob.title FROM blob
+            SELECT blob.id, blob.hash, blob.extension, blob.format, blob.title, blob.credit FROM blob
             INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
             INNER JOIN demo ON blob_demo.id_demo=demo.id
             WHERE demo.id=?''', \
@@ -324,7 +324,7 @@ class   Database(object):
         lis = []
         for item in something:
             lis.append({"id": item[0], "hash" : item[1], "extension": item[2],
-                        "format": item[3], "title":item[4]})
+                        "format": item[3], "title":item[4], "credit":item[5]})
         return lis
 
     def get_demo_name_from_id(self, demo_id):

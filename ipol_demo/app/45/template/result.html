@@ -6,6 +6,8 @@
   You can run again this algorithm with new data.
 </p>
 
+
+<!-- ===== Warnings ===== -->
 %if sizeX * sizeY < 42000:
 <p style='border: 1px solid; margin: 10px 0px; padding:15px 10px 15px 50px; color: #9F6000;'>
 <b><u>WARNING</u></b><br/><br/>
@@ -23,6 +25,7 @@ Image too small: at least 20000 pixels are need to be able to estimate the noise
 %endif
 <br/>
 
+<!-- ===== Rerun ===== -->
 <div class="action">
   Restart with new input data, different parameter or different subimage:
   <form style="display:inline;"
@@ -79,6 +82,7 @@ Image too small: at least 20000 pixels are need to be able to estimate the noise
   %endif
 </div>
 
+<!-- ===== Display parameters ===== -->
 <h2>Parameters</h2>
 <ul>
   <li><b>Percentile: </b>${percentile if float(percentile) >= 0 else "original article's iteration"}.</li>
@@ -91,9 +95,9 @@ Image too small: at least 20000 pixels are need to be able to estimate the noise
   <li><b>Added noise of variance: </b>${anoise} + ${bnoise} <b>U</b></li>
 %endif
 </ul>
-
 <hr />
 
+<!-- ===== Results ===== -->
 <h2>Result</h2>
 <br/>
 <b>Input image:</b><br/><br/>
@@ -154,6 +158,52 @@ You can download the estimations given by the algorithm at each scale. The forma
 <br/>
 
 <hr />
+<h2> Angular Version of Results </h2>
+<script>  IPOLDemosApp.value("demo_id","45");  </script>
+<script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
+
+<div ng-controller="DemoResultCtrl" >
+<p> {{params}} </p>
+<!-- ===== Rerun ===== -->
+<div class="action">
+  Restart with new input data, different parameter or different subimage:
+  <form style="display:inline;" action="${app.base_url}" method="get">
+    <input type="submit" value="new input" />
+  </form>
+    <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      %if x0 and y0 and x1 and y1:
+        <input type="hidden" name="x0" value="${x0}">
+        <input type="hidden" name="y0" value="${y0}">
+        <input type="hidden" name="x1" value="${x1}">
+        <input type="hidden" name="y1" value="${y1}">
+      %endif
+      <span ng-repeat="param in demo.params">
+        <input  ng-if="param.type!='label'" type="hidden" 
+                name="{{param.id}}" value="{{params[param.id]}}" > 
+      </span>
+      <input type="submit" value="different parameters or subimage" />
+    </form>
+</div>
+
+
+<!-- ===== Display parameters ===== -->
+  <h2>Parameters</h2>
+  <ul ng-repeat="param in demo.params">
+    <li>
+      <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
+      <span ng-if="param.type==='range'"> 
+        {{params[param.id]}} 
+      </span>
+      <span ng-if="param.type==='selection_collapsed'"> 
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+      </span>
+    </li>
+  </ul>
+  <hr />
+</div>
+
 
 <%include file="archive_info.html" />
 

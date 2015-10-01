@@ -1,17 +1,18 @@
 <%include file="header.html" />
 
-This algorithm estimates the amount of noise (standard deviation) of the given image.<br/><br/>
+<script>
+    IPOLDemosApp.value("demo_id","45");
+</script>
 
-The test images are divided into three groups:<br/>
-<br/>
-<ul>
-<li>Raw images down-scaled to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as "<b>raw</b>".</li>
-<li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as "<b>no noise</b>".</li>
-<li>JPEG images, being denoised by JPEG at the first scales. In the list, they are refered to as "<b>JPEG</b>".</li>
-</ul>
+<div ng-controller="DemoInputCtrl">
 
-<%include file="input_form_select.html" />
+  <div  ng-bind-html="renderHtml(demo.general.demo_input_description)"></div>  
 
-<%include file="input_form_upload.html" />
+  <%include file="input_form_select.html" />
 
-<%include file="footer.html" />
+  <%include file="input_form_upload.html" />
+
+</div>
+
+  <%include file="footer.html" />
+

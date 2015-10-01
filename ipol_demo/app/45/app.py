@@ -45,6 +45,7 @@ class app(base_app):
         # index() and input_xxx() are generic
         base_app.index.im_func.exposed = True
         base_app.input_select.im_func.exposed = True
+        base_app.input_select_angular.im_func.exposed = True
         base_app.input_upload.im_func.exposed = True
         # params() is modified from the template
         base_app.params.im_func.exposed = True
@@ -138,7 +139,7 @@ class app(base_app):
             self.select_subimage(int(x0), int(y0), int(x1), int(y1))
 
         perc_val = float(percentile) if percentile is not None else 0.005
-        return self.tmpl_out("params.html",
+        return self.tmpl_out("params_angular.html",
                              msg=msg, x0=x0, y0=y0, x1=x1, y1=y1, \
                              percentile='%.4f' % perc_val, \
                              block=block, \

@@ -10,6 +10,7 @@ import ConfigParser
 import os
 import shutil
 import tempfile
+import json
 
 class file_dict(dict):
     """
@@ -28,7 +29,11 @@ class file_dict(dict):
         self.mode = mode
         self.filename = filename
         if os.path.isdir(filename):
-            self.filename = os.path.join(self.filename, "index.cfg")
+            filepath = filename
+            # added for Angular
+            self.params_filename  = os.path.join(filepath, "params.json")
+            self.meta_filename    = os.path.join(filepath, "meta.json")
+            self.filename         = os.path.join(filepath, "index.cfg")
         # if flag == 'n', don't read the file
         if flag != 'n' and os.path.isfile(self.filename):
             # the file must be readable
@@ -93,6 +98,34 @@ class file_dict(dict):
         if self.mode is not None:
             os.chmod(tempname, self.mode)
         shutil.move(tempname, self.filename)    # atomic commit
+        # save params as json
+        if 'param' in self.keys():
+          (fd, tempname) = tempfile.mkstemp()
+          outfile = os.fdopen(fd, 'wb')
+          try:
+              json.dump(self['param'],outfile)
+          except Exception:
+              outfile.close()
+              os.remove(tempname)
+              raise
+          outfile.close()
+          if self.mode is not None:
+              os.chmod(tempname, self.mode)
+          shutil.move(tempname, self.params_filename)    # atomic commit
+        if 'meta' in self.keys():
+          (fd, tempname) = tempfile.mkstemp()
+          outfile = os.fdopen(fd, 'wb')
+          try:
+              json.dump(self['meta'],outfile)
+          except Exception:
+              outfile.close()
+              os.remove(tempname)
+              raise
+          outfile.close()
+          if self.mode is not None:
+              os.chmod(tempname, self.mode)
+          shutil.move(tempname, self.meta_filename)    # atomic commit
+          
 
     def dump(self, outfile):
         """

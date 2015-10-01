@@ -14,6 +14,7 @@ import math
 import copy
 import threading
 import time
+import urllib
 
 from mako.exceptions import RichTraceback
 from . import http
@@ -324,6 +325,8 @@ class base_app(empty_app):
         pre-process the input data
         """
         msg = None
+        self.max_width = 0
+        self.max_height = 0
         for i in range(self.input_nb):
             # open the file as an image
             try:
@@ -389,6 +392,8 @@ class base_app(empty_app):
 
             if im.size != im_converted.size:
                 msg = "The image has been resized for a reduced computation time."
+            self.max_width  = max(self.max_width,im_converted.size[0])
+            self.max_height = max(self.max_height,im_converted.size[1])
         return msg
 
 
@@ -398,8 +403,9 @@ class base_app(empty_app):
         """
         self.log("cloning input from %s" % self.key)
         # get a new key
-        old_work_dir = self.work_dir
-        old_cfg_meta = self.cfg['meta']
+        old_work_dir   = self.work_dir
+        old_cfg_meta   = self.cfg['meta']
+        old_cfg_params = self.cfg['param']
         self.new_key()
         self.init_cfg()
         # copy the input files
@@ -413,7 +419,8 @@ class base_app(empty_app):
             shutil.copy(old_work_dir + fname,
                         self.work_dir + fname)
         # copy cfg
-        self.cfg['meta'].update(old_cfg_meta)
+        self.cfg['meta'] .update(old_cfg_meta)
+        self.cfg['param'].update(old_cfg_params)
         self.cfg.save()
         return
 
@@ -466,7 +473,9 @@ class base_app(empty_app):
                         self2.work_dir + 'input_%i' % i)
         msg = self2.process_input()
         self2.log("input selected : %s" % input_id)
-        self2.cfg['meta']['original'] = False
+        self2.cfg['meta']['original']   = False
+        self2.cfg['meta']['max_width']  = self2.max_width;
+        self2.cfg['meta']['max_height'] = self2.max_height;
         self2.cfg.save()
 
         # Let users copy non-standard input into the work dir
@@ -475,6 +484,64 @@ class base_app(empty_app):
         # jump to the params page
         return self2.params(msg=msg, key=self2.key)
 
+    def input_select_angular(self, **kwargs):
+        """
+        use the selected available input images
+        """
+
+        # When we arrive here, self.key should be empty.
+        # If not, it means that the execution belongs to another thread
+        # and therefore we need to reuse the app object
+        key_is_empty = (self.key == "")
+        if key_is_empty:
+            # New execution: create new app object
+            self2 = base_app(self.base_dir)
+            self2.__class__ = self.__class__
+            self2.__dict__.update(self.__dict__)
+        else:
+            # Already known execution
+            self2 = self
+
+        self2.new_key()
+        self2.init_cfg()
+
+        # Add app to object pool
+        if key_is_empty:
+            pool = AppPool.get_instance() # Singleton pattern
+            pool.add_app(self2.key, self2)
+
+        # kwargs contains input_id.x and input_id.y
+        #input_id = kwargs.keys()[0].split('.')[0]
+        #assert input_id == kwargs.keys()[1].split('.')[0]
+        
+        # get the images
+        #input_dict = config.file_dict(self2.input_dir)
+        #fnames = input_dict[input_id]['files'].split()
+        # need
+        #for i in range(len(fnames)):
+            #shutil.copy(self2.input_dir + fnames[i],
+                        #self2.work_dir + 'input_%i' % i)
+
+        #----- for the moment deal with only one image
+        # copy to work_dir
+        blobfile = urllib.URLopener()
+        blobfile.retrieve("http://localhost:7777/blob_directory/"+
+                            kwargs.keys()[0], 
+                            self2.work_dir + 'input_0')
+        
+        msg = self2.process_input()
+        self2.log("input selected : %s" % kwargs.keys()[0])
+        self2.cfg['meta']['original'] = False
+        self2.cfg['meta']['max_width']  = self2.max_width;
+        self2.cfg['meta']['max_height'] = self2.max_height;
+        self2.cfg.save()
+
+        # Let users copy non-standard input into the work dir
+        # don't have fnames here
+        #self2.input_select_callback(fnames)
+
+        # jump to the params page
+        return self2.params(msg=msg, key=self2.key)
 
     def input_upload(self, **kwargs):
         """
@@ -541,7 +608,7 @@ class base_app(empty_app):
         """
         if newrun:
             self.clone_input()
-        return self.tmpl_out("params.html", msg=msg,
+        return self.tmpl_out("params_angular.html", msg=msg,
                              input=['input_%i.png' % i
                                       for i in range(self.input_nb)])
 
@@ -640,23 +707,28 @@ class base_app(empty_app):
         params handling
         """
         if action == 'run':
+          
             for key in kwargs:
                 self.cfg['param'][key] = kwargs[key]
-            self.cfg.save()
  
             if x != None:
-                 #save parameters
-                 try:
-                     for key in kwargs:
-                         self.cfg['param'][key] = kwargs[key]
-                     self.cfg['param']['x0'] = x0
-                     self.cfg['param']['y0'] = y0
-                     self.cfg['param']['x1'] = x
-                     self.cfg['param']['y1'] = y
-                     self.cfg.save()
-                 except ValueError:
-                     return self.error(errcode='badparams',
-                                       errmsg="Incorrect parameters.")
+              #save parameters
+              try:
+                # already done ...
+                #for key in kwargs:
+                    #self.cfg['param'][key] = kwargs[key]
+                self.cfg['param']['x0'] = x0
+                self.cfg['param']['y0'] = y0
+                self.cfg['param']['x1'] = x
+                self.cfg['param']['y1'] = y
+                self.cfg.save()
+                # Create subimage
+                self.select_subimage(int(x0), int(y0), int(x), int(y))
+              except ValueError:
+                return self.error(errcode='badparams',
+                                  errmsg="Incorrect parameters.")
+            else:
+              self.cfg.save()
 
             # use the whole image if no subimage is available
             try:
