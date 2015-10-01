@@ -31,7 +31,7 @@ class Terminal(object):
         """
         Return a dictionary of the differents IPOL modules as keys, and
         another dictionary as value, containing two keys : a url (string), and
-        a list of strings representing the commands availables to the module.
+        a list of strings representing the commands available to the module.
         """
         dict_modules = {}
         tree = ET.parse('modules.xml')
@@ -79,10 +79,10 @@ class Terminal(object):
 
     def check_module_input(self, command, args_array):
         """
-        This function assure that, for commands taking a module as parameter,
-        the given module exist and the command is valid for it.
+        This function checks, for commands taking a module as a parameter,
+        that the given module exists and the command is valid for it.
         """
-        status = bool()
+        status = True
         if len(args_array) == 0:
             print "Missing module parameter"
             status = False
@@ -90,8 +90,6 @@ class Terminal(object):
             status = False
             print ("command " + command + " unavailable for module"
                    + args_array[0])
-        else:
-            status = True
         return status
 
     def ping_module(self, args_array):
@@ -107,7 +105,7 @@ class Terminal(object):
             try:
                 netobjct = urllib.urlopen(self.dict_modules[module]["url"]
                                           + "ping")
-                print "But he's responsing ! Something went really wrong."
+                print "But it's responsing! Something went really wrong."
                 self.actives_modules.append(module)
             except IOError:
                 pass
@@ -115,7 +113,7 @@ class Terminal(object):
             try:
                 netobjct = urllib.urlopen(self.dict_modules[module]["url"]
                                           + "ping")
-                print "Module active, he say pong !"
+                print "Module active, it says pong !"
             except IOError:
                 print ("Module active, unresponsive. " +
                        "(check your connection)")
@@ -198,11 +196,10 @@ class Terminal(object):
             else:
                 print module + " : unactive"
 
-    def display_help(self, _unused):
+    def display_help(self, _dummy):
         """
         Help of the terminal
         """
-        del _unused
         print "Read the freaking manual" # temporary
 
     def exec_loop(self):
@@ -223,13 +220,13 @@ class Terminal(object):
             "" : self.do_nothing
         }
 
-        print "Welcome to the Ipol control terminal."
+        print "Welcome to the IPOL control terminal."
         if len(self.active_modules) != 0:
             print "There is a list of actives modules :"
             for module in self.active_modules:
                 print module
         else:
-            print "There is no active modules."
+            print "There are no active modules."
 
         try:
             while str_input != "exit":
