@@ -24,7 +24,9 @@ There is a logger initialised with the Archive object, writing errors in ``error
 \subsection{Database design}
 
 The database contains 3 tables : experiments, blobs, and correspondence.\\
-Each experiments, and each blobs are defined individually, and linked to each-others in the correspondence table, assuring a many-to-many connection. It is worth noting that the database doesn't save duplicates of the same blob. \\
+Each experiments, and each blobs are defined individually, and linked to each-others in the correspondence table, assuring a many-to-many connection. It is worth noting that the database does not save duplicates of the same blob. \\
+
+\ToDo{[Miguel] The right name for the ``correspondence" table is \emph{Junction table}. You can keep the name ``correspondence", but explain in the text that it is a junction table.}
 
 \begin{tabular}{|l|c|r|}
   \hline
@@ -45,6 +47,7 @@ The blobs table is defined as such : the id field, that stores the unique id of 
 The physical location of a blob is ``blob\_dir as defined in the configuration file'' + ``hash of the blob'' + ``.'' + ``type of the blob''.
 
 \paragraph{Correspondence table} \hspace{0pt} \\
+\ToDo{[Miguel] You can keep the name ``correspondence", but explain in the text that it is a junction table.}
 The correspondence table is defined as such : the id field ; the id of the experiment and the id of the blob that is linked to said experiment, and the name field, which indicates the role of the blob in the experiment (example : ``input'' or ``denoised''). A foreign key constraint allowing cascade delete is put on the field id\_experiment, referencing the id of an entry in the experiment table, for automatic data deletion.
 
 \subsection{Services}
@@ -80,7 +83,7 @@ When removing an experiment from the database via the method ``delete\_experimen
 \paragraph{Deleting a blob from the archive} \hspace{0pt} \\
 Due to a many-to-many link between blobs and experiments in the database, a blob has a lot of dependencies : it has of course the experiments using this blobs, but also the blobs linked to these experiments. For deletion of a blob from the archive, the precedent service is called on each experiment the blob is part of, assuring that no orphan data stay in the database (e.g. experiments linked to removed blobs or blobs linked to removed experiments). The method implementing this service is ``delete\_blob\_w\_deps''. It return a json response containing the status of the operation in the same format as the return of the method ``add\_experiment''. The method shouldn't be called anywhere else than through the user interface described later.
 
-\paragraph{Getting datas from an archive page} \hspace{0pt} \\
+\paragraph{Getting data \ToDo{[Miguel] use a more specific word than ``data"} from an archive page} \hspace{0pt} \\
 Example :
 \begin{verbatim}
 http://<localhost>:<port>/page?demo_id=42&page=3

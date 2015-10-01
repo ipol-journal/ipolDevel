@@ -53,7 +53,7 @@
 %Universitat Oberta de Catalunya\\
 \vspace*{0.6in}
 \begin{Large}
-\textbf{The IPOL Demo System\\Technical documentation} \\
+\textbf{The IPOL Demo System 2.0 \\Technical documentation} \\
 \end{Large}
 
 \vspace*{0.6in}
@@ -67,6 +67,30 @@
 
 \end{titlepage}
 
+This documents contains technical documentation for the architecture and modules of the IPOL Demo System 2.0, made by the architecture and software engineering team.
+\vspace*{0.6in}
+
+\textbf{Project direction and team coordination}
+
+Miguel Colom - \url{http://mcolom.info}
+
+\vspace*{0.2in}
+
+\textbf{Software engineers (alphabetic order)}
+
+José Arrecio
+
+Miguel Colom
+
+Vincent Firmin
+
+Karl Krissian
+
+Alexis Mongin
+
+Nelson Monzón
+
+
 %\maketitle
 \newpage
 
@@ -78,6 +102,13 @@
 \section{Introduction}
 \ToDo{Introduction}
 
+\section{The Demo System Core}
+Centralized webservice. Dispatcher. Proxy pattern \cite{GoF}.
+
+The list of datatypes used (images, audio, video, 3D pointclouds, 3D meshes) and how to identify them. The "no type" format for demos which have their own non-standard format.
+
+\ToDo{Document it!}
+
 % The Blobs module
 \input{blobs/blobs.tex}
 
@@ -87,14 +118,47 @@
 % The Demo Description Language and automatic demo generation
 \input{ddl/ddl.tex}
 
-\section{Demo Algorithm Execution and Scheduler module}
-\ToDo{Algorithm execution}
+\section{DemoInfo module}
+This module store the textual description of the demo and allows to ask for specific sections of it. It also stores other demo-related information, as the demo authors, their emails, etc.
 
-\section{The control terminal}
-\ToDo{The control terminal}
+It can obtain the system load from {\tt /proc/loadavg}. The first three numbers are the load averages for the past 1, 5, and 15 minutes. Load averages are not normalized for the number of CPUs in a system, so a load  average  of 1 means a single CPU system is loaded all the time while on a 4 CPU system it means it was idle 75\% of the time.
+\ToDo{Document it!}
 
-\section{The control panel web application}
-\ToDo{The control panel web application}
+\section{DemoDispatcher module}
+In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
+\ToDo{Document it!}
+
+\section{DemoRunner module}
+The DemoRunner module has two main tasks. The first is to inform the DemoDispatcher about the load of the machine where it is running. The second task is to execute an algorithm given the parameters and store the results in a temporary directory. It is a requirement that the temporal results can be accessed by different users using the URL (for example, it may contain a key which identifies a specific experiment).
+\ToDo{Document it!}
+
+\section{The Control Terminal}
+The Control Terminal is a small application intended to system administrators which allows to start, stop, and query the status of each module.
+\ToDo{Document it!}
+
+\section{The Control Panel web application}
+In the modular architecture of IPOL all the modules are able to work standalone since they are RESTful servers implementing webservices. However, a coordinated view from both the functional and administrative point of view is needed.
+
+The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove undue experiments for the archive or add new images to a demo.
+
+\ToDo{Document it!}
+
+\section{Automatic testing}
+Two kind of tests:
+\begin{itemize}
+  \item For the IPOL system itself
+  \item To ensure good compilation of the algorithm source codes
+\end{itemize}
+
+\section{Implementation details}
+This section discusses some implementation details and specific configurations needed.
+
+\begin{itemize}
+  \item The magic module. We use PIP, not the python-magic package found in most distributions. \ToDo{Explain why}.
+  \item List of packages needed and how to install them.
+\end{itemize}
+
+\ToDo{Keep adding!}
 
 
 \bibliographystyle{plain}
