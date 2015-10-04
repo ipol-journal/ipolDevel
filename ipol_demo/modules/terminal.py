@@ -26,6 +26,7 @@ class Terminal(object):
     This is the terminal.
     """
 
+
     @staticmethod
     def get_dict_modules():
         """
@@ -46,36 +47,43 @@ class Terminal(object):
 
             list_tmp.append("info")
             dict_tmp["url"] = module.find('url').text
+            dict_tmp["server"] = module.find('server').text
+            dict_tmp["path"] = module.find('path').text
             dict_tmp["commands"] = list_tmp
             dict_modules[module.get('name')] = dict_tmp
 
         return dict_modules
 
+
     @staticmethod
-    def do_nothing(_unused):
+    def do_nothing(_dummy):
         """
         Do nothing :)
         """
         return
 
-    def get_actives_modules(self):
-        """
-        Return a list of the actives modules of IPOL.
-        """
-        active_modules = []
-
-        for key, value in self.dict_modules.items():
-            try:
-                netobjct = urllib.urlopen(value["url"] + "ping")
-                active_modules.append(key)
-            except IOError:
-                pass
-
-        return active_modules
 
     def __init__(self):
         self.dict_modules = self.get_dict_modules()
-        self.active_modules = self.get_actives_modules()
+
+
+    def get_active_modules(self):
+        """
+        Return a list of the actives modules of IPOL.
+        """
+        modules_up = False
+        print "Welcome to IPOL control terminal !"
+        for key, value in self.dict_modules.items():
+            try:
+                urllib.urlopen(value["url"] + "ping")
+                print key + " module running."
+                modules_up = True
+            except IOError:
+                pass
+
+        if not modules_up:
+            print "No modules running."
+
 
     def check_module_input(self, command, args_array):
         """
@@ -92,6 +100,7 @@ class Terminal(object):
                    + args_array[0])
         return status
 
+
     def ping_module(self, args_array):
         """
         Ping specified module.
@@ -100,23 +109,13 @@ class Terminal(object):
             return
 
         module = args_array[0]
-        if module not in self.active_modules:
-            print "Module not active."
-            try:
-                netobjct = urllib.urlopen(self.dict_modules[module]["url"]
-                                          + "ping")
-                print "But it's responsing! Something went really wrong."
-                self.actives_modules.append(module)
-            except IOError:
-                pass
-        else:
-            try:
-                netobjct = urllib.urlopen(self.dict_modules[module]["url"]
-                                          + "ping")
-                print "Module active, it says pong !"
-            except IOError:
-                print ("Module active, unresponsive. " +
-                       "(check your connection)")
+        try:
+            urllib.urlopen(self.dict_modules[module]["url"]
+                           + "ping")
+            print "Module active, it says pong !"
+        except IOError:
+            print "Module unresponsive."
+
 
     def shutdown_module(self, args_array):
         """
@@ -127,14 +126,32 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            netobjct = urllib.urlopen(self.dict_modules[module]["url"]
-                                      + "shutdown")
-            self.active_modules.remove(module)
+            urllib.urlopen(self.dict_modules[module]["url"]
+                           + "shutdown")
             print module + " shut down."
         except IOError:
-            pass
             print "Shutdown : service unreachable."
-            
+
+
+    # def start_module(self, args_array):
+    #     """
+    #     Start specified module.
+    #     """
+    #     if not self.check_module_input("start", args_array):
+    #         return
+
+    #     module = args_array[0]
+    #     try:
+    #         os.chdir(module)
+    #         subprocess.Popen(["python", "main.py", module + ".conf"],
+    #                          stdout=subprocess.PIPE,
+    #                          stderr=subprocess.PIPE)
+    #         os.chdir("..")
+    #         print module + " started !"
+    #     except Exception as ex:
+    #         print ex
+
+    
     def start_module(self, args_array):
         """
         Start specified module.
@@ -144,18 +161,14 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            if module not in self.active_modules:
-                os.chdir(module)
-                subprocess.Popen(["python", "main.py", module + "conf"],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-                os.chdir("..")
-                self.active_modules.append(module)
-                print module + " started !"
-            else:
-                print "Module already running."
+            cmd = (" \"cd " + self.dict_modules[module]["path"]
+                   + "&& nohup python " + "main.py " + module + ".conf " +
+                   ">/dev/null &\" ")
+            os.system("ssh " + self.dict_modules[module]["server"] + cmd + "&")
+            print module + " started, try to ping it."
         except Exception as ex:
             print ex
+
 
     def restart_module(self, args_array):
         """
@@ -163,6 +176,7 @@ class Terminal(object):
         """
         self.shutdown_module(args_array)
         self.start_module(args_array)
+
 
     def info_module(self, args_array):
         """
@@ -172,35 +186,28 @@ class Terminal(object):
             return
 
         module = args_array[0]
-        if module in self.active_modules:
-            status = "active."
-        else:
-            status = "unactive."
-
-        print "Status of " + module + " module : " + status
         print "List of avalaible commands for " + module + " module :"
         for command in self.dict_modules[module]["commands"]:
             if command != "info":
                 print "    " + command
         print ""
 
-    def display_modules(self, _unused):
+
+    def display_modules(self, _dummy):
         """
         Display the modules.
         """
-        del _unused
-
+        print "list of modules :"
         for module in self.dict_modules.keys():
-            if module in self.active_modules:
-                print module + " : active"
-            else:
-                print module + " : unactive"
+            print module
+
 
     def display_help(self, _dummy):
         """
         Help of the terminal
         """
         print "Read the freaking manual" # temporary
+
 
     def exec_loop(self):
         """
@@ -220,13 +227,7 @@ class Terminal(object):
             "" : self.do_nothing
         }
 
-        print "Welcome to the IPOL control terminal."
-        if len(self.active_modules) != 0:
-            print "There is a list of actives modules :"
-            for module in self.active_modules:
-                print module
-        else:
-            print "There are no active modules."
+        self.get_active_modules()
 
         try:
             while str_input != "exit":
@@ -241,6 +242,7 @@ class Terminal(object):
         except EOFError:
             str_input = "exit"
             print
+
 
 def main():
     """

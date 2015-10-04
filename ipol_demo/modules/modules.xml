@@ -2,6 +2,8 @@
 <data>
 <module name="archive">
   <url>http://127.0.0.1:8080/</url>
+  <server>localhost</server>
+  <path>~/ipolDevel/ipol_demo/modules/archive/</path>
   <command>start</command>
   <command>shutdown</command>
   <command>restart</command>
@@ -9,6 +11,8 @@
 </module>
 <module name="blobs">
   <url>http://127.0.0.1:7777/</url>
+  <server>localhost</server>
+  <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
   <command>start</command>
   <command>shutdown</command>
   <command>restart</command>
