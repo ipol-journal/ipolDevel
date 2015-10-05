@@ -158,37 +158,42 @@ You can download the estimations given by the algorithm at each scale. The forma
 <br/>
 
 <hr />
+
+<!-- ======================================= -->
 <h2> Angular Version of Results </h2>
+<!-- ======================================= -->
+
 <script>  IPOLDemosApp.value("demo_id","45");  </script>
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
+<script>  IPOLDemosApp.value("work_url","${app.work_url}");  </script>
 
 <div ng-controller="DemoResultCtrl" >
-<p> {{params}} </p>
-<!-- ===== Rerun ===== -->
-<div class="action">
-  Restart with new input data, different parameter or different subimage:
-  <form style="display:inline;" action="${app.base_url}" method="get">
-    <input type="submit" value="new input" />
-  </form>
-    <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
-      <input type="hidden" name="key" value="${app.key}">
-      <input type="hidden" name="newrun" value="1">
-      %if x0 and y0 and x1 and y1:
-        <input type="hidden" name="x0" value="${x0}">
-        <input type="hidden" name="y0" value="${y0}">
-        <input type="hidden" name="x1" value="${x1}">
-        <input type="hidden" name="y1" value="${y1}">
-      %endif
-      <span ng-repeat="param in demo.params">
-        <input  ng-if="param.type!='label'" type="hidden" 
-                name="{{param.id}}" value="{{params[param.id]}}" > 
-      </span>
-      <input type="submit" value="different parameters or subimage" />
+  <p> {{params}} </p>
+  <!-- ===== Rerun ===== -->
+  <div class="action">
+    Restart with new input data, different parameter or different subimage:
+    <form style="display:inline;" action="${app.base_url}" method="get">
+      <input type="submit" value="new input" />
     </form>
-</div>
+      <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
+        <input type="hidden" name="key" value="${app.key}">
+        <input type="hidden" name="newrun" value="1">
+        %if x0 and y0 and x1 and y1:
+          <input type="hidden" name="x0" value="${x0}">
+          <input type="hidden" name="y0" value="${y0}">
+          <input type="hidden" name="x1" value="${x1}">
+          <input type="hidden" name="y1" value="${y1}">
+        %endif
+        <span ng-repeat="param in demo.params">
+          <input  ng-if="param.type!='label'" type="hidden" 
+                  name="{{param.id}}" value="{{params[param.id]}}" > 
+        </span>
+        <input type="submit" value="different parameters or subimage" />
+      </form>
+  </div>
 
 
-<!-- ===== Display parameters ===== -->
+  <!-- ===== Display parameters ===== -->
   <h2>Parameters</h2>
   <ul ng-repeat="param in demo.params">
     <li>
@@ -202,6 +207,32 @@ You can download the estimations given by the algorithm at each scale. The forma
     </li>
   </ul>
   <hr />
+
+  <!-- ===== Results ===== -->
+  <h2>Result</h2>
+  <br/>
+  <span ng-repeat="result in demo.results">
+    <span ng-if="result.type==='gallery'"> 
+      <span ng-if="result.repeat!=undefined">
+        <span ng-repeat="idx in range($eval(result.repeat))">
+          <b>{{$eval(result.label)}}</b><br/><br/>
+          <br/><br/>
+            <img ng-src="{{work_url + $eval(result.contents)}}" style="{{result.style}}" alt="input" />
+          <br/>
+        </span>
+      </span>
+      <span ng-if="result.repeat==undefined">
+        <b>{{result.label}}</b><br/><br/>
+          <img ng-src="{{work_url + result.contents}}" style="{{result.style}}" alt="input" />
+        <br/>
+      </span>
+    </span>
+    <span ng-if="result.type==='html_text'"> 
+      <div bind-html-compile="result.contents"></div> 
+      <br/><br/>
+    </span>
+  </span>
+
 </div>
 
 

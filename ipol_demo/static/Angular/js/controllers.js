@@ -78,7 +78,12 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.maxdim=768;
       $scope.imwidth=1024;
       $scope.imheight=1024;
-      $scope.display_ratio = 1;
+      $scope.display_ratio=1;
+      $scope.InputCropped=false;
+      $scope.CropInfo = { coord:{ x: 0, y:0, w :100, h:100 } };
+      $scope.got_meta=false;
+      $scope.got_param=false;
+      
       $scope.demo = Demo.get(
          {
             demoId: $scope.demo_id }, 
@@ -90,10 +95,21 @@ IPOLDemoControllers.controller('DemoParamCtrl',
             demoId: $scope.demo_id , 
             key: demo_key },
             function(meta) {
+              console.info("getting meta");
               $scope.imwidth  = meta.max_width;
               $scope.imheight = meta.max_height;
               $scope.display_ratio=($scope.imwidth < $scope.maxdim)?1:$scope.maxdim/$scope.imwidth;
               // TODO: check also max height ...
+              if (($scope.got_param)&&($scope.params.x0!=undefined))
+              {
+                $scope.CropInfo.coord = {
+                  x:Math.round($scope.params.x0*$scope.display_ratio),
+                  y:Math.round($scope.params.y0*$scope.display_ratio),
+                  w:Math.round(($scope.params.x1-$scope.params.x0+1)*$scope.display_ratio),
+                  h:Math.round(($scope.params.y1-$scope.params.y0+1)*$scope.display_ratio)
+                };
+              }
+              $scope.got_meta = true;
             }
         );
 
@@ -101,7 +117,20 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         {
             demoId: $scope.demo_id , 
             key: demo_key },
-            function(params) { }
+            function(params) { 
+              console.info("getting param");
+              $scope.InputCropped=(params.x0!=undefined);
+              if ((params.x0!=undefined)&&($scope.got_meta))
+              {
+                $scope.CropInfo.coord = {
+                  x:Math.round($scope.params.x0*$scope.display_ratio),
+                  y:Math.round($scope.params.y0*$scope.display_ratio),
+                  w:Math.round(($scope.params.x1-$scope.params.x0+1)*$scope.display_ratio),
+                  h:Math.round(($scope.params.y1-$scope.params.y0+1)*$scope.display_ratio)
+                };
+              }
+              $scope.got_param=true;
+            }
         );
 
       $scope.page_params = $location.search();
@@ -117,9 +146,10 @@ IPOLDemoControllers.controller('DemoParamCtrl',
 
 /*---------------- DemoResultCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoResultCtrl', 
-                              ['$scope', '$sce', 'demo_id', 'demo_key', 'Demo', 'Params', 
-    function($scope, $sce, demo_id, demo_key, Demo, Params ) {
+                              ['$scope', '$sce', 'demo_id', 'demo_key', 'work_url', 'Demo', 'Params', 
+    function($scope, $sce, demo_id, demo_key, work_url, Demo, Params ) {
       $scope.demo_id = demo_id;
+      $scope.work_url = work_url;
       $scope.demo = Demo.get(
          {
             demoId: $scope.demo_id }, 

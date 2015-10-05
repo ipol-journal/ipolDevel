@@ -33,6 +33,29 @@ IPOLDemosApp.config(['$routeProvider',
       });
   }]);
 
+/* adding range function to simplify interations on numbers */
+IPOLDemosApp.run(['$rootScope', function($rootScope) {
+    $rootScope.range = function(min, max, step) {
+        // parameters validation for method overloading
+        if (max == undefined) {
+            max = min;
+            min = 0;
+        }
+        step = Math.abs(step) || 1;
+        if (min > max) {
+            step = -step;
+        }
+        // building the array
+        var output = [];
+        for (var value=min; value<max; value+=step) {
+            output.push(value);
+        }
+        // returning the generated array
+        return output;
+    };
+}]);
+
+
 /* should go to the directoves.js file ... */
 IPOLDemosApp.directive('floatsaving', function () {
     return {

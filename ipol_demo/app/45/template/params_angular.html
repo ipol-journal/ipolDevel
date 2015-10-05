@@ -307,72 +307,77 @@ Ponomarenko signal-dependent noise estimation algorithm. (angular)
 
       <div style="clear:both"> </div>
       <hr>
+
       <div style='vertical-align:middle;
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
         <div ng-init="selected_image_link='tmp/'+'${app.key}'+'/input_0.png'">
         <div ng-controller="ImgCropCtrl"> 
-<p>{{maxdim}}</p>
-        <table  style="float:left" >
-          <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px'>
-            <input  id="ID_InputCropped" type="checkbox" 
-                    ng-model="InputCropped"  
-                    ng-init="InputCropped=false" 
-                    ng-click="go()"
-                    alt="Crop"
-                    > Enable Crop <br>
-            <label> Selected Image is: </label> 
-            <div ng-hide="InputCropped" >
-              <img  id="original_image"
-                    crossOrigin="Anonymous"
-                    ng-src="{{selected_image_link}}"
-                    style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
-                    alt={{selected_image}}
-                    styleParent
-                    />
-            </div>
+          <input  id="ID_InputCropped" type="checkbox" 
+                  ng-model="InputCropped"  
+                  ng-click="go()"
+                  alt="Crop"
+                  > Enable Crop <br>
 
-            <div ng-show="InputCropped" > 
-              <label> max dim = {{imwidth}} x {{imheight}} display ratio = {{display_ratio}} </label>
-              <div style="max-width:{{maxdim}}px;max-height:{{maxdim}}px;"
-                   class="cropArea" >
-                <img-crop  
-                    style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;"
-                    crossOrigin="Anonymous"
-                    image="selected_image_link"
-                    result-image="myCroppedImage"
-                    change-on-fly="true"
-                    area-type="{{type}}"
-                    area-coords="myAreaCoords"
-                    />
-                </img-crop>
-              </div>
-              <label> selected area: 
-                {{Math.round(myAreaCoords.x/display_ratio)}}, {{Math.round(myAreaCoords.y/display_ratio)}}, 
-                {{Math.round((myAreaCoords.x+myAreaCoords.w)/display_ratio)}}, 
-                {{Math.round((myAreaCoords.y+myAreaCoords.h)/display_ratio)}}
-              </label>
-              <input type="hidden" name="x0" value="{{Math.round(myAreaCoords.x/display_ratio)}}">              
-              <input type="hidden" name="y0" value="{{Math.round(myAreaCoords.y/display_ratio)}}">
-              <input type="hidden" name="x"  value="{{Math.round((myAreaCoords.x+myAreaCoords.w)/display_ratio)}}">
-              <input type="hidden" name="y"  value="{{Math.round((myAreaCoords.y+myAreaCoords.h)/display_ratio)}}">
+          <div ng-if="!InputCropped" >
+            <img  id="original_image"
+                  crossOrigin="Anonymous"
+                  ng-src="{{selected_image_link}}"
+                  style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                  alt={{selected_image}}
+                  styleParent
+                  />
+            <input type="hidden" name="x0" value="0">              
+            <input type="hidden" name="y0" value="0">
+            <input type="hidden" name="x"  value="{{imwidth-1}}">
+            <input type="hidden" name="y"  value="{{imheight-1}}">
+          </div>
 
-            </div>
-            <p>{{selected_image.title}}</p>
 
-          </td>
-            <td style='vertical-align:middle'>
-            <label> Zoom factor </label>
-            <select ng-options="CropSize for CropSize in ['1', '1.5', '2', '4', '8','16']" 
-                    ng-model="CropSize" 
-                    ng-init="CropSize='2'">
-            </select>
-              <div ng-show="InputCropped" style="overflow:scroll;width:{{imwidth*display_ratio+20}}px;height:{{imheight*display_ratio+20}}px;" >
-                <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" width="{{myAreaCoords.w*CropSize}}" height="{{myAreaCoords.h*CropSize}}" />
-              </div>
-            </td>
-        </table>
+          <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
+          <div ng-if="InputCropped" > 
+            <table  style="float:left" >
+              <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px'>
+
+                  <label> max dim = {{imwidth}} x {{imheight}} display ratio = {{display_ratio}} </label>
+                  <div style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;margin:5px"
+                      class="cropArea" >
+                    <img-crop  
+                              crossOrigin="Anonymous"
+                              image="selected_image_link"
+                              result-image="myCroppedImage"
+                              change-on-fly="true"
+                              area-type="{{type}}"
+                              area-coords="CropInfo.coord"
+                              enable="InputCropped"
+                        />
+                  </div>
+                  <label>
+                    {{Math.round(CropInfo.coord.x/display_ratio)}}, {{Math.round(CropInfo.coord.y/display_ratio)}}, 
+                    {{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}, 
+                    {{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}
+                  </label>
+                  <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
+                  <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
+                  <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}">
+                  <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}">
+
+                </div>
+
+              </td>
+                <td style='vertical-align:middle'>
+                <label> Zoom factor </label>
+                <select ng-options="CropSize for CropSize in ['1', '1.5', '2', '4', '8','16']" 
+                        ng-model="CropSize" 
+                        ng-init="CropSize='2'">
+                </select>
+                  <div ng-show="InputCropped" style="overflow:scroll;width:{{imwidth*display_ratio+20}}px;height:{{imheight*display_ratio+20}}px;" >
+                    <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" width="{{CropInfo.coord.w*CropSize}}" height="{{CropInfo.coord.h*CropSize}}" />
+                  </div>
+                </td>
+            </table>
+          </div>
         <div style="clear:both"> </div>
         </div>
         </div>
