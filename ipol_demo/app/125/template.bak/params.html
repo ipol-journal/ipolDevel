@@ -1,0 +1,91 @@
+<%include file="header-jquery.html" />
+
+<script type="text/javascript">
+<%include file="js/createlinkedslider.js" />
+</script>
+
+<form action="${app.base_url + 'rectangle'}" method="get">
+  <div class="action">
+    <input type="hidden" name="key" value="${app.key}">
+
+<!-- nbscales parameter -->
+<b>- Number of scales.</b> Use <select name="nbscales">
+<%
+contents = ((1,'one scale'), (2,'two scales'), (3,'three scales'), (4,'four scales'), (5,'five scales'))
+
+try:
+   sel = int(nbscales)
+except Exception:
+   sel = 2
+%>
+%for i in range(len(contents)):
+<%
+  selectedStr = ('' if contents[i][0] != sel else ' selected="selected"')
+%>
+      <option value="${contents[i][0]}"${selectedStr}>${contents[i][1]}</option>
+%endfor
+    </select>.
+<br/>
+<small>The noise estimation and denoising algorithms are multi-scale and use two scales by default.</small>
+<br/><br/>
+
+
+<!-- stdfactor parameter -->
+- <b>Sigma coefficient.</b>
+
+<%
+try:
+   sel = float(stdfactor)
+except Exception:
+   sel = 1.00
+%>
+    <br/>
+<!-- code for slider -->
+<div style="float:left;padding-right:25px">
+    <input type="text" style="font-family:monospace;text-align:right"
+    size="4" id="stdfactor" name="stdfactor" value="${sel}" />
+</div>
+<div id="stdfactor_slider" name="stdfactor_slider" style="width:280px;float:left;margin-top:4px;font-size:10pt"></div>
+<script type="text/javascript">
+// Turn DIV slider into a slider linked to scale
+$(document).ready(function() {
+      createLinkedSlider('#stdfactor', '#stdfactor_slider', 0.50, 2.00, 0.10); 
+});
+</script>
+<div style="clear:both"> </div>
+<!-- end of code for slider -->
+<small>If you find that the noise is under (resp. over) evaluated, you can adjust it by putting this coefficient greater than 1.0 (resp. smaller than 1.0). This coefficient will be multiplied to the estimated STD of noise.</small>
+
+
+%if x0 and y0 and x1 and y1:
+    <input type="hidden" name="x0" value="${x0}">
+    <input type="hidden" name="y0" value="${y0}">
+    <input type="hidden" name="x" value="${x1}">
+    <input type="hidden" name="y" value="${y1}">
+    <p>
+      <input type="submit" name="action" value="run" />
+    <p/>
+    <img src="${app.work_url + 'input_0.sel.png'}" />
+%else:
+    <p>
+      Now you can run the algorithm on the whole image:
+      <input type="submit" name="action" value="run" />
+    </p>
+    <p>
+      Or you can run it after selecting a subimage, 
+      by clicking on two opposite corners of the sub-image.
+    </p>
+  %if x0 and y0:
+    <input type="hidden" name="x0" value="${x0}">
+    <input type="hidden" name="y0" value="${y0}">
+    <input type="image" style="cursor:crosshair;" name=""
+           src="${app.work_url + 'input.png?xy=%i,%i' % (x0, y0)}" />
+  %else:
+    <input type="image" style="cursor:crosshair;" name=""
+           src="${app.work_url + 'input_0.png'}" />
+  %endif
+%endif
+  </div>
+</form>
+
+<%include file="footer.html" />

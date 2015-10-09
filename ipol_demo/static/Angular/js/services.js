@@ -21,13 +21,20 @@ IPOLDemoServices.factory('DemoBlobs', ['$resource',
 IPOLDemoServices.factory('Params', ['$resource',
   function($resource){
     return $resource('tmp/:key/params.json', {}, {
-      query: {method:'JSONP', params:{demoId:'demos',key:'key'}, isArray:true}
+      query: {method:'JSONP', params:{key:'key'}, isArray:true}
     });
   }]);
 
 IPOLDemoServices.factory('Meta', ['$resource',
   function($resource){
     return $resource('tmp/:key/meta.json', {}, {
-      query: {method:'JSONP', params:{demoId:'demos',key:'key'}, isArray:true}
+      query: {method:'JSONP', params:{key:'key'}, isArray:true}
+    });
+  }]);
+
+IPOLDemoServices.factory('Info', ['$resource',
+  function($resource){
+    return $resource('tmp/:key/info.json', {}, {
+      query: {method:'JSONP', params:{key:'key'}, isArray:true}
     });
   }]);

@@ -1,0 +1,125 @@
+<%include file="header.html" />
+
+<p>
+  The algorithm result is displayed hereafter.
+  It ran in ${"%0.2f" % app.cfg['info']['run_time']}s.<br />
+  You can run again this algorithm with new data.
+</p>
+
+<div class="action">
+  Restart with new input data, different parameter or different subimage:
+  <form style="display:inline;"
+	action="${app.base_url}" method="get">
+    <input type="submit" value="new input" />
+  </form>
+  %if x0 and y0 and x1 and y1:
+    <form style="display:inline;"
+	  action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="x0" value="${x0}">
+      <input type="hidden" name="y0" value="${y0}">
+      <input type="hidden" name="x1" value="${x1}">
+      <input type="hidden" name="y1" value="${y1}">
+      <input type="hidden" name="stdfactor" value="${stdfactor}">
+      <input type="hidden" name="nbscales" value="${nbscales}">
+      <input type="submit" value="different parameter" />
+    </form>
+    <form style="display:inline;"
+	  action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="stdfactor" value="${stdfactor}">
+      <input type="hidden" name="nbscales" value="${nbscales}">
+      <input type="submit" value="different subimage" />
+    </form>
+  %else:
+    <form style="display:inline;"
+	  action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="stdfactor" value="${stdfactor}">
+      <input type="hidden" name="nbscales" value="${nbscales}">
+      <input type="submit" value="different parameter or subimage" />
+    </form>
+  %endif
+</div>
+
+<br/>
+The Noise Clinic was configured with the following parameters:
+<ul>
+  %if float(stdfactor) != 1.0:
+    <li><b>STD coefficient: </b>${stdfactor}.</li>
+  %endif
+  <li><b>Number of scales: </b>${nbscales}.</li>
+</ul>
+
+<hr />
+
+<h2>Noisy, denoised, and difference images</h2>
+
+<style type="text/css">
+	.smallPic{width: 400px; height: ${400*sizeY/sizeX}px; }
+</style>
+
+
+<div class="gallery" style="height:${sizeY}px;">
+	<ul class="index">
+		<li>
+			<a href="#">Original
+				<span>
+					<img src="${app.work_url + 'input_0.sel.png'}"/>
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="#">Denoised
+				<span>
+					<img src="${app.work_url + 'denoised.png'}" />
+				</span>
+			</a>
+		</li>
+		<li>
+			<a href="#">Difference
+				<span>
+					<img src="${app.work_url + 'diff.png'}" />
+				</span>
+			</a>
+		</li>
+	</ul>
+</div>
+
+<div style="clear:both;" ></div>
+<br>
+
+<h2>Difference image (left), mean noise curve for the low frequencies (middle), and for the high frequencies (right) at each scale</h2>
+
+<div class="gallery" style="height:${sizeY}px;">
+	<ul class="index">
+		%for scale in range(nbscales):
+			<%
+				url_denoised = app.work_url + "denoised_diff_" + str(scale) + ".png"
+				url_nc_L = app.work_url + "denoised_noiseCurves_L_" + str(scale) + ".png"
+				url_nc_H = app.work_url + "denoised_noiseCurves_H_" + str(scale) + ".png"
+			%>
+		<li>
+			<a href="#">Scale #${scale}
+				<span>
+					<table border="1"><tr><td><img class="smallPic" src="${url_denoised}"/></td><td><img class="smallPic" src="${url_nc_L}"/></td><td><img class="smallPic" src="${url_nc_H}"/></td></tr></table>
+				</span>
+			</a>
+		</li>
+		%endfor
+	</ul>
+</div>
+
+<div style="clear:both;" ></div>
+<br/><br/><br/>
+<div style="clear:both;" ></div>
+
+
+<%include file="archive_info.html" />
+
+<%include file="footer.html" />
+
+

@@ -16,11 +16,13 @@ import os
 import stat
 import time
 from math import sqrt
+import build_demo
 
 
 class app(base_app):
+  
     """ Ponomarenko et al. noise estimation app """
-
+    
     title = "Analysis and Extension of the Ponomarenko et al Method, " \
         + "Estimating a Noise Curve from a Single Image"
     input_nb = 1
@@ -53,102 +55,22 @@ class app(base_app):
         base_app.result.im_func.exposed = True
 
     def build(self):
-        """
-        program build/update
-        """
-        version = 4
-        zip_filename = 'ponomarenko_v%d.zip' % ((version))
-        src_dir_name = 'ponomarenko_v%d' % ((version))
-        prog_filename = 'ponomarenko'
-        # store common file path in variables
-        tgz_file = self.dl_dir + zip_filename
-        prog_file = self.bin_dir + prog_filename
-        log_file = self.base_dir + "build.log"
-        # get the latest source archive
-        build.download('http://www.ipol.im/pub/art/2013/45/' + \
-                       zip_filename, tgz_file)
+        bd = build_demo.BuildDemo(os.path.dirname(os.path.abspath(__file__)))
+        bd.make()
 
-        # test if the dest file is missing, or too old
-        if (os.path.isfile(prog_file)
-            and ctime(tgz_file) < ctime(prog_file)):
-            cherrypy.log("not rebuild needed",
-                         context='BUILD', traceback=False)
-        else:
-            # extract the archive
-            build.extract(tgz_file, self.src_dir)
+    ##
+    ## PARAMETER HANDLING
+    ##
 
-            # delete and create bin dir
-            if os.path.isdir(self.bin_dir):
-                shutil.rmtree(self.bin_dir)
-            os.mkdir(self.bin_dir)
-
-            # build the programs
-            programs = ('fnoise', 'subscale', 'ponomarenko')
-            for program in programs:
-                # build
-                build.run("make -j4 -C %s %s" %
-                       (
-                         os.path.join(self.src_dir, src_dir_name, program),
-                         os.path.join(".", program)
-                       ), stdout=log_file)
-                # move binary to bin dir
-                shutil.copy(os.path.join(self.src_dir, \
-                                         src_dir_name, \
-                                         program, program),
-                            os.path.join(self.bin_dir, program))
-
-            # Move scripts to the base dir
-            corr_dirs = ['../scripts']
-            for corr_dir in corr_dirs:
-                shutil.move(os.path.join(self.src_dir, src_dir_name,    \
-                                         prog_filename, corr_dir), \
-                            os.path.join(src_dir_name, self.base_dir))
-
-            # Give exec permission to the script
-            os.chmod(
-                     os.path.join(
-                                  src_dir_name, self.base_dir,
-                                  "scripts", "writeNoiseCurve.sh"
-                                 ),
-                     stat.S_IREAD | stat.S_IEXEC
-                    )
-
-            # cleanup the source dir
-            shutil.rmtree(self.src_dir)
-        return
-
-    #
-    # PARAMETER HANDLING
-    #
-
-    @cherrypy.expose
-    @init_app
-    def params(self, newrun=False, msg=None, \
-               x0=None, y0=None, x1=None, y1=None, \
-               percentile=None, block=None, \
-               curvefilter=None, removeequals=None, bins=None, \
-               anoise=None, bnoise=None, mean_type=None):
-        """
-        configure the algo execution
-        """
-
-        if newrun:
-            self.clone_input()
-
-        if x0:
-            self.select_subimage(int(x0), int(y0), int(x1), int(y1))
-
-        perc_val = float(percentile) if percentile is not None else 0.005
-        return self.tmpl_out("params_angular.html",
-                             msg=msg, x0=x0, y0=y0, x1=x1, y1=y1, \
-                             percentile='%.4f' % perc_val, \
-                             block=block, \
-                             curvefilter=curvefilter, \
-                             removeequals=removeequals, \
-                             bins=bins, \
-                             anoise=anoise, \
-                             bnoise=bnoise, \
-                             mean_type=mean_type)
+    #@cherrypy.expose
+    #@init_app
+    #def params(self, newrun=False, msg=None, **kwargs):
+        #"""
+        #configure the algo execution
+        #"""
+        #if newrun:
+            #self.clone_input()
+        #return self.tmpl_out("params_angular.html", msg=msg)
 
     @cherrypy.expose
     @init_app
@@ -491,58 +413,11 @@ if bins == 0 else bins / 2**scale)
         for i in range(num_scales):
             os.unlink(self.work_dir + 'scale_s%d.rgb' % ((i)))
 
-    @cherrypy.expose
-    @init_app
-    def result(self):
-        """
-        display the algo results
-        """
-
-        # read parameters
-        percentile = self.cfg['param']['percentile']
-        block = self.cfg['param']['block']
-        curvefilter = self.cfg['param']['curvefilter']
-        removeequals = self.cfg['param']['removeequals']
-        bins = self.cfg['param']['bins']
-        scales = self.cfg['param']['scales']
-        anoise = self.cfg['param']['anoise']
-        bnoise = self.cfg['param']['bnoise']
-        mean_type = self.cfg['param']['mean_type']
-        RMSEs = self.cfg['param']['rmses']
-
-        try:
-            x0 = self.cfg['param']['x0']
-        except KeyError:
-            x0 = None
-        try:
-            y0 = self.cfg['param']['y0']
-        except KeyError:
-            y0 = None
-        try:
-            x1 = self.cfg['param']['x1']
-        except KeyError:
-            x1 = None
-        try:
-            y1 = self.cfg['param']['y1']
-        except KeyError:
-            y1 = None
-
-        (sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size
-        zoom_factor = None
-
-        perc_val = float(percentile) if percentile is not None else 0.005
-        return self.tmpl_out("result.html",
-                             percentile='%.4f' % perc_val, \
-                             block=block, \
-                             curvefilter=curvefilter, \
-                             removeequals=removeequals, \
-                             bins=bins, \
-                             scales=scales, \
-                             anoise=anoise, \
-                             bnoise=bnoise, \
-                             mean_type=mean_type, \
-                             RMSEs=RMSEs, \
-                             x0=x0, y0=y0, x1=x1, y1=y1, \
-                             sizeX=sizeX, sizeY=sizeY, \
-                             zoom_factor=zoom_factor)
+    #@cherrypy.expose
+    #@init_app
+    #def result(self):
+        #"""
+        #display the algo results
+        #"""
+        #return self.tmpl_out("result.html")
 

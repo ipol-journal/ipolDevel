@@ -24,6 +24,7 @@ from .empty_app import empty_app
 from .image import thumbnail, image
 from .misc import prod
 from shutil import rmtree
+import json
 
 class AppPool(object):
     """
@@ -194,6 +195,9 @@ class base_app(empty_app):
         """
         # setup the parent class
         empty_app.__init__(self, base_dir)
+        
+        self.read_demo_description()
+        
         cherrypy.log("base_dir: %s" % self.base_dir,
                      context='SETUP/%s' % self.id, traceback=False)
         # local base_app templates folder
@@ -204,6 +208,22 @@ class base_app(empty_app):
             directories=[self.base_dir + 'template', tmpl_dir],
             input_encoding='utf-8',
             output_encoding='utf-8', encoding_errors='replace')
+        
+
+    def read_demo_description(self):
+        """
+        Read the demo description file (JSON format) as a python dictionnary
+        """
+        # json file
+        description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                           "../static/JSON/{0}.json".format(self.id))
+        try:
+          demo_file = open(description_filename)
+          self.demo_description = json.load(demo_file)
+          demo_file.close()
+        except:
+          cherrypy.log("failed to read JSON demo description")
+
 
     #
     # TEMPLATES HANDLER
@@ -601,16 +621,15 @@ class base_app(empty_app):
     # PARAMETER HANDLING
     #
 
+    @cherrypy.expose
     @init_app
-    def params(self, newrun=False, msg=None):
+    def params(self, newrun=False, msg=None, **kwargs):
         """
         configure the algo execution
         """
         if newrun:
             self.clone_input()
-        return self.tmpl_out("params_angular.html", msg=msg,
-                             input=['input_%i.png' % i
-                                      for i in range(self.input_nb)])
+        return self.tmpl_out("params_angular.html", msg=msg)
 
     #
     # EXECUTION AND RESULTS
@@ -655,16 +674,13 @@ class base_app(empty_app):
         """
         pass
 
+    @cherrypy.expose
     @init_app
     def result(self):
         """
         display the algo results
-        SHOULD be defined in the derived classes, to check the parameters
         """
-        return self.tmpl_out("result.html",
-                             input=['input_%i.png' % i
-                                    for i in range(self.input_nb)],
-                             output=['output.png'])
+        return self.tmpl_out("result.html")
 
     def select_subimage(self, x0, y0, x1, y1):
         """
@@ -706,80 +722,39 @@ class base_app(empty_app):
         """
         params handling
         """
-        if action == 'run':
-          
-            for key in kwargs:
-                self.cfg['param'][key] = kwargs[key]
- 
-            if x != None:
-              #save parameters
-              try:
-                # already done ...
-                #for key in kwargs:
-                    #self.cfg['param'][key] = kwargs[key]
-                self.cfg['param']['x0'] = x0
-                self.cfg['param']['y0'] = y0
-                self.cfg['param']['x1'] = x
-                self.cfg['param']['y1'] = y
-                self.cfg.save()
-                # Create subimage
-                self.select_subimage(int(x0), int(y0), int(x), int(y))
-              except ValueError:
-                return self.error(errcode='badparams',
-                                  errmsg="Incorrect parameters.")
-            else:
-              self.cfg.save()
 
-            # use the whole image if no subimage is available
-            try:
-                img = image(self.work_dir + 'input_0.sel.png')
-            except IOError:
-                img = image(self.work_dir + 'input_0.png')
-                img.save(self.work_dir + 'input_0.sel.png')
+        for key in kwargs:
+            self.cfg['param'][key] = kwargs[key]
 
-            # go to the wait page, with the key
-            http.redir_303(self.base_url + "wait?key=%s" % ((self.key)))
-            return
+        if x != None:
+          #save parameters
+          try:
+            # already done ...
+            #for key in kwargs:
+                #self.cfg['param'][key] = kwargs[key]
+            self.cfg['param']['x0'] = x0
+            self.cfg['param']['y0'] = y0
+            self.cfg['param']['x1'] = x
+            self.cfg['param']['y1'] = y
+            self.cfg.save()
+            # Create subimage
+            self.select_subimage(int(x0), int(y0), int(x), int(y))
+          except ValueError:
+            return self.error(errcode='badparams',
+                              errmsg="Incorrect parameters.")
         else:
-            # use a part of the image
-            if x0 == None:
-                # first corner selection
-                x = int(x)
-                y = int(y)
-                # draw a cross at the first corner
-                img = image(self.work_dir + 'input_0.png')
-                img.draw_cross((x, y), size=4, color="white")
-                img.draw_cross((x, y), size=2, color="red")
-                img.save(self.work_dir + 'input.png')
-                return self.tmpl_out("params.html", x0=x, y0=y, **kwargs)
-            else:
-                # second corner selection
-                x0 = int(x0)
-                y0 = int(y0)
-                x1 = int(x)
-                y1 = int(y)
-                # reorder the corners
-                (x0, x1) = (min(x0, x1), max(x0, x1))
-                (y0, y1) = (min(y0, y1), max(y0, y1))
-                assert (x1 - x0) > 0
-                assert (y1 - y0) > 0
-                #save parameters
-                try:
-                    for key in kwargs:
-                        self.cfg['param'][key] = kwargs[key]
-                    self.cfg['param']['x0'] = x0
-                    self.cfg['param']['y0'] = y0
-                    self.cfg['param']['x1'] = x
-                    self.cfg['param']['y1'] = y
-                    self.cfg.save()
-                except ValueError:
-                    return self.error(errcode='badparams',
-                                      errmsg="Incorrect parameters.")
-                #select subimage
-                self.select_subimage(x0, y0, x1, y1)
-                # go to the wait page, with the key
-                http.redir_303(self.base_url + "wait?key=%s" % ((self.key)))
-            return
+          self.cfg.save()
+
+        # use the whole image if no subimage is available
+        try:
+            img = image(self.work_dir + 'input_0.sel.png')
+        except IOError:
+            img = image(self.work_dir + 'input_0.png')
+            img.save(self.work_dir + 'input_0.sel.png')
+
+        # go to the wait page, with the key
+        http.redir_303(self.base_url + "wait?key=%s" % ((self.key)))
+        return
 
     @cherrypy.expose
     @init_app
