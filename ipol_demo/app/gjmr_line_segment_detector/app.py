@@ -54,11 +54,6 @@ class app(base_app):
         app_expose(base_app.params)
         # run() and result() must be defined here
 
-    def build(self):
-        bd = build_demo.BuildDemo(os.path.dirname(os.path.abspath(__file__)))
-        bd.make()
-
-
     #---------------------------------------------------------------------------
     # Run the algorithm.
     #---------------------------------------------------------------------------

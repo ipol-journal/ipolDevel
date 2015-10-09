@@ -27,6 +27,11 @@ class BuildDemoBase:
     self.log_file    = os.path.join(self.base_dir, "build.log"   )
       
   #-----------------------------------------------------------------------------
+  # set the build parameters as a dictionnary (usually read from JSON file)
+  def set_params(self,params):
+    self.params=params
+      
+  #-----------------------------------------------------------------------------
   def make(self):
     # can be overridden, need self.params to be defined
     """

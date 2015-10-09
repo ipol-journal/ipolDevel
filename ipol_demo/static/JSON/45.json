@@ -124,12 +124,15 @@
       "contents"      : "'estimation_s'+idx+'.txt'"
     }
   ],
-  "code": [
+  "build":
     {
-      "url": "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip",
-      "compilation_line": "cd ponomarenko_v4/fnoise; make; cd ../subscale; make; cd ../ponomarenko; make; cd ..; cp ./fnoise/fnoise ../../bin; cp ./subscale/subscale ../../bin; cp ./ponomarenko/ponomarenko ../../bin; cp ./scripts/writeNoiseCurve.sh ../../bin"
+      "url"       : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
+      "srcdir"    : "ponomarenko_v4",
+      "binaries"  : [ ["ponomarenko","ponomarenko"] , ["fnoise","fnoise"], ["subscale","subscale"] ],
+      "flags"     : "-j4",
+      "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
     }
-  ],
+  ,
   "run": [
      "fnoise -A$anoise -B$bnoise input_0.sel.png scale_s0.rgb",
      "fnoise -A$anoise -B$bnoise -t input_0.sel.png scale_s0.png",

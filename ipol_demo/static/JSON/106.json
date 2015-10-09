@@ -89,12 +89,14 @@
       "contents"      : "primitives.txt"
     }
   ],
-  "code": [
+  "build":
     {
-      "url": "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip",
-      "compilation_line": "cd ponomarenko_v4/fnoise; make; cd ../subscale; make; cd ../ponomarenko; make; cd ..; cp ./fnoise/fnoise ../../bin; cp ./subscale/subscale ../../bin; cp ./ponomarenko/ponomarenko ../../bin; cp ./scripts/writeNoiseCurve.sh ../../bin"
+      "url"       : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
+      "srcdir"    : ".",
+      "binaries"  : [ [".","lens_distortion_correction_division_model_1p"] ],
+      "flags"     : "OMP=1 -j4"
     }
-  ],
+  ,
   "run": [
      "fnoise -A$anoise -B$bnoise input_0.sel.png scale_s0.rgb",
      "fnoise -A$anoise -B$bnoise -t input_0.sel.png scale_s0.png",

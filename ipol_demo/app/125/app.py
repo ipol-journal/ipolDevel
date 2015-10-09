@@ -16,7 +16,6 @@ from cherrypy import TimeoutError
 import os.path
 import stat
 import time
-import build_demo
 
 class app(base_app):
     """ Noise Clinic app """
@@ -47,10 +46,6 @@ class app(base_app):
         base_app.params.im_func.exposed = True
         # result() is modified from the template
         base_app.result.im_func.exposed = True
-
-    def build(self):
-        bd = build_demo.BuildDemo(os.path.dirname(os.path.abspath(__file__)))
-        bd.make()
 
     #
     # PARAMETER HANDLING

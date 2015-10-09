@@ -16,8 +16,6 @@ import os
 import stat
 import time
 from math import sqrt
-import build_demo
-
 
 class app(base_app):
   
@@ -53,10 +51,6 @@ class app(base_app):
         base_app.params.im_func.exposed = True
         # result() is modified from the template
         base_app.result.im_func.exposed = True
-
-    def build(self):
-        bd = build_demo.BuildDemo(os.path.dirname(os.path.abspath(__file__)))
-        bd.make()
 
     ##
     ## PARAMETER HANDLING

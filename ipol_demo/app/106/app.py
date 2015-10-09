@@ -12,7 +12,6 @@ from cherrypy import TimeoutError
 
 import os.path
 import time
-import build_demo
 
 #
 # INTERACTION
@@ -67,10 +66,6 @@ class app(base_app):
         #from local import run_algo as local_run
         ## redefine app.run()
         #app.run_algo = local_run
-
-    def build(self):
-        bd = build_demo.BuildDemo(os.path.dirname(os.path.abspath(__file__)))
-        bd.make()
 
     @cherrypy.expose
     @init_app

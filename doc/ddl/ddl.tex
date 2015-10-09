@@ -11,6 +11,10 @@ of demos to be described without the need to manually write HTML or Python code
 for a given demo. Each main key in the description file is described in the 
 following sections.
 
+
+{\bd Note:} in JSON format, always use double quotes around keys or string 
+values, not single quotes.
+
 \subsection{The \emph{general} section}
 The general section describes global information about the demo. It is a set of 
 (key,value) pairs, described as follows.
@@ -41,8 +45,17 @@ where each set contains (key,value) pairs.
 \subsubsection{ \emph{html\_text} type}
 \subsubsection{ \emph{file\_download} type}
 
-\subsection{The \emph{code} section}
-\subsubsection{keywords}
+\subsection{The \emph{build} section}
+\subsubsection{url}
+The full url link to download the demo source code.
+\subsubsection{srcdir}
+Subdirectory from the extracted archive where the source code is located.
+\subsubsection{binaries}
+List of binaries and their associated paths relative to the source code path.
+\subsubsection{flags}
+Cmake compilation flags.
+\subsubsection{scripts}
+List of scripts and their associated paths relative to the source code path.
 
 \subsection{The \emph{run} section}
 \subsubsection{keywords}
