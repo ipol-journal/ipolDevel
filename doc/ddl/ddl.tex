@@ -1,7 +1,53 @@
-\section{The Demo Description Language and automatic demo generation}
+\section{The Demo Description Language}
+
+current version is 1.0
 
 \subsection{Introduction}
-\ToDo{Introduction}
+The Demo Description Language (DDL) is a textual description of a IPOL demo that 
+allows to compile, generate a web interface, and run a demo. The description is 
+written in JSON (JavaScript Object Notation) format, which is a standard format 
+used in web applications. This language is evolving to allow a maximum number 
+of demos to be described without the need to manually write HTML or Python code 
+for a given demo. Each main key in the description file is described in the 
+following sections.
 
-\subsection{Other sections}
-\ToDo{Other sections}
+\subsection{The \emph{general} section}
+The general section describes global information about the demo. It is a set of 
+(key,value) pairs, described as follows.
+\subsubsection{demo\_title}
+The demo title.
+\subsubsection{demo\_input\_description}
+Description at the top of the input selection page.
+\subsubsection{param\_title}
+Description at the top of the parameters page.
+
+\subsection{The \emph{params} section}
+The params section describes the set of parameters needed by a demo, their 
+constraints and their visual appearance. It is defined as an array of sets, 
+where each set contains (key,value) pairs.
+
+\subsubsection{ \emph{selection\_collapsed} type}
+\subsubsection{ \emph{range} type}
+\subsubsection{ \emph{label} type}
+
+\subsection{The \emph{results} section}
+
+\subsubsection{ \emph{run\_again} type}
+\subsubsection{ \emph{warning} type}
+\subsubsection{ \emph{image} type}
+\subsubsection{ \emph{repeat\_image} type}
+\subsubsection{ \emph{gallery} type}
+\subsubsection{ \emph{repeat\_gallery} type}
+\subsubsection{ \emph{html\_text} type}
+\subsubsection{ \emph{file\_download} type}
+
+\subsection{The \emph{code} section}
+\subsubsection{keywords}
+
+\subsection{The \emph{run} section}
+\subsubsection{keywords}
+
+\subsection{Examples}
+
+
+\subsubsection{keywords}
