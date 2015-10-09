@@ -84,14 +84,13 @@
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
         <div ng-init="selected_image_link='tmp/'+'${app.key}'+'/input_0.png'">
+        <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
-          <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
             <input  id="ID_InputCropped" type="checkbox" 
                     ng-model="InputCropped"  
                     ng-click="go()"
                     alt="Crop"
                     > Enable Crop <br>
-          </span>
 
           <div ng-if="!InputCropped" >
             <img  id="original_image"
@@ -151,9 +150,25 @@
                 </td>
             </table>
           </div>
-        <div style="clear:both"> </div>
-        </div>
-        </div>
+          <div style="clear:both"> </div>
+        </div>  <!-- ImCropCtrl -->
+        </span> <!-- if crop enabled -->
+
+        <span ng-if="(demo.general.enable_crop!==undefined)&&(demo.general.enable_crop===false)">
+          <img  id="original_image"
+                crossOrigin="Anonymous"
+                ng-src="{{selected_image_link}}"
+                style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                alt={{selected_image}}
+                styleParent
+                />
+          <input type="hidden" name="x0" value="0">              
+          <input type="hidden" name="y0" value="0">
+          <input type="hidden" name="x"  value="{{imwidth-1}}">
+          <input type="hidden" name="y"  value="{{imheight-1}}">
+        </span>
+
+        </div> <!-- ng-init -->
       </div>
     </div> <!-- action -->
     <p>
