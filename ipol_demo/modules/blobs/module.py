@@ -861,7 +861,10 @@ class   Blob(object):
                 for the_item in list_file:
                     if the_item and the_item in files:
                         title = buff.get(item, 'title')
-                        credit = buff.get(item, 'credit')
+                        try:
+                          credit = buff.get(item, 'credit')
+                        except:
+                          credit = ""
                         src.extract(the_item, path=tmp_directory)
                         tmp_path = os.path.join(tmp_directory, the_item)
                         _, ext = os.path.splitext(tmp_path)

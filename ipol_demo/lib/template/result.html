@@ -1,9 +1,242 @@
 <%include file="header.html" />
 
-<h2>result</h2>
+<p>
+  The algorithm result is displayed hereafter.
+  It ran in ${"%0.2f" % app.cfg['info']['run_time']}s.<br />
+  You can run again this algorithm with new data.
+</p>
 
-This page should be overwritten by the demo templates.
+
+<!-- ===== Warnings ===== -->
+%if sizeX * sizeY < 42000:
+<p style='border: 1px solid; margin: 10px 0px; padding:15px 10px 15px 50px; color: #9F6000;'>
+<b><u>WARNING</u></b><br/><br/>
+Image too small: the input image needs to be at least 42000 pixels to get a 
+reliable estimate<br/>
+Forced to use one bin for the estimation.
+</p>
+%endif
+
+%if sizeX * sizeY < 20000:
+<p style='border: 1px solid; margin: 10px 0px; padding:15px 10px 15px 50px; color: #9F6000;'>
+<b><u>WARNING</u></b><br/><br/>
+Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with ${sizeX * sizeY} pixels<br/>
+</p>
+%endif
+<br/>
+
+<!-- ===== Rerun ===== -->
+<div class="action">
+  Restart with new input data, different parameter or different subimage:
+  <form style="display:inline;"
+	action="${app.base_url}" method="get">
+    <input type="submit" value="new input" />
+  </form>
+  %if x0 and y0 and x1 and y1:
+    <form style="display:inline;"
+	  action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="x0" value="${x0}">
+      <input type="hidden" name="y0" value="${y0}">
+      <input type="hidden" name="x1" value="${x1}">
+      <input type="hidden" name="y1" value="${y1}">
+      <input type="hidden" name="percentile" value="${percentile}">
+      <input type="hidden" name="block" value="${block}">
+      <input type="hidden" name="curvefilter" value="${curvefilter}">
+      <input type="hidden" name="removeequals" value="${removeequals}">
+      <input type="hidden" name="bins" value="${bins}">
+      <input type="hidden" name="anoise" value="${anoise}">
+      <input type="hidden" name="bnoise" value="${bnoise}">
+      <input type="submit" value="different parameter" />
+    </form>
+    <form style="display:inline;"
+	  action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="percentile" value="${percentile}">
+      <input type="hidden" name="block" value="${block}">
+      <input type="hidden" name="mean_type" value="${mean_type}">
+      <input type="hidden" name="curvefilter" value="${curvefilter}">
+      <input type="hidden" name="removeequals" value="${removeequals}">
+      <input type="hidden" name="bins" value="${bins}">
+      <input type="hidden" name="anoise" value="${anoise}">
+      <input type="hidden" name="bnoise" value="${bnoise}">
+      <input type="submit" value="different subimage" />
+    </form>
+  %else:
+    <form style="display:inline;"
+          action="${app.base_url + 'params'}" method="get">
+      <input type="hidden" name="key" value="${app.key}">
+      <input type="hidden" name="newrun" value="1">
+      <input type="hidden" name="percentile" value="${percentile}">
+      <input type="hidden" name="block" value="${block}">
+      <input type="hidden" name="mean_type" value="${mean_type}">
+      <input type="hidden" name="curvefilter" value="${curvefilter}">
+      <input type="hidden" name="removeequals" value="${removeequals}">
+      <input type="hidden" name="bins" value="${bins}">
+      <input type="hidden" name="anoise" value="${anoise}">
+      <input type="hidden" name="bnoise" value="${bnoise}">
+      <input type="submit" value="different parameter or subimage" />
+    </form>
+  %endif
+</div>
+
+<!-- ===== Display parameters ===== -->
+<h2>Parameters</h2>
+<ul>
+  <li><b>Percentile: </b>${percentile if float(percentile) >= 0 else "original article's iteration"}.</li>
+  <li><b>Block: </b>${block}x${block}.</li>
+  <li><b>Number of filtering iterations: </b>${curvefilter}.</li>
+  <li><b>Remove groups of equal pixels: </b>${"yes" if removeequals == 1 else "no"}.</li>
+  <li><b>Number of bins: </b>${bins if bins > 0 else "auto"}.</li>
+  <li><b>Computation of the intensity of the bin: </b>${"mean" if mean_type == 1 else "median"} of block averages.</li>
+%if float(anoise) > 0 or float(bnoise) > 0:
+  <li><b>Added noise of variance: </b>${anoise} + ${bnoise} <b>U</b></li>
+%endif
+</ul>
+<hr />
+
+<!-- ===== Results ===== -->
+<h2>Result</h2>
+<br/>
+<b>Input image:</b><br/><br/>
+<img src="${app.work_url + 'scale_s0.png'}" width="600" alt="input" />
+<br/>
+Additional noise of variance = ${anoise} + ${bnoise}u.<br/>
+Note that here the image may be showed with a size different from the original to help looking at the results.<br/>
+<br/><br/>
+
+<%
+RMSE_values = []
+%>
+
+%for scale in range(scales):
+<b>* Noise curve for scale S${scale}:</b><br/>
+<img src="${app.work_url + 'curve_s%d.png' % scale}" alt="output" />
+<br/>
+
+<%
+str_RMSEs = RMSEs.split(',')
+for string in str_RMSEs:
+    if string != '':
+      RMSE_values.append(float(string))
+%>
+
+<% RMSE_idx = scale %>
+%if RMSE_idx < len(RMSE_values):
+RMSE for scale S${scale} is ${RMSE_values[RMSE_idx]}<br/><br/>
+%endif
+%endfor
+
+%if len(RMSE_values) > 0:
+<h2>RMSE at each scale</h2>
+
+<table border="1">
+<tr>
+  <td>Scale</td>
+  <td>RMSE</td>
+</tr>
+%for scale in range(scales):
+<% RMSE_idx = scale %>
+<tr>
+  <td>S${scale}</td>
+  <td>${RMSE_values[RMSE_idx]}</td>
+</tr>
+%endfor
+</table> 
+%endif
+
+You can download the estimations given by the algorithm at each scale. The format of these text files is compatible with <a href="http://www.gnuplot.info/">gnuplot</a>:<br>
+%for scale in range(scales):
+<%
+  filename = app.work_url + 'estimation_s%d.txt' % scale
+%>
+<a href="${filename}">Scale #${scale}</a> 
+%endfor
+
+<br/>
+
+<hr />
+
+<!-- ======================================= -->
+<h2> Angular Version of Results </h2>
+<!-- ======================================= -->
+
+<script>  IPOLDemosApp.value("demo_id","45");  </script>
+<script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
+<script>  IPOLDemosApp.value("work_url","${app.work_url}");  </script>
+
+<div ng-controller="DemoResultCtrl" >
+  <p> {{params}} </p>
+  <!-- ===== Rerun ===== -->
+  <div class="action">
+    Restart with new input data, different parameter or different subimage:
+    <form style="display:inline;" action="${app.base_url}" method="get">
+      <input type="submit" value="new input" />
+    </form>
+      <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
+        <input type="hidden" name="key" value="${app.key}">
+        <input type="hidden" name="newrun" value="1">
+        %if x0 and y0 and x1 and y1:
+          <input type="hidden" name="x0" value="${x0}">
+          <input type="hidden" name="y0" value="${y0}">
+          <input type="hidden" name="x1" value="${x1}">
+          <input type="hidden" name="y1" value="${y1}">
+        %endif
+        <span ng-repeat="param in demo.params">
+          <input  ng-if="param.type!='label'" type="hidden" 
+                  name="{{param.id}}" value="{{params[param.id]}}" > 
+        </span>
+        <input type="submit" value="different parameters or subimage" />
+      </form>
+  </div>
+
+
+  <!-- ===== Display parameters ===== -->
+  <h2>Parameters</h2>
+  <ul ng-repeat="param in demo.params">
+    <li>
+      <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
+      <span ng-if="param.type==='range'"> 
+        {{params[param.id]}} 
+      </span>
+      <span ng-if="param.type==='selection_collapsed'"> 
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+      </span>
+    </li>
+  </ul>
+  <hr />
+
+  <!-- ===== Results ===== -->
+  <h2>Result</h2>
+  <br/>
+  <span ng-repeat="result in demo.results">
+    <span ng-if="result.type==='gallery'"> 
+      <span ng-if="result.repeat!=undefined">
+        <span ng-repeat="idx in range($eval(result.repeat))">
+          <b>{{$eval(result.label)}}</b><br/><br/>
+          <br/><br/>
+            <img ng-src="{{work_url + $eval(result.contents)}}" style="{{result.style}}" alt="input" />
+          <br/>
+        </span>
+      </span>
+      <span ng-if="result.repeat==undefined">
+        <b>{{result.label}}</b><br/><br/>
+          <img ng-src="{{work_url + result.contents}}" style="{{result.style}}" alt="input" />
+        <br/>
+      </span>
+    </span>
+    <span ng-if="result.type==='html_text'"> 
+      <div bind-html-compile="result.contents"></div> 
+      <br/><br/>
+    </span>
+  </span>
+
+</div>
+
 
 <%include file="archive_info.html" />
 
 <%include file="footer.html" />
+
