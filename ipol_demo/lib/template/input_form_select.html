@@ -1,53 +1,9 @@
-%if inputd:
-<form action="${app.base_url + 'input_select'}" method="get">
-  <div class="action">
-    <h3>Select Data</h3> 
-    <p>
-      Click on an image to use it as the algorithm input.
-    </p>
-    <div style="max-height:30em; overflow:auto;">
-      %for id in sorted(inputd.keys()):
-        <div class="select_input">
-        %for url in inputd[id]['tn_url']:
-          <input type="image" name="${id | h}"
-                src="${url}" alt="${inputd[id]['title'] | h}"/>
-        %endfor
-        <span class="label">${inputd[id]['title'] | h}</span>
-        </div>
-      %endfor
-    </div>
 
-    %if any([inputd[id].has_key('credit') for id in inputd]):
-    <p style="font-size: 80%">
-      <a class="toggle"
-        href="#credits"
-        onclick="toggle('credits');">
-        image credits
-      </a>
-    </p>
-    <div id="credits"
-        style="display:none; font-size: 80%"> 
-      %for id in sorted(inputd.keys()):
-      %if inputd[id].has_key('credit'):
-      %for url in inputd[id]['url']:
-      <a href="${url}">
-        <img height="24"
-      src="${url}" />
-      </a>
-      %endfor
-      ${inputd[id]['credit'] | h}
-      <br/>
-      %endif
-      %endfor
-    </div>
-    %endif
-  </div>
-  <P>
-</form>
+%if inputd:
 
 <!-- <form action="${app.base_url + 'input_select_angular'}" method="get"> -->
 <div ng-controller="ImagePickerCtrl">
-    <h3>Select Data  (Angular version)</h3> 
+    <h3>Select Data</h3> 
     <p>
       Click on an image to use it as the algorithm input.
     </p>
@@ -66,13 +22,14 @@
     <div ng-repeat="blob in demoblobs.blobs">
       <div  class="select_input"
             style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left;  height:{{ThumbnailSize}}px; width: {{ThumbnailSize}}px; text-align:center; vertical-align:middle;'>
-        <a  ng-href="http://localhost:8092/45/input_select_angular?{{blob.hash + blob.extension}}">
+        <a  ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob.hash + blob.extension}}">
         <img
               style="max-width:{{ThumbnailSize}}px;max-height:{{ThumbnailSize}}px;width:auto;height:auto;vertical-align:middle;"
               ng-src="http://localhost:7777/thumbnail/thumbnail_{{blob.hash}}{{blob.extension}}"
               ng-click="selectImage(blob)" 
               ng-class="{'selected-image': (selected_image === blob)}"
               alt={{blob.title}}
+              title="{{blob.title+' (credits:'+blob.credit+')'}}"
               />
         </a>
         <span>{{blob.title}}</span>

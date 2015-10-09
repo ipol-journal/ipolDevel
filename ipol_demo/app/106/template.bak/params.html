@@ -1,0 +1,156 @@
+
+<%include file="header-jquery.html" />
+
+  <script type="text/javascript">
+     <%include file="js/createlinkedslider.js" />
+  </script>
+ 
+
+<form action="${app.base_url + 'wait'}" method="get">
+  <div class="action">
+
+    <input type="hidden" name="key" value="${app.key}">
+
+
+<fieldset>
+<div style="position:relative; width:6em; top:-1em; background: url('http://www.ipol.im/static/bg-main.png') left top repeat;
+padding:.2em .5em; background-color:#fafafa; margin:0px">Parameters</div>
+
+
+<table width=100%  border="0" cellpadding="5">
+
+<tr>
+  <td width="30%"> Canny high threshold: &nbsp;&nbsp; </td>
+  <td>
+      <input style="font-family: monospace; text-align: right;" size="7" id="high_threshold_canny" name="high_threshold_canny" value="${app.cfg['param']['high_threshold_canny']}" type="text">
+
+      <div class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="high_threshold_canny_slider" style="width:24em; float:left; margin-left:1em; margin-top:4px; font-size:10pt;">
+
+      <a style="left: 42.8571%;" class="ui-slider-handle ui-state-default ui-corner-all" href="#"></a></div>
+  </td>
+</tr>
+
+<script type="text/javascript">
+$(document).ready(function() 
+{
+    createLinkedSlider('#high_threshold_canny', '#high_threshold_canny_slider', 0.7, 1.0, 0.05 );
+});
+</script>
+
+  
+
+    
+<tr>
+  <td width="30%"> Minimum distortion parameter value: &nbsp;&nbsp; </td>
+  <td>
+      <input style="font-family: monospace; text-align: right;" size="7" id="initial_distortion_parameter" name="initial_distortion_parameter" value="${app.cfg['param']['initial_distortion_parameter']}" type="text">
+
+      <div class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="initial_distortion_parameter_slider" style="width:24em; float:left; margin-left:1em; margin-top:4px; font-size:10pt;">
+
+      <a style="left: 42.8571%;" class="ui-slider-handle ui-state-default ui-corner-all" href="#"></a></div>
+  </td>
+</tr>
+
+<script type="text/javascript">
+$(document).ready(function() 
+{
+    createLinkedSlider('#initial_distortion_parameter', '#initial_distortion_parameter_slider', -0.5, 4.0, 0.1 );
+});
+</script>
+
+
+
+
+<tr>
+  <td width="30%"> Maximum distortion parameter value: &nbsp;&nbsp; </td>
+  <td>
+      <input style="font-family: monospace; text-align: right;" size="7" id="final_distortion_parameter" name="final_distortion_parameter" value="${app.cfg['param']['final_distortion_parameter']}" type="text">
+
+      <div class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="final_distortion_parameter_slider" style="width:24em; float:left; margin-left:1em; margin-top:4px; font-size:10pt;">
+
+      <a style="left: 42.8571%;" class="ui-slider-handle ui-state-default ui-corner-all" href="#"></a></div>
+  </td>
+</tr>
+
+<script type="text/javascript">
+$(document).ready(function() 
+{
+    createLinkedSlider('#final_distortion_parameter', '#final_distortion_parameter_slider', 0.0, 4.0, 0.1 );
+});
+</script>
+
+
+
+   
+<tr>
+  <td width="30%"> Max distance lines and associated points: &nbsp;&nbsp; </td>
+  <td>
+      <input style="font-family: monospace; text-align: right;" size="7" id="distance_point_line_max_hough" name="distance_point_line_max_hough" value="${app.cfg['param']['distance_point_line_max_hough']}" type="text">
+
+      <div class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="distance_point_line_max_hough_slider" style="width:24em; float:left; margin-left:1em; margin-top:4px; font-size:10pt;">
+
+      <a style="left: 42.8571%;" class="ui-slider-handle ui-state-default ui-corner-all" href="#"></a></div>
+  </td>
+</tr>
+
+<script type="text/javascript">
+$(document).ready(function() 
+{
+    createLinkedSlider('#distance_point_line_max_hough', '#distance_point_line_max_hough_slider', 0.0, 4.0, 0.1 );
+});
+</script>
+
+
+
+   
+<tr>
+  <td width="30%"> Max distance edge point and line orientations: &nbsp;&nbsp; </td>
+  <td>
+      <input style="font-family: monospace; text-align: right;" size="7" id="angle_point_orientation_max_difference" name="angle_point_orientation_max_difference" value="${app.cfg['param']['angle_point_orientation_max_difference']}" type="text">
+
+      <div class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" id="angle_point_orientation_max_difference_slider" style="width:24em; float:left; margin-left:1em; margin-top:4px; font-size:10pt;">
+
+      <a style="left: 42.8571%;" class="ui-slider-handle ui-state-default ui-corner-all" href="#"></a></div>
+  </td>
+</tr>
+
+<script type="text/javascript">
+$(document).ready(function() 
+{
+    createLinkedSlider('#angle_point_orientation_max_difference', '#angle_point_orientation_max_difference_slider', 0.0, 45.0, 1.0 );
+});
+</script>
+
+
+
+</table>
+
+
+</fieldset>
+
+
+<div style="clear:both; font-size:8pt">&nbsp;</div>
+
+
+
+
+
+<p style="margin-bottom:5px">You can now run the algorithm in the whole image:</p>
+<div style="float:left; text-align:center; padding-left:30px; padding-right:25px">
+    <input type="submit" name="action" value="Run" />
+</div>
+
+  </div>     <!-- <div class="action"> -->
+</form> 
+
+
+
+  
+
+<div style="clear:both; font-size:8pt">&nbsp;</div>
+
+
+<h2> Input image </h2>
+<img src="${app.work_url + 'input_0.png'}" alt="" />
+
+<%include file="footer.html" />

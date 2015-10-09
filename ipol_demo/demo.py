@@ -57,17 +57,20 @@ def do_build(demo_dict):
     """
     build/update the demo programs
     """
+    print "do_build"
     for (demo_id, demo_app) in demo_dict.items():
         # update the demo apps programs
         demo = demo_app()
+        print demo_id
         cherrypy.log("building", context='SETUP/%s' % demo_id,
                      traceback=False)
         try:
-            demo.build()
+          print "try build"
+          demo.build()
         except Exception:
-            cherrypy.log("build failed (see the build log)",
-                         context='SETUP/%s' % demo_id,
-                         traceback=False)
+          cherrypy.log("build failed (see the build log)",
+                        context='SETUP/%s' % demo_id,
+                        traceback=False)
     return
 
 def do_run(demo_dict):
@@ -121,6 +124,7 @@ if __name__ == '__main__':
 
     # load the demo collection
     from app import demo_dict
+
     # filter out test demos
     if cherrypy.config['server.environment'] == 'production':
         for (demo_id, demo_app) in demo_dict.items():

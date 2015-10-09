@@ -1,7 +1,8 @@
 { 
   "general": { 
      "demo_title":  "Analysis and Extension of the Ponomarenko et al Method, Estimating a Noise Curve from a Single Image",
-     "demo_input_description": "This algorithm estimates the amount of noise (standard deviation) of the given image.<br/><br/>The test images are divided into three groups:<br/><br/><ul><li>Raw images down-scaled to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as <b>raw</b>.</li><li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as <b>no noise</b>.</li><li>JPEG images, being denoised by JPEG at the first scales. In the list, they are refered to as <b>JPEG</b>.</li> </ul>"
+     "demo_input_description": "This algorithm estimates the amount of noise (standard deviation) of the given image.<br/><br/>The test images are divided into three groups:<br/><br/><ul><li>Raw images down-scaled to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as <b>raw</b>.</li><li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as <b>no noise</b>.</li><li>JPEG images, being denoised by JPEG at the first scales. In the list, they are refered to as <b>JPEG</b>.</li> </ul>",
+    "param_title": "Ponomarenko signal-dependent noise estimation algorithm."
   }, 
   "params": [
     {
@@ -90,7 +91,17 @@
       "contents"      : "Run"
     },
     {
-      "type"          : "gallery",
+      "type"          : "warning", 
+      "condition"     : "sizeX * sizeY < 42000",
+      "contents"      : "Image too small: the input image needs to be at least 42000 pixels to get a reliable estimate<br/> Forced to use one bin for the estimation."
+    },
+    {
+      "type"          : "warning", 
+      "condition"     : "sizeX * sizeY < 20000",
+      "contents"      : "Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with {{sizeX * sizeY}} pixels<br/>"
+    },
+    {
+      "type"          : "image",
       "label"         : "Input image:",
       "contents"      : "scale_s0.png",
       "style"         : "width:600px" 
@@ -100,16 +111,17 @@
       "contents"      : "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>\nNote that here the image may be showed with a size different from the original to help looking at the results.<br/>"
     },
     {
+      "type"          : "repeat_image",
       "repeat"        : "params.scales",
-      "type"          : "gallery",
       "label"         : "'* Noise curve for scale S'+idx+':'",
       "contents"      : "'curve_s'+idx+'.png'",
       "style"         : "" 
     },
     {
+      "repeat"        : "params.scales",
       "type"          : "file_download", 
-      "label"         : "You can download the estimations given by the algorithm at each scale. The format of these text files is compatible with <a href='http://www.gnuplot.info/'>gnuplot</a>: ",
-      "contents"      : "Scale 0:estimation_s0.txt"
+      "label"         : "Download the estimations obtained at scale {{idx}} (gnuplot compatible format)",
+      "contents"      : "'estimation_s'+idx+'.txt'"
     }
   ],
   "code": [
