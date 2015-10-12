@@ -131,26 +131,6 @@ class Terminal(object):
             print module + " shut down."
         except IOError:
             print "Shutdown : service unreachable."
-
-
-    # def start_module(self, args_array):
-    #     """
-    #     Start specified module.
-    #     """
-    #     if not self.check_module_input("start", args_array):
-    #         return
-
-    #     module = args_array[0]
-    #     try:
-    #         os.chdir(module)
-    #         subprocess.Popen(["python", "main.py", module + ".conf"],
-    #                          stdout=subprocess.PIPE,
-    #                          stderr=subprocess.PIPE)
-    #         os.chdir("..")
-    #         print module + " started !"
-    #     except Exception as ex:
-    #         print ex
-
     
     def start_module(self, args_array):
         """
@@ -161,9 +141,7 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            cmd = (" \"cd " + self.dict_modules[module]["path"]
-                   + "&& nohup python " + "main.py " + module + ".conf " +
-                   ">/dev/null &\" ")
+            cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
             os.system("ssh " + self.dict_modules[module]["server"] + cmd + "&")
             print module + " started, try to ping it."
         except Exception as ex:
