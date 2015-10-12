@@ -47,22 +47,16 @@
 
   <!-- ===== Display parameters ===== -->
   <h1>Parameters</h1>
-  <!--   Write labels first -->
   <ul ng-repeat="param in demo.params">
     <span ng-if="param.type==='label'"> 
-      <span  ng-bind-html="renderHtml(param.label)"></span> <br />
+      <b> <span  ng-bind-html="renderHtml(param.label)"></span> </b><br />
     </span>
-  </ul>
-  <ul ng-repeat="param in demo.params">
-    <li>
-      <span ng-if="param.type==='range'"> 
-        <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
-        {{params[param.id]}} 
-      </span>
-      <span ng-if="param.type==='selection_collapsed'"> 
-        <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
-        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
-      </span>
+    <li ng-if="param.type==='range'"> 
+      <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
+    </li>
+    <li ng-if="param.type==='selection_collapsed'"> 
+      <span  ng-bind-html="renderHtml(param.label)"></span> : 
+      <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
     </li>
   </ul>
 <!--   <hr /> -->

@@ -11,7 +11,9 @@ from mako.lookup import TemplateLookup
 import os
 import shutil
 from lib import build_demo_base
-
+from lib import base_app
+#import json
+import simplejson as json
 
 def err_tb():
     """
@@ -32,11 +34,12 @@ class demo_index(object):
     simplistic demo index used as the root app
     """
 
-    def __init__(self, indexd):
+    def __init__(self, indexd, demo_desc):
         """
         initialize with demo_dict for indexing
         """
-        self.indexd = indexd
+        self.indexd    = indexd
+        self.demo_desc = demo_desc
 
     @cherrypy.expose
     def index(self):
@@ -50,7 +53,7 @@ class demo_index(object):
                                      output_encoding='utf-8',
                                      encoding_errors='replace')
         return tmpl_lookup.get_template('index.html')\
-            .render(indexd=self.indexd,
+            .render(indexd=self.demo_desc,
                     title="Demonstrations",
                     description="")
 
@@ -59,14 +62,14 @@ def do_build(demo_dict,clean):
     build/update the demo programs
     """
     print "do_build"
-    for (demo_id, demo_app) in demo_dict.items():
+    for (demo_id, demo_path) in demo_dict.items():
       print "---- demo: ",demo_id
       # get demo dir
       current_dir = os.path.dirname(os.path.abspath(__file__))
       demo_dir = os.path.join(current_dir,"app",demo_id)
       # read JSON file
       # update the demo apps programs
-      demo = demo_app()
+      demo = base_app(demo_path)
       bd = build_demo_base.BuildDemoBase( demo_dir)
       bd.set_params(demo.demo_description['build'])
       
@@ -83,20 +86,28 @@ def do_build(demo_dict,clean):
                       traceback=False)
     return
 
-def do_run(demo_dict):
+def do_run(demo_dict, demo_desc):
     """
     run the demo app server
     """
-    for (demo_id, demo_app) in demo_dict.items():
+    for (demo_id, demo_path) in demo_dict.items():
         # mount the demo apps
-        demo = demo_app()
-        cherrypy.log("loading", context='SETUP/%s' % demo_id,
-                     traceback=False)
-        cherrypy.tree.mount(demo, script_name='/%s' % demo_id)
+        try:
+          demo = base_app(demo_path)
+          cherrypy.log("loading", context='SETUP/%s' % demo_id,
+                      traceback=False)
+          cherrypy.tree.mount(demo, script_name='/%s' % demo_id)
+        except Exception as inst:
+          print "failed to start demo ", inst
+          cherrypy.log("starting failed (see the log)",
+                        context='SETUP/%s' % demo_id,
+                        traceback=True)
+          
     # cgitb error handling config
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
+    print demo_dict
     # start the server
-    cherrypy.quickstart(demo_index(demo_dict), config=conf_file)
+    cherrypy.quickstart(demo_index(demo_dict,demo_desc), config=conf_file)
     return
 
 def get_values_of_o_arguments(argv):
@@ -112,6 +123,23 @@ def get_values_of_o_arguments(argv):
             del argv[i]
             del argv[i-1]
     return r
+
+def CheckDemoDescription(desc):
+  # check the general section
+  ok = True
+  required_keys = set([ "general", "params", "results", "archive", "build", "run" ])
+  if not required_keys.issubset(desc.keys()):
+    print "missing sections in JSON file: ", required_keys.difference(desc.keys())
+    return False
+
+  # general section
+  required_keys = set([ "demo_title", "demo_input_description", "param_title", "input_nb", "input_max_pixels", "input_max_weight", "input_dtype", "input_ext", "is_test", "xlink_article" ])
+  if not required_keys.issubset(desc['general'].keys()):
+    mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
+    print mess
+    cherrypy.log(mess, context='SETUP', traceback=False)
+    return False
+  return ok
 
 if __name__ == '__main__':
 
@@ -135,18 +163,42 @@ if __name__ == '__main__':
     # load the demo collection
     from app import demo_dict
 
+    demo_desc = {}
+    # check for json files
+    for (demo_id, demo_app) in demo_dict.items():
+      jsonpath = os.path.join(base_dir, "static/JSON/{0}.json".format(demo_id))
+      try:
+        print " reading description of demo ",demo_id
+        demo_file = open(jsonpath)
+        demo_description = json.load(demo_file)
+        if CheckDemoDescription(demo_description):
+          demo_desc[demo_id] = demo_description
+          print "OK"
+        else:
+          demo_dict.pop(demo_id)
+          print "FAILED"
+        demo_file.close()
+      except ValueError as e:
+        print "EXCEPTION: ", e
+        cherrypy.log("failed to read JSON demo description")
+        demo_dict.pop(demo_id)
+        
+    #print demo_dict
+    #print demo_desc
+
     # filter out test demos
     if cherrypy.config['server.environment'] == 'production':
-        for (demo_id, demo_app) in demo_dict.items():
-            if demo_app.is_test:
-                demo_dict.pop(demo_id)
+      for (demo_id, demo_app) in demo_dict.items():
+        print "is_test:", demo_desc[demo_id]["is_test"]
+        if demo_desc[demo_id]["is_test"]:
+            demo_dict.pop(demo_id)
 
     # if there is any "-o" command line option, keep only the mentioned demos
     demo_only_ids = get_values_of_o_arguments(sys.argv)
     if len(demo_only_ids) > 0:
-        for demo_id in demo_dict.keys():
-            if not demo_id in demo_only_ids:
-                demo_dict.pop(demo_id)
+      for demo_id in demo_dict.keys():
+          if not demo_id in demo_only_ids:
+              demo_dict.pop(demo_id)
 
     # now handle the remaining command-line options
     # default action is "run"
@@ -158,7 +210,7 @@ if __name__ == '__main__':
         elif "clean" == arg:
             do_build(demo_dict,True)
         elif "run" == arg:
-            do_run(demo_dict)
+            do_run(demo_dict, demo_desc)
         else:
             print """
 usage: %(argv0)s [action]

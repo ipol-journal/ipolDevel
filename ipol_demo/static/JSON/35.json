@@ -1,0 +1,149 @@
+{ 
+  "general": { 
+    "demo_title"            : "A Review of Classic Edge Detectors",
+    "demo_input_description": "Review of edge detection algorithms",
+    "param_title"           : "Set the parameters and run the algorithm.<i>Note: rgb images will be converted to grayscale.</i>",
+    "input_nb"              : 1,
+    "input_max_pixels"      : 100000000,
+    "input_max_weight"      : 300000000,
+    "input_dtype"           : "1x8i",
+    "input_ext"             : ".png",
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/pre/35/"
+  }, 
+  "params": [
+    {
+      "type"          : "label",
+      "label"         : "Roberts, Prewitt and Sobel"
+    },
+    {
+      "type"          : "range",
+      "label"         : "th_fded (gradient threshold)",
+      "id"            : "th_fded",
+      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
+      "default_value" : "0.1",
+      "value"         : 0.1
+    },
+    {
+      "type"          : "label",
+      "label"         : "Haralick"
+    },
+    {
+      "type"          : "range",
+      "label"         : "&rho; (radius threshold from center of the pixel)",
+      "id"            : "rho",
+      "values"        : { "min":"0.0", "max":"0.707", "step":"0.001"},
+      "default_value" : "0.4",
+      "value"         : 0.4
+    },
+    {
+      "type"          : "label",
+      "label"         : "Marr-Hildreth (Gaussian kernel)"
+    },
+    {
+      "type"          : "range",
+      "label"         : "&sigma; (blur standard deviation)",
+      "id"            : "sigma",
+      "values"        : { "min":"0", "max":"20", "step":"0.1"},
+      "default_value" : "3",
+      "value"         : 3
+    },
+    {
+      "type"          : "range",
+      "label"         : "n (kernel size)",
+      "id"            : "n",
+      "values"        : { "min":"1", "max":"101", "step":"2"},
+      "default_value" : "25",
+      "value"         : 25
+    },
+    {
+      "type"          : "range",
+      "label"         : "tzc (zero-crossing threshold)",
+      "id"            : "tzc",
+      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
+      "default_value" : "0.07",
+      "value"         : 0.07
+    },
+    {
+      "type"          : "label",
+      "label"         : "Marr-Hildreth (LoG kernel)"
+    },
+    {
+      "type"          : "range",
+      "label"         : "&sigma; (blur standard deviation)",
+      "id"            : "sigma2",
+      "values"        : { "min":"0", "max":"20", "step":"0.1"},
+      "default_value" : "3",
+      "value"         : 3
+    },
+    {
+      "type"          : "range",
+      "label"         : "n (kernel size)",
+      "id"            : "n2",
+      "values"        : { "min":"1", "max":"101", "step":"2"},
+      "default_value" : "29",
+      "value"         : 29
+    },
+    {
+      "type"          : "range",
+      "label"         : "tzc (zero-crossing threshold)",
+      "id"            : "tzc2",
+      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
+      "default_value" : "0.13",
+      "value"         : 0.13
+    },
+    {
+      "type"          : "label",
+      "label"         : "Result display"
+    },
+    {
+      "id"            : "inv",
+      "type"          : "selection_collapsed", 
+      "label"         : "Type of display",
+      "values"        : {"Black on white (inverted)":"1", "White on black (normal)":"0"},
+      "default_value" : "1",
+      "value"         : "1"
+    }
+  ],
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "Images",
+      "contents"      : { "Input"             : "input_0.sel.png", 
+                          "Robert"            : "out_roberts.png",
+                          "Prewitt"           : "out_prewitt.png",
+                          "Sobel"             : "out_sobel.png",
+                          "Haralick"          : "out_haralick.png",
+                          "Marr-Hildreth"     : "out_mh.png",
+                          "Marr-Hildreth-log" : "out_mhl.png"
+                        },
+      "style"         : "'height:'+sizeY+'px'" 
+    }
+  ],
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
+      "srcdir"    : "classic_edge_detectors_1.0",
+      "binaries"  : [ [".","edges"] ],
+      "flags"     : "-j4"
+    }
+  ,
+  "archive":
+    {
+      "files" : { "input_0.png"     : "input image",
+                  "input_0.sel.png" : "cropped input image",
+                  "out_roberts.png" : "output image of Roberts algorithm",
+                  "out_prewitt.png" : "output image of Prewitt algorithm",
+                  "out_sobel.png"   : "output image of Sobel algorithm",
+                  "out_mh.png"      : "output image of Marr-Hildreth algorithm (Gaussian kernel)",
+                  "out_mhl.png"     : "output image of Marr-Hildreth algorithm (LoG kernel)",
+                  "out_haralick.png": "output image of Haralick algorithm"
+                },
+      "params" :  [ "th_fded", "rho", "sigma", "n", "tzc", "sigma2", "n2", "tzc2"]
+    }
+  ,
+  "run":  [
+            "edges -r $th_fded -p $th_fded -s $th_fded -m $sigma $n $tzc -l $sigma2 $n2 $tzc2 -h $rho input_0.sel.png",
+            "PythonInvert.py -i $inv out_roberts.png out_prewitt.png out_sobel.png out_mh.png out_mhl.png out_haralick.png"
+          ]
+}
