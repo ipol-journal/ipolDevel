@@ -13,7 +13,7 @@
 # Written by Alexis Mongin. Contact : alexis.mongin #~AT~# outlook.com
 
 """
-This script implement a terminal for controlling the IPOL system.
+This script implements a terminal for controlling the IPOL system modules.
 """
 
 import os
@@ -31,7 +31,7 @@ class Terminal(object):
     def get_dict_modules():
         """
         Return a dictionary of the differents IPOL modules as keys, and
-        another dictionary as value, containing two keys : a url (string), and
+        another dictionary as value, containing two keys: a url (string), and
         a list of strings representing the commands available to the module.
         """
         dict_modules = {}
@@ -69,7 +69,7 @@ class Terminal(object):
 
     def get_active_modules(self):
         """
-        Return a list of the actives modules of IPOL.
+        Print a list of the active modules.
         """
         modules_up = False
         print "Welcome to IPOL control terminal !"
@@ -112,7 +112,7 @@ class Terminal(object):
         try:
             urllib.urlopen(self.dict_modules[module]["url"]
                            + "ping")
-            print "Module active, it says pong !"
+            print "Module active, it says pong!"
         except IOError:
             print "Module unresponsive."
 
@@ -131,7 +131,8 @@ class Terminal(object):
             print module + " shut down."
         except IOError:
             print "Shutdown : service unreachable."
-    
+
+
     def start_module(self, args_array):
         """
         Start specified module.
@@ -158,7 +159,7 @@ class Terminal(object):
 
     def info_module(self, args_array):
         """
-        Give user info on specified module.
+        Print the list of available commands for a given module.
         """
         if not self.check_module_input("info", args_array):
             return
@@ -173,7 +174,7 @@ class Terminal(object):
 
     def display_modules(self, _dummy):
         """
-        Display the modules.
+        Print the modules.
         """
         print "list of modules :"
         for module in self.dict_modules.keys():

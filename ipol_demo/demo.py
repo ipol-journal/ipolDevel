@@ -10,6 +10,7 @@ from mako.lookup import TemplateLookup
 
 import os
 import shutil
+from lib import build_demo_base
 
 
 def err_tb():
@@ -53,21 +54,33 @@ class demo_index(object):
                     title="Demonstrations",
                     description="")
 
-def do_build(demo_dict):
+def do_build(demo_dict,clean):
     """
     build/update the demo programs
     """
+    print "do_build"
     for (demo_id, demo_app) in demo_dict.items():
-        # update the demo apps programs
-        demo = demo_app()
-        cherrypy.log("building", context='SETUP/%s' % demo_id,
-                     traceback=False)
-        try:
-            demo.build()
-        except Exception:
-            cherrypy.log("build failed (see the build log)",
-                         context='SETUP/%s' % demo_id,
-                         traceback=False)
+      print "---- demo: ",demo_id
+      # get demo dir
+      current_dir = os.path.dirname(os.path.abspath(__file__))
+      demo_dir = os.path.join(current_dir,"app",demo_id)
+      # read JSON file
+      # update the demo apps programs
+      demo = demo_app()
+      bd = build_demo_base.BuildDemoBase( demo_dir)
+      bd.set_params(demo.demo_description['build'])
+      
+      cherrypy.log("building", context='SETUP/%s' % demo_id,
+                    traceback=False)
+      try:
+        if clean:
+          bd.clean()
+        else:
+          bd.make()
+      except Exception:
+        cherrypy.log("build failed (see the build log)",
+                      context='SETUP/%s' % demo_id,
+                      traceback=False)
     return
 
 def do_run(demo_dict):
@@ -121,6 +134,7 @@ if __name__ == '__main__':
 
     # load the demo collection
     from app import demo_dict
+
     # filter out test demos
     if cherrypy.config['server.environment'] == 'production':
         for (demo_id, demo_app) in demo_dict.items():
@@ -140,7 +154,9 @@ if __name__ == '__main__':
         sys.argv += ["run"]
     for arg in sys.argv[1:]:
         if "build" == arg:
-            do_build(demo_dict)
+            do_build(demo_dict,False)
+        elif "clean" == arg:
+            do_build(demo_dict,True)
         elif "run" == arg:
             do_run(demo_dict)
         else:

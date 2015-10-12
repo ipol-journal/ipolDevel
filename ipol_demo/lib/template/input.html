@@ -1,11 +1,12 @@
 <%include file="header.html" />
 
-<p>
-Short algorithm description.
-</p>
+<script> IPOLDemosApp.value("demo_id","${app.id}"); </script>
 
-<%include file="input_form_select.html" />
-<%include file="input_form_upload.html" />
+<div ng-controller="DemoInputCtrl">
+  <div  ng-bind-html="renderHtml(demo.general.demo_input_description)"></div>  
+  <%include file="input_form_select.html" />
+  <%include file="input_form_upload.html" />
+</div>
 
 <!--
 TODO: external input; search and select from Flickr, Google images,
@@ -13,3 +14,4 @@ TODO: external input; search and select from Flickr, Google images,
 -->
 
 <%include file="footer.html" />
+

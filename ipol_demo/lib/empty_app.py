@@ -140,18 +140,6 @@ class empty_app(object):
         else:
             return None
 
-
-    #
-    # UPDATE
-    #
-
-    def build(self):
-        """
-        virtual function, to be overriden by subclasses
-        """
-        cherrypy.log("warning: no build method",
-                     context='SETUP/%s' % self.id, traceback=False)
-
     #
     # KEY MANAGEMENT
     #

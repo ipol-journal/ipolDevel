@@ -1,9 +1,157 @@
 <%include file="header.html" />
 
-<h2>result</h2>
+<p>
+  The algorithm result is displayed hereafter.
+  It ran in ${"%0.2f" % app.cfg['info']['run_time']}s.<br />
+  You can run again this algorithm with new data.
+</p>
 
-This page should be overwritten by the demo templates.
+
+<script>  IPOLDemosApp.value("demo_id","${app.id}");  </script>
+<script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
+<script>  IPOLDemosApp.value("work_url","${app.work_url}");  </script>
+
+
+<div ng-controller="DemoResultCtrl" >
+
+
+  <span ng-repeat="result in demo.results">
+    <!-- warning -->
+    <span ng-if="result.type==='warning'"> 
+      <span ng-if="$eval(result.condition)">
+        <p style='border: 1px solid; margin: 10px 0px; padding:15px 10px 15px 50px; color: #9F6000;'>
+          <b><u>WARNING</u></b><br/><br/>
+          <span bind-html-compile="result.contents"></span> <br/><br/>
+        </p>
+      </span>
+    </span>
+  </span>
+
+  <!-- ===== Rerun ===== -->
+  <div class="action">
+    Restart with new input data, different parameter or different subimage:
+    <form style="display:inline;" action="${app.base_url}" method="get">
+      <input type="submit" value="new input" />
+    </form>
+      <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
+        <input type="hidden" name="key" value="${app.key}">
+        <input type="hidden" name="newrun" value="1">
+        <span ng-repeat="param in demo.params">
+          <input  ng-if="param.type!='label'" type="hidden" 
+                  name="{{param.id}}" value="{{params[param.id]}}" > 
+        </span>
+        <input type="submit" value="different parameters or subimage" />
+      </form>
+  </div>
+
+
+  <!-- ===== Display parameters ===== -->
+  <h1>Parameters</h1>
+  <!--   Write labels first -->
+  <ul ng-repeat="param in demo.params">
+    <span ng-if="param.type==='label'"> 
+      <span  ng-bind-html="renderHtml(param.label)"></span> <br />
+    </span>
+  </ul>
+  <ul ng-repeat="param in demo.params">
+    <li>
+      <span ng-if="param.type==='range'"> 
+        <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
+        {{params[param.id]}} 
+      </span>
+      <span ng-if="param.type==='selection_collapsed'"> 
+        <b> <span  ng-bind-html="renderHtml(param.label)"></span> : </b> 
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+      </span>
+    </li>
+  </ul>
+<!--   <hr /> -->
+
+  <!-- ===== Results ===== -->
+  <h1>Results</h1>
+  <br/>
+  <span ng-repeat="result in demo.results">
+    <!-- image -->
+    <span ng-if="result.type==='image'"> 
+      <b bind-html-compile="result.label"> </b> <br/>
+      <img ng-src="{{work_url + result.contents}}" style="{{result.style}}" alt="input" />
+      <br/>
+    </span>
+    <!-- repeat_image -->
+    <span ng-if="result.type==='repeat_image'"> 
+      <span ng-repeat="idx in range($eval(result.repeat))">
+        <b>{{$eval(result.label)}}</b> <br/>
+        <img ng-src="{{work_url + $eval(result.contents)}}" style="{{result.style}}" alt="input" />
+        <br/>
+      </span>
+    </span>
+    <!-- gallery -->
+    <span ng-if="result.type==='gallery'"> 
+      <b> <span bind-html-compile="result.label"></span></b><br/>
+      <div class="gallery" style="{{$eval(result.style)}}">
+        <ul class="index">
+          <li ng-repeat="(label,image) in result.contents">
+            <a href="#">{{label}} <span><img ng-src="{{work_url+image}}"/> </span></a>
+          </li>
+        </ul>
+      </div>
+      <br/>
+    </span>
+    <!-- repeat_gallery -->
+    <span ng-if="result.type==='repeat_gallery'"> 
+      <b> <span bind-html-compile="result.label"></span></b><br/>
+      <div class="gallery" >
+        <ul class="index">
+          <li ng-repeat="idx in range($eval(result.repeat))">
+            <a href="#">{{$eval(result.contents[0])}}
+              <span ng-if="CheckArray(result.contents[1])===false">
+                <img ng-src="{{work_url+$eval(result.contents[1])}}"/> 
+              </span>
+              <span ng-if="CheckArray(result.contents[1])">
+                <table border="1">
+                  <tr>
+                    <td ng-repeat="im in result.contents[1]">
+                      <img style="{{$eval(result.style)}}" ng-src="{{work_url+$eval(im)}}"/> 
+                    </td>
+                  </tr>
+                </table>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <br/>
+    </span>
+    <!-- html_text -->
+    <span ng-if="result.type==='html_text'"> 
+      <div bind-html-compile="result.contents"></div> <br/>
+    </span>
+    <!-- file_download -->
+    <span ng-if="result.type==='file_download'"> 
+      <span ng-if="result.repeat!=undefined">
+        <span ng-repeat="idx in range($eval(result.repeat))">
+          <a href="{{work_url+$eval(result.contents)}}">
+            <div bind-html-compile="result.label"></div> <br/>
+          </a>
+        </span>
+      </span>
+      <span ng-if="result.repeat==undefined">
+        <a href="{{work_url+result.contents}}">
+          <div bind-html-compile="result.label"></div> <br/>
+        </a>
+      </span>
+    </span>
+    <!-- text_file -->
+    <span ng-if="result.type==='text_file'"> 
+      <span bind-html-compile="result.label"></span><br/>
+      <iframe src="{{work_url+result.contents}}" style="{{$eval(result.style)}}"/> </iframe>
+    </span>
+  </span>
+
+</div>
+
 
 <%include file="archive_info.html" />
 
 <%include file="footer.html" />
+

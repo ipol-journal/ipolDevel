@@ -1,0 +1,64 @@
+{ 
+  "general": { 
+     "demo_title":  "The Noise Clinic: a Blind Image Denoising Algorithm",
+     "demo_input_description": "Noise Clinic Automatic Noise Estimation and Denoising.<br/><br/>The test images are divided into three groups:<br/><br/><ul><li>Raw images downscaled by 2 to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as '<b>raw</b>'.</li><li>Many noisy images without a known noise model. They might have suffered all kind of alterations.</li><li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as '<b>no noise</b>'.</li></ul>",
+    "param_title": ""
+  }, 
+  "params": [
+    {
+      "id"            : "nbscales",
+      "type"          : "selection_collapsed", 
+      "label"         : "Number of scales",
+      "values"        : {"one scale":"1", "two scales":"2", "three scales":"3", "four scales":"4", "five scales":"5"},
+      "default_value" : "2",
+      "value"         : "2"
+    },
+    {
+      "id"            : "stdfactor",
+      "type"          : "range", 
+      "label"         : "Sigma coefficient",
+      "values"        : { "min":"0.5", "max":"2", "step":"0.1"},
+      "default_value" : "1",
+      "value"         : 1
+    },
+    {
+      "type"          : "label", 
+      "label"         : " <label><small>If you find that the noise is under (resp. over) evaluated, you can adjust it by putting this coefficient greater than 1.0 (resp. smaller than 1.0). This coefficient will be multiplied to the estimated STD of noise.</small></label>"
+    }
+  ],
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Noisy, denoised, and difference images</h2>",
+      "contents"      : { "Original":"input_0.sel.png", "Denoised":"denoised.png", "Difference":"diff.png"},
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "repeat_gallery",
+      "label"         : "<h2>Difference image (left), mean noise curve for the low frequencies (middle), and for the high frequencies (right) at each scale</h2>",
+      "repeat"        : "params.nbscales",
+      "contents"      : ["'Scale'+idx",
+                          [ "'denoised_diff_'+idx+'.png'",
+                            "'denoised_noiseCurves_L_'+idx+'.png'",
+                            "'denoised_noiseCurves_H_'+idx+'.png'"] ],
+      "style"         : "'width: 400px; height:'+(400*sizeY/sizeX)+'px'"
+    }
+  ],
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2015/125/NoiseClinic.zip", 
+      "srcdir"    : "noise_clinic_src",
+      "binaries"  : [ [".","MSD"]  ],
+      "flags"     : "OMP=1 -j4",
+      "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
+    }
+  ,
+  "run": [
+     "fnoise -A$anoise -B$bnoise input_0.sel.png scale_s0.rgb",
+     "fnoise -A$anoise -B$bnoise -t input_0.sel.png scale_s0.png",
+     "subscale -s2 scale_s0.rgb scale_s1.rgb",
+     "ponomarenko -p$percentile -b$bins -w$block -m$mean_type -g$curvefilter",
+     "writeNoiseCurve.sh estimation_s0.txt 3 curve_s0.png"
+  ]
+
+}

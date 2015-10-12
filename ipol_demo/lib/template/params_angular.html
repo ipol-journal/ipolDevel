@@ -1,0 +1,181 @@
+<%include file="header.html" />
+
+
+<!-- ======================================================================= -->
+<!-- ======================================================================= -->
+<hr>
+<script>  IPOLDemosApp.value("demo_id","${app.id}");  </script>
+<script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
+
+<div ng-controller="DemoParamCtrl">
+
+  <p> {{demo.general.param_title}} </p>
+
+  <br />
+
+  <form action="${app.base_url + 'rectangle'}" method="get">
+    <div class="action" style="align:left;margin-bottom=20px;margin-top=20px" >
+      <input type="hidden" name="key" value="${app.key}">
+
+      <!--===================================================================-->
+      <table  style="float:left"> 
+        <!--=================================================================-->
+        <tr>
+          <th style="width:24em"> <b>Parameter description</b> </th> 
+          <th colspan="2"> <b>Select value</b> </th> 
+        </tr>
+
+        <!--=================================================================-->
+        <tr ng-repeat="param in demo.params">
+          <!--===============================================================-->
+          <!-- selection_collapsed type -->
+          <td  ng-if="param.type==='selection_collapsed'"> 
+              <label>  {{param.label}} </label>  
+          </td>
+          <td ng-if="param.type==='selection_collapsed'" colspan="2">
+              <span ng-if="params[param.id] !=  undefined">
+                <span ng-init="param.value=params[param.id].toString()"> </span>
+              </span>
+              <select  ng-model="param.value" name="{{param.id}}"> <!-- use ng-init here? -->
+                <option ng-repeat="(key, value) in param.values" value="{{value}}"> 
+                  {{key}} 
+                </option> 
+              </select>
+          </td>
+          <!--===============================================================-->
+          <!-- range type -->
+          <td  ng-if="param.type==='range'"> 
+              <label>  {{param.label}} </label>  
+          </td>
+          <td ng-if="param.type==='range'" style="width:5em">
+              <span ng-if="params[param.id] !=  undefined">
+                <span ng-init="param.value=params[param.id]"> </span>
+              </span>
+              <input  style="width:100%"  type="number" name="{{param.id}}"
+                      min={{param.values.min}} max={{param.values.max}} 
+                      step={{param.values.step}} 
+                      value={{param.default_value}} 
+                      ng-model="param.value"/>
+          </td>
+          <td ng-if="param.type==='range'" style="width:24em">
+              <input  style="width:100%" type="range"  
+                      min={{param.values.min}} max={{param.values.max}} 
+                      step={{param.values.step}} 
+                      value={{param.default_value}} 
+                      ng-model="param.value" 
+                      floatsaving />
+          </td>
+          <!--===============================================================-->
+          <!-- label type -->
+          <th ng-if="param.type==='label'" colspan=3> 
+              <div  ng-bind-html="renderHtml(param.label)"></div> 
+          </th>
+          <!--===============================================================-->
+        </tr>
+        <!--=================================================================-->
+
+      </table>
+
+      <div style="clear:both"> </div>
+      <hr>
+
+      <div style='vertical-align:middle;
+                  margin-left:auto; margin-right: auto;
+                  text-align:center;  margin-bottom=20px;margin-top=20px'>
+
+        <div ng-init="selected_image_link='tmp/'+'${app.key}'+'/input_0.png'">
+        <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
+        <div ng-controller="ImgCropCtrl"> 
+            <input  id="ID_InputCropped" type="checkbox" 
+                    ng-model="InputCropped"  
+                    ng-click="go()"
+                    alt="Crop"
+                    > Enable Crop <br>
+
+          <div ng-if="!InputCropped" >
+            <img  id="original_image"
+                  crossOrigin="Anonymous"
+                  ng-src="{{selected_image_link}}"
+                  style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                  alt={{selected_image}}
+                  styleParent
+                  />
+            <input type="hidden" name="x0" value="0">              
+            <input type="hidden" name="y0" value="0">
+            <input type="hidden" name="x"  value="{{imwidth-1}}">
+            <input type="hidden" name="y"  value="{{imheight-1}}">
+          </div>
+
+
+          <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
+          <div ng-if="InputCropped" > 
+            <table  style="float:left" >
+              <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px'>
+
+                  <label> max dim = {{imwidth}} x {{imheight}} display ratio = {{display_ratio}} </label>
+                  <div style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;margin:5px"
+                      class="cropArea" >
+                    <img-crop  
+                              crossOrigin="Anonymous"
+                              image="selected_image_link"
+                              result-image="myCroppedImage"
+                              change-on-fly="true"
+                              area-type="{{type}}"
+                              area-coords="CropInfo.coord"
+                              enable="InputCropped"
+                        />
+                  </div>
+                  <label>
+                    {{Math.round(CropInfo.coord.x/display_ratio)}}, {{Math.round(CropInfo.coord.y/display_ratio)}}, 
+                    {{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}, 
+                    {{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}
+                  </label>
+                  <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
+                  <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
+                  <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}">
+                  <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}">
+
+                </div>
+
+              </td>
+                <td style='vertical-align:middle'>
+                <label> Zoom factor </label>
+                <select ng-options="CropSize for CropSize in ['1', '1.5', '2', '4', '8','16']" 
+                        ng-model="CropSize" 
+                        ng-init="CropSize='1'">
+                </select>
+                  <div ng-show="InputCropped" style="overflow:scroll;width:{{imwidth*display_ratio+20}}px;height:{{imheight*display_ratio+20}}px;" >
+                    <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" width="{{CropInfo.coord.w*CropSize}}" height="{{CropInfo.coord.h*CropSize}}" />
+                  </div>
+                </td>
+            </table>
+          </div>
+          <div style="clear:both"> </div>
+        </div>  <!-- ImCropCtrl -->
+        </span> <!-- if crop enabled -->
+
+        <span ng-if="(demo.general.enable_crop!==undefined)&&(demo.general.enable_crop===false)">
+          <img  id="original_image"
+                crossOrigin="Anonymous"
+                ng-src="{{selected_image_link}}"
+                style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                alt={{selected_image}}
+                styleParent
+                />
+          <input type="hidden" name="x0" value="0">              
+          <input type="hidden" name="y0" value="0">
+          <input type="hidden" name="x"  value="{{imwidth-1}}">
+          <input type="hidden" name="y"  value="{{imheight-1}}">
+        </span>
+
+        </div> <!-- ng-init -->
+      </div>
+    </div> <!-- action -->
+    <p>
+      <input  style="width:60em;height:4em;" type="submit" name="action" value="RUN" />
+    <p/>
+  </form>
+</div> <!-- DemoParamCtrl -->
+
+
+<%include file="footer.html" />

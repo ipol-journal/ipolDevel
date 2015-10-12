@@ -501,7 +501,7 @@
     };
 
     /* GETTERS/SETTERS */
-
+    
     CropArea.prototype.getImage = function () {
       return this._image;
     };
@@ -513,10 +513,14 @@
       return this._size;
     };
 
-    CropArea.prototype.setSize = function (size) {
-
+    CropArea.prototype.setSize = function (size, checkboundaries) {
+      if (typeof(checkboundaries)==='undefined') checkboundaries = true;
       size = this._processSize(size);
-      this._size = this._preventBoundaryCollision(size);
+      if (checkboundaries) {
+        this._size = this._preventBoundaryCollision(size);
+      } else {
+        this._size = size;
+      }
     };
 
     CropArea.prototype.setSizeByCorners = function (northWestCorner, southEastCorner) {
@@ -788,7 +792,11 @@
   }]);
 
 
-  crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', function($document, CropAreaCircle, CropAreaSquare, CropAreaRectangle) {
+  //----------------------------------------------------------------------------
+  //  cropHost
+  //----------------------------------------------------------------------------
+  crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 
+               function($document, CropAreaCircle, CropAreaSquare, CropAreaRectangle) {
     /* STATIC FUNCTIONS */
 
     // Get Element's Offset
@@ -817,7 +825,8 @@
       var ctx=null,
         image=null,
         theArea=null,
-        self=this;
+        self=this,
+        enable_crop=true;
 
       // Dimensions
       var minCanvasDims=[100,100],
@@ -830,6 +839,7 @@
 
       // Draw Scene
       function drawScene() {
+        console.info("cropHost drawScene()");
         // clear canvas
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -852,6 +862,7 @@
 
       // Resets CropHost
       var resetCropHost=function() {
+        console.info("cropHost resetCropHost()");
         if(image!==null) {
           theArea.setImage(image);
           var imageDims=[image.width, image.height],
@@ -883,10 +894,10 @@
 
           }
 
-          theArea.setSize({ w: Math.min(200, cw / 2),
-            h: Math.min(200, ch / 2)});
-          //TODO: set top left corner point
-          theArea.setCenterPoint({x: ctx.canvas.width/2, y: ctx.canvas.height/2});
+//           theArea.setSize({ w: Math.min(200, cw / 2),
+//             h: Math.min(200, ch / 2)});
+//           //TODO: set top left corner point
+//           theArea.setCenterPoint({x: ctx.canvas.width/2, y: ctx.canvas.height/2});
 
         } else {
           elCanvas.prop('width',0).prop('height',0).css({'margin-top': 0});
@@ -896,6 +907,7 @@
       };
 
       var onMouseMove=function(e) {
+        console.info("CropHost onMouseMove");
         if(image!==null) {
           var offset=getElementOffset(ctx.canvas),
             pageX, pageY;
@@ -912,6 +924,7 @@
       };
 
       var onMouseDown=function(e) {
+        console.info("CropHost onMouseDown");
         e.preventDefault();
         e.stopPropagation();
         if(image!==null) {
@@ -930,6 +943,7 @@
       };
 
       var onMouseUp=function(e) {
+        console.info("CropHost onMouseUp");
         if(image!==null) {
           var offset=getElementOffset(ctx.canvas),
             pageX, pageY;
@@ -946,6 +960,8 @@
       };
 
       this.getResultImage=function() {
+        console.info("CropHost getResultImage");
+        console.info("theArea.getSize() = ", theArea.getSize());
         var temp_ctx, temp_canvas;
         temp_canvas = angular.element('<canvas></canvas>')[0];
         temp_canvas.setAttribute('crossOrigin', 'anonymous');
@@ -982,9 +998,24 @@
         return theArea.getSize()
       }
 
+      this.setAreaCoords=function(ac,checkboundaries) {
+        var res = theArea.setSize(ac,false);
+        console.info("setAreaCoords");
+        console.info("theArea.getSize() = ", theArea.getSize());
+        return res;
+      }
+      
+      
+      this.setEnable=function(enable) {
+        enable_crop = enable;
+      }
+
       this.setNewImageSource=function(imageSource) {
+        console.info("CropHost setNewImageSource");
+        console.info("setNewImageSource 1 theArea.getSize() = ", theArea.getSize());
         image=null;
-        resetCropHost();
+//         resetCropHost();
+        drawScene();
         events.trigger('image-updated');
         if(!!imageSource) {
           var newImage = new Image();
@@ -993,6 +1024,7 @@
             events.trigger('load-done');
             image=newImage;
             resetCropHost();
+            console.info("setNewImageSource on-load theArea.getSize() = ", theArea.getSize());
             events.trigger('image-updated');
           };
           newImage.onerror=function() {
@@ -1004,11 +1036,11 @@
       };
 
       this.setMaxDimensions=function(width, height) {
+        console.info("CropHost setMaxDimensions");
+        console.info("theArea.getSize() = ", theArea.getSize());
         maxCanvasDims=[width,height];
 
         if(image!==null) {
-          var curWidth=ctx.canvas.width,
-            curHeight=ctx.canvas.height;
 
           var imageDims=[image.width, image.height],
             imageRatio=image.width/image.height,
@@ -1030,18 +1062,16 @@
           }
           elCanvas.prop('width',canvasDims[0]).prop('height',canvasDims[1]).css({'margin-left': -canvasDims[0]/2+'px', 'margin-top': -canvasDims[1]/2+'px'});
 
-          var ratioNewCurWidth=ctx.canvas.width/curWidth,
-            ratioNewCurHeight=ctx.canvas.height/curHeight,
-            ratioMin=Math.min(ratioNewCurWidth, ratioNewCurHeight);
-
-          //TODO: use top left corner point
-          theArea.setSize({w: theArea.getSize().w * ratioMin,
-            h: theArea.getSize().h * ratioMin});
-          var center = theArea.getCenterPoint();
-          theArea.setCenterPoint({x: center.x*ratioNewCurWidth, y: center.y*ratioNewCurHeight});
+          
+          // what's the point of all this ...
+//           //TODO: use top left corner point
+//           theArea.setSize({w: theArea.getSize().w * ratioMin,
+//             h: theArea.getSize().h * ratioMin});
+//           var center = theArea.getCenterPoint();
+//           theArea.setCenterPoint({x: center.x*ratioNewCurWidth, y: center.y*ratioNewCurHeight});
 
         } else {
-          elCanvas.prop('width',0).prop('height',0).css({'margin-top': 0});
+//           elCanvas.prop('width',0).prop('height',0).css({'margin-top': 0});
         }
 
         drawScene();
@@ -1104,6 +1134,7 @@
       }
 
       this.setAreaType=function(type) {
+        console.info("setAreaType");
         var center = theArea.getCenterPoint();
         var curSize=theArea.getSize(),
           curMinSize=theArea.getMinSize(),
@@ -1119,10 +1150,10 @@
         }
         theArea = new AreaClass(ctx, events);
         theArea.setMinSize(curMinSize);
-        theArea.setSize(curSize);
-
-        //TODO: use top left point
-        theArea.setCenterPoint({x: curX, y: curY});
+        
+//         theArea.setSize(curSize);
+//         //TODO: use top left point
+//         theArea.setCenterPoint({x: curX, y: curY});
 
         // resetCropHost();
         if(image!==null) {
@@ -1141,24 +1172,43 @@
       theArea = new CropAreaCircle(ctx, events);
 
       // Init Mouse Event Listeners
-      $document.on('mousemove',onMouseMove);
+      // why are events applied to document ???
+      // reason: to move to the ends: fix add some borders
+//       $document.on('mousemove',onMouseMove);
+//       elCanvas.on('mousedown',onMouseDown);
+//       $document.on('mouseup',onMouseUp);
+// 
+//       // Init Touch Event Listeners
+//       $document.on('touchmove',onMouseMove);
+//       elCanvas.on('touchstart',onMouseDown);
+//       $document.on('touchend',onMouseUp);
+      
+      elCanvas.on('mousemove',onMouseMove);
       elCanvas.on('mousedown',onMouseDown);
-      $document.on('mouseup',onMouseUp);
+      elCanvas.on('mouseup',onMouseUp);
 
       // Init Touch Event Listeners
-      $document.on('touchmove',onMouseMove);
+      elCanvas.on('touchmove',onMouseMove);
       elCanvas.on('touchstart',onMouseDown);
-      $document.on('touchend',onMouseUp);
+      elCanvas.on('touchend',onMouseUp);
 
       // CropHost Destructor
       this.destroy=function() {
-        $document.off('mousemove',onMouseMove);
-        elCanvas.off('mousedown',onMouseDown);
-        $document.off('mouseup',onMouseMove);
+//         $document.off('mousemove',onMouseMove);
+//         elCanvas.off('mousedown',onMouseDown);
+//         $document.off('mouseup',onMouseMove);
+// 
+//         $document.off('touchmove',onMouseMove);
+//         elCanvas.off('touchstart',onMouseDown);
+//         $document.off('touchend',onMouseMove);
 
-        $document.off('touchmove',onMouseMove);
+        elCanvas.off('mousemove',onMouseMove);
+        elCanvas.off('mousedown',onMouseDown);
+        elCanvas.off('mouseup',onMouseMove);
+
+        elCanvas.off('touchmove',onMouseMove);
         elCanvas.off('touchstart',onMouseDown);
-        $document.off('touchend',onMouseMove);
+        elCanvas.off('touchend',onMouseMove);
 
         elCanvas.remove();
       };
@@ -1167,6 +1217,9 @@
   }]);
 
 
+  //----------------------------------------------------------------------------
+  //  cropPubSub
+  //----------------------------------------------------------------------------
   crop.factory('cropPubSub', [function() {
     return function() {
       var events = {};
@@ -1190,6 +1243,9 @@
     };
   }]);
 
+  //----------------------------------------------------------------------------
+  // directive imgCrop
+  //----------------------------------------------------------------------------
   crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function($timeout, CropHost, CropPubSub) {
     return {
       restrict: 'E',
@@ -1197,6 +1253,8 @@
         image: '=',
         resultImage: '=',
         resultImageData: '=',
+        
+        enable: '=',
 
         changeOnFly: '=',
         areaCoords: '=',
@@ -1209,7 +1267,7 @@
         onLoadDone: '&',
         onLoadError: '&'
       },
-      template: '<canvas></canvas>',
+      template: '<canvas> </canvas>',
       controller: function($scope/*, $attrs, $element*/) {
         $scope.events = new CropPubSub();
       },
@@ -1219,11 +1277,15 @@
 
         // Init Crop Host
         var cropHost=new CropHost(element.find('canvas'), {}, events);
+        if ((scope.areaCoords.x!=undefined)&&(scope.areaCoords!=cropHost.getAreaCoords())) {
+          cropHost.setAreaCoords(scope.areaCoords, false);
+        }
 
         // Store Result Image to check if it's changed
         var storedResultImage;
 
         var updateResultImage=function(scope) {
+          console.info("imCrop updateResultImage");
           var resultImageObj=cropHost.getResultImage();
           var resultImage = resultImageObj.dataURI;
           if(storedResultImage!==resultImage) {
@@ -1283,6 +1345,15 @@
         // Sync CropHost with Directive's options
         scope.$watch('image',function(){
           cropHost.setNewImageSource(scope.image);
+          if (scope.areaCoords.x!=undefined) {
+            cropHost.setAreaCoords(scope.areaCoords);
+          }
+        });
+        scope.$watch('areaCoords',function(){
+          if ((scope.areaCoords.x!=undefined)&&(scope.areaCoords!=cropHost.getAreaCoords())) {
+            cropHost.setAreaCoords(scope.areaCoords);
+            updateResultImage(scope);
+          }
         });
         scope.$watch('areaType',function(){
           cropHost.setAreaType(scope.areaType);
@@ -1296,15 +1367,20 @@
           cropHost.setResultImageSize(scope.resultImageSize);
           updateResultImage(scope);
         });
+        scope.$watch('enable',function(){
+          cropHost.setEnable(scope.enable);
+          updateResultImage(scope);
+        });
 
         // Update CropHost dimensions when the directive element is resized
         scope.$watch(
           function () {
-            console.log(element[0].clientWidth);
-            console.log(element[0].clientHeight);
+            console.info("imCrop watching client ",[element[0].clientWidth, element[0].clientHeight]);
+            console.info("imCrop watching offset ",[element[0].offsetWidth, element[0].offsetHeight]);
             return [element[0].clientWidth, element[0].clientHeight];
           },
           function (value) {
+            cropHost.setAreaCoords(scope.areaCoords);
             cropHost.setMaxDimensions(value[0],value[1]);
             updateResultImage(scope);
           },

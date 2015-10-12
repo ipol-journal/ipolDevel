@@ -1,0 +1,60 @@
+{ 
+  "general": { 
+     "demo_title":  "LSD: a Line Segment Detector",
+     "demo_input_description": "",
+     "param_title": ""
+  }, 
+  "params": [
+    {
+      "type"          : "label", 
+      "label"         : " <label>This algorithm is fully automatic!</label>"
+    }
+  ],
+  "results": [
+    {
+      "type"          : "html_text", 
+      "contents"      : "{{info.num_detections}} Line Segments were detected.<br/>"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download the result in EPS format",
+      "contents"      : "output.eps"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download the result in SVG format",
+      "contents"      : "output.svg"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download the result in ASCII format (see description below)",
+      "contents"      : "output.txt"
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : { "Output":"output-inv.png", "Input":"input_0.sel.png"},
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "html_text", 
+      "contents"      : "<h2>ASCII file description</h2><p>Each line is composed of seven numbers separated by spaces, that are x1, y1, x2, y2, width, p, -log_nfa. For example, the line: </p><pre>  159.232890 134.369601 160.325338 105.613616 2.735466 0.125000 17.212465</pre><p> means that a line segment starting at point (159.232890,134.369601), ending at point (160.325338 105.613616) and of width 2.735466 was detected. An angle precision p of 0.125 was used, which means a gradient angle tolerance of p*180 = 0.125*180 = 22.5 degree. The opposite of the logarithm in base 10 of the NFA value of the detection was -log_10(NFA)=17.212465, so the NFA value was 10^(-17.2124656), roughly 6e-18. The length unit is the pixel and the origin of coordinates is the center of the top-left pixel (0,0). </p>"
+    }
+  ],
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2012/gjmr-lsd/lsd_1.6.zip", 
+      "srcdir"    : "lsd_1.6",
+      "binaries"  : [ [".","lsd"] ],
+      "flags"     : ""
+    }
+  ,
+  "run": [
+     "fnoise -A$anoise -B$bnoise input_0.sel.png scale_s0.rgb",
+     "fnoise -A$anoise -B$bnoise -t input_0.sel.png scale_s0.png",
+     "subscale -s2 scale_s0.rgb scale_s1.rgb",
+     "ponomarenko -p$percentile -b$bins -w$block -m$mean_type -g$curvefilter",
+     "writeNoiseCurve.sh estimation_s0.txt 3 curve_s0.png"
+  ]
+
+}

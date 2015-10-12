@@ -33,6 +33,7 @@ class file_dict(dict):
             # added for Angular
             self.params_filename  = os.path.join(filepath, "params.json")
             self.meta_filename    = os.path.join(filepath, "meta.json")
+            self.info_filename    = os.path.join(filepath, "info.json")
             self.filename         = os.path.join(filepath, "index.cfg")
         # if flag == 'n', don't read the file
         if flag != 'n' and os.path.isfile(self.filename):
@@ -112,6 +113,7 @@ class file_dict(dict):
           if self.mode is not None:
               os.chmod(tempname, self.mode)
           shutil.move(tempname, self.params_filename)    # atomic commit
+        # save meta as json
         if 'meta' in self.keys():
           (fd, tempname) = tempfile.mkstemp()
           outfile = os.fdopen(fd, 'wb')
@@ -125,6 +127,20 @@ class file_dict(dict):
           if self.mode is not None:
               os.chmod(tempname, self.mode)
           shutil.move(tempname, self.meta_filename)    # atomic commit
+        # save info as json
+        if 'info' in self.keys():
+          (fd, tempname) = tempfile.mkstemp()
+          outfile = os.fdopen(fd, 'wb')
+          try:
+              json.dump(self['info'],outfile)
+          except Exception:
+              outfile.close()
+              os.remove(tempname)
+              raise
+          outfile.close()
+          if self.mode is not None:
+              os.chmod(tempname, self.mode)
+          shutil.move(tempname, self.info_filename)    # atomic commit
           
 
     def dump(self, outfile):
