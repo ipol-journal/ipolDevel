@@ -31,8 +31,10 @@ class Terminal(object):
     def get_dict_modules():
         """
         Return a dictionary of the differents IPOL modules as keys, and
-        another dictionary as value, containing two keys: a url (string), and
-        a list of strings representing the commands available to the module.
+        another dictionary as value, containing several keys: a url,
+        the server where the module is, the directory of the module on the
+        server, and a list of strings representing the commands available
+        to the module.
         """
         dict_modules = {}
         tree = ET.parse('modules.xml')
@@ -94,6 +96,9 @@ class Terminal(object):
         if len(args_array) == 0:
             print "Missing module parameter"
             status = False
+        elif args_array[0] not in self.dict_modules.keys():
+            print "Given module doesn't exist."
+            status  = False
         elif command not in self.dict_modules[args_array[0]]["commands"]:
             status = False
             print ("command " + command + " unavailable for module"
@@ -133,25 +138,6 @@ class Terminal(object):
             print "Shutdown : service unreachable."
 
 
-    # def start_module(self, args_array):
-    #     """
-    #     Start specified module.
-    #     """
-    #     if not self.check_module_input("start", args_array):
-    #         return
-
-    #     module = args_array[0]
-    #     try:
-    #         os.chdir(module)
-    #         subprocess.Popen(["python", "main.py", module + ".conf"],
-    #                          stdout=subprocess.PIPE,
-    #                          stderr=subprocess.PIPE)
-    #         os.chdir("..")
-    #         print module + " started !"
-    #     except Exception as ex:
-    #         print ex
-
-
     def start_module(self, args_array):
         """
         Start specified module.
@@ -161,9 +147,7 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            cmd = (" \"cd " + self.dict_modules[module]["path"]
-                   + "&& nohup python " + "main.py " + module + ".conf " +
-                   ">/dev/null &\" ")
+            cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
             os.system("ssh " + self.dict_modules[module]["server"] + cmd + "&")
             print module + " started, try to ping it."
         except Exception as ex:
@@ -206,7 +190,7 @@ class Terminal(object):
         """
         Help of the terminal
         """
-        print "Read the freaking manual" # temporary
+        print "Please read the documentation."
 
 
     def exec_loop(self):
@@ -221,7 +205,6 @@ class Terminal(object):
             "ping" : self.ping_module,
             "info" : self.info_module,
             "modules": self.display_modules,
-            "module": self.display_modules,
             "help" : self.display_help,
             "exit" : self.do_nothing,
             "" : self.do_nothing
