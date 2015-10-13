@@ -1,8 +1,8 @@
 { 
   "general": { 
     "demo_title"            : "The Noise Clinic: a Blind Image Denoising Algorithm",
-    "demo_input_description": "Noise Clinic Automatic Noise Estimation and Denoising.<br/><br/>The test images are divided into three groups:<br/><br/><ul><li>Raw images downscaled by 2 to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as '<b>raw</b>'.</li><li>Many noisy images without a known noise model. They might have suffered all kind of alterations.</li><li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as '<b>no noise</b>'.</li></ul>",
-    "param_title"           : "",
+    "input_description"     : "Noise Clinic Automatic Noise Estimation and Denoising.<br/><br/>The test images are divided into three groups:<br/><br/><ul><li>Raw images downscaled by 2 to have one raw value (R, G, B) at each pixel. Their raw values are multiplied by 32 in order to be able to visualize them. In the list, they are are refered to as '<b>raw</b>'.</li><li>Many noisy images without a known noise model. They might have suffered all kind of alterations.</li><li>High SNR raw images, downscaled by 8 and the color channels averaged, so they are nearly noiseless. In the list, they are refered to as '<b>no noise</b>'.</li></ul>",
+    "param_description"     : "",
     "input_nb"              : 1,
     "input_max_pixels"      : 10240000,
     "input_max_weight"      : 10485760  ,

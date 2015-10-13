@@ -133,7 +133,7 @@ def CheckDemoDescription(desc):
     return False
 
   # general section
-  required_keys = set([ "demo_title", "demo_input_description", "param_title", "input_nb", "input_max_pixels", "input_max_weight", "input_dtype", "input_ext", "is_test", "xlink_article" ])
+  required_keys = set([ "demo_title", "input_description", "param_description", "input_nb", "input_max_pixels", "input_max_weight", "input_dtype", "input_ext", "is_test", "xlink_article" ])
   if not required_keys.issubset(desc['general'].keys()):
     mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
     print mess

@@ -1,8 +1,8 @@
 { 
   "general": { 
     "demo_title"            : "LSD: a Line Segment Detector",
-    "demo_input_description": "",
-    "param_title"           : "",
+    "input_description"     : "",
+    "param_description"     : "",
     "input_nb"              : 1,
     "input_max_pixels"      : 100000000,
     "input_max_weight"      : 300000000,
@@ -68,13 +68,14 @@
                   "output-INV.png"          : ""
                 },
       "params" :  [  ],
-      "info"   : {  "run_time" : "run time" }
+      "info"   : {  "run_time" : "run time", "version" : "program version" }
     }
   ,
   "run": [
       "convert_png2pgm.py input_0.sel",
       "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
-      "convert_eps2png.py output"
+      "convert_eps2png.py output",
+      "update_config.py"
   ]
 
 }

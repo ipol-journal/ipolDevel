@@ -1,8 +1,8 @@
 { 
   "general": { 
     "demo_title"            : "A Review of Classic Edge Detectors",
-    "demo_input_description": "Review of edge detection algorithms",
-    "param_title"           : "Set the parameters and run the algorithm.<i>Note: rgb images will be converted to grayscale.</i>",
+    "input_description"     : "Review of edge detection algorithms",
+    "param_description"     : "Set the parameters and run the algorithm.<i>Note: rgb images will be converted to grayscale.</i>",
     "input_nb"              : 1,
     "input_max_pixels"      : 100000000,
     "input_max_weight"      : 300000000,
