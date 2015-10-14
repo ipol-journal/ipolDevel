@@ -1,50 +1,66 @@
 \section{The Control Terminal}
 
 \subsection{Introduction}
-The Control Terminal is a small application intended to system administrators which allows to start, stop, and query the status of each module. It is composed of an xml file describing each modules, and of the terminal itself, a python script. \\
+The Control Terminal is a small application intended to system administrators which allows to start, stop, and query the status of each module. It is composed of an XML file describing each modules, and of the terminal itself, a python script. \\
 Upon launch, a prompt will appear, asking the user for a command.
 
 \subsection{Architecture}
-The terminal allows the user to type a variety of commands, for controlling the states of each modules composing the IPOL system. Some take parameters, generally the name of a modules. Every command is coded in the terminal script, and the xml file list for every module, the commands that can be used with this module as parameter.
+The terminal allows the user to type a variety of commands, for controlling the states of each modules composing the IPOL system. Some take parameters, generally the name of a modules. Every command is coded in the terminal script, and the XML file list for every module, the commands that can be used with this module as parameter.
 
 \paragraph{XML file} \hspace{0pt} \\
-The xml file ``modules.xml'' is parsed at the beginning of the execution of the python terminal for storing a dictionnary describing each module. \\
+The XML file ``modules.XML'' is parsed at the beginning of the execution of the python terminal for storing a dictionnary describing each module. \\
 For security purposes, it is important to stress that the IPOL system must be deployed in a way of making this file trusted input : a call to the system() function in the terminal using content of this file open the way to a shell remote exploit if someone were to modify it. \\
 Each module is defined by the attribute ``name'' and contain a variable number of tags : ``url'', ``server'', and ``path'', each describing respectively the url where the services provided by the module can be accessed, the server where the module is, and the path to the modules directory on said server. After that, an undefined number of ``command'' tags allow the module to be given as parameter for said commands. In order to function, the commands start, ping and shutdown.
 
 \paragraph{Structure of the dictionnary parsed from the XML file} \hspace{0pt} \\
-The dictionnary has, as keys, the name of each modules, and as value, another dictionnary with the following keys : ``url'', ``server'', ``path'', ``commands''. All of them but ``commands'' take as value the strings in the XML file server. The last key, ``commands'', takes as value a list of strings, each being a command available to the module. This list contains every string in ``command'' tags in the xml file, plus the string ``info'', which is added automatically. This dictionnary is the only attribute of the terminal object, initiated as ``self.dict\_modules''.
+The dictionnary has, as keys, the name of each modules, and as value, another dictionnary with the following keys : ``url'', ``server'', ``path'', ``commands''. All of them but ``commands'' take as value the strings in the XML file server. The last key, ``commands'', takes as value a list of strings, each being a command available to the module. This list contains every string in ``command'' tags in the XML file, plus the string ``info'', which is added automatically. This dictionnary is the only attribute of the terminal object, initiated as ``self.dict\_modules''.
 
 \paragraph{Execution loop} \hspace{0pt} \\
 
+Upon start of the terminal, a ``Terminal'' object is created, the XML file is parsed as described before, then the data is stocked in a dictionnary, as the state of the ``Terminal'' object. This state should not change during the execution. After that, a simple loop is iniated, asking the user for input, evaluating said input and printing the result. For parsing the input, an entry buffer is used, with as key, the strings corresponding to the commands, and as value, the function executing said command (one could argue, the command itself). The input string is split in a list of words, the separation character being the space or `` ``. Then, the first word is given to the entry buffer for determining the function the user want to call, and the rest of the list is passed as parameter, allowing the retrieval of the parameters in the commands functions. \\
+The loop repeat until an EOF indicator is encountered or if the input string is ``exit''. As such, ``exit'' is not a command, and no call to the exit syscall are being made, not allowing for exiting with a given value. \\
+The terminal doesnt possess features such as pipes, redirections and multiples commands given in one input.
+
 \subsection{Commands}
+
 \paragraph{start} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 start <module>
 \end{verbatim}
+The ``start'' command tale a module as parameter, ssh into the server where the module is located, and launch the module using its file start.sh. The command ``ping'' should be launched after for checking if the module is up.
+
 \paragraph{ping} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 ping <module>
 \end{verbatim}
+The ``ping'' command take a module as parameter, and call a webservice for checking if the module is up.
+
 \paragraph{shutdown} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 shutdown <module>
 \end{verbatim}
+The ``shutdown'' command take a module as parameter, and call the webservice for this module to shutdown.
+
 \paragraph{info} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 info <module>
 \end{verbatim}
+The ``info'' command take a module as parameter, and print the list of available commands for this module.
+
 \paragraph{modules} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 modules
 \end{verbatim}
+The ``modules'' command display a list of the modules.
+
 \paragraph{help} \hspace{0pt} \\
 Usage :
 \begin{verbatim}
 help
 \end{verbatim}
+The ``help'' command print the help of the terminal.
