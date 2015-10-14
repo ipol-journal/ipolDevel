@@ -20,9 +20,7 @@
       "type"          : "range",
       "label"         : "th_fded (gradient threshold)",
       "id"            : "th_fded",
-      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
-      "default_value" : "0.1",
-      "value"         : 0.1
+      "values"        : { "min":0.0, "max":1.0, "step":0.005, "default": 0.1}
     },
     {
       "type"          : "label",
@@ -32,9 +30,7 @@
       "type"          : "range",
       "label"         : "&rho; (radius threshold from center of the pixel)",
       "id"            : "rho",
-      "values"        : { "min":"0.0", "max":"0.707", "step":"0.001"},
-      "default_value" : "0.4",
-      "value"         : 0.4
+      "values"        : { "min":0, "max":0.707, "step":0.001, "default": 0.4 }
     },
     {
       "type"          : "label",
@@ -44,25 +40,19 @@
       "type"          : "range",
       "label"         : "&sigma; (blur standard deviation)",
       "id"            : "sigma",
-      "values"        : { "min":"0", "max":"20", "step":"0.1"},
-      "default_value" : "3",
-      "value"         : 3
+      "values"        : { "min":0, "max":20, "step":0.1, "default":3 }
     },
     {
       "type"          : "range",
       "label"         : "n (kernel size)",
       "id"            : "n",
-      "values"        : { "min":"1", "max":"101", "step":"2"},
-      "default_value" : "25",
-      "value"         : 25
+      "values"        : { "min":1, "max":101, "step":2, "default": 25 }
     },
     {
       "type"          : "range",
       "label"         : "tzc (zero-crossing threshold)",
       "id"            : "tzc",
-      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
-      "default_value" : "0.07",
-      "value"         : 0.07
+      "values"        : { "min":0, "max":1, "step":0.005, "default":0.07 }
     },
     {
       "type"          : "label",
@@ -72,25 +62,19 @@
       "type"          : "range",
       "label"         : "&sigma; (blur standard deviation)",
       "id"            : "sigma2",
-      "values"        : { "min":"0", "max":"20", "step":"0.1"},
-      "default_value" : "3",
-      "value"         : 3
+      "values"        : { "min":0, "max":20, "step":0.1, "default":3 }
     },
     {
       "type"          : "range",
       "label"         : "n (kernel size)",
       "id"            : "n2",
-      "values"        : { "min":"1", "max":"101", "step":"2"},
-      "default_value" : "29",
-      "value"         : 29
+      "values"        : { "min":1, "max":101, "step":2, "default": 29 }
     },
     {
       "type"          : "range",
       "label"         : "tzc (zero-crossing threshold)",
       "id"            : "tzc2",
-      "values"        : { "min":"0.0", "max":"1.0", "step":"0.005"},
-      "default_value" : "0.13",
-      "value"         : 0.13
+      "values"        : { "min":0, "max":1, "step":0.005, "default":0.13 }
     },
     {
       "type"          : "label",
@@ -101,8 +85,7 @@
       "type"          : "selection_collapsed", 
       "label"         : "Type of display",
       "values"        : {"Black on white (inverted)":"1", "White on black (normal)":"0"},
-      "default_value" : "1",
-      "value"         : "1"
+      "default_value" : "1"
     }
   ],
   "results": [

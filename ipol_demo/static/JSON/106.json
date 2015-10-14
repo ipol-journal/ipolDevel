@@ -17,46 +17,31 @@
       "id"            : "high_threshold_canny",
       "type"          : "range", 
       "label"         : "Canny high threshold",
-      "values"        : { "min":"0.7", "max":"1.0", "step":"0.05"},
-      "type_format"   : "string",
-      "default_value" : "0.8",
-      "value"         : 0.8
-    },            
+      "values"        : { "min":0.7, "max":1, "step":0.05, "default": 0.8 }
+    },
     {
       "id"            : "initial_distortion_parameter",
       "type"          : "range", 
       "label"         : "Minimum distortion",
-      "values"        : { "min":"-0.5", "max":"4.0", "step":"0.1"},
-      "type_format"   : "string",
-      "default_value" : "0.0",
-      "value"         : 0.0
-    },            
+      "values"        : { "min":-0.5, "max":4.0, "step":0.1, "default": 0 }
+    },
     {
       "id"            : "final_distortion_parameter",
       "type"          : "range", 
       "label"         : "Maximum distortion",
-      "values"        : { "min":"0.0", "max":"4.0", "step":"0.1"},
-      "type_format"   : "string",
-      "default_value" : "3.0",
-      "value"         : 3.0
-    },            
+      "values"        : { "min":0.0, "max":4.0, "step":0.1, "default": 3 }
+    },
     {
       "id"            : "distance_point_line_max_hough",
       "type"          : "range", 
       "label"         : "Max distance lines and associated points",
-      "values"        : { "min":"0.0", "max":"4.0", "step":"0.1"},
-      "type_format"   : "string",
-      "default_value" : "3.0",
-      "value"         : 3.0
-    },            
+      "values"        : { "min":0.0, "max":4.0, "step":0.1, "default": 3 }
+    },
     {
       "id"            : "angle_point_orientation_max_difference",
       "type"          : "range", 
       "label"         : "Max distance edge point and line orientations",
-      "values"        : { "min":"0.0", "max":"45.0", "step":"1.0"},
-      "type_format"   : "string",
-      "default_value" : "2.0",
-      "value"         : 2.0
+      "values"        : { "min":0, "max":45, "step":1, "default": 2 }
     }
   ],
   "results": [

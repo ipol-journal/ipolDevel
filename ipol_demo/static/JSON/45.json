@@ -16,10 +16,15 @@
       "id"            : "percentile",
       "type"          : "selection_collapsed", 
       "label"         : "Percentile",
-      "values"        : {"Auto (algorithm's K)":"-999.999", "0.01%":"0.0001", "0.1%":"0.001", "0.5%":"0.005", "5%":"0.05", "10%":"0.1", "50%":"0.5"},
+      "values"        : { "Auto (algorithm's K)":"-999.999", 
+                          "0.01%":"0.0001", 
+                          "0.1%":"0.001", 
+                          "0.5%":"0.005", 
+                          "5%":"0.05", 
+                          "10%":"0.1", 
+                          "50%":"0.5"},
       "type_format"   : "float",
-      "default_value" : "0.005",
-      "value"         : "0.005"
+      "default_value" : "0.005"
     },
     {
       "id"            : "block",
@@ -27,8 +32,7 @@
       "label"         : "Block",
       "values"        : {"3 x 3":"3", "5 x 5":"5", "7 x 7":"7", "8 x 8":"8", "11 x 11":"11", "15 x 15":"15", "21 x 21":"21"},
       "type_format"   : "float",
-      "default_value" : "8",
-      "value"         : "8"
+      "default_value" : "8"
     },
     {
       "id"            : "mean_type",
@@ -36,8 +40,7 @@
       "label"         : "Mean of blocks computation",
       "values"        : {"Mean":"1", "Median":"2"},
       "type_format"   : "float",
-      "default_value" : "2",
-      "value"         : "2"
+      "default_value" : "2"
     },    
     {
       "id"            : "curvefilter",
@@ -45,27 +48,22 @@
       "label"         : "Curve filter iterations:",
       "values"        : {"None":"0", "1 iteration":"1", "2 iterations":"2", "3 iterations":"3", "4 iterations":"4", "5 iterations":"5", "6 iterations":"6", "7 iterations":"7"},    
       "type_format"   : "float",
-      "default_value" : "5",
-      "value"         : "5"
-    },        
+      "default_value" : "5"
+    },
     {
       "id"            : "removeequals",
       "type"          : "selection_collapsed", 
       "label"         : "Treatment of groups (2x2) of equal pixels",
       "values"        : {"Use all the pixels in the image":"0", "Ignore that kind of pixels":"1"},
       "type_format"   : "float",
-      "default_value" : "1",
-      "value"         : "1"
-    },        
+      "default_value" : "1"
+    },
     {
       "id"            : "bins",
       "type"          : "range", 
       "label"         : "Number of bins (0 = automatic selection)",
-      "values"        : { "min":"0", "max":"150", "step":"1"},
-      "type_format"   : "string",
-      "default_value" : "0",
-      "value"         : 0
-    },            
+      "values"        : { "min":0, "max":150, "step":1, "default":0 }
+    },
     {
       "id"            : "noise_variance",
       "type"          : "label", 
@@ -77,26 +75,16 @@
       "id"            : "anoise",
       "type"          : "range", 
       "label"         : "A",
-      "values"        : { "min":"0.0", "max":"10000.0", "step":"0.1"},
-      "type_format"   : "string",
-      "default_value" : "0",
-      "value"         : 0
+      "values"        : { "min":0, "max":10000, "step":0.1, "default":0 }
     },
     {
       "id"            : "bnoise",
       "type"          : "range", 
       "label"         : "B",
-      "values"        : { "min":"0.0", "max":"39.0", "step":"0.1"},
-      "type_format"   : "string",
-      "default_value" : "0",
-      "value"         : 0
+      "values"        : { "min":0, "max":39, "step":0.1, "default":0 }
     }
   ],
   "results": [
-    {
-      "type"          : "run_again", 
-      "contents"      : "Run"
-    },
     {
       "type"          : "warning", 
       "condition"     : "sizeX * sizeY < 42000",
@@ -108,21 +96,21 @@
       "contents"      : "Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with {{sizeX * sizeY}} pixels<br/>"
     },
     {
-      "type"          : "image",
+      "type"          : "gallery",
       "label"         : "Input image:",
-      "contents"      : "scale_s0.png",
-      "style"         : "width:600px" 
+      "contents"      : { "Input" : "scale_s0.png" },
+      "style"         : "'width:600px'"
     },
     {
       "type"          : "html_text", 
       "contents"      : "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>\nNote that here the image may be showed with a size different from the original to help looking at the results.<br/>"
     },
     {
-      "type"          : "repeat_image",
+      "type"          : "repeat_gallery",
       "repeat"        : "params.scales",
-      "label"         : "'* Noise curve for scale S'+idx+':'",
-      "contents"      : "'curve_s'+idx+'.png'",
-      "style"         : "" 
+      "label"         : "<h3> Noise Curves </h3>",
+      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
+      "style"         : "'height:600px'" 
     },
     {
       "repeat"        : "params.scales",

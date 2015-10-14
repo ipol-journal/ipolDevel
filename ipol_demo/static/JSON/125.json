@@ -17,16 +17,13 @@
       "type"          : "selection_collapsed", 
       "label"         : "Number of scales",
       "values"        : {"one scale":"1", "two scales":"2", "three scales":"3", "four scales":"4", "five scales":"5"},
-      "default_value" : "2",
-      "value"         : "2"
+      "default_value" : "2"
     },
     {
       "id"            : "stdfactor",
       "type"          : "range", 
       "label"         : "Sigma coefficient",
-      "values"        : { "min":"0.5", "max":"2", "step":"0.1"},
-      "default_value" : "1",
-      "value"         : 1
+      "values"        : { "min":0.5, "max":2, "step":0.1, "default": 1 }
     },
     {
       "type"          : "label", 
