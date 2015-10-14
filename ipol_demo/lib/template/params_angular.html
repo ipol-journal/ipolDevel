@@ -33,9 +33,12 @@
               <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td ng-if="param.type==='selection_collapsed'" colspan="2">
-              <span ng-if="params[param.id] !=  undefined">
+<!--              <span ng-if="params[param.id] !=  undefined">
                 <span ng-init="param.value=params[param.id].toString()"> </span>
               </span>
+              <span ng-if="params[param.id] ==  undefined">
+                <span ng-init="param.value=param.default_value"> </span>
+              </span>-->
               <select  ng-model="param.value" name="{{param.id}}"> <!-- use ng-init here? -->
                 <option ng-repeat="(key, value) in param.values" value="{{value}}"> 
                   {{key}} 
@@ -48,18 +51,15 @@
               <label>  <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td ng-if="param.type==='range'" style="width:5em">
-              <span ng-if="params[param.id] !=  undefined">
-                <span ng-init="param.value=params[param.id]"> </span>
-              </span>
-              <input  style="width:100%"  type="number" name="{{param.id}}"
-                      min={{param.values.min}} max={{param.values.max}} 
-                      step={{param.values.step}} 
-                      ng-model="param.value"/>
+            <input  style="width:100%"  type="number" name="{{param.id}}"
+                    min="{{param.values.min}}" max="{{param.values.max}}" 
+                    step="{{param.values.step}}" 
+                    ng-model="param.value"/>
           </td>
           <td ng-if="param.type==='range'" style="width:24em">
               <input  style="width:100%" type="range"  
-                      min={{param.values.min}} max={{param.values.max}} 
-                      step={{param.values.step}} 
+                      min="{{param.values.min}}" max="{{param.values.max}}"
+                      step="{{param.values.step}}"
                       ng-model="param.value" 
                       floatsaving />
           </td>

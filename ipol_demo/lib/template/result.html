@@ -65,27 +65,15 @@
   <h1>Results</h1>
   <br/>
   <span ng-repeat="result in demo.results">
-    <!-- image -->
-    <span ng-if="result.type==='image'"> 
-      <b bind-html-compile="result.label"> </b> <br/>
-      <img ng-src="{{work_url + result.contents}}" style="{{result.style}}" alt="input" />
-      <br/>
-    </span>
-    <!-- repeat_image -->
-    <span ng-if="result.type==='repeat_image'"> 
-      <span ng-repeat="idx in range($eval(result.repeat))">
-        <b>{{$eval(result.label)}}</b> <br/>
-        <img ng-src="{{work_url + $eval(result.contents)}}" style="{{result.style}}" alt="input" />
-        <br/>
-      </span>
-    </span>
     <!-- gallery -->
     <span ng-if="result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
       <div class="gallery" style="{{$eval(result.style)}}">
         <ul class="index">
           <li ng-repeat="(label,image) in result.contents">
-            <a href="#">{{label}} <span><img ng-src="{{work_url+image}}"/> </span></a>
+            <a href="#">{{label}} 
+                <span><img style="{{$eval(result.style)}}" ng-src="{{work_url+image}}"/> </span>
+            </a>
           </li>
         </ul>
       </div>
@@ -94,12 +82,12 @@
     <!-- repeat_gallery -->
     <span ng-if="result.type==='repeat_gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
-      <div class="gallery" >
+      <div class="gallery" style="{{$eval(result.style)}}" >
         <ul class="index">
           <li ng-repeat="idx in range($eval(result.repeat))">
             <a href="#">{{$eval(result.contents[0])}}
               <span ng-if="CheckArray(result.contents[1])===false">
-                <img ng-src="{{work_url+$eval(result.contents[1])}}"/> 
+                <img style="{{$eval(result.style)}}" ng-src="{{work_url+$eval(result.contents[1])}}"/> 
               </span>
               <span ng-if="CheckArray(result.contents[1])">
                 <table border="1">
