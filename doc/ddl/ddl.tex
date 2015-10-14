@@ -15,28 +15,103 @@ following sections.
 {\bf Note:} in JSON format, always use double quotes around keys or string 
 values, not single quotes.
 
+%-------------------------------------------------------------------------------
 \subsection{The \emph{general} section}
 The general section describes global information about the demo. It is a set of 
-(key,value) pairs, described as follows.
-\subsubsection{demo\_title}
-The demo title.
-\subsubsection{demo\_input\_description}
-Description at the top of the input selection page.
-\subsubsection{param\_title}
-Description at the top of the parameters page.
+(key,value) pairs, described in the following table. Many keys are derived from 
+the static variables of the previous 'app' Python class.
 
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ demo\_title         & demo title & yes\\ \hline
+ input\_description  & description at the top of the input selection page 
+                     & yes \\ \hline
+ param\_description  & description at the top of the parameters page & yes
+                      \\ \hline
+ input\_nb           & number of inputs (currently only 1 is supported) & yes\\ 
+\hline
+ input\_max\_pixels & sets the maximal number of pixels of the input image, 
+bigger images will be downsized, if 0 no resizing is done. The resizing as 
+defined in the image class uses python PIL resizing with 'antialias' option. & 
+yes  \\ \hline
+ input\_dtype       & input image expected data type, used as parameter of 
+image.convert() method. Possible values are '1x8i' and '3x8i' which are 
+converted respectively to 'L' and 'RGB' for PIL.& yes  \\ \hline
+ input\_max\_weight & max size (in bytes) of an input file, prevents uploading 
+bigger files. & yes  \\ \hline
+ input\_ext         & input image expected extention (ie. file format) & yes  
+\\ \hline
+ is\_test           & boolean (true/false), if true will be removed from demos 
+if the server is in production mode.& yes  \\ \hline
+ xlink\_article     & defines the link to the article webpage & yes  \\ \hline
+\caption{Keys for the 'general' section ({\em req} means required).}
+\end{longtable}
+
+%-------------------------------------------------------------------------------
 \subsection{The \emph{params} section}
 The params section describes the set of parameters needed by a demo, their 
 constraints and their visual appearance. It is defined as an array of sets, 
 where each set contains (key,value) pairs.
 
-\subsubsection{ \emph{selection\_collapsed} type}
-\subsubsection{ \emph{range} type}
-\subsubsection{ \emph{label} type}
+\subsubsection{Common values}
 
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & parameter type, one of \{ label, range, selection\_collapsed \}.
+                     & yes \\ \hline
+ label & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+\caption{Common keys for the 'params' section ({\em req} means required).}
+\end{longtable}
+
+
+\subsubsection{ \emph{label} type}
+The label type does not need any other value. It can be used as a title to 
+separate groups of parameters.
+
+\subsubsection{ \emph{selection\_collapsed} type}
+
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ id     & parameter name  & yes \\ \hline
+ values & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+ default\_value &  & yes \\ \hline
+ value & & yes \\ \hline
+\caption{Additional keys for the 'selection\_collapsed' type.}
+\end{longtable}
+
+\subsubsection{ \emph{range} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ id     & parameter name  & yes \\ \hline
+ values & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+ default\_value & & yes \\ \hline
+ value & & yes \\ \hline
+\caption{Additional keys for the 'range' type.}
+\end{longtable}
+
+%-------------------------------------------------------------------------------
 \subsection{The \emph{results} section}
 
+%-------------------------------------------------------------------------------
 \subsubsection{ \emph{run\_again} type}
+
 \subsubsection{ \emph{warning} type}
 \subsubsection{ \emph{image} type}
 \subsubsection{ \emph{repeat\_image} type}
@@ -45,6 +120,7 @@ where each set contains (key,value) pairs.
 \subsubsection{ \emph{html\_text} type}
 \subsubsection{ \emph{file\_download} type}
 
+%-------------------------------------------------------------------------------
 \subsection{The \emph{build} section}
 \subsubsection{url}
 The full url link to download the demo source code.

@@ -9,7 +9,7 @@
 
 <div ng-controller="DemoParamCtrl">
 
-  <p> {{demo.general.param_title}} </p>
+  <p> <span ng-bind-html="renderHtml(demo.general.param_description)"> </p>
 
   <br />
 
@@ -30,7 +30,7 @@
           <!--===============================================================-->
           <!-- selection_collapsed type -->
           <td  ng-if="param.type==='selection_collapsed'"> 
-              <label>  {{param.label}} </label>  
+              <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td ng-if="param.type==='selection_collapsed'" colspan="2">
               <span ng-if="params[param.id] !=  undefined">
@@ -45,7 +45,7 @@
           <!--===============================================================-->
           <!-- range type -->
           <td  ng-if="param.type==='range'"> 
-              <label>  {{param.label}} </label>  
+              <label>  <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td ng-if="param.type==='range'" style="width:5em">
               <span ng-if="params[param.id] !=  undefined">
@@ -54,14 +54,12 @@
               <input  style="width:100%"  type="number" name="{{param.id}}"
                       min={{param.values.min}} max={{param.values.max}} 
                       step={{param.values.step}} 
-                      value={{param.default_value}} 
                       ng-model="param.value"/>
           </td>
           <td ng-if="param.type==='range'" style="width:24em">
               <input  style="width:100%" type="range"  
                       min={{param.values.min}} max={{param.values.max}} 
                       step={{param.values.step}} 
-                      value={{param.default_value}} 
                       ng-model="param.value" 
                       floatsaving />
           </td>

@@ -15,6 +15,7 @@ import copy
 import threading
 import time
 import urllib
+from lib.misc import app_expose, ctime
 
 from mako.exceptions import RichTraceback
 from . import http
@@ -25,6 +26,10 @@ from .image import thumbnail, image
 from .misc import prod
 from shutil import rmtree
 import json
+
+import run_demo_base
+from run_demo_base import RunDemoBase
+from run_demo_base import TimeoutError
 
 class AppPool(object):
     """
@@ -176,18 +181,8 @@ def init_app(func):
 
 class base_app(empty_app):
     """ base demo app class with a typical flow """
-    # default class attributes
-    # to be modified in subclasses
-    title = "base demo"
 
-    input_nb = 1 # number of input files
-    input_max_pixels = 1024 * 1024 # max size of an input image
-    input_max_weight = 5 * 1024 * 1024 # max size (in bytes) of an input file
-    input_dtype = '1x8i' # input image expected data type
-    input_ext = '.tiff' # input image expected extention (ie. file format)
-    timeout = 60 # subprocess execution timeout
-    is_test = True
-
+    #---------------------------------------------------------------------------
     def __init__(self, base_dir):
         """
         app setup
@@ -197,6 +192,7 @@ class base_app(empty_app):
         empty_app.__init__(self, base_dir)
         
         self.read_demo_description()
+        self.init_parameters()
         
         cherrypy.log("base_dir: %s" % self.base_dir,
                      context='SETUP/%s' % self.id, traceback=False)
@@ -209,20 +205,48 @@ class base_app(empty_app):
             input_encoding='utf-8',
             output_encoding='utf-8', encoding_errors='replace')
         
+        # expose methods
+        app_expose(base_app.index)
+        app_expose(base_app.input_select)
+        app_expose(base_app.input_upload)
+        # params() is modified from the template
+        app_expose(base_app.params)
+        
 
-    def read_demo_description(self):
+    #---------------------------------------------------------------------------
+    def init_parameters(self):
         """
-        Read the demo description file (JSON format) as a python dictionnary
+        Initialization of general demo parameters
         """
-        # json file
-        description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                           "../static/JSON/{0}.json".format(self.id))
-        try:
-          demo_file = open(description_filename)
-          self.demo_description = json.load(demo_file)
-          demo_file.close()
-        except:
-          cherrypy.log("failed to read JSON demo description")
+        
+        # default class attributes
+        # to be modified in subclasses
+        self.title = "base demo"
+        self.input_nb = 1 # number of input files
+        self.input_max_pixels = 1024 * 1024 # max size of an input image
+        self.input_max_weight = 5 * 1024 * 1024 # max size (in bytes) of an input file
+        self.input_dtype = '1x8i' # input image expected data type
+        self.input_ext = '.tiff' # input image expected extention (ie. file format)
+        self.timeout = 60 # subprocess execution timeout
+        self.is_test = True
+        
+        #-----
+        general_params = self.demo_description["general"]
+        self.title            = general_params["demo_title"]
+        # number of input images
+        self.input_nb         = general_params["input_nb"] 
+        # max size (in pixels) of an input image
+        self.input_max_pixels = general_params["input_max_pixels"]
+        # max size (in bytes) of an input file
+        self.input_max_weight = general_params["input_max_weight"]
+        # input image expected data type
+        self.input_dtype      = general_params["input_dtype"]
+        # input image expected extension (i.e. file format)
+        self.input_ext        = general_params["input_ext"]
+        # switch to False for deployment
+        self.is_test          = general_params["is_test"]
+        self.xlink_article    = general_params["xlink_article"]
+      
 
 
     #
@@ -265,6 +289,7 @@ class base_app(empty_app):
     # INDEX
     #
 
+    #---------------------------------------------------------------------------
     def valid_paths(self, fname):
         '''
         Checks if the given list of paths is safe
@@ -276,6 +301,8 @@ class base_app(empty_app):
         return True
     
 
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
     def index(self):
         """
         demo presentation and input menu
@@ -317,13 +344,14 @@ class base_app(empty_app):
     # INPUT HANDLING TOOLS
     #
 
+    #---------------------------------------------------------------------------
     def save_image(self, im, fullpath):
         '''
         Save image object given full path
         '''
         im.save(fullpath)
 
-
+    #---------------------------------------------------------------------------
     def convert_and_resize(self, im):
         '''
         Convert and resize an image object
@@ -337,9 +365,7 @@ class base_app(empty_app):
             self.log("input resize")
             im.resize(self.input_max_pixels)
 
-
-
-
+    #---------------------------------------------------------------------------
     def process_input(self):
         """
         pre-process the input data
@@ -354,7 +380,6 @@ class base_app(empty_app):
             except IOError:
                 raise cherrypy.HTTPError(400, # Bad Request
                                          "Bad input file")
-
 
             threads = []
 
@@ -377,8 +402,6 @@ class base_app(empty_app):
                 # Copy file (fast)
                 shutil.copy(self.work_dir + 'input_%i' % i,
                             self.work_dir + 'input_%i.orig.png' % i)
-                
-         
 
             # Execute threads and wait for them
             for t in threads:
@@ -417,6 +440,7 @@ class base_app(empty_app):
         return msg
 
 
+    #---------------------------------------------------------------------------
     def clone_input(self):
         """
         clone the input for a re-run of the algo
@@ -448,6 +472,7 @@ class base_app(empty_app):
     # INPUT STEP
     #
 
+    #---------------------------------------------------------------------------
     def input_select_callback(self, fnames):
         '''
         Callback for the users to give the opportunity
@@ -456,6 +481,8 @@ class base_app(empty_app):
         pass # May be redefined by the subclass
 
 
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
     def input_select(self, **kwargs):
         """
         use the selected available input images
@@ -504,6 +531,8 @@ class base_app(empty_app):
         # jump to the params page
         return self2.params(msg=msg, key=self2.key)
 
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
     def input_select_angular(self, **kwargs):
         """
         use the selected available input images
@@ -563,6 +592,7 @@ class base_app(empty_app):
         # jump to the params page
         return self2.params(msg=msg, key=self2.key)
 
+    #---------------------------------------------------------------------------
     def input_upload(self, **kwargs):
         """
         use the uploaded input images
@@ -635,6 +665,7 @@ class base_app(empty_app):
     # EXECUTION AND RESULTS
     #
 
+    @cherrypy.expose
     @init_app
     def wait(self, **kwargs):
         """
@@ -650,30 +681,68 @@ class base_app(empty_app):
                              input=['input_%i.png' % i
                                     for i in range(self.input_nb)])
 
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
     @init_app
     def run(self, **kwargs):
-        """
-        algo execution and redirection to result
-        SHOULD be defined in the derived classes, to check the parameters
-        """
-        # pylint compliance (kwargs *is* used in derived classes)
-        kwargs = kwargs
-        # run the algo
-        # TODO ensure only running once
-        self.run_algo({})
-        # redirect to the result page
-        # use http 303 for transparent non-permanent redirection
-        http.redir_303(self.base_url + 'result?key=%s' % self.key)
-        return self.tmpl_out("run.html")
+      """
+      algo execution and redirection to result
+      """
+      # run the algorithm
+      try:
+          run_time = time.time()
+          self.cfg.save()
+          self.run_algo()
+          self.cfg.Reload()
+          # re-read the config in case it changed during the execution
+          self.cfg['info']['run_time'] = time.time() - run_time
+          self.cfg.save()
+      except TimeoutError:
+          return self.error(errcode='timeout') 
+      except RuntimeError:
+          return self.error(errcode='runtime')
 
-    def run_algo(self, params):
-        """
-        the core algo runner
-        * could also be called by a batch processor
-        * MUST be defined by the derived classes
-        """
-        pass
+      http.redir_303(self.base_url + 'result?key=%s' % self.key)
 
+      # archive
+      if self.cfg['meta']['original']:
+        desc = self.demo_description['archive']
+        ar = self.make_archive()
+        for filename in desc['files']:
+          ar.add_file(filename, desc['files'][filename])
+          
+        # let's add all the parameters
+        for p in desc['params']:
+          ar.add_info({ p: self.cfg['param'][p]})
+          
+        if 'info' in desc.keys():
+          # save info
+          for i in desc['info']:
+            ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
+        ar.save()
+      return self.tmpl_out("run.html")
+    
+
+    #---------------------------------------------------------------------------
+    # Core algorithm runner
+    #---------------------------------------------------------------------------
+    def run_algo(self):
+      """
+      the core algo runner
+      """
+      rd = run_demo_base.RunDemoBase(self.base_dir, self.work_dir)
+      rd.set_logger(cherrypy.log)
+      if 'demo.extra_path' in cherrypy.config:
+        rd.set_extra_path(cherrypy.config['demo.extra_path'])
+      rd.set_algo_params(self.cfg['param'])
+      rd.set_MATLAB_path(self.get_MATLAB_path())
+      rd.set_demo_id(self.id)
+      rd.set_commands(self.demo_description['run'])
+      rd.run_algo()
+      return
+
+
+    #---------------------------------------------------------------------------
     @cherrypy.expose
     @init_app
     def result(self):
@@ -682,6 +751,7 @@ class base_app(empty_app):
         """
         return self.tmpl_out("result.html")
 
+    #---------------------------------------------------------------------------
     def select_subimage(self, x0, y0, x1, y1):
         """
         cut subimage from original image

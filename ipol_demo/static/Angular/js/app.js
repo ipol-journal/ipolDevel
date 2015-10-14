@@ -70,7 +70,7 @@ IPOLDemosApp.directive('floatsaving', function () {
             }
             ngModelCtrl.$parsers.push(function (value) {
                 if (!value || value==='' || isNaN(parseFloat(value)) ) {
-                    value=0;
+                    value='0';
                 }
                 return parseFloat(value);
             });

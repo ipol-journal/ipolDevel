@@ -20,6 +20,7 @@ import cherrypy
 
 from . import archive
 from . import config
+import json
 
 class empty_app(object):
     """
@@ -34,8 +35,10 @@ class empty_app(object):
         look for special subfolders (input, tmp, ...)
         """
         # the demo ID is the folder name
-        self.base_dir = os.path.abspath(base_dir) + os.path.sep
+        self.base_dir = os.path.abspath(base_dir) # + os.path.sep
+        print "self.base_dir is ", self.base_dir
         self.id = os.path.basename(base_dir)
+        print "self.id is ", self.id
 
         # TODO: better key initialization
         self.key = ''
@@ -110,6 +113,23 @@ class empty_app(object):
         else:
             value = object.__getattribute__(self, attr)
         return value
+
+    #---------------------------------------------------------------------------
+    def read_demo_description(self):
+        """
+        Read the demo description file (JSON format) as a python dictionnary
+        """
+        # json file
+        description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                           "../static/JSON/{0}.json".format(self.id))
+        print description_filename
+        try:
+          demo_file = open(description_filename)
+          self.demo_description = json.load(demo_file)
+          demo_file.close()
+        except:
+          cherrypy.log("failed to read JSON demo description {0}".format(description_filename))
+    
 
     def init_key(self, key):
         """

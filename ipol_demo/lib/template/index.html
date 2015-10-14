@@ -26,8 +26,8 @@
       <div id="content">
 	
 	<ul>
-	  % for key in indexd.keys():
-	  <li><a href='./${key}/'>${indexd[key].title}</a></li>
+	  % for key in indexd:
+	  <li><a href='./${key}/'>${indexd[key]["general"]["demo_title"]}</a></li>
 	  % endfor
 	</ul>
 	

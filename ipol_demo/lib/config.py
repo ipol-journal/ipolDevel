@@ -74,6 +74,17 @@ class file_dict(dict):
                 cfgdict[section][option] = value
         return self.update(cfgdict)
 
+    def Reload(self):
+        """
+        reload a config file into the dictionary
+        """
+        infile = open(self.filename, 'rb')
+        try:
+            # update the dict with the file content
+            self.load(infile)
+        finally:
+            infile.close()
+
     def save(self):
         """
         alias to sync()

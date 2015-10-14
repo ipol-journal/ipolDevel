@@ -1,8 +1,15 @@
 { 
   "general": { 
-     "demo_title":  "LSD: a Line Segment Detector",
-     "demo_input_description": "",
-     "param_title": ""
+    "demo_title"            : "LSD: a Line Segment Detector",
+    "input_description"     : "",
+    "param_description"     : "",
+    "input_nb"              : 1,
+    "input_max_pixels"      : 100000000,
+    "input_max_weight"      : 300000000,
+    "input_dtype"           : "1x8i",
+    "input_ext"             : ".pgm",
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/gjmr-lsd/"
   }, 
   "params": [
     {
@@ -49,12 +56,26 @@
       "flags"     : ""
     }
   ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"        : "uploaded image",
+                  "input_0.png"             : "uploaded image in greyscale",
+                  "input_0.sel.png"         : "selected input image",
+                  "output.txt"              : "",
+                  "output.eps"              : "",
+                  "output.svg"              : "",
+                  "output.png"              : "",
+                  "output-INV.png"          : ""
+                },
+      "params" :  [  ],
+      "info"   : {  "run_time" : "run time", "version" : "program version" }
+    }
+  ,
   "run": [
-     "fnoise -A$anoise -B$bnoise input_0.sel.png scale_s0.rgb",
-     "fnoise -A$anoise -B$bnoise -t input_0.sel.png scale_s0.png",
-     "subscale -s2 scale_s0.rgb scale_s1.rgb",
-     "ponomarenko -p$percentile -b$bins -w$block -m$mean_type -g$curvefilter",
-     "writeNoiseCurve.sh estimation_s0.txt 3 curve_s0.png"
+      "convert_png2pgm.py input_0.sel",
+      "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
+      "convert_eps2png.py output",
+      "update_config.py"
   ]
 
 }
