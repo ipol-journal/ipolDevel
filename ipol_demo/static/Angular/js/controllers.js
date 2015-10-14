@@ -71,10 +71,50 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.display_ratio=1;
       $scope.InputCropped=false;
       $scope.CropInfo = { coord:{ x: 0, y:0, w :100, h:100 } };
-      $scope.got_meta=false;
-      $scope.got_param=false;
+      $scope.got_meta = false;
+      $scope.got_param= false;
+      $scope.got_demo = false;
+      $scope.demo     = {};
+      $scope.params   = {};
       
-      $scope.demo = Demo.get( { demoId: $scope.demo_id }, function(demo) { } );
+      $scope.initParams = function($scope) {
+        console.info("initParams");
+        // initialize parameter values
+        angular.forEach($scope.demo.params, 
+          function(param) {
+            console.info(param.type);
+            // range type
+            if (param.type=='range') {
+              if ($scope.params[param.id]==undefined) {
+                param.value = param.values.default;
+              } else {
+                //console.info(param.id,$scope.params[param.id]);
+                param.value = $scope.params[param.id];
+              }
+            }
+            // selection_collapsed type
+            if (param.type=='selection_collapsed') {
+              if ($scope.params[param.id]==undefined) {
+                param.value = param.default_value;
+              } else {
+                //console.info(param.id,$scope.params[param.id]);
+                param.value = $scope.params[param.id].toString();
+              }
+            }
+          }
+        );
+      }
+
+      Demo.get( 
+          { demoId: $scope.demo_id }, 
+          function(demo) { 
+            console.info("getting demo");
+            $scope.got_demo=true;
+            $scope.demo = demo;
+            if ($scope.got_param) $scope.initParams($scope);
+          } 
+        );
+      
       $scope.meta = Meta.get(
         { key: demo_key },
         function(meta) {
@@ -96,7 +136,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         }
         );
 
-      $scope.params = Params.get(
+      Params.get(
         { key: demo_key },
         function(params) { 
           console.info("getting param");
@@ -111,6 +151,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
             };
           }
           $scope.got_param=true;
+          $scope.params = params;
+          if ($scope.got_demo) $scope.initParams($scope);
         }
         );
 
@@ -131,6 +173,7 @@ IPOLDemoControllers.controller('DemoResultCtrl',
     'work_url', 'Demo', 'Params', 'Info',
     function($scope, $sce, demo_id, demo_key, work_url, Demo, Params, Info ) 
     {
+      $scope.Math = window.Math;
       $scope.demo_id = demo_id;
       $scope.work_url = work_url;
       $scope.demo = Demo.get( { demoId: $scope.demo_id }, function(demo) { } );
