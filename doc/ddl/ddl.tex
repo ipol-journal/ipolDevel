@@ -77,66 +77,258 @@ separate groups of parameters.
 
 \subsubsection{ \emph{selection\_collapsed} type}
 
+The values of the selection are stored as strings, so we map each label with a 
+string value. The default value is stored in a separate field.
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
-0.58\linewidth}|c|}
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
+0.6\linewidth}|c|}
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  id     & parameter name  & yes \\ \hline
- values & description of the parameter or contents if type is label. & yes
+ values & set of (key,value) pairs, where the key is the displayed text and the 
+value a string representing the corresponding value, for example \{ 
+``black'':``0'', ``1\%'':``0.01'' \} & yes
                       \\ \hline
- default\_value &  & yes \\ \hline
- value & & yes \\ \hline
+ default\_value & defines the default value for this parameter, should be one 
+the values defined in 'values'. & yes \\ \hline
 \caption{Additional keys for the 'selection\_collapsed' type.}
 \end{longtable}
 
 \subsubsection{ \emph{range} type}
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
-0.58\linewidth}|c|}
+The values of the range type are stored as numbers, so no double quotes are 
+required around the values. The default value is stored with the 'values' field.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
+0.7\linewidth}|c|}
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  id     & parameter name  & yes \\ \hline
- values & description of the parameter or contents if type is label. & yes
+ values & set min,max,step and default values using the following key/value 
+scheme \{ ``min'':val, ``max'':val, ``step'':val, ``default'':val \} & yes
                       \\ \hline
- default\_value & & yes \\ \hline
- value & & yes \\ \hline
 \caption{Additional keys for the 'range' type.}
 \end{longtable}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{results} section}
 
-%-------------------------------------------------------------------------------
-\subsubsection{ \emph{run\_again} type}
 
+The results section also contains an array of sets, where each each contains 
+(key/value) pairs describing one type of output from the algorithm. There are 
+displayed sequentially one below the other, a part from warnings that are 
+displayed at the top of the page. The currently available types are described 
+below. At the top of the results page, the processing time is displayed and the 
+user is proposed to run the demo again with different input or parameters.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
+0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type      & type is one of \{  warning, gallery, repeat\_gallery, html\_text, 
+                                file\_download, text\_file \}  & yes \\ \hline
+\caption{Common keys for the 'results' section.}
+\end{longtable}
+
+
+%------ warning  ------
 \subsubsection{ \emph{warning} type}
-\subsubsection{ \emph{image} type}
-\subsubsection{ \emph{repeat\_image} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
+0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ condition & warning condition evaluated by AngularJS in its 
+the context of the result controler named {\em DemoResultCtrl}. In this 
+context, the user has access, among other variables, to: -'demo' which 
+contains the demo description, - 'params' which contains the current 
+values of all the parameters, - sizeX and sizeY as the input image dimensions.  
+& yes \\ \hline
+ contents  & displayed text, can contain both HTML tags and AngularJS 
+expressions of the form '\{\{expression\}\}'. & \\ \hline
+\caption{Additional keys for the 'warning' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "warning", 
+      "condition": "sizeX * sizeY < XXX",
+      "contents" : "Needs at least XXX pixels ({{sizeX *sizeY}} given) <br/>" },
+\end{lstlisting}
+
+%------ gallery  ------
 \subsubsection{ \emph{gallery} type}
+
+The gallery type uses the gallery class to display images. Its parameters are:
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ label      & & yes \\ \hline
+ contents   & & yes \\ \hline
+ style      & & yes \\ \hline
+\caption{Additional keys for the 'gallery' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "gallery",
+      "label"    : "<h3>Images</h3>",
+      "contents" : { "Input" : "input.png", "Output" : "output.png" },
+      "style"    : "'width:'+sizeY+'px'" },
+\end{lstlisting}
+
+%------ repeat_gallery  ------
 \subsubsection{ \emph{repeat\_gallery} type}
+The repeat\_gallery type is design to display a gallery with a number of images 
+that depend on a parameter, for example the number of scales used by the 
+algorithm.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ label      & & yes \\ \hline
+ repeat     & & yes \\ \hline
+ contents   & & yes \\ \hline
+ style      & & yes \\ \hline
+\caption{Additional keys for the 'repeat\_gallery' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "repeat_gallery",
+      "repeat"   : "params.scales",
+      "label"    : "<h2> Noise Curves </h2>",
+      "contents" : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
+      "style"    : "'height:600px'" },
+\end{lstlisting}
+
+%------ html_text  ------
 \subsubsection{ \emph{html\_text} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ contents   & & yes \\ \hline
+\caption{Additional keys for the 'html\_text' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "html_text", 
+      "contents" : "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>\nNote that here the image may be showed with a size different from the original to help looking at the results.<br/>" },
+\end{lstlisting}
+
 \subsubsection{ \emph{file\_download} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ label      & & yes \\ \hline
+ contents   & & yes \\ \hline
+\caption{Additional keys for the 'file\_download' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "file_download", 
+      "label"    : "Download Hough result",
+      "contents" : "output_hough.png" },
+\end{lstlisting}
+
+\subsubsection{ \emph{text\_file} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ label      & & yes \\ \hline
+ contents   & & yes \\ \hline
+ style      & & yes \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "text_file", 
+      "label"    : "<h2>Additional info<h2>",
+      "contents" : "output.txt",
+      "style"    : "'width:'+sizeX+'px;height:14em'" },
+\end{lstlisting}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{build} section}
-\subsubsection{url}
-The full url link to download the demo source code.
-\subsubsection{srcdir}
-Subdirectory from the extracted archive where the source code is located.
-\subsubsection{binaries}
-List of binaries and their associated paths relative to the source code path.
-\subsubsection{flags}
-Cmake compilation flags.
-\subsubsection{scripts}
-List of scripts and their associated paths relative to the source code path.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ url      & full url link to download the demo source code & yes \\ \hline
+ srcdir   & subdirectory from the extracted archive where the source code is 
+            located & yes \\ \hline
+ binaries & list of binaries and their associated paths relative to the source 
+            code path & yes \\ \hline
+ flags    & make command compilation flags & yes \\ \hline
+ scripts  & list of scripts and their associated paths relative to the source 
+            code path & no  \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+  "build":
+    { "url"      : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
+      "srcdir"   : ".",
+      "binaries" : [ [".","lens_distortion_correction_division_model_1p"] ],
+      "flags"    : "OMP=1 -j4" }
+\end{lstlisting}
+
+\subsection{The \emph{archive} section}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+  "archive":
+    {
+      "files" : 
+        { "input_0.png"                 : "input image",
+          "output_canny.png"            : "Canny",
+          "output_hough.png"            : "Hough",
+          "output_corrected_image.png"  : "Output",
+          "primitives.txt"              : "Primitives"  },
+      "params" :  
+        [ "high_threshold_canny", 
+          "initial_distortion_parameter", 
+          "final_distortion_parameter", 
+          "distance_point_line_max_hough", 
+          "angle_point_orientation_max_difference" ],
+      "info"   : { "run_time": "run time" }
+    }
+\end{lstlisting}
 
 \subsection{The \emph{run} section}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+  "run": [
+     "lens_distortion_correction_division_model_1p input_0.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference primitives.txt"
+  ]
+\end{lstlisting}
+
+\subsection{Full examples}
+
+
 \subsubsection{keywords}
 
-\subsection{Examples}
-
-
-\subsubsection{keywords}
+\section{AngularJS components}
+\subsection{Services}
+\subsection{Controlers}
+\subsection{Templates}
