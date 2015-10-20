@@ -154,6 +154,23 @@ class Terminal(object):
             print ex
 
 
+    def start_all(self, _dummy):
+        """
+        Start all the modules.
+        """
+        for module in self.dict_modules.keys():
+            list_tmp = [module,]
+            self.start_module(list_tmp)
+
+    def stop_all(self, _dummy):
+        """
+        Shutdown all the modules.
+        """
+        for module in self.dict_modules.keys():
+            list_tmp = [module,]
+            self.shutdown_module(list_tmp)
+
+
     def restart_module(self, args_array):
         """
         restart specified module.
@@ -193,18 +210,27 @@ class Terminal(object):
         print "Please read the documentation."
 
 
+    def pull(self, _dummy):
+        """
+        Ssh into ipol2 and pull.
+        """
+        os.system("ssh ipol2 \"cd ipolDevel && it pull\"")
+
     def exec_loop(self):
         """
         Execution loop of the terminal.
         """
         str_input = str()
         entry_buffer = {
+            "startall" : self.start_all,
             "start" : self.start_module,
             "shutdown" : self.shutdown_module,
+            "stopall" : self.stop_all,
             "restart" : self.restart_module,
             "ping" : self.ping_module,
             "info" : self.info_module,
             "modules": self.display_modules,
+            "pull" : self.pull,
             "help" : self.display_help,
             "exit" : self.do_nothing,
             "" : self.do_nothing
