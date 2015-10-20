@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data>
 <module name="archive">
-  <url>http://127.0.0.1:8080/</url>
-  <server>localhost</server>
+  <url>http://boucantrin.ovh.hw.ipol.im:9000/</url>
+  <server>ipol2</server>
   <path>~/ipolDevel/ipol_demo/modules/archive/</path>
   <command>start</command>
   <command>shutdown</command>
