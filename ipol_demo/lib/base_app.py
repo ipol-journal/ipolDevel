@@ -572,14 +572,16 @@ class base_app(empty_app):
                         #self2.work_dir + 'input_%i' % i)
 
         #----- for the moment deal with only one image
+        print "input_select_angular :", kwargs.keys()
         # copy to work_dir
         blobfile = urllib.URLopener()
-        blobfile.retrieve("http://localhost:7777/blob_directory/"+
-                            kwargs.keys()[0], 
-                            self2.work_dir + 'input_0')
+        for (idx,key) in enumerate(kwargs.keys()):
+          blobfile.retrieve("http://localhost:7777/blob_directory/"+
+                              key, 
+                              self2.work_dir + 'input_{0}'.format(idx))
         
         msg = self2.process_input()
-        self2.log("input selected : %s" % kwargs.keys()[0])
+        #self2.log("input selected : %s" % kwargs.keys()[0])
         self2.cfg['meta']['original'] = False
         self2.cfg['meta']['max_width']  = self2.max_width;
         self2.cfg['meta']['max_height'] = self2.max_height;
