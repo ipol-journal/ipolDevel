@@ -1,0 +1,84 @@
+<%include file="header.html" />
+
+<p>
+  The algorithm result is displayed hereafter.
+  It ran in ${"%0.2f" % app.cfg['info']['run_time']}s.
+</p>
+
+<form action="${app.base_url}" method="get">
+  <div class="action">
+    Restart with new input.
+    <input type="submit" value="new input" />
+  </div>
+</form>
+
+<hr />
+
+<h2>Input Images</h2>
+
+<div class="gallery" style="height: ${height}px;">
+  <ul class="index">
+    <li>
+      <a href="#">
+	first image
+	<span>
+	  <img src="${app.work_url + 'input_0.png'}" />
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="#">
+	second image
+	<span>
+	  <img src="${app.work_url + 'input_1.png'}" />
+	</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<h2>Output Rectified Images</h2>
+
+<div class="gallery" style="height: ${height}px;">
+  <ul class="index">
+    <li>
+      <a href="#">
+	first image
+	<span>
+	  <img src="${app.work_url + 'output_0_annotated.png'}" />
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="#">
+	second image
+	<span>
+	  <img src="${app.work_url + 'output_1_annotated.png'}" />
+        </span>
+      </a>
+    </li>
+</ul>
+</div>
+
+<ul>
+  <li>
+    <a href="${app.work_url + 'orsa.txt'}">correspondences</a></li>
+  <li>homography: 
+    <a href="${app.work_url + 'output_0.txt'}">first image</a>,
+    <a href="${app.work_url + 'output_1.txt'}">second image</a>
+  </li>
+  <li>rectified images (without annotations): 
+    <a href="${app.work_url + 'output_0.png'}">first image</a>,
+    <a href="${app.work_url + 'output_1.png'}">second image</a>
+  </li>
+</ul>
+
+<h2>Program Output</h2>
+
+<pre class="stdio">${open(app.work_dir + 'stdout.txt', 'r').read()}</pre>
+
+<hr />
+
+<%include file="archive_info.html" />
+
+<%include file="footer.html" />

@@ -1,0 +1,83 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Quasi-Euclidean Epipolar Rectification",
+    "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+    "param_description"     : "",
+    "enable_crop"           : false,
+    "input_nb"              : 2,
+    "input_max_pixels"      : 1048576,
+    "input_max_weight"      : 5242880,
+    "input_dtype"           : "3x8i",
+    "input_ext"             : ".png",
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/"
+  }, 
+  "params": [
+  ],
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : {   "Canny" : "output_canny.png", 
+                            "Hough" : "output_hough.png",
+                            "Output": "output_corrected_image.png",
+                            "Input" : "input_0.png"},
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h2>Additional info<h2>",
+      "contents"      : "output.txt",
+      "style"         : "'width:'+sizeX+'px;height:14em'"   
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download Canny result",
+      "contents"      : "output_canny.png"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download Hough result",
+      "contents"      : "output_hough.png"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download corrected image",
+      "contents"      : "output_corrected_image.png"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Download primitives",
+      "contents"      : "primitives.txt"
+    }
+  ],
+  "build":
+    {
+      "build_type" : "CMake",
+      "url"        : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
+      "srcdir"     : "MissStereo/src",
+      "binaries"   : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],["bin","sift"],["bin","size"],["bin","showRect"] ],
+      "flags"      : "-j4"
+    }
+  ,
+  "archive":
+    {
+      "files" : { "input_0.png"                 : "input image",
+                  "output_canny.png"            : "Canny",
+                  "output_hough.png"            : "Hough",
+                  "output_corrected_image.png"  : "Output",
+                  "primitives.txt"              : "Primitives"
+                },
+      "params" :  [ "high_threshold_canny", 
+                    "initial_distortion_parameter", 
+                    "final_distortion_parameter", 
+                    "distance_point_line_max_hough", 
+                    "angle_point_orientation_max_difference"],
+      "info"   : { "run_time": "run time" }
+    }
+  ,
+  "run": [
+     "lens_distortion_correction_division_model_1p input_0.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference primitives.txt"
+  ]
+
+}

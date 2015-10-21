@@ -1,0 +1,34 @@
+<%include file="header.html" />
+
+<form action="${app.base_url + 'wait'}" method="get">
+  <div class="action">
+    You can now run the rectification process.
+    <input type="hidden" name="key" value="${app.key}">
+    <input type="submit" value="run" />
+  </div>
+</form>
+
+<h2>Input Images</h2>
+
+<div class="gallery" style="height: 1024px;">
+  <ul class="index">
+    <li>
+      <a href="#">
+	first image
+	<span>
+	  <img src="${app.work_url + 'input_0.png'}" />
+	</span>
+      </a>
+    </li>
+    <li>
+      <a href="#">
+	second image
+	<span>
+	  <img src="${app.work_url + 'input_1.png'}" />
+	</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<%include file="footer.html" />
