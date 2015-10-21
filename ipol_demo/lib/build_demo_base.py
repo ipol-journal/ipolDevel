@@ -12,7 +12,7 @@ import stat
 import urlparse
 from os import path
 from lib import build
-
+import tempfile
 
 #-------------------------------------------------------------------------------
 class BuildDemoBase:
@@ -63,15 +63,36 @@ class BuildDemoBase:
       # delete and create scripts dir
       if path.isdir(self.scripts_dir): shutil.rmtree(self.scripts_dir)
       os.mkdir(self.scripts_dir)
-
-      # build the programs
+      
       programs = self.params['binaries']
-      for program in programs:
-        prog_path=path.join(src_path, program[0])
+      #----- CMAKE build
+      if  ('build_type' in self.params.keys())and\
+          (self.params['type'].upper()=='CMake'.upper()):
+        # Run cmake first:
+        # create temporary build dir IPOL_xxx_build
+        build_dir = path.join(src_path,"__IPOL_build__")
+        os.mkdir(build_dir)
+        # set release mode by default, other options could be added
+        build.run("cmake -D CMAKE_BUILD_TYPE:string=Release "+src_path,
+                  stdout=self.log_file, cwd=build_dir)
         # build
-        build.run("make %s -C %s %s" % ( self.params['flags'], prog_path, program[1]), stdout=self.log_file)
-        # move binary to bin dir
-        shutil.copy(path.join(prog_path, program[1]), path.join(self.bin_dir, program[1]))
+        build.run("make %s " % ( self.params['flags']), 
+                  stdout=self.log_file,cwd=build_dir)
+        # move binaries
+        for program in programs:
+          # move binary to bin dir
+          shutil.copy(path.join(build_dir, program[0], program[1]), 
+                      path.join(self.bin_dir, program[1]))
+      else:
+      #----- MAKE build
+        # build the programs for make
+        for program in programs:
+          prog_path=path.join(src_path, program[0])
+          # build
+          build.run("make %s -C %s %s" % (self.params['flags'], 
+                                          prog_path, program[1]), stdout=self.log_file)
+          # move binary to bin dir
+          shutil.copy(path.join(prog_path, program[1]), path.join(self.bin_dir, program[1]))
 
       if 'scripts' in self.params.keys():
         # Move scripts to the scripts dir
@@ -84,6 +105,7 @@ class BuildDemoBase:
       shutil.rmtree(self.src_dir)
     return
 
+  
   #-----------------------------------------------------------------------------
   def clean(self):
     "Cleaning"
