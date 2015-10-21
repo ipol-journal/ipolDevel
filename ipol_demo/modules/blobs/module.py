@@ -107,7 +107,7 @@ class   Blob(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, demo_id, path, tag, ext, the_set, title, credit):
+    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, title, credit):
         """
         This function implements get request (from '/add_blob_ws')
         It allows to check if demo given by name and blob given by hash
@@ -121,8 +121,8 @@ class   Blob(object):
         :type tag: string
         :param ext: extension of blob
         :type ext: string
-        :param the_set:
-        :type the_set: string
+        :param blob_set:
+        :type blob_set: string
         :param title: title blob
         :type title: string
         :param credit: credit blob
@@ -130,7 +130,9 @@ class   Blob(object):
         :return: hash current blob (dictionnary)
         :rtype: json format
         """
+        print "add_blob_ws"
         hash_blob = get_hash_blob(path)
+        print hash_blob
         fileformat = file_format(path)
         hash_tmp = -1
         dic = {}
@@ -139,23 +141,27 @@ class   Blob(object):
         try:
             data.start_transaction()
             if not data.blob_is_in_database(hash_blob):
-                if data.format_is_good(fileformat):
-                    data.add_blob_in_database(demo_id, hash_blob,
-                                              fileformat, ext, tag,
-                                              the_set, title, credit)
-                    hash_tmp = hash_blob
+              print "not in database"
+              print fileformat
+              if data.format_is_good(fileformat):
+                  data.add_blob_in_database(demo_id, hash_blob,
+                                            fileformat, ext, tag,
+                                            blob_set, title, credit)
+                  hash_tmp = hash_blob
             else:
-                blobid = data.id_blob(hash_blob)
-                data.add_blob_in_database(demo_id, hash_blob, fileformat,
-                                          ext, tag, the_set,
-                                          title, credit, blobid)
+              print "in database"
+              blobid = data.id_blob(hash_blob)
+              data.add_blob_in_database(demo_id, hash_blob, fileformat,
+                                        ext, tag, blob_set,
+                                        title, credit, blobid)
 
             data.commit()
             dic["return"] = "OK"
         except DatabaseError as error:
-            print_exception_function(error, "Cannot add item in database")
-            data.rollback()
-            dic["return"] = "KO"
+          print "Exception ", error
+          print_exception_function(error, "Cannot add item in database")
+          data.rollback()
+          dic["return"] = "KO"
 
         dic["the_hash"] = hash_tmp
 
@@ -175,7 +181,7 @@ class   Blob(object):
         demo = kwargs['demo[id]']
         tag = kwargs['demo[tag]']
         blob = kwargs['demo[blob]']
-        the_set = kwargs['demo[set]']
+        blob_set = kwargs['demo[set]']
         title = kwargs['demo[title]']
         credit = kwargs['demo[credit]']
 
@@ -193,7 +199,7 @@ class   Blob(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(blob, tmp_directory)
-        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, "the_set": the_set,
+        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, "blob_set": blob_set,
                 "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
 
@@ -861,6 +867,7 @@ class   Blob(object):
                 for the_item in list_file:
                     if the_item and the_item in files:
                         title = buff.get(item, 'title')
+                        print "processing:",title
                         try:
                           credit = buff.get(item, 'credit')
                         except:
@@ -870,7 +877,7 @@ class   Blob(object):
                         _, ext = os.path.splitext(tmp_path)
 
                         data = {"demo_id": demo_id, "path": tmp_path, "tag": "",
-                                "ext": ext, "the_set": item, "title": title,
+                                "ext": ext, "blob_set": item, "title": title,
                                 "credit": credit}
                         res = use_web_service('/add_blob_ws/', data)
 
@@ -972,13 +979,13 @@ def file_format(the_file):
     :rtype: string
     """
     # older version of python-magic
-    #mime = magic.Magic()
-    #fileformat = mime.from_file(the_file)
-    #return fileformat[:5]
-    m = magic.open(magic.MAGIC_MIME)
-    m.load()
-    fileformat = m.file(the_file)
+    mime = magic.Magic(mime=True)
+    fileformat = mime.from_file(the_file)
     return fileformat[:5]
+    #m = magic.open(magic.MAGIC_MIME)
+    #m.load()
+    #fileformat = m.file(the_file)
+    #return fileformat[:5]
 
 def instance_database():
     """

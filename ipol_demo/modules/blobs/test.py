@@ -55,13 +55,13 @@ class   Test(threading.Thread):
         print >> self.error_file, res["return"]
 
         data = {"demo_id": i, "path": image, "tag": ["BW", ""], "ext": ".png",
-                "the_set": "", "title": "", "credit": ""}
+                "blob_set": "", "title": "", "credit": ""}
         res = use_web_service('/add_blob_ws', data)
 
         print >> self.error_file, res["return"]
 
         data = {"demo_id": i, "path": image2, "tag": ["BW", ""], "ext": ".png",
-                "the_set": "", "title": "", "credit": ""}
+                "blob_set": "", "title": "", "credit": ""}
         res = use_web_service('/add_blob_ws', data)
         print >> self.error_file, res["return"]
 

@@ -65,7 +65,7 @@ class   Database(object):
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
     def add_blob_in_database(self, demoid, hash_blob, fileformat,
-                             ext, tag, the_set,
+                             ext, tag, blob_set,
                              title, credit, blobid=-1):
         """
         Add hash blob content and format blob in blob column in database
@@ -83,8 +83,8 @@ class   Database(object):
         :type ext: string
         :param tag: name tag
         :type tag: string
-        :param the_set: set of blob
-        :type the_set: string
+        :param blob_set: set of blob
+        :type blob_set: string
         :param title: title blob
         :type title: string
         :param credit: credit blob
@@ -108,7 +108,7 @@ class   Database(object):
                 '''INSERT OR REPLACE INTO
                 blob_demo(id_blob, id_demo, set_blob)
                 VALUES(?, ?, ?)''', \
-                (blobid, demoid, the_set,))
+                (blobid, demoid, blob_set,))
 
         except self.database.Error:
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
@@ -311,21 +311,46 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
+        print "get_blobs_of_demo()"
+        
+        # 
         try:
-            something = self.cursor.execute('''
-            SELECT blob.id, blob.hash, blob.extension, blob.format, blob.title, blob.credit FROM blob
-            INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
+          self.cursor.execute('''
+            SELECT  set_blob, GROUP_CONCAT(id_blob)  FROM blob_demo
             INNER JOIN demo ON blob_demo.id_demo=demo.id
-            WHERE demo.id=?''', \
-            (demo_id,))
+            INNER JOIN blob ON blob_demo.id_blob=blob.id
+            WHERE demo.id=? GROUP BY set_blob ''', (demo_id,))
         except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+          print "exception"
+          raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
-        lis = []
-        for item in something:
-            lis.append({"id": item[0], "hash" : item[1], "extension": item[2],
-                        "format": item[3], "title":item[4], "credit":item[5]})
-        return lis
+        blobsets_list = self.cursor.fetchall()
+        
+        blobset_list = []
+        for blobset in blobsets_list:
+          try:
+            self.cursor.execute('''
+              SELECT  blob.id, blob.hash, blob.extension, blob.format, 
+                      blob.title, blob.credit FROM blob_demo
+              INNER JOIN demo ON blob_demo.id_demo=demo.id
+              INNER JOIN blob ON blob_demo.id_blob=blob.id
+              WHERE demo.id=? AND set_blob=?''', (demo_id,blobset[0],))
+          except self.database.Error:
+            print "exception"
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+          
+          blobset_blobs = self.cursor.fetchall()
+          blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
+          for b in  blobset_blobs:
+            # now get blobs of each set
+            blob_list.append(
+                        { "id": b[0], "hash" : b[1], "extension": b[2],
+                          "format": b[3], "title":b[4], "credit":b[5] }
+                      )
+          blobset_list.append(blob_list)
+        
+        print blobset_list
+        return blobset_list
 
     def get_demo_name_from_id(self, demo_id):
         """
