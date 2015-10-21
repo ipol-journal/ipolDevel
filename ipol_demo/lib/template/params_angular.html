@@ -20,7 +20,7 @@
       <!--===================================================================-->
       <table  style="float:left"> 
         <!--=================================================================-->
-        <tr>
+        <tr ng-if="demo.params.length>0">
           <th style="width:24em"> <b>Parameter description</b> </th> 
           <th colspan="2"> <b>Select value</b> </th> 
         </tr>
@@ -81,7 +81,6 @@
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
-        <div ng-init="selected_image_link='tmp/'+'${app.key}'+'/input_0.png'">
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
             <input  id="ID_InputCropped" type="checkbox" 
@@ -91,13 +90,24 @@
                     > Enable Crop <br>
 
           <div ng-if="!InputCropped" >
-            <img  id="original_image"
-                  crossOrigin="Anonymous"
-                  ng-src="{{selected_image_link}}"
-                  style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
-                  alt={{selected_image}}
-                  styleParent
-                  />
+            <div class="gallery" style="height:{{imheight+5}}px;">
+              <ul class="index">
+                <li ng-repeat="idx in range(demo.general.input_nb)">
+                  <a href="#">
+                    Image {{idx+1}}
+                    <span>
+                      <img  id="original_image"
+                            crossOrigin="Anonymous"
+                            ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
+                            style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                            alt={{selected_image}}
+                            styleParent
+                            />
+                    </span>
+                  </a>
+                </li>
+              </ul>
+            </div>
             <input type="hidden" name="x0" value="0">              
             <input type="hidden" name="y0" value="0">
             <input type="hidden" name="x"  value="{{imwidth-1}}">
@@ -115,7 +125,7 @@
                       class="cropArea" >
                     <img-crop  
                               crossOrigin="Anonymous"
-                              image="selected_image_link"
+                              image="crop_image_url"
                               result-image="myCroppedImage"
                               change-on-fly="true"
                               area-type="{{type}}"
@@ -153,13 +163,25 @@
         </span> <!-- if crop enabled -->
 
         <span ng-if="(demo.general.enable_crop!==undefined)&&(demo.general.enable_crop===false)">
-          <img  id="original_image"
-                crossOrigin="Anonymous"
-                ng-src="{{selected_image_link}}"
-                style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
-                alt={{selected_image}}
-                styleParent
-                />
+          <div class="gallery" style="height:{{imheight*display_ratio+5}}px;">
+            <ul class="index">
+              <li ng-repeat="idx in range(demo.general.input_nb)">
+                <a href="#">
+                  Image {{idx+1}}
+                  <span>
+                    <img  id="original_image"
+                          crossOrigin="Anonymous"
+                          ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
+                          style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
+                          alt={{selected_image}}
+                          styleParent
+                          />
+<!--                       <img src="${app.work_url + 'input_0.png'}" /> -->
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
           <input type="hidden" name="x0" value="0">              
           <input type="hidden" name="y0" value="0">
           <input type="hidden" name="x"  value="{{imwidth-1}}">

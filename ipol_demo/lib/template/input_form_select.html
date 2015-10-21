@@ -18,24 +18,30 @@
               ng-model="ShowCredits"  
               ng-init="ShowCredits=false" >
     </form>
-
-    <div ng-repeat="blob in demoblobs.blobs">
+    <div ng-repeat="blob_set in demoblobs.blobs">
       <div  class="select_input"
-            style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left;  height:{{ThumbnailSize}}px; width: {{ThumbnailSize}}px; text-align:center; vertical-align:middle;'>
-        <a  ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob.hash + blob.extension}}">
-        <img
-              style="max-width:{{ThumbnailSize}}px;max-height:{{ThumbnailSize}}px;width:auto;height:auto;vertical-align:middle;"
-              ng-src="http://localhost:7777/thumbnail/thumbnail_{{blob.hash}}{{blob.extension}}"
-              ng-click="selectImage(blob)" 
-              ng-class="{'selected-image': (selected_image === blob)}"
-              alt={{blob.title}}
-              title="{{blob.title+' (credits:'+blob.credit+')'}}"
-              />
+            style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left;  text-align:center; vertical-align:middle;width:{{ThumbnailSize*demo.general.input_nb+10*demo.general.input_nb}}px;height:{{ThumbnailSize}}px; '>
+
+        <a  ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
+        <span ng-repeat="idx in range(1,blob_set[0].size+1)">
+          <div  class="select_input"
+                style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left; width:{{ThumbnailSize}}px; text-align:center; vertical-align:middle;'>
+            <img
+                  style="max-width:{{ThumbnailSize}}px;max-height:{{ThumbnailSize}}px;width:auto;height:auto;vertical-align:middle;"
+                  ng-src="http://localhost:7777/thumbnail/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
+                  ng-click="selectImage(blob_set[idx])" 
+                  ng-class="{'selected-image': (selected_image === blob_set[idx])}"
+                  alt={{blob_set[idx].title}}
+                  title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+')'}}"
+                  />
+            <div ng-if="ShowCredits">
+              <span ng-if="blob_set[idx].credit!=''"><i>  {{blob_set[idx].credit}} </i></span>
+            </div>
+          </div>
+        </span>
         </a>
-        <span>{{blob.title}}</span>
-        <div ng-if="ShowCredits">
-        <span ng-if="blob.credit!=''"><i>  {{blob.credit}} </i></span>
-        </div>
+        <br>
+        <span>{{blob_set[0].set_name}}</span>
       </div>
     </div>
     <div style='clear:both'> </div>
