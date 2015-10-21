@@ -38,3 +38,4 @@ IPOLDemoServices.factory('Info', ['$resource',
       query: {method:'JSONP', params:{key:'key'}, isArray:true}
     });
   }]);
+

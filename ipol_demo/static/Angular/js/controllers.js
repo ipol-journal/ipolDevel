@@ -16,13 +16,37 @@ IPOLDemoControllers.controller('DemoInputCtrl',
     function($scope, $sce, demo_id, Demo, DemoBlobs, Params ) {
 
       $scope.demo_id = demo_id;
-      $scope.demo = Demo.get( { demoId: $scope.demo_id }, function(demo) { } );
+      $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
+            function(demo) { 
+              $scope.PreprocessDemo($scope,demo)
+            } );
       
       $scope.renderHtml = function(html_code)
       {
           return $sce.trustAsHtml(html_code);
       };
-      $scope.demoblobs = DemoBlobs.get( { demoId: $scope.demo_id } );
+      $scope.demoblobs = DemoBlobs.get( { demoId: $scope.demo_id },
+        function(demoblobs) {
+          console.info("*** demoblobs");
+          // preprocess HTML parameters string
+          angular.forEach(demoblobs.blobs, 
+            function(blobset) {
+              blobset[0].html_params=""
+              console.info(blobset[0].set_name);
+              console.info(blobset[0].size);
+              for(var idx=1;idx<=blobset[0].size;idx++) {
+                console.info(blobset[idx].title)
+                if (idx>1) {
+                  blobset[0].html_params = blobset[0].html_params.concat("&");
+                }
+                blobset[0].html_params = blobset[0].html_params.concat(
+                  blobset[idx].hash+blobset[idx].extension);
+              }
+              console.info(blobset[0].html_params);
+            }
+          )
+        }
+      );
       $scope.uploaded_images = [];
       
       $scope.GetBlobUrl =   function($sce, blob) {
@@ -63,6 +87,7 @@ IPOLDemoControllers.controller('DemoInputCtrl',
 IPOLDemoControllers.controller('DemoParamCtrl', 
                               ['$scope', '$sce', '$location', 'demo_id', 'demo_key', 'Demo', 'Meta', 'Params', 
     function($scope, $sce, $location, demo_id, demo_key, Demo, Meta, Params ) {
+      $scope.demo_key = demo_key;
       $scope.demo_id = demo_id;
       $scope.Math = window.Math;
       $scope.maxdim=768;
@@ -109,8 +134,12 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           { demoId: $scope.demo_id }, 
           function(demo) { 
             console.info("getting demo");
+            $scope.PreprocessDemo($scope,demo)
             $scope.got_demo=true;
             $scope.demo = demo;
+            // crop is applied to the first input image only for the moment
+            // we need this string in a variable for the image crop module
+            $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
             if ($scope.got_param) $scope.initParams($scope);
           } 
         );
@@ -176,7 +205,11 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       $scope.Math = window.Math;
       $scope.demo_id = demo_id;
       $scope.work_url = work_url;
-      $scope.demo = Demo.get( { demoId: $scope.demo_id }, function(demo) { } );
+      $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
+        function(demo) { 
+          $scope.PreprocessDemo($scope,demo)
+        } 
+      );
       $scope.params = Params.get( { key: demo_key },
         function(params) {  
           $scope.sizeX = params.x1-params.x0+1;

@@ -56,6 +56,30 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
 }]);
 
 
+/* adding PreprocessDemo function as global */
+IPOLDemosApp.run(['$rootScope', function($rootScope) {
+  $rootScope.PreprocessDemo = function(scope,demo) {
+    //
+    console.info("PreprocessDemo")
+    console.info(demo)
+    console.info(demo.general.input_max_pixels)
+    console.info(demo.general.input_max_weight)
+    if (demo!=undefined) {
+      // do some pre-processing
+      if (angular.isString(demo.general.input_max_pixels)) {
+        demo.general.input_max_pixels = scope.$eval(demo.general.input_max_pixels)
+      }
+      if (angular.isString(demo.general.input_max_weight)) {
+        demo.general.input_max_weight = scope.$eval(demo.general.input_max_weight)
+      }
+      //
+    }
+    console.info(demo.general.input_max_pixels)
+    console.info(demo.general.input_max_weight)
+  };
+}]);
+
+
 /* should go to the directoves.js file ... */
 IPOLDemosApp.directive('floatsaving', function () {
     return {
