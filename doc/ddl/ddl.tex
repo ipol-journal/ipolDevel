@@ -35,18 +35,21 @@ the static variables of the previous 'app' Python class.
 \hline
  input\_max\_pixels & sets the maximal number of pixels of the input image, 
 bigger images will be downsized, if 0 no resizing is done. The resizing as 
-defined in the image class uses python PIL resizing with 'antialias' option. & 
+defined in the image class uses python PIL resizing with 'antialias' option. 
+Input can be a number or a string that will be evaluated in Angular. & 
 yes  \\ \hline
  input\_dtype       & input image expected data type, used as parameter of 
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL.& yes  \\ \hline
  input\_max\_weight & max size (in bytes) of an input file, prevents uploading 
-bigger files. & yes  \\ \hline
+bigger files. Input can be a number or a string that will be evaluated in Angular.
+                    & yes  \\ \hline
  input\_ext         & input image expected extention (ie. file format) & yes  
 \\ \hline
  is\_test           & boolean (true/false), if true will be removed from demos 
 if the server is in production mode.& yes  \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
+ enable\_crop       & enable or disable cropping for this demo, default is true (crop enabled). & no   \\ \hline
 \caption{Keys for the 'general' section ({\em req} means required).}
 \end{longtable}
 
@@ -315,6 +318,11 @@ algorithm.
 \end{lstlisting}
 
 \subsection{The \emph{run} section}
+
+In the command line, you can use \$param\_id to replace the value of a parameter,
+and '$>$output\_file' (without space between '$>$' and the filename) to redirect the
+standard output to a given file, save in the current working directory. The use
+of this indirection ends the command line (any further parameter is ignored).
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
