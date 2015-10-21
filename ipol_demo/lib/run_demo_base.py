@@ -103,15 +103,28 @@ class RunDemoBase:
     
     for cmd in self.commands:
       args = cmd.split()
+      stdout_file = None
       # replace variables
       for i,p in enumerate(args):
         if p[0]=='$':
           args[i] = str(eval(p[1:]))
+        # output file >filename finishes also the build command
+        if p[0]=='>':
+          try:
+            print "opening ", self.work_dir+p[1:]
+            stdout_file = open(self.work_dir+p[1:], 'w')
+          except:
+            print "failed"
+            stdout_file = None
+          del args[i:]
+          # stop the loop
+          break 
+          
       try:
         self.log("running %s" % repr(args),
                   context='SETUP/%s' % self.get_demo_id(), 
                   traceback=False)
-        p = self.run_proc(args)
+        p = self.run_proc(args, stdout=stdout_file)
         self.wait_proc(p)
       except ValueError as e:
         self.log("Error %s" % e,
