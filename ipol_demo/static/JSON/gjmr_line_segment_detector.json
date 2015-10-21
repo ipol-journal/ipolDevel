@@ -40,7 +40,9 @@
     {
       "type"          : "gallery",
       "label"         : "<h2>Images</h2>",
-      "contents"      : { "Output":"output-inv.png", "Input":"input_0.sel.png"},
+      "contents"      : { "Output":"output.png",
+                          "Output inv":"output-inv.png", 
+                          "Input":"input_0.sel.png"},
       "style"         : "'height:'+sizeY+'px'" 
     },
     {
