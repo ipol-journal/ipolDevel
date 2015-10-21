@@ -978,14 +978,20 @@ def file_format(the_file):
     :return: format of file (audio, image or video)
     :rtype: string
     """
-    # older version of python-magic
-    mime = magic.Magic(mime=True)
-    fileformat = mime.from_file(the_file)
-    return fileformat[:5]
-    #m = magic.open(magic.MAGIC_MIME)
-    #m.load()
-    #fileformat = m.file(the_file)
-    #return fileformat[:5]
+    # if PIP version
+    if "Magic" in dir(magic):
+      mime = magic.Magic(mime=True)
+      fileformat = mime.from_file(the_file)
+      return fileformat[:5]
+    else:
+      print "This version of magic module is not officially supported by Python"
+      print ", we advise you to install it from PIP."
+      # if dist version
+      if "open" in dir(magic):
+        m = magic.open(magic.MAGIC_MIME)
+        m.load()
+        fileformat = m.file(the_file)
+        return fileformat[:5]
 
 def instance_database():
     """
