@@ -11,29 +11,23 @@
       <input type="file" name="file_${i}" id="file_${i}" size="40" /><br />
       %endfor
       <%
-	 i = app.input_nb - 1
+        i = app.input_nb - 1
       %>
       <label for="file_${i}">input image</label>
       <input type="file" name="file_${i}" id="file_${i}" size="40" />&nbsp;
       <input type="submit" value="upload" />
     </div>
     <p class="note">
-<!--       %if app.input_max_pixels: -->
       <span ng-if="demo.general.input_max_pixels!=undefined"> 
         Images larger than {{demo.general.input_max_pixels}} pixels will be resized.
       </span>
-<!--       %endif -->
-<!--       %if app.input_max_weight: -->
       <span ng-if="demo.general.input_max_pixels!=undefined"> 
         Upload size is limited to {{demo.general.input_max_pixels / (1024 *
         1024)}} MB per image file
         <span ng-if="demo.general.input_max_pixels*demo.general.input_nb> (10 * 1024 * 1024) "> 
-<!--         %if (app.input_max_weight * app.input_nb) > (10 * 1024 * 1024): -->
           and 10MB for the whole upload set
-<!--         %endif -->
         .
       </span>
-<!--       %endif -->
       <br />
       TIFF, JPEG, PNG, GIF, PNM (and 
       <a href="https://tools.ipol.im/wiki/ref/demo_input/">other standard formats</a>)
@@ -44,7 +38,7 @@
       Only upload
       <a href="https://tools.ipol.im/wiki/ref/demo_input/">suitable images</a>.
       See <a href="https://tools.ipol.im/wiki/ref/demo_input/">the copyright
-	and legal conditions</a> for details.
+      and legal conditions</a> for details.
     </p>
   </div>
 </form>

@@ -1,9 +1,7 @@
 <%include file="header.html" />
 
 <p>
-  The algorithm result is displayed hereafter.
-  It ran in ${"%0.2f" % app.cfg['info']['run_time']}s.<br />
-  You can run again this algorithm with new data.
+  Execution time: ${"%0.2f" % app.cfg['info']['run_time']} seconds.<br />
 </p>
 
 
@@ -29,9 +27,8 @@
 
   <!-- ===== Rerun ===== -->
   <div class="action">
-    Restart with new input data, different parameter or different subimage:
     <form style="display:inline;" action="${app.base_url}" method="get">
-      <input type="submit" value="new input" />
+      <input type="submit" value="Restart with new input data." />
     </form>
       <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
         <input type="hidden" name="key" value="${app.key}">
@@ -40,25 +37,27 @@
           <input  ng-if="param.type!='label'" type="hidden" 
                   name="{{param.id}}" value="{{params[param.id]}}" > 
         </span>
-        <input type="submit" value="different parameters or subimage" />
+        <input type="submit" value="Restart with different parameters and/or subimage." />
       </form>
   </div>
 
 
-  <!-- ===== Display parameters ===== -->
-  <h1>Parameters</h1>
-  <ul ng-repeat="param in demo.params">
-    <span ng-if="param.type==='label'"> 
-      <b> <span  ng-bind-html="renderHtml(param.label)"></span> </b><br />
-    </span>
-    <li ng-if="param.type==='range'"> 
-      <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
-    </li>
-    <li ng-if="param.type==='selection_collapsed'"> 
-      <span  ng-bind-html="renderHtml(param.label)"></span> : 
-      <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
-    </li>
-  </ul>
+  <!-- ===== Display parameters if any ===== -->
+  <span ng-if="demo.params.length>0">
+    <h1>Parameters</h1>
+    <ul ng-repeat="param in demo.params">
+      <span ng-if="param.type==='label'"> 
+        <b> <span  ng-bind-html="renderHtml(param.label)"></span> </b><br />
+      </span>
+      <li ng-if="param.type==='range'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
+      </li>
+      <li ng-if="param.type==='selection_collapsed'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : 
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+      </li>
+    </ul>
+  </span>
 <!--   <hr /> -->
 
   <!-- ===== Results ===== -->
