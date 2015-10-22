@@ -80,7 +80,8 @@ def do_build(demo_dict,clean):
           bd.clean()
         else:
           bd.make()
-      except Exception:
+      except Exception as e:
+        print "Build failed with exception ",e
         cherrypy.log("build failed (see the build log)",
                       context='SETUP/%s' % demo_id,
                       traceback=False)
