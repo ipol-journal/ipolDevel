@@ -1,0 +1,130 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Automatic Homographic Registration of a Pair of Images, with A Contrario Elimination of Outliers",
+    "input_description"     : "Please select or upload the image pair to register.",
+    "param_description"     : "Choose the precision (in pixels) and run the registration process.",
+    "enable_crop"           : true,
+    "input_nb"              : 2,
+    "input_max_pixels"      : "1600*1200",
+    "input_max_weight"      : 5242880,
+    "input_dtype"           : "3x8i",
+    "input_ext"             : ".png",
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/mmm-oh/",
+    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+                                "badparams",
+                                "The images must have the same size" ]
+  }, 
+  "build":
+    {
+      "build_type"    : "CMake",
+      "url"           : "http://www.ipol.im/pub/art/2012/mmm-oh/OrsaHomography_20120515.tar.gz", 
+      "srcdir"        : "OrsaHomography_20120515/src",
+      "prepare_cmake" : "sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' demo/libImage/CMakeLists.txt",
+      "binaries"      : [ ["demo","demo_orsa_homography"] ],
+      "flags"         : "-j4"
+    }
+  ,
+  "params": [  
+    {
+      "id"            : "precision",
+      "type"          : "selection_collapsed", 
+      "label"         : "precision (in pixels)",
+      "values"        : { "arbitrary":"arbitrary", 
+                          "5":"5", 
+                          "2":"2", 
+                          "1":"1", 
+                          "0.5":"0.5"
+                         },
+      "default_value" : "arbitrary"
+    },
+    {
+      "id"            : "SiftRatio",
+      "type"          : "selection_collapsed", 
+      "label"         : "SIFT ratio (higher=more matches)",
+      "values"        : { "0.6":"0.6", 
+                          "0.8":"0.8", 
+                          "1"  :"1", 
+                          "1.1":"1.1" 
+                          },
+      "default_value" : "0.6"
+    }
+  ],
+  "run": [
+      "demo_orsa_homography input_0.png input_1.png match.txt matchOrsa.txt inliers.png outliers.png panorama.png registered_0.png registered_1.png"
+  ]
+  ,
+  "config":
+    {
+      "info_from_file": {  "homography_1" : "output_0.txt",
+                           "homography_2" : "output_1.txt"
+                        }
+    }
+  ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"        : "uploaded #1",
+                  "input_1.orig.png"        : "uploaded #2",
+                  "input_0.png"             : "input #1",
+                  "input_1.png"             : "input #2",
+                  "output_0_annotated.png"  : "output #1, annotated",
+                  "output_1_annotated.png"  : "output #2, annotated",
+                  "output_0.png"            : "output #1",
+                  "output_1.png"            : "output #2"
+                },
+      "compressed_files" : {
+                  "orsa.txt"                : ""
+                },
+      "params" :  [ ],
+      "info"   : {  "homography_1": "homography #1",  
+                    "homography_2": "homography #2"
+                  }
+  },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Input Images</h2>",
+      "contents"      : {   "first image"  : "input_0.png", 
+                            "second image" : "input_1.png" },
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Output Rectified Images</h2>",
+      "contents"      : {   "first image"  : "output_0_annotated.png", 
+                            "second image" : "output_1_annotated.png" },
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Correspondences",
+      "contents"      : "orsa.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Homography 1st image",
+      "contents"      : "output_0.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Homography 2nd image",
+      "contents"      : "output_1.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Rectified images (without annotations) 1st image",
+      "contents"      : "output_0.png"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Rectified images (without annotations) 2nd image",
+      "contents"      : "output_1.png"
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h2>Program Output<h2>",
+      "contents"      : "stdout.txt",
+      "style"         : "'width:50em;height:25em'"
+    }
+  ]
+}

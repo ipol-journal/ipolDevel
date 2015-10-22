@@ -11,12 +11,7 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/gjmr-lsd/"
   }, 
-  "params": [
-    {
-      "type"          : "label", 
-      "label"         : " <label>This algorithm is fully automatic!</label>"
-    }
-  ],
+  "params": [  ],
   "results": [
     {
       "type"          : "html_text", 
@@ -58,6 +53,13 @@
       "flags"     : ""
     }
   ,
+  "run": [
+      "convert_png2pgm.py input_0.sel",
+      "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
+      "convert_eps2png.py output",
+      "update_config.py"
+  ]
+  ,
   "archive":
     {
       "files" : { "input_0.orig.png"        : "uploaded image",
@@ -72,12 +74,5 @@
       "params" :  [  ],
       "info"   : {  "run_time" : "run time", "version" : "program version" }
     }
-  ,
-  "run": [
-      "convert_png2pgm.py input_0.sel",
-      "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
-      "convert_eps2png.py output",
-      "update_config.py"
-  ]
 
 }

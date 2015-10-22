@@ -2,7 +2,7 @@
   "general": { 
     "demo_title"            :  "Quasi-Euclidean Epipolar Rectification",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-    "param_description"     : "",
+    "param_description"     : "You can now run the rectification process.",
     "enable_crop"           : false,
     "input_nb"              : 2,
     "input_max_pixels"      : 1048576,
@@ -10,74 +10,107 @@
     "input_dtype"           : "3x8i",
     "input_ext"             : ".png",
     "is_test"               : false,
-    "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/"
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
+    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+                                "badparams",
+                                "The images must have the same size" ]
   }, 
-  "params": [
-  ],
+  "params": [  ],
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      : {   "Canny" : "output_canny.png", 
-                            "Hough" : "output_hough.png",
-                            "Output": "output_corrected_image.png",
-                            "Input" : "input_0.png"},
+      "label"         : "<h2>Input Images</h2>",
+      "contents"      : {   "first image"  : "input_0.png", 
+                            "second image" : "input_1.png" },
       "style"         : "'height:'+sizeY+'px'" 
     },
     {
+      "type"          : "gallery",
+      "label"         : "<h2>Output Rectified Images</h2>",
+      "contents"      : {   "first image"  : "output_0_annotated.png", 
+                            "second image" : "output_1_annotated.png" },
+      "style"         : "'height:'+sizeY+'px'" 
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Correspondences",
+      "contents"      : "orsa.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Homography 1st image",
+      "contents"      : "output_0.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Homography 2nd image",
+      "contents"      : "output_1.txt"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Rectified images (without annotations) 1st image",
+      "contents"      : "output_0.png"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "Rectified images (without annotations) 2nd image",
+      "contents"      : "output_1.png"
+    },
+    {
       "type"          : "text_file", 
-      "label"         : "<h2>Additional info<h2>",
-      "contents"      : "output.txt",
-      "style"         : "'width:'+sizeX+'px;height:14em'"   
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download Canny result",
-      "contents"      : "output_canny.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download Hough result",
-      "contents"      : "output_hough.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download corrected image",
-      "contents"      : "output_corrected_image.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download primitives",
-      "contents"      : "primitives.txt"
+      "label"         : "<h2>Program Output<h2>",
+      "contents"      : "stdout.txt",
+      "style"         : "'width:50em;height:25em'"
     }
   ],
   "build":
     {
-      "build_type" : "CMake",
-      "url"        : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
-      "srcdir"     : "MissStereo/src",
-      "binaries"   : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],["bin","sift"],["bin","size"],["bin","showRect"] ],
-      "flags"      : "-j4"
+      "build_type"    : "CMake",
+      "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
+      "srcdir"        : "MissStereo/src",
+      "prepare_cmake" : "sed -i 's/-Werror//g' libIO/CMakeLists.txt",
+      "binaries"      : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],
+                          ["bin","sift"],["bin","size"],["bin","showRect"] ],
+      "flags"         : "-j4",
+      "scripts"       : [ ["../scripts","MissStereo.sh"], 
+                          ["../scripts","Rectify.sh"]  ]
+    }
+  ,
+  "run": [
+      "Rectify.sh input_0.png input_1.png >stdout.txt 2>&1",
+      "mv input_0.png_input_1.png_pairs_orsa.txt  orsa.txt",
+      "mv input_0.png_h.txt                       output_0.txt",
+      "mv input_1.png_h.txt                       output_1.txt",
+      "mv H_input_0.png                           output_0.png",
+      "mv H_input_1.png                           output_1.png",
+      "mv show_H_input_0.png                      output_0_annotated.png",
+      "mv show_H_input_1.png                      output_1_annotated.png"
+  ]
+  ,
+  "config":
+    {
+      "info_from_file": {  "homography_1" : "output_0.txt",
+                           "homography_2" : "output_1.txt"
+                        }
     }
   ,
   "archive":
     {
-      "files" : { "input_0.png"                 : "input image",
-                  "output_canny.png"            : "Canny",
-                  "output_hough.png"            : "Hough",
-                  "output_corrected_image.png"  : "Output",
-                  "primitives.txt"              : "Primitives"
+      "files" : { "input_0.orig.png"        : "uploaded #1",
+                  "input_1.orig.png"        : "uploaded #2",
+                  "input_0.png"             : "input #1",
+                  "input_1.png"             : "input #2",
+                  "output_0_annotated.png"  : "output #1, annotated",
+                  "output_1_annotated.png"  : "output #2, annotated",
+                  "output_0.png"            : "output #1",
+                  "output_1.png"            : "output #2"
                 },
-      "params" :  [ "high_threshold_canny", 
-                    "initial_distortion_parameter", 
-                    "final_distortion_parameter", 
-                    "distance_point_line_max_hough", 
-                    "angle_point_orientation_max_difference"],
-      "info"   : { "run_time": "run time" }
+      "compressed_files" : {
+                  "orsa.txt"                : ""
+                },
+      "params" :  [ ],
+      "info"   : {  "homography_1": "homography #1",  
+                    "homography_2": "homography #2"
+                  }
     }
-  ,
-  "run": [
-     "lens_distortion_correction_division_model_1p input_0.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference primitives.txt"
-  ]
-
 }
