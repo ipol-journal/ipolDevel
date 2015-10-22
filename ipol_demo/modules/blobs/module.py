@@ -651,24 +651,36 @@ class   Blob(object):
         if res["use_template"]:
             data = {"template": res["use_template"]["name"]}
             template = use_web_service('/get_blobs_from_template_ws', data)
-            for item in template["blobs"]:
-                item["physical_location"] = os.path.join(self.current_directory,
-                                                         self.final_dir,
-                                                         (item["hash"] + item["extension"]))
-                item["url"] = "http://localhost:7777/blob_directory/" + item["hash"] \
-                              + item["extension"]
-                item["url_thumb"] = "http://localhost:7777/thumbnail/" + \
-                                    "thumbnail_" + item["hash"] + item["extension"]
+            for blob_set in template["blobs"]:
+              blob_size = blob_set[0]['size']
+              for idx in range(1,blob_size+1):
+                blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
+                                                      self.final_dir,
+                                                      (blob_set[idx]["hash"] + \
+                                                        blob_set[idx]["extension"]))
+                blob_set[idx]["url"] = "http://localhost:7777/blob_directory/" \
+                                          + blob_set[idx]["hash"] \
+                                          + blob_set[idx]["extension"]
+                blob_set[idx]["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+                                                "thumbnail_" + \
+                                                blob_set[idx]["hash"] + \
+                                                blob_set[idx]["extension"]
 
 
-        for item in res["blobs"]:
-            item["physical_location"] = os.path.join(self.current_directory,
-                                                     self.final_dir,
-                                                     (item["hash"] + item["extension"]))
-            item["url"] = "http://localhost:7777/blob_directory/" + item["hash"] \
-                          + item["extension"]
-            item["url_thumb"] = "http://localhost:7777/thumbnail/" + \
-                                "thumbnail_" + item["hash"] + item["extension"]
+        for blob_set in res["blobs"]:
+          blob_size = blob_set[0]['size']
+          for idx in range(1,blob_size+1):
+            blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
+                                                  self.final_dir,
+                                                  (blob_set[idx]["hash"] + \
+                                                    blob_set[idx]["extension"]))
+            blob_set[idx]["url"] = "http://localhost:7777/blob_directory/" \
+                                      + blob_set[idx]["hash"] \
+                                      + blob_set[idx]["extension"]
+            blob_set[idx]["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+                                            "thumbnail_" + \
+                                            blob_set[idx]["hash"] + \
+                                            blob_set[idx]["extension"]
 
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
