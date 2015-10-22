@@ -102,10 +102,13 @@ class RunDemoBase:
     # TODO: deal with timeout for each command
     
     for cmd in self.commands:
+      print "cmd = ", cmd
       args = cmd.split()
       stdout_file = None
+      stderr_file = None
       # replace variables
       for i,p in enumerate(args):
+        print p
         if p[0]=='$':
           args[i] = str(eval(p[1:]))
         # output file >filename finishes also the build command
@@ -117,19 +120,22 @@ class RunDemoBase:
             print "failed"
             stdout_file = None
           del args[i:]
-          # stop the loop
-          break 
+        # redirect errors to stdout
+        if p=='2>&1':
+          stderr_file = stdout_file
           
       try:
         self.log("running %s" % repr(args),
                   context='SETUP/%s' % self.get_demo_id(), 
                   traceback=False)
-        p = self.run_proc(args, stdout=stdout_file)
+        p = self.run_proc(args, stdout=stdout_file, stderr=stderr_file)
         self.wait_proc(p)
       except ValueError as e:
         self.log("Error %s" % e,
                   context='SETUP/%s' % self.get_demo_id(), 
                   traceback=False)
+      if stdout_file!=None:
+        stdout_file.close()
         
 
   #-----------------------------------------------------------------------------

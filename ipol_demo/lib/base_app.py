@@ -369,6 +369,8 @@ class base_app(empty_app):
     def process_input(self):
         """
         pre-process the input data
+        we suppose that config has been initialized, and save the dimensions
+        of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
         msg = None
         self.max_width = 0
@@ -437,6 +439,8 @@ class base_app(empty_app):
                 msg = "The image has been resized for a reduced computation time."
             self.max_width  = max(self.max_width,im_converted.size[0])
             self.max_height = max(self.max_height,im_converted.size[1])
+            self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
+            self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
         return msg
 
 
@@ -625,14 +629,16 @@ class base_app(empty_app):
         msg = self.process_input()
         self.log("input uploaded")
         self.cfg['meta']['original'] = True
+        self.cfg['meta']['max_width']  = self.max_width;
+        self.cfg['meta']['max_height'] = self.max_height;
         self.cfg.save()
         # jump to the params page
         return self.params(msg=msg, key=self.key)
 
+    #---------------------------------------------------------------------------
     #
     # ERROR HANDLING
     #
-
     def error(self, errcode=None, errmsg=''):
         """
         signal an error
@@ -659,6 +665,23 @@ class base_app(empty_app):
         """
         configure the algo execution
         """
+
+        # First check if input is OK
+        if 'input_condition' in self.demo_description['general'].keys():
+          condition = self.demo_description['general']['input_condition']
+          # Get all image sizes
+          for i in range(self.input_nb):
+            exec("input{0}_size_x = self.cfg['meta']['input{0}_size_x']".format(i) )
+            exec("input{0}_size_y = self.cfg['meta']['input{0}_size_y']".format(i) )
+          try:
+            inputs_ok = eval(condition[0])
+            if not(inputs_ok):
+              return self.error(condition[1],condition[2])
+          except:
+            print "Failed to evaluate input condition"
+        else:
+          print "no input condition"
+        
         if newrun:
             self.clone_input()
         return self.tmpl_out("params_angular.html", msg=msg)
@@ -706,16 +729,40 @@ class base_app(empty_app):
 
       http.redir_303(self.base_url + 'result?key=%s' % self.key)
 
+      # check if new config fields
+      if 'config' in self.demo_description.keys():
+        desc = self.demo_description['config']
+        info_changed = False
+        if 'info_from_file' in desc.keys():
+          for info in desc['info_from_file']:
+            filename = desc['info_from_file'][info]
+            try:
+              f = open( os.path.join(self.work_dir,filename))
+              self.cfg['info'][info] = f.readline()
+              print "Added info ", info, " with value ", self.cfg['info'][info]
+              info_changed = True
+              f.close()
+            except:
+              print "failed to get info ",  info, " from file ", filename
+        if info_changed:
+          self.cfg.save()
+
       # archive
       if self.cfg['meta']['original']:
         desc = self.demo_description['archive']
         ar = self.make_archive()
-        for filename in desc['files']:
-          ar.add_file(filename, desc['files'][filename])
+        if 'files' in desc.keys():
+          for filename in desc['files']:
+            ar.add_file(filename, desc['files'][filename])
+        if 'compressed_files' in desc.keys():
+          for filename in desc['compressed_files']:
+            ar.add_file(filename, desc['compressed_files'][filename], 
+                        compress=True)
           
         # let's add all the parameters
-        for p in desc['params']:
-          ar.add_info({ p: self.cfg['param'][p]})
+        if 'params' in desc.keys():
+          for p in desc['params']:
+            ar.add_info({ p: self.cfg['param'][p]})
           
         if 'info' in desc.keys():
           # save info
