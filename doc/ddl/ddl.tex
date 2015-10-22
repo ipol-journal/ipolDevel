@@ -13,7 +13,8 @@ following sections.
 
 
 {\bf Note:} in JSON format, always use double quotes around keys or string 
-values, not single quotes.
+values, not single quotes. Use can use the following link (or any other validator)
+to check if your JSON code is valid: http://jsonlint.com/.
 
 \ToDo{[Miguel]: Why JSON? XML seems more readable.}
 
@@ -24,15 +25,15 @@ The general section describes global information about the demo. It is a set of
 (key,value) pairs, described in the following table. Many keys are derived from 
 the static variables of the previous 'app' Python class.
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
-0.58\linewidth}|c|}
+\begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 
+0.57\linewidth}|c|}
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  demo\_title         & demo title & yes\\ \hline
  input\_description  & description at the top of the input selection page 
                      & yes \\ \hline
- param\_description  & description at the top of the parameters page & yes
+ param\_description  & description at the top of the para\-meters page & yes
                       \\ \hline
  input\_nb           & number of inputs (currently only 1 is supported) & yes\\ 
 \hline
@@ -300,6 +301,18 @@ algorithm.
 
 \subsection{The \emph{archive} section}
 
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ files    &  & no \\ \hline
+ compres\-sed\_\-files   &  & no \\ \hline
+ params &  & no \\ \hline
+ info    & & no \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
+
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
   "archive":
@@ -323,9 +336,10 @@ algorithm.
 \subsection{The \emph{run} section}
 
 In the command line, you can use \$param\_id to replace the value of a parameter,
-and '$>$output\_file' (without space between '$>$' and the filename) to redirect the
-standard output to a given file, save in the current working directory. The use
-of this indirection ends the command line (any further parameter is ignored).
+and '\textgreater output\_file' (without space between '\textgreater' and the filename) to redirect the
+standard output to a given file, save in the current working directory. 
+If you also want to redirect the standard errors to the same file, use can add 
+'2\textgreater\&1' as another argument.
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
