@@ -214,7 +214,7 @@ class Terminal(object):
         """
         Ssh into ipol2 and pull.
         """
-        os.system("ssh ipol2 \"cd ipolDevel && it pull\"")
+        os.system("ssh ipol2 \"cd ipolDevel && git pull\"")
 
     def exec_loop(self):
         """
