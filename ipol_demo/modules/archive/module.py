@@ -119,7 +119,7 @@ class Archive(object):
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
         self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
-        self.url = "http://127.0.0.1:7777/"
+        self.url = "http://boucantrin.ovh.hw.ipol.im:9000/"
 
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))
