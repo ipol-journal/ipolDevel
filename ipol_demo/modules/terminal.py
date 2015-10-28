@@ -117,16 +117,25 @@ class Terminal(object):
         try:
             urllib.urlopen(self.dict_modules[module]["url"]
                            + "ping")
-            print "Module active, it says pong!"
+            print module + " : Module active, it says pong!"
         except IOError:
-            print "Module unresponsive."
+            print module + " : Module unresponsive."
 
 
-    def shutdown_module(self, args_array):
+    def ping_all(self, _dummy):
         """
-        Shutdown specified module.
+        ping all modules
         """
-        if not self.check_module_input("shutdown", args_array):
+        for module in self.dict_modules.keys():
+            list_tmp = [module,]
+            self.ping_module(list_tmp)
+
+
+    def stop_module(self, args_array):
+        """
+        Stop specified module.
+        """
+        if not self.check_module_input("stop", args_array):
             return
 
         module = args_array[0]
@@ -135,7 +144,7 @@ class Terminal(object):
                            + "shutdown")
             print module + " shut down."
         except IOError:
-            print "Shutdown : service unreachable."
+            print "Stop : service unreachable."
 
 
     def start_module(self, args_array):
@@ -168,14 +177,14 @@ class Terminal(object):
         """
         for module in self.dict_modules.keys():
             list_tmp = [module,]
-            self.shutdown_module(list_tmp)
+            self.stop_module(list_tmp)
 
 
     def restart_module(self, args_array):
         """
         restart specified module.
         """
-        self.shutdown_module(args_array)
+        self.stop_module(args_array)
         self.start_module(args_array)
 
 
@@ -224,10 +233,11 @@ class Terminal(object):
         entry_buffer = {
             "startall" : self.start_all,
             "start" : self.start_module,
-            "shutdown" : self.shutdown_module,
+            "stop" : self.stop_module,
             "stopall" : self.stop_all,
             "restart" : self.restart_module,
             "ping" : self.ping_module,
+            "pingall" : self.ping_all,
             "info" : self.info_module,
             "modules": self.display_modules,
             "pull" : self.pull,

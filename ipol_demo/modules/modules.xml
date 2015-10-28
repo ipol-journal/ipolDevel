@@ -5,7 +5,7 @@
   <server>ipol2</server>
   <path>~/ipolDevel/ipol_demo/modules/archive/</path>
   <command>start</command>
-  <command>shutdown</command>
+  <command>stop</command>
   <command>restart</command>
   <command>ping</command>
 </module>
@@ -14,7 +14,7 @@
   <server>localhost</server>
   <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
   <command>start</command>
-  <command>shutdown</command>
+  <command>stop</command>
   <command>restart</command>
   <command>ping</command>
 </module>
