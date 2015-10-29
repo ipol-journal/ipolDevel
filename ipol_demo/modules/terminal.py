@@ -144,7 +144,7 @@ class Terminal(object):
                            + "shutdown")
             print module + " shut down."
         except IOError:
-            print "Stop : service unreachable."
+            print module + " : stop : service unreachable."
 
 
     def start_module(self, args_array):
