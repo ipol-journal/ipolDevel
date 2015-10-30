@@ -99,8 +99,10 @@
                       <img  id="original_image"
                             crossOrigin="Anonymous"
                             ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                            style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
-                            alt={{selected_image}}
+                            style=" padding:5px;
+                                    max-width:{{maxdim}}px;
+                                    max-height:{{maxdim}}px;
+                                    width:auto;height:auto;"
                             styleParent
                             />
                     </span>
@@ -142,20 +144,22 @@
                   <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
                   <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}">
                   <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}">
-
-                </div>
-
               </td>
-                <td style='vertical-align:middle'>
+              <td style='vertical-align:middle'>
                 <label> Zoom factor </label>
                 <select ng-options="CropSize for CropSize in ['1', '1.5', '2', '4', '8','16']" 
                         ng-model="CropSize" 
                         ng-init="CropSize='1'">
                 </select>
-                  <div ng-show="InputCropped" style="overflow:scroll;width:{{imwidth*display_ratio+20}}px;height:{{imheight*display_ratio+20}}px;" >
-                    <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" width="{{CropInfo.coord.w*CropSize}}" height="{{CropInfo.coord.h*CropSize}}" />
-                  </div>
-                </td>
+                <div  ng-show="InputCropped" 
+                      style=" overflow:scroll;
+                              width:{{imwidth*display_ratio+20}}px;
+                              height:{{imheight*display_ratio+20}}px;" >
+                  <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
+                        width="{{CropInfo.coord.w*CropSize}}" 
+                        height="{{CropInfo.coord.h*CropSize}}" />
+                </div>
+              </td>
             </table>
           </div>
           <div style="clear:both"> </div>
@@ -172,8 +176,9 @@
                     <img  id="original_image"
                           crossOrigin="Anonymous"
                           ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                          style="padding-top:5px; padding-bottom:5px; padding-right:5px; padding-left:5px;max-width:{{maxdim}}px;max-height:{{maxdim}}px;width:auto;height:auto;"
-                          alt={{selected_image}}
+                          style=" padding:5px;max-width:{{maxdim}}px;
+                                  max-height:{{maxdim}}px;
+                                  width:auto;height:auto;"
                           styleParent
                           />
 <!--                       <img src="${app.work_url + 'input_0.png'}" /> -->
@@ -187,10 +192,34 @@
           <input type="hidden" name="x"  value="{{imwidth-1}}">
           <input type="hidden" name="y"  value="{{imheight-1}}">
         </span>
-
-        </div> <!-- ng-init -->
       </div>
     </div> <!-- action -->
+
+    <p ng-if="InputCropped ||(demo.general.input_nb>1)" >
+      <!-- show the remaining images below -->
+      <div class="gallery" 
+            style="height:{{imheight+5}}px;">
+        <ul class="index">
+          <li ng-repeat="idx in range(1,demo.general.input_nb)">
+            <a href="#"> Image {{idx+1}}
+              <span>
+                <img  id="original_image"
+                      crossOrigin="Anonymous"
+                      ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
+                      style=" padding:5px;
+                              max-width:{{maxdim}}px;
+                              max-height:{{maxdim}}px;
+                              width:auto;height:auto;"
+                      alt={{selected_image}}
+                      styleParent
+                      />
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    <p>
+
     <p>
       <input  style="width:60em;height:4em;" type="submit" name="action" value="RUN" />
     <p/>
