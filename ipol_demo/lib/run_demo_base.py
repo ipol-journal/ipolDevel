@@ -2,7 +2,7 @@ import os
 from os import path
 from subprocess import Popen
 import time
-
+import re
 
 #-----------------------------------------------------------------------------
 class TimeoutError(Exception):
@@ -31,6 +31,7 @@ class RunDemoBase:
   def __init__(self,base_dir, work_dir):
     self.base_dir    = base_dir
     self.work_dir    = work_dir
+    self.pytools_dir = os.path.join(self.base_dir,'../../PythonTools/')
     self.bin_dir     = os.path.join(self.base_dir,'bin/')
     self.scripts_dir = os.path.join(self.base_dir,'scripts/')
     self.python_dir  = os.path.join(self.base_dir,'python/')
@@ -105,12 +106,31 @@ class RunDemoBase:
       print "cmd = ", cmd
       args = cmd.split()
       stdout_file = None
-      stderr_file = None
+      stderr_file = open(self.work_dir+"stderr.txt", 'w')
       # replace variables
       for i,p in enumerate(args):
         print p
-        if p[0]=='$':
-          args[i] = str(eval(p[1:]))
+        # 1 replace simple variables
+        v = re.search(r'\$\w+',p)
+        # more complicate, search all variables and replace them
+        if v!=None:
+          while v!=None:
+            p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
+            print "argument number ",i," evaluated to: ",p
+            v = re.search(r'\$\w+',p)
+          args[i] = p
+          
+        # 2 replace more complex expressions, of type ${expression},
+        # where expression does not contain '{' or '}' characters
+        v = re.search(r'\$\{[^\{\}]*\}',p)
+        # more complicate, search all variables and replace them
+        if v!=None:
+          while v!=None:
+            p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
+            print "argument number ",i," evaluated to: ",p
+            v = re.search(r'\$\{[^\{\}]*\}',p)
+          args[i] = p
+
         # output file >filename finishes also the build command
         if p[0]=='>':
           try:
@@ -134,6 +154,18 @@ class RunDemoBase:
         self.log("Error %s" % e,
                   context='SETUP/%s' % self.get_demo_id(), 
                   traceback=False)
+      except RuntimeError:
+        print "**** run_algo: RuntimeError "
+        with open(self.work_dir+"stderr.txt", "r") as errfile:
+          errors=errfile.read()
+        print errors
+        print "***"
+        raise RuntimeError(errors)
+        
+      # the files should close automatically with their scope ...
+      # but we do it anyway just in case
+      if stderr_file!=None and stderr_file!=stdout_file:
+        stderr_file.close()
       if stdout_file!=None:
         stdout_file.close()
         
@@ -164,7 +196,9 @@ class RunDemoBase:
     path = path + ":" + self.scripts_dir
     # add also the python dir
     path = path + ":" + self.python_dir
-    
+    # add also the python tools dir
+    path = path + ":" + self.pytools_dir
+
     # Check if there are extra paths
     if self.get_extra_path()!=None:
       path = path + ":" + self.get_extra_path()
@@ -177,9 +211,27 @@ class RunDemoBase:
                 traceback=False)
     else:
       path = path + ":" + p
-    #
+      
     newenv.update({'PATH' : path})
 
+    # check for pipelines in arguments??
+    # TODO: allow pipelines: more tricky since we need to measure the 
+    # processing time ...
+    #if args.count('|')>1:
+      #self.log("error: only one pipe is allowed in running command line" % p,
+                #context='SETUP/%s' % self.get_demo_id(), 
+                #traceback=False)
+      
+    #if args.count('|')==1:
+      #pipe_pos = args.index('|')
+      #args1 = args[:pipe_pos]
+      #args2 = args[pipe_pos+1:]
+      #p1 = Popen(args1, stdin=stdin,      stdout=PIPE)
+      #p2 = Popen(args2, stdin=p1.stdout,  stdout=PIPE)
+      #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+      #output = p2.communicate()[0]     
+    #else:
+    
     # run
     return Popen(args,  stdin=stdin, stdout=stdout, stderr=stderr,
                         env=newenv, cwd=self.work_dir)
@@ -223,6 +275,10 @@ class RunDemoBase:
       time.sleep(0.1)
           
     if any([0 != p.returncode for p in process_list]):
+      #with open(self.work_dir+"stderr.txt", "r") as errfile:
+        #errors=errfile.read()
+      #raise RuntimeError(errors)
+      #print "**** wait_proc: raising RuntimeError"
       raise RuntimeError
     return
 

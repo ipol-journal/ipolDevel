@@ -229,6 +229,7 @@ class base_app(empty_app):
         self.input_ext = '.tiff' # input image expected extention (ie. file format)
         self.timeout = 60 # subprocess execution timeout
         self.is_test = True
+        self.show_results_on_error = False
         
         #-----
         general_params = self.demo_description["general"]
@@ -246,8 +247,8 @@ class base_app(empty_app):
         # switch to False for deployment
         self.is_test          = general_params["is_test"]
         self.xlink_article    = general_params["xlink_article"]
-      
-
+        if 'show_results_on_error' in general_params:
+          self.show_results_on_error = general_params['show_results_on_error']
 
     #
     # TEMPLATES HANDLER
@@ -643,12 +644,18 @@ class base_app(empty_app):
         """
         signal an error
         """
-        msgd = {'badparams' : 'Error: bad parameters. ',
-                'timeout' : 'Error: execution timeout. '
-                + 'The algorithm took more than %i seconds ' % self.timeout
-                + 'and had to be interrupted. ',
-                'returncode' : 'Error: execution failed. '}
-        msg = msgd.get(errcode, 'Error: an unknown error occured. ') + errmsg
+        msgd = {'badparams'  : 'Error: bad parameters. ',
+                'timeout'    : 'Error: execution timeout. ' +
+                               'The algorithm took more than %i seconds ' % self.timeout +
+                               'and had to be interrupted. ',
+                'returncode' : 'Error: execution failed. ',
+                'runtime'    : 'RuntimeError. ' }
+        if errcode in msgd.keys():
+          msg = msgd[errcode] + errmsg
+        else:
+          msg = errmsg
+        if msg=='':
+          msg = 'Error: an unknown error occured. '
 
         # Extract stack calls to print them in the error template
         # In case of a timeout, don't print the traceback
@@ -715,17 +722,26 @@ class base_app(empty_app):
       """
       # run the algorithm
       try:
-          run_time = time.time()
-          self.cfg.save()
-          self.run_algo()
-          self.cfg.Reload()
-          # re-read the config in case it changed during the execution
-          self.cfg['info']['run_time'] = time.time() - run_time
-          self.cfg.save()
+        run_time = time.time()
+        self.cfg.save()
+        self.run_algo()
+        self.cfg.Reload()
+        # re-read the config in case it changed during the execution
+        self.cfg['info']['run_time'] = time.time() - run_time
+        self.cfg['info']['status']   = 'success'
+        self.cfg.save()
       except TimeoutError:
-          return self.error(errcode='timeout') 
-      except RuntimeError:
-          return self.error(errcode='runtime')
+        return self.error(errcode='timeout') 
+      except RuntimeError as e:
+        print "self.show_results_on_error =", self.show_results_on_error
+        if not(self.show_results_on_error):
+          return self.error(errcode='runtime',errmsg=str(e))
+        else:
+          self.cfg['info']['run_time'] = time.time() - run_time
+          self.cfg['info']['status']   = 'failure'
+          self.cfg['info']['error']    = str(e)
+          self.cfg.save()
+          pass
 
       http.redir_303(self.base_url + 'result?key=%s' % self.key)
 
