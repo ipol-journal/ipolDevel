@@ -5,16 +5,16 @@
   <server>ipol2</server>
   <path>~/ipolDevel/ipol_demo/modules/archive/</path>
   <command>start</command>
-  <command>shutdown</command>
+  <command>stop</command>
   <command>restart</command>
   <command>ping</command>
 </module>
 <module name="blobs">
-  <url>http://127.0.0.1:7777/</url>
-  <server>localhost</server>
+  <url>http://boucantrin.ovh.hw.ipol.im:9001/</url>
+  <server>ipol2</server>
   <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
   <command>start</command>
-  <command>shutdown</command>
+  <command>stop</command>
   <command>restart</command>
   <command>ping</command>
 </module>

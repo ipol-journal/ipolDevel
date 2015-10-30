@@ -65,7 +65,8 @@ class Archive(object):
         if not (cherrypy.config.has_key("blobs_dir") and
                 cherrypy.config.has_key("database_dir") and
                 cherrypy.config.has_key("blobs_thumbs_dir") and
-                cherrypy.config.has_key("logs_dir")):
+                cherrypy.config.has_key("logs_dir") and
+                cherrypy.config.has_key("url")):
             print "Missing elements in configuration file."
             return False
         else:
@@ -119,7 +120,7 @@ class Archive(object):
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
         self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
-        self.url = "http://127.0.0.1:7777/"
+        self.url = cherrypy.config.get("url")
 
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))

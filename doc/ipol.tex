@@ -198,6 +198,26 @@ This section discusses some implementation details and specific configurations n
   \item Description of the general requirements needed for a module to be part of the system (start, ping, and shutdown services ; structure of the general launching scrip...
 \end{itemize}
 
+List of packages used for installing the system. Packages to be installed with sudo apt-get install :
+
+\begin{itemize}
+\item python2.7
+\item wget: to donwload files
+\item cmake: to create a multiplatform Makefile easily
+\item libtiff5-dev, libjpeg-dev, libpng-dev: open and write TIFF, JPEG, PNG files.
+\item libfftw3-dev: fast DFT operations
+\item libgsl0-dev, libeigen3-dev, liblapack-dev, libblas-dev: linear algebra
+\item python, python-cherrypy3, python-mako, python-imaging: Python language, webserver, web templating, Python imaging
+\item gnuplot, gnuplot-nox: to draw figures
+\item python-pip: to install python packages. 
+\item python-yaml: for parsing
+\item
+\end{itemize}
+Packages to be installed with pip install :
+\begin{itemize}
+\item python-magic
+\end{itemize}
+
 Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
 Integrate Openseedragon, \url{https://openseadragon.github.io/}
