@@ -100,7 +100,7 @@
                           "Marr-Hildreth"     : "out_mh.png",
                           "Marr-Hildreth-log" : "out_mhl.png"
                         },
-      "style"         : "'height:'+sizeY+'px'" 
+      "style"         : "height:{{sizeY}}px" 
     }
   ],
   "build":

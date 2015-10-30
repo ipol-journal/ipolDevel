@@ -38,7 +38,7 @@
       "contents"      : { "Output":"output.png",
                           "Output inv":"output-inv.png", 
                           "Input":"input_0.sel.png"},
-      "style"         : "'height:'+sizeY+'px'" 
+      "style"         : "height:{{sizeY}}px" 
     },
     {
       "type"          : "html_text", 
