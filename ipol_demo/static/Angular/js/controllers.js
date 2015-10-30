@@ -195,13 +195,30 @@ IPOLDemoControllers.controller('DemoParamCtrl',
   ]
 );
 
+/*---------------- DemoWaitCtrl --------------------------------------------*/
+IPOLDemoControllers.controller('DemoWaitCtrl',
+  [ '$scope','$timeout',
+    function($scope,$timeout) 
+    {
+      $scope.counter = 0;
+      $scope.onTimeout = function(){
+          $scope.counter++;
+          mytimeout = $timeout($scope.onTimeout,1000);
+      }
+      var mytimeout = $timeout($scope.onTimeout,1000);
+    }
+  ]
+);
 
 /*---------------- DemoResultCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoResultCtrl', 
   [ '$scope', '$sce', 'demo_id', 'demo_key', 
-    'work_url', 'Demo', 'Params', 'Info',
-    function($scope, $sce, demo_id, demo_key, work_url, Demo, Params, Info ) 
+    'work_url', 'Demo', 'Meta', 'Params', 'Info',
+    function($scope, $sce, demo_id, demo_key, work_url, Demo, Meta ,Params, Info ) 
     {
+      $scope.idx = 0;
+      $scope.maxdim=768;
+      $scope.current_scope = $scope;
       $scope.Math = window.Math;
       $scope.demo_id = demo_id;
       $scope.work_url = work_url;
@@ -217,6 +234,15 @@ IPOLDemoControllers.controller('DemoResultCtrl',
         }
       );
       
+      $scope.meta = Meta.get(
+        { key: demo_key },
+        function(meta) {
+          $scope.imwidth  = meta.max_width;
+          $scope.imheight = meta.max_height;
+          $scope.display_ratio=($scope.imwidth < $scope.maxdim)?1:$scope.maxdim/$scope.imwidth;
+        }
+      );
+      
       $scope.info = Info.get( { key: demo_key }, function(info) { } );
       
       $scope.renderHtml = function(html_code)
@@ -228,6 +254,12 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       {
         return angular.isArray(v);
       };
+      
+      $scope.DisableImage = function(contents,index)
+      {
+        contents[Object.keys(contents)[index]] = "-- disabled --";
+      }
+      
     }
   ]
 );

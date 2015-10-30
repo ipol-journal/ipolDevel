@@ -53,6 +53,9 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
         // returning the generated array
         return output;
     };
+    $rootScope.Utils = {
+      keys : Object.keys
+    };
 }]);
 
 
@@ -144,3 +147,18 @@ IPOLDemosApp.directive('bindHtmlCompile', ['$compile', function ($compile) {
     }
   };
 }]);
+
+IPOLDemosApp.directive('imageonfail', function() {
+  return {
+    restrict: 'A',
+    link: function(scope, element, attrs) {
+//         element.bind('load', function() {
+//           // do something
+//           ;
+//         });
+        element.bind('error', function(){
+          scope.$apply(attrs.imageonfail);
+        });
+    }
+  };
+});
