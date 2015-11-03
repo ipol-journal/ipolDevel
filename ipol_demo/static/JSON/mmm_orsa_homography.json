@@ -11,16 +11,14 @@
     "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/mmm-oh/",
-    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
-                                "badparams",
-                                "The images must have the same size" ]
+    "show_results_on_error" : true
   }, 
   "build":
     {
       "build_type"    : "CMake",
       "url"           : "http://www.ipol.im/pub/art/2012/mmm-oh/OrsaHomography_20120515.tar.gz", 
       "srcdir"        : "OrsaHomography_20120515/src",
-      "prepare_cmake" : "sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' demo/libImage/CMakeLists.txt",
+      "prepare_cmake" : "sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' demo/libImage/CMakeLists.txt; sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' third_party/png/CMakeLists.txt",
       "binaries"      : [ ["demo","demo_orsa_homography"] ],
       "flags"         : "-j4"
     }
@@ -30,16 +28,16 @@
       "id"            : "precision",
       "type"          : "selection_collapsed", 
       "label"         : "precision (in pixels)",
-      "values"        : { "arbitrary":"arbitrary", 
+      "values"        : { "arbitrary":"0", 
                           "5":"5", 
                           "2":"2", 
                           "1":"1", 
                           "0.5":"0.5"
                          },
-      "default_value" : "arbitrary"
+      "default_value" : "0"
     },
     {
-      "id"            : "SiftRatio",
+      "id"            : "siftratio",
       "type"          : "selection_collapsed", 
       "label"         : "SIFT ratio (higher=more matches)",
       "values"        : { "0.6":"0.6", 
@@ -51,13 +49,15 @@
     }
   ],
   "run": [
-      "demo_orsa_homography input_0.png input_1.png match.txt matchOrsa.txt inliers.png outliers.png panorama.png registered_0.png registered_1.png"
+      "demo_orsa_homography input_0.png input_1.png match.txt matchOrsa.txt inliers.png outliers.png panorama.png registered_0.png registered_1.png -p $precision -s $siftratio -c ${x1-x0+1}x${y1-y0+1}+$x0+$y0 >stdout.txt",
+      "count_lines.py matchOrsa.txt nb_inliers.txt",
+      "count_lines.py match.txt     nb_matches.txt"
   ]
   ,
   "config":
     {
-      "info_from_file": {  "homography_1" : "output_0.txt",
-                           "homography_2" : "output_1.txt"
+      "info_from_file": {  "inliers" : "nb_inliers.txt",
+                           "matches" : "nb_matches.txt"
                         }
     }
   ,
@@ -67,64 +67,57 @@
                   "input_1.orig.png"        : "uploaded #2",
                   "input_0.png"             : "input #1",
                   "input_1.png"             : "input #2",
-                  "output_0_annotated.png"  : "output #1, annotated",
-                  "output_1_annotated.png"  : "output #2, annotated",
-                  "output_0.png"            : "output #1",
-                  "output_1.png"            : "output #2"
+                  "outliers.png"            : "outliers image",
+                  "inliers.png"             : "inliers image (if success)",
+                  "panorama.png"            : "panorama (if success)",
+                  "registered_0.png"        : "registered image #1 (if success)",
+                  "registered_1.png"        : "registered image #2 (if success)"
                 },
       "compressed_files" : {
-                  "orsa.txt"                : ""
+                  "match.txt"               : "",
+                  "matchOrsa.txt"           : "",
+                  "stdout.txt"              : ""
                 },
       "params" :  [ ],
-      "info"   : {  "homography_1": "homography #1",  
-                    "homography_2": "homography #2"
+      "info"   : {  
+                    "x0": "x0",  
+                    "y0": "y0",  
+                    "x1": "x1",  
+                    "y1": "y1",  
+                    "precision": "precision", 
+                    "siftratio": "siftration"
                   }
   },
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Input Images</h2>",
-      "contents"      : {   "first image"  : "input_0.png", 
-                            "second image" : "input_1.png" },
-      "style"         : "'height:'+sizeY+'px'" 
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Output Rectified Images</h2>",
-      "contents"      : {   "first image"  : "output_0_annotated.png", 
-                            "second image" : "output_1_annotated.png" },
-      "style"         : "'height:'+sizeY+'px'" 
+      "label"         : "<h2>Resulting Images</h2>",
+      "contents"      : {
+                          "Panorama"                   : "panorama.png", 
+                          "Reg. image 1"               : "registered_0.png",
+                          "Reg. image 2"               : "registered_1.png",
+                          "inliers  {{info.inliers}}"  : "inliers.png",
+                          "outliers {{info.matches-info.inliers}}" : "outliers.png",
+                          "first image"                : "input_0s.png",
+                          "second image"               : "input_1.png"
+                        },
+      "style"         : "width:{{imwidth}}px;height:{{imheight}}px" 
     },
     {
       "type"          : "file_download", 
       "label"         : "Correspondences",
-      "contents"      : "orsa.txt"
+      "contents"      : "match.txt"
     },
     {
       "type"          : "file_download", 
-      "label"         : "Homography 1st image",
-      "contents"      : "output_0.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Homography 2nd image",
-      "contents"      : "output_1.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Rectified images (without annotations) 1st image",
-      "contents"      : "output_0.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Rectified images (without annotations) 2nd image",
-      "contents"      : "output_1.png"
+      "label"         : "inliers",
+      "contents"      : "matchOrsa.txt"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Program Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "'width:50em;height:25em'"
+      "style"         : "width:50em;height:20em"
     }
   ]
 }

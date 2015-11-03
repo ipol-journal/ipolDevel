@@ -11,6 +11,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/45/"
   }, 
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
+      "srcdir"    : "ponomarenko_v4",
+      "binaries"  : [ ["ponomarenko","ponomarenko"] , ["fnoise","fnoise"], ["subscale","subscale"] ],
+      "flags"     : "-j4",
+      "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
+    }
+  ,
   "params": [
     {
       "id"            : "percentile",
@@ -84,6 +93,12 @@
       "values"        : { "min":0, "max":39, "step":0.1, "default":0 }
     }
   ],
+  "run": [
+     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
+     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
+     "run_algo.py"
+  ]
+  ,
   "results": [
     {
       "type"          : "warning", 
@@ -99,7 +114,7 @@
       "type"          : "gallery",
       "label"         : "Input image:",
       "contents"      : { "Input" : "scale_s0.png" },
-      "style"         : "'width:600px'"
+      "style"         : "width:600px"
     },
     {
       "type"          : "html_text", 
@@ -109,8 +124,8 @@
       "type"          : "repeat_gallery",
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
-      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
-      "style"         : "'height:600px'" 
+      "contents"      : [ "Scale S{{idx}}:", "curve_s{{idx}}.png"],
+      "style"         : "height:600px" 
     },
     {
       "repeat"        : "params.scales",
@@ -119,15 +134,6 @@
       "contents"      : "'estimation_s'+idx+'.txt'"
     }
   ],
-  "build":
-    {
-      "url"       : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
-      "srcdir"    : "ponomarenko_v4",
-      "binaries"  : [ ["ponomarenko","ponomarenko"] , ["fnoise","fnoise"], ["subscale","subscale"] ],
-      "flags"     : "-j4",
-      "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
-    }
-  ,
   "archive":
     {
       "files" : { "input_0.orig.png": "uploaded image",
@@ -135,11 +141,5 @@
                 },
       "params" :  [ "percentile", "block", "curvefilter", "removeequals", "bins", "anoise", "bnoise", "mean_type"]
     }
-  ,
-  "run": [
-     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
-     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
-     "run_algo.py"
-  ]
 
 }

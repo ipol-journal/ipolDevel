@@ -1,3 +1,29 @@
-p.center{text-align:center}.crosslinks li{display:inline}.note{font-size:70%}.note,.note a,.note input{color:#595959}.note input{font-size:100%}.warning{border:#900 1px solid;background:0;color:#900}.stdio{font-size:80%}form div.select_input{float:left}form div.select_input,form div.upload_input{margin:.2em;padding:.2em;border:#ccf 1px dotted}form .select_input .label{display:block;text-align:center}form .select_input input[type="image"]{width:3cm;height:3cm;background:white;border:1px solid #ddd}form fieldset{border:#ccf 1px solid}form label{cursor:pointer}form input[type="submit"]{background:url(bullet_go.png) no-repeat 0 center;background-color:#eee;color:black;padding-left:16px}#content .gallery{position:relative;width:auto;height:400px}#content .gallery .index{padding:0;margin:0;width:11em;list-style:none}#content .gallery .index li{margin:0;padding:0}#content .gallery .index a{display:block;background-color:#eee;border:1px solid #fff;text-decoration:none;width:9em;
-padding:5px}#content .gallery .index a span{display:block;position:absolute;left:-9999px;top:0;padding-left:2em}#content .gallery .index li:first-child a span{left:9em;z-index:99}#content .gallery .index a:hover{border:1px solid #888}#content .gallery .index a:hover span{left:9em;z-index:100}.archive_index{font-size:85%}.bucket{margin:.5em 0;padding:.5em 0;border-top:#ddd 1px solid}.bucket dl{margin:0 0 .5em 0;padding:0}#content .bucket table{text-align:left;margin:0;background:0;border-spacing:0}#content .bucket table.info{float:left;width:32%}#content .bucket table.thumbnails{float:right;width:65%}#content .bucket table.images{float:left;clear:left;width:100%}#content .bucket table th{font-style:normal;font-weight:bold;background:0;vertical-align:top;text-align:left;margin:0;padding:0}#content .bucket table.thumbnails img{width:3cm;height:3cm;margin:0;position:relative;z-index:1;background:white;border:1px solid #ddd}#content .bucket table.thumbnails img:hover{width:5cm;height:5cm;margin:-1cm;z-index:2}.
-bucket hr.clear{clear:both;margin:0;padding:0;visibility:hidden;width:0;height:.5em}
+p.center{text-align:center}
+.crosslinks li{display:inline}
+.note{font-size:70%}.note,.note a,
+.note input{color:#595959}
+.note input{font-size:100%}
+.warning{border:#900 1px solid;background:0;color:#900}
+.stdio{font-size:80%}form div
+.select_input{float:left}form div
+.select_input,form div
+.upload_input{margin:.2em;padding:.2em;border:#ccf 1px dotted}form 
+.select_input 
+.label{display:block;text-align:center}form 
+.select_input input[type="image"]{width:3cm;height:3cm;background:white;border:1px solid #ddd}form fieldset{border:#ccf 1px solid}form label{cursor:pointer}form input[type="submit"]{background:url(bullet_go.png) no-repeat 0 center;background-color:#eee;color:black;padding-left:16px}#content 
+.gallery{position:relative;width:auto;height:400px}#content 
+.gallery .index{padding:0;margin:0;width:11em;list-style:none}#content 
+.gallery .index li{margin:0;padding:0}#content 
+.gallery .index a{display:block;background-color:#eee;border:1px solid #fff;text-decoration:none;width:9em;padding:5px}#content 
+.gallery .index a span{display:block;position:absolute;left:-9999px;top:0;padding-left:2em}#content 
+.gallery .index li:first-child a span{left:9em;z-index:99}#content 
+.gallery .index a:hover{border:1px solid #888}#content 
+.gallery .index a:hover span{left:9em;z-index:100}
+.archive_index{font-size:85%}.bucket{margin:.5em 0;padding:.5em 0;border-top:#ddd 1px solid}.bucket dl{margin:0 0 .5em 0;padding:0}#content 
+.bucket -table{text-align:left;margin:0;background:0;border-spacing:0}#content .bucket table.info{float:left;width:32%}#content 
+.bucket table.thumbnails{float:right;width:65%}#content 
+.bucket table.images{float:left;clear:left;width:100%}#content 
+.bucket table th{font-style:normal;font-weight:bold;background:0;vertical-align:top;text-align:left;margin:0;padding:0}#content 
+.bucket table.thumbnails img{width:3cm;height:3cm;margin:0;position:relative;z-index:1;background:white;border:1px solid #ddd}#content 
+.bucket table.thumbnails img:hover{width:5cm;height:5cm;margin:-1cm;z-index:2}
+.bucket hr.clear{clear:both;margin:0;padding:0;visibility:hidden;width:0;height:.5em}

@@ -9,7 +9,17 @@ written in JSON (JavaScript Object Notation) format, which is a standard format
 used in web applications. This language is evolving to allow a maximum number 
 of demos to be described without the need to manually write HTML or Python code 
 for a given demo. Each main key in the description file is described in the 
-following sections.
+following sections:
+\begin{itemize}
+  \item general
+  \item build
+  \item params
+  \item run
+  \item config
+  \item archive
+  \item results
+\end{itemize}
+
 
 
 {\bf Note:} in JSON format, always use double quotes around keys or string 
@@ -53,9 +63,37 @@ bigger files. Input can be a number or a string that will be evaluated in Angula
  is\_test           & boolean (true/false), if true will be removed from demos 
 if the server is in production mode.& yes  \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
- enable\_crop       & enable or disable cropping for this demo, default is true (crop enabled). & no   \\ \hline
+ enable\_crop       & enable or disable cropping for this demo, default is true 
+                      (crop enabled). & no   \\ \hline
 \caption{Keys for the 'general' section ({\em req} means required).}
 \end{longtable}
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{build} section}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ url      & full url link to download the demo source code & yes \\ \hline
+ srcdir   & subdirectory from the extracted archive where the source code is 
+            located & yes \\ \hline
+ binaries & list of binaries and their associated paths relative to the source 
+            code path & yes \\ \hline
+ flags    & make command compilation flags & yes \\ \hline
+ scripts  & list of scripts and their associated paths relative to the source 
+            code path & no  \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"build": { 
+  "url"      : "http://www.ipol.im/xxx/ldm_q1p.zip", 
+  "srcdir"   : ".",
+  "binaries" : [ [".","lens_distortion_correction"] ],
+  "flags"    : "OMP=1 -j4" }
+\end{lstlisting}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{params} section}
@@ -92,7 +130,7 @@ string value. The default value is stored in a separate field.
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- id     & parameter name  & yes \\ \hline
+ id     & parameter name in lowercase letters & yes \\ \hline
  values & set of (key,value) pairs, where the key is the displayed text and the 
 value a string representing the corresponding value, for example \{ 
 ``black'':``0'', ``1\%'':``0.01'' \} & yes
@@ -112,12 +150,91 @@ required around the values. The default value is stored with the 'values' field.
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- id     & parameter name  & yes \\ \hline
+ id     & parameter name in lowercase letters  & yes \\ \hline
  values & set min,max,step and default values using the following key/value 
 scheme \{ ``min'':val, ``max'':val, ``step'':val, ``default'':val \} & yes
                       \\ \hline
 \caption{Additional keys for the 'range' type.}
 \end{longtable}
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{run} section}
+
+In the command line, you can use \$param\_id to replace the to evaluate a 
+python expression that can contain the parameter ids,
+and '\textgreater output\_file' (without space between '\textgreater' and the 
+filename) to redirect the standard output to a given file, save in the current 
+working directory. 
+If you also want to redirect the standard errors to the same file, use can add 
+'2\textgreater\&1' as another argument. However, pipelines are not allowed 
+('|' character).
+Python scripts from the PythonTools directory can be used in commands.
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"run": [
+  "nlmeans  input_0.sel.png $sigma input_1.png output_1.png",
+  "img_diff input_0.sel.png input_1.png $sigma output_2.png",
+  "img_mse  input_0.sel.png output_1.png >stdout.txt 2>&1"
+]
+\end{lstlisting}
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{config} section}
+
+The config section is optional, it allows creating new (key,value) pairs in the 
+configuration file based on text files obtained during the execution. This 
+new information can then be used in the archive section.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ info\_from\_file    & it contains a list of (key,value) pairs where the key is
+            the new information id to create (in lowercase letters) and the
+            value is the correspond text file that contains its contents & no \\ \hline
+\caption{keys for the 'config' section.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"config":
+  {
+    "info_from_file": {  "homography_1" : "output_0.txt",
+                          "homography_2" : "output_1.txt"
+                      }
+  }
+\end{lstlisting}
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{archive} section}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ files    &  & no \\ \hline
+ compres\-sed\_\-files   &  & no \\ \hline
+ params &  & no \\ \hline
+ info    & & no \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"archive":
+  {
+    "files" : 
+      { "input_0.png"                 : "input image",
+        "primitives.txt"              : "Primitives"  },
+    "params" :  
+      [ "high_threshold_canny", 
+        "initial_distortion_parameter", 
+        "angle_point_orientation_max_difference" ],
+    "info"   : { "run_time": "run time" }
+  }
+\end{lstlisting}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{results} section}
@@ -163,9 +280,9 @@ expressions of the form '\{\{expression\}\}'. & \\ \hline
 \paragraph{Example}:\\
 
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "warning", 
-      "condition": "sizeX * sizeY < XXX",
-      "contents" : "Needs at least XXX pixels ({{sizeX *sizeY}} given) <br/>" },
+{ "type":"warning", 
+  "condition":"sizeX * sizeY < X",
+  "contents":"Needs X pixels ({{sizeX *sizeY}} given)<br/>"},
 \end{lstlisting}
 
 %------ gallery  ------
@@ -185,10 +302,10 @@ The gallery type uses the gallery class to display images. Its parameters are:
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "gallery",
-      "label"    : "<h3>Images</h3>",
-      "contents" : { "Input" : "input.png", "Output" : "output.png" },
-      "style"    : "'width:'+sizeY+'px'" },
+{ "type"     : "gallery",
+  "label"    : "<h3>Images</h3>",
+  "contents" : {"Input":"input.png", "Output":"output.png"},
+  "style"    : "width:{{sizeY}}px" },
 \end{lstlisting}
 
 %------ repeat_gallery  ------
@@ -210,11 +327,11 @@ algorithm.
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "repeat_gallery",
-      "repeat"   : "params.scales",
-      "label"    : "<h2> Noise Curves </h2>",
-      "contents" : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
-      "style"    : "'height:600px'" },
+{ "type"     : "repeat_gallery",
+  "repeat"   : "params.scales",
+  "label"    : "<h2> Noise Curves </h2>",
+  "contents" : [ "Scale {{idx}}: curve_{{idx}}.png"],
+  "style"    : "height:600px" },
 \end{lstlisting}
 
 %------ html_text  ------
@@ -230,8 +347,8 @@ algorithm.
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "html_text", 
-      "contents" : "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>\nNote that here the image may be showed with a size different from the original to help looking at the results.<br/>" },
+{ "type"     : "html_text", 
+  "contents" : "Noise variance = {{params.anoise}}<br/>..."},
 \end{lstlisting}
 
 \subsubsection{ \emph{file\_download} type}
@@ -266,88 +383,13 @@ algorithm.
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "text_file", 
-      "label"    : "<h2>Additional info<h2>",
-      "contents" : "output.txt",
-      "style"    : "'width:'+sizeX+'px;height:14em'" },
+{  "type"     : "text_file", 
+  "label"    : "<h2>Additional info<h2>",
+  "contents" : "output.txt",
+  "style"    : "width:{{sizeX}}px;height:14em" },
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{build} section}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- url      & full url link to download the demo source code & yes \\ \hline
- srcdir   & subdirectory from the extracted archive where the source code is 
-            located & yes \\ \hline
- binaries & list of binaries and their associated paths relative to the source 
-            code path & yes \\ \hline
- flags    & make command compilation flags & yes \\ \hline
- scripts  & list of scripts and their associated paths relative to the source 
-            code path & no  \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
-\end{longtable}
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-  "build":
-    { "url"      : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
-      "srcdir"   : ".",
-      "binaries" : [ [".","lens_distortion_correction_division_model_1p"] ],
-      "flags"    : "OMP=1 -j4" }
-\end{lstlisting}
-
-\subsection{The \emph{archive} section}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- files    &  & no \\ \hline
- compres\-sed\_\-files   &  & no \\ \hline
- params &  & no \\ \hline
- info    & & no \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
-\end{longtable}
-
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-  "archive":
-    {
-      "files" : 
-        { "input_0.png"                 : "input image",
-          "output_canny.png"            : "Canny",
-          "output_hough.png"            : "Hough",
-          "output_corrected_image.png"  : "Output",
-          "primitives.txt"              : "Primitives"  },
-      "params" :  
-        [ "high_threshold_canny", 
-          "initial_distortion_parameter", 
-          "final_distortion_parameter", 
-          "distance_point_line_max_hough", 
-          "angle_point_orientation_max_difference" ],
-      "info"   : { "run_time": "run time" }
-    }
-\end{lstlisting}
-
-\subsection{The \emph{run} section}
-
-In the command line, you can use \$param\_id to replace the value of a parameter,
-and '\textgreater output\_file' (without space between '\textgreater' and the filename) to redirect the
-standard output to a given file, save in the current working directory. 
-If you also want to redirect the standard errors to the same file, use can add 
-'2\textgreater\&1' as another argument.
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-  "run": [
-     "lens_distortion_correction_division_model_1p input_0.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference primitives.txt"
-  ]
-\end{lstlisting}
-
 \subsection{Full examples}
 
 

@@ -1,9 +1,5 @@
 <%include file="header.html" />
 
-<p>
-  Execution time: ${"%0.2f" % app.cfg['info']['run_time']} seconds.<br />
-</p>
-
 
 <script>  IPOLDemosApp.value("demo_id","${app.id}");  </script>
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
@@ -11,6 +7,16 @@
 
 
 <div ng-controller="DemoResultCtrl" >
+
+<p>
+  Execution time: {{info.run_time | number:2 }} sec.
+<!--    {{info.run_time*(1024*1024)/(sizeX*sizeY) | number:2 }}s/(mégapixel:1024x1024).<br /> -->
+<br/>
+  Status : {{info.status}}
+</p>
+<span ng-if="info.status=='failure'">
+  <p class="error">  {{info.error}} </p>
+</span>
 
 
   <span ng-repeat="result in demo.results">
@@ -28,7 +34,8 @@
   <!-- ===== Rerun ===== -->
   <div class="action">
     <form style="display:inline;" action="${app.base_url}" method="get">
-      <input type="submit" value="Restart with new input data." />
+      <input  style="border-radius:10px;font-size:14px!important;" 
+              type="submit" value="Restart with new input data." />
     </form>
       <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
         <input type="hidden" name="key" value="${app.key}">
@@ -37,7 +44,8 @@
           <input  ng-if="param.type!='label'" type="hidden" 
                   name="{{param.id}}" value="{{params[param.id]}}" > 
         </span>
-        <input type="submit" value="Restart with different parameters and/or subimage." />
+        <input  style="border-radius:10px;font-size:14px!important;" 
+                type="submit" value="Restart with different parameters and/or subimage." />
       </form>
   </div>
 
@@ -67,11 +75,14 @@
     <!-- gallery -->
     <span ng-if="result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
-      <div class="gallery" style="{{$eval(result.style)}}">
+      <div class="gallery" style="{{result.style|interpolate:current_scope}}">
         <ul class="index">
-          <li ng-repeat="(label,image) in result.contents">
-            <a href="#">{{label}} 
-                <span><img style="{{$eval(result.style)}}" ng-src="{{work_url+image}}"/> </span>
+          <li ng-repeat="(label,image) in result.contents" ng-if="image!='-- disabled --'">
+            <a href="#">  {{label | interpolate:current_scope }}
+              <span>
+                  <img  style="{{result.style|interpolate:current_scope}}" 
+                        ng-src="{{work_url+image}}" imageonfail="DisableImage(result.contents,$index)" /> 
+              </span>
             </a>
           </li>
         </ul>
@@ -81,18 +92,21 @@
     <!-- repeat_gallery -->
     <span ng-if="result.type==='repeat_gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
-      <div class="gallery" style="{{$eval(result.style)}}" >
+      <div class="gallery" style="{{result.style|interpolate:current_scope}}" >
         <ul class="index">
-          <li ng-repeat="idx in range($eval(result.repeat))">
-            <a href="#">{{$eval(result.contents[0])}}
+          <li ng-repeat="idx in range($eval(result.repeat))" >
+            <a href="#"> 
+              {{ result.contents[0] | interpolate_loop:current_scope:idx }}
               <span ng-if="CheckArray(result.contents[1])===false">
-                <img style="{{$eval(result.style)}}" ng-src="{{work_url+$eval(result.contents[1])}}"/> 
+                <img  style="{{result.style|interpolate:current_scope}}" 
+                      ng-src="{{work_url+result.contents[1]|interpolate_loop:current_scope:idx}}"/> 
               </span>
               <span ng-if="CheckArray(result.contents[1])">
                 <table border="1">
                   <tr>
                     <td ng-repeat="im in result.contents[1]">
-                      <img style="{{$eval(result.style)}}" ng-src="{{work_url+$eval(im)}}"/> 
+                      <img  style="{{result.style|interpolate:current_scope}}" 
+                            ng-src="{{work_url+im|interpolate_loop:current_scope:idx}}"/> 
                     </td>
                   </tr>
                 </table>
@@ -125,7 +139,8 @@
     <!-- text_file -->
     <span ng-if="result.type==='text_file'"> 
       <span bind-html-compile="result.label"></span><br/>
-      <iframe src="{{work_url+result.contents}}" style="{{$eval(result.style)}}"/> </iframe>
+      <iframe src="{{work_url+result.contents}}" 
+              style="{{result.style|interpolate:current_scope}}"/> </iframe>
     </span>
   </span>
 

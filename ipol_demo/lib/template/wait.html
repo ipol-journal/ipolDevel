@@ -2,7 +2,15 @@
 
 <%include file="wait_info.html" />
 
+
 <h2>Processing image...</h2>
+
+<div ng-controller="DemoWaitCtrl">
+Elapsed time: {{counter}} seconds <br/><br/>
+<progress style="width:60em;height:2em" value="{{counter*100/30}}" max="100"></progress> <br/><br/>
+</div>
+
 <img src="${app.work_url + 'input_0.sel.png'}" />
+
 
 <%include file="footer.html" />
