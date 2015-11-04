@@ -36,7 +36,7 @@ class   Database(object):
         """
         self.database.close()
 
-    def add_demo_in_database(self, demo, is_template, id_template):
+    def add_demo_in_database(self, demo, is_template, template_id):
         """
         Add name demo in demo column in database
 
@@ -44,20 +44,20 @@ class   Database(object):
         :type demo: string
         :param is_template: if demo is template equal 1 else 0
         :type is_template: boolean cast in integer
-        :param id_template: id templated demo used
-        :type id_template: integer
+        :param template_id: id templated demo used
+        :type template_id: integer
         """
         try:
             if not self.demo_is_in_database(demo):
                 if is_template == '0':
-                    if id_template == None:
+                    if template_id == None:
                         self.cursor.execute('''
                         INSERT INTO demo(name)
                         VALUES(?)''', (demo,))
                     else:
                         self.cursor.execute('''
-                        INSERT INTO demo(name, id_template)
-                        VALUES(?, ?)''', (demo, id_template,))
+                        INSERT INTO demo(name, template_id)
+                        VALUES(?, ?)''', (demo, template_id,))
                 else:
                     self.cursor.execute('''
                     INSERT INTO demo(name, is_template) VALUES(?, ?)''', (demo, is_template,))
@@ -65,33 +65,25 @@ class   Database(object):
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
     def add_blob_in_database(self, demoid, hash_blob, fileformat,
-                             ext, tag, blob_set,
+                             ext, tag, blob_set, blob_id_in_set,
                              title, credit, blobid=-1):
         """
         Add hash blob content and format blob in blob column in database
-        Add blob and demo ids in column blob_demo in database
+        Add blob and demo ids in column demo_blob in database
         (necesary for many to many in DBMS)
         Add also tag in database : call addTagInDatabase function
 
-        :param demoid: demo id in database
-        :type demoid: integer (primary key autoincrement)
-        :param hash_blob: hash content blob
-        :type hash_blob: string
-        :param fileformat: type format of blob
-        :type fileformat: string
-        :param ext: extension of blob
-        :type ext: string
-        :param tag: name tag
-        :type tag: string
-        :param blob_set: set of blob
-        :type blob_set: string
-        :param title: title blob
-        :type title: string
-        :param credit: credit blob
-        :type credit: string
+        :param demoid: demo id in database integer (primary key autoincrement)
+        :param hash_blob: hash content blob string
+        :param fileformat: type format of blob string
+        :param ext: extension of blob string
+        :param tag: name tag string
+        :param blob_set: set  blob string
+        :param blob_id_in_set: set  blob id in its set
+        :param title: title blob string
+        :param credit: credit blob string
         :param blobid: if blobid is omitted (= -1), then add blob
-        (hash and format) to database esle not add
-        :type blobid: integer
+        (hash and format) to database else do not add, integer
         """
         if blobid == -1:
             try:
@@ -106,9 +98,9 @@ class   Database(object):
         try:
             self.cursor.execute(
                 '''INSERT OR REPLACE INTO
-                blob_demo(id_blob, id_demo, set_blob)
-                VALUES(?, ?, ?)''', \
-                (blobid, demoid, blob_set,))
+                demo_blob(blob_id, demo_id, blob_set,blob_id_in_set)
+                VALUES(?, ?, ?, ?)''', \
+                (blobid, demoid, blob_set,blob_id_in_set,))
 
         except self.database.Error:
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
@@ -132,7 +124,7 @@ class   Database(object):
             try:
                 tagid = -1
                 if self.tag_is_in_database(tag):
-                    tagid = self.id_tag(tag)
+                    tagid = self.tag_id(tag)
 
                 if tagid == -1:
                     self.cursor.execute("INSERT INTO tag(name) VALUES(?)", \
@@ -144,7 +136,7 @@ class   Database(object):
             try:
                 self.cursor.execute('''
                 INSERT OR REPLACE INTO
-                blob_tag(id_blob, id_tag)
+                blob_tag(blob_id, tag_id)
                 VALUES(?, ?)''', \
                 (blobid, tagid,))
             except self.database.Error:
@@ -154,7 +146,7 @@ class   Database(object):
             for item in tag:
                 tagid = -1
                 if self.tag_is_in_database(item):
-                    tagid = self.id_tag(item)
+                    tagid = self.tag_id(item)
 
                 if tagid == -1:
                     try:
@@ -167,7 +159,7 @@ class   Database(object):
                 try:
                     self.cursor.execute('''
                     INSERT OR REPLACE INTO
-                    blob_tag(id_blob, id_tag)
+                    blob_tag(blob_id, tag_id)
                     VALUES(?, ?)''', \
                     (blobid, tagid,))
                 except self.database.Error:
@@ -237,7 +229,7 @@ class   Database(object):
         """
         return any(fileformat in s for s in self.formats)
 
-    def id_blob(self, hash_blob):
+    def blob_id(self, hash_blob):
         """
         Get id blob from hash blob
 
@@ -248,15 +240,15 @@ class   Database(object):
         """
         try:
             self.cursor.execute('''
-            SELECT id_blob FROM blob_demo
-            INNER JOIN blob ON blob_demo.id_blob=blob.id WHERE blob.hash=?''',\
+            SELECT blob_id FROM demo_blob
+            INNER JOIN blob ON demo_blob.blob_id=blob.id WHERE blob.hash=?''',\
             (hash_blob,))
             something = self.cursor.fetchone()
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-    def id_demo(self, demo):
+    def demo_id(self, demo):
         """
         Get id demo from name demo
 
@@ -274,7 +266,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-    def id_tag(self, tag):
+    def tag_id(self, tag):
         """
         Get id tag from name tag
 
@@ -292,7 +284,7 @@ class   Database(object):
 
     def delete_demo_existed(self, demoid):
         """
-        Delete row (name, id, is_template, id_template) corresponding to id demo
+        Delete row (name, id, is_template, template_id) corresponding to id demo
 
         :param demoid: id demo
         :type demoid:integer (primary key autoincrement)
@@ -311,15 +303,15 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
-        print "get_blobs_of_demo()"
+        print "Databse.get_blobs_of_demo({0})".format(demo_id)
         
         # 
         try:
           self.cursor.execute('''
-            SELECT  set_blob, GROUP_CONCAT(id_blob)  FROM blob_demo
-            INNER JOIN demo ON blob_demo.id_demo=demo.id
-            INNER JOIN blob ON blob_demo.id_blob=blob.id
-            WHERE demo.id=? GROUP BY set_blob ''', (demo_id,))
+            SELECT  blob_set, GROUP_CONCAT(blob_id)  FROM demo_blob
+            INNER JOIN demo ON demo_blob.demo_id=demo.id
+            INNER JOIN blob ON demo_blob.blob_id=blob.id
+            WHERE demo.id=? GROUP BY blob_set ''', (demo_id,))
         except self.database.Error:
           print "exception"
           raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -330,11 +322,12 @@ class   Database(object):
         for blobset in blobsets_list:
           try:
             self.cursor.execute('''
-              SELECT  blob.id, blob.hash, blob.extension, blob.format, 
-                      blob.title, blob.credit FROM blob_demo
-              INNER JOIN demo ON blob_demo.id_demo=demo.id
-              INNER JOIN blob ON blob_demo.id_blob=blob.id
-              WHERE demo.id=? AND set_blob=?''', (demo_id,blobset[0],))
+              SELECT  blob.id, demo_blob.blob_id_in_set,
+                      blob.hash, blob.extension, blob.format, 
+                      blob.title, blob.credit FROM demo_blob
+              INNER JOIN demo ON demo_blob.demo_id=demo.id
+              INNER JOIN blob ON demo_blob.blob_id=blob.id
+              WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
           except self.database.Error:
             print "exception"
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -344,12 +337,12 @@ class   Database(object):
           for b in  blobset_blobs:
             # now get blobs of each set
             blob_list.append(
-                        { "id": b[0], "hash" : b[1], "extension": b[2],
-                          "format": b[3], "title":b[4], "credit":b[5] }
+                        { "id": b[0], "id_in_set": b[1], "hash" : b[2], "extension": b[3],
+                          "format": b[4], "title":b[5], "credit":b[6] }
                       )
           blobset_list.append(blob_list)
         
-        print blobset_list
+        #print blobset_list
         return blobset_list
 
     def get_demo_name_from_id(self, demo_id):
@@ -364,13 +357,13 @@ class   Database(object):
         dic = {}
         try:
             self.cursor.execute('''
-            SELECT id, name, is_template, id_template
+            SELECT id, name, is_template, template_id
             FROM demo
             WHERE demo.id=?''',\
             (demo_id,))
             something = self.cursor.fetchone()
             dic[something[0]] = {"name": something[1], "is_template": something[2],
-                                 "id_template": something[3]}
+                                 "template_id": something[3]}
 
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -379,7 +372,7 @@ class   Database(object):
 
     def get_demo_info_from_name(self, demo_name):
         """
-        Return name of the demo info: name, is_template, id_template from the 
+        Return name of the demo info: name, is_template, template_id from the 
         demo name
 
         :param demo_name: demo name
@@ -390,13 +383,13 @@ class   Database(object):
         dic = {}
         try:
             self.cursor.execute('''
-            SELECT id, name, is_template, id_template
+            SELECT id, name, is_template, template_id
             FROM demo
             WHERE demo.name=?''',\
             (demo_name,))
             something = self.cursor.fetchone()
             dic[something[0]] = {"name": something[1], "is_template": something[2],
-                                 "id_template": something[3]}
+                                 "template_id": something[3]}
 
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -415,8 +408,8 @@ class   Database(object):
         try:
             something = self.cursor.execute('''
             SELECT hash FROM blob
-            INNER JOIN blob_tag ON blob.id=blob_tag.id_blob
-            INNER JOIN tag ON blob_tag.id_tag=tag.id
+            INNER JOIN blob_tag ON blob.id=blob_tag.blob_id
+            INNER JOIN tag ON blob_tag.tag_id=tag.id
             WHERE tag.name IN (%s)''' % \
             ("?," * len(tag))[:-1], tag)
         except self.database.Error:
@@ -439,8 +432,8 @@ class   Database(object):
         try:
             something = self.cursor.execute('''
             SELECT tag.id, tag.name FROM tag
-            INNER JOIN blob_tag ON tag.id=blob_tag.id_tag
-            INNER JOIN blob ON blob_tag.id_blob=blob.id
+            INNER JOIN blob_tag ON tag.id=blob_tag.tag_id
+            INNER JOIN blob ON blob_tag.blob_id=blob.id
             WHERE blob.id=?''', \
             (blob_id,))
         except self.database.Error:
@@ -463,8 +456,8 @@ class   Database(object):
         something = None
         try:
             self.cursor.execute('''
-            SELECT COUNT(*) FROM blob_demo
-            INNER JOIN demo ON id_demo=demo.id
+            SELECT COUNT(*) FROM demo_blob
+            INNER JOIN demo ON demo_id=demo.id
             WHERE demo.id=?''', \
             (demo_id,))
             something = self.cursor.fetchone()
@@ -500,8 +493,8 @@ class   Database(object):
         something = None
         try:
             self.cursor.execute('''
-            SELECT COUNT(*) FROM blob_demo
-            INNER JOIN blob ON id_blob=blob.id
+            SELECT COUNT(*) FROM demo_blob
+            INNER JOIN blob ON blob_id=blob.id
             WHERE blob.id=?''', \
             (blob_id,))
             something = self.cursor.fetchone()
@@ -540,7 +533,7 @@ class   Database(object):
         try:
             self.cursor.execute('''
             SELECT COUNT(*) FROM blob_tag
-            INNER JOIN tag ON id_tag=tag.id
+            INNER JOIN tag ON tag_id=tag.id
             WHERE tag.id=?''',\
             (tag_id,))
             something = self.cursor.fetchone()
@@ -568,7 +561,7 @@ class   Database(object):
 
     def delete_blob_from_demo(self, demo_id, blob_id):
         """
-        Delete link between demo and hash blob from blob_demo column in database
+        Delete link between demo and hash blob from demo_blob column in database
         Delete link between blob and tag from blob_tag column in database
         Delete demo row named by name demo if demo has no blob
         Delete tag row associated to blob if tag has no blob
@@ -583,9 +576,9 @@ class   Database(object):
         """
         try:
             something = self.cursor.execute('''
-            SELECT id_blob, id_demo FROM blob_demo
-            INNER JOIN demo ON blob_demo.id_demo=demo.id
-            INNER JOIN blob ON blob_demo.id_blob=blob.id
+            SELECT blob_id, demo_id FROM demo_blob
+            INNER JOIN demo ON demo_blob.demo_id=demo.id
+            INNER JOIN blob ON demo_blob.blob_id=blob.id
             WHERE demo.id=? AND blob.id=?''',\
             (demo_id, blob_id,))
         except self.database.Error:
@@ -598,16 +591,16 @@ class   Database(object):
         if value:
             try:
                 self.cursor.execute('''
-                DELETE FROM blob_demo
-                WHERE id_blob=? AND id_demo=?''',\
+                DELETE FROM demo_blob
+                WHERE blob_id=? AND demo_id=?''',\
                 (value[0], value[1],))
             except self.database.Error:
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
         try:
             something = self.cursor.execute('''
-            SELECT id_blob, id_tag FROM blob_tag
-            INNER JOIN blob ON blob_tag.id_blob=blob.id AND blob.id=?''',\
+            SELECT blob_id, tag_id FROM blob_tag
+            INNER JOIN blob ON blob_tag.blob_id=blob.id AND blob.id=?''',\
             (blob_id,))
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
@@ -620,7 +613,7 @@ class   Database(object):
             try:
                 self.cursor.execute('''
                 DELETE FROM blob_tag
-                WHERE id_blob=? AND id_tag=?''',\
+                WHERE blob_id=? AND tag_id=?''',\
                 (value[0], value[1],))
             except self.database.Error:
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
@@ -690,14 +683,14 @@ class   Database(object):
         """
         try:
             something = self.cursor.execute('''
-            SELECT id, name, is_template, id_template
+            SELECT id, name, is_template, template_id
             FROM demo''')
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         lis = {}
         for item in something:
-            lis[item[0]] = {"name": item[1], "is_template": item[2], "id_template": item[3]}
+            lis[item[0]] = {"name": item[1], "is_template": item[2], "template_id": item[3]}
         return lis
 
     def get_name_blob(self, blob_id):
@@ -759,7 +752,7 @@ class   Database(object):
         try:
             self.cursor.execute('''
             DELETE FROM blob_tag
-            WHERE id_tag=? AND id_blob=?''',
+            WHERE tag_id=? AND blob_id=?''',
             (tag_id, blob_id))
         except self.database.Error:
             raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
@@ -779,8 +772,8 @@ class   Database(object):
         try:
             self.cursor.execute('''
             SELECT tag.id FROM tag
-            INNER JOIN blob_tag ON tag.id=id_tag
-            INNER JOIN blob ON id_blob=blob.id
+            INNER JOIN blob_tag ON tag.id=tag_id
+            INNER JOIN blob ON blob_id=blob.id
             WHERE blob.id=?''',\
             (blob_id,))
             something = self.cursor.fetchone()
@@ -824,8 +817,8 @@ class   Database(object):
             self.list_templated_demo_using_from_demo(demo_id)
             something = self.cursor.execute('''
             SELECT blob.id FROM blob
-            INNER JOIN blob_demo ON blob.id=blob_demo.id_blob
-            INNER JOIN demo ON blob_demo.id_demo=demo.id
+            INNER JOIN demo_blob ON blob.id=demo_blob.blob_id
+            INNER JOIN demo ON demo_blob.demo_id=demo.id
             WHERE demo.id=?''', \
             (demo_id,))
             lis = []
@@ -852,7 +845,7 @@ class   Database(object):
         dic = {}
         try:
             self.cursor.execute('''
-            SELECT is_template, id_template
+            SELECT is_template, template_id
             FROM demo
             WHERE demo.id=?''',\
             (demo_id,))
@@ -865,34 +858,34 @@ class   Database(object):
         return dic
 
 
-    def update_template(self, demo_id, id_template):
+    def update_template(self, demo_id, template_id):
         """
         Update the template used by another demo
 
         :param demo_id: id demo (current demo)
         :type demo_id: integer
-        :param id_template: id demo templated used by current demo
-        :type id_template: integer
+        :param template_id: id demo templated used by current demo
+        :type template_id: integer
         """
         try:
             self.cursor.execute('''
-            UPDATE demo SET id_template=?
+            UPDATE demo SET template_id=?
             WHERE demo.id=?''', \
-            (id_template, demo_id,))
+            (template_id, demo_id,))
         except DatabaseError:
             raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)
 
-    def list_templated_demo_using_from_demo(self, id_demo):
+    def list_templated_demo_using_from_demo(self, demo_id):
         """
         Update id template of demo using templated demo defined by id
 
-        :param id_demo: id demo
-        :type id_demo: integer
+        :param demo_id: id demo
+        :type demo_id: integer
         """
         try:
             self.cursor.execute('''
-            UPDATE demo SET id_template=0
-            WHERE id_template=?''',\
-            (id_demo,))
+            UPDATE demo SET template_id=0
+            WHERE template_id=?''',\
+            (demo_id,))
         except DatabaseError:
             raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)

@@ -12,7 +12,7 @@
 	Yes
 	%else:
 	No
-	%if demo[demo_id]["id_template"] == 0:
+	%if demo[demo_id]["template_id"] == 0:
 	<br>
 	You don't use template.<br>
 	Do you want use a template ?
@@ -52,7 +52,7 @@
       <tr>
       <tr>
         <td colspan="2" align="center">
-          ${blob_set[0]['set_name']}
+          ${blob_set[1]['title']}
           <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${blob_set[idx]["id"]}">
             delete
           </a>

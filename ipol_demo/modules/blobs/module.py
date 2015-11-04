@@ -107,53 +107,44 @@ class   Blob(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, title, credit):
+    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, blob_id_in_set,
+                    title, credit):
         """
         This function implements get request (from '/add_blob_ws')
         It allows to check if demo given by name and blob given by hash
-        is already in databse if not it add its.
+        is already in database if not it add its.
 
-        :param demo_id: id demo
-        :type demo_id: integer
-        :param path: blob path
-        :type path: string
-        :param tag: name tag
-        :type tag: string
-        :param ext: extension of blob
-        :type ext: string
-        :param blob_set:
-        :type blob_set: string
-        :param title: title blob
-        :type title: string
-        :param credit: credit blob
-        :type credit: string
-        :return: hash current blob (dictionnary)
-        :rtype: json format
+        :param demo_id:         demo id integer
+        :param path:            blob path string
+        :param tag:             name tag string
+        :param ext:             extension of blob string
+        :param blob_set:        string
+        :param blob_id_in_set:  number, id of the blob within its blob_set
+        :param title:           title blob string
+        :param credit:          credit blob string
+        :return:                hash of current blob (dictionnary) json format
         """
         print "add_blob_ws"
-        hash_blob = get_hash_blob(path)
-        print hash_blob
+        blob_hash = get_hash_blob(path)
+        print blob_hash
         fileformat = file_format(path)
-        hash_tmp = -1
+        #hash_tmp = -1
         dic = {}
+        dic["the_hash"] = blob_hash
         data = instance_database()
 
         try:
             data.start_transaction()
-            if not data.blob_is_in_database(hash_blob):
+            blobid = -1
+            if not data.blob_is_in_database(blob_hash):
               print "not in database"
               print fileformat
-              if data.format_is_good(fileformat):
-                  data.add_blob_in_database(demo_id, hash_blob,
-                                            fileformat, ext, tag,
-                                            blob_set, title, credit)
-                  hash_tmp = hash_blob
             else:
               print "in database"
-              blobid = data.id_blob(hash_blob)
-              data.add_blob_in_database(demo_id, hash_blob, fileformat,
-                                        ext, tag, blob_set,
-                                        title, credit, blobid)
+              blobid = data.blob_id(blob_hash)
+            data.add_blob_in_database(demo_id, blob_hash, fileformat,
+                                      ext, tag, blob_set, blob_id_in_set,
+                                      title, credit, blobid)
 
             data.commit()
             dic["return"] = "OK"
@@ -163,7 +154,7 @@ class   Blob(object):
           data.rollback()
           dic["return"] = "KO"
 
-        dic["the_hash"] = hash_tmp
+        #dic["the_hash"] = hash_tmp
 
         return json.dumps(dic)
 
@@ -199,7 +190,8 @@ class   Blob(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(blob, tmp_directory)
-        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, "blob_set": blob_set,
+        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, 
+                "blob_set": blob_set, "blob_id_in_set":0,
                 "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
 
@@ -284,10 +276,10 @@ class   Blob(object):
         data = instance_database()
         dic = {}
         try:
-            id_template = data.id_demo(name)
+            template_id = data.demo_id(name)
             if name == 'None':
-                id_template = 0
-            data.update_template(demo_id, id_template)
+                template_id = 0
+            data.update_template(demo_id, template_id)
             data.commit()
             dic["return"] = "OK"
         except DatabaseError as error:
@@ -336,7 +328,7 @@ class   Blob(object):
         try:
             id_tmpl = 0
             if template:
-                id_tmpl = data.id_demo(template)
+                id_tmpl = data.demo_id(template)
             data.add_demo_in_database(name, is_template, id_tmpl)
             data.commit()
             dic["return"] = "OK"
@@ -394,6 +386,7 @@ class   Blob(object):
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
+        print "tmp_directory = ", tmp_directory
         path = create_tmp_file(the_zip, tmp_directory)
         self.parse_archive(ext, path, tmp_directory, the_zip.filename, demo_id)
 
@@ -568,9 +561,9 @@ class   Blob(object):
         dic = {}
         data = instance_database()
         try:
-            id_template = data.id_demo(template)
-            print id_template
-            dic["blobs"] = data.get_blobs_of_demo(id_template)
+            template_id = data.demo_id(template)
+            print template_id
+            dic["blobs"] = data.get_blobs_of_demo(template_id)
             dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from template demo")
@@ -618,13 +611,18 @@ class   Blob(object):
         :return: list of hash blob
         :rtype: json format list
         """
+        print "get_blobs_of_demo_ws"
         dic  = {}
         data = instance_database()
         try:
-            dic = data.get_demo_name_from_id(demo)
-            dic["use_template"] = data.demo_use_template(demo)
-            dic["blobs"] = data.get_blobs_of_demo(demo)
-            dic["return"] = "OK"
+          print "*"
+          dic = data.get_demo_name_from_id(demo)
+          print "*"
+          dic["use_template"] = data.demo_use_template(demo)
+          print "*"
+          dic["blobs"] = data.get_blobs_of_demo(demo)
+          print "*"
+          dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from demo")
             dic["return"] = "KO"
@@ -648,6 +646,7 @@ class   Blob(object):
         result = use_web_service('/get_template_demo_ws', data)
         template = {}
         template["blobs"] = {}
+        print res
         if res["use_template"]:
             data = {"template": res["use_template"]["name"]}
             template = use_web_service('/get_blobs_from_template_ws', data)
@@ -703,6 +702,7 @@ class   Blob(object):
         data = {"blob_id": blob_id}
         res = use_web_service('/get_blob_ws', data)
 
+        print "return = ", res["return"]
         if res["return"] == "OK":
             res["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir,
@@ -873,36 +873,47 @@ class   Blob(object):
             index_path = os.path.join(tmp_directory, 'index.cfg')
             buff = configparser.ConfigParser()
             buff.readfp(open(index_path))
-            for item in buff.sections():
-                the_file = buff.get(item, "files")
-                list_file = the_file.split()
-                for the_item in list_file:
-                    if the_item and the_item in files:
-                        title = buff.get(item, 'title')
-                        print "processing:",title
-                        try:
-                          credit = buff.get(item, 'credit')
-                        except:
-                          credit = ""
-                        src.extract(the_item, path=tmp_directory)
-                        tmp_path = os.path.join(tmp_directory, the_item)
-                        _, ext = os.path.splitext(tmp_path)
+            for section in buff.sections():
+                the_files = buff.get(section, "files")
+                list_file = the_files.split()
+                for the_file in list_file:
+                  # if the file name contains :, split it and get the id 
+                  # within the set
+                  if ':' in the_file:
+                    pos = the_file.find(':')
+                    file_id  = the_file[:pos]
+                    the_file = the_file[pos+1:]
+                  else:
+                    file_id = list_file.index(the_file)
+                  if the_file and the_file in files:
+                      title = buff.get(section, 'title')
+                      print "processing:",title
+                      try:
+                        credit = buff.get(section, 'credit')
+                      except:
+                        credit = ""
+                      src.extract(the_file, path=tmp_directory)
+                      tmp_path = os.path.join(tmp_directory, the_file)
+                      _, ext = os.path.splitext(tmp_path)
 
-                        data = {"demo_id": demo_id, "path": tmp_path, "tag": "",
-                                "ext": ext, "blob_set": item, "title": title,
-                                "credit": credit}
-                        res = use_web_service('/add_blob_ws/', data)
+                      data = {"demo_id": demo_id, "path": tmp_path, "tag": "",
+                              "ext": ext, "blob_set": section, 
+                              "blob_id_in_set": file_id, "title": title,
+                              "credit": credit}
+                      res = use_web_service('/add_blob_ws/', data)
 
-                        the_hash = res["the_hash"]
-                        if the_hash != -1 and res["return"] == "OK":
-                            file_dest = self.move_to_input_directory(tmp_path,
-                                                                     the_hash,
-                                                                     ext)
-                            self.create_thumbnail(file_dest)
-                        else:
-                            os.remove(tmp_path)
-                    else:
-                        pass
+                      print " return = ", res["return"]
+                      the_hash = res["the_hash"]
+                      print the_hash
+                      if the_hash != -1 and res["return"] == "OK":
+                          file_dest = self.move_to_input_directory(tmp_path,
+                                                                    the_hash,
+                                                                    ext)
+                          self.create_thumbnail(file_dest)
+                      else:
+                          os.remove(tmp_path)
+                  else:
+                      pass
         else:
             print_exception_zip(inspect.currentframe().f_code.co_name,\
                                 the_zip)
