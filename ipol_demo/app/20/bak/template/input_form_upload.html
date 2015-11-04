@@ -1,0 +1,85 @@
+<form action="${app.base_url + 'input_upload'}" method="post"
+      enctype="multipart/form-data">
+  <div class="action">
+    <h3>Upload Data</h3>
+    <p>
+    Upload a pair of images to use as the algorithm input (and, optionally, a
+    ground truth for comparison).
+    </p>
+    <div class="upload_input">
+			<table cellpadding="3" cellspacing="0" border="0" style="margin-left:0px;margin-right:auto">
+				<tr>
+					<td align="right">
+						<label for="file_a">I<sub>1</sub></label>
+					</td>
+					<td align="left">
+						<input type="file" name="file_a" id="file_a" size="40" /><br />
+					</td>
+				</tr>
+				<tr>
+					<td align="right">
+						<label for="file_b">I<sub>2</sub></label>
+					</td>
+					<td align="left">
+						<input type="file" name="file_b" id="file_b" size="40" /><br />
+					</td>
+				</tr>
+				<tr>
+					<td align="right">
+						<label for="file_t">ground truth (optional)</label>
+					</td>
+					<td align="left">
+						<input type="file" name="file_t" id="file_t" size="40" /><br />
+					</td>
+				</tr>
+				<tr>
+					<td> </td>
+					<td align="left">
+						<input type="submit" value="load" />
+					</td>
+				</tr>
+			</table>
+
+    </div>
+
+##    <p>
+##      Upload your own image files to use as the algorithm input.
+##    </p>
+##    <div class="upload_input">
+##      %for i in range(app.input_nb - 1):
+##      <label for="file_${i}">input image</label>
+##      <input type="file" name="file_${i}" id="file_${i}" size="40" /><br />
+##      %endfor
+##      <%
+##	 i = app.input_nb - 1
+##      %>
+##      <label for="file_${i}">input image</label>
+##      <input type="file" name="file_${i}" id="file_${i}" size="40" />&nbsp;
+##      <input type="submit" value="upload" />
+##    </div>
+##    <p class="note">
+##      %if app.input_max_pixels:
+##      Images larger than ${app.input_max_pixels} pixels will be resized.
+##      %endif
+##      %if app.input_max_weight:
+##      Upload size is limited to ${app.input_max_weight / (1024 *
+##      1024)}MB per image file
+##      %if (app.input_max_weight * app.input_nb) > (10 * 1024 * 1024):
+##      and 10MB for the whole upload set
+##      %endif
+##      .
+##      %endif
+##      <br />
+##      TIFF, JPEG, PNG, GIF, PNM (and 
+##      <a href="http://www.ipol.im/meta/demo_input/">other standard formats</a>)
+##      are supported.
+##      The uploaded files may be re-used for further analysis.
+##      <br />
+##      Only upload
+##      <a href="http://www.ipol.im/meta/demo_input/">suitable images</a>.
+##      See <a href="http://www.ipol.im/meta/demo_input/">the copyright
+##	and legal conditions</a> for details.
+    </p>
+  </div>
+</form>
+<!-- vim: set ts=2 sw=2: -->

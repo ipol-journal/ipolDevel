@@ -1,0 +1,422 @@
+<%include file="header.html" />
+
+<%
+	algolist = ['phs']
+	sixerror = {}
+	for i in algolist:
+		sixerror[i] = open(app.work_dir+"/sixerror_"+i+".txt","r").read().split()
+	print("SIXERROR = " + str(sixerror))
+	height = app.cfg['meta']['height']
+	if height < 390:
+		height = 390
+	hastruth = app.cfg['meta']['hastruth']
+	cahash='?q='+str(app.cfg['param']['alpha'])+str(app.cfg['param']['epsil'])+str(app.cfg['param']['niter'])+str(app.cfg['param']['nwarp'])+str(app.cfg['param']['nscal'])+str(app.cfg['param']['sstep'])
+
+	csuf = app.cfg['meta']['colorscheme']+'.'+str(app.cfg['meta']['colorparam'])
+	colorwheel = app.cfg['meta']['colorwheel']
+
+	nancolor = "white"
+	if app.cfg['meta']['colorscheme'] == "mid":
+		nancolor = "black"
+%>
+
+<%include file="colorwheel.html" />
+
+<!--
+<p>
+<br />
+(PARAM=${app.cfg['param']})
+<br />
+(META=${app.cfg['meta']})
+</p>
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+<p>
+The algorithm result is displayed hereafter.
+##<br />
+##(PARAM=${app.cfg['param']})
+##<br />
+##(META=${app.cfg['meta']})
+</p>
+
+##<form action="${app.base_url}" method="get">
+##  <div class="action">
+##    Restart this algorithm with new data.
+##    <input type="submit" value="new input" />
+##  </div>
+##</form>
+##
+##<form action="${app.base_url + 'params'}" method="get">
+##  <div class="action">
+##    Restart this algorithm with new parameters.
+##    <input type="hidden" name="key" value="${app.key}">
+##    <input type="hidden" name="newrun" value="1">
+##    <input type="submit" value="new parameters" />
+##  </div>
+##</form>
+##
+##<hr />
+
+##%if True:
+##<div>
+##<table border="0" cellpadding="5" cellspacing="0" style="margin-left:0px;margin-right:auto">
+##	<tr>
+##		<td> <img src="${app.work_url}a.png"/> </td>
+##		<td>  </td>
+##		<td> <img src="${app.work_url}b.png"/> </td>
+##	</tr>
+##	<tr>
+##		<td align="center"> <i>I</i><sub>1</sub> </td>
+##		<td>  </td>
+##		<td align="center"> <i>I</i><sub>2</sub> </td>
+##	</tr>
+##%for a in algolist:
+##	<tr>
+##		%if hastruth:
+##		<td> <img src="${app.work_url}t.${csuf}.png${cahash}"/> </td>
+##		<td>  </td>
+##		<td> <img src="${app.work_url+'stuff_%s.%s.png'%(a,csuf)}${cahash}"/> </td>
+##		%else:
+##		<td> <img src="${app.work_url+'stuff_%s.%s.png'%(a,csuf)}${cahash}"/> </td>
+##		<td>  </td>
+##		<td>  </td>
+##		%endif
+##	</tr>
+##	<tr>
+##		%if hastruth:
+##		<td align="center"> ground truth </td>
+##		<td>  </td>
+##		<td align="center"> result of algorithm "${a}" </td>
+##		%else:
+##		<td align="center"> result of algorithm "${a}" </td>
+##		<td>  </td>
+##		<td>  </td>
+##		%endif
+##	</tr>
+##%endfor
+##</table>
+##</div>
+##%else:
+##<div>
+##<table border="0" cellpadding="5" cellspacing="0" style="margin-left:0px;margin-right:auto">
+##	<tr>
+##		<td> <img src="${app.work_url}a.png"/> </td>
+##		<td> <img src="${app.work_url}b.png"/> </td>
+##%for a in algolist:
+##	<td> <img src="${app.work_url+'stuff_%s.%s.png'%(a,csuf)}${cahash}"/> </td>
+##%endfor
+##	</tr>
+##	<tr>
+##		<td align="center"> <i>I</i><sub>1</sub> </td>
+##		<td align="center"> <i>I</i><sub>2</sub> </td>
+##%for a in algolist:
+##		<td align="center"> result of algorithm "${a}" </td>
+##%endfor
+##	</tr>
+##</table>
+##</div>
+##%endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<%def name="visual(file,title)">
+<li>
+<a href="${app.base_url}reposition?key=${app.key}&repo=${file}#p">
+	${title}
+		<span>
+			<img src="${app.work_url + file}${cahash}" alt="${title}" title="${app.tralara(file)}"/>
+			<br />
+			%if title != 'optical flow':
+				%if title == 'ground truth':
+					${nancolor} color = unknown
+				%else:
+					${title}
+				%endif
+			%endif
+		</span>
+</a>
+</li>
+</%def>
+
+
+%for a in algolist:
+##<h2>Visualizations for algorithm "${a}"<a id="p"></a></h2>
+
+
+<div class="gallery" style="height:${height}px">
+	<ul class="index">
+		${visual('stuff_%s.%s.png'%(a,csuf),'optical flow')}
+	%if hastruth:
+		${visual('t.%s.png'%csuf,'ground truth')}
+	%endif
+		${visual('stuff_%s_abs.png'%a,'|flow|')}
+		${visual('a.png','I<sub>1</sub>')}
+		${visual('stuff_%s_div.png'%a,'div(flow)')}
+		${visual('stuff_%s_grad.png'%a,'grad(flow)')}
+		${visual('stuff_%s_inv.png'%a,'warped I<sub>2</sub>')}
+		${visual('a.png','I<sub>1</sub>')}
+		${visual('b.png','I<sub>2</sub>')}
+		${visual('stuff_%s_aminv.png'%a,'warped difference')}
+		${visual('stuff_%s_apinv.png'%a,'warped average')}
+		${visual('a.png','I<sub>1</sub>')}
+	%if hastruth:
+		${visual('stuff_%s_fmt.%s.png'%(a,csuf),'endpoint error')}
+		${visual('stuff_%s_aerr.png'%a,'angular error')}
+	%endif
+##		${visual('stuff_%s_afmt.png'%a,'norm of')}
+##		${visual('stuff_%s_ofce.png'%a,'|grad(E)*F + dE/dt|')}
+	</ul>
+</div>
+%endfor
+
+
+<br />
+
+<br />
+
+
+
+
+<h2>Summary</h2>
+
+<div>
+<table border="1" cellpadding="6" cellspacing="0" style="margin-left:0px;margin-right:auto">
+##<table border="1" cellpadding="6" cellspacing="0">
+	<tr bgcolor="#cccccc">
+		<td ></td>
+		<th >Running time</th>
+		<th >Average Backprojection Error</th>
+		<th >Average Endpoint Error</th>
+		<th >Average Angular Error</th>
+	</tr>
+	<!--
+	<tr bgcolor="#cccccc">
+		<th>Average</th><th>RMS</th>
+		<th>Average</th><th>RMS</th>
+		<th>Average</th><th>RMS</th>
+	</tr>
+	-->
+	%for a in algolist:
+	<tr>
+		<th bgcolor="#cccccc">${a}</th>
+		<td align="center">
+			%if a != "truth":
+			${app.algo_getruntime(a)}
+			%else:
+			0 s
+			%endif
+		</td>
+		<td align="center">${"%5.5f" % float(sixerror[a][0])}
+			<i style="font-size:x-small">gray levels</i></td>
+		<td align="center">
+			%if hastruth:
+			${"%5.5f" % float(sixerror[a][2])}
+			<i style="font-size:x-small">pixels</i>
+			%else:
+			-
+			%endif
+		</td>
+		<td align="center">
+			%if hastruth:
+			${"%5.5f" % float(sixerror[a][4])}&nbsp;º
+			%else:
+			-
+			%endif
+		</td>
+##		%for i in range(3):
+##		<td align="right">${"%5.5f" % float(sixerror[a][2*i])}</td>
+##		%endfor
+	</tr>
+	%endfor
+</table>
+
+<!--
+<br />
+EPE: Average Endpoint Error<br />
+AAE: Average Angular Error<br />
+ABE: Average Backprojection Error<br />
+-->
+
+</div>
+
+
+
+		<%def name="getpar(name,symbol)">
+		<tr>
+			<td align="right">
+				${symbol} =
+			</td>
+			<td align="left">
+				${app.cfg['param'][name]}
+			</td>
+		</tr>
+		</%def>
+
+		<%def name="setpar(visible,name,symbol,defval,hint)">
+		%if visible:
+		<tr>
+			<td align="right">
+				<label for="${name}">${symbol} = </label>
+			</td>
+			<td align="left">
+				<input type="text" name="${name}" value="${defval}" size="6" />
+			</td>
+			<td style="font-size:small">${hint}</td>
+		</tr>
+		%else:
+		<input type="hidden" name="${name}" value="${defval}" />
+		%endif
+		</%def>
+
+<br />
+
+<br />
+
+
+<form action="${app.base_url + 'wait'}" method="get">
+	<input type="hidden" name="key" value="${app.key}" />
+	<fieldset><legend>Chosen parameters</legend>
+<table cellpadding="3" cellspacing="0" border="0" style="margin-left:0px;margin-right:auto">
+
+%for k in sorted(app.parconfig):
+${setpar(app.parconfig[k]['changeable'],k,app.parconfig[k]['htmlname'],app.cfg['param'][k],app.parconfig[k]['doc'])}
+%endfor
+
+##	${setpar(True, 'lambda','&lambda;',plambda,'data attatchment weight (&lambda;=0.01 forces a very smooth flow, &nbsp; &lambda;=1 allows a very discontinuous flow)')}
+##	${setpar(False, 'theta','tightness &theta;',theta,' ')}
+##	${setpar(False, 'tau','time step &tau;',tau,' ')}
+##	${setpar(False, 'epsilon','stopping threshold &epsilon;',epsilon,' ')}
+##	${setpar(True, 'nscales','N',nscales,'number of scales (N=1 detects only sub-pixelic movements, &nbsp; N=8 detects large displacements)')}
+##	${setpar(False, 'nwarps','number of warps per scale',nwarps,' ')}
+##	${setpar(False, 'nprocs','openmp',nprocs,' ')}
+
+		<tr>
+			<td> </td>
+			<td>
+				<input type="submit" value="change" name="run" class="blank" />
+			</td>
+			<td>
+			</td>
+		</tr>
+
+</table>
+
+
+
+
+</fieldset>
+</form>
+
+
+##<form>
+##	<fieldset><legend>Internal parameters</legend>
+##<table cellpadding="3" cellspacing="0" border="0" style="margin-left:0px;margin-right:auto">
+##${getpar('theta','tightness &theta;')}
+##${getpar('tau','time step &tau;')}
+##${getpar('epsilon','stopping threshold &epsilon;')}
+##${getpar('nwarps','number of warps per scale &Mu;')}
+##</table>
+##</fieldset>
+##</form>
+
+<form action="${app.base_url}" method="get">
+<fieldset>
+	<legend>Restart this algorithm with new data</legend>
+  <div class="action">
+##    Restart this algorithm with new data.
+    <input type="submit" value="new input" />
+  </div>
+</fieldset>
+</form>
+
+
+
+<h2>Downloadable files</h2>
+
+<ul>
+
+<%def name="getfile(file,infile,title)">
+<li>
+${title}: <a href="${app.work_url+infile}">${file}</a>
+</li>
+</%def>
+
+<li>first image: <a href="${app.work_url}a.png">I1.png</a></li>
+<li>second image: <a href="${app.work_url}b.png">I2.png</a></li>
+<li>computed optical flow:
+<a href="${app.work_url}stuff_phs.tiff">tiff</a>,
+<a href="${app.work_url}stuff_phs.flo">flo</a>,
+<a href="${app.work_url}stuff_phs.uv">uv</a>
+</li>
+	%if hastruth:
+<li>ground truth:
+<a href="${app.work_url}t.tiff">tiff</a>,
+</li>
+	%endif
+</ul>
+
+
+<p style="font-size:small">
+Note on formats:
+<ul style="font-size:small">
+	<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>
+	<li>The <tt>.flo</tt> file is the same fomat as in the <a href="http://vision.middlebury.edu/flow/code/flow-code/README.txt">Middlebury database</a>.</li>
+	<li>The <tt>.uv</tt> file can be read and written by <a href="http://dev.ipol.im/~coco/file_uv.h">simple</a> code.</li>
+</ul>
+</p>
+
+
+
+
+
+<hr />
+
+<%include file="archive_info.html" />
+
+<%include file="footer.html" />
+## vim: set ts=2 sw=2:

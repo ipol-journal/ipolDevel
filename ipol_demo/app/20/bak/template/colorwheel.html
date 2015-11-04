@@ -1,0 +1,71 @@
+
+<%
+	csuf = app.cfg['meta']['colorscheme']+'.'+str(app.cfg['meta']['colorparam'])
+	colorparam = app.cfg['meta']['colorparam']
+	colorwheel = app.cfg['meta']['colorwheel']
+%>
+
+
+<div style="position:fixed;border:1px solid lightgray;background:white;padding:10px;top:0px;right:0px;z-index:102">
+%if colorwheel:
+Color coding of vectors:
+<a href="${app.base_url+'result?key='+app.key+'&colorwheel=False'}#p">
+	<span style="position:fixed;top:6px;right:27px">
+		[hide]
+	</span>
+</a>
+<br />
+	<img src="${app.work_url}cw.${csuf}.png" />
+	<br />
+
+	<%def name="radiocolor(id,desc)">
+	<button name="colorscheme" value="${id}"
+%if id==app.cfg['meta']['colorscheme']:
+style="border:1px inset;bakcground:white"
+%else:
+style="border:1px outset;background:white"
+%endif
+		>
+		${desc}
+	</button> <br />
+
+##	<input type="radio" name="colorscheme" value="${id}"
+##	%if id==app.cfg['meta']['colorscheme']:
+##	checked
+##	%endif
+##	/> ${desc} <br />
+	</%def>
+
+	<form
+		%if app.cfg['meta']['pos_inview']:
+		action="${app.base_url + 'recolor'}#p"
+		%else:
+		action="${app.base_url + 'recolor'}"
+		%endif
+		method="get">
+		<input type="hidden" name="key" value="${app.key}" />
+		<!--Scale:
+		<input type="text" name="scale" value="${colorparam}" size="7" /><br />
+		-->
+		${radiocolor('ipoln','IPOL colors (scaled, no level lines)')}
+		${radiocolor('ipol','IPOL colors (unscaled, with level lines)')}
+		${radiocolor('mid','Middlebury colors')}
+		${radiocolor('arrows','Arrows')}
+		##${radiocolor('gridback','Grid pushback')}
+		##<input type="submit" value="change" />
+	</form>
+%else:
+<a href="${app.base_url+'result?key='+app.key}#p">
+	<!--
+	<span style="position:fixed;top:6px;right:27px">
+		-->
+	[show colorwheel]
+	<!--
+	</span>
+	-->
+</a>
+%endif
+</div>
+
+
+## vim: set ts=2 sw=2:

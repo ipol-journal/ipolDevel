@@ -1,0 +1,174 @@
+<%include file="header.html" />
+
+<%
+	height = app.cfg['meta']['height']
+	if height < 310:
+		height = 310
+	hastruth = app.cfg['meta']['hastruth']
+%>
+
+<!--
+<p>
+You can select which implementations to try.
+</p>
+-->
+
+<h2>Set parameters</h2>
+
+<form action="${app.base_url + 'wait'}" method="get">
+		<input type="hidden" name="key" value="${app.key}">
+
+		<%def name="setpar(visible,name,symbol,defval,hint)">
+		%if visible:
+		<tr>
+			<td align="right">
+				<label for="${name}">${symbol} = </label>
+			</td>
+			<td align="left">
+				<input type="text" name="${name}" value="${defval}" size="6" />
+			</td>
+			<td style="font-size:small">${hint}</td>
+		</tr>
+		%else:
+		<input type="hidden" name="${name}" value="${defval}" />
+		%endif
+		</%def>
+
+		<table cellpadding="5" cellspacing="0" border="0" style="margin-left:0px;margin-right:auto">
+
+		%for k in sorted(app.parconfig):
+		${setpar(app.parconfig[k]['changeable'],k,app.parconfig[k]['htmlname'],app.parconfig[k]['default'],app.parconfig[k]['doc'])}
+		%endfor
+
+##		${setpar(True, 'lambda','&lambda;','0.15','data attatchment weight (&lambda;=0.01 forces a very smooth flow, &nbsp; &lambda;=1 allows a very discontinuous flow)')}
+##		${setpar(False, 'theta','tightness &theta;','0.3',' ')}
+##		${setpar(False, 'tau','time step &tau;','0.25',' ')}
+##		${setpar(False, 'epsilon','stopping threshold &epsilon;','0.0001',' ')}
+##		${setpar(True, 'nscales','N','5','number of scales (N=1 detects only sub-pixelic movements, &nbsp; N=8 detects large displacements)')}
+##		${setpar(False, 'nwarps','number of warps per scale','5',' ')}
+##		${setpar(False, 'nprocs','openmp','0',' ')}
+
+		<tr>
+			<td> </td>
+			<td>
+				<input type="submit" value="run" />
+			</td>
+			<td> </td>
+	</tr>
+		</table>
+
+
+</form>
+
+<!--
+<h2>Comparison Setup</h2>
+
+<form action="${app.base_url + 'wait'}" method="get">
+	<div class="action">
+		<input type="hidden" name="key" value="${app.key}">
+
+		<fieldset>
+			<legend>Select the methods to compare</legend>
+
+			<input type="checkbox" name="algo" value="truth" checked="checked">
+			<label for="truth">Ground Truth (given)</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="ipolhs" checked="checked">
+			<label for="ipolhs">IPOL's Horn & Schunck</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="mwhs" checked="checked">
+			<label for="mwhs">Megawave's Horn & Schunck</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="ocvhs" checked="checked">
+			<label for="ocvhs">OpenCV's Horn & Schunck</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="ocvff" checked="checked">
+			<label for="ocvff">OpenCV's Farneback</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="ocvlk" checked="checked">
+			<label for="ocvlk">OpenCV's Lucas-Kanade</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="ocvbm" checked="checked">
+			<label for="ocvbm">OpenCV's Block Matching</label>
+			<br />
+
+
+			<input type="checkbox" name="algo" value="ldof" checked="checked">
+			<label for="ldof">Brox's Large Displacement Optical Flow</label>
+			<br />
+
+			<input type="checkbox" name="algo" value="warp" checked="checked">
+			<label for="warp">Brox's Warping Theory</label>
+			<br />
+
+
+			<input type="checkbox" name="algo" value="luis">
+			<label for="luis">Garrido's Multigrid (slow!)</label>
+			<br />
+
+		</fieldset>
+
+		<fieldset>
+			<legend>Select the comparison criteria</legend>
+
+			<input type="checkbox" name="crit" value="angerr">
+			<label for="angerr">Pointwise angular error w.r.t. F</label>
+			<br />
+
+			<input type="checkbox" name="crit" value="abserr">
+			<label for="abserr">Pointwise absolute error w.r.t. F</label>
+			<br />
+
+			<input type="checkbox" name="crit" value="reperr">
+			<label for="reperr">Pointwise reprojection error</label>
+			<br />
+
+			<input type="checkbox" name="crit" value="ofc">
+			<label for="ofc">Pointwise optical-flow constraint error (1st order)</label>
+			<br />
+
+			<input type="checkbox" name="crit" value="ofc2">
+			<label for="ofc2">Pointwise optical-flow constraint error (2nd order)</label>
+			<br />
+
+
+		</fieldset>
+
+
+		<input type="submit" value="run" />
+	</div>
+</form>
+-->
+
+<hr />
+
+<h2>Input data</h2>
+
+<div class="gallery" style="height:${height}px">
+	<ul class="index">
+		<li> <a href="#">I<sub>1</sub><span>
+				<img src="${app.work_url + 'a.png'}" title="A"/>
+			</span></a>
+		</li>
+		<li> <a href="#">I<sub>2</sub><span>
+				<img src="${app.work_url + 'b.png'}" title="B"/>
+			</span></a>
+		</li>
+		%if hastruth:
+		<li> <a href="#">ground truth<span>
+				<img src="${app.work_url + 't.png'}" title="T"/>
+			</span></a>
+		</li>
+		%endif
+	</ul>
+</div>
+
+<%include file="footer.html" />
+
+## vim: set ts=2 sw=2:
