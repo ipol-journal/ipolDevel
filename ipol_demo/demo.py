@@ -70,21 +70,31 @@ def do_build(demo_dict,clean):
       # read JSON file
       # update the demo apps programs
       demo = base_app(demo_path)
-      bd = build_demo_base.BuildDemoBase( demo_dir)
-      bd.set_params(demo.demo_description['build'])
       
-      cherrypy.log("building", context='SETUP/%s' % demo_id,
-                    traceback=False)
-      try:
-        if clean:
-          bd.clean()
-        else:
-          bd.make()
-      except Exception as e:
-        print "Build failed with exception ",e
-        cherrypy.log("build failed (see the build log)",
-                      context='SETUP/%s' % demo_id,
+      # we should have a dict or a list of dict
+      if isinstance(demo.demo_description['build'],dict):
+        builds = [ demo.demo_description['build'] ]
+      else:
+        builds = demo.demo_description['build']
+      
+      first_build = True
+      for build_params in builds:
+        bd = build_demo_base.BuildDemoBase( demo_dir)
+        bd.set_params(build_params)
+        
+        cherrypy.log("building", context='SETUP/%s' % demo_id,
                       traceback=False)
+        try:
+          if clean:
+            bd.clean()
+          else:
+            bd.make(first_build)
+            first_build=False
+        except Exception as e:
+          print "Build failed with exception ",e
+          cherrypy.log("build failed (see the build log)",
+                        context='SETUP/%s' % demo_id,
+                        traceback=False)
     return
 
 def do_run(demo_dict, demo_desc):
@@ -128,13 +138,13 @@ def get_values_of_o_arguments(argv):
 def CheckDemoDescription(desc):
   # check the general section
   ok = True
-  required_keys = set([ "general", "params", "results", "archive", "build", "run" ])
+  required_keys = set([ "general", "inputs", "params", "results", "archive", "build", "run" ])
   if not required_keys.issubset(desc.keys()):
     print "missing sections in JSON file: ", required_keys.difference(desc.keys())
     return False
 
   # general section
-  required_keys = set([ "demo_title", "input_description", "param_description", "input_nb", "input_max_pixels", "input_max_weight", "input_dtype", "input_ext", "is_test", "xlink_article" ])
+  required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
   if not required_keys.issubset(desc['general'].keys()):
     mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
     print mess
