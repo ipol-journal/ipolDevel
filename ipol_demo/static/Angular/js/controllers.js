@@ -169,8 +169,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           // they are the maximal dimensions over all inputs ...
           $scope.InputCropped=($scope.params.x0!=0) ||
                               ($scope.params.y0!=0) ||
-                              ($scope.params.x1!=imwidth-1) ||
-                              ($scope.params.y1!=imheight-1);
+                              ($scope.params.x1!=$scope.imwidth-1) ||
+                              ($scope.params.y1!=$scope.imheight-1);
           
         }
       }
