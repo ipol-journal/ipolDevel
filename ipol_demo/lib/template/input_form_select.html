@@ -9,9 +9,9 @@
     </p>
     <form name="ThumbnailSizeForm">
       <label>Thumbnail size (in pixels)</label>
-      <select ng-options="ThumbnailSize for ThumbnailSize in ['64', '128', '192', '256']" 
-              ng-model="ThumbnailSize" 
-              ng-init="ThumbnailSize='192'">
+      <select ng-options="ThumbnailSize for ThumbnailSize in [64, 128, 192, 256]" 
+              ng-model="demo.general.thumbnail_size" >
+<!--               ng-init="ThumbnailSize=demo.general.thumbnail_size"> -->
       </select>
       <label>Show Credits</label>
       <input  id="ShowCreditsCheckbox" type="checkbox" 
@@ -19,30 +19,61 @@
               ng-init="ShowCredits=false" >
     </form>
     <div ng-repeat="blob_set in demoblobs.blobs">
-      <div  class="select_input"
-            style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left;  text-align:center; vertical-align:middle;width:{{ThumbnailSize*demo.general.input_nb+10*demo.general.input_nb}}px;height:{{ThumbnailSize}}px; '>
-
-        <a  ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
-        <span ng-repeat="idx in range(1,blob_set[0].size+1)">
-          <div  class="select_input"
-                style='margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:5px; float:left; width:{{ThumbnailSize}}px; text-align:center; vertical-align:middle;'>
+<!--       create first the table with the correct number of inputs -->
+      <table  style=' background-color:#EEEEEE;
+                      margin:5px;float:left;
+                      text-align:center;vertical-align:middle;'>
+<!--                     height:{{demo.general.thumbnail_size}}px;'  -->
+<!--                     width:{{demo.general.thumbnail_size*demo.inputs.length.+10*demo.inputs.length}}px; -->
+<!--      <div  class="select_input"
+            style='margin:5px;float:left;  text-align:center; vertical-align:middle;width:{{demo.general.thumbnail_size*demo.inputs.length+10*demo.inputs.length}}px;height:{{demo.general.thumbnail_size}}px; '>-->
+      <tr>
+        <td   style=' margin:2px;padding:2px;'
+              ng-repeat="idx in range(1,blob_set[0].size+1)" ng-if="blob_set[idx].extension!='disabled'">
+          <a  style=' margin:0;padding:0;' 
+              ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
+          <div  
+                class="select_input"
+                style=' margin:0;padding:0;
+                        float:left;
+                        width:{{demo.general.thumbnail_size}}px; 
+                        height:{{demo.general.thumbnail_size}}px;
+                        vertical-align:middle;'>
             <img
-                  style="max-width:{{ThumbnailSize}}px;max-height:{{ThumbnailSize}}px;width:auto;height:auto;vertical-align:middle;"
+                  style=" max-width:{{demo.general.thumbnail_size}}px;
+                          max-height:{{demo.general.thumbnail_size}}px;
+                          width:auto;height:auto;
+                          margin:0;padding:0;
+                          position: relative;
+                          top: 50%;
+                          transform: translateY(-50%);"
                   ng-src="http://localhost:7777/thumbnail/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
                   ng-click="selectImage(blob_set[idx])" 
                   ng-class="{'selected-image': (selected_image === blob_set[idx])}"
                   alt={{blob_set[idx].title}}
                   title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+')'}}"
+                  imageonfail="DisableBlobDisplay(blob_set,idx)"
                   />
-            <div ng-if="ShowCredits">
-              <span ng-if="blob_set[idx].credit!=''"><i>  {{blob_set[idx].credit}} </i></span>
-            </div>
           </div>
-        </span>
-        </a>
-        <br>
-        <span>{{blob_set[0].set_name}}</span>
-      </div>
+          </a>
+        </td>
+      </tr>
+<!--      <tr ng-if="ShowCredits">
+        <td ng-repeat="idx in range(1,blob_set[0].size+1)" ng-if="blob_set[idx].extension!='disabled'">
+          <i> {{blob_set[idx].credit}} ** </i>
+        <td>
+      </tr>-->
+      <tr style="background-color:#EEEEEE;">
+        <th colspan="{{blob_set[0].size}}">
+        <!-- We could use the blob name but in general each image has the same title
+             which is a better name <span>{{blob_set[0].set_name}}</span> -->
+          {{blob_set[1].title}}
+          <span ng-if="ShowCredits">
+            -- <i> {{blob_set[idx].credit}} </i>
+          </span>
+        </th>
+      </tr>
+      </table>
     </div>
     <div style='clear:both'> </div>
 </div>

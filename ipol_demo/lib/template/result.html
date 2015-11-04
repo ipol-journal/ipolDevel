@@ -70,8 +70,18 @@
 
   <!-- ===== Results ===== -->
   <h1>Results</h1>
-  <br/>
-  <span ng-repeat="result in demo.results">
+
+  <!-- zoom factor for gallery -->
+  <label> Zoom factor for images </label>
+  <select ng-options="ZoomFactor for ZoomFactor in [0.125,0.25,0.5,0.75,1, 1.5, 2, 4, 8,16]" 
+          ng-model="ZoomFactor" 
+          ng-init="ZoomFactor=1">
+  </select>
+
+  <span bind-html-compile="demo.results_test[0].contents.join('')"></span> 
+
+  <!-- display all results -->
+  <span ng-repeat="result in demo.results" >
     <!-- gallery -->
     <span ng-if="result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
@@ -81,7 +91,7 @@
             <a href="#">  {{label | interpolate:current_scope }}
               <span>
                   <img  style="{{result.style|interpolate:current_scope}}" 
-                        ng-src="{{work_url+image}}" imageonfail="DisableImage(result.contents,$index)" /> 
+                        ng-src="{{work_url+image|interpolate:current_scope}}" imageonfail="DisableImage(result.contents,$index)" /> 
               </span>
             </a>
           </li>
@@ -119,21 +129,23 @@
     </span>
     <!-- html_text -->
     <span ng-if="result.type==='html_text'"> 
-      <div bind-html-compile="result.contents"></div> <br/>
+      <div bind-html-compile="result.contents.join('')"></div> <br/>
     </span>
     <!-- file_download -->
     <span ng-if="result.type==='file_download'"> 
       <span ng-if="result.repeat!=undefined">
         <span ng-repeat="idx in range($eval(result.repeat))">
-          <a href="{{work_url+$eval(result.contents)}}">
+          <a href="{{work_url+result.contents|interpolate_loop:current_scope:idx}}">
             <div bind-html-compile="result.label"></div> <br/>
           </a>
         </span>
       </span>
       <span ng-if="result.repeat==undefined">
-        <a href="{{work_url+result.contents}}">
-          <div bind-html-compile="result.label"></div> <br/>
-        </a>
+        <span bind-html-compile="result.label"></span>
+        <span ng-repeat="(label,file) in result.contents">
+          &nbsp;[&nbsp;<a href="{{work_url+file}}">{{label|interpolate:current_scope}}</a>&nbsp;]&nbsp;
+        </span>
+        <br/>
       </span>
     </span>
     <!-- text_file -->
