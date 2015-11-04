@@ -65,20 +65,24 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
     //
     console.info("PreprocessDemo")
     console.info(demo)
-    console.info(demo.general.input_max_pixels)
-    console.info(demo.general.input_max_weight)
     if (demo!=undefined) {
-      // do some pre-processing
-      if (angular.isString(demo.general.input_max_pixels)) {
-        demo.general.input_max_pixels = scope.$eval(demo.general.input_max_pixels)
-      }
-      if (angular.isString(demo.general.input_max_weight)) {
-        demo.general.input_max_weight = scope.$eval(demo.general.input_max_weight)
-      }
+      angular.forEach(demo.inputs, 
+        function(input) {
+          // do some pre-processing
+          if (angular.isString(input.max_pixels)) {
+            input.max_pixels = scope.$eval(input.max_pixels)
+          }
+          if (angular.isString(input.max_weight)) {
+            input.max_weight = scope.$eval(input.max_weight)
+          }
+        }
+      )
       //
+      
+      if (demo.general.thumbnail_size==undefined) {
+        demo.general.thumbnail_size = 128;
+      }
     }
-    console.info(demo.general.input_max_pixels)
-    console.info(demo.general.input_max_weight)
   };
 }]);
 
