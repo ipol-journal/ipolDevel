@@ -27,9 +27,11 @@ from .misc import prod
 from shutil import rmtree
 import json
 
-import run_demo_base
-from run_demo_base import RunDemoBase
-from run_demo_base import TimeoutError
+import  run_demo_base
+from    run_demo_base import RunDemoBase
+from    run_demo_base import TimeoutError
+from    timeit import default_timer as timer
+import  glob
 
 class AppPool(object):
     """
@@ -207,7 +209,6 @@ class base_app(empty_app):
         
         # expose methods
         app_expose(base_app.index)
-        app_expose(base_app.input_select)
         app_expose(base_app.input_upload)
         # params() is modified from the template
         app_expose(base_app.params)
@@ -222,11 +223,6 @@ class base_app(empty_app):
         # default class attributes
         # to be modified in subclasses
         self.title = "base demo"
-        self.input_nb = 1 # number of input files
-        self.input_max_pixels = 1024 * 1024 # max size of an input image
-        self.input_max_weight = 5 * 1024 * 1024 # max size (in bytes) of an input file
-        self.input_dtype = '1x8i' # input image expected data type
-        self.input_ext = '.tiff' # input image expected extention (ie. file format)
         self.timeout = 60 # subprocess execution timeout
         self.is_test = True
         self.show_results_on_error = False
@@ -234,21 +230,12 @@ class base_app(empty_app):
         #-----
         general_params = self.demo_description["general"]
         self.title            = general_params["demo_title"]
-        # number of input images
-        self.input_nb         = general_params["input_nb"] 
-        # max size (in pixels) of an input image
-        self.input_max_pixels = general_params["input_max_pixels"]
-        # max size (in bytes) of an input file
-        self.input_max_weight = general_params["input_max_weight"]
-        # input image expected data type
-        self.input_dtype      = general_params["input_dtype"]
-        # input image expected extension (i.e. file format)
-        self.input_ext        = general_params["input_ext"]
         # switch to False for deployment
         self.is_test          = general_params["is_test"]
         self.xlink_article    = general_params["xlink_article"]
         if 'show_results_on_error' in general_params:
           self.show_results_on_error = general_params['show_results_on_error']
+        self.nb_inputs        = len(self.demo_description['inputs'])
 
     #
     # TEMPLATES HANDLER
@@ -353,58 +340,83 @@ class base_app(empty_app):
         im.save(fullpath)
 
     #---------------------------------------------------------------------------
-    def convert_and_resize(self, im):
+    def convert_and_resize(self, im, input_info):
         '''
         Convert and resize an image object
         '''
-        im.convert(self.input_dtype)
-
+        im.convert(input_info['dtype'])
         # check max size
-        resize = self.input_max_pixels and prod(im.size) > self.input_max_pixels
-        
+        resize = prod(im.size) > input_info['max_pixels']
         if resize:
             self.log("input resize")
-            im.resize(self.input_max_pixels)
+            im.resize(input_info['max_pixels'])
 
     #---------------------------------------------------------------------------
-    def process_input(self):
+    def process_inputs(self):
         """
         pre-process the input data
         we suppose that config has been initialized, and save the dimensions
         of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
+        print "process_inputs()"
+        start = timer()
         msg = None
         self.max_width = 0
         self.max_height = 0
-        for i in range(self.input_nb):
-            # open the file as an image
-            try:
-                im = image(self.work_dir + 'input_%i' % i)
-            except IOError:
+        inputs_desc = self.demo_description['inputs']
+        
+        for i in range(self.nb_inputs):
+          # check the input type
+          input_desc = inputs_desc[i]
+          # find files starting with input_%i
+          input_files = glob.glob(self.work_dir + 'input_%i' % i+'.*')
+          
+          if input_desc['type']=='image':
+            # we deal with an image, go on ...
+            print "Processing input ",i
+            if len(input_files)!=1:
+              # problem here
+              raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+            else:
+              # open the file as an image
+              try:
+                  im = image(input_files[0])
+              except IOError:
+                print "failed to read image " + input_files[0]
                 raise cherrypy.HTTPError(400, # Bad Request
                                          "Bad input file")
 
+            
+            # why use threads here? is it really better ???
             threads = []
 
-            # convert to the expected input format
-            im_converted = im.clone()
-            threads.append(threading.Thread(target=self.convert_and_resize, args = (im_converted, )))
-
+            #-----------------------------
             # Save the original file as PNG
+            # todo: why save original image as PNG??
             #
             # Do a check before security attempting copy.
             # If the check fails, do a save instead
-            if im.im.format != "PNG" or \
-                  im.size[0] > 20000 or \
-                  im.size[1] > 20000 or \
-                  len(im.im.getbands()) > 4:
-                # Save as PNG (slow)
-                threads.append(threading.Thread(target=self.save_image,
-                               args = (im, self.work_dir + 'input_%i.orig.png' % i)))
+            if  im.im.format != "PNG" or \
+                im.size[0] > 20000 or im.size[1] > 20000 or \
+                len(im.im.getbands()) > 4:
+              # Save as PNG (slow)
+              threads.append(threading.Thread(target=self.save_image,
+                              args = (im, self.work_dir + 'input_%i.orig.png' % i)))
+              # delete the original
+              os.remove(input_files[0])
             else:
-                # Copy file (fast)
-                shutil.copy(self.work_dir + 'input_%i' % i,
-                            self.work_dir + 'input_%i.orig.png' % i)
+              # Copy file (fast)
+              shutil.move(input_files[0],
+                          self.work_dir + 'input_%i.orig.png' % i)
+
+            
+            #-----------------------------
+            # convert to the expected input format: TODO: do it if needed ...
+            im_converted = im.clone()
+            print "input description: ", input_desc
+            threads.append(threading.Thread(target=self.convert_and_resize, 
+                                            args = (im_converted,input_desc) ))
+
 
             # Execute threads and wait for them
             for t in threads:
@@ -413,28 +425,19 @@ class base_app(empty_app):
                 t.join()
 
 
-            threads = []
-            # save a working copy:
-            if self.input_ext != ".png":
-                # Problem with PIL or our image class: this call seems to be
-                # problematic when saving PGM files. Not reentrant?? In any
-                # case, avoid calling it from a thread.
-                #threads.append(threading.Thread(target=self.save_image,
-                #               args = (im_converted, self.work_dir + 'input_%i' % i + self.input_ext)))
-                self.save_image(im_converted, self.work_dir + 'input_%i' % i + self.input_ext)
+            ext = input_desc['ext']
+            # why saving a copy of the converted image in non-png format ?
+            ## save a working copy:
+            #if ext != ".png":
+                ## Problem with PIL or our image class: this call seems to be
+                ## problematic when saving PGM files. Not reentrant?? In any
+                ## case, avoid calling it from a thread.
+                ##threads.append(threading.Thread(target=self.save_image,
+                ##               args = (im_converted, self.work_dir + 'input_%i' % i + ext))
+                #self.save_image(im_converted, self.work_dir + 'input_%i' % i + ext)
 
             # save a web viewable copy
-            threads.append(threading.Thread(target=self.save_image,
-                           args = (im_converted, self.work_dir + 'input_%i.png' % i)))
-
-            # Execute threads and wait for them
-            for t in threads:
-                t.start()
-            for t in threads:
-                t.join()
-
-            # delete the original
-            os.unlink(self.work_dir + 'input_%i' % i)
+            self.save_image(im_converted, self.work_dir + 'input_%i.png' % i)
 
             if im.size != im_converted.size:
                 msg = "The image has been resized for a reduced computation time."
@@ -442,6 +445,20 @@ class base_app(empty_app):
             self.max_height = max(self.max_height,im_converted.size[1])
             self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
             self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
+          # end if type is image
+          else:
+            # check if we have a representing image to display
+            if len(input_files)>1:
+              # the number of input files should be 2...
+              # for the moment, only check for png file
+              png_file = self.work_dir + 'input_%i.png' % i
+              if png_file in input_files:
+                # save in configuration the information to allow its display
+                self.cfg['meta']['input%i_has_image'%i] = True
+        # end for i in range(nb_inputs)
+        end=timer()
+        print "process_inputs() took: ", (end-start), " seconds"
+        
         return msg
 
 
@@ -458,15 +475,18 @@ class base_app(empty_app):
         self.new_key()
         self.init_cfg()
         # copy the input files
-        fnames = ['input_%i' % i + self.input_ext
-                  for i in range(self.input_nb)]
+        fnames = ['input_%i' % i + self.demo_description['inputs'][i]['ext']
+                  for i in range(self.nb_inputs)]
         fnames += ['input_%i.png' % i
-                   for i in range(self.input_nb)]
+                   for i in range(self.nb_inputs)]
         fnames += ['input_%i.orig.png' %i
-                   for i in range(self.input_nb)]
+                   for i in range(self.nb_inputs)]
         for fname in fnames:
+          try:
             shutil.copy(old_work_dir + fname,
                         self.work_dir + fname)
+          except:
+            print "clone_input, file not found:", fname
         # copy cfg
         self.cfg['meta'] .update(old_cfg_meta)
         self.cfg['param'].update(old_cfg_params)
@@ -484,57 +504,6 @@ class base_app(empty_app):
         to process non-standard input
         '''
         pass # May be redefined by the subclass
-
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def input_select(self, **kwargs):
-        """
-        use the selected available input images
-        """
-
-        # When we arrive here, self.key should be empty.
-        # If not, it means that the execution belongs to another thread
-        # and therefore we need to reuse the app object
-        key_is_empty = (self.key == "")
-        if key_is_empty:
-            # New execution: create new app object
-            self2 = base_app(self.base_dir)
-            self2.__class__ = self.__class__
-            self2.__dict__.update(self.__dict__)
-        else:
-            # Already known execution
-            self2 = self
-
-        self2.new_key()
-        self2.init_cfg()
-
-        # Add app to object pool
-        if key_is_empty:
-            pool = AppPool.get_instance() # Singleton pattern
-            pool.add_app(self2.key, self2)
-
-        # kwargs contains input_id.x and input_id.y
-        input_id = kwargs.keys()[0].split('.')[0]
-        assert input_id == kwargs.keys()[1].split('.')[0]
-        # get the images
-        input_dict = config.file_dict(self2.input_dir)
-        fnames = input_dict[input_id]['files'].split()
-        for i in range(len(fnames)):
-            shutil.copy(self2.input_dir + fnames[i],
-                        self2.work_dir + 'input_%i' % i)
-        msg = self2.process_input()
-        self2.log("input selected : %s" % input_id)
-        self2.cfg['meta']['original']   = False
-        self2.cfg['meta']['max_width']  = self2.max_width;
-        self2.cfg['meta']['max_height'] = self2.max_height;
-        self2.cfg.save()
-
-        # Let users copy non-standard input into the work dir
-        self2.input_select_callback(fnames)
-
-        # jump to the params page
-        return self2.params(msg=msg, key=self2.key)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -564,28 +533,30 @@ class base_app(empty_app):
             pool = AppPool.get_instance() # Singleton pattern
             pool.add_app(self2.key, self2)
 
-        # kwargs contains input_id.x and input_id.y
-        #input_id = kwargs.keys()[0].split('.')[0]
-        #assert input_id == kwargs.keys()[1].split('.')[0]
-        
-        # get the images
-        #input_dict = config.file_dict(self2.input_dir)
-        #fnames = input_dict[input_id]['files'].split()
-        # need
-        #for i in range(len(fnames)):
-            #shutil.copy(self2.input_dir + fnames[i],
-                        #self2.work_dir + 'input_%i' % i)
-
-        #----- for the moment deal with only one image
         print "input_select_angular :", kwargs.keys()
         # copy to work_dir
         blobfile = urllib.URLopener()
-        for (idx,key) in enumerate(kwargs.keys()):
-          blobfile.retrieve("http://localhost:7777/blob_directory/"+
-                              key, 
-                              self2.work_dir + 'input_{0}'.format(idx))
+        for inputinfo in kwargs.keys():
+          # 1. retreive index
+          posstart=inputinfo.index(':')
+          idx = int(inputinfo[:posstart])
+          print self.demo_description['inputs'][idx]
+          inputinfo = inputinfo[posstart+1:]
+          if ',' in inputinfo:
+            # what should we do ? we should have two files here...
+            inputfiles = inputinfo.split(',')
+          else:
+            inputfiles = [ inputinfo ]
+          # extract input files to work dir as input_%i.ext
+          print "inputfiles:",inputfiles
+          for inputfile in inputfiles:
+            print "inputfile:",inputfile
+            ext = inputfile[inputfile.index('.'):]
+            blobfile.retrieve("http://localhost:7777/blob_directory/"+
+                              inputfile, 
+                              self2.work_dir + 'input_{0}{1}'.format(idx,ext))
         
-        msg = self2.process_input()
+        msg = self2.process_inputs()
         #self2.log("input selected : %s" % kwargs.keys()[0])
         self2.cfg['meta']['original'] = False
         self2.cfg['meta']['max_width']  = self2.max_width;
@@ -602,32 +573,35 @@ class base_app(empty_app):
     #---------------------------------------------------------------------------
     def input_upload(self, **kwargs):
         """
-        use the uploaded input images
+        use the uploaded input files
         """
         self.new_key()
         self.init_cfg()
-        for i in range(self.input_nb):
-            file_up = kwargs['file_%i' % i]
-            file_save = file(self.work_dir + 'input_%i' % i, 'wb')
-            if '' == file_up.filename:
-                # missing file
+        for i in range(self.nb_inputs):
+          file_up = kwargs['file_%i' % i]
+          # suppose than the file is in the correct format for its extension
+          ext = self.demo_description['inputs'][i]['ext']
+          file_save = file(self.work_dir + 'input_%i' % i + ext, 'wb')
+          
+          if '' == file_up.filename:
+              # missing file
+              raise cherrypy.HTTPError(400, # Bad Request
+                                        "Missing input file")
+          size = 0
+          while True:
+            # TODO larger data size
+            data = file_up.file.read(128)
+            if not data:
+                break
+            size += len(data)
+            if size > self.demo_description['inputs'][i]['max_weight']:
+                # file too heavy
                 raise cherrypy.HTTPError(400, # Bad Request
-                                         "Missing input file")
-            size = 0
-            while True:
-                # TODO larger data size
-                data = file_up.file.read(128)
-                if not data:
-                    break
-                size += len(data)
-                if size > self.input_max_weight:
-                    # file too heavy
-                    raise cherrypy.HTTPError(400, # Bad Request
-                                             "File too large, " +
-                                             "resize or use better compression")
-                file_save.write(data)
-            file_save.close()
-        msg = self.process_input()
+                                          "File too large, " +
+                                          "resize or use better compression")
+            file_save.write(data)
+          file_save.close()
+        msg = self.process_inputs()
         self.log("input uploaded")
         self.cfg['meta']['original'] = True
         self.cfg['meta']['max_width']  = self.max_width;
@@ -677,9 +651,10 @@ class base_app(empty_app):
         if 'input_condition' in self.demo_description['general'].keys():
           condition = self.demo_description['general']['input_condition']
           # Get all image sizes
-          for i in range(self.input_nb):
-            exec("input{0}_size_x = self.cfg['meta']['input{0}_size_x']".format(i) )
-            exec("input{0}_size_y = self.cfg['meta']['input{0}_size_y']".format(i) )
+          for i in range(self.nb_inputs):
+            if self.demo_description['inputs'][i]['type']=='image':
+              exec("input{0}_size_x = self.cfg['meta']['input{0}_size_x']".format(i) )
+              exec("input{0}_size_y = self.cfg['meta']['input{0}_size_y']".format(i) )
           try:
             inputs_ok = eval(condition[0])
             if not(inputs_ok):
@@ -711,7 +686,7 @@ class base_app(empty_app):
         http.refresh(self.base_url + 'run?key=%s' % self.key)
         return self.tmpl_out("wait.html",
                              input=['input_%i.png' % i
-                                    for i in range(self.input_nb)])
+                                    for i in range(self.nb_inputs)])
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -822,7 +797,8 @@ class base_app(empty_app):
         cut subimage from original image
         """
         # draw selected rectangle on the image
-        imgS = image(self.work_dir + 'input_0.png')
+        imgS        = image(self.work_dir + 'input_0.png')
+        max_pixels  = self.demo_description['inputs'][0]['max_pixels']
         imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
                        color="red")
         imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
@@ -839,9 +815,8 @@ class base_app(empty_app):
             z = float(dx0)/float(dx)
             im0.crop((int(x0*z), int(y0*z), int(x1*z), int(y1*z)))
             # resize if cropped image is too big
-            if (self.input_max_pixels
-                and prod(im0.size) > self.input_max_pixels):
-                im0.resize(self.input_max_pixels, method="antialias")
+            if max_pixels and prod(im0.size) > max_pixels:
+                im0.resize(max_pixels, method="antialias")
             img = im0
         else:
             img.crop((x0, y0, x1, y1))

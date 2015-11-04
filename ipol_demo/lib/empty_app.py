@@ -49,7 +49,7 @@ class empty_app(object):
                            self.archive_dir, self.static_dir]:
             # Create static subfolder
             if not os.path.isdir(static_dir):
-                os.mkdir(static_dir)
+                os.makedirs(static_dir)
 
         # TODO : merge with getattr
         self.archive_index = os.path.join(self.archive_dir, "index.db")

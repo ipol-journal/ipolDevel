@@ -32,12 +32,12 @@ class BuildDemoBase:
     self.params=params
       
   #-----------------------------------------------------------------------------
-  def make(self):
+  def make(self, clean_previous=True):
     # can be overridden, need self.params to be defined
     """
     program build/update
     """
-    print "make()"
+    print "make(clean_previous={0})".format(clean_previous)
     zip_filename  = urlparse.urlsplit(self.params['url']).path.split('/')[-1]
     src_dir_name  = self.params['srcdir']
     src_path      = path.join(self.src_dir, src_dir_name)
@@ -49,10 +49,10 @@ class BuildDemoBase:
     prog_file = path.join( self.bin_dir,  prog_filename )
     # get the latest source archive
     build.download(self.params['url'], tgz_file)
-
     # test if the dest file is missing, or too old
     if path.isfile(prog_file) and (ctime(tgz_file) < ctime(prog_file)):
       print("no rebuild needed")
+      return 
     else:
       print "extracting archive"
       # extract the archive
@@ -60,13 +60,22 @@ class BuildDemoBase:
 
       print "creating bin_dir"
       # delete and create bin dir
-      if path.isdir(self.bin_dir): shutil.rmtree(self.bin_dir)
-      os.mkdir(self.bin_dir)
+      if path.isdir(self.bin_dir): 
+        if clean_previous: 
+          shutil.rmtree(self.bin_dir)
+          os.mkdir(self.bin_dir)
+      else:
+        os.mkdir(self.bin_dir)
 
       print "creating scripts dir"
-      # delete and create scripts dir
-      if path.isdir(self.scripts_dir): shutil.rmtree(self.scripts_dir)
-      os.mkdir(self.scripts_dir)
+      # create scripts dir if needed
+      if not(path.isdir(self.scripts_dir)): 
+        os.mkdir(self.scripts_dir)
+      #else:
+        # don't clean previous contents
+        #if clean_previous: 
+          #shutil.rmtree(self.scripts_dir)
+          #os.mkdir(self.scripts_dir)
       
       programs = self.params['binaries']
       
@@ -94,22 +103,50 @@ class BuildDemoBase:
         # build
         build.run("make %s " % ( self.params['flags']), 
                   stdout=self.log_file,cwd=build_dir)
-        # move binaries
+        # copy binaries
+        prog_path=path.join(build_dir, program[0])
+        bin_path =path.join(prog_path, program[1])
         for program in programs:
-          # move binary to bin dir
-          shutil.copy(path.join(build_dir, program[0], program[1]), 
-                      path.join(self.bin_dir, program[1]))
+          if os.path.isdir(bin_path):
+            print "copying all files in bin dir"
+            # copy all files to bin dir
+            src_files = os.listdir(bin_path)
+            for file_name in src_files:
+              full_file_name = os.path.join(bin_path, file_name)
+              if (os.path.isfile(full_file_name)):
+                print "{0}-->{1}".format(full_file_name, self.bin_dir)
+                shutil.copy(full_file_name, self.bin_dir)
+          else:
+            # copy binary to bin dir
+            print "{0}-->{1}".format(bin_path,self.bin_dir)
+            shutil.copy(bin_path,self.bin_dir)
       else:
       #----- MAKE build
         print "using MAKE"
         # build the programs for make
         for program in programs:
-          prog_path=path.join(src_path, program[0])
+          prog_path=path.join(src_path,  program[0])
+          bin_path =path.join(prog_path, program[1])
           # build
-          build.run("make %s -C %s %s" % (self.params['flags'], 
-                                          prog_path, program[1]), stdout=self.log_file)
-          # move binary to bin dir
-          shutil.copy(path.join(prog_path, program[1]), path.join(self.bin_dir, program[1]))
+          if os.path.isdir(bin_path):
+            cmd = "make %s -C %s" % (self.params['flags'], prog_path)
+          else:
+            cmd = "make %s -C %s %s" % (self.params['flags'], prog_path, program[1])
+          print cmd
+          build.run(cmd, stdout=self.log_file)
+          if os.path.isdir(bin_path):
+            print "copying all files in bin dir ", bin_path
+            # copy all files to bin dir
+            src_files = os.listdir(bin_path)
+            for file_name in src_files:
+              full_file_name = os.path.join(bin_path, file_name)
+              if (os.path.isfile(full_file_name)):
+                print "{0}-->{1}".format(full_file_name, self.bin_dir)
+                shutil.copy(full_file_name, self.bin_dir)
+          else:
+            # copy binary to bin dir
+            print "{0}-->{1}".format(bin_path,self.bin_dir)
+            shutil.copy(bin_path,self.bin_dir)
 
       if 'scripts' in self.params.keys():
         print self.params['scripts']
@@ -122,7 +159,7 @@ class BuildDemoBase:
           
       # cleanup the source dir
       shutil.rmtree(self.src_dir)
-    return
+    return 
 
   
   #-----------------------------------------------------------------------------
