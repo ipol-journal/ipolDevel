@@ -3,48 +3,9 @@
     "demo_title"            : "LSD: a Line Segment Detector",
     "input_description"     : "",
     "param_description"     : "",
-    "input_nb"              : 1,
-    "input_max_pixels"      : 100000000,
-    "input_max_weight"      : 300000000,
-    "input_dtype"           : "1x8i",
-    "input_ext"             : ".pgm",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/gjmr-lsd/"
   }, 
-  "params": [  ],
-  "results": [
-    {
-      "type"          : "html_text", 
-      "contents"      : "{{info.num_detections}} Line Segments were detected.<br/>"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download the result in EPS format",
-      "contents"      : "output.eps"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download the result in SVG format",
-      "contents"      : "output.svg"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download the result in ASCII format (see description below)",
-      "contents"      : "output.txt"
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      : { "Output":"output.png",
-                          "Output inv":"output-inv.png", 
-                          "Input":"input_0.sel.png"},
-      "style"         : "height:{{sizeY}}px" 
-    },
-    {
-      "type"          : "html_text", 
-      "contents"      : "<h2>ASCII file description</h2><p>Each line is composed of seven numbers separated by spaces, that are x1, y1, x2, y2, width, p, -log_nfa. For example, the line: </p><pre>  159.232890 134.369601 160.325338 105.613616 2.735466 0.125000 17.212465</pre><p> means that a line segment starting at point (159.232890,134.369601), ending at point (160.325338 105.613616) and of width 2.735466 was detected. An angle precision p of 0.125 was used, which means a gradient angle tolerance of p*180 = 0.125*180 = 22.5 degree. The opposite of the logarithm in base 10 of the NFA value of the detection was -log_10(NFA)=17.212465, so the NFA value was 10^(-17.2124656), roughly 6e-18. The length unit is the pixel and the origin of coordinates is the center of the top-left pixel (0,0). </p>"
-    }
-  ],
   "build":
     {
       "url"       : "http://www.ipol.im/pub/art/2012/gjmr-lsd/lsd_1.6.zip", 
@@ -53,6 +14,17 @@
       "flags"     : ""
     }
   ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : 100000000,
+          "max_weight"      : 300000000,
+          "dtype"           : "1x8i",
+          "ext"             : ".pgm"
+      }
+    ],
+  "params": [  ],
   "run": [
       "convert_png2pgm.py input_0.sel",
       "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
@@ -60,6 +32,47 @@
       "update_config.py"
   ]
   ,
+  "results": [
+    {
+      "type"          : "html_text", 
+      "contents"      : [ "{{info.num_detections}} Line Segments were detected.<br/>" ]
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<h2>Download the result<h2> in EPS format",
+      "contents"      : { "EPS":"output.eps", "SVG":"output.svg",
+                          "ASCII (see description below)": "output.txt" }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : { "Output":"output.png",
+                          "Output inv":"output-inv.png", 
+                          "Input":"input_0.sel.png"},
+      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+    },
+    {
+      "type"          : "html_text", 
+      "contents"      : [ 
+          "<h2>ASCII file description</h2>",
+          "<p style='width:50em'>",
+            "Each line is composed of seven numbers separated by spaces, that ",
+            "are x1, y1, x2, y2, width, p, -log_nfa. For example, the line: ",
+            "</p><pre style='width:50em'>  159.232890 134.369601 160.325338 ",
+            "105.613616 2.735466 0.125000 17.212465",
+            "</pre><p style='width:50em'>",
+            " means that a line segment starting at point (159.232890,134.369601), ",
+            "ending at point (160.325338 105.613616) and of width 2.735466 was ",
+            "detected. An angle precision p of 0.125 was used, which means a ",
+            "gradient angle tolerance of p*180 = 0.125*180 = 22.5 degree. ",
+            "The opposite of the logarithm in base 10 of the NFA value of the ",
+            "detection was -log_10(NFA)=17.212465, so the NFA value was ",
+            "10^(-17.2124656), roughly 6e-18. The length unit is the pixel and ",
+            "the origin of coordinates is the center of the top-left pixel (0,0). ",
+          "</p>" 
+        ]
+    }
+  ],
   "archive":
     {
       "files" : { "input_0.orig.png"        : "uploaded image",
@@ -69,7 +82,7 @@
                   "output.eps"              : "",
                   "output.svg"              : "",
                   "output.png"              : "",
-                  "output-INV.png"          : ""
+                  "output-inv.png"          : ""
                 },
       "params" :  [  ],
       "info"   : {  "run_time" : "run time", "version" : "program version" }

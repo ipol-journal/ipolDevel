@@ -4,11 +4,6 @@
     "input_description"     : "Please select or upload the image pair to register.",
     "param_description"     : "Choose the precision (in pixels) and run the registration process.",
     "enable_crop"           : true,
-    "input_nb"              : 2,
-    "input_max_pixels"      : "1600*1200",
-    "input_max_weight"      : 5242880,
-    "input_dtype"           : "3x8i",
-    "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/mmm-oh/",
     "show_results_on_error" : true
@@ -22,6 +17,25 @@
       "binaries"      : [ ["demo","demo_orsa_homography"] ],
       "flags"         : "-j4"
     }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1600*1200",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1600*1200",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ]
   ,
   "params": [  
     {

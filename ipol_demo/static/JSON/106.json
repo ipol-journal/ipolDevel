@@ -4,14 +4,27 @@
     "input_description"     : "",
     "param_description"     : "",
     "enable_crop"           : false,
-    "input_nb"              : 1,
-    "input_max_pixels"      : 1024000,
-    "input_max_weight"      : 5242880,
-    "input_dtype"           : "3x8i",
-    "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/106/"
   }, 
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
+      "srcdir"    : ".",
+      "binaries"  : [ [".","lens_distortion_correction_division_model_1p"] ],
+      "flags"     : "OMP=1 -j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
   "params": [
     {
       "id"            : "high_threshold_canny",
@@ -52,43 +65,24 @@
                             "Hough" : "output_hough.png",
                             "Output": "output_corrected_image.png",
                             "Input" : "input_0.png"},
-      "style"         : "height:{{sizeY}}px" 
+      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<h2>Download results<h2>",
+      "contents"      : { "Canny"           : "output_canny.png", 
+                          "Hough"           : "output_hough.png",
+                          "Corrected image" : "output_corrected_image.png",
+                          "Primitives"      : "primitives.txt"
+                        }
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Additional info<h2>",
       "contents"      : "output.txt",
       "style"         : "width:{{sizeX}}px;height:14em"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download Canny result",
-      "contents"      : "output_canny.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download Hough result",
-      "contents"      : "output_hough.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download corrected image",
-      "contents"      : "output_corrected_image.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download primitives",
-      "contents"      : "primitives.txt"
     }
   ],
-  "build":
-    {
-      "url"       : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
-      "srcdir"    : ".",
-      "binaries"  : [ [".","lens_distortion_correction_division_model_1p"] ],
-      "flags"     : "OMP=1 -j4"
-    }
-  ,
   "archive":
     {
       "files" : { "input_0.png"                 : "input image",

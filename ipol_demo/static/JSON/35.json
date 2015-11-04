@@ -3,14 +3,27 @@
     "demo_title"            : "A Review of Classic Edge Detectors",
     "input_description"     : "Review of edge detection algorithms",
     "param_description"     : "Set the parameters and run the algorithm.<i>Note: rgb images will be converted to grayscale.</i>",
-    "input_nb"              : 1,
-    "input_max_pixels"      : 100000000,
-    "input_max_weight"      : 300000000,
-    "input_dtype"           : "1x8i",
-    "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/35/"
   }, 
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
+      "srcdir"    : "classic_edge_detectors_1.0",
+      "binaries"  : [ [".","edges"] ],
+      "flags"     : "-j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "1x8i",
+          "ext"             : ".png"
+      }
+    ],
   "params": [
     {
       "type"          : "label",
@@ -103,14 +116,6 @@
       "style"         : "height:{{sizeY}}px" 
     }
   ],
-  "build":
-    {
-      "url"       : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
-      "srcdir"    : "classic_edge_detectors_1.0",
-      "binaries"  : [ [".","edges"] ],
-      "flags"     : "-j4"
-    }
-  ,
   "archive":
     {
       "files" : { "input_0.png"     : "input image",

@@ -4,17 +4,44 @@
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "You can now run the rectification process.",
     "enable_crop"           : false,
-    "input_nb"              : 2,
-    "input_max_pixels"      : 1048576,
-    "input_max_weight"      : 5242880,
-    "input_dtype"           : "3x8i",
-    "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
     "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
                                 "badparams",
                                 "The images must have the same size" ]
   }, 
+  "build":
+    {
+      "build_type"    : "CMake",
+      "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
+      "srcdir"        : "MissStereo/src",
+      "prepare_cmake" : "sed -i 's/-Werror//g' libIO/CMakeLists.txt",
+      "binaries"      : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],
+                          ["bin","sift"],["bin","size"],["bin","showRect"] ],
+      "flags"         : "-j4",
+      "scripts"       : [ ["../scripts","MissStereo.sh"], 
+                          ["../scripts","Rectify.sh"]  ]
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ]
+  ,
   "params": [  ],
   "results": [
     {
@@ -63,19 +90,6 @@
       "style"         : "width:50em;height:25em"
     }
   ],
-  "build":
-    {
-      "build_type"    : "CMake",
-      "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
-      "srcdir"        : "MissStereo/src",
-      "prepare_cmake" : "sed -i 's/-Werror//g' libIO/CMakeLists.txt",
-      "binaries"      : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],
-                          ["bin","sift"],["bin","size"],["bin","showRect"] ],
-      "flags"         : "-j4",
-      "scripts"       : [ ["../scripts","MissStereo.sh"], 
-                          ["../scripts","Rectify.sh"]  ]
-    }
-  ,
   "run": [
       "Rectify.sh input_0.png input_1.png >stdout.txt 2>&1",
       "mv input_0.png_input_1.png_pairs_orsa.txt  orsa.txt",

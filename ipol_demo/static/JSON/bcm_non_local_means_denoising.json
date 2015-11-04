@@ -3,14 +3,27 @@
     "demo_title"            :  "Non-Local Means Denoising",
     "input_description"     : "To use correctly this demo, it is advised to upload good quality noiseless images.  The algorithm will add to the image a white noise with the standard deviation you will select. The denoising algorithm uses only the knowledge of the standard deviation of the noise.",
     "param_description"     : "<p> The algorithm is run in 2 steps:<ol> <li> a Gaussian noise is added to the input image;</li> <li> the NLmeans algorithm is used to denoise the image.</li> </ol> </p>",
-    "input_nb"              : 1,
-    "input_max_pixels"      : "700*700",
-    "input_max_weight"      : "10*1024*1024",
-    "input_dtype"           : "3x8i",
-    "input_ext"             : ".png",
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcm_nlm/"
   }, 
+  "build":
+    {
+      "url"       : "http://www.ipol.im/pub/art/2011/bcm_nlm/nlmeansC.tar.gz", 
+      "srcdir"    : "nlmeansC",
+      "binaries"  : [ [".","nlmeans_ipol"], [".","img_diff_ipol"], [".","img_mse_ipol"] ],
+      "flags"     : "-j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
   "params": [
     {
       "id"            : "sigma",
@@ -21,27 +34,22 @@
                           "70":"70", "80":"80", "90":"90", "100":"100" },
       "default_value" : "10"
     }
-  ],
+  ]
+  ,
+  "run": [
+      "nlmeans_ipol  input_0.sel.png $sigma input_1.png output_1.png",
+      "img_diff_ipol input_0.sel.png input_1.png $sigma output_2.png",
+      "img_mse_ipol  input_0.sel.png output_1.png >stdout.txt"
+  ]
+  ,
   "results": [
     {
       "type"          : "file_download", 
-      "label"         : "Download noisy image",
-      "contents"      : "input_1.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download denoised image",
-      "contents"      : "output_1.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download original image",
-      "contents"      : "input_0.sel.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Download difference image",
-      "contents"      : "output_2.png"
+      "label"         : "<h2>Download images</h2>",
+      "contents"      : { "Noisy"     : "input_1.png",
+                          "Denoised"  : "output_1.png",
+                          "Original"  : "input_0.sel.png",
+                          "Difference": "output_2.png" }
     },
     {
       "type"          : "gallery",
@@ -50,7 +58,7 @@
                             "Denoised"   : "output_1.png",
                             "Original"   : "input_0.sel.png",
                             "Difference" : "output_2.png"},
-      "style"         : "height:{{Math.max(200,sizeY)}}px" 
+      "style"         : "height:{{Math.max(200,sizeY)*ZoomFactor}}px" 
     },
     {
       "type"          : "text_file", 
@@ -59,14 +67,6 @@
       "style"         : "width:20em;height:4em"
     }
   ],
-  "build":
-    {
-      "url"       : "http://www.ipol.im/pub/art/2011/bcm_nlm/nlmeansC.tar.gz", 
-      "srcdir"    : "nlmeansC",
-      "binaries"  : [ [".","nlmeans_ipol"], [".","img_diff_ipol"], [".","img_mse_ipol"] ],
-      "flags"     : "-j4"
-    }
-  ,
   "archive":
     {
       "files" : { "input_0.orig.png"            : "uploaded image",
@@ -78,11 +78,5 @@
       "params" :  [ "sigma" ],
       "info"   : { "run_time": "run time" }
     }
-  ,
-  "run": [
-      "nlmeans_ipol  input_0.sel.png $sigma input_1.png output_1.png",
-      "img_diff_ipol input_0.sel.png input_1.png $sigma output_2.png",
-      "img_mse_ipol  input_0.sel.png output_1.png >stdout.txt"
-  ]
 
 }
