@@ -71,17 +71,28 @@ if the server is in production mode.& yes  \\ \hline
 %-------------------------------------------------------------------------------
 \subsection{The \emph{build} section}
 
+The build section can contain a single build description ("\{...\}") or an array 
+of build descriptions (''[ \{...\}, \{...\}, ...] ''). Each description has the 
+following information:
+
+
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- url      & full url link to download the demo source code & yes \\ \hline
- srcdir   & subdirectory from the extracted archive where the source code is 
+ build\_type & optional, default is 'make', for CMake use 'cmake' (cases are ignored) & no \\ \hline
+ url        & full url link to download the demo source code & yes \\ \hline
+ srcdir     & subdirectory from the extracted archive where the source code is 
             located & yes \\ \hline
- binaries & list of binaries and their associated paths relative to the source 
-            code path & yes \\ \hline
- flags    & make command compilation flags & yes \\ \hline
- scripts  & list of scripts and their associated paths relative to the source 
+ binaries   & list of binaries and their associated paths relative to the source 
+            code path. In case of 'make' build type, the first path is the compilation
+            path, where the make command is callled, the second path is the binary
+            path. You can run make without a binary name by setting the second
+            path to a directory, then all files from this directory will be copied
+            to the demo binary path.
+            & yes \\ \hline
+ flags      & make command compilation flags & yes \\ \hline
+ scripts    & list of scripts and their associated paths relative to the source 
             code path & no  \\ \hline
 \caption{Additional keys for the 'text\_file' type.}
 \end{longtable}

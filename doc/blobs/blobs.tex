@@ -131,17 +131,16 @@ version on the same system.
 
 \subsubsection{Database}
 
-To solve the problem of images management, it will have a database. It will use a
-back-end and will be created with \emph{SQLite} \cite{SQLite}.
-It will have different tables
-containing all informations about images. In this way, it will be easier to
-add functionalities and access to images from anything demo. According MVC pattern,
-this database will be very useful. \ToDo{[Miguel]: this last claim does not make any sense.}
+We use a SQL database to help managing blobs, that can contain images or other 
+type of data needed as inputs for the demos.
+It will use a back-end and will be created with \emph{SQLite} \cite{SQLite}.
+Figure \ref{img:images_bdd} depicts the different tables, their contents and their
+relations.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=5in]{blobs/images/images_bdd}
-  \caption{Database schema for the Blobs module. \ToDo{The image contains a large black at the end and fills out all the page! Fix this.}}
+  \includegraphics[width=\textwidth]{blobs/images/images_bdd_vertabelo}
+  \caption{Database schema for the Blobs module.}
   %\footnotesize
   %\caption*{Realized with MySQL Workbench}
   \label{img:images_bdd}
