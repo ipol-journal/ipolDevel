@@ -3,7 +3,6 @@
 /* App Module */
 
 var IPOLDemosApp = angular.module('IPOLDemosApp', [
-  'ngRoute',
   'ngSanitize',
   'IPOLDemoAnimations',
   'IPOLDemoControllers',
@@ -13,25 +12,6 @@ var IPOLDemosApp = angular.module('IPOLDemosApp', [
   'IPOLImgCrop'
 ]);
 
-IPOLDemosApp.config(['$routeProvider',
-  function($routeProvider) {
-    $routeProvider.
-      when('/demos', {
-        templateUrl: 'partials/demos-list.html',
-        controller: 'DemoListCtrl'
-      }).
-      when('/:demoId', {
-        templateUrl: 'partials/demo-detail.html',
-        controller: 'DemoDetailCtrl'
-      }).
-      when('/:demoId/:params*', {
-        templateUrl: 'partials/demo-detail.html',
-        controller: 'DemoDetailCtrl'
-      }).
-      otherwise({
-        redirectTo: '/demoId'
-      });
-  }]);
 
 /* adding range function to simplify interations on numbers */
 IPOLDemosApp.run(['$rootScope', function($rootScope) {
