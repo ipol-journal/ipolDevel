@@ -1,0 +1,72 @@
+{% load staticfiles %}
+{% load i18n %}
+<!--
+ * Footer Template
+-->
+
+<style>
+
+
+
+    .navbar-brand {
+        float: left;
+        height: 60px;
+        padding: 6px 6px;
+        font-size: 18px;
+        line-height: 20px;
+    }
+    .navbar-default .navbar-collapse, .navbar-default .navbar-form {
+        border-color: #e7e7e7;
+        padding-top: 4px;
+        //background-color: #DAD9D9;
+    }
+
+    .btn-default {
+        color: #333;
+        border: 1px solid #333;
+        border-radius: 1px;
+        background-color: #f8f8f8;
+    }
+
+    .navbar-inverse {
+        background-color: #DAD9D9;
+        border-color: #080808;
+    }
+
+</style>
+<footer>
+    <nav id="footer" class="navbar navbar-default navbar-fixed-bottom">
+
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href=#>
+                <img style="height: 100%; padding-left: 20px" src="{% static "images/IPOL-header-logo.png" %}">
+            </a>
+
+
+        </div>
+
+        <div id="navbar" class="navbar-collapse collapse">
+
+            <ul class="nav navbar-nav">
+
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a href="{% url 'ipol.home' %}">{% trans 'hw' %}</a>
+                </li>
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a href="{% url 'ipol.cp.page' %}">{% trans 'Archive' %}</a>
+                </li>
+
+            </ul>
+
+        </div>
+        <!--/.nav-collapse -->
+        </div>
+    </nav>
+</footer>

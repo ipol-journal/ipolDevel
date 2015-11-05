@@ -1,8 +1,12 @@
 
 #GLOBAL WS LIST (todo in DB)
-ws_url_page ='http://boucantrin.ovh.hw.ipol.im:9000/page'
-ws_url_ping = 'http://boucantrin.ovh.hw.ipol.im:9000/ping'
-ws_url_stats = 'http://boucantrin.ovh.hw.ipol.im:9000/stats'
+
+#ARCHIVE
+archive_ws_url_page ='http://boucantrin.ovh.hw.ipol.im:9000/page'
+archive_ws_url_ping = 'http://boucantrin.ovh.hw.ipol.im:9000/ping'
+archive_ws_url_stats = 'http://boucantrin.ovh.hw.ipol.im:9000/stats'
+#BLOBS
+
 
 import requests
 import logging
@@ -10,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def get_page(experimentid , page='1'):
 	result = None
-	wsurl = ws_url_page
+	wsurl = archive_ws_url_page
 	try:
 
 		params = {'demo_id': experimentid, 'page': page}

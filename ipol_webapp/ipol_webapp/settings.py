@@ -22,6 +22,7 @@ import socket
 from django.conf import global_settings
 import logging
 from django.core.urlresolvers import reverse_lazy
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.normpath(os.path.join(BASE_DIR, '..'))
@@ -90,7 +91,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.controlpanel',
+    'django.contrib.humanize',
     'rest_framework',
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -224,8 +227,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 # donde junto todos mis statics para hacer el edeploy mas facil
 # debe estar fuera del proyecto
-STATIC_ROOT = os.path.join(OUTER_DIR, 'IPOLWEBAPP_STATIC/')
-
+STATIC_ROOT = os.path.join(OUTER_DIR, 'IPOLWEBAPP_STATIC')
+if not os.path.exists(STATIC_ROOT):
+	os.makedirs(STATIC_ROOT)
+	print("********* Directorio creado: " + str(STATIC_ROOT))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
@@ -236,7 +241,7 @@ STATICFILES_DIRS = (
 	# Put strings here, like "/home/html/static" or "C:/www/django/static".
 	# Always use forward slashes, even on Windows.
 	# Don't forget to use absolute paths, not relative paths.
-	os.path.join(BASE_DIR, 'apps/photogallery/photogallery_static/'),
+	os.path.join(BASE_DIR, 'apps/controlpanel/controlpanel_static/'),
 )
 
 # List of finder classes that know how to find static files in
@@ -320,16 +325,36 @@ LOGGING = {
 #####################
 
 print("*************************** INFO SETTINGS *****************************")
+print("********* " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " RUN AT : " + HOST + " *********")
 print()
-
+print('DEBUG:')
+print(DEBUG)
 print("BASE_DIR:")
 print(BASE_DIR)
 print("TEMPLATES:")
 print(TEMPLATES)
 print("PACKAGE_ROOT:")
 print(PACKAGE_ROOT)
+print('ALLOWED_HOSTS:')
+print(ALLOWED_HOSTS)
+print('TIME_ZONE:')
+print(TIME_ZONE)
+print('RUTA LOGS:')
+print(RUTALOG)
+print("DISABLE_GUNICOR_LOGUER:")
+print(DISABLE_GUNICOR_LOGUER)
+print("STATICFILES_DIRS:")
+print(STATICFILES_DIRS)
+print("MEDIA_ROOT:")
+print(MEDIA_ROOT)
+print("TEMPLATE_CONTEXT_PROCESSORS:")
+print(global_settings.TEMPLATE_CONTEXT_PROCESSORS)
+print("BASE_DIR:")
+print(BASE_DIR)
+print("STATIC_ROOT:")
+print(STATIC_ROOT)
+print("USE_MEMCACHED:")
+print(USE_MEMCACHED)
 
 print()
 print("************************************************************************")
-
-

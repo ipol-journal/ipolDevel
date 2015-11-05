@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 
     # Galerias de fotos (no uso las de photologue, no me gustan)
     # home
-    url(r'^page/', PageView.as_view(), name="cp.page"),
+    url(r'^page/', PageView.as_view(), name="ipol.cp.page"),
 
 
     #media
