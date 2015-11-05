@@ -104,9 +104,9 @@ class BuildDemoBase:
         build.run("make %s " % ( self.params['flags']), 
                   stdout=self.log_file,cwd=build_dir)
         # copy binaries
-        prog_path=path.join(build_dir, program[0])
-        bin_path =path.join(prog_path, program[1])
         for program in programs:
+          prog_path=path.join(build_dir, program[0])
+          bin_path =path.join(prog_path, program[1])
           if os.path.isdir(bin_path):
             print "copying all files in bin dir"
             # copy all files to bin dir
