@@ -1,0 +1,18 @@
+#install requirements for ipol project
+#in your virtualenv shell
+#pip install -r "requirements.txt"
+
+cherrypy
+#sudo easy_install cherrypy
+mako
+#python-imaging
+Pillow
+#python-sqlite,It is included in the standard library (since Python 2.5).
+simplejson
+#para acrhive
+#http://www.brambraakman.com/blog/comments/installing_libmagic_in_mac_os_x_for_python-magic/
+python-magic
+
+#django webapp ipol_webapp
+-r ./ipol_webapp/requirements.txt
+

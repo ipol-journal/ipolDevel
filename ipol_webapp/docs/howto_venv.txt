@@ -1,0 +1,4 @@
+cd /Users/josearrecio/v_env_ipol
+source bin/activate
+cd /Users/josearrecio/Projects/ipolDevel
+(v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel$

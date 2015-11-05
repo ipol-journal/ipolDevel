@@ -1,0 +1,13 @@
+
+1 enter venev
+	see howto_venv
+
+2 install requirements
+	cd ~/Projects/ipolDevel/ipol_webapp
+	pip install requirements.txt
+
+3 apply migrations and create supersuser.
+	see howto_migrations
+
+4 runserver
+	(v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_webapp$ python manage.py runserver

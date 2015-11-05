@@ -1,0 +1,16 @@
+
+#MAC: instalar postgress driver
+#in your virtualenv shell, type 'export PATH=/Library/PostgreSQL/9.4/bin:$PATH'
+psycopg2
+
+#install
+#pip install -r "requirements.txt"
+
+django
+# Markdown support for the browsable API.
+djangorestframework
+# Filtering support
+django-filter
+
+#HTTP high level API
+requests

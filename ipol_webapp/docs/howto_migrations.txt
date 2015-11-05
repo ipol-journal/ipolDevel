@@ -1,0 +1,34 @@
+
+
+
+--datamigrations
+
+python manage.py makemigrations --empty controlpanel
+
+--migrations (en el dir del proyecto)
+python manage.py controlpanel
+python manage.py makemigrations controlpanel
+python manage.py migrate controlpanel --list
+python manage.py migrate  --list
+
+--ver todas las migs
+python manage.py migrate --list
+
+--volver a la 0006 de la app photogallery
+ python manage.py migrate controlpanel 0006
+
+
+--If you want to give the migration(s) a meaningful name instead of a generated one, you can use the --name option:
+
+$ python manage.py makemigrations --name changed_my_model your_app_label
+
+-- $ ./manage.py squashmigrations myapp 0004
+
+(web_venv_3)JAKmacmini:Photoweb jak$ python manage.py migrate photogallery zero
+
+
+
+python manage.py makemigrations --name dtamig_algo_ --empty controlpanel
+python manage.py makemigrations --name dtamig_setingsdb_ --empty controlpanel
+
+
