@@ -1,0 +1,103 @@
+%if inputd:
+
+
+<form action="${app.base_url + 'input_select'}" method="get">
+<div class="action">
+<h3>Select Data</h3>
+<p>
+Click on an image pair to use it as the algorithm input (first click on each category to unfold).
+</p>
+
+%for cla in ['smooth', 'yosemite', 'middlebury', 'traffic', 'paintings', 'astronomy']:
+<script type='text/javascript'>
+	var fieldset_state_${cla} = 0;
+  
+	function toggle_fieldset_${cla}() {
+    
+		var content = document.getElementById('content_${cla}');
+		var fs = document.getElementById('fs_${cla}');
+      
+		if (fieldset_state_${cla} == 1) {
+      // Already open.  Let's close it.
+			fieldset_state_${cla} = 0;
+      content.style.display = 'none';
+			fs.className = 'c-fieldset-closed-${cla}';
+    }
+    else {
+      // Was closed.  let's open it.
+			fieldset_state_${cla} = 1;
+      content.style.display = '';
+			fs.className = 'c-fieldset-open-${cla}';      
+    }  
+  }  
+</script>
+<!-- BEGIN CLASS ${cla} -->
+<fieldset class='c-fieldset-closed-${cla}' id='fs_${cla}'><legend><a href='javascript: toggle_fieldset_${cla}();'>${cla}</a></legend>
+	<div id="content_${cla}" style='display: none;'>
+
+%for id in sorted(inputd.keys()):
+%if cla == inputd[id]['class']:
+<p><b>${inputd[id]['title'] | h}</b></p>
+	<div class="gallery" style="height:${inputd[id]['height']}px;width:600px">
+			<ul class="index">
+				<li>
+				<a href="#">I<sub>0</sub>
+					<span>
+						<input type="image" name="${id | h}"
+						src="${inputd[id]['baseinput']}a.png" alt="image A" />
+					</span>
+				</a>
+				</li>
+				<li>
+				<a href="#">I<sub>1</sub>
+					<span>
+						<input type="image" name="${id | h}"
+						src="${inputd[id]['baseinput']}b.png" alt="image B" />
+					</span>
+				</a>
+				</li>
+%if inputd[id]['hastruth']:
+				<li>
+				<a href="#">flow (ground truth)
+					<span>
+						<input type="image" name="${id | h}"
+						src="${inputd[id]['baseinput']}t.png" alt="true flow T" />
+					</span>
+				</a>
+				</li>
+%endif
+			</ul>
+		</div>
+%endif
+%endfor
+<!-- END CLASS ${cla} -->
+</div></fieldset>
+%endfor
+
+%if any([inputd[id].has_key('credit') for id in inputd]):
+<p style="font-size: 80%">
+  <a class="toggle"
+     href="#credits"
+     onclick="toggle('credits');">
+    image credits
+  </a>
+</p>
+<div id="credits"
+     style="display:none; font-size: 80%"> 
+  %for id in sorted(inputd.keys()):
+  %for url in inputd[id]['url']:
+  <a href="${url}">
+    <img height="24"
+	 src="${url}" />
+  </a>
+  %endfor
+  ${inputd[id]['credit'] | h}
+  <br/>
+  %endfor
+</div>
+%endif
+
+</div>
+</form>
+%endif
+<!-- vim: set ts=2 sw=2: -->
