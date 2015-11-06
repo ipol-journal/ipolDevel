@@ -31,19 +31,21 @@ echo "Script $0 processing"
 
 mapfile < $FILE_ARG
 SIZEFILE=`wc -l < $FILE_ARG`
+echo "FILE_ARG=$FILE_ARG"
+echo "SIZEFILE=$SIZEFILE"
 
 i=0
 while [[ "$i" != "$SIZEFILE" ]]
 do
     if [[ "${MAPFILE[i]}" =~ "tmp.dir" ]]
     then
-	TMP=${MAPFILE[i]:11:-2}
+      TMP=${MAPFILE[i]:11:-2}
     elif [[ "${MAPFILE[i]}" =~ "final.dir" ]]
     then
-	INPUT_DIR=${MAPFILE[i]:13:-2}
+      INPUT_DIR=${MAPFILE[i]:13:-2}
     elif [[ "${MAPFILE[i]}" =~ "thumbnail.dir" ]]
     then
-	THUMB=${MAPFILE[i]:17:-2}
+      THUMB=${MAPFILE[i]:17:-2}
     fi
     (( i++ ))
 done
@@ -68,11 +70,15 @@ then
     fi
 fi
 
+echo "running $PATH_SCRIPT"
 bash $PATH_SCRIPT
 
+echo "DEL = $DEL"
 if [ $DEL == true ]
 then
+    echo "rm $PATH_DB"
     rm $PATH_DB
+    echo "rm $PATH_ERROR"
     rm $PATH_ERROR
 fi
 

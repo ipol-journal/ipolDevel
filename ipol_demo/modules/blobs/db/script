@@ -16,12 +16,14 @@ PATH_SQL=$PATH_SCRIPT$SLASH$SQL
 DEST=${PATH_SCRIPT%/*}
 
 
+echo "PATH_DB = $PATH_DB"
 if [ -f $PATH_DB ]
 then
     rm $PATH_DB
 fi
 
 sqlite3 $PATH_DB < $PATH_SQL
+echo "cp $PATH_DB $DEST"
 cp $PATH_DB $DEST
 rm $PATH_DB
 
