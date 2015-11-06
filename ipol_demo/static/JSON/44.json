@@ -1,11 +1,11 @@
 { 
   "general": { 
-    "demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
+    "demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "You can now run the rectification process.",
     "enable_crop"           : false,
     "is_test"               : false,
-    "xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
     "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
                                 "badparams",
                                 "The images must have the same size" ],
@@ -14,9 +14,10 @@
   "build":
     [
       {
-        "url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz", 
-        "srcdir"        : "phs_3",
-        "binaries"      : [ [".","horn_schunck_pyramidal"] ],
+        "build_type"    : "cmake",
+        "url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz", 
+        "srcdir"        : "clg_6.1",
+        "binaries"      : [ ["../bin","test_clgof"] ],
         "flags"         : "-j4"
       },
       {
@@ -59,17 +60,33 @@
       {
         "id"            : "alpha",
         "type"          : "range", 
-        "label"         : "Weight of the regularization term, e.g. &alpha;=1 discontinuous flow,  &alpha;=40 smooth flow",
+        "label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
         "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
+      }
+      ,
+      {
+        "id"            : "rho",
+        "type"          : "range", 
+        "label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
+        "values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
+      }
+      ,
+      {
+        "id"            : "sigma",
+        "type"          : "range", 
+        "label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
+        "values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
       }
     ],
   "run": [
-      "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
-      "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
-      "view_method.sh ipoln  1",
-      "view_method.sh ipol   1",
-      "view_method.sh mid    1",
-      "view_method.sh arrows 1"
+      "ln -fs input_0.png  a.png ",
+      "ln -fs input_1.png  b.png ",
+      "ln -fs input_2.tiff t.tiff",
+      "run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt",
+      "view_clg.sh ipoln  1",
+      "view_clg.sh ipol   1",
+      "view_clg.sh mid    1",
+      "view_clg.sh arrows 1"
   ]
   ,
   "archive":
@@ -77,14 +94,14 @@
       "files" : { "input_0.png"             : "input #1",
                   "input_1.png"             : "input #2",
                   "input_2.tiff"            : "ground truth",
-                  "stuff_phs.tiff"          : "flow",
-                  "stuff_phs.png"           : "flow as RGB image"
+                  "stuff_clg.tiff"          : "flow",
+                  "stuff_clg.png"           : "flow as RGB image"
                 },
-      "params" :  [ "alpha" ]
+      "params" :  [ "alpha", "rho", "sigma" ]
     },
   "config":
     {
-      "info_from_file": {  "sixerrors" : "sixerror_phs.txt"
+      "info_from_file": {  "sixerrors" : "sixerror_clg.txt"
                         }
     }
   ,
@@ -112,18 +129,18 @@
     {
       "type"          : "gallery",
       "label"         : "<h2>Images</h2>",
-      "contents"      : {   "Optical flow "     : "stuff_phs.{{display.param1}}.1.png", 
-                            "Ground truth"      : "t.{{display.param1}}.1.png" ,
-                            "I1"                : "input_0.png" ,
-                            "I2"                : "input_1.png" ,
-                            "|flow|"            : "stuff_phs_abs.png" ,
-                            "div(flow)"         : "stuff_phs_div.png",
-                            "grad(flow)"        : "stuff_phs_grad.png",
-                            "Warped I2"         : "stuff_phs_inv.png",
-                            "Warped difference" : "stuff_phs_aminv.png" ,
-                            "Warped average"    : "stuff_phs_apinv.png" ,
-                            "Endpoint error"    : "stuff_phs_fmt.{{display.param1}.1.png",
-                            "Angular error"     : "stuff_phs_aerr.png"
+      "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png", 
+                            "Ground truth"        : "t.{{display.param1}}.1.png" ,
+                            "|flow|"              : "stuff_clg_abs.png" ,
+                            "I<sub>0</sub>"       : "input_0.png" ,
+                            "I<sub>1</sub>"       : "input_1.png" ,
+                            "div(flow)"           : "stuff_clg_div.png",
+                            "grad(flow)"          : "stuff_clg_grad.png",
+                            "Warped I<sub>1</sub>": "stuff_clg_inv.png",
+                            "Warped difference"   : "stuff_clg_aminv.png" ,
+                            "Warped average"      : "stuff_clg_apinv.png" ,
+                            "Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
+                            "Angular error"       : "stuff_clg_aerr.png"
                         },
       "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px" 
     },
@@ -141,7 +158,7 @@
             "<th >Average Angular Error</th>",
           "</tr>",
           "<tr>",
-            "<th bgcolor='#cccccc'>phs</th>",
+            "<th bgcolor='#cccccc'>clg</th>",
             "<td align='center'>{{info.run_time | number:2 }} s</td>",
             "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
             "<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
@@ -162,9 +179,9 @@
     {
       "type"          : "file_download", 
       "label"         : "<h3>Download computed optical flow:</h3>",
-      "contents"      : { "tiff": "stuff_phs.tiff", 
-                          "flo" : "stuff_phs.flo",
-                          "uv"  : "stuff_phs.uv" }
+      "contents"      : { "tiff": "stuff_tvl1.tiff", 
+                          "flo" : "stuff_tvl1.flo",
+                          "uv"  : "stuff_tvl1.uv" }
     },
     {
       "type"          : "html_text", 
