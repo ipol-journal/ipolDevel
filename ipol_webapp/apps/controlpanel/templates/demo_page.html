@@ -1,17 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Page result stuff</title>
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    Demo page test
+{% endblock %}
+
+{% block cssfiles %}
+{% endblock %}
+
+{% block content %}
 
 
-
-
-</head>
-<body>
 <h1>DEMO PAGE, gests stuff from ws and shows it to user</h1>
     {{ r }}
     {{ view.result }}
 
-</body>
-</html>
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+
+

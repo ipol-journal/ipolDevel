@@ -1,12 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>HOMEPAGE</title>
-</head>
-<body>
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
 
-Hello world
+{% block title %}
+    HW
+{% endblock %}
 
-</body>
-</html>
+{% block cssfiles %}
+{% endblock %}
+
+{% block content %}
+
+
+<h1>Helloworld</h1>
+
+    {{ r }}
+    {{ view.result }}
+
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+

@@ -1,0 +1,66 @@
+{% load humanize %}
+{% load staticfiles %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Dev by Jose Arrecio Kubon, Design by Felipe Lizama -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <!-- http://davidwalsh.name/hide-address-bar-->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes">
+
+        {#    <link rel="icon" href="../../favicon.ico">#}
+        {#    <title>{% block title %}{% endblock %} | {% block namemodule %}{% endblock %}</title>#}
+        <title>{% block title %}{% endblock %} </title>
+
+
+        <link rel="stylesheet" href="{% static "css/min/bootstrap.min.css" %}">
+        <link rel="stylesheet" href="{% static "css/min/font-awesome.min.css" %}">
+        <link rel="stylesheet" href="{% static "css/base_ipol.css" %}">f
+        {#  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">#}
+
+
+        {#    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic,700italic'#}
+        {#          rel='stylesheet' type='text/css'>#}
+
+        {#SEO#}
+        <meta name="description" content="Ipol"/>
+        <meta name="keywords" content="Ipol Image"/>
+
+
+
+        {% block cssfiles %}{% endblock %}
+        <!-- Start Google Analytics (in head)-->
+
+    </head>
+
+    <body>
+
+
+        <!-- Begin container wrap -->
+        {% block content %}{% endblock %}
+
+
+        <!-- footer Section -->
+        {% include 'base/footer.html' %}
+
+
+        <script src="{% static "js/min/jquery.min.js" %}"></script>
+        <script src="{% static "js/min/bootstrap.min.js" %}"></script>
+        {% block functionsjs %}{% endblock %}
+
+
+
+
+    </body>
+
+
+</html>
+
