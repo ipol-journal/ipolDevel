@@ -577,13 +577,17 @@ class base_app(empty_app):
         """
         self.new_key()
         self.init_cfg()
+        inputs_desc = self.demo_description['inputs']
+        
         for i in range(self.nb_inputs):
           file_up = kwargs['file_%i' % i]
           # suppose than the file is in the correct format for its extension
-          ext = self.demo_description['inputs'][i]['ext']
+          ext = inputs_desc[i]['ext']
           file_save = file(self.work_dir + 'input_%i' % i + ext, 'wb')
           
-          if '' == file_up.filename:
+          if file_up.filename == '':
+            if  not('required' in inputs_desc[i].keys()) or \
+                inputs_desc[i]['required']:
               # missing file
               raise cherrypy.HTTPError(400, # Bad Request
                                         "Missing input file")
@@ -594,7 +598,7 @@ class base_app(empty_app):
             if not data:
                 break
             size += len(data)
-            if size > self.demo_description['inputs'][i]['max_weight']:
+            if size > inputs_desc[i]['max_weight']:
                 # file too heavy
                 raise cherrypy.HTTPError(400, # Bad Request
                                           "File too large, " +
