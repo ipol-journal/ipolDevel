@@ -1,6 +1,9 @@
 <%include file="header.html" />
 
-<script> IPOLDemosApp.value("demo_id","${app.id}"); </script>
+<script> 
+  IPOLDemosApp.value("demo_id",     "${app.id}"); 
+  IPOLDemosApp.value("blob_server", "${app.blob_server}"); 
+</script>
 
 <div ng-controller="DemoInputCtrl">
   <div  ng-bind-html="renderHtml(demo.general.input_description)"></div>  

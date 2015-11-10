@@ -3,6 +3,7 @@
 
 <!-- <form action="${app.base_url + 'input_select_angular'}" method="get"> -->
 <div ng-controller="ImagePickerCtrl">
+
     <h3>Select Data</h3> 
     <p>
       Click on an image to use it as the algorithm input.
@@ -29,9 +30,10 @@
             style='margin:5px;float:left;  text-align:center; vertical-align:middle;width:{{demo.general.thumbnail_size*demo.inputs.length+10*demo.inputs.length}}px;height:{{demo.general.thumbnail_size}}px; '>-->
       <tr>
         <td   style=' margin:2px;padding:2px;'
-              ng-repeat="idx in range(1,blob_set[0].size+1)" ng-if="blob_set[idx].extension!='disabled'">
+              ng-repeat="idx in range(1,blob_set[0].size+1)" 
+              ng-if="blob_set[idx].extension!='disabled'">
           <a  style=' margin:0;padding:0;' 
-              ng-href="http://localhost:8092/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
+              ng-href="/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
           <div  
                 class="select_input"
                 style=' margin:0;padding:0;
@@ -47,7 +49,7 @@
                           position: relative;
                           top: 50%;
                           transform: translateY(-50%);"
-                  ng-src="http://localhost:7777/thumbnail/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
+                  ng-src="{{blob_server}}/thumbnail/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
                   ng-click="selectImage(blob_set[idx])" 
                   ng-class="{'selected-image': (selected_image === blob_set[idx])}"
                   alt={{blob_set[idx].title}}
