@@ -69,6 +69,28 @@
               <div  ng-bind-html="renderHtml(param.label)"></div> 
           </th>
           <!--===============================================================-->
+          <!-- checkboxes type -->
+          <td ng-if="param.type==='checkboxes'" align="left"> 
+<!--             <div style="margin-right:1em; margin-bottom:1ex"> -->
+              <label>
+                <span ng-bind-html="renderHtml(param.label)"> </span> 
+              </label>
+<!--             </div> -->
+          </td>
+          <td ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
+            <input type="button" value="all"  />
+            <input type="button" value="none"  /><br/>
+            <div  ng-repeat="group in param.values" 
+                  style="float:left;margin-left:1em;margin-right:1em;margin-bottom:6pt">
+              <span ng-repeat="(id, label) in group">
+                <input  type="checkbox" name="{{param.id}}-{{id}}" id="{{id}}" 
+                        ng-model="param.cb_values[id]" />
+                <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label>
+                <br />
+              </span>
+            </div>
+          </td>
+          <!--===============================================================-->
         </tr>
         <!--=================================================================-->
 
