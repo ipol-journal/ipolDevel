@@ -21,7 +21,7 @@
   "inputs": [ 
       {
           "type"            : "image", 
-          "description"     : "input",
+          "description"     : "input 1",
           "max_pixels"      : "1600*1200",
           "max_weight"      : 5242880,
           "dtype"           : "3x8i",
@@ -29,7 +29,7 @@
       },
       {
           "type"            : "image", 
-          "description"     : "input",
+          "description"     : "input 2",
           "max_pixels"      : "1600*1200",
           "max_weight"      : 5242880,
           "dtype"           : "3x8i",
