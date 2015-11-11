@@ -767,7 +767,7 @@ class Archive(object):
                       os.path.join(tmp_dir, "squirtle") : "water"}
         str_blobs = json.dumps(dict_blobs)
         str_test = json.dumps("test")
-        demo_id = 42
+        demo_id = -1
         test = self.add_experiment(unicode(demo_id),
                                    unicode(str_blobs),
                                    unicode(str_test))
