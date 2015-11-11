@@ -104,7 +104,7 @@ class Archive(object):
         fileformat = mime.from_file(the_file)
         return fileformat[:5]
 
-    def __init__(self):
+    def __init__(self, option):
         """
         Initialize Archive class.
         Attribute status should be checked after each initialisation.
@@ -118,6 +118,9 @@ class Archive(object):
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
+        if option == "test":
+            mkdir_p("test")
+            self.database_dir = "test"
         self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
