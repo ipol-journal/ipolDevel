@@ -12,10 +12,12 @@ IPOLDemoControllers.controller('DemoListCtrl', ['$scope', 'Demo',
 
 /*---------------- DemoInputCtrl ---------------------------------------------*/
 IPOLDemoControllers.controller('DemoInputCtrl', 
-                              ['$scope', '$sce', 'demo_id', 'Demo', 'DemoBlobs', 'Params', 
-    function($scope, $sce, demo_id, Demo, DemoBlobs, Params ) {
+                              ['$scope', '$sce', '$http','demo_id', 'blob_server', 
+                               'Demo', 'DemoBlobs', 'Params', 
+    function($scope, $sce, $http, demo_id, blob_server, Demo, DemoBlobs, Params ) {
 
-      $scope.demo_id = demo_id;
+      $scope.demo_id     = demo_id;
+      $scope.blob_server = blob_server;
       $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
             function(demo) { 
               $scope.PreprocessDemo($scope,demo)
@@ -26,50 +28,89 @@ IPOLDemoControllers.controller('DemoInputCtrl',
       {
           return $sce.trustAsHtml(html_code);
       };
-      $scope.demoblobs = DemoBlobs.get( { demoId: $scope.demo_id },
-        function(demoblobs) {
-          console.info("*** demoblobs");
-          // preprocess HTML parameters string
-          angular.forEach(demoblobs.blobs, 
-            function(blobset) {
-              blobset[0].html_params=""
-              //console.info("set_name=",blobset[0].set_name);
-              //console.info("size=",blobset[0].size);
-              // extract only contents of interest
-              var blobset_contents = blobset.slice(1);
-              //console.info("contents:",blobset_contents);
-              blobset_contents.sort( function(a,b) { 
-                  return (a.id_in_set<b.id_in_set?-1: (a.id_in_set>b.id_in_set?1:0) );
-                });
-              //console.info("contents:",blobset_contents);
-              var current_id=""
-              for(var idx=0;idx<blobset_contents.length;idx++) {
-                //console.info(blobset_contents[idx].title)
-                if (idx==0) {
-                  blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
-                } else  {
-                  // if same id, separate by comma ...
-                  if (blobset_contents[idx].id_in_set==current_id) {
-                    blobset[0].html_params += ",";
-                  } else {
-                    // else separate arguments
-                    blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
-                  }
-                }
-                current_id = blobset_contents[idx].id_in_set;
-                blobset[0].html_params += blobset_contents[idx].hash+
-                                          blobset_contents[idx].extension;
-              }
-              console.info("html_params:",blobset[0].html_params);
-            }
-          )
-        }
-      );
-      $scope.uploaded_images = [];
+      // strip http:// from blob server name
+//       $scope.demoblobs = DemoBlobs.get(  { demoId : $scope.demo_id },
+//         function(demoblobs) {
+//           console.info("*** demoblobs");
+//           // preprocess HTML parameters string
+//           angular.forEach(demoblobs.blobs, 
+//             function(blobset) {
+//               blobset[0].html_params=""
+//               //console.info("set_name=",blobset[0].set_name);
+//               //console.info("size=",blobset[0].size);
+//               // extract only contents of interest
+//               var blobset_contents = blobset.slice(1);
+//               //console.info("contents:",blobset_contents);
+//               blobset_contents.sort( function(a,b) { 
+//                   return (a.id_in_set<b.id_in_set?-1: (a.id_in_set>b.id_in_set?1:0) );
+//                 });
+//               //console.info("contents:",blobset_contents);
+//               var current_id=""
+//               for(var idx=0;idx<blobset_contents.length;idx++) {
+//                 //console.info(blobset_contents[idx].title)
+//                 if (idx==0) {
+//                   blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
+//                 } else  {
+//                   // if same id, separate by comma ...
+//                   if (blobset_contents[idx].id_in_set==current_id) {
+//                     blobset[0].html_params += ",";
+//                   } else {
+//                     // else separate arguments
+//                     blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+//                   }
+//                 }
+//                 current_id = blobset_contents[idx].id_in_set;
+//                 blobset[0].html_params += blobset_contents[idx].hash+
+//                                           blobset_contents[idx].extension;
+//               }
+//               console.info("html_params:",blobset[0].html_params);
+//             }
+//           )
+//         }
+//       );
       
-      $scope.GetBlobUrl =   function($sce, blob) {
-        return $sce.trustAsResourceUrl("http://localhost:7777/thumbnail/thumbnail_"+ blob.hash + blob.extension);
-      }
+        $http.get(blob_server+'/get_blobs_of_demo_by_name_ws?demo_name='+demo_id)
+        .success(function(demoblobs) {
+            console.info("*** demoblobs");
+            // preprocess HTML parameters string
+            angular.forEach(demoblobs.blobs, 
+              function(blobset) {
+                blobset[0].html_params=""
+                //console.info("set_name=",blobset[0].set_name);
+                //console.info("size=",blobset[0].size);
+                // extract only contents of interest
+                var blobset_contents = blobset.slice(1);
+                //console.info("contents:",blobset_contents);
+                blobset_contents.sort( function(a,b) { 
+                    return (a.id_in_set<b.id_in_set?-1: (a.id_in_set>b.id_in_set?1:0) );
+                  });
+                //console.info("contents:",blobset_contents);
+                var current_id=""
+                for(var idx=0;idx<blobset_contents.length;idx++) {
+                  //console.info(blobset_contents[idx].title)
+                  if (idx==0) {
+                    blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
+                  } else  {
+                    // if same id, separate by comma ...
+                    if (blobset_contents[idx].id_in_set==current_id) {
+                      blobset[0].html_params += ",";
+                    } else {
+                      // else separate arguments
+                      blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+                    }
+                  }
+                  current_id = blobset_contents[idx].id_in_set;
+                  blobset[0].html_params += blobset_contents[idx].hash+
+                                            blobset_contents[idx].extension;
+                }
+                //console.info("html_params:",blobset[0].html_params);
+              }
+            )
+            $scope.demoblobs=demoblobs;
+          }
+        );
+      
+      $scope.uploaded_images = [];
       
       $scope.DisableBlobDisplay = function(blob_set,index)
       {
@@ -85,21 +126,20 @@ IPOLDemoControllers.controller('DemoInputCtrl',
               $scope.selected_image = image;
           }
           
-          //$scope.InputCropped = false;
-          
           if (typeof $scope.selected_image === "object") {
-              $scope.selected_image_link = 'http://localhost:7777/blob_directory/'+ 
+              $scope.selected_image_link = $scope.blob_server+'/blob_directory/'+ 
                 $scope.selected_image.hash + $scope.selected_image.extension;
-          } else {
-            if ($scope.selected_image.indexOf('.png') > -1) {
-              $scope.selected_image_link = 'img/demos/' + $scope.demo.id + 
-                                              '/uploaded/' +
-                                              $scope.selected_image;
-            } else {
-              $scope.selected_image_link = 'img/demos/' + $scope.demo.id + '/' + 
-                                              $scope.selected_image+'.png';
-            }
           }
+//           else {
+//             if ($scope.selected_image.indexOf('.png') > -1) {
+//               $scope.selected_image_link = 'img/demos/' + $scope.demo.id + 
+//                                               '/uploaded/' +
+//                                               $scope.selected_image;
+//             } else {
+//               $scope.selected_image_link = 'img/demos/' + $scope.demo.id + '/' + 
+//                                               $scope.selected_image+'.png';
+//             }
+//           }
         }
       }
 
@@ -150,6 +190,26 @@ IPOLDemoControllers.controller('DemoParamCtrl',
                 param.value = $scope.params[param.id].toString();
               }
             }
+            // selection_collapsed type
+            if (param.type=='checkboxes') {
+              // create one boolean value per checkbox ...
+              param.cb_values = {};
+              angular.forEach(param.values, 
+                function(checkboxes_info) {
+                  angular.forEach(checkboxes_info, 
+                    function(value,key)
+                    {
+                      if (param.default.indexOf(key)>-1) {
+                        param.cb_values[key]=true;
+                      } else {
+                        param.cb_values[key]=false;
+                      }
+                    }
+                  );
+                }
+              );
+            }
+            //console.info(param.cb_values);
           }
         );
       }

@@ -199,6 +199,8 @@ class RunDemoBase:
     # add also the python tools dir
     path = path + ":" + self.pytools_dir
 
+    path=path+":/bin:/usr/bin:/usr/local/bin"
+
     # Check if there are extra paths
     if self.get_extra_path()!=None:
       path = path + ":" + self.get_extra_path()

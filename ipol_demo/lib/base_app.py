@@ -193,6 +193,8 @@ class base_app(empty_app):
         # setup the parent class
         empty_app.__init__(self, base_dir)
         
+        self.blob_server = cherrypy.config['demo.blob_server']
+        
         self.read_demo_description()
         self.init_parameters()
         
@@ -552,8 +554,7 @@ class base_app(empty_app):
           for inputfile in inputfiles:
             print "inputfile:",inputfile
             ext = inputfile[inputfile.index('.'):]
-            blobfile.retrieve("http://localhost:7777/blob_directory/"+
-                              inputfile, 
+            blobfile.retrieve(self.blob_server+'/blob_directory/'+ inputfile, 
                               self2.work_dir + 'input_{0}{1}'.format(idx,ext))
         
         msg = self2.process_inputs()
@@ -836,7 +837,8 @@ class base_app(empty_app):
         """
         params handling
         """
-
+        print "**kwargs = ", kwargs
+        # if a key appears several times, join the strings
         for key in kwargs:
             self.cfg['param'][key] = kwargs[key]
 
