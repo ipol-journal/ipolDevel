@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    Demo page test
+{% endblock %}
+
+{% block cssfiles %}
+{% endblock %}
+
+{% block content %}
+
+
+{#    <h1>DEMO LIST</h1>#}
+{#    #}
+{#    {{ view.result }}#}
+
+
+
+
+    <h2>Lista de demos</h2>
+{#   DEmo de test con id -1     #}
+        <div>
+            <a  href="{% url 'ipol.cp.result.page' -1 %}">
+                <p style="padding-left: 20px">name: testdemo id:-1</p>
+            </a>
+        </div>
+
+    {% with data=view.result %}
+        <p>STATUS: {{ data.return  }}</p>
+
+
+        {% for demonum,values in data.list_demos.items %}
+
+            <div>
+{#                <p>demo num: {{ demonum }}</p>#}
+                {% for valname,val in values.items %}
+                    {% if valname == 'name' %}
+
+                        <a  href="{% url 'ipol.cp.result.page' demonum %}">
+                            <p style="padding-left: 20px">{{ valname }}: {{ val }} demo_id:{{ demonum }} </p>
+                        </a>
+                    {% else %}
+{#                        <p style="padding-left: 20px">{{ valname }}: {{ val }}</p>#}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+        {% endfor %}
+    {% endwith %}
+
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+
+
