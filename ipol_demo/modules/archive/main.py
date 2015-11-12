@@ -17,7 +17,11 @@ Main function.
 """
 
 import cherrypy
+import sys
 from module import Archive
 
 if __name__ == '__main__':
-    cherrypy.quickstart(Archive(), config="archive.conf")
+    option = None
+    if "--test" in sys.argv:
+        option = "test"
+    cherrypy.quickstart(Archive(option), config="archive.conf")

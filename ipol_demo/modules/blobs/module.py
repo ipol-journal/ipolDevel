@@ -63,6 +63,9 @@ class   Blob(object):
         self.current_directory = os.getcwd()
         self.html_dir = os.path.join(self.current_directory,
                                      cherrypy.config['html.dir'])
+        self.server_address=  'http://{0}:{1}'.format(
+                                  cherrypy.config['server.socket_host'],
+                                  cherrypy.config['server.socket_port'])
 
     @cherrypy.expose
     def index(self):
@@ -657,10 +660,10 @@ class   Blob(object):
                                                       self.final_dir,
                                                       (blob_set[idx]["hash"] + \
                                                         blob_set[idx]["extension"]))
-                blob_set[idx]["url"] = "http://localhost:7777/blob_directory/" \
+                blob_set[idx]["url"] = self.server_address+"/blob_directory/" \
                                           + blob_set[idx]["hash"] \
                                           + blob_set[idx]["extension"]
-                blob_set[idx]["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+                blob_set[idx]["url_thumb"] = self.server_address+"/thumbnail/" + \
                                                 "thumbnail_" + \
                                                 blob_set[idx]["hash"] + \
                                                 blob_set[idx]["extension"]
@@ -673,10 +676,10 @@ class   Blob(object):
                                                   self.final_dir,
                                                   (blob_set[idx]["hash"] + \
                                                     blob_set[idx]["extension"]))
-            blob_set[idx]["url"] = "http://localhost:7777/blob_directory/" \
+            blob_set[idx]["url"] = self.server_address+"/blob_directory/" \
                                       + blob_set[idx]["hash"] \
                                       + blob_set[idx]["extension"]
-            blob_set[idx]["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+            blob_set[idx]["url_thumb"] = self.server_address+"/thumbnail/" + \
                                             "thumbnail_" + \
                                             blob_set[idx]["hash"] + \
                                             blob_set[idx]["extension"]
@@ -707,9 +710,9 @@ class   Blob(object):
             res["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir,
                                                     (res["hash"] + res["extension"]))
-            res["url"] = "http://localhost:7777/blob_directory/" + res["hash"] \
+            res["url"] = self.server_address+"/blob_directory/" + res["hash"] \
                          + res["extension"]
-            res["url_thumb"] = "http://localhost:7777/thumbnail/" + \
+            res["url_thumb"] = self.server_address+"/thumbnail/" + \
                                "thumbnail_" + res["hash"] + res["extension"]
 
             res["tags"] = use_web_service('/get_tags_ws', data)
