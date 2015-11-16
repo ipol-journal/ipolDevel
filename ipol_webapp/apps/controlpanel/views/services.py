@@ -181,7 +181,15 @@ te_blobs_demo_list="http://boucantrin.ovh.hw.ipol.im:9010/demos_ws"
 # change the current template used by a demo
 # demo id id name
 # { return:OK or KO }
+import json
 
+def is_json(myjson):
+	try:
+		json_object = json.loads(myjson)
+	except Exception, e:
+		print("e:%s"%e)
+		return False
+	return True
 
 import requests
 import logging
@@ -196,14 +204,32 @@ def get_page(experimentid , page='1'):
 	that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
 	the browser
 	"""
-
+	import json
 	result = None
 	wsurl = te_archive_ws_url_page
 	try:
 
 		params = {'demo_id': experimentid, 'page': page}
-		r = requests.get(wsurl,params)
-		result = r.json()
+		response = requests.get(wsurl,params)
+		result =  response.content
+		if not is_json(result):
+			msg="No es un Json valido:  is_json:%s" % is_json(result)
+			print(msg)
+			raise ValueError(msg)
+
+		# print("response class")
+		# print(response.__class__)
+		# print("result")
+		# print(result.__class__)
+		# import yaml
+		# list_org = ['a', 'b']
+		# list_dump = json.dumps(list_org)
+		# print(list_dump)
+		# print json.loads(list_dump)
+		# print yaml.safe_load(result)
+
+
+
 	except Exception as e:
 		msg=" get_page: error=%s"%(e)
 		print(msg)

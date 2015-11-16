@@ -24,24 +24,30 @@
         <p>nb_pages: {{ data.nb_pages  }}</p>
 
 
+        <p style="padding-left: 20px"><h2>EXPERIMENTS</h2></p>
+        {% for experiment in data.experiments %}
 
-        {% for listelement in data.experiments %}
 
-{#            <p style="padding-left: 20px">listelement: {{ listelement }}</p>#}
+            <p style="padding-left: 20px">experiment id: {{ experiment.id }}</p>
+            <p style="padding-left: 20px">experiment parameters: {{ experiment.parameters }}</p>
+            <p style="padding-left: 20px">experiment date: {{ experiment.date }}</p>
 
-            {% for label,value in listelement.items %}
-                <p style="padding-left: 20px">{{ label }}: {{ value }}</p>
+
+            <p style="padding-left: 40px"><h2>FILES</h2></p>
+            {% for file in experiment.files %}
+
+                <p style="padding-left: 20px">file id: {{ file.id }}</p>
+                <p style="padding-left: 20px">file name: {{ file.name }}</p>
+                <p style="padding-left: 20px">file url: {{ file.url }}</p>
+                <div class="grid-item-album">
+                    <img src="{{ file.url_thumb }}" alt="{{ file.name }}"/>
+                </div>
 
             {% endfor %}
+
         {% endfor %}
 
 
-                <div>
-                    <p style="padding-left: 20px">id: {{ id }}</p>
-                    <p style="padding-left: 20px">parms: {{ parms }}</p>
-                    <p style="padding-left: 20px">date: {{ date }}</p>
-                    <p style="padding-left: 20px">files: {{ files }}</p>
-                </div>
 
 
     {% endwith %}
