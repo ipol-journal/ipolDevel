@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    Demo page test
+{% endblock %}
+
+{% block cssfiles %}
+{% endblock %}
+
+{% block content %}
+
+
+<h1>DEMO {{ id }} PAGE, experiments info</h1>
+
+
+    {% with data=view.result %}
+
+
+
+        <p>STATUS: {{ data.status  }}</p>
+        <p>id_demo: {{ data.id_demo  }}</p>
+        <p>nb_pages: {{ data.nb_pages  }}</p>
+
+
+
+        {% for listelement in data.experiments %}
+
+{#            <p style="padding-left: 20px">listelement: {{ listelement }}</p>#}
+
+            {% for label,value in listelement.items %}
+                <p style="padding-left: 20px">{{ label }}: {{ value }}</p>
+
+            {% endfor %}
+        {% endfor %}
+
+
+                <div>
+                    <p style="padding-left: 20px">id: {{ id }}</p>
+                    <p style="padding-left: 20px">parms: {{ parms }}</p>
+                    <p style="padding-left: 20px">date: {{ date }}</p>
+                    <p style="padding-left: 20px">files: {{ files }}</p>
+                </div>
+
+
+    {% endwith %}
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+
+

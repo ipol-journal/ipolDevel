@@ -28,7 +28,13 @@ import os
 import os.path
 import magic
 import shutil
-import Image
+#JAK import Image
+try:
+    import Image
+except Exception, e:
+    from PIL import Image
+
+
 from mako.template import Template
 
 class Archive(object):
