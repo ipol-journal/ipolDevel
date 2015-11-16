@@ -119,9 +119,9 @@ class Archive(object):
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
         if option == "test":
-            mkdir_p("test")
             self.database_dir = "test"
-        self.database_dir = cherrypy.config.get("database_dir")
+        else:
+            self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
 
@@ -728,29 +728,29 @@ class Archive(object):
 # test
 #####
 
-    def echo_database(self):
+    def echo_database(self, the_file):
         """
         Print the database content on stdout.
         """
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            print "Archive Database :"
+            the_file.write("Archive Database :")
 
-            print "table experiments (id, id_demo, parameters) :"
+            the_file.write("table experiments (id, id_demo, parameters) :")
             for row in cursor_db.execute("""
             SELECT * FROM experiments ORDER BY id"""):
-                print row
+                the_file.write(row)
 
-            print "table blobs (id, hash, type, format) :"
+            the_file.write("table blobs (id, hash, type, format) :")
             for row in cursor_db.execute("""
             SELECT * FROM blobs ORDER BY id"""):
-                print row
+                the_file.write(row)
 
-            print "table correspondence (id, id_exp, id_blob, name, time):"
+            the_file.write("table correspondence (id, id_exp, id_blob, name, time):")
             for row in cursor_db.execute("""
             SELECT * FROM correspondence ORDER BY id"""):
-                print row
+                the_file.write(row)
 
             conn.close()
         except Exception as ex:
@@ -774,7 +774,7 @@ class Archive(object):
         test = self.add_experiment(unicode(demo_id),
                                    unicode(str_blobs),
                                    unicode(str_test))
-        self.echo_database()
+        self.echo_database(sys.stdout)
         return str(test)
 
 

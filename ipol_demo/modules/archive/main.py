@@ -21,7 +21,6 @@ import sys
 from module import Archive
 
 if __name__ == '__main__':
-    option = None
     if "--test" in sys.argv:
-        option = "test"
-    cherrypy.quickstart(Archive(option), config="archive.conf")
+        cherrypy.quickstart(Archive('test'), config="archive.conf")
+    cherrypy.quickstart(Archive(None), config="archive.conf")

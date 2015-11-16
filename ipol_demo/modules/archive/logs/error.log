@@ -50,3 +50,5 @@
 2015-11-11 20:56:42 ERROR in echo_page: Page requested don't exist.
 2015-11-11 21:32:31 ERROR in echo_page: Page requested don't exist.
 2015-11-11 22:23:16 ERROR in echo_page: Page requested don't exist.
+2015-11-13 16:05:20 ERROR in echo_database: expected a character buffer object
+2015-11-13 20:02:03 ERROR in echo_database: expected a character buffer object
