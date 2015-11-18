@@ -730,11 +730,16 @@ class base_app(empty_app):
         desc = self.demo_description['config']
         info_changed = False
         if 'info_from_file' in desc.keys():
+          print desc['info_from_file']
           for info in desc['info_from_file']:
+            print "*** ",info
             filename = desc['info_from_file'][info]
             try:
               f = open( os.path.join(self.work_dir,filename))
-              self.cfg['info'][info] = f.readline()
+              file_lines = f.read().splitlines()
+              # remove empty lines and replace new lines with ' | '
+              new_string = " | ".join([ll.rstrip() for ll in file_lines if ll.strip()])
+              self.cfg['info'][info] = new_string
               print "Added info ", info, " with value ", self.cfg['info'][info]
               info_changed = True
               f.close()
@@ -758,12 +763,14 @@ class base_app(empty_app):
         # let's add all the parameters
         if 'params' in desc.keys():
           for p in desc['params']:
-            ar.add_info({ p: self.cfg['param'][p]})
+            if p in self.cgf['param']:
+              ar.add_info({ p: self.cfg['param'][p]})
           
         if 'info' in desc.keys():
           # save info
           for i in desc['info']:
-            ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
+            if i in self.cfg['info']:
+              ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
         ar.save()
       return self.tmpl_out("run.html")
     
@@ -780,10 +787,15 @@ class base_app(empty_app):
       if 'demo.extra_path' in cherrypy.config:
         rd.set_extra_path(cherrypy.config['demo.extra_path'])
       rd.set_algo_params(self.cfg['param'])
+      rd.set_algo_info  (self.cfg['info'])
+      rd.set_algo_meta  (self.cfg['meta'])
       rd.set_MATLAB_path(self.get_MATLAB_path())
       rd.set_demo_id(self.id)
       rd.set_commands(self.demo_description['run'])
       rd.run_algo()
+      # take into account possible changes in parameters
+      self.cfg['param'] = rd.get_algo_params()
+      print "self.cgf['param']=",self.cfg['param']
       return
 
 
@@ -838,7 +850,9 @@ class base_app(empty_app):
         params handling
         """
         print "**kwargs = ", kwargs
-        # if a key appears several times, join the strings
+        # if a key appears several times, join the strings ?
+        # first empty dictionnary
+        self.cfg['param'].clear()
         for key in kwargs:
             self.cfg['param'][key] = kwargs[key]
 
