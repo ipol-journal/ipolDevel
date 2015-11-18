@@ -223,9 +223,8 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
   \hline
   {demos\_ws}
                   & list demos present  in database \\
-%                   & { }\\
-                  & {\{ return:OK or KO,
-                        list\_demos: \{id:name, id\_template, template \} \}} \\
+                  & {\{ status:OK or KO,
+                        list\_demos:  \{ id:int, mame:str, is\_template:int, template\_id:int \} \}} \\
   \hline
   {get\_blob\_ws}
                   & return blob information from id \\
