@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    Demo page test
+{% endblock %}
+
+{% block cssfiles %}
+{% endblock %}
+
+{% block content %}
+
+
+<h1>DEMO {{ id }} PAGE, experiments info</h1>
+
+
+    {% with data=view.result %}
+
+
+
+        <p>STATUS: {{ data.status  }}</p>
+        <p>id_demo: {{ data.id_demo  }}</p>
+        <p>nb_pages: {{ data.nb_pages  }}</p>
+
+
+        <p style="padding-left: 20px"><h2>EXPERIMENTS</h2></p>
+        {% for experiment in data.experiments %}
+
+
+            <p style="padding-left: 20px">experiment id: {{ experiment.id }}</p>
+            <p style="padding-left: 20px">experiment parameters: {{ experiment.parameters }}</p>
+            <p style="padding-left: 20px">experiment date: {{ experiment.date }}</p>
+
+
+            <p style="padding-left: 40px"><h2>FILES</h2></p>
+            {% for file in experiment.files %}
+
+                <p style="padding-left: 20px">file id: {{ file.id }}</p>
+                <p style="padding-left: 20px">file name: {{ file.name }}</p>
+                <p style="padding-left: 20px">file url: {{ file.url }}</p>
+                <div class="grid-item-album">
+                    <img src="{{ file.url_thumb }}" alt="{{ file.name }}"/>
+                </div>
+
+            {% endfor %}
+
+        {% endfor %}
+
+
+
+
+    {% endwith %}
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+
+

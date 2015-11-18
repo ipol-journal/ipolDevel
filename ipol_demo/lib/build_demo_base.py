@@ -123,6 +123,14 @@ class BuildDemoBase:
       else:
       #----- MAKE build
         print "using MAKE"
+
+        # prepare_cmake can fix some options before configuration
+        if ('prepare_make' in self.params.keys()):
+          print 'prepare_make :', self.params['prepare_make']
+          build.run(self.params['prepare_make'],
+                    stdout=self.log_file, cwd=src_path)
+        print "..."
+
         # build the programs for make
         for program in programs:
           prog_path=path.join(src_path,  program[0])

@@ -3,6 +3,8 @@ from os import path
 from subprocess import Popen
 import time
 import re
+import six
+import math
 
 #-----------------------------------------------------------------------------
 class TimeoutError(Exception):
@@ -60,6 +62,20 @@ class RunDemoBase:
     self.algo_params=algo_params
 
   #-----------------------------------------------------------------------------
+  def get_algo_params(self):
+    return self.algo_params
+
+  #-----------------------------------------------------------------------------
+  # set the algorihtm info as a  dictionnary
+  def set_algo_info(self,algo_info):
+    self.algo_info=algo_info
+
+  #-----------------------------------------------------------------------------
+  # set the algorihtm meta info as a  dictionnary
+  def set_algo_meta(self,algo_meta):
+    self.algo_meta=algo_meta
+
+  #-----------------------------------------------------------------------------
   def set_extra_path(self,p):
     self.extra_path = p
     
@@ -96,78 +112,104 @@ class RunDemoBase:
     """
     
     # convert parameters to variables
-    for k in self.algo_params:
-      exec("{0} = {1}".format(k,repr(self.algo_params[k])))
+    for _k_ in self.algo_params:
+      exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
+    # convert meta info to variables
+    for _k_ in self.algo_meta:
+      exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
     
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
     
     for cmd in self.commands:
-      print "cmd = ", cmd
-      args = cmd.split()
-      stdout_file = None
-      stderr_file = open(self.work_dir+"stderr.txt", 'w')
-      # replace variables
-      for i,p in enumerate(args):
-        print p
-        # 1 replace simple variables
-        v = re.search(r'\$\w+',p)
-        # more complicate, search all variables and replace them
-        if v!=None:
-          while v!=None:
-            p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
-            print "argument number ",i," evaluated to: ",p
-            v = re.search(r'\$\w+',p)
-          args[i] = p
-          
-        # 2 replace more complex expressions, of type ${expression},
-        # where expression does not contain '{' or '}' characters
-        v = re.search(r'\$\{[^\{\}]*\}',p)
-        # more complicate, search all variables and replace them
-        if v!=None:
-          while v!=None:
-            p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
-            print "argument number ",i," evaluated to: ",p
-            v = re.search(r'\$\{[^\{\}]*\}',p)
-          args[i] = p
-
-        # output file >filename finishes also the build command
-        if p[0]=='>':
-          try:
-            print "opening ", self.work_dir+p[1:]
-            stdout_file = open(self.work_dir+p[1:], 'w')
-          except:
-            print "failed"
-            stdout_file = None
-          del args[i:]
-        # redirect errors to stdout
-        if p=='2>&1':
-          stderr_file = stdout_file
-          
-      try:
-        self.log("running %s" % repr(args),
-                  context='SETUP/%s' % self.get_demo_id(), 
-                  traceback=False)
-        p = self.run_proc(args, stdout=stdout_file, stderr=stderr_file)
-        self.wait_proc(p)
-      except ValueError as e:
-        self.log("Error %s" % e,
-                  context='SETUP/%s' % self.get_demo_id(), 
-                  traceback=False)
-      except RuntimeError:
-        print "**** run_algo: RuntimeError "
-        with open(self.work_dir+"stderr.txt", "r") as errfile:
-          errors=errfile.read()
-        print errors
-        print "***"
-        raise RuntimeError(errors)
+      # check if command is an array
+      run_cmd=True
+      if type(cmd)==list:
+        # first string is a condition to check...
+        exec("run_cmd={0}".format(cmd[0]))
+        print "condition: ", cmd[0], "run_cmd=",run_cmd
+        cmd = cmd[1]
         
-      # the files should close automatically with their scope ...
-      # but we do it anyway just in case
-      if stderr_file!=None and stderr_file!=stdout_file:
-        stderr_file.close()
-      if stdout_file!=None:
-        stdout_file.close()
+      if cmd.startswith('python:'):
+        print "Running python command ",cmd[7:]
+        exec(cmd[7:])
+        continue
+      
+      if run_cmd:
+        print "cmd = ", cmd
+        # get argument list, but keep strings
+        args = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', cmd)
+        stdout_file = None
+        stderr_file = open(self.work_dir+"stderr.txt", 'w')
+        # replace variables
+        for i,p in enumerate(args):
+          print p
+          # strip double quotes
+          args[i] = p.strip('"')
+          
+          # 1 replace simple variables
+          v = re.search(r'\$\w+',p)
+          # more complicate, search all variables and replace them
+          if v!=None:
+            while v!=None:
+              p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
+              print "argument number ",i," evaluated to: ",p
+              v = re.search(r'\$\w+',p)
+            args[i] = p
+            
+          # 2 replace more complex expressions, of type ${expression},
+          # where expression does not contain '{' or '}' characters
+          v = re.search(r'\$\{[^\{\}]*\}',p)
+          # more complicate, search all variables and replace them
+          if v!=None:
+            while v!=None:
+              p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
+              print "argument number ",i," evaluated to: ",p
+              v = re.search(r'\$\{[^\{\}]*\}',p)
+            args[i] = p
+
+          # output file >filename finishes also the build command
+          if p[0]=='>':
+            try:
+              print "opening ", self.work_dir+p[1:]
+              stdout_file = open(self.work_dir+p[1:], 'w')
+            except:
+              print "failed"
+              stdout_file = None
+            del args[i:]
+          # redirect errors to stdout
+          if p=='2>&1':
+            stderr_file = stdout_file
+            
+        try:
+          self.log("running %s" % repr(args),
+                    context='SETUP/%s' % self.get_demo_id(), 
+                    traceback=False)
+          p = self.run_proc(args, stdout=stdout_file, stderr=stderr_file)
+          self.wait_proc(p)
+        except ValueError as e:
+          self.log("Error %s" % e,
+                    context='SETUP/%s' % self.get_demo_id(), 
+                    traceback=False)
+        except RuntimeError:
+          print "**** run_algo: RuntimeError "
+          with open(self.work_dir+"stderr.txt", "r") as errfile:
+            errors=errfile.read()
+          print errors
+          print "***"
+          raise RuntimeError(errors)
+          
+        # the files should close automatically with their scope ...
+        # but we do it anyway just in case
+        if stderr_file!=None and stderr_file!=stdout_file:
+          stderr_file.close()
+        if stdout_file!=None:
+          stdout_file.close()
+      
+    # convert back variables to parameters 
+    for _k_ in self.algo_params:
+      cmd = "self.algo_params['{0}'] = {0}".format(_k_)
+      exec(cmd)
         
 
   #-----------------------------------------------------------------------------

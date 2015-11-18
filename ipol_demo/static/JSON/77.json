@@ -1,79 +1,154 @@
 { 
-  "topic":    "calibration",
-  "id":       "106",
-  "title":    "Automatic Lens Distortion Correction Using One Parameter Division Models",
-  "description": "",
-  "email":    "asalgado@dis.ulpgc.es",
-  "test": [ "building_1_1", "building_1_2", "building_2_1", "building_2_2", "building_2_3", "building_2_4", "building_2_5", "building_2_6", "building_3_1", "building_3_2", "building_3_3", "pattern_1", "pattern_2", "pattern_3", "pattern_4", "door" ], 
+  "general": { 
+    "demo_title"            : "Recovering the Subpixel PSF from Two Photographs at Different Distances",
+    "input_description"     : [
+        "<p>",
+          "This demo interface performs PSF estimation from a photograph ",
+          "of a PSF calibration pattern.",
+        "</p>"
+      ],
+    "param_description"     : [
+      "<p>",
+        "Three inputs are required by the PSF estimation algorithm:",
+        "<ul>",
+          "<li>s : the superresolution factor (1x,2x,3x,4x)</li>",
+          "<li>k : the kernel support sie (k x k pixels in the superresolved",
+            "estimation, recommended  k = 4s+1</li> ",
+          "<li>t : the least squares algorithm (ls, ls + thresholding)</li>",
+        "</ul>",
+      "</p>"
+    ],
+    "enable_crop"           : false,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/77/"
+  }, 
+  "build":
+    {
+      "url"           : "http://www.ipol.im/pub/art/2013/77/two-photos-psf-estim.tar.gz", 
+      "srcdir"        : "two-photos-psf-estim",
+      "binaries"      : [ [".","two_photos_psf_estim"] ],
+      "flags"         : "OMP=1 -j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input 1",
+          "max_pixels"      : "2048*2048",
+          "max_weight"      : "3*2048*2048",
+          "dtype"           : "1x8i",
+          "ext"             : ".pgm"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "input 2",
+          "max_pixels"      : "2048*2048",
+          "max_weight"      : "3*2048*2048",
+          "dtype"           : "1x8i",
+          "ext"             : ".pgm"
+      }
+    ],
   "params": [
     {
-      "id":            "high_threshold_canny",
-      "type":          "float",
-      "label":         "Canny high threshold:",
-      "default_value": "0.7:0.05:1, 0.8",
-      "type_format":   "range"
+      "id"            : "s",
+      "type"          : "selection_collapsed", 
+      "label"         : "<i>s</i>",
+      "values"        : { "1x":"1", "2x":"2", "3x":"3", "4x":"4" },
+      "default_value" : "3"
     },
     {
-      "id":            "initial_distortion_parameter",    
-      "type":          "float",     
-      "label":         "Minimum distortion parameter value:",
-      "default_value": "-0.5:0.1:4, 0",
-      "type_format":   "range"
-    }, 
-    {
-      "id":            "final_distortion_parameter",
-      "type":          "float",     
-      "label":         "Maximum distortion parameter value:",
-      "default_value": "0:0.1:4, 3",
-      "type_format":   "range"
+      "id"            : "k",
+      "type"          : "range", 
+      "label"         : "<i>k</i>",
+      "values"        : { "min":1, "max":20, "step":1, "default": 13 }
     },
     {
-      "id":            "distance_point_line_max_hough",
-      "type":          "float",     
-      "label":         "Max distance lines and associated points:",
-      "default_value": "0:0.1:4, 3",
-      "type_format":   "range"
-    },
-    {
-      "id":            "angle_point_orientation_max_difference",
-      "type":          "float",     
-      "label":         "Max distance edge point and line orientations:",
-      "default_value": "0:1.0:45, 2",
-      "type_format":   "range"
+      "id"            : "t",
+      "type"          : "selection_collapsed", 
+      "label"         : "<i>t</i>",
+      "values"        : { "LS":"0", "LS+TH":"1"},
+      "default_value" : "0"
     }
-  ],
+  ]
+  ,
+  "run": [ 
+      "convert input_0.png input_0.pgm",
+      "convert input_1.png input_1.pgm",
+      "two_photos_psf_estim -s $s -k $k -t $t -d ipol -o psf_kernel.pgm -i int_kernel.pgm input_0.pgm input_1.pgm psf_kernel.txt int_kernel.txt >stdout.txt 2>&1",
+      "convert -filter point -resize 600x600 psf_kernel.pgm psf_kernel.png",
+      "convert -filter point -resize 600x600 int_kernel.pgm int_kernel.png",
+      "convert ipol_imgC.pgm  ipol_imgC.png",
+      "convert ipol_imgW.pgm  ipol_imgW.png",
+      "convert ipol_diff.pgm  ipol_diff.png",
+      "convert ipol_mask.pgm  ipol_mask.png",
+      "gnuplot -e \"set pm3d map;set yrange [0:240];set cbrange [0:255]; set isosamples 256;set ytics 20 scale 1.5;set mytics 2;set lmargin screen 0.1;unset colorbox; set tics out;unset xtics;unset key;set pal gray gamma 1;unset title;set term png size 200,800;set output 'palette1.png';set lmargin 6;unset key; splot y\"",
+      "gnuplot -e \"set pm3d map;set yrange [-12:12];set cbrange [-12:255.0/20]; set isosamples 256;set ytics 1 scale 1.5;set mytics 2;set lmargin screen 0.1;unset colorbox; set tics out;unset xtics;unset key;set pal gray gamma 1;unset title;set term png size 200,800;set output 'palette2.png';set lmargin 6;unset key; splot y\""
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.png"    : "uploaded #1",
+                  "input_1.png"         : "uploaded #2",
+                  "psf_kernel.png"       : "psf_kernel.png",
+                  "int_kernel.png"    : "int_kernel.png",
+                  "diff_tvdeconv.png"  : "deconvolved difference"
+                },
+      "compressed_files" : {
+                              "psf_kernel.txt":"psf_kernel.txt",
+                              "int_kernel.txt":"int_kernel.txt",
+                              "stdout.txt"    :"stdout.txt"
+                            },
+      "params" :  [ "s", "k", "t" ],
+      "info"   : {  "run_time"        : "run time"  }
+    }
+  ,
   "results": [
-    { 
-      "id":            "od1", 
-      "type":          "run_again", 
-      "default_value": "Run"
-    },
-    { 
-       "id":            "od2", 
-       "type":          "gallery", 
-       "label":         "Images: ",
-       "default_value": "Canny:output_canny.png, Hough:output_hough.png, Output:output_corrected_image.png, Input:input_0.png"
-    },
-    { 
-       "id":            "od3", 
-       "type":          "verbatim_text", 
-       "label":         "Additional Info",
-       "default_value": "output.txt"
-    },
-    { 
-       "id":            "od4", 
-       "type":          "file_download", 
-       "label":         "You can download the files ",
-       "default_value": "Canny:output_canny.png, Hough:output_hough.png, Output:output_corrected_image.png, Primitives:primitives.txt"
-    }
-  ],
-  "code": [
     {
-      "source": "http://amiserver.dis.ulpgc.es/ldm_q1p.zip",
-      "run": " make CFLAGS="" || g++ *.o -o lens_distortion_correction_division_model_1p -lm -lpng -fopenmp"
+      "type"          : "file_download", 
+      "label"         : "<p>You can download the results in plain-text:</p>",
+      "contents"      : 
+        { 
+          "psf"           : "psf_kernel.txt", 
+          "inter kernel"  : "int_kernel.txt"
+        }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : { 
+        "PSF"         :"psf_kernel.png", 
+        "inter kernel":"int_kernel.png"
+      },
+      "style"         : "height:{{300*ZoomFactor}}px"
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<h2>Intermediate Images</h2> <p>You can download the intermediate images with their original pixel values (no-rescaling, no-resizing) in plain-text: </p>",
+      "contents"      : 
+        { 
+          "zoomed-out"  : "ipol_imgW.txt", 
+          "zoomed-in"   : "ipol_imgC.txt",
+          "residue"     : "ipol_diff.txt",
+          "mask"        : "ipol_mask.txt"
+        }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<p>The following images were resized (by the browser) for correct visualization. Image height is set to 500px.<p>",
+      "contents"      : { 
+        "zoomed-out"  : [ "ipol_imgW.png", "palette1.png" ],
+        "zoomed-in"   : [ "ipol_imgC.png", "palette1.png" ],
+        "residue"     : [ "ipol_diff.png", "palette2.png" ],
+        "mask"        : [ "ipol_mask.png", "palette1.png" ]
+      },
+      "style"         : "height:{{500*ZoomFactor}}px" 
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h2>Program Output<h2>",
+      "contents"      : "stdout.txt",
+      "style"         : "width:50em;height:38em;background-color:#eee"
     }
-  ],
-  "run": [
-      "lens_distortion_correction_division_model_1p input_0.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference primitives.txt"
-  ]  
+  ]
+
 }

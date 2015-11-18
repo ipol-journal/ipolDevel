@@ -28,6 +28,7 @@ class file_dict(dict):
         self.flag = flag
         self.mode = mode
         self.filename = filename
+        self.filename_mtime = 0
         if os.path.isdir(filename):
             filepath = filename
             # added for Angular
@@ -44,6 +45,7 @@ class file_dict(dict):
                 self.load(infile)
             finally:
                 infile.close()
+                self.filename_mtime = os.path.getmtime(self.filename)
         self.update(*args, **kwargs)
 
     def load(self, infile):
@@ -78,12 +80,18 @@ class file_dict(dict):
         """
         reload a config file into the dictionary
         """
-        infile = open(self.filename, 'rb')
         try:
-            # update the dict with the file content
-            self.load(infile)
-        finally:
-            infile.close()
+          if self.filename_mtime != os.path.getmtime(self.filename):
+            print "times :", self.filename_mtime, ", ",os.path.getmtime(self.filename)
+            infile = open(self.filename, 'rb')
+            try:
+                # update the dict with the file content
+                self.load(infile)
+            finally:
+                infile.close()
+                self.filename_mtime = os.path.getmtime(self.filename)
+        except Exception:
+          raise ValueError('filename does not exist anymore or fails to load')
 
     def save(self):
         """
@@ -110,6 +118,7 @@ class file_dict(dict):
         if self.mode is not None:
             os.chmod(tempname, self.mode)
         shutil.move(tempname, self.filename)    # atomic commit
+        self.filename_mtime = os.path.getmtime(self.filename)
         # save params as json
         if 'param' in self.keys():
           (fd, tempname) = tempfile.mkstemp()

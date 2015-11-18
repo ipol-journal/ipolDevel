@@ -11,6 +11,20 @@ angular.module('IPOLDemoFilters', [])
     };
   }
 )
+.filter('isArray', 
+  function() {
+    return function (input) {
+      return angular.isArray(input);
+    };
+  }
+)
+.filter('isString', 
+  function() {
+    return function (input) {
+      return angular.isString(input);
+    };
+  }
+)
 //
 .filter('interpolate', 
   function($interpolate) {

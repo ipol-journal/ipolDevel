@@ -13,6 +13,8 @@ simplejson
 #http://www.brambraakman.com/blog/comments/installing_libmagic_in_mac_os_x_for_python-magic/
 python-magic
 
+#for blobs
+pyyaml
 #django webapp ipol_webapp
 -r ./ipol_webapp/requirements.txt
 

@@ -76,42 +76,82 @@
   <select ng-options="ZoomFactor for ZoomFactor in [0.125,0.25,0.5,0.75,1, 1.5, 2, 4, 8,16]" 
           ng-model="ZoomFactor" 
           ng-init="ZoomFactor=1">
-  </select>
+  </select> <br/>
 
-  <span bind-html-compile="demo.results_test[0].contents.join('')"></span> 
+<!--   <span bind-html-compile="demo.results_test[0].contents.join('')"></span>  -->
+<!--  <span bind-html-compile="'test '"> </span> 
+{{"{{demo.general}}"|interpolate:current_scope}}-->
 
   <!-- display all results -->
   <span ng-repeat="result in demo.results" >
     <!-- gallery -->
     <span ng-if="result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
-      <div class="gallery" style="{{result.style|interpolate:current_scope}}">
+      <div   class="gallery2" style="{{result.style|interpolate:current_scope}}">
         <ul class="index">
-          <li ng-repeat="(label,image) in result.contents" ng-if="image!='-- disabled --'">
-            <a href="#">  {{label | interpolate:current_scope }}
-              <span>
+          <li ng-repeat="(label,image) in result.contents" 
+              ng-if="result.status[$index]!='failed'">
+            <a href="#">   
+              <span bind-html-compile="label" > </span> 
+              <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
+              <div class="galim" ng-if="CheckString(image)" >
                   <img  style="{{result.style|interpolate:current_scope}}" 
-                        ng-src="{{work_url+image|interpolate:current_scope}}" imageonfail="DisableImage(result.contents,$index)" /> 
-              </span>
+                        ng-src="{{work_url+image|interpolate:current_scope}}" 
+                        imageonfail="DisableImage(result.status,$index)"
+                        imageonload="LoadedImage(result.status,$index)"
+                  />
+              </div>
+              <div class="galim" ng-if="CheckArray(image)" >
+                <table border="1">
+                  <tr>
+                    <td ng-repeat="im in image">
+                      <img  style="{{result.style|interpolate:current_scope}}" 
+                            ng-src="{{work_url+im|interpolate:current_scope}}" 
+                            imageonfail="DisableImage(result.status,$parent.$index)"
+                            imageonload="LoadedImage(result.status,$parent.$index)"
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="galim" ng-if="!CheckArray(image)&&CheckObject(image)" >
+                <table border="1">
+                  <tr>
+                    <td ng-repeat="(l,im) in image" style="text-align:center">
+                      <img  style="{{result.style|interpolate:current_scope}}" 
+                            ng-src="{{work_url+im|interpolate:current_scope}}" 
+                            imageonfail="DisableImage(result.status,$parent.$index)"
+                            imageonload="LoadedImage(result.status,$parent.$index)"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td ng-repeat="(l,im) in image" style="text-align:center">
+                      <span bind-html-compile="l" > </span> 
+                    </td>
+                  </tr>
+                </table>
+              </div>
             </a>
           </li>
         </ul>
       </div>
       <br/>
+
     </span>
     <!-- repeat_gallery -->
     <span ng-if="result.type==='repeat_gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
-      <div class="gallery" style="{{result.style|interpolate:current_scope}}" >
+      <div class="gallery2" style="{{result.style|interpolate:current_scope}}" >
         <ul class="index">
           <li ng-repeat="idx in range($eval(result.repeat))" >
             <a href="#"> 
-              {{ result.contents[0] | interpolate_loop:current_scope:idx }}
-              <span ng-if="CheckArray(result.contents[1])===false">
+              <div bind-html-compile="result.contents[0]" > </div> 
+              <span class="galim" ng-if="CheckArray(result.contents[1])===false">
                 <img  style="{{result.style|interpolate:current_scope}}" 
                       ng-src="{{work_url+result.contents[1]|interpolate_loop:current_scope:idx}}"/> 
               </span>
-              <span ng-if="CheckArray(result.contents[1])">
+              <span class="galim" ng-if="CheckArray(result.contents[1])">
                 <table border="1">
                   <tr>
                     <td ng-repeat="im in result.contents[1]">

@@ -8,8 +8,9 @@
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
 
 <div ng-controller="DemoParamCtrl">
-
-  <p> <span ng-bind-html="renderHtml(demo.general.param_description)"> </p>
+  <p> 
+    <span ng-bind-html="renderHtml(demo.general.param_description)"> 
+  </p>
 
   <br />
 
@@ -83,7 +84,7 @@
             <div  ng-repeat="group in param.values" 
                   style="float:left;margin-left:1em;margin-right:1em;margin-bottom:6pt">
               <span ng-repeat="(id, label) in group">
-                <input  type="checkbox" name="{{param.id}}-{{id}}" id="{{id}}" 
+                <input  type="checkbox" name="{{param.id}}_{{id}}" id="{{id}}" 
                         ng-model="param.cb_values[id]" />
                 <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label>
                 <br />
@@ -112,12 +113,14 @@
                     > Enable Crop <br>
 
           <div ng-if="!InputCropped" >
-            <div class="gallery" style="height:{{imheight*display_ratio+5}}px;">
+            <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
               <ul class="index">
                 <li ng-repeat ="idx in range(demo.inputs.length)" 
                     ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-                  <a href="#"> {{demo.inputs[idx].description}}
-                    <span>
+                  <a href="#"> 
+                    <span bind-html-compile="demo.inputs[idx].description" > </span> 
+                    <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
+                    <div class="galim">
                       <img  id="original_image"
                             crossOrigin="Anonymous"
                             ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
@@ -126,8 +129,10 @@
                                     max-height:{{maxdim}}px;
                                     width:auto;height:auto;"
                             styleParent
+                            imageonfail="DisableImage(demo.inputs[idx])"
+                            imageonload="LoadedImage (demo.inputs[idx])"
                             />
-                    </span>
+                    </div>
                   </a>
                 </li>
               </ul>
@@ -189,12 +194,14 @@
         </span> <!-- if crop enabled -->
 
         <span ng-if="(demo.general.enable_crop!==undefined)&&(demo.general.enable_crop===false)">
-          <div class="gallery" style="height:{{imheight*display_ratio+5}}px;">
+          <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
             <ul class="index">
               <li ng-repeat = "idx in range(demo.inputs.length)" 
                   ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-                  <a href="#"> {{demo.inputs[idx].description}}
-                  <span>
+                  <a href="#"> 
+                  <span bind-html-compile="demo.inputs[idx].description" > </span> 
+                  <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
+                  <div class="galim">
                     <img  id="original_image"
                           crossOrigin="Anonymous"
                           ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
@@ -203,8 +210,10 @@
                                   width:auto;height:auto;"
                           alt="{{demo.inputs[idx].description}}"
                           styleParent
+                          imageonfail="DisableImage(demo.inputs[idx])"
+                          imageonload="LoadedImage (demo.inputs[idx])"
                           />
-                  </span>
+                  </div>
                 </a>
               </li>
             </ul>
@@ -218,13 +227,14 @@
     </div> <!-- action -->
     <p>
       <!-- show the remaining images below -->
-      <div ng-if="InputCropped &&(demo.inputs.length>1)" class="gallery" 
+      <div ng-if="InputCropped &&(demo.inputs.length>1)" class="gallery2" 
             style="height:{{imheight+5}}px;">
         <ul class="index">
           <li ng-repeat="idx in range(1,demo.inputs.length)"
               ng-if    = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-              <a href="#"> {{demo.inputs[idx].description}}
-              <span>
+              <a href="#"> 
+              <span bind-html-compile="demo.inputs[idx].description" > </span> 
+              <div class="galim">
                 <img  id="original_image"
                       crossOrigin="Anonymous"
                       ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
@@ -235,7 +245,7 @@
                       alt={{selected_image}}
                       styleParent
                       />
-              </span>
+              </div>
             </a>
           </li>
         </ul>

@@ -1,0 +1,104 @@
+{ 
+  "general": { 
+    "demo_title"            : "Multiscale Retinex",
+    "input_description"     : [ "" ],
+    "param_description"     : "",
+    "enable_crop"           : true,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2014/107/"
+  }, 
+  "build":
+    {
+      "url"           : "http://www.ipol.im/pub/art/2014/107/MSR_original.tgz", 
+      "srcdir"        : "MSR_original",
+      "binaries"      : [ [".","MSR_original"] ],
+      "flags"         : "-j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "type"          : "label",
+      "label"         : "Scales:<br/>The maximum value of the scales must be half the minimum dimension of the (sub)image.<br/>If a higher value is chosen it will be automatically set to the maximum value"
+    },
+    {
+      "id"            : "low_scale",
+      "type"          : "range", 
+      "label"         : "Low scale",
+      "values"        : { "min":0, "max":600, "step":1, "default": 15 }
+    },
+    {
+      "id"            : "medium_scale",
+      "type"          : "range", 
+      "label"         : "Medium scale",
+      "values"        : { "min":0, "max":600, "step":1, "default": 80 }
+    },
+    {
+      "id"            : "high_scale",
+      "type"          : "range", 
+      "label"         : "High scale",
+      "values"        : { "min":0, "max":600, "step":1, "default": 250 }
+    },
+    {
+      "type"          : "label",
+      "label"         : "Simplest color balance saturation parameters:"
+    },
+    {
+      "id"            : "prc_left",
+      "type"          : "range", 
+      "label"         : "&#37; left",
+      "values"        : { "min":0, "max":5, "step":0.5, "default": 1.0 }
+    },
+    {
+      "id"            : "prc_right",
+      "type"          : "range", 
+      "label"         : "&#37; right",
+      "values"        : { "min":0, "max":5, "step":0.5, "default": 1.0 }
+    }
+  ]
+  ,
+  "run": [ 
+      "python:maxscale = int(min((x1-x0+1)/2,(y1-y0+1)/2))",
+      "python:low_scale   =min(low_scale,   maxscale)",
+      "python:medium_scale=min(medium_scale,maxscale)",
+      "python:high_scale  =min(high_scale,  maxscale)",
+      "MSR_original -S 3 -L $low_scale -M $medium_scale -H $high_scale -N 1 -l $prc_left -R $prc_right input_0.sel.png output_RGB.png output_I.png >stdout.txt 2>&1",
+      "create_histograms.py"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"    : "uploaded image",
+                  "input_0.png"         : "original image",
+                  "input_0.sel.png"     : "selected subimage",
+                  "output_I.png"        : "multiscale retinex on I channel",
+                  "output_RGB.png"      : "multiscale retinex on R, G and B channels"
+                },
+      "params" :  [ "low_scale", "medium_scale", "high_scale", "prc_left", "prc_right" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : { 
+        "Original"  : { "Image":"input_0.sel.png","Histograms:R,G,B,I":"input_0_sel_hist.png"},
+        "MS Retinex on each color"  :
+                      { "Image":"output_RGB.png", "Histograms:R,G,B,I":"output_RGB_hist.png" }, 
+        "MS Retinex on intensity"  :
+                      { "Image":"output_I.png",   "Histograms:R,G,B,I":"output_I_hist.png"}
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    }
+  ]
+
+}

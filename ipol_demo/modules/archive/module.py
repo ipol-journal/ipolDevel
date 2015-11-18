@@ -28,7 +28,13 @@ import os
 import os.path
 import magic
 import shutil
-import Image
+#JAK import Image
+try:
+    import Image
+except Exception, e:
+    from PIL import Image
+
+
 from mako.template import Template
 
 class Archive(object):
@@ -104,7 +110,7 @@ class Archive(object):
         fileformat = mime.from_file(the_file)
         return fileformat[:5]
 
-    def __init__(self):
+    def __init__(self, option):
         """
         Initialize Archive class.
         Attribute status should be checked after each initialisation.
@@ -118,7 +124,10 @@ class Archive(object):
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
-        self.database_dir = cherrypy.config.get("database_dir")
+        if option == "test":
+            self.database_dir = "test"
+        else:
+            self.database_dir = cherrypy.config.get("database_dir")
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
 
@@ -725,29 +734,29 @@ class Archive(object):
 # test
 #####
 
-    def echo_database(self):
+    def echo_database(self, the_file):
         """
         Print the database content on stdout.
         """
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            print "Archive Database :"
+            the_file.write("Archive Database :")
 
-            print "table experiments (id, id_demo, parameters) :"
+            the_file.write("table experiments (id, id_demo, parameters) :")
             for row in cursor_db.execute("""
             SELECT * FROM experiments ORDER BY id"""):
-                print row
+                the_file.write(row)
 
-            print "table blobs (id, hash, type, format) :"
+            the_file.write("table blobs (id, hash, type, format) :")
             for row in cursor_db.execute("""
             SELECT * FROM blobs ORDER BY id"""):
-                print row
+                the_file.write(row)
 
-            print "table correspondence (id, id_exp, id_blob, name, time):"
+            the_file.write("table correspondence (id, id_exp, id_blob, name, time):")
             for row in cursor_db.execute("""
             SELECT * FROM correspondence ORDER BY id"""):
-                print row
+                the_file.write(row)
 
             conn.close()
         except Exception as ex:
@@ -767,11 +776,11 @@ class Archive(object):
                       os.path.join(tmp_dir, "squirtle") : "water"}
         str_blobs = json.dumps(dict_blobs)
         str_test = json.dumps("test")
-        demo_id = 42
+        demo_id = -1
         test = self.add_experiment(unicode(demo_id),
                                    unicode(str_blobs),
                                    unicode(str_test))
-        self.echo_database()
+        self.echo_database(sys.stdout)
         return str(test)
 
 
