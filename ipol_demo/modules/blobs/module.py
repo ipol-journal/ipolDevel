@@ -649,7 +649,7 @@ class   Blob(object):
         result = use_web_service('/get_template_demo_ws', data)
         template = {}
         template["blobs"] = {}
-        print res
+        #print res
         if res["use_template"]:
             data = {"template": res["use_template"]["name"]}
             template = use_web_service('/get_blobs_from_template_ws', data)
