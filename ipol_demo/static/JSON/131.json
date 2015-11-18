@@ -1,0 +1,109 @@
+{ 
+  "general": { 
+    "demo_title"            : "Local Contrast Enhancement and Color Cast Cancelation",
+    "input_description"     : [ "" ],
+    "param_description"     : [
+      "<h2>Algorithm Parameters</h2>",
+      "<p>",
+        "Choose the minimum (smin) and maximum (smax) slope of the affine ",
+        "transformation of image values.",
+      "</p>"
+    ],
+    "enable_crop"           : true,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/131/"
+  }, 
+  "build": [
+    {
+      "url"           : "http://www.ipol.im/pub/art/2015/131/ColorContrast_1.tgz", 
+      "srcdir"        : "ColorContrast_1/code",
+      "binaries"      : [ [".","contrast_enhancement"], [".","polynomials/"] ],
+      "flags"         : "-j4"
+    },
+    {
+      "url"           : "http://www.ipol.im/pub/art/2015/131/convert8bits.tgz", 
+      "srcdir"        : "convert8bits",
+      "binaries"      : [ [".","convert8bits"] ],
+      "flags"         : "-j4"
+    }
+  ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "cfunction",
+      "type"          : "selection_collapsed", 
+      "label"         : "Contrast function",
+      "values"        : { "entropic ACE"      :"1", 
+                          "entropic Michelson":"2", 
+                          "entropic Min-Max"  :"3" },
+      "default_value" : "1"
+    },
+    {
+      "id"            : "alpha",
+      "type"          : "range", 
+      "label"         : "&alpha;",
+      "values"        : { "min":1, "max":10, "step":0.1, "default": 1.1 }
+    },
+    {
+      "id"            : "beta",
+      "type"          : "range", 
+      "label"         : "&beta;",
+      "values"        : { "min":0, "max":10, "step":0.1, "default": 1 }
+    },
+    {
+      "id"            : "kernel",
+      "type"          : "selection_collapsed", 
+      "label"         : "Kernel type",
+      "values"        : { "linear"      :"1", 
+                          "Gaussian"    :"2"  },
+      "default_value" : "2"
+    },
+    {
+      "id"            : "sizek",
+      "type"          : "range", 
+      "label"         : "Kernel size",
+      "values"        : { "min":0.01, "max":1, "step":0.01, "default": 0.1 }
+    }
+  ]
+  ,
+  "run": [ 
+      "mkdir -p polynomials",
+      "cp ../../bin/ACE_epsilon20.dat polynomials/",
+      "cp ../../bin/michelson_epsilon20.dat polynomials/",
+      "cp ../../bin/minmax_epsilon20.dat polynomials/",
+      "convert input_0.sel.png input_0.sel.tiff",
+      "contrast_enhancement input_0.sel.tiff output.tiff $cfunction $alpha $beta $kernel $sizek >stdout.txt 2>&1",
+      "convert8bits output.tiff output.png 0 >stdout.txt 2>&1"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.sel.png"    : "input image",
+                  "output.png"         : "output image"
+                },
+      "params" :  [ "alpha", "beta", "kernel", "sizek", "cfunction" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : { 
+        "Output" :"output.png", 
+        "Input"  :"input_0.sel.png"
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    }
+  ]
+
+}

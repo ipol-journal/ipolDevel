@@ -1,0 +1,124 @@
+{ 
+  "general": { 
+    "demo_title"            : "Gaussian Semigroup",
+    "input_description"     : [
+        "<p>",
+          "Run four Gaussian smoothing algorithms.",
+          "Please select one image; color images will be converted into gray level.",
+        "</p>"
+      ],
+    "param_description"     : "",
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/pre/117/"
+  }, 
+  "build":
+    {
+      "url"           : "http://www.ipol.im/pub/pre/117/gaussconv_20140515.zip", 
+      "srcdir"        : "gaussconv_20140515",
+      "prepare_make"  : "sed -i -e 's/-Werror//g' Makefile",
+      "binaries"      : [ [".","bin/demo_gaussconv_dct"],
+                          [".","bin/demo_gaussconv_dft"],
+                          [".","bin/demo_gaussconv_lindeberg"],
+                          [".","bin/demo_gaussconv_sampled_kernel"]  
+                        ],
+      "flags"         : "-j4"
+    }
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "2048*2048",
+          "max_weight"      : "3*2048*2048",
+          "dtype"           : "1x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "sigma",
+      "type"          : "range", 
+      "label"         : " &sigma; (Smoothing parameter)",
+      "values"        : { "min":0.1, "max":8.0, "step":0.1, "default": 0.5 }
+    },
+    {
+      "id"            : "n",
+      "type"          : "range", 
+      "label"         : "N (number of iterations) a smoothing of parameter <math><msqrt><mi>N</mi></msqrt></math> &sigma; is compared to <math><mi>N</mi></math> iterations with parameter &sigma;",
+      "values"        : { "min":1, "max":10, "step":1, "default": 3 }
+    },
+    {
+      "id"            : "k",
+      "type"          : "range", 
+      "label"         : "k (sampled Gaussian kernel) it is truncated at ceil(k&sigma;)",
+      "values"        : { "min":1, "max":10, "step":1, "default": 3 }
+    },
+    {
+      "id"            : "gamma",
+      "type"          : "range", 
+      "label"         : "&gamma; (Lindeberg's smoothing method) it controls the shape of the Laplacian discrete operator",
+      "values"        : { "min":0, "max":0.5001, "step":0.01, "default": 0.5 }
+    }
+  ]
+  ,
+  "run": [ 
+      "demo_gaussconv_dft             input_0.sel.png $sigma $n     dft             >rmse_dft.txt", 
+      "demo_gaussconv_dct             input_0.sel.png $sigma $n     dct             >rmse_dct.txt", 
+      "demo_gaussconv_sampled_kernel  input_0.sel.png $sigma $k     $n sampled_kernel  >rmse_sampled_kernel.txt", 
+      "demo_gaussconv_lindeberg       input_0.sel.png $sigma $gamma $n lindeberg       >rmse_lindeberg.txt"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.sel.png"    : "exact image",
+                  "blurry.png"         : "input",
+                  "tvdeconv.png"       : "deconvolved",
+                  "diff_blurry.png"    : "input difference",
+                  "diff_tvdeconv.png"  : "deconvolved difference"
+                },
+      "params" :  [ "kernel", "kernelsize", "noiselevel", "run_mode" ],
+      "info"   : {  "lambda"        : "lambda computed parameter",
+                    "psnr_blurry"   : "input PSNR",  
+                    "psnr_tvdeconv" : "deconvolved PSNR"
+                  }
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Gaussian filter results</h2>",
+      "contents"      : { 
+        "DFT":
+          { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"dft_direct.png", 
+            "N iterations of parameter &sigma;":"dft_iter.png", 
+            "difference":"dft_diff.png" }, 
+        "DCT":                     
+          { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"dct_direct.png", 
+            "N iterations of parameter &sigma;":"dct_iter.png",
+            "difference":"dct_diff.png" },
+        "Sampled Gaussian kernel": 
+          { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"sampled_kernel_direct.png", 
+            "N iterations of parameter &sigma;":"sampled_kernel_iter.png",
+            "difference":"sampled_kernel_diff.png" },
+        "Lindeberg":               
+          { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"lindeberg_direct.png", 
+            "N iterations of parameter &sigma;":"lindeberg_iter.png",
+            "difference":"lindeberg_diff.png" }
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<br/><br/><h2>Download images</h2>",
+      "contents"      : 
+        { 
+          "input"          : "input_0.sel.png", 
+          "DFT - direct"   : "dft_direct.png",
+          "DCT - direct"   : "dct_direct.png",
+          "Sampled Gaussian kernel - direct" : "sampled_kernel_direct.png",
+          "Lindeberg kernel - direct"        : "lindeberg_direct.png"
+        }
+    }
+  ]
+
+}
