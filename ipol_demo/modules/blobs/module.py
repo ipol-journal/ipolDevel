@@ -220,10 +220,13 @@ class   Blob(object):
         dic["list_demos"] = {}
         try:
             dic["list_demos"] = data.list_of_demos()
-            dic["return"] = "OK"
+            #jak
+            #dic["return"] = "OK"
+            dic["status"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot have the list of demos")
-            dic["return"] = "KO"
+            #dic["return"] = "KO"
+            dic["status"] = "KO"
 
         return json.dumps(dic)
 

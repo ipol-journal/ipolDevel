@@ -78,10 +78,31 @@ else:
 	print("ERROR: invalid hostname")
 
 
+####################################
+#            IPOL WS               #
+####################################
+
+# #Production ENV
+# IPOL_SERVICES_MODULE_DEMO =''
+# IPOL_SERVICES_MODULE_ACHIVE =''
+# IPOL_SERVICES_MODULE_BLOBS =''
+
+# #testing ENV
+# IPOL_SERVICES_MODULE_DEMO =''
+# IPOL_SERVICES_MODULE_ACHIVE ='http://boucantrin.ovh.hw.ipol.im:9000'
+# IPOL_SERVICES_MODULE_BLOBS ='http://boucantrin.ovh.hw.ipol.im:9010'
+
+#Local ENV
+IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
+IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:7777'
 
 
 
-# Application definition
+
+####################################
+#                APPS              #
+####################################
 
 INSTALLED_APPS = (
     'django.contrib.admin',

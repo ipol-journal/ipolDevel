@@ -61,7 +61,9 @@
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
                     <a href="{% url 'ipol.home' %}">{% trans 'hw' %}</a>
                 </li>
-
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a href="{% url 'ipol.cp.status' %}">{% trans 'Status' %}</a>
+                </li>
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
                     <a href="{% url 'ipol.cp.demos' %}">{% trans 'Demos' %}</a>
                 </li>

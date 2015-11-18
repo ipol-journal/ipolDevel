@@ -688,9 +688,15 @@ class   Database(object):
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
-        lis = {}
+        #jak
+        #todo  change json schema, avoun int keys
+        #lis = {}
+        #for item in something:
+        #    lis[item[0]] = {"name": item[1], "is_template": item[2], "template_id": item[3]}
+
+        lis = list()
         for item in something:
-            lis[item[0]] = {"name": item[1], "is_template": item[2], "template_id": item[3]}
+            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3]}) 
         return lis
 
     def get_name_blob(self, blob_id):

@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, url
+from apps.controlpanel.views.Status import StatusView
 from apps.controlpanel.views.demo import PageView1, PageView, DemosView
 
 __author__ = 'josearrecio'
@@ -12,6 +13,7 @@ urlpatterns = patterns('',
 
     # Galerias de fotos (no uso las de photologue, no me gustan)
     # home
+    url(r'^status/', StatusView.as_view(), name="ipol.cp.status"),
     url(r'^demos/', DemosView.as_view(), name="ipol.cp.demos"),
 
     url(r'^demo_result_page/(?P<id>[\-\d\w]+)/$', PageView.as_view(), name="ipol.cp.result.page"),
