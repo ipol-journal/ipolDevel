@@ -1,5 +1,6 @@
 # don't rewrite the deployed conf file
 demo.conf
+demo.*.log
 
 # compiled Python code
 *.pyc
@@ -13,15 +14,8 @@ app/*/*.log
 
 # Special demos with lots of input images.
 # IMPORTANT: very special cases. To be corrected ASAP
-app/20/input
-app/26/input
-app/44/input
-app/46/input
-app/47/input
-app/57/input
-app/105/input
-app/118/input
-app/119/input
+app/*/input
+app/*/scripts
 
 # temporary and archive files
 app/*/tmp
