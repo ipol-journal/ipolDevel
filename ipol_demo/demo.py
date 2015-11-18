@@ -15,6 +15,11 @@ from lib import base_app
 #import json
 import simplejson as json
 
+def CORS(): 
+  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+
+
+
 def err_tb():
     """
     replace the default error response
@@ -153,6 +158,8 @@ def CheckDemoDescription(desc):
   return ok
 
 if __name__ == '__main__':
+
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
 
     import sys
 
