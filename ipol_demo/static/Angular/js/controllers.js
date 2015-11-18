@@ -26,49 +26,12 @@ IPOLDemoControllers.controller('DemoInputCtrl',
       
       $scope.renderHtml = function(html_code)
       {
+        if (angular.isArray(html_code)) {
+          return $sce.trustAsHtml(html_code.join(' '));
+        } else {
           return $sce.trustAsHtml(html_code);
+        }
       };
-      // strip http:// from blob server name
-//       $scope.demoblobs = DemoBlobs.get(  { demoId : $scope.demo_id },
-//         function(demoblobs) {
-//           console.info("*** demoblobs");
-//           // preprocess HTML parameters string
-//           angular.forEach(demoblobs.blobs, 
-//             function(blobset) {
-//               blobset[0].html_params=""
-//               //console.info("set_name=",blobset[0].set_name);
-//               //console.info("size=",blobset[0].size);
-//               // extract only contents of interest
-//               var blobset_contents = blobset.slice(1);
-//               //console.info("contents:",blobset_contents);
-//               blobset_contents.sort( function(a,b) { 
-//                   return (a.id_in_set<b.id_in_set?-1: (a.id_in_set>b.id_in_set?1:0) );
-//                 });
-//               //console.info("contents:",blobset_contents);
-//               var current_id=""
-//               for(var idx=0;idx<blobset_contents.length;idx++) {
-//                 //console.info(blobset_contents[idx].title)
-//                 if (idx==0) {
-//                   blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
-//                 } else  {
-//                   // if same id, separate by comma ...
-//                   if (blobset_contents[idx].id_in_set==current_id) {
-//                     blobset[0].html_params += ",";
-//                   } else {
-//                     // else separate arguments
-//                     blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
-//                   }
-//                 }
-//                 current_id = blobset_contents[idx].id_in_set;
-//                 blobset[0].html_params += blobset_contents[idx].hash+
-//                                           blobset_contents[idx].extension;
-//               }
-//               console.info("html_params:",blobset[0].html_params);
-//             }
-//           )
-//         }
-//       );
-      
         $http.get(blob_server+'/get_blobs_of_demo_by_name_ws?demo_name='+demo_id)
         .success(function(demoblobs) {
             console.info("*** demoblobs");
@@ -168,6 +131,14 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       
       $scope.initParams = function($scope) {
         console.info("initParams");
+
+        // initialize input loading status
+        angular.forEach($scope.demo.inputs, 
+          function(res) {
+            res.status = "trying";
+          }
+        );
+
         // initialize parameter values
         angular.forEach($scope.demo.params, 
           function(param) {
@@ -190,7 +161,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
                 param.value = $scope.params[param.id].toString();
               }
             }
-            // selection_collapsed type
+            // checkboxes type
             if (param.type=='checkboxes') {
               // create one boolean value per checkbox ...
               param.cb_values = {};
@@ -199,10 +170,17 @@ IPOLDemoControllers.controller('DemoParamCtrl',
                   angular.forEach(checkboxes_info, 
                     function(value,key)
                     {
-                      if (param.default.indexOf(key)>-1) {
-                        param.cb_values[key]=true;
+                      // the checkbox is selected if and only if the 
+                      // corresponding parameter
+                      // named param.id+"_"+key is defined
+                      if ($scope.params[param.id+"_"+key]==undefined) {
+                        if (param.default.indexOf(key)>-1) {
+                          param.cb_values[key]=true;
+                        } else {
+                          param.cb_values[key]=false;
+                        }
                       } else {
-                        param.cb_values[key]=false;
+                        param.cb_values[key]=true;
                       }
                     }
                   );
@@ -277,8 +255,16 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       console.log($scope.page_params);
       $scope.renderHtml = function(html_code)
       {
+        if (angular.isArray(html_code)) {
+          return $sce.trustAsHtml(html_code.join(' '));
+        } else {
           return $sce.trustAsHtml(html_code);
+        }
       };
+      
+      $scope.DisableImage = function(inputinfo) { inputinfo.status = "failed";}
+      $scope.LoadedImage  = function(inputinfo) { inputinfo.status = "loaded";}
+      
   }
   ]
 );
@@ -304,6 +290,25 @@ IPOLDemoControllers.controller('DemoResultCtrl',
     'work_url', 'Demo', 'Meta', 'Params', 'Info',
     function($scope, $sce, demo_id, demo_key, work_url, Demo, Meta ,Params, Info ) 
     {
+
+      $scope.initResults = function($scope) {
+        console.info("initResults");
+        // initialize parameter values
+        angular.forEach($scope.demo.results, 
+          function(res) {
+            // range type
+            if (res.type=='gallery') {
+              var size = Object.keys(res.contents).length;
+              res.status = new Array(size);
+              for(var i=0;i<size;i++){
+                  res.status[i] = "trying";
+              }
+            }
+          }
+        );
+      }
+
+
       $scope.idx = 0;
       $scope.maxdim=768;
       $scope.current_scope = $scope;
@@ -313,15 +318,18 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       $scope.ZoomFactor = 1;
       // give some parameters to the demos for their own use
       $scope.display = { param1:'', param2:'', param3:''};
-      $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
+      Demo.get( { demoId: $scope.demo_id }, 
         function(demo) { 
           $scope.PreprocessDemo($scope,demo)
+          $scope.demo = demo;
+          $scope.initResults($scope);
+          console.info($scope.demo)
         } 
       );
       $scope.params = Params.get( { key: demo_key },
         function(params) {  
-          $scope.sizeX = params.x1-params.x0+1;
-          $scope.sizeY = params.y1-params.y0+1;
+          $scope.sizeX = params.x1-params.x0;
+          $scope.sizeY = params.y1-params.y0;
         }
       );
       
@@ -338,9 +346,18 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       
       $scope.renderHtml = function(html_code)
       {
+        if (angular.isArray(html_code)) {
+          return $sce.trustAsHtml(html_code.join(' '));
+        } else {
           return $sce.trustAsHtml(html_code);
+        }
       };
       
+      $scope.CheckString = function(v)
+      {
+        return angular.isString(v);
+      };
+
       $scope.CheckArray = function(v)
       {
         return angular.isArray(v);
@@ -351,10 +368,8 @@ IPOLDemoControllers.controller('DemoResultCtrl',
         return angular.isObject(v);
       };
       
-      $scope.DisableImage = function(contents,index)
-      {
-        contents[Object.keys(contents)[index]] = "-- disabled --";
-      }
+      $scope.DisableImage = function(status,index) { status[index] = "failed";}
+      $scope.LoadedImage  = function(status,index) { status[index] = "loaded";}
       
     }
   ]
