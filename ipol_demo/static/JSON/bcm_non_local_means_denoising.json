@@ -2,7 +2,11 @@
   "general": { 
     "demo_title"            :  "Non-Local Means Denoising",
     "input_description"     : "To use correctly this demo, it is advised to upload good quality noiseless images.  The algorithm will add to the image a white noise with the standard deviation you will select. The denoising algorithm uses only the knowledge of the standard deviation of the noise.",
-    "param_description"     : "<p> The algorithm is run in 2 steps:<ol> <li> a Gaussian noise is added to the input image;</li> <li> the NLmeans algorithm is used to denoise the image.</li> </ol> </p>",
+    "param_description"     : [
+        "<p> The algorithm is run in 2 steps:",
+        "<ol>  <li> a Gaussian noise is added to the input image;</li>",
+              "<li> the NLmeans algorithm is used to denoise the image.</li>",
+        "</ol> </p>"],
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcm_nlm/"
   }, 

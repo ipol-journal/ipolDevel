@@ -63,7 +63,7 @@
     }
   ],
   "run": [
-      "demo_orsa_homography input_0.png input_1.png match.txt matchOrsa.txt inliers.png outliers.png panorama.png registered_0.png registered_1.png -p $precision -s $siftratio -c ${x1-x0+1}x${y1-y0+1}+$x0+$y0 >stdout.txt",
+      "demo_orsa_homography input_0.png input_1.png match.txt matchOrsa.txt inliers.png outliers.png panorama.png registered_0.png registered_1.png -p $precision -s $siftratio -c ${x1-x0}x${y1-y0}+$x0+$y0 >stdout.txt",
       "count_lines.py matchOrsa.txt nb_inliers.txt",
       "count_lines.py match.txt     nb_matches.txt"
   ]
