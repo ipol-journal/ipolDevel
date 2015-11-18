@@ -32,4 +32,6 @@ app/*/input/.__*
 
 #ignore backup files
 *~
-
+*.bak
+*.backup
+app/*/bak

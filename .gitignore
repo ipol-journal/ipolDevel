@@ -1,8 +1,12 @@
 # ignore backups
 *~
+*.bak
+*.backup
 
 /ipol_demo/modules/blobs/blob.db
 
 # Documentation
 doc/ipol.out
 
+# temporary files
+changes*.txt

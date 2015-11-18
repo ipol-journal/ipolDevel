@@ -1,0 +1,6 @@
+
+# ignore paths created by the blob module
+
+blob_directory
+thumbnail
+tmp_blob
