@@ -1,19 +1,17 @@
 # coding=utf-8
+from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS
+
+__author__ = 'josearrecio'
+
+#todo This should go in the DB
+
+
 #GLOBAL WS LIST (todo in DB)
-#LOCAL
 #ARCHIVE
-archive_ws_url_page ='http://127.0.0.1:9000/page'
-archive_ws_url_ping = 'http://127.0.0.1:9000/ping'
-archive_ws_url_stats = 'http://127.0.0.1:9000/stats'
-#BLOBS
-
-
-#TEST ENV
-#ARCHIVE
-te_archive_ws_url_page ='http://boucantrin.ovh.hw.ipol.im:9000/page'
-te_archive_ws_url_ping = 'http://boucantrin.ovh.hw.ipol.im:9000/ping'
-te_archive_ws_url_stats = 'http://boucantrin.ovh.hw.ipol.im:9000/stats'
-te_archive_ws_url_stats = 'http://boucantrin.ovh.hw.ipol.im:9000/archive_admin'
+archive_ws_url_page =IPOL_SERVICES_MODULE_ACHIVE+'/page'
+archive_ws_url_ping = IPOL_SERVICES_MODULE_ACHIVE+'/ping'
+archive_ws_url_stats = IPOL_SERVICES_MODULE_ACHIVE+'/stats'
+archive_ws_url_admin = IPOL_SERVICES_MODULE_ACHIVE+'/archive_admin'
 
 #
 # http://<localhost>:<port>/add_exp_test?demo_id=42&blobs=<json_blobs>&parameters=<json_parameters>
@@ -107,7 +105,7 @@ te_archive_ws_url_stats = 'http://boucantrin.ovh.hw.ipol.im:9000/archive_admin'
 
 #BLOBS
 #view list of available demos
-te_blobs_demo_list="http://boucantrin.ovh.hw.ipol.im:9010/demos_ws"
+blobs_demo_list=IPOL_SERVICES_MODULE_BLOBS+'/demos_ws'
 
 # add_blob_ws
 # ￼￼
@@ -181,74 +179,3 @@ te_blobs_demo_list="http://boucantrin.ovh.hw.ipol.im:9010/demos_ws"
 # change the current template used by a demo
 # demo id id name
 # { return:OK or KO }
-import json
-
-def is_json(myjson):
-	try:
-		json_object = json.loads(myjson)
-	except Exception, e:
-		print("e:%s"%e)
-		return False
-	return True
-
-import requests
-import logging
-logger = logging.getLogger(__name__)
-
-def get_page(experimentid , page='1'):
-	"""
-	:param experimentid:
-	:param page:
-	:return:
-	The method “page” returns a JSON response with, for a given page of a given demo, all the data of the experiments
-	that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
-	the browser
-	"""
-	import json
-	result = None
-	wsurl = te_archive_ws_url_page
-	try:
-
-		params = {'demo_id': experimentid, 'page': page}
-		response = requests.get(wsurl,params)
-		result =  response.content
-		if not is_json(result):
-			msg="No es un Json valido:  is_json:%s" % is_json(result)
-			print(msg)
-			raise ValueError(msg)
-
-		# print("response class")
-		# print(response.__class__)
-		# print("result")
-		# print(result.__class__)
-		# import yaml
-		# list_org = ['a', 'b']
-		# list_dump = json.dumps(list_org)
-		# print(list_dump)
-		# print json.loads(list_dump)
-		# print yaml.safe_load(result)
-
-
-
-	except Exception as e:
-		msg=" get_page: error=%s"%(e)
-		print(msg)
-		logger.error(msg)
-	return result
-
-def get_demo_list():
-	"""
-	list demos present in database
-	{ return:OK or KO, list demos: {id:name, id template, template } }
-	"""
-	#todo deberia devolver demo_id, debe ser un numero
-	result = None
-	try:
-
-		r = requests.get(te_blobs_demo_list)
-		result = r.json()
-	except Exception as e:
-		msg=" get_page: error=%s"%(e)
-		print(msg)
-		logger.error(msg)
-	return result

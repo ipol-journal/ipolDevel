@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    HW
+{% endblock %}
+
+{% block cssfiles %}
+
+    <style type="text/css">
+        .ststsok {
+            color:green;
+
+        }
+        .ststsnok {
+            color:red;
+
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+
+
+<h1>
+    <p>SYSTEM STATS</p>
+</h1>
+
+
+    {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine%}
+        {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine %}
+            <b class="ststsnok">Carefull! Some stuff is running locally</b>
+        {% endif %}
+
+
+        <div>
+            {% if archive_module_stats.status == "OK" %}
+                <p class="ststsok"> <b>ARCHIVE RUNNING at: {{ archivemachine }}</b></p>
+                <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
+                <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
+            {% else %}
+                <p class="ststsnok">Archive Module Not running!</p>
+
+            {% endif %}
+        </div>
+
+        <div>
+            {% if blobs_module_stats %}
+                <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
+                <p>{{ blobs_module_stats }}</p>
+
+            {% else %}
+                <p class="ststsnok">Blobs Module Not running!</p>
+
+            {% endif %}
+        </div>
+
+
+    {% endwith %}
+
+
+
+{% endblock %}
+
+{% block functionsjs %}
+{% endblock %}
+
+
