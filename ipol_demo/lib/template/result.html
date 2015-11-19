@@ -60,6 +60,9 @@
       <li ng-if="param.type==='range'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
       </li>
+      <li ng-if="param.type==='readonly'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
+      </li>
       <li ng-if="param.type==='selection_collapsed'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : 
         <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
