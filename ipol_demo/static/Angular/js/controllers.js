@@ -114,6 +114,7 @@ IPOLDemoControllers.controller('DemoInputCtrl',
 IPOLDemoControllers.controller('DemoParamCtrl', 
                               ['$scope', '$sce', '$location', 'demo_id', 'demo_key', 'Demo', 'Meta', 'Params', 
     function($scope, $sce, $location, demo_id, demo_key, Demo, Meta, Params ) {
+      $scope.current_scope = $scope;
       $scope.demo_key = demo_key;
       $scope.demo_id = demo_id;
       $scope.Math = window.Math;
@@ -121,8 +122,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.imwidth=1024;
       $scope.imheight=1024;
       $scope.display_ratio=1;
-      $scope.InputCropped=false;
-      $scope.CropInfo = { coord:{ x: 0, y:0, w :100, h:100 } };
+      //$scope.InputCropped=false;
+      $scope.CropInfo = { enabled:false, coord:{ x: 0, y:0, w :100, h:100 } };
       $scope.got_meta = false;
       $scope.got_param= false;
       $scope.got_demo = false;
@@ -205,10 +206,10 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           // automatically enable/disable input InputCropped
           // NOTE: comparing to imwidth and imweight is not always correct since
           // they are the maximal dimensions over all inputs ...
-          $scope.InputCropped=($scope.params.x0!=0) ||
-                              ($scope.params.y0!=0) ||
-                              ($scope.params.x1!=$scope.imwidth-1) ||
-                              ($scope.params.y1!=$scope.imheight-1);
+          $scope.CropInfo.enabled = ($scope.params.x0!=0) ||
+                                    ($scope.params.y0!=0) ||
+                                    ($scope.params.x1!=$scope.imwidth-1) ||
+                                    ($scope.params.y1!=$scope.imheight-1);
           
         }
       }
@@ -264,6 +265,16 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       
       $scope.DisableImage = function(inputinfo) { inputinfo.status = "failed";}
       $scope.LoadedImage  = function(inputinfo) { inputinfo.status = "loaded";}
+      
+      $scope.CheckString = function(v)
+      {
+        return angular.isString(v);
+      };
+
+      $scope.CheckArray = function(v)
+      {
+        return angular.isArray(v);
+      };
       
   }
   ]
