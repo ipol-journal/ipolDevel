@@ -31,7 +31,7 @@
           <!--===============================================================-->
           <!-- selection_collapsed type -->
           <td  ng-if="param.type==='selection_collapsed'"> 
-              <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
+            <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td ng-if="param.type==='selection_collapsed'" colspan="2">
 <!--              <span ng-if="params[param.id] !=  undefined">
@@ -49,7 +49,10 @@
           <!--===============================================================-->
           <!-- range type -->
           <td  ng-if="param.type==='range'"> 
-              <label>  <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
+              <label> 
+                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
+                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
+              </label>  
           </td>
           <td ng-if="param.type==='range'" style="width:5em">
             <input  style="width:100%"  type="number" name="{{param.id}}"
@@ -63,6 +66,21 @@
                       step="{{param.values.step}}"
                       ng-model="param.value" 
                       floatsaving />
+          </td>
+          <!--===============================================================-->
+          <!-- readonly type -->
+          <td  ng-if="param.type==='readonly'"> 
+              <label> 
+                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
+                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
+              </label>  
+          </td>
+          <td ng-if="param.type==='readonly'" colspan="2"  >
+            <input  style="20em"  
+                    type="text" 
+                    name="{{param.id}}" 
+                    value="{{param.value.join('')|interpolate:current_scope}}"
+                    readonly/>
           </td>
           <!--===============================================================-->
           <!-- label type -->
@@ -94,12 +112,10 @@
           <!--===============================================================-->
         </tr>
         <!--=================================================================-->
-
       </table>
 
       <div style="clear:both"> </div>
       <hr>
-
       <div style='vertical-align:middle;
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
@@ -107,12 +123,12 @@
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
             <input  id="ID_InputCropped" type="checkbox" 
-                    ng-model="InputCropped"  
+                    ng-model="CropInfo.enabled"  
                     ng-click="go()"
                     alt="Crop"
                     > Enable Crop <br>
 
-          <div ng-if="!InputCropped" >
+          <div ng-if="!CropInfo.enabled" >
             <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
               <ul class="index">
                 <li ng-repeat ="idx in range(demo.inputs.length)" 
@@ -145,7 +161,7 @@
 
 
           <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
-          <div ng-if="InputCropped" > 
+          <div ng-if="CropInfo.enabled" > 
             <table  style="float:left" >
               <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px'>
 
@@ -159,7 +175,7 @@
                               change-on-fly="true"
                               area-type="{{type}}"
                               area-coords="CropInfo.coord"
-                              enable="InputCropped"
+                              enable="CropInfo.enabled"
                         />
                   </div>
                   <label>
@@ -178,7 +194,7 @@
                         ng-model="CropSize" 
                         ng-init="CropSize=1">
                 </select>
-                <div  ng-show="InputCropped" 
+                <div  ng-show="CropInfo.enabled" 
                       style=" overflow:scroll;
                               width:{{imwidth*display_ratio+20}}px;
                               height:{{imheight*display_ratio+20}}px;" >
@@ -227,7 +243,7 @@
     </div> <!-- action -->
     <p>
       <!-- show the remaining images below -->
-      <div ng-if="InputCropped &&(demo.inputs.length>1)" class="gallery2" 
+      <div ng-if="CropInfo.enabled &&(demo.inputs.length>1)" class="gallery2" 
             style="height:{{imheight+5}}px;">
         <ul class="index">
           <li ng-repeat="idx in range(1,demo.inputs.length)"
