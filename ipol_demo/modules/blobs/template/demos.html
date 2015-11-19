@@ -9,7 +9,7 @@
 	<a href="/demo">add demo</a><br></br>
 	%for item in the_list:
 	<li>
-	  <a href="/get_blobs_of_demo?demo_id=${item}">${the_list[item]["name"]}</a>
+	  <a href="/get_blobs_of_demo?demo_id=${item}">${item["name"]}</a>
 	</li>
 	%endfor
       </ul>
