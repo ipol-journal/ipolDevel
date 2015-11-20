@@ -1,7 +1,8 @@
 # coding=utf-8
 __author__ = 'josearrecio'
 import json
-from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page
+from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
+	archive_ws_url_shutdown, archive_ws_url_delete_experiment_web
 import requests
 import logging
 logger = logging.getLogger(__name__)
@@ -15,6 +16,31 @@ def is_json(myjson):
 		return False
 	return True
 
+import json
+
+def get_JSON_from_webservice(ws_url, params=None):
+	"""
+
+	:param ws_url:
+	:param params:
+	:return:  JSON (from WS) or None
+	"""
+	result = None
+	try:
+		response = requests.get(ws_url,params)
+		result =  response.content
+		print result
+
+		if not is_json(result):
+			msg="get_JSON_from_webservice: Not valid JSON:  is_json:%s" % is_json(result)
+			logger.error(msg)
+			print(msg)
+			raise ValueError(msg)
+	except Exception as e:
+		msg=" get_JSON_from_webservice: error=%s"%(e)
+		print(msg)
+		logger.error(msg)
+	return result
 
 def get_page(experimentid , page='1'):
 	"""
@@ -25,29 +51,10 @@ def get_page(experimentid , page='1'):
 	that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
 	the browser
 	"""
-	import json
-	result = None
 	wsurl = archive_ws_url_page
-	try:
+	params = {'demo_id': experimentid, 'page': page}
 
-		params = {'demo_id': experimentid, 'page': page}
-		response = requests.get(wsurl,params)
-		result =  response.content
-		if not is_json(result):
-			msg="No es un Json valido:  is_json:%s" % is_json(result)
-			logger.error(msg)
-			print(msg)
-			raise ValueError(msg)
-
-
-
-	except Exception as e:
-		msg=" get_page: error=%s"%(e)
-		print(msg)
-		logger.error(msg)
-	return result
-
-
+	return get_JSON_from_webservice(wsurl,params)
 
 def get_stats():
 	"""
@@ -59,58 +66,32 @@ def get_stats():
 	the browser
 	"""
 
-	result = None
 	wsurl = archive_ws_url_stats
-	try:
-
-		response = requests.get(wsurl)
-		result =  response.content
-		#result =  response.json()
-
-		print result
-
-		if not is_json(result):
-			msg="No es un Json valido:  is_json:%s" % is_json(result)
-			logger.error(msg)
-			print(msg)
-			raise ValueError(msg)
-
-
-
-	except Exception as e:
-		msg=" get_page: error=%s"%(e)
-		print(msg)
-		logger.error(msg)
-	return result
-
+	return get_JSON_from_webservice(wsurl)
 
 def get_demo_list():
 	"""
 	list demos present in database
-	{ return:OK or KO, list demos: {id:name, id template, template } }
+	{ return:OK or KO, list demos: {id,name, id template, template } }
 	"""
-	#todo deberia devolver demo_id, debe ser un numero
-	result = None
+
 	wsurl = blobs_demo_list
-	try:
+	return get_JSON_from_webservice(wsurl)
 
-		response = requests.get(wsurl)
-		result =  response.content
+def archive_shutdown():
+	"""
+	Shutdown archive
+	"""
 
+	wsurl = archive_ws_url_shutdown
+	return get_JSON_from_webservice(wsurl)
 
-		if not is_json(result):
-			msg="No es un Json valido:  is_json:%s" % is_json(result)
-			logger.error(msg)
-			print(msg)
-			raise ValueError(msg)
+def archive_delete_experiment_web(experiment_id,demo_id):
 
+	wsurl = archive_ws_url_delete_experiment_web
+	params = {'experiment_id': experiment_id, 'demo_id': demo_id}
 
-	except Exception as e:
-		msg=" get_page: error=%s"%(e)
-		print(msg)
-		logger.error(msg)
-	return result
-
+	return get_JSON_from_webservice(wsurl,params)
 
 #
 # def get_demo_list():

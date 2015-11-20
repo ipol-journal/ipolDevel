@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
-from apps.controlpanel.views.Status import StatusView
-from apps.controlpanel.views.demo import PageView1, PageView, DemosView
+from apps.controlpanel.views.Status import StatusView, ShutdownView
+from apps.controlpanel.views.demo import PageView1, PageView, DemosView, DeleteExperimentWebView
 
 __author__ = 'josearrecio'
 
@@ -18,6 +18,12 @@ urlpatterns = patterns('',
 
     url(r'^demo_result_page/(?P<id>[\-\d\w]+)/$', PageView.as_view(), name="ipol.cp.result.page"),
     url(r'^demo_result_page/', PageView1.as_view(), name="ipol.cp.page"),
+
+	#ajax calls
+    url(r'^ajax_shutdown/', ShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
+    url(r'^ajax_delete_experiment_web/(?P<demo_id>[\-\d\w]+)/(?P<experiment_id>[\-\d\w]+)/$',
+        DeleteExperimentWebView.as_view(), name="ipol.cp.archive.delete_experiment_web"),
+
 
     #media
     #(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),

@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
 
 
@@ -56,16 +57,16 @@ class PageView(TemplateView):
 
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
 	def result(self):
-		id = self.kwargs['id']
+		demo_id = self.kwargs['id']
 		#todo validate id, debe ser un numero
 		#print(id)
 
 		result =None
 		try:
-			print(" demo_id: %d"%int(id))
+			print(" demo_id: %d"%int(demo_id))
 
 			#obtengo el jsonpara la pagina 1
-			page_json = ipolservices.get_page(int(id),1)
+			page_json = ipolservices.get_page(int(demo_id),1)
 
 			result = DeserializePage(page_json)
 
@@ -87,7 +88,7 @@ class DemosView(TemplateView):
 
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
 	def result(self):
-		result =None
+		result = None
 		try:
 			#result = ipolservices.get_demo_list()
 			# se ordenan en el admin. order no es necesario
@@ -105,5 +106,22 @@ class DemosView(TemplateView):
 
 
 
+#JAK todo add security, only loggede users
+class DeleteExperimentWebView(TemplateView):
 
+	def render_to_response(self, context, **response_kwargs):
+		#just return the JSON from the ws, this json has no interesting data, no template is needed
+
+		experiment_id= self.kwargs['experiment_id']
+		demo_id= self.kwargs['demo_id']
+		#todo validate id, deben ser un numero
+
+		result= ipolservices.archive_delete_experiment_web(experiment_id,demo_id)
+		if result == None:
+			msg="DeleteExperimentWebView: Something went wrong using archive DeleteExperimentWeb WS"
+			logger.error(msg)
+			raise ValueError(msg)
+		print result
+
+		return HttpResponse(result, content_type='application/json')
 

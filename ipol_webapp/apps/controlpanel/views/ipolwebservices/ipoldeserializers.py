@@ -223,7 +223,6 @@ def DeserializeStatus(jsonresult):
 	print mywstats.__class__
 	return mywstats
 
-
 def DeserializeDemoList(jsonresult):
 
 
@@ -250,7 +249,7 @@ def DeserializeDemoList(jsonresult):
 		id = serializers.IntegerField()
 
 		def create(self, validated_data):
-			print("CREATE DemoSerializer Object")
+			#print("CREATE DemoSerializer Object")
 			return Demo(**validated_data)
 
 
@@ -259,7 +258,7 @@ def DeserializeDemoList(jsonresult):
 		status = serializers.CharField(max_length=200)
 
 		def create(self, validated_data):
-			print("CREATE DemoListSerializer Object")
+			#print("CREATE DemoListSerializer Object")
 
 			list_demos = validated_data.pop('list_demos')
 
@@ -275,46 +274,6 @@ def DeserializeDemoList(jsonresult):
 									validated_data.pop('status')
 				)
 			return demolist
-
-
-	"""
-	{
-		return: "OK",
-			list_demos: {
-				2: {
-					is_template: 0,
-					name: "bcm_non_local_means_denoising",
-					template_id: 0
-					},
-				11: {
-					is_template: 0,
-					name: "mmm_orsa_homography",
-					template_id: 0
-					}
-			}
-		}
-	"""
-
-
-	"""
-	{
-		return: "OK",
-			list_demos: [
-				{ demo_id:2,
-					is_template: 0,
-					name: "bcm_non_local_means_denoising",
-					template_id: 0
-					},
-
-				{   demo_id:11,
-					is_template: 0,
-					name: "mmm_orsa_homography",
-					template_id: 0
-					},
-
-			}
-		]
-	"""
 
 
 

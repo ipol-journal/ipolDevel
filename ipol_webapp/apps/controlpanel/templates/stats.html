@@ -36,21 +36,40 @@
         {% endif %}
 
 
-        <div>
+
+        <div id="archive_module_info">
             {% if archive_module_stats.status == "OK" %}
+
                 <p class="ststsok"> <b>ARCHIVE RUNNING at: {{ archivemachine }}</b></p>
-                <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
-                <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
+
+                <div style="padding-left: 20px">
+                    <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
+                    <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
+                </div>
+
+                {#boton shutdown#}
+                <div style="padding-left: 20px" >
+                    <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>
+                </div>
+
+
             {% else %}
+
                 <p class="ststsnok">Archive Module Not running!</p>
 
             {% endif %}
         </div>
 
-        <div>
+        <div id="blobs_module_info">
             {% if blobs_module_stats %}
                 <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
-                <p>{{ blobs_module_stats }}</p>
+                <div style="padding-left: 20px">
+                    {% for demo in blobs_module_stats.list_demos%}
+                        ( demo_id:{{ demo.id }}, name:{{ demo.name }} )
+                        {#   <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
+                        {#   <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
+                    {% endfor %}
+                </div>
 
             {% else %}
                 <p class="ststsnok">Blobs Module Not running!</p>
@@ -66,6 +85,30 @@
 {% endblock %}
 
 {% block functionsjs %}
+
+    <script>
+
+        var myshdwnurl="{% url 'ipol.cp.archive.shutdown' %}";
+        //console.log(myshdwnurl);
+        function send_archive_shutdown_request() {
+            $.ajax({
+                type: 'GET',
+                url: myshdwnurl,
+                dataType: 'json',
+                success: function(data) {
+                    //console.error(data.status);
+                    var okhtml="<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";
+                    $('#archive_module_info').html(okhtml);
+
+                },
+                error: function(data){
+                    var errorhtml="<p>Could not shutdown properly, refresh page</p>";
+                    $('#archive_module_info').html(errorhtml);
+                }
+            });
+        }
+    </script>
+
 {% endblock %}
 
 
