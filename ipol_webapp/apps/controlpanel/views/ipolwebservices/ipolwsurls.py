@@ -12,10 +12,17 @@ archive_ws_url_page =IPOL_SERVICES_MODULE_ACHIVE+'/page' #param demo_id, page='1
 archive_ws_url_ping = IPOL_SERVICES_MODULE_ACHIVE+'/ping'# param None
 archive_ws_url_stats = IPOL_SERVICES_MODULE_ACHIVE+'/stats'# param None
 archive_ws_url_admin = IPOL_SERVICES_MODULE_ACHIVE+'/archive_admin'# param demo_id, page
-#archive_ws_url_delete_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/delete_experiment'# param experiment_id
-archive_ws_url_delete_experiment_web = IPOL_SERVICES_MODULE_ACHIVE+'/delete_experiment_web'# param experiment_id demo_id
-
+archive_ws_url_delete_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/delete_experiment'# param experiment_id
+archive_ws_url_delete_blob_w_deps = IPOL_SERVICES_MODULE_ACHIVE+'/delete_blob_w_deps'# param  id_blob
 archive_ws_url_shutdown = IPOL_SERVICES_MODULE_ACHIVE+'/shutdown'# param None
+
+#for testing, ads an experiment to test demo (id=-1)
+archive_ws_url_add_experiment_test = IPOL_SERVICES_MODULE_ACHIVE+'/add_exp_test'# param None
+
+#todo
+archive_ws_url_add_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/add_experiment'# param None
+
+
 
 
 """

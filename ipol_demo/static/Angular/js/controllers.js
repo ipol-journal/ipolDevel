@@ -123,7 +123,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.imheight=1024;
       $scope.display_ratio=1;
       //$scope.InputCropped=false;
-      $scope.CropInfo = { enabled:false, coord:{ x: 0, y:0, w :100, h:100 } };
+      $scope.CropInfo = { enabled:false, coord:{ x: 0, y:0, w :100, h:100 } , 
+                          minsize:{w:50,h:50} };
       $scope.got_meta = false;
       $scope.got_param= false;
       $scope.got_demo = false;
@@ -149,7 +150,6 @@ IPOLDemoControllers.controller('DemoParamCtrl',
               if ($scope.params[param.id]==undefined) {
                 param.value = param.values.default;
               } else {
-                //console.info(param.id,$scope.params[param.id]);
                 param.value = $scope.params[param.id];
               }
             }
@@ -158,8 +158,19 @@ IPOLDemoControllers.controller('DemoParamCtrl',
               if ($scope.params[param.id]==undefined) {
                 param.value = param.default_value;
               } else {
-                //console.info(param.id,$scope.params[param.id]);
                 param.value = $scope.params[param.id].toString();
+              }
+            }
+            // checkbox type
+            if (param.type=='checkbox') {
+              // if the variable xxx_checked (hidden input) is
+              // not defined: use default value, otherwise, use
+              // its value (we need this variable because checkboxes
+              // are only returned if they are checked in html)
+              if ($scope.params[param.id+"_checked"]==undefined) {
+                param.value = param.default_value;
+              } else {
+                param.value = $scope.params[param.id+"_checked"];
               }
             }
             // checkboxes type
@@ -171,22 +182,22 @@ IPOLDemoControllers.controller('DemoParamCtrl',
                   angular.forEach(checkboxes_info, 
                     function(value,key)
                     {
-                      // the checkbox is selected if and only if the 
-                      // corresponding parameter
-                      // named param.id+"_"+key is defined
-                      if ($scope.params[param.id+"_"+key]==undefined) {
-                        if (param.default.indexOf(key)>-1) {
-                          param.cb_values[key]=true;
-                        } else {
-                          param.cb_values[key]=false;
-                        }
+                      // if the variable xxx_checked (hidden input) is
+                      // not defined: use default value, otherwise, use
+                      // its value (we need this variable because checkboxes
+                      // are only returned if they are checked in html)
+                      if ($scope.params[param.id+"_"+key+"_checked"]==undefined) {
+                        param.cb_values[key]=(param.default.indexOf(key)>-1);
                       } else {
-                        param.cb_values[key]=true;
+                        param.cb_values[key]=$scope.params[param.id+"_"+key+"_checked"];
                       }
                     }
                   );
                 }
               );
+            }
+            if (param.type=='readonly') {
+              param.value='';
             }
             //console.info(param.cb_values);
           }
@@ -245,6 +256,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         { key: demo_key },
         function(params) { 
           console.info("getting param");
+          console.info("params=",params);
           $scope.got_param=true;
           $scope.params = params;
           if ($scope.got_meta) $scope.updateCropInfo($scope);

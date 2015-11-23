@@ -1,12 +1,12 @@
 # coding=utf-8
 __author__ = 'josearrecio'
 import json
-from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
-	archive_ws_url_shutdown, archive_ws_url_delete_experiment_web
 import requests
 import logging
-logger = logging.getLogger(__name__)
+from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
+	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test
 
+logger = logging.getLogger(__name__)
 
 def is_json(myjson):
 	try:
@@ -15,8 +15,6 @@ def is_json(myjson):
 		print("e:%s"%e)
 		return False
 	return True
-
-import json
 
 def get_JSON_from_webservice(ws_url, params=None):
 	"""
@@ -29,10 +27,11 @@ def get_JSON_from_webservice(ws_url, params=None):
 	try:
 		response = requests.get(ws_url,params)
 		result =  response.content
+		print "JSON:"
 		print result
 
 		if not is_json(result):
-			msg="get_JSON_from_webservice: Not valid JSON:  is_json:%s" % is_json(result)
+			msg="get_JSON_from_webservice: Not valid JSON: %s" % result
 			logger.error(msg)
 			print(msg)
 			raise ValueError(msg)
@@ -86,13 +85,26 @@ def archive_shutdown():
 	wsurl = archive_ws_url_shutdown
 	return get_JSON_from_webservice(wsurl)
 
-def archive_delete_experiment_web(experiment_id,demo_id):
+def archive_delete_experiment(experiment_id):
 
-	wsurl = archive_ws_url_delete_experiment_web
-	params = {'experiment_id': experiment_id, 'demo_id': demo_id}
+	wsurl = archive_ws_url_delete_experiment
+	params = {'experiment_id': experiment_id}
 
 	return get_JSON_from_webservice(wsurl,params)
 
+def archive_delete_file(file_id):
+
+	wsurl = archive_ws_url_delete_blob_w_deps
+	params = {'id_blob': file_id}
+
+	return get_JSON_from_webservice(wsurl,params)
+
+
+def archive_add_experiment_to_test_demo():
+
+	wsurl = archive_ws_url_add_experiment_test
+
+	return get_JSON_from_webservice(wsurl)
 #
 # def get_demo_list():
 # 	"""
