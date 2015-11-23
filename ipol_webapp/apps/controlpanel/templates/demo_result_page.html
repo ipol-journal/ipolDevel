@@ -7,64 +7,100 @@
 {% endblock %}
 
 {% block cssfiles %}
+
+    <style type="text/css">
+        .ststsok {
+            color:green;
+
+        }
+        .ststsnok {
+            color:red;
+
+        }
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+        .experiment{
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+        }
+        .experiment_files{
+            //border: 1px solid black;
+            //margin: 20px;
+            //padding: 10px;
+        }
+        .experiment_file{
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+        }
+    </style>
+
 {% endblock %}
 
 {% block content %}
 
 
-<h1>DEMO {{ id }} PAGE 1 , experiments info</h1>
 
 
-    {% with data=view.result %}
+    <div class="container">
 
-        {% if data %}
+        <h1>DEMO {{ id }} PAGE 1 , experiments info</h1>
+
+        {% with data=view.result %}
+
+            {% if data %}
 
 
-            <p>STATUS: {{ data.status  }}</p>
-            <p>id_demo: {{ data.id_demo  }}</p>
-            <p>nb_pages: {{ data.nb_pages  }}</p>
+                <p>STATUS: {{ data.status  }}</p>
+                <p>id_demo: {{ data.id_demo  }}</p>
+                <p>nb_pages: {{ data.nb_pages  }}</p>
 
 
-            <p style="padding-left: 20px"><h2>EXPERIMENTS</h2></p>
-            {% for experiment in data.experiments %}
-                <div id="experiment_info_{{ experiment.id }}">
+                <p style="padding-left: 20px"><h2>EXPERIMENTS</h2></p>
+                {% for experiment in data.experiments %}
+                    <div id="experiment_info_{{ experiment.id }}" class="experiment">
 
-                    <p style="padding-left: 20px"><h3>experiment id: {{ experiment.id }}</h3></p>
-                    <p style="padding-left: 20px">experiment parameters: {{ experiment.parameters }}</p>
-                    <p style="padding-left: 20px">experiment date: {{ experiment.date }}</p>
+                        <p style="padding-left: 20px"><h3>experiment id: {{ experiment.id }}</h3></p>
+                        <p style="padding-left: 20px">experiment parameters: {{ experiment.parameters }}</p>
+                        <p style="padding-left: 20px">experiment date: {{ experiment.date }}</p>
 
-                    {#boton Delete demo#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_delete_experiment_request('{% url 'ipol.cp.archive.delete_experiment_web' experiment.id data.id_demo %}',{{ experiment.id }} )">Delete Experiment</a>
-{#                        <a class="btn btn-primary" onclick="send_delete_experiment_request({{ experiment.id }} {{ data.id_demo }}">Delete Experiment</a>#}
+                        {#boton Delete demo#}
+                        <div style="padding-left: 20px" >
+                            <a class="btn btn-primary" onclick="send_delete_experiment_request('{% url 'ipol.cp.archive.delete_experiment_web' experiment.id %}',{{ experiment.id }} )">Delete Experiment</a>
+    {#                        <a class="btn btn-primary" onclick="send_delete_experiment_request({{ experiment.id }} {{ data.id_demo }}">Delete Experiment</a>#}
+                        </div>
+
+                        <div id="experiment_files_info_{{ experiment.id }}" class="experiment_files">
+                            <p style="padding-left: 40px"><h3>experiment {{ experiment.id }} Files</h3></p>
+                            {% for file in experiment.files %}
+
+                                <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
+                                    <p style="padding-left: 20px">file id: {{ file.id }}</p>
+                                    <p style="padding-left: 20px">file name: {{ file.name }}</p>
+                                    <p style="padding-left: 20px">file url: {{ file.url }}</p>
+                                    <div>
+                                        <img src="{{ file.url_thumb }}" alt="{{ file.name }}"/>
+                                    </div>
+
+                                    {#boton Delete file#}
+                                    <div style="padding-left: 20px" >
+                                        <a class="btn btn-primary" onclick="send_delete_file_request({{ file.id }})">Delete File</a>
+                                    </div>
+                                </div>
+
+                            {% endfor %}
+                        </div>
                     </div>
+                {% endfor %}
+        {% else  %}
+            <p>No Data Received</p>
+        {% endif %}
 
-                    <div id="experiment_files_info_{{ experiment.id }}">
-                        <p style="padding-left: 40px"><h3>experiment {{ experiment.id }} Files</h3></p>
-                        {% for file in experiment.files %}
-
-                            <p style="padding-left: 20px">file id: {{ file.id }}</p>
-                            <p style="padding-left: 20px">file name: {{ file.name }}</p>
-                            <p style="padding-left: 20px">file url: {{ file.url }}</p>
-                            <div>
-                                <img src="{{ file.url_thumb }}" alt="{{ file.name }}"/>
-                            </div>
-
-                            {#boton Delete file#}
-                            <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_file_request()">Delete File</a>
-                            </div>
-
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-    {% else  %}
-        <p>No Data Received</p>
-    {% endif %}
-
-    {% endwith %}
-
+        {% endwith %}
+    </div>
 
 {% endblock %}
 
@@ -72,10 +108,14 @@
 
     <script>
 
+
+
 {#        var myshdwnurl="{% url 'ipol.cp.archive.delete_experiment' %}";#}
         //console.log(myshdwnurl);
-        function send_delete_file_request() {
-            alert('delete this file dummy')
+        function send_delete_file_request(file_id) {
+            var delblob = confirm('Delete File (Blob) WITH DEPENDENCIES, this will delete the blob number: '+file_id+' and any experiment that uses it: ' );
+            if (delblob == true) {
+
 {#            $.ajax({#}
 {#                type: 'GET',#}
 {#                url: myshdwnurl,#}
@@ -91,6 +131,7 @@
 {#                    $('#archive_module_info').html(errorhtml);#}
 {#                }#}
 {#            });#}
+            }
         }
 
 
@@ -99,22 +140,26 @@
         function send_delete_experiment_request(myshdwnurl,experiment_id ) {
             //console.log(myshdwnurl);
 
-            alert('delete this experiment file dummy');
-            $.ajax({
-                type: 'GET',
-                url: myshdwnurl,
-                dataType: 'json',
-                success: function(data) {
-                    //console.error(data.status);
-                    var okhtml="<p class=\"ststsnok\">Deleted successfully</p>";
-                    $('#experiment_info_'+experiment_id).html(okhtml);
+            var delexp = confirm('Delete  Experiment: ' + experiment_id);
+            if (delexp == true) {
 
-                },
-                error: function(data){
-                    var errorhtml="<p>Could not delete experiment</p>";
-                    $('#experiment_info_'+experiment_id).html(errorhtml);
-                }
-            });
+                $.ajax({
+                    type: 'GET',
+                    url: myshdwnurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        //console.error(data.status);
+                        var okhtml="<p class=\"ststsnok\">Deleted successfully experiment:"+experiment_id+" </p>";
+                        $('#experiment_info_'+experiment_id).html(okhtml);
+
+                    },
+                    error: function(data){
+                        var errorhtml="<p>Could not delete experiment "+experiment_id+" </p>";
+                        $('#experiment_info_'+experiment_id).html(errorhtml);
+                    }
+                });
+            }
+
         }
     </script>
 

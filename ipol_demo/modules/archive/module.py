@@ -364,7 +364,7 @@ class Archive(object):
                 conn.close()
             except Exception as ex:
                 pass
-        return status
+        return json.dumps(status)
 
 #####
 # displaying a page of archive

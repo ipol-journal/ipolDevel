@@ -11,6 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Serializers , to parse complex JSON to python data structures
 
 def DeserializePage(jsonresult):
 

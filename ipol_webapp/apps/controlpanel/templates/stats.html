@@ -17,69 +17,80 @@
             color:red;
 
         }
-
+        .machine{
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+        }
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
     </style>
 
 {% endblock %}
 
 {% block content %}
 
-
-<h1>
-    <p>SYSTEM STATS</p>
-</h1>
-
-
-    {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine%}
-        {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine %}
-            <b class="ststsnok">Carefull! Some stuff is running locally</b>
-        {% endif %}
+    <div class="container">
+        <h1>
+            <p>SYSTEM STATS</p>
+        </h1>
 
 
-
-        <div id="archive_module_info">
-            {% if archive_module_stats.status == "OK" %}
-
-                <p class="ststsok"> <b>ARCHIVE RUNNING at: {{ archivemachine }}</b></p>
-
-                <div style="padding-left: 20px">
-                    <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
-                    <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
-                </div>
-
-                {#boton shutdown#}
-                <div style="padding-left: 20px" >
-                    <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>
-                </div>
-
-
-            {% else %}
-
-                <p class="ststsnok">Archive Module Not running!</p>
-
+        {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine%}
+            {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine %}
+                <b class="ststsnok">Carefull! Some stuff is running locally</b>
             {% endif %}
-        </div>
-
-        <div id="blobs_module_info">
-            {% if blobs_module_stats %}
-                <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
-                <div style="padding-left: 20px">
-                    {% for demo in blobs_module_stats.list_demos%}
-                        ( demo_id:{{ demo.id }}, name:{{ demo.name }} )
-                        {#   <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
-                        {#   <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
-                    {% endfor %}
-                </div>
-
-            {% else %}
-                <p class="ststsnok">Blobs Module Not running!</p>
-
-            {% endif %}
-        </div>
 
 
-    {% endwith %}
 
+            <div id="archive_module_info" class="machine">
+                {% if archive_module_stats.status == "OK" %}
+
+                    <p class="ststsok"> <b>ARCHIVE RUNNING at: {{ archivemachine }}</b></p>
+
+                    <div style="padding-left: 20px">
+                        <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
+                        <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
+                    </div>
+
+                    {#boton shutdown#}
+                    <div style="padding-left: 20px" >
+                        <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>
+                    </div>
+
+                    <div style="padding-left: 20px" >
+                        <a class="btn btn-primary" onclick="send_add_test_to_test_demo('{% url 'ipol.cp.archive.add_exp_to_test_demo' %}' )">Add experiment to test demo</a>
+                    </div>
+
+                {% else %}
+
+                    <p class="ststsnok">Archive Module Not running!</p>
+
+                {% endif %}
+            </div>
+
+            <div id="blobs_module_info" class="machine">
+                {% if blobs_module_stats %}
+                    <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
+                    <div style="padding-left: 20px">
+                        {% for demo in blobs_module_stats.list_demos%}
+                            ( demo_id:{{ demo.id }}, name:{{ demo.name }} )
+                            {#   <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
+                            {#   <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
+                        {% endfor %}
+                    </div>
+
+                {% else %}
+                    <p class="ststsnok">Blobs Module Not running!</p>
+
+                {% endif %}
+            </div>
+
+
+        {% endwith %}
+    </div>
 
 
 {% endblock %}
@@ -91,24 +102,48 @@
         var myshdwnurl="{% url 'ipol.cp.archive.shutdown' %}";
         //console.log(myshdwnurl);
         function send_archive_shutdown_request() {
-            $.ajax({
-                type: 'GET',
-                url: myshdwnurl,
-                dataType: 'json',
-                success: function(data) {
-                    //console.error(data.status);
-                    var okhtml="<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";
-                    $('#archive_module_info').html(okhtml);
+            var confirmshutdown = confirm(' Dou You Want to shutdown Archive Module?');
+            if (confirmshutdown == true) {
 
-                },
-                error: function(data){
-                    var errorhtml="<p>Could not shutdown properly, refresh page</p>";
-                    $('#archive_module_info').html(errorhtml);
-                }
-            });
+                $.ajax({
+                    type: 'GET',
+                    url: myshdwnurl,
+                    dataType: 'json',
+                    success: function (data) {
+                        //console.error(data.status);
+                        var okhtml = "<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";
+                        $('#archive_module_info').html(okhtml);
+
+                    },
+                    error: function (data) {
+                        var errorhtml = "<p>Could not shutdown properly, refresh page</p>";
+                        $('#archive_module_info').html(errorhtml);
+                    }
+                });
+            }
         }
+
+
+        function send_add_test_to_test_demo(wsurl) {
+            var addexp = confirm('Add exp to test demo (id=-1)' );
+            if (addexp == true) {
+
+                $.ajax({
+                    type: 'GET',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        alert("ok")
+                        location.reload();
+
+                    },
+                    error: function(data){
+                        alert("nok")
+                    }
+                });
+            }
+        }
+
     </script>
 
 {% endblock %}
-
-
