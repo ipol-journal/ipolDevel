@@ -160,10 +160,8 @@ The list of datatypes used (images, audio, video, 3D pointclouds, 3D meshes) and
 % The Demo Description Language and automatic demo generation
 \input{ddl/ddl.tex}
 
-\section{DemoInfo module}
-This module store the textual description of the demo and allows to ask for specific sections of it. It also stores other demo-related information, as the demo authors, their emails, etc.
-
-\ToDo{Document it!}
+% The Demo Info module
+\input{demo_info/demo_info.tex}
 
 \section{DemoDispatcher module}
 In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
@@ -178,11 +176,9 @@ It can obtain the system load from {\tt /proc/loadavg}. The first three numbers 
 % The Control Terminal 
 \input{terminal/terminal.tex}
 
-\section{The Control Panel web application}
-In the modular architecture of IPOL all the modules are able to work standalone since they are RESTful servers implementing webservices. However, a coordinated view from both the functional and administrative point of view is needed.
 
-The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove undue experiments for the archive or add new images to a demo.
-
+% The Control Panel Module 
+\input{control_panel/control_panel.tex}
 \ToDo{Document it!}
 
 \section{Automatic testing}
