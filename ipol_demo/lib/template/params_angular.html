@@ -79,7 +79,7 @@
             <input  style="20em"  
                     type="text" 
                     name="{{param.id}}" 
-                    value="{{param.value.join('')|interpolate:current_scope}}"
+                    value="{{param.value_expr.join('')|interpolate:current_scope}}"
                     readonly/>
           </td>
           <!--===============================================================-->
@@ -88,22 +88,34 @@
               <div  ng-bind-html="renderHtml(param.label)"></div> 
           </th>
           <!--===============================================================-->
+          <!-- checkbox type -->
+          <td ng-if="param.type==='checkbox'" align="left"> 
+            <label>
+              <span ng-bind-html="renderHtml(param.label)"> </span> 
+            </label>
+          </td>
+          <td ng-if="param.type==='checkbox'" colspan="2" align="left"> 
+            <input  type="checkbox" name="{{param.id}}" ng-model="param.value" />
+            <input  type="text" name="{{param.id}}_checked" 
+                    value="{{param.value==true}}" hidden />
+          </td>
+          <!--===============================================================-->
           <!-- checkboxes type -->
           <td ng-if="param.type==='checkboxes'" align="left"> 
-<!--             <div style="margin-right:1em; margin-bottom:1ex"> -->
-              <label>
-                <span ng-bind-html="renderHtml(param.label)"> </span> 
-              </label>
-<!--             </div> -->
+            <label>
+              <span ng-bind-html="renderHtml(param.label)"> </span> 
+            </label>
           </td>
           <td ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
-            <input type="button" value="all"  />
-            <input type="button" value="none"  /><br/>
+            <!--            <input type="button" value="all"  />
+            <input type="button" value="none"  /><br/>-->
             <div  ng-repeat="group in param.values" 
                   style="float:left;margin-left:1em;margin-right:1em;margin-bottom:6pt">
               <span ng-repeat="(id, label) in group">
                 <input  type="checkbox" name="{{param.id}}_{{id}}" id="{{id}}" 
                         ng-model="param.cb_values[id]" />
+                <input  type="text" name="{{param.id}}_{{id}}_checked"  
+                        value="{{param.cb_values[id]==true}}" hidden/>
                 <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label>
                 <br />
               </span>
@@ -155,10 +167,9 @@
             </div>
             <input type="hidden" name="x0" value="0">              
             <input type="hidden" name="y0" value="0">
-            <input type="hidden" name="x"  value="{{imwidth-1}}">
-            <input type="hidden" name="y"  value="{{imheight-1}}">
+            <input type="hidden" name="x"  value="{{imwidth}}">
+            <input type="hidden" name="y"  value="{{imheight}}">
           </div>
-
 
           <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
           <div ng-if="CropInfo.enabled" > 
@@ -176,17 +187,19 @@
                               area-type="{{type}}"
                               area-coords="CropInfo.coord"
                               enable="CropInfo.enabled"
+                              area-min-size="CropInfo.minsize"
+                              area-max-size="{{demo.general.crop_maxsize|interpolate:current_scope}}"
                         />
                   </div>
                   <label>
                     {{Math.round(CropInfo.coord.x/display_ratio)}}, {{Math.round(CropInfo.coord.y/display_ratio)}}, 
-                    {{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}, 
-                    {{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}
+                    {{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}, 
+                    {{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}
                   </label>
                   <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
                   <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
-                  <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w-1)/display_ratio)}}">
-                  <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h-1)/display_ratio)}}">
+                  <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}">
+                  <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
               </td>
               <td style='vertical-align:middle'>
                 <label> Zoom factor </label>
@@ -236,8 +249,8 @@
           </div>
           <input type="hidden" name="x0" value="0">              
           <input type="hidden" name="y0" value="0">
-          <input type="hidden" name="x"  value="{{imwidth-1}}">
-          <input type="hidden" name="y"  value="{{imheight-1}}">
+          <input type="hidden" name="x"  value="{{imwidth}}">
+          <input type="hidden" name="y"  value="{{imheight}}">
         </span>
       </div>
     </div> <!-- action -->
