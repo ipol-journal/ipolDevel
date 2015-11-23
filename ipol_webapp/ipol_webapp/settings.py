@@ -82,6 +82,8 @@ else:
 #            IPOL WS               #
 ####################################
 
+# Do not forget to change .conf de archive y blobs modules
+
 # #Production ENV
 # IPOL_SERVICES_MODULE_DEMO =''
 # IPOL_SERVICES_MODULE_ACHIVE =''

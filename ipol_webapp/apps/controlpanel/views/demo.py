@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
 
 
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 #VIEWS
 
-
+#JAK todo remove this
 class PageView1(TemplateView):
 	# template_name = "photogallery/video.html"
 	template_name = "demo_test_result_page.html"
@@ -46,6 +47,7 @@ class PageView1(TemplateView):
 			print(e)
 		return result
 
+#JAK todo add security, only loggede users
 class PageView(TemplateView):
 	# template_name = "photogallery/video.html"
 	template_name = "demo_result_page.html"
@@ -56,19 +58,16 @@ class PageView(TemplateView):
 
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
 	def result(self):
-		id = self.kwargs['id']
-		#todo validate id, debe ser un numero
+		demo_id = self.kwargs['id']
+		#todo validate id, debe ser un numero?
 		#print(id)
 
 		result =None
 		try:
-			print(" demo_id: %d"%int(id))
+			print(" demo_id: %d"%int(demo_id))
 
-			#obtengo el jsonpara la pagina 1
-			page_json = ipolservices.get_page(int(id),1)
-
+			page_json = ipolservices.get_page(int(demo_id),1)
 			result = DeserializePage(page_json)
-
 
 		except Exception , e:
 			msg="Error %s"%e
@@ -76,6 +75,7 @@ class PageView(TemplateView):
 
 		return result
 
+#JAK todo add security, only loggede users
 class DemosView(TemplateView):
 	template_name = "demo_list.html"
 
@@ -87,7 +87,7 @@ class DemosView(TemplateView):
 
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
 	def result(self):
-		result =None
+		result = None
 		try:
 			#result = ipolservices.get_demo_list()
 			# se ordenan en el admin. order no es necesario
@@ -99,11 +99,72 @@ class DemosView(TemplateView):
 
 
 		except Exception as e:
-			print(e)
+			msg="Error %s"%e
+			logger.error(msg)
+			print(msg)
+
 		return result
 
 
 
 
+#JAK todo add security, only loggede users
+class DeleteExperimentView(TemplateView):
+
+	def render_to_response(self, context, **response_kwargs):
+		#just return the JSON from the ws, this json has no interesting data, no template is needed
+
+		try:
+			experiment_id = int(self.kwargs['experiment_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		result= ipolservices.archive_delete_experiment(experiment_id)
+		if result == None:
+			msg="DeleteExperimentView: Something went wrong using archive WS"
+			logger.error(msg)
+			raise ValueError(msg)
 
 
+		return HttpResponse(result, content_type='application/json')
+
+
+
+#JAK todo add security, only logged users
+class DeleteExperimentFileView(TemplateView):
+
+	def render_to_response(self, context, **response_kwargs):
+		#just return the JSON from the ws, no template is needed
+
+		try:
+			demo_id = int(self.kwargs['file_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		result= ipolservices.archive_delete_file(demo_id)
+		if result == None:
+			msg="DeleteFileView: Something went wrong using archive WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+
+		return HttpResponse(result, content_type='application/json')
+
+
+#JAK todo add security, only logged users
+class AddExpToTestDemoView(TemplateView):
+
+	def render_to_response(self, context, **response_kwargs):
+		#just return the JSON from the ws, no template is needed
+
+		result= ipolservices.archive_add_experiment_to_test_demo()
+		if result == None:
+			msg="AddExpToTestDemoView: Something went wrong using archive WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		return HttpResponse(result, content_type='application/json')

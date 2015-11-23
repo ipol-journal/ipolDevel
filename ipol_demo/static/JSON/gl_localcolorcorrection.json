@@ -44,7 +44,7 @@
       "id"            : "rmax",
       "type"          : "readonly",
       "label"         : "Maximal radius parameter <it>rmax</it> in pixels",
-      "value"         : [ 
+      "value_expr"    : [ 
         "{{Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
                                         "Math.min(imwidth,imheight)",
                       ")/2-1",
@@ -56,7 +56,7 @@
       "id"            : "r",
       "type"          : "readonly",
       "label"         : "Radius parameter <it>r</it> in pixels (readonly: computed from %)",
-      "value"         : [ 
+      "value_expr"    : [ 
         "{{",
           "demo.params[3].value=='global'?",
             "Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:Math.min(imwidth,imheight))/2-1)",

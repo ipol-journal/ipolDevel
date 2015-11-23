@@ -8,11 +8,52 @@ __author__ = 'josearrecio'
 
 #GLOBAL WS LIST (todo in DB)
 #ARCHIVE
-archive_ws_url_page =IPOL_SERVICES_MODULE_ACHIVE+'/page'
-archive_ws_url_ping = IPOL_SERVICES_MODULE_ACHIVE+'/ping'
-archive_ws_url_stats = IPOL_SERVICES_MODULE_ACHIVE+'/stats'
-archive_ws_url_admin = IPOL_SERVICES_MODULE_ACHIVE+'/archive_admin'
+archive_ws_url_page =IPOL_SERVICES_MODULE_ACHIVE+'/page' #param demo_id, page='1'
+archive_ws_url_ping = IPOL_SERVICES_MODULE_ACHIVE+'/ping'# param None
+archive_ws_url_stats = IPOL_SERVICES_MODULE_ACHIVE+'/stats'# param None
+archive_ws_url_admin = IPOL_SERVICES_MODULE_ACHIVE+'/archive_admin'# param demo_id, page
+archive_ws_url_delete_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/delete_experiment'# param experiment_id
+archive_ws_url_delete_blob_w_deps = IPOL_SERVICES_MODULE_ACHIVE+'/delete_blob_w_deps'# param  id_blob
+archive_ws_url_shutdown = IPOL_SERVICES_MODULE_ACHIVE+'/shutdown'# param None
 
+#for testing, ads an experiment to test demo (id=-1)
+archive_ws_url_add_experiment_test = IPOL_SERVICES_MODULE_ACHIVE+'/add_exp_test'# param None
+
+#todo
+archive_ws_url_add_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/add_experiment'# param None
+
+
+
+
+"""
+delete_experiment_web
+
+	http://boucantrin.ovh.hw.ipol.im:9000/delete_experiment_web?experiment_id=21&demo_id=-1
+
+
+
+"""
+"""
+
+delete_experiment
+
+/delete_experiment'# experiment_id): todo:document
+
+        Encapsulation of the delete_exp_w_deps function for removing an
+            experiment.
+
+        :rtype: JSON formatted string
+        self.delete_exp_w_deps(conn, experiment_id)
+
+
+    def delete_exp_w_deps(self, conn, experiment_id):
+
+        This function remove, in the database, an experiment from
+            the experiment table, and its dependencies in the correspondence
+            table. If the blobs are used only in this experiment, they will be
+            removed too.
+
+"""
 #
 # http://<localhost>:<port>/add_exp_test?demo_id=42&blobs=<json_blobs>&parameters=<json_parameters>
 # The method “add experiment” takes in the entry of the id of the demo used ; a JSON string of the format :

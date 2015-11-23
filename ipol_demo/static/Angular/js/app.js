@@ -59,6 +59,12 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
       )
       //
       
+      if (demo.general.crop_maxsize==undefined) {
+        // setting the crop_maxsize string to a non integer value with 
+        // disable its behavior, so no limit by default
+        demo.general.crop_maxsize = "NaN";
+      }
+
       if (demo.general.thumbnail_size==undefined) {
         demo.general.thumbnail_size = 128;
       }

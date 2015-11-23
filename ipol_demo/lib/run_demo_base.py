@@ -5,6 +5,8 @@ import time
 import re
 import six
 import math
+# importing image for python commands in DDL scripts
+from .image import image
 
 #-----------------------------------------------------------------------------
 class TimeoutError(Exception):
@@ -121,6 +123,10 @@ class RunDemoBase:
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
     
+    # saving all shell commands in a text file
+    shell_cmds = open(self.work_dir+"shell_cmds.txt", "w")
+    last_shell_cmd = ""
+    
     for cmd in self.commands:
       # check if command is an array
       run_cmd=True
@@ -128,88 +134,118 @@ class RunDemoBase:
         # first string is a condition to check...
         exec("run_cmd={0}".format(cmd[0]))
         print "condition: ", cmd[0], "run_cmd=",run_cmd
-        cmd = cmd[1]
+        cmds = cmd[1:]
+      else:
+        cmds = [ cmd ]
         
-      if cmd.startswith('python:'):
-        print "Running python command ",cmd[7:]
-        exec(cmd[7:])
-        continue
-      
       if run_cmd:
-        print "cmd = ", cmd
-        # get argument list, but keep strings
-        args = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', cmd)
-        stdout_file = None
-        stderr_file = open(self.work_dir+"stderr.txt", 'w')
-        # replace variables
-        for i,p in enumerate(args):
-          print p
-          # strip double quotes
-          args[i] = p.strip('"')
-          
-          # 1 replace simple variables
-          v = re.search(r'\$\w+',p)
-          # more complicate, search all variables and replace them
-          if v!=None:
-            while v!=None:
-              p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
-              print "argument number ",i," evaluated to: ",p
-              v = re.search(r'\$\w+',p)
-            args[i] = p
-            
-          # 2 replace more complex expressions, of type ${expression},
-          # where expression does not contain '{' or '}' characters
-          v = re.search(r'\$\{[^\{\}]*\}',p)
-          # more complicate, search all variables and replace them
-          if v!=None:
-            while v!=None:
-              p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
-              print "argument number ",i," evaluated to: ",p
-              v = re.search(r'\$\{[^\{\}]*\}',p)
-            args[i] = p
+        for subcmd in cmds:
+          print "subcmd = ", subcmd
 
-          # output file >filename finishes also the build command
-          if p[0]=='>':
-            try:
-              print "opening ", self.work_dir+p[1:]
-              stdout_file = open(self.work_dir+p[1:], 'w')
-            except:
-              print "failed"
-              stdout_file = None
-            del args[i:]
-          # redirect errors to stdout
-          if p=='2>&1':
-            stderr_file = stdout_file
-            
-        try:
-          self.log("running %s" % repr(args),
-                    context='SETUP/%s' % self.get_demo_id(), 
-                    traceback=False)
-          p = self.run_proc(args, stdout=stdout_file, stderr=stderr_file)
-          self.wait_proc(p)
-        except ValueError as e:
-          self.log("Error %s" % e,
-                    context='SETUP/%s' % self.get_demo_id(), 
-                    traceback=False)
-        except RuntimeError:
-          print "**** run_algo: RuntimeError "
-          with open(self.work_dir+"stderr.txt", "r") as errfile:
-            errors=errfile.read()
-          print errors
-          print "***"
-          raise RuntimeError(errors)
+          if subcmd.startswith('python:'):
+            print "Running python command ",subcmd[7:]
+            exec(subcmd[7:])
+            continue
           
-        # the files should close automatically with their scope ...
-        # but we do it anyway just in case
-        if stderr_file!=None and stderr_file!=stdout_file:
-          stderr_file.close()
-        if stdout_file!=None:
-          stdout_file.close()
+          # get argument list, but keep strings
+          args = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', subcmd)
+          stdout_file = None
+          stderr_file = open(self.work_dir+"stderr.txt", 'w')
+          # variable used to skip redirections at the end of the argument list
+          last_arg_pos = len(args)-1
+          # replace variables
+          for i,p in enumerate(args):
+            print p
+            # strip double quotes
+            args[i] = p.strip('"')
+            
+            # 1 replace simple variables
+            v = re.search(r'\$\w+',p)
+            # more complicate, search all variables and replace them
+            if v!=None:
+              while v!=None:
+                p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
+                print "argument number ",i," evaluated to: ",p
+                v = re.search(r'\$\w+',p)
+              args[i] = p
+              
+            # 2 replace more complex expressions, of type ${expression},
+            # where expression does not contain '{' or '}' characters
+            v = re.search(r'\$\{[^\{\}]*\}',p)
+            # more complicate, search all variables and replace them
+            if v!=None:
+              while v!=None:
+                p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
+                print "argument number ",i," evaluated to: ",p
+                v = re.search(r'\$\{[^\{\}]*\}',p)
+              args[i] = p
+
+            # output file >filename 
+            if p[0]=='>':
+              try:
+                if p[1]=='>':
+                  print "opening ", self.work_dir+p[2:]
+                  stdout_file = open(self.work_dir+p[2:], 'a')
+                else:
+                  print "opening ", self.work_dir+p[1:]
+                  stdout_file = open(self.work_dir+p[1:], 'w')
+              except:
+                print "failed"
+                stdout_file = None
+              last_arg_pos = min(last_arg_pos,i-1)
+              
+            # output file >filename finishes also the build command
+            if p[:2]=="2>":
+              # redirect errors to stdout
+              if p=='2>&1':
+                stderr_file = stdout_file
+              else:
+                last_arg_pos = min(last_arg_pos,i-1)
+                try:
+                  print "opening ", self.work_dir+p[2:]
+                  stderr_file.close()
+                  stderr_file = open(self.work_dir+p[2:], 'w')
+                except:
+                  print "failed"
+                  stderr_file = None
+                last_arg_pos = min(last_arg_pos,i-1)
+              
+              
+          last_shell_cmd = ' '.join(args)
+          shell_cmds.write(last_shell_cmd+'\n')
+              
+          try:
+            print "running ",repr(args[:last_arg_pos+1])
+            self.log("running %s" % repr(args[:last_arg_pos+1]),
+                      context='SETUP/%s' % self.get_demo_id(), 
+                      traceback=False)
+            p = self.run_proc(args[:last_arg_pos+1], stdout=stdout_file, stderr=stderr_file)
+            self.wait_proc(p)
+          except ValueError as e:
+            self.log("Error %s" % e,
+                      context='SETUP/%s' % self.get_demo_id(), 
+                      traceback=False)
+          except RuntimeError:
+            print "**** run_algo: RuntimeError "
+            with open(self.work_dir+"stderr.txt", "r") as errfile:
+              errors=errfile.read()
+            print errors
+            print "***"
+            raise RuntimeError(errors)
+            
+          # the files should close automatically with their scope ...
+          # but we do it anyway just in case
+          if stderr_file!=None and stderr_file!=stdout_file:
+            stderr_file.close()
+          if stdout_file!=None:
+            stdout_file.close()
       
     # convert back variables to parameters 
     for _k_ in self.algo_params:
       cmd = "self.algo_params['{0}'] = {0}".format(_k_)
       exec(cmd)
+      
+    shell_cmds.close()
         
 
   #-----------------------------------------------------------------------------
@@ -256,7 +292,7 @@ class RunDemoBase:
     else:
       path = path + ":" + p
       
-    newenv.update({'PATH' : path})
+    newenv.update({'PATH' : path, 'LD_LIBRARY_PATH' : self.bin_dir})
 
     # check for pipelines in arguments??
     # TODO: allow pipelines: more tricky since we need to measure the 

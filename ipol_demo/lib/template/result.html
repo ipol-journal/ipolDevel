@@ -40,15 +40,10 @@
       <form style="display:inline;" action="${app.base_url + 'params'}" method="get">
         <input type="hidden" name="key" value="${app.key}">
         <input type="hidden" name="newrun" value="1">
-        <span ng-repeat="param in demo.params">
-          <input  ng-if="param.type!='label'" type="hidden" 
-                  name="{{param.id}}" value="{{params[param.id]}}" > 
-        </span>
         <input  style="border-radius:10px;font-size:14px!important;" 
                 type="submit" value="Restart with different parameters and/or subimage." />
       </form>
   </div>
-
 
   <!-- ===== Display parameters if any ===== -->
   <span ng-if="demo.params.length>0">
@@ -66,6 +61,17 @@
       <li ng-if="param.type==='selection_collapsed'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : 
         <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+      </li>
+      <li ng-if="param.type==='checkbox'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : {{(params[param.id]==true)}} 
+      </li>
+      <li ng-if="param.type==='checkboxes'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : 
+          <span  ng-repeat="group in param.values">
+            <span ng-repeat="(id, label) in group" ng-if="params[param.id+'_'+id]==true">
+              &nbsp; <span ng-bind-html="renderHtml(label)"></span>; &nbsp; 
+            </span>
+          </span>
       </li>
     </ul>
   </span>

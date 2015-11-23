@@ -110,6 +110,12 @@ class Archive(object):
         fileformat = mime.from_file(the_file)
         return fileformat[:5]
 
+    def unit_test(self):
+        for i in range(10):
+            self.add_exp_test()
+        with open(os.path.join(self.database_dir, "test"), "w+") as the_file:
+            self.echo_database(the_file)
+
     def __init__(self, option):
         """
         Initialize Archive class.
@@ -124,10 +130,12 @@ class Archive(object):
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
+
         if option == "test":
             self.database_dir = "test"
         else:
             self.database_dir = cherrypy.config.get("database_dir")
+
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
 
@@ -152,6 +160,11 @@ class Archive(object):
         self.status = self.init_database()
         if not self.status:
             sys.exit("Initialisation of database failed. Check the logs.")
+
+        if option == "test":
+            self.unit_test()
+            self.shutdown()
+
 
     def init_logging(self):
         """
@@ -351,7 +364,7 @@ class Archive(object):
                 conn.close()
             except Exception as ex:
                 pass
-        return status
+        return json.dumps(status)
 
 #####
 # displaying a page of archive
@@ -780,7 +793,6 @@ class Archive(object):
         test = self.add_experiment(unicode(demo_id),
                                    unicode(str_blobs),
                                    unicode(str_test))
-        self.echo_database(sys.stdout)
         return str(test)
 
 
