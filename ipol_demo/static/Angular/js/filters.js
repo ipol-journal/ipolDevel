@@ -34,6 +34,14 @@ angular.module('IPOLDemoFilters', [])
   }
 )
 //
+.filter('interpolate_twice', 
+  function($interpolate) {
+    return function(expression, context) {
+        return $interpolate($interpolate(expression)(context))(context);
+    };
+  }
+)
+//
 .filter('interpolate_loop', 
   function($interpolate) {
     return function(expression, context, index) {
