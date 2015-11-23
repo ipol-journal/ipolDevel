@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from apps.controlpanel.views.ipolwebservices import ipolservices
 from django.http import HttpResponse
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeStatus, DeserializeDemoList
-from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS
+from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMO
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class StatusView(TemplateView):
 		result = None
 		try:
 
-			blobs_demo_list_json = ipolservices.get_demo_list()
+			blobs_demo_list_json = ipolservices.get_blobs_demo_list()
 			result = DeserializeDemoList(blobs_demo_list_json)
 			#result = blobs_json
 
@@ -58,6 +58,9 @@ class StatusView(TemplateView):
 
 	def get_blob_machine(self):
 		return IPOL_SERVICES_MODULE_BLOBS
+
+	def get_demo_machine(self):
+		return IPOL_SERVICES_MODULE_DEMO
 
 #JAK todo add security, only loggede users
 class ShutdownView(TemplateView):

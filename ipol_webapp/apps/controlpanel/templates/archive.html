@@ -29,9 +29,21 @@
 
     <div class="container">
 
-        <h2>Demo List</h2>
+        <h2>Archive module</h2>
 
-        <h2>Common view over archive and blobs</h2>
+        <p>
+            This module is responsible for storing the experiments made bay users.
+            When a user select a file of his own instead of using ono of the files proposed by the demo,
+            This file is uploaded and used to run the demo bt DEMO MODULE, then teh result of this execution is sent to ARCHIVE MODULE to be stored.
+            Some demos have 40000 experiments
+
+            db structure:
+            |Experiment| 1---m |exp_blob| n----1 |blob|
+
+            Experiment has the demos's id
+        </p>
+
+
         {#   Demo de test con id -1     #}
             <div class="demo">
                 <a  href="{% url 'ipol.cp.archive.page' -1 %}">
@@ -39,28 +51,28 @@
                 </a>
             </div>
 
-        {% with data=view.result %}
-            <p>STATUS: {{ data.status  }}</p>
-
-
-            {% for demo in data.list_demos%}
-
-                <div class="demo">
-                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">
-                        <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
-                    </a>
-                    <p style="padding-left: 20px">name:{{ demo.name }} </p>
-                    <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>
-                    <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>
-
+{#        {% with data=view.result %}#}
+{#            <p>STATUS: {{ data.status  }}</p>#}
+{##}
+{##}
+{#            {% for demo in data.list_demos%}#}
+{##}
+{#                <div class="demo">#}
+{#                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">#}
+{#                        <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>#}
+{#                    </a>#}
+{#                    <p style="padding-left: 20px">name:{{ demo.name }} </p>#}
+{#                    <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
+{#                    <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
+{##}
                     {#boton Delete demo#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.id }} )">Delete</a>
-                    </div>
-                </div>
-            {% endfor %}
-
-        {% endwith %}
+{#                    <div style="padding-left: 20px" >#}
+{#                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.id }} )">Delete</a>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% endfor %}#}
+{##}
+{#        {% endwith %}#}
 
     </div>
 

@@ -69,8 +69,15 @@
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.page' %}">{% trans 'DemoPage' %}</a>
+                    <a href="{% url 'ipol.cp.archive.demos' %}">{% trans 'Archive' %}</a>
+
                 </li>
+
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a href="{% url 'ipol.cp.blobs.demos' %}">{% trans 'Blobs' %}</a>
+                </li>
+
+
 
 
             </ul>
