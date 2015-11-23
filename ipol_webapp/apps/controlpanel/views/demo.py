@@ -133,13 +133,13 @@ class DeleteExperimentView(TemplateView):
 
 
 #JAK todo add security, only logged users
-class DeleteFileView(TemplateView):
+class DeleteExperimentFileView(TemplateView):
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed
 
 		try:
-			demo_id = int(self.kwargs['id_demo'])
+			demo_id = int(self.kwargs['file_id'])
 		except ValueError:
 			msg= "Id is not an integer"
 			logger.error(msg)

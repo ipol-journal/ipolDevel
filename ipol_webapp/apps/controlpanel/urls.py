@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, url
 from apps.controlpanel.views.Status import StatusView, ShutdownView
-from apps.controlpanel.views.demo import PageView1, PageView, DemosView, DeleteExperimentView, AddExpToTestDemoView
+from apps.controlpanel.views.demo import PageView1, PageView, DemosView, DeleteExperimentView, AddExpToTestDemoView, \
+    DeleteExperimentFileView
 
 __author__ = 'josearrecio'
 
@@ -21,9 +22,10 @@ urlpatterns = patterns('',
 
 	#ajax calls
     url(r'^ajax_shutdown/', ShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
-    url(r'^ajax_delete_experiment_web/(?P<experiment_id>\d+)/$',
-        DeleteExperimentView.as_view(), name="ipol.cp.archive.delete_experiment_web"),
-
+    url(r'^ajax_delete_experiment/(?P<experiment_id>\d+)/$',
+        DeleteExperimentView.as_view(), name="ipol.cp.archive.delete_experiment"),
+    url(r'^ajax_delete_experiment_file/(?P<file_id>\d+)/$',
+        DeleteExperimentFileView.as_view(), name="ipol.cp.archive.delete_experiment_file"),
     url(r'^ajax_add_exp_to_test_demo/', AddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
 
 

@@ -69,7 +69,7 @@
 
                         {#boton Delete demo#}
                         <div style="padding-left: 20px" >
-                            <a class="btn btn-primary" onclick="send_delete_experiment_request('{% url 'ipol.cp.archive.delete_experiment_web' experiment.id %}',{{ experiment.id }} )">Delete Experiment</a>
+                            <a class="btn btn-primary" onclick="send_delete_experiment_request('{% url 'ipol.cp.archive.delete_experiment' experiment.id %}',{{ experiment.id }} )">Delete Experiment</a>
     {#                        <a class="btn btn-primary" onclick="send_delete_experiment_request({{ experiment.id }} {{ data.id_demo }}">Delete Experiment</a>#}
                         </div>
 
@@ -87,7 +87,7 @@
 
                                     {#boton Delete file#}
                                     <div style="padding-left: 20px" >
-                                        <a class="btn btn-primary" onclick="send_delete_file_request({{ file.id }})">Delete File</a>
+                                        <a class="btn btn-primary" onclick="send_delete_experiment_file_request( '{% url 'ipol.cp.archive.delete_experiment_file' file.id  %}', {{ file.id }} )">Delete File</a>
                                     </div>
                                 </div>
 
@@ -107,34 +107,6 @@
 {% block functionsjs %}
 
     <script>
-
-
-
-{#        var myshdwnurl="{% url 'ipol.cp.archive.delete_experiment' %}";#}
-        //console.log(myshdwnurl);
-        function send_delete_file_request(file_id) {
-            var delblob = confirm('Delete File (Blob) WITH DEPENDENCIES, this will delete the blob number: '+file_id+' and any experiment that uses it: ' );
-            if (delblob == true) {
-
-{#            $.ajax({#}
-{#                type: 'GET',#}
-{#                url: myshdwnurl,#}
-{#                dataType: 'json',#}
-{#                success: function(data) {#}
-{#                    //console.error(data.status);#}
-{#                    var okhtml="<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";#}
-{#                    $('#archive_module_info').html(okhtml);#}
-{##}
-{#                },#}
-{#                error: function(data){#}
-{#                    var errorhtml="<p>Could not shutdown properly, refresh page</p>";#}
-{#                    $('#archive_module_info').html(errorhtml);#}
-{#                }#}
-{#            });#}
-            }
-        }
-
-
 
 
         function send_delete_experiment_request(myshdwnurl,experiment_id ) {
@@ -161,6 +133,31 @@
             }
 
         }
+
+
+        function send_delete_experiment_file_request(mywsurl,file_id) {
+            var delblob = confirm('Delete File (Blob) WITH DEPENDENCIES, this will delete the blob number: '+file_id+' and any experiment that uses it: ' );
+            if (delblob == true) {
+
+
+                $.ajax({
+                    type: 'GET',
+                    url: mywsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        alert("ok")
+                        location.reload();
+
+                    },
+                    error: function(data){
+                        alert("nok")
+                    }
+                });
+            }
+        }
+
+
+
     </script>
 
 {% endblock %}
