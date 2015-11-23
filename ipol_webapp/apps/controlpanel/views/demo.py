@@ -1,19 +1,11 @@
-from django.http import HttpResponse
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
-
-
 __author__ = 'josearrecio'
 
-from datetime import datetime
-import logging
-
-from django.shortcuts import render
 from django.views.generic import TemplateView
-from rest_framework import serializers
-from django.utils.six import BytesIO
-from rest_framework.parsers import JSONParser
-
+from django.http import HttpResponse
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList, \
+	DeserializeArchiveDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -123,10 +115,11 @@ class ArchiveDemosView(TemplateView):
 		#self.request.session['menu'] = 'menu-'
 		return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
 
-	def result(self):
+	def list_demos(self):
 		result = None
 		try:
-			pass
+			page_json = ipolservices.archive_demo_list()
+			result = DeserializeArchiveDemoList(page_json)
 
 		except Exception as e:
 			msg="Error %s"%e
@@ -197,3 +190,4 @@ class AddExpToTestDemoView(TemplateView):
 			raise ValueError(msg)
 
 		return HttpResponse(result, content_type='application/json')
+

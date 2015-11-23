@@ -4,7 +4,8 @@ import json
 import requests
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
-	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test
+	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
+	archive_ws_url_demo_list
 
 logger = logging.getLogger(__name__)
 
@@ -98,8 +99,7 @@ def archive_delete_file(file_id):
 
 	return get_JSON_from_webservice(wsurl,params)
 
-
-def archive_ws_url_demo_list():
+def archive_demo_list():
 	"""
 	list demos present in database
 	{ return:OK or KO, list demos: {id,name, id template, template } }
@@ -108,12 +108,13 @@ def archive_ws_url_demo_list():
 	wsurl = archive_ws_url_demo_list
 	return get_JSON_from_webservice(wsurl)
 
-
 def archive_add_experiment_to_test_demo():
 
 	wsurl = archive_ws_url_add_experiment_test
 
 	return get_JSON_from_webservice(wsurl)
+
+
 ####################
 #   BLOBS MODULE   #
 ####################

@@ -45,34 +45,32 @@
 
 
         {#   Demo de test con id -1     #}
-            <div class="demo">
-                <a  href="{% url 'ipol.cp.archive.page' -1 %}">
-                    <p style="padding-left: 20px">name: testdemo id:-1</p>
-                </a>
-            </div>
+        {#            <div class="demo">#}
+        {#                <a  href="{% url 'ipol.cp.archive.page' -1 %}">#}
+        {#                    <p style="padding-left: 20px">name: testdemo id:-1</p>#}
+        {#                </a>#}
+        {#            </div>#}
 
-{#        {% with data=view.result %}#}
-{#            <p>STATUS: {{ data.status  }}</p>#}
-{##}
-{##}
-{#            {% for demo in data.list_demos%}#}
-{##}
-{#                <div class="demo">#}
-{#                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">#}
-{#                        <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>#}
-{#                    </a>#}
-{#                    <p style="padding-left: 20px">name:{{ demo.name }} </p>#}
-{#                    <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
-{#                    <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
-{##}
-                    {#boton Delete demo#}
-{#                    <div style="padding-left: 20px" >#}
-{#                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.id }} )">Delete</a>#}
-{#                    </div>#}
-{#                </div>#}
-{#            {% endfor %}#}
-{##}
-{#        {% endwith %}#}
+        {% with data=view.list_demos %}
+            <p>STATUS: {{ data.status  }}</p>
+
+
+            {% for demo in data.demo_list%}
+
+                <div class="demo">
+                    <a  href="{% url 'ipol.cp.archive.page' demo.demo_id %}">
+                        <p style="padding-left: 20px">demo_id:{{ demo.demo_id }} </p>
+                    </a>
+
+
+                    {#  boton Delete demo#}
+                    <div style="padding-left: 20px" >
+                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.demo_id }} )">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% endwith %}
 
     </div>
 
