@@ -98,7 +98,11 @@
 
                 <p class="ststsnok"> No integration with archive module, it has its own archive in ipol_Demo/libs/archive.py (its like blobs and archive mixed together)</p>
                 <p class="ststsnok"> No integration with Blobs module, </p>
-                <p class="ststsok"><b>Demo RUNNING at: {{ demomachine }}</b></p>
+                {% if demomachine %}
+                    <p class="ststsok"><b>Demo RUNNING at: {{ demomachine }}</b></p>
+                {% else %}
+                    <p class="ststsnok"><b>Demo NOT RUNNING </b></p>
+                {% endif %}
 
 
 
