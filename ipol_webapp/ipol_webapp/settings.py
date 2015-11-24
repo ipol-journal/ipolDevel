@@ -62,8 +62,10 @@ if hostname in local_machines:
 elif hostname in production_machines_hostname:
 	# PRO USA APACHE
 	HOST = 'produccion'
-	DEBUG = False
-	TEMPLATEDEBUG = False
+	#asi evito python manage.py collectstatic y servir con apache
+	DEBUG = True
+	TEMPLATEDEBUG = True
+
 	DBHOST = 'localhost'
 	DBUSER = ''
 	DBPSSWD = ''
