@@ -1,19 +1,11 @@
-from django.http import HttpResponse
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
-
-
 __author__ = 'josearrecio'
 
-from datetime import datetime
-import logging
-
-from django.shortcuts import render
 from django.views.generic import TemplateView
-from rest_framework import serializers
-from django.utils.six import BytesIO
-from rest_framework.parsers import JSONParser
-
+from django.http import HttpResponse
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList, \
+	DeserializeArchiveDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -24,28 +16,7 @@ logger = logging.getLogger(__name__)
 
 #VIEWS
 
-#JAK todo remove this
-class PageView1(TemplateView):
-	# template_name = "photogallery/video.html"
-	template_name = "demo_test_result_page.html"
 
-	def dispatch(self, *args, **kwargs):
-		# para las pestanas
-		#self.request.session['menu'] = 'menu-'
-		return super(PageView1, self).dispatch(*args, **kwargs)
-
-
-	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
-	def result(self):
-		result =None
-		try:
-			result = ipolservices.get_page(-1,1)
-			# se ordenan en el admin. order no es necesario
-			print("result1")
-			print(result)
-		except Exception as e:
-			print(e)
-		return result
 
 #JAK todo add security, only loggede users
 class PageView(TemplateView):
@@ -93,7 +64,7 @@ class DemosView(TemplateView):
 			# se ordenan en el admin. order no es necesario
 
 
-			page_json = ipolservices.get_demo_list()
+			page_json = ipolservices.get_blobs_demo_list()
 			result = DeserializeDemoList(page_json)
 			#result = page_json
 
@@ -105,6 +76,57 @@ class DemosView(TemplateView):
 
 		return result
 
+#JAK todo add security, only logged users
+class BlobsDemosView(TemplateView):
+	template_name = "blobs.html"
+
+	def dispatch(self, *args, **kwargs):
+		# para las pestanas
+		#self.request.session['menu'] = 'menu-'
+		return super(BlobsDemosView, self).dispatch(*args, **kwargs)
+
+
+	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
+	def result(self):
+		result = None
+		try:
+			#result = ipolservices.get_demo_list()
+			# se ordenan en el admin. order no es necesario
+
+
+			page_json = ipolservices.get_blobs_demo_list()
+			result = DeserializeDemoList(page_json)
+			#result = page_json
+
+
+		except Exception as e:
+			msg="Error %s"%e
+			logger.error(msg)
+			print(msg)
+
+		return result
+
+
+class ArchiveDemosView(TemplateView):
+	template_name = "archive.html"
+
+	def dispatch(self, *args, **kwargs):
+		# para las pestanas
+		#self.request.session['menu'] = 'menu-'
+		return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
+
+	def list_demos(self):
+		result = None
+		try:
+			page_json = ipolservices.archive_demo_list()
+			result = DeserializeArchiveDemoList(page_json)
+
+		except Exception as e:
+			msg="Error %s"%e
+			logger.error(msg)
+			print(msg)
+
+		return result
 
 
 
@@ -168,3 +190,4 @@ class AddExpToTestDemoView(TemplateView):
 			raise ValueError(msg)
 
 		return HttpResponse(result, content_type='application/json')
+

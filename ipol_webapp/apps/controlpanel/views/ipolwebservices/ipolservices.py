@@ -4,10 +4,14 @@ import json
 import requests
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
-	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test
+	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
+	archive_ws_url_demo_list
 
 logger = logging.getLogger(__name__)
 
+####################
+#     UTILITIES    #
+####################
 def is_json(myjson):
 	try:
 		json_object = json.loads(myjson)
@@ -41,6 +45,11 @@ def get_JSON_from_webservice(ws_url, params=None):
 		logger.error(msg)
 	return result
 
+
+
+####################
+#  ARCHIVE MODULE  #
+####################
 def get_page(experimentid , page='1'):
 	"""
 	:param experimentid:
@@ -68,15 +77,6 @@ def get_stats():
 	wsurl = archive_ws_url_stats
 	return get_JSON_from_webservice(wsurl)
 
-def get_demo_list():
-	"""
-	list demos present in database
-	{ return:OK or KO, list demos: {id,name, id template, template } }
-	"""
-
-	wsurl = blobs_demo_list
-	return get_JSON_from_webservice(wsurl)
-
 def archive_shutdown():
 	"""
 	Shutdown archive
@@ -99,12 +99,35 @@ def archive_delete_file(file_id):
 
 	return get_JSON_from_webservice(wsurl,params)
 
+def archive_demo_list():
+	"""
+	list demos present in database
+	{ return:OK or KO, list demos: {id,name, id template, template } }
+	"""
+
+	wsurl = archive_ws_url_demo_list
+	return get_JSON_from_webservice(wsurl)
 
 def archive_add_experiment_to_test_demo():
 
 	wsurl = archive_ws_url_add_experiment_test
 
 	return get_JSON_from_webservice(wsurl)
+
+
+####################
+#   BLOBS MODULE   #
+####################
+def get_blobs_demo_list():
+	"""
+	list demos present in database
+	{ return:OK or KO, list demos: {id,name, id template, template } }
+	"""
+
+	wsurl = blobs_demo_list
+	return get_JSON_from_webservice(wsurl)
+
+
 #
 # def get_demo_list():
 # 	"""

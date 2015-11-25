@@ -29,15 +29,13 @@
 
     <div class="container">
 
-        <h2>Demo List</h2>
+        <h2>Blobs module</h2>
 
-        <h2>Common view over archive and blobs</h2>
-        {#   Demo de test con id -1     #}
-            <div class="demo">
-                <a  href="{% url 'ipol.cp.archive.page' -1 %}">
-                    <p style="padding-left: 20px">name: testdemo id:-1</p>
-                </a>
-            </div>
+        <p>
+            This module is responsible for storing the images used as default images for runing the demos.
+
+        </p>
+
 
         {% with data=view.result %}
             <p>STATUS: {{ data.status  }}</p>

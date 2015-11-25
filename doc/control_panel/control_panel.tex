@@ -1,0 +1,34 @@
+\section{The Control Panel web application}
+In the modular architecture of IPOL all the modules are able to work standalone since they are servers implementing Stateless webservices. However, a coordinated view from both the functional and administrative point of view is needed.
+
+The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove undue experiments for the archive or add new images to a demo.
+
+\subsection{Status tab}
+The user will be able to monitor if the modules are running and in what machine they are runing.This will be done using ping ws provided from different modules.
+Archive module can be shutdown from this page, and it's also possible to add tests experiments to the testing demo.
+
+\subsection{Archive tab}
+The Archive module is responsible for storing the experiments made bay users. When a user select a file of his own instead of using ono of the files proposed by the demo, This file is uploaded and used to run the demo bt Demo module, then teh result of this execution is sent to Archive module to be stored. Some demos have 40000 experiments.
+
+The user will be presented with a list of demos that have experiments in the archive module, the user will be able to delete these demos from the archive, with all their related info.
+
+When the user selects a demo, he will be presented with a list of all the experiments of the demo (we\'ll use pagin), and each experiment will display its information, files included. A user can delete experiments and files. If a file is deleted, all demos that use this file will also be deleted.
+
+
+\subsection{Blobs tab}
+The Blobs module is responsible for storing the images used as default images for runing the demos.
+The user will be presented with a list of demos that have blobs in the blob module,
+He will be able to remove, add, edit and delete blobs from a demo.
+
+\subsection{Demos tab}
+The Demo execution system consists od a Demo Dispatcher module, a Demo Runner module and a DemoInfo module.
+Integrated view of the previous sections whith the demo system.
+Not ready yet.
+
+\subsection{Tecnical information}
+This module is implemented using a Django web app.
+The use or virtualenv is recomended.
+
+\subsubsection{Deployment}
+For testing you can run it using runserver as described in ipol\_Webapps docs folder
+But for a production enviroment you should not use runserver. Apache or nginx as a reverse proxy and gunicorn is recomended.

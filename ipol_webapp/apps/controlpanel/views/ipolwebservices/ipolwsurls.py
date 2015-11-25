@@ -15,6 +15,7 @@ archive_ws_url_admin = IPOL_SERVICES_MODULE_ACHIVE+'/archive_admin'# param demo_
 archive_ws_url_delete_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/delete_experiment'# param experiment_id
 archive_ws_url_delete_blob_w_deps = IPOL_SERVICES_MODULE_ACHIVE+'/delete_blob_w_deps'# param  id_blob
 archive_ws_url_shutdown = IPOL_SERVICES_MODULE_ACHIVE+'/shutdown'# param None
+archive_ws_url_demo_list = IPOL_SERVICES_MODULE_ACHIVE+'/demo_list'# param None
 
 #for testing, ads an experiment to test demo (id=-1)
 archive_ws_url_add_experiment_test = IPOL_SERVICES_MODULE_ACHIVE+'/add_exp_test'# param None

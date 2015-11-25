@@ -18,6 +18,10 @@ from sets import Set
 import re
 
 #-------------------------------------------------------------------------------
+def CORS(): 
+  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+
+#-------------------------------------------------------------------------------
 def err_tb():
     """
     replace the default error response
@@ -69,7 +73,7 @@ def do_build(demo_dict,clean):
     """
     print "do_build"
     for (demo_id, demo_path) in demo_dict.items():
-      print "---- demo: ",demo_id
+      print "\n---- demo: ",demo_id
       # get demo dir
       current_dir = os.path.dirname(os.path.abspath(__file__))
       demo_dir = os.path.join(current_dir,"app",demo_id)
@@ -234,6 +238,8 @@ def WriteDDLOptions(sn,section_types,section_keys,latex_section):
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
+
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
 
     import sys
 

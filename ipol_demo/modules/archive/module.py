@@ -802,3 +802,46 @@ class Archive(object):
         test for displaying database.
         """
         self.echo_database()
+
+
+
+    @cherrypy.expose
+    def demo_list(self):
+        """
+        return the demo_list of the module.
+        :rtype: json formatted string
+        {status: "OK",demo_list: [{demo_id: -1}]}
+
+        """
+        data = {}
+        data["status"] = "KO"
+        demo_list=list()
+
+        try:
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+            cursor_db.execute("""
+            SELECT DISTINCT id_demo FROM experiments""")
+            wd=True
+            while wd:
+                try:
+                    demoid = cursor_db.fetchone()[0]
+                    demo_list.append({'demo_id':demoid}) 
+                except Exception, e:
+                    wd=False
+          
+
+            data["demo_list"] = demo_list
+
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("demo_list", str(ex))
+            try:
+                conn.close()
+            except Exception as ex:
+                pass
+        return json.dumps(data)
+
+
+
+  

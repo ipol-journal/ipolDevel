@@ -45,7 +45,12 @@ USE_MEMCACHED = False
 
 hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
+dev_machines_hostname = ['ipol.im','smartalgo']
+dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
+
+
 if hostname in local_machines:
+
 	HOST = 'local'
 	DEBUG = True
 	# to serve staticfiles from STATIC_ROOT folder (pruebas)
@@ -57,11 +62,21 @@ if hostname in local_machines:
 	ALLOWED_HOSTS = []
 	HTTPS = False
 
-elif hostname in ['ipol.im']:
+	####################################
+	#            IPOL WS               #
+	####################################
+	#Local ENV
+	IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+	IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
+	IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:7777'
+
+elif hostname in dev_machines_hostname:
 	# PRO USA APACHE
 	HOST = 'produccion'
-	DEBUG = False
-	TEMPLATEDEBUG = False
+	#asi evito python manage.py collectstatic y servir con apache
+	DEBUG = True
+	TEMPLATEDEBUG = True
+
 	DBHOST = 'localhost'
 	DBUSER = ''
 	DBPSSWD = ''
@@ -70,9 +85,21 @@ elif hostname in ['ipol.im']:
 	DOMAIN_NAME = 'localhost'
 	ADMINS = (('JAK', 'josearrecio@gmail.com'))
 	# dominio y subdominios , ojo por ip no funciona.
-	ALLOWED_HOSTS = ['ipol.im']
+	ALLOWED_HOSTS = dev_machines
 	MANAGERS = ADMINS
-	USE_MEMCACHED = True
+	USE_MEMCACHED = False
+	####################################
+	#            IPOL WS               #
+	####################################
+	# #testing ENV 1
+	# IPOL_SERVICES_MODULE_DEMO =''
+	# IPOL_SERVICES_MODULE_ACHIVE ='http://boucantrin.ovh.hw.ipol.im:9000'
+	# IPOL_SERVICES_MODULE_BLOBS ='http://boucantrin.ovh.hw.ipol.im:9010'
+
+	# #testing ENV 2
+	IPOL_SERVICES_MODULE_DEMO = None
+	IPOL_SERVICES_MODULE_ACHIVE ='http://ns3018037.ip-151-80-24.eu:8010'
+	IPOL_SERVICES_MODULE_BLOBS ='http://ns3018037.ip-151-80-24.eu:8020'
 
 else:
 	print("ERROR: invalid hostname")
@@ -89,15 +116,7 @@ else:
 # IPOL_SERVICES_MODULE_ACHIVE =''
 # IPOL_SERVICES_MODULE_BLOBS =''
 
-# #testing ENV
-# IPOL_SERVICES_MODULE_DEMO =''
-# IPOL_SERVICES_MODULE_ACHIVE ='http://boucantrin.ovh.hw.ipol.im:9000'
-# IPOL_SERVICES_MODULE_BLOBS ='http://boucantrin.ovh.hw.ipol.im:9010'
 
-#Local ENV
-IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
-IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
-IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:7777'
 
 
 

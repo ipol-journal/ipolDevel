@@ -26,7 +26,7 @@ urlpatterns = [
     # home
 	url(r'^$',  Home.as_view(),name="ipol.home"),
 
-	# photogallery app
+	# control panel app
 	url(r'^cp/', include('apps.controlpanel.urls')),
 
 	# media

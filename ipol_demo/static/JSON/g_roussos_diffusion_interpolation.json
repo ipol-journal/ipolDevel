@@ -18,6 +18,7 @@
       "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2011/g_rmdi/src.tar.gz", 
       "srcdir"        : "tdinterp-src",
+      "prepare_make"  : "sed -i -e 's/$(LDFLAGS) $(TDINTERP_OBJECTS) -o $@/$(TDINTERP_OBJECTS) -o $@ $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(IMCOARSEN_OBJECTS) -o $@/$(IMCOARSEN_OBJECTS) -o $@ $(LDFLAGS)/g'  -e 's/$(LDFLAGS) $(IMDIFF_OBJECTS) -o $@/$(IMDIFF_OBJECTS) -o $@ $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(NNINTERP_OBJECTS) -o $@/$(NNINTERP_OBJECTS) -o $@ $(LDFLAGS)/g' makefile.gcc ",
       "binaries"      : [ [".","tdinterp"], [".","imcoarsen"], 
                           [".","imdiff"], [".","nninterp"] ],
       "flags"         : "-j --makefile=makefile.gcc"
