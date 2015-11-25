@@ -87,7 +87,6 @@
     };
 
     CropAreaCircle.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
-      console.info("CropAreaCircle processMouseMove");
       var cursor='default';
       var res=false;
 
@@ -114,7 +113,6 @@
         var prevCenter = this.getCenterPoint();
 
         this.setSize(Math.max(this._minSize.h, iFR));
-        console.info("this._maxSize.h:",this._maxSize.h)
         if (this._maxSize.h>1) {
           this.setSize(Math.min(this._maxSize.h, iFR));
         }
@@ -279,7 +277,6 @@
     };
 
     CropAreaRectangle.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
-      console.info("AreaRectangle processMouseMove")
       var cursor='default';
       var res=false;
 
@@ -294,7 +291,6 @@
         res=true;
         this._events.trigger('area-move');
       } else if (this._resizeCtrlIsDragging>-1) {
-        console.info("  _resizeCtrlIsDragging");
         var s = this.getSize();
         var se = this.getSouthEastBound();
         switch(this._resizeCtrlIsDragging) {
@@ -537,7 +533,6 @@
     };
 
     CropArea.prototype.setSize = function (size, checkboundaries) {
-      console.info("CropArea::setSize");
       if (typeof(checkboundaries)==='undefined') checkboundaries = true;
       size = this._processSize(size);
       if (checkboundaries) {
@@ -548,7 +543,6 @@
     };
 
     CropArea.prototype.setSizeByCorners = function (northWestCorner, southEastCorner) {
-      console.info("CropArea::setSizeByCorners");
       var size = {x: northWestCorner.x,
         y: northWestCorner.y,
         w: southEastCorner.x - northWestCorner.x,
@@ -597,7 +591,6 @@
 
     /* FUNCTIONS */
     CropArea.prototype._preventBoundaryCollision=function(size) {
-      console.info("CropArea::_preventBoundaryCollision");
       var canvasH=this._ctx.canvas.height,
         canvasW=this._ctx.canvas.width;
 
@@ -617,7 +610,6 @@
         w: se.x - nw.x,
         h: se.y - nw.y};
 
-      console.info("this._maxSize",this._maxSize);
       if ((this._maxSize.w>1)&&(newSize.w>this._maxSize.w)) {
         newSize.w = this._maxSize.w;
       }
@@ -880,7 +872,6 @@
 
       // Draw Scene
       function drawScene() {
-//         console.info("cropHost drawScene()");
         // clear canvas
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -903,7 +894,6 @@
 
       // Resets CropHost
       var resetCropHost=function() {
-        console.info("cropHost resetCropHost()");
         if(image!==null) {
           theArea.setImage(image);
           var imageDims=[image.width, image.height],
@@ -948,8 +938,6 @@
       };
 
       var onMouseMove=function(e) {
-        console.info("CropHost onMouseMove");
-        console.info("image!=NULL", image!=null);
         if(image!==null) {
           var offset=getElementOffset(ctx.canvas),
             pageX, pageY;
@@ -960,14 +948,12 @@
             pageX=e.pageX;
             pageY=e.pageY;
           }
-          console.info("ProcessMouseMove");
           theArea.processMouseMove(pageX-offset.left, pageY-offset.top);
           drawScene();
         }
       };
 
       var onMouseDown=function(e) {
-        console.info("CropHost onMouseDown");
         e.preventDefault();
         e.stopPropagation();
         if(image!==null) {
@@ -986,7 +972,6 @@
       };
 
       var onMouseUp=function(e) {
-        console.info("CropHost onMouseUp");
         if(image!==null) {
           var offset=getElementOffset(ctx.canvas),
             pageX, pageY;
@@ -1003,8 +988,6 @@
       };
 
       this.getResultImage=function() {
-//         console.info("CropHost getResultImage");
-//         console.info("theArea.getSize() = ", theArea.getSize());
         var temp_ctx, temp_canvas;
         temp_canvas = angular.element('<canvas></canvas>')[0];
         temp_canvas.setAttribute('crossOrigin', 'anonymous');
@@ -1017,9 +1000,9 @@
           imageData: null};
         if(image!==null){
 
-          console.log(temp_canvas);
-          console.log(ris);
-          console.log(theArea.getSize());
+          //console.log(temp_canvas);
+          //console.log(ris);
+          //console.log(theArea.getSize());
 
           temp_ctx.drawImage(image,
             (center.x-theArea.getSize().w/2)*(image.width/ctx.canvas.width),
@@ -1043,8 +1026,6 @@
 
       this.setAreaCoords=function(ac,checkboundaries) {
         var res = theArea.setSize(ac,false);
-//         console.info("setAreaCoords");
-//         console.info("theArea.getSize() = ", theArea.getSize());
         return res;
       }
       
@@ -1054,8 +1035,6 @@
       }
 
       this.setNewImageSource=function(imageSource) {
-//         console.info("CropHost setNewImageSource");
-//         console.info("setNewImageSource 1 theArea.getSize() = ", theArea.getSize());
         image=null;
 //         resetCropHost();
         drawScene();
@@ -1067,7 +1046,6 @@
             events.trigger('load-done');
             image=newImage;
             resetCropHost();
-//             console.info("setNewImageSource on-load theArea.getSize() = ", theArea.getSize());
             events.trigger('image-updated');
           };
           newImage.onerror=function() {
@@ -1135,27 +1113,20 @@
       };
 
       this.setAreaMaxSize=function(size) {
-        console.info("setAreaMaxSize");
         if (angular.isUndefined(size))
         {
           return;
         }
-        console.info("size=",size);
-        console.info("angular.isObject(size))=",angular.isObject(size));
         if (angular.isObject(size)) {
           size={w: parseInt(size.w,10), h: parseInt(size.h,10)};
         }
-        console.info("angular.isString(size))=",angular.isString(size));
         if (angular.isString(size)) {
           size={w: parseInt(size,10), h: parseInt(size,10)};
         }
-        console.info("angular.isNumber(size))=",angular.isNumber(size));
         if (angular.isNumber(size)) {
           size={w: size, h: size};
         }
-        console.info("size=",size);
         if(!isNaN(size.w) && !isNaN(size.h)) {
-          console.info("setMaxSize:",size);
           theArea.setMaxSize(size);
           drawScene();
         }
@@ -1204,7 +1175,6 @@
       }
 
       this.setAreaType=function(type) {
-        console.info("setAreaType");
         var center = theArea.getCenterPoint();
         var curSize=theArea.getSize(),
           curMinSize=theArea.getMinSize(),
