@@ -3,14 +3,16 @@
 
 <!-- ======================================================================= -->
 <!-- ======================================================================= -->
-<hr>
+<!-- <hr> -->
 <script>  IPOLDemosApp.value("demo_id","${app.id}");  </script>
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
 
 <div ng-controller="DemoParamCtrl">
+  <div style="width:65em" >
   <p> 
     <span ng-bind-html="renderHtml(demo.general.param_description)"> 
   </p>
+  </div>
 
   <br />
 
@@ -18,22 +20,24 @@
     <div class="action" style="align:left;margin-bottom=20px;margin-top=20px" >
       <input type="hidden" name="key" value="${app.key}">
 
+      <fieldset style="width:65em">
+      <legend>Parameters:</legend>
       <!--===================================================================-->
-      <table  style="float:left"> 
+      <table  style="float:left;border:0px;"> 
         <!--=================================================================-->
-        <tr ng-if="demo.params.length>0">
-          <th style="width:24em"> <b>Parameter description</b> </th> 
+<!--        <tr ng-if="demo.params.length>0">
+          <th style="width:34em"> <b>Parameter description</b> </th> 
           <th colspan="2"> <b>Select value</b> </th> 
-        </tr>
+        </tr>-->
 
         <!--=================================================================-->
-        <tr ng-repeat="param in demo.params">
+        <tr style="border:0px;" ng-repeat="param in demo.params">
           <!--===============================================================-->
           <!-- selection_collapsed type -->
-          <td  ng-if="param.type==='selection_collapsed'"> 
+          <td style="border:0px;width:34em" ng-if="param.type==='selection_collapsed'"> 
             <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
-          <td ng-if="param.type==='selection_collapsed'" colspan="2">
+          <td style="border:0px;" ng-if="param.type==='selection_collapsed'" colspan="2">
 <!--              <span ng-if="params[param.id] !=  undefined">
                 <span ng-init="param.value=params[param.id].toString()"> </span>
               </span>
@@ -48,19 +52,19 @@
           </td>
           <!--===============================================================-->
           <!-- range type -->
-          <td  ng-if="param.type==='range'"> 
+          <td  style="border:0px;width:34em" ng-if="param.type==='range'"> 
               <label> 
                 <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
                 <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
               </label>  
           </td>
-          <td ng-if="param.type==='range'" style="width:5em">
+          <td style="border:0px;width:5em" ng-if="param.type==='range'" >
             <input  style="width:100%"  type="number" name="{{param.id}}"
                     min="{{param.values.min}}" max="{{param.values.max}}" 
                     step="{{param.values.step}}" 
                     ng-model="param.value"/>
           </td>
-          <td ng-if="param.type==='range'" style="width:24em">
+          <td ng-if="param.type==='range'" style="border:0px;width:24em">
               <input  style="width:100%" type="range"  
                       min="{{param.values.min}}" max="{{param.values.max}}"
                       step="{{param.values.step}}"
@@ -69,13 +73,13 @@
           </td>
           <!--===============================================================-->
           <!-- readonly type -->
-          <td  ng-if="param.type==='readonly'"> 
+          <td style="border:0px;width:34em" ng-if="param.type==='readonly'"> 
               <label> 
                 <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
                 <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
               </label>  
           </td>
-          <td ng-if="param.type==='readonly'" colspan="2"  >
+          <td style="border:0px;" ng-if="param.type==='readonly'" colspan="2"  >
             <input  style="20em"  
                     type="text" 
                     name="{{param.id}}" 
@@ -84,29 +88,29 @@
           </td>
           <!--===============================================================-->
           <!-- label type -->
-          <th ng-if="param.type==='label'" colspan=3> 
+          <th style="border:0px;" ng-if="param.type==='label'" colspan=3> 
               <div  ng-bind-html="renderHtml(param.label)"></div> 
           </th>
           <!--===============================================================-->
           <!-- checkbox type -->
-          <td ng-if="param.type==='checkbox'" align="left"> 
+          <td style="border:0px;width:34em" ng-if="param.type==='checkbox'" align="left"> 
             <label>
               <span ng-bind-html="renderHtml(param.label)"> </span> 
             </label>
           </td>
-          <td ng-if="param.type==='checkbox'" colspan="2" align="left"> 
+          <td style="border:0px;" ng-if="param.type==='checkbox'" colspan="2" align="left"> 
             <input  type="checkbox" name="{{param.id}}" ng-model="param.value" />
             <input  type="text" name="{{param.id}}_checked" 
                     value="{{param.value==true}}" hidden />
           </td>
           <!--===============================================================-->
           <!-- checkboxes type -->
-          <td ng-if="param.type==='checkboxes'" align="left"> 
+          <td style="border:0px;width:34em" ng-if="param.type==='checkboxes'" align="left"> 
             <label>
               <span ng-bind-html="renderHtml(param.label)"> </span> 
             </label>
           </td>
-          <td ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
+          <td style="border:0px;"  ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
             <!--            <input type="button" value="all"  />
             <input type="button" value="none"  /><br/>-->
             <div  ng-repeat="group in param.values" 
@@ -125,45 +129,67 @@
         </tr>
         <!--=================================================================-->
       </table>
+      </fieldset>
 
       <div style="clear:both"> </div>
-      <hr>
+<!--       <hr> -->
       <div style='vertical-align:middle;
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
-            <input  id="ID_InputCropped" type="checkbox" 
-                    ng-model="CropInfo.enabled"  
-                    ng-click="go()"
-                    alt="Crop"
-                    > Enable Crop <br>
+           <div style="style=text-align:left;float:left">
+              <input type="submit" name="action" value="Run" /> <br/> <br/>
+              <input 
+                      id="ID_InputCropped" type="checkbox" 
+                      ng-model="CropInfo.enabled"  
+                      ng-click="go()"
+                      alt="Crop"
+                      > Enable Crop <br/> <br/>
+          </div>
+          <div style="clear:both"> </div>
 
           <div ng-if="!CropInfo.enabled" >
-            <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
-              <ul class="index">
-                <li ng-repeat ="idx in range(demo.inputs.length)" 
-                    ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-                  <a href="#"> 
-                    <span bind-html-compile="demo.inputs[idx].description" > </span> 
-                    <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
-                    <div class="galim">
-                      <img  id="original_image"
-                            crossOrigin="Anonymous"
-                            ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                            style=" padding:5px;
-                                    max-width:{{maxdim}}px;
-                                    max-height:{{maxdim}}px;
-                                    width:auto;height:auto;"
-                            styleParent
-                            imageonfail="DisableImage(demo.inputs[idx])"
-                            imageonload="LoadedImage (demo.inputs[idx])"
-                            />
-                    </div>
-                  </a>
-                </li>
-              </ul>
+            <div ng-if="demo.inputs.length>1">
+              <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
+                <ul class="index">
+                  <li ng-repeat ="idx in range(demo.inputs.length)" 
+                      ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
+                    <a href="#"> 
+                      <span bind-html-compile="demo.inputs[idx].description" > </span> 
+                      <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
+                      <div class="galim">
+                        <img  id="original_image"
+                              crossOrigin="Anonymous"
+                              ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
+                              style=" padding:5px;
+                                      max-width:{{maxdim}}px;
+                                      max-height:{{maxdim}}px;
+                                      width:auto;height:auto;"
+                              styleParent
+                              imageonfail="DisableImage(demo.inputs[idx])"
+                              imageonload="LoadedImage (demo.inputs[idx])"
+                              />
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div ng-if="demo.inputs.length==1">
+              <img  crossOrigin="Anonymous"
+                    ng-src="tmp/{{demo_key}}/input_{{0}}.png"
+                    style=" padding:5px;
+                            max-width:{{maxdim}}px;
+                            max-height:{{maxdim}}px;
+                            width:auto;height:auto;float:left"
+                    styleParent
+                    imageonfail="DisableImage(demo.inputs[0])"
+                    imageonload="LoadedImage (demo.inputs[0])"
+                    />
+              <div style="clear:both"> </div><br/>
+                <span ng-if="demo.inputs[0].status!='loaded'"> (loading) </span>
             </div>
             <input type="hidden" name="x0" value="0">              
             <input type="hidden" name="y0" value="0">
@@ -173,49 +199,51 @@
 
           <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
           <div ng-if="CropInfo.enabled" > 
-            <table  style="float:left" >
-              <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px'>
-
-                  <label> max dim = {{imwidth}} x {{imheight}} display ratio = {{display_ratio}} </label>
-                  <div style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;margin:5px"
-                      class="cropArea" >
-                    <img-crop  
-                              crossOrigin="Anonymous"
-                              image="crop_image_url"
-                              result-image="myCroppedImage"
-                              change-on-fly="true"
-                              area-type="{{type}}"
-                              area-coords="CropInfo.coord"
-                              enable="CropInfo.enabled"
-                              area-min-size="CropInfo.minsize"
-                              area-max-size="{{demo.general.crop_maxsize|interpolate:current_scope}}"
-                        />
+            <table  style="float:left;border:0px;border-collapse:collapse" >
+              <tr style="border:0px">
+                <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px;border:0px'>
+                    <div style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;margin:5px"
+                        class="cropArea" >
+                      <img-crop  
+                                crossOrigin="Anonymous"
+                                image="crop_image_url"
+                                result-image="myCroppedImage"
+                                change-on-fly="true"
+                                area-type="{{type}}"
+                                area-coords="CropInfo.coord"
+                                enable="CropInfo.enabled"
+                                area-min-size="CropInfo.minsize"
+                                area-max-size="{{demo.general.crop_maxsize|interpolate:current_scope}}"
+                          />
+                    </div>
+                    <label> dim = {{imwidth}} x {{imheight}}; display ratio = {{display_ratio | number : 2}};
+                    </label>
+                    <label>
+                      crop = {{Math.round(CropInfo.coord.x/display_ratio)}}, {{Math.round(CropInfo.coord.y/display_ratio)}}, 
+                      {{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}, 
+                      {{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}
+                    </label>
+                    <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
+                    <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
+                    <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}">
+                    <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
+                </td>
+                <td style='vertical-align:middle;border:0px;float:left'>
+                  <select style="float:left"  ng-options="CropSize for CropSize in [1, 1.5, 2, 4, 8,16]" 
+                          ng-model="CropSize" 
+                          ng-init="CropSize=1" id="zoomfactor">
+                  </select>
+                  <label style="float:left" for="zoomfactor"> &nbsp;&nbsp; Zoom factor </label>
+                  <div  ng-show="CropInfo.enabled" 
+                        style=" overflow:scroll;
+                                width:{{imwidth*display_ratio+20}}px;
+                                height:{{imheight*display_ratio+20}}px;float:left" >
+                    <img  style="float:left" crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
+                          width="{{CropInfo.coord.w*CropSize}}" 
+                          height="{{CropInfo.coord.h*CropSize}}" />
                   </div>
-                  <label>
-                    {{Math.round(CropInfo.coord.x/display_ratio)}}, {{Math.round(CropInfo.coord.y/display_ratio)}}, 
-                    {{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}, 
-                    {{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}
-                  </label>
-                  <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
-                  <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
-                  <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}">
-                  <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
-              </td>
-              <td style='vertical-align:middle'>
-                <label> Zoom factor </label>
-                <select ng-options="CropSize for CropSize in [1, 1.5, 2, 4, 8,16]" 
-                        ng-model="CropSize" 
-                        ng-init="CropSize=1">
-                </select>
-                <div  ng-show="CropInfo.enabled" 
-                      style=" overflow:scroll;
-                              width:{{imwidth*display_ratio+20}}px;
-                              height:{{imheight*display_ratio+20}}px;" >
-                  <img  crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
-                        width="{{CropInfo.coord.w*CropSize}}" 
-                        height="{{CropInfo.coord.h*CropSize}}" />
-                </div>
-              </td>
+                </td>
+              </tr>
             </table>
           </div>
           <div style="clear:both"> </div>
@@ -281,9 +309,6 @@
       </div>
     <p>
 
-    <p>
-      <input  style="width:60em;height:4em;" type="submit" name="action" value="RUN" />
-    <p/>
   </form>
 </div> <!-- DemoParamCtrl -->
 
