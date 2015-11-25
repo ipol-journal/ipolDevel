@@ -9,7 +9,14 @@
 {% block cssfiles %}
 
     <style type="text/css">
+        .ststsok {
+            color:green;
 
+        }
+        .ststsnok {
+            color:red;
+
+        }
         .demo{
             border: 1px solid black;
             margin: 20px;
@@ -34,7 +41,7 @@
         <p>
             This module is responsible for storing the experiments made bay users.
             When a user select a file of his own instead of using ono of the files proposed by the demo,
-            This file is uploaded and used to run the demo bt DEMO MODULE, then teh result of this execution is sent to ARCHIVE MODULE to be stored.
+            This file is uploaded and used to run the demo bt DEMO MODULE, then the result of this execution is sent to ARCHIVE MODULE to be stored.
             Some demos have 40000 experiments
 
             db structure:
@@ -43,32 +50,46 @@
             Experiment has the demos's id
         </p>
 
-
-        {#   Demo de test con id -1     #}
-        {#            <div class="demo">#}
-        {#                <a  href="{% url 'ipol.cp.archive.page' -1 %}">#}
-        {#                    <p style="padding-left: 20px">name: testdemo id:-1</p>#}
-        {#                </a>#}
-        {#            </div>#}
+        <p>
+            Deleting a demo from this module deletes all the experiments of this demo in archive.
+        </p>
 
         {% with data=view.list_demos %}
-            <p>STATUS: {{ data.status  }}</p>
 
+            {% if data.status == "OK" %}
 
-            {% for demo in data.demo_list%}
+                {% if data.demo_list %}
+                    {% for demo in data.demo_list%}
 
-                <div class="demo">
-                    <a  href="{% url 'ipol.cp.archive.page' demo.demo_id %}">
-                        <p style="padding-left: 20px">demo_id:{{ demo.demo_id }} </p>
-                    </a>
+                        <div class="demo" id="demo_info_{{ demo.demo_id }}" >
+                            <a  href="{% url 'ipol.cp.archive.page' demo.demo_id %}">
+                                <p style="padding-left: 20px">demo_id:{{ demo.demo_id }} </p>
+                            </a>
 
+                            {#  boton Delete demo#}
+                            <div style="padding-left: 20px" >
+                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.demo_id  %}',{{ demo.demo_id  }} )">Delete</a>
+                            </div>
 
-                    {#  boton Delete demo#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.demo_id }} )">Delete</a>
-                    </div>
-                </div>
-            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+
+                    <p class="ststsnok">No demos available in Archive</p>
+                    <p>
+                        You can create test demo adding experiments to test demo from the
+                        <a  href="{% url 'ipol.cp.status'%}">
+                            status page
+                        </a>
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <p class="ststsnok"> Could not conect to archive, check Archive Status</p>
+
+            {% endif %}
 
         {% endwith %}
 
@@ -81,26 +102,24 @@
 
         <script>
 
-{#        var myshdwnurl="{% url 'ipol.cp.archive.delete_experiment' %}";#}
-        //console.log(myshdwnurl);
-        function send_delete_demo_request(experiment_id) {
-            var deldemo = confirm('delete this demo dummy: ' + experiment_id);
+        function send_delete_demo_request(wsurl,demo_id) {
+            var deldemo = confirm('delete this demo: ' + demo_id);
             if (deldemo == true) {
-{#            $.ajax({#}
-{#                type: 'GET',#}
-{#                url: myshdwnurl,#}
-{#                dataType: 'json',#}
-{#                success: function(data) {#}
-{#                    //console.error(data.status);#}
-{#                    var okhtml="<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";#}
-{#                    $('#archive_module_info').html(okhtml);#}
-{##}
-{#                },#}
-{#                error: function(data){#}
-{#                    var errorhtml="<p>Could not shutdown properly, refresh page</p>";#}
-{#                    $('#archive_module_info').html(errorhtml);#}
-{#                }#}
-{#            });#}
+                $.ajax({
+                    type: 'GET',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        //console.error(data.status);
+                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+                        $('#demo_info_'+ demo_id).html(okhtml);
+
+                    },
+                    error: function(data){
+                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
+                        $('#demo_info_'+ demo_id).html(errorhtml);
+                    }
+                });
             }
         }
     </script>

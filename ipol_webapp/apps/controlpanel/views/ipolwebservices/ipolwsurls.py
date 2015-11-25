@@ -19,6 +19,7 @@ archive_ws_url_demo_list = IPOL_SERVICES_MODULE_ACHIVE+'/demo_list'# param None
 
 #for testing, ads an experiment to test demo (id=-1)
 archive_ws_url_add_experiment_test = IPOL_SERVICES_MODULE_ACHIVE+'/add_exp_test'# param None
+archive_ws_url_delete_demo = IPOL_SERVICES_MODULE_ACHIVE+'/delete_demo_w_deps'# param demo_id
 
 #todo
 archive_ws_url_add_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/add_experiment'# param None

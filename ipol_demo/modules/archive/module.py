@@ -842,6 +842,49 @@ class Archive(object):
                 pass
         return json.dumps(data)
 
+    @cherrypy.expose
+    def delete_demo_w_deps (self, demo_id):
+        """
+        Encapsulation of the delete_exp_w_deps function for removing an
+            experiment.
 
+        :rtype: JSON formatted string status:OK/KO
+        """
+        status = {"status" : "KO"}
+        try:
+
+            # Get all experiments of this demo
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+            cursor_db.execute("""
+            SELECT DISTINCT id FROM experiments""")
+            experiment_id_list=list()
+            wd=True
+            while wd:
+                try:
+                    demoid = cursor_db.fetchone()[0]
+                    experiment_id_list.append(demoid) 
+                except Exception, e:
+                    wd=False
+
+    
+            # Delete all demo experiments info from db
+            for experiment_id in experiment_id_list:
+                print experiment_id
+                self.delete_exp_w_deps(conn, experiment_id)
+                # files removed?
+
+
+            conn.commit()
+            conn.close()
+            status["status"] = "OK"
+        except Exception as ex:
+            self.error_log("delete_demo", str(ex))
+            try:
+                conn.rollback()
+                conn.close()
+            except Exception as ex:
+                pass
+        return json.dumps(status)
 
   

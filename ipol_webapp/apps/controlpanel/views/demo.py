@@ -10,15 +10,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 #Utilities
-
 
 #VIEWS
 
-
-
 #JAK todo add security, only loggede users
+
 class PageView(TemplateView):
 	# template_name = "photogallery/video.html"
 	template_name = "demo_result_page.html"
@@ -37,7 +34,7 @@ class PageView(TemplateView):
 		try:
 			print(" demo_id: %d"%int(demo_id))
 
-			page_json = ipolservices.get_page(int(demo_id),1)
+			page_json = ipolservices.archive_get_page(int(demo_id),1)
 			result = DeserializePage(page_json)
 
 		except Exception , e:
@@ -46,7 +43,6 @@ class PageView(TemplateView):
 
 		return result
 
-#JAK todo add security, only loggede users
 class DemosView(TemplateView):
 	template_name = "demo_list.html"
 
@@ -76,7 +72,6 @@ class DemosView(TemplateView):
 
 		return result
 
-#JAK todo add security, only logged users
 class BlobsDemosView(TemplateView):
 	template_name = "blobs.html"
 
@@ -106,7 +101,6 @@ class BlobsDemosView(TemplateView):
 
 		return result
 
-
 class ArchiveDemosView(TemplateView):
 	template_name = "archive.html"
 
@@ -128,10 +122,7 @@ class ArchiveDemosView(TemplateView):
 
 		return result
 
-
-
-#JAK todo add security, only loggede users
-class DeleteExperimentView(TemplateView):
+class ArchiveDeleteExperimentView(TemplateView):
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, this json has no interesting data, no template is needed
@@ -152,10 +143,28 @@ class DeleteExperimentView(TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
+class ArchiveDeleteDemoView(TemplateView):
+
+	def render_to_response(self, context, **response_kwargs):
+		#just return the JSON from the ws, no template is needed
+
+		try:
+			demo_id = int(self.kwargs['demo_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		result= ipolservices.archive_delete_demo(demo_id)
+		if result == None:
+			msg="ArchiveDeleteDemoView: Something went wrong using archive WS"
+			logger.error(msg)
+			raise ValueError(msg)
 
 
-#JAK todo add security, only logged users
-class DeleteExperimentFileView(TemplateView):
+		return HttpResponse(result, content_type='application/json')
+
+class ArchiveDeleteExperimentFileView(TemplateView):
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed
@@ -176,9 +185,7 @@ class DeleteExperimentFileView(TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
-
-#JAK todo add security, only logged users
-class AddExpToTestDemoView(TemplateView):
+class ArchiveAddExpToTestDemoView(TemplateView):
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed
