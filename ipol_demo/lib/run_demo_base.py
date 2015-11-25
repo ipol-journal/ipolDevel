@@ -225,12 +225,15 @@ class RunDemoBase:
             self.log("Error %s" % e,
                       context='SETUP/%s' % self.get_demo_id(), 
                       traceback=False)
-          except RuntimeError:
+          except RuntimeError as e:
             print "**** run_algo: RuntimeError "
             with open(self.work_dir+"stderr.txt", "r") as errfile:
               errors=errfile.read()
-            print errors
-            print "***"
+            if errors:
+              print errors
+              print "***"
+            else
+              errors= "%s" %e
             raise RuntimeError(errors)
             
           # the files should close automatically with their scope ...

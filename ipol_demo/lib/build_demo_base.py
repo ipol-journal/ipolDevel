@@ -81,7 +81,7 @@ class BuildDemoBase:
       
       #----- CMAKE build
       if  ('build_type' in self.params.keys()) and \
-          (self.params['build_type'].upper()=='CMake'.upper()):
+          (self.params['build_type'].upper()=='cmake'.upper()):
         print "using CMAKE"
         # Run cmake first:
         # create temporary build dir IPOL_xxx_build
