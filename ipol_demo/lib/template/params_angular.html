@@ -137,10 +137,13 @@
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
+        <div style="style=text-align:left;float:left">
+          <input type="submit" name="action" value="Run" /> <br/> <br/>
+        </div>
+        <div style="clear:both"> </div>
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
            <div style="style=text-align:left;float:left">
-              <input type="submit" name="action" value="Run" /> <br/> <br/>
               <input 
                       id="ID_InputCropped" type="checkbox" 
                       ng-model="CropInfo.enabled"  
