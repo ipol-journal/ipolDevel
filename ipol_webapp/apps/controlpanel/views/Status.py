@@ -26,7 +26,7 @@ class StatusView(TemplateView):
 		result = None
 		try:
 			# Archive Stats
-			archive_stats_json = ipolservices.get_stats()
+			archive_stats_json = ipolservices.archive_get_stats()
 			result = DeserializeStatus(archive_stats_json)
 			#result = page_json
 
@@ -63,7 +63,7 @@ class StatusView(TemplateView):
 		return IPOL_SERVICES_MODULE_DEMO
 
 #JAK todo add security, only loggede users
-class ShutdownView(TemplateView):
+class ArchiveShutdownView(TemplateView):
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, this json has no interesting data, no template is needed

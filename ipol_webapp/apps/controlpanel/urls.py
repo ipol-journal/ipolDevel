@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
-from apps.controlpanel.views.Status import StatusView, ShutdownView
-from apps.controlpanel.views.demo import  PageView, DemosView, DeleteExperimentView, AddExpToTestDemoView, \
-    DeleteExperimentFileView, BlobsDemosView, ArchiveDemosView
+from apps.controlpanel.views.Status import StatusView, ArchiveShutdownView
+from apps.controlpanel.views.demo import  PageView, DemosView, ArchiveDeleteExperimentView, ArchiveAddExpToTestDemoView, \
+    ArchiveDeleteExperimentFileView, BlobsDemosView, ArchiveDemosView, ArchiveDeleteDemoView
 
 __author__ = 'josearrecio'
 
@@ -20,13 +20,13 @@ urlpatterns = patterns('',
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
     url(r'^demo_result_page/(?P<id>[\-\d\w]+)/$', PageView.as_view(), name="ipol.cp.archive.page"),
   	#ajax calls
-    url(r'^ajax_shutdown/', ShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
+    url(r'^ajax_shutdown/', ArchiveShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
+    url(r'^ajax_add_exp_to_test_demo/', ArchiveAddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
+    url(r'^ajax_delete_demo/(?P<demo_id>[\-\d\w]+)/$', ArchiveDeleteDemoView.as_view(), name="ipol.cp.archive.delete_demo"),
     url(r'^ajax_delete_experiment/(?P<experiment_id>\d+)/$',
-        DeleteExperimentView.as_view(), name="ipol.cp.archive.delete_experiment"),
+        ArchiveDeleteExperimentView.as_view(), name="ipol.cp.archive.delete_experiment"),
     url(r'^ajax_delete_experiment_file/(?P<file_id>\d+)/$',
-        DeleteExperimentFileView.as_view(), name="ipol.cp.archive.delete_experiment_file"),
-    url(r'^ajax_add_exp_to_test_demo/', AddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
-
+        ArchiveDeleteExperimentFileView.as_view(), name="ipol.cp.archive.delete_experiment_file"),
 
     # Blobs module
 

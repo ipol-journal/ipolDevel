@@ -142,3 +142,25 @@ Example :
 \begin{verbatim}
 http://<localhost>:<port>/stats
 \end{verbatim}
+
+\paragraph{Demo List, a list of all available demos in archive module} \hspace{0pt} \\
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/demo_list
+\end{verbatim}
+Returns a list of demo ids that have experiments stored in archive module
+Returns a  JSON as:
+\begin{verbatim}
+{status: "OK",demo_list: [{demo_id: -1}]}
+\end{verbatim} 
+
+
+\paragraph{Delete Demo, deletes a demo from archive module} \hspace{0pt} \\
+Example :
+\begin{verbatim}
+http://<localhost>:<port>/delete_demo_w_deps?demo_id=42
+\end{verbatim}
+Deletes all experiments for a demo.
+\begin{verbatim}
+{status: "OK/KO"}
+\end{verbatim} 

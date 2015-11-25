@@ -5,7 +5,7 @@ import requests
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
 	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
-	archive_ws_url_demo_list
+	archive_ws_url_demo_list, archive_ws_url_delete_demo
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def get_JSON_from_webservice(ws_url, params=None):
 ####################
 #  ARCHIVE MODULE  #
 ####################
-def get_page(experimentid , page='1'):
+def archive_get_page(experimentid , page='1'):
 	"""
 	:param experimentid:
 	:param page:
@@ -64,7 +64,7 @@ def get_page(experimentid , page='1'):
 
 	return get_JSON_from_webservice(wsurl,params)
 
-def get_stats():
+def archive_get_stats():
 	"""
 	:param experimentid:
 	:param page:
@@ -85,20 +85,6 @@ def archive_shutdown():
 	wsurl = archive_ws_url_shutdown
 	return get_JSON_from_webservice(wsurl)
 
-def archive_delete_experiment(experiment_id):
-
-	wsurl = archive_ws_url_delete_experiment
-	params = {'experiment_id': experiment_id}
-
-	return get_JSON_from_webservice(wsurl,params)
-
-def archive_delete_file(file_id):
-
-	wsurl = archive_ws_url_delete_blob_w_deps
-	params = {'id_blob': file_id}
-
-	return get_JSON_from_webservice(wsurl,params)
-
 def archive_demo_list():
 	"""
 	list demos present in database
@@ -114,6 +100,26 @@ def archive_add_experiment_to_test_demo():
 
 	return get_JSON_from_webservice(wsurl)
 
+def archive_delete_demo(demo_id):
+
+	wsurl = archive_ws_url_delete_demo
+	params = {'demo_id': demo_id}
+
+	return get_JSON_from_webservice(wsurl,params)
+
+def archive_delete_experiment(experiment_id):
+
+	wsurl = archive_ws_url_delete_experiment
+	params = {'experiment_id': experiment_id}
+
+	return get_JSON_from_webservice(wsurl,params)
+
+def archive_delete_file(file_id):
+
+	wsurl = archive_ws_url_delete_blob_w_deps
+	params = {'id_blob': file_id}
+
+	return get_JSON_from_webservice(wsurl,params)
 
 ####################
 #   BLOBS MODULE   #
@@ -150,7 +156,7 @@ def get_blobs_demo_list():
 #
 #
 # 	except Exception as e:
-# 		msg=" get_page: error=%s"%(e)
+# 		msg=" get_demo_list: error=%s"%(e)
 # 		print(msg)
 # 		logger.error(msg)
 # 	return result
