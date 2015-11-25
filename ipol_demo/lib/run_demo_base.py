@@ -232,7 +232,7 @@ class RunDemoBase:
             if errors:
               print errors
               print "***"
-            else
+            else:
               errors= "%s" %e
             raise RuntimeError(errors)
             
