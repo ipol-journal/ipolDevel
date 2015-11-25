@@ -6,18 +6,20 @@ current version is 1.0
 The Demo Description Language (DDL) is a textual description of a IPOL demo that 
 allows to compile, generate a web interface, and run a demo. The description is 
 written in JSON (JavaScript Object Notation) format, which is a standard format 
-used in web applications. This language is evolving to allow a maximum number 
+used in web applications. Current the JSON files are located in the 'static/JSON'
+subdirectory. This language is evolving to allow a maximum number 
 of demos to be described without the need to manually write HTML or Python code 
 for a given demo. Each main key in the description file is described in the 
 following sections:
 \begin{itemize}
-  \item general
-  \item build
-  \item params
-  \item run
-  \item config
-  \item archive
-  \item results
+  \item \textit{general}: some general options;
+  \item \textit{build}: everything needed to download and compile the source code;
+  \item \textit{inputs}: description of the different inputs;
+  \item \textit{params}: description of the parameters, for the param page;
+  \item \textit{run}: commands to run the demo;
+  \item \textit{config}: configuration, saving demo information;
+  \item \textit{archive}: describes what is saved in archive when inputs are uploaded;
+  \item \textit{results}: displaying the result page.
 \end{itemize}
 
 
@@ -25,16 +27,19 @@ following sections:
 {\bf Note:} in JSON format, always use double quotes around keys or string 
 values, not single quotes. Use can use the following link (or any other validator)
 to check if your JSON code is valid: http://jsonlint.com/.
+Also be carreful with commas, missing or additional commas are often the cause of
+invalid JSON files.
 
-\ToDo{[Miguel]: Why JSON? XML seems more readable.}
-
+\ToDo{[Miguel]: Why JSON? XML seems more readable. [Karl] I don't agree, for me
+XML is more cumbersome, but JSON has the problem of not accepting comments, they 
+are different ways to get around it. Jsonnet seems to be a nice option.}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{general} section}
-The general section describes global information about the demo. It is a set of 
-(key,value) pairs, described in the following table. Many keys are derived from 
-the static variables of the previous 'app' Python class.
-
+The general section describes global information about the demo.
+It is a set of  (key,value) pairs, described in the following table.
+Many keys are derived from the static variables of the previous 'app' Python class.\\
+% 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 
 0.57\linewidth}|c|}
 \hline
@@ -45,36 +50,29 @@ the static variables of the previous 'app' Python class.
                      & yes \\ \hline
  param\_description  & description at the top of the para\-meters page & yes
                       \\ \hline
- input\_nb           & number of inputs (currently only 1 is supported) & yes\\ 
-\hline
- input\_max\_pixels & sets the maximal number of pixels of the input image, 
-bigger images will be downsized, if 0 no resizing is done. The resizing as 
-defined in the image class uses python PIL resizing with 'antialias' option. 
-Input can be a number or a string that will be evaluated in Angular. & 
-yes  \\ \hline
- input\_dtype       & input image expected data type, used as parameter of 
-image.convert() method. Possible values are '1x8i' and '3x8i' which are 
-converted respectively to 'L' and 'RGB' for PIL.& yes  \\ \hline
- input\_max\_weight & max size (in bytes) of an input file, prevents uploading 
-bigger files. Input can be a number or a string that will be evaluated in Angular.
-                    & yes  \\ \hline
- input\_ext         & input image expected extention (ie. file format) & yes  
-\\ \hline
  is\_test           & boolean (true/false), if true will be removed from demos 
 if the server is in production mode.& yes  \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
  enable\_crop       & enable or disable cropping for this demo, default is true 
                       (crop enabled). & no   \\ \hline
+ crop\_maxsize      & limit allowed crop size in both width and height, the string
+                      can contain an Angular expression which will be evaluated & no \\ \hline
+ thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
+ input\_condition   & sets a condition on inputs using for example the input sizes & no \\ \hline
+ show\_results\_on\-\_error & show results even if the demo returned a run-time error.
+                    the demo will be able to display pertinent information & no \\ \hline
 \caption{Keys for the 'general' section ({\em req} means required).}
 \end{longtable}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{build} section}
 
-The build section can contain a single build description ("\{...\}") or an array 
-of build descriptions (''[ \{...\}, \{...\}, ...] ''). Each description has the 
-following information:
+The build section contains an array of build descriptions in the form
+''[ \{...\}, \{...\}, ...] ''. For each description, an archive containing the 
+source code is downloaded and compiled using either 'make' or 'cmake' features.
+It has the following information:
 
+\subsubsection{Common values}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
@@ -86,7 +84,7 @@ following information:
             located & yes \\ \hline
  binaries   & list of binaries and their associated paths relative to the source 
             code path. In case of 'make' build type, the first path is the compilation
-            path, where the make command is callled, the second path is the binary
+            path, where the make command is called, the second path is the binary
             path. You can run make without a binary name by setting the second
             path to a directory, then all files from this directory will be copied
             to the demo binary path.
@@ -97,6 +95,17 @@ following information:
 \caption{Additional keys for the 'text\_file' type.}
 \end{longtable}
 
+\subsubsection{\emph{make} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ prepare\_make & shell command used to fix compilation errors of the source code,
+                since the source code is steady & no  \\ \hline
+\caption{Additional keys for the 'make' type.}
+\end{longtable}
+
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
 "build": { 
@@ -105,6 +114,54 @@ following information:
   "binaries" : [ [".","lens_distortion_correction"] ],
   "flags"    : "OMP=1 -j4" }
 \end{lstlisting}
+
+\subsubsection{\emph{cmake} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ prepare\_cmake & shell command used to fix compilation errors of the source code,
+                since the source code is steady & no  \\ \hline
+ cmake\_flags  & cmake flags for configuration ('Release' build type is 
+                automatically set) & no  \\ \hline
+\caption{Additional keys for the 'cmake' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"build": { 
+  "url"      : "http://www.ipol.im/xxx/ldm_q1p.zip", 
+  "srcdir"   : ".",
+  "binaries" : [ [".","lens_distortion_correction"] ],
+  "flags"    : "OMP=1 -j4" }
+\end{lstlisting}
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{inputs} section}
+The inputs section describes the set of input data of the algorithm (images, 
+videos, flows, etc..).
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type         & current types are ``image'' and ``flow'' & yes \\ \hline
+ description  & Short name or description of the input, it will used to display 
+the input as the label inside the 'gallery' html display & yes \\ \hline
+ max\_pixels   &  sets the maximal number of pixels of the input image, 
+bigger images will be downsized, if 0 no resizing is done. The resizing as 
+defined in the image class uses python PIL resizing with 'antialias' option. 
+Input can be a number or a string that will be evaluated in Angular.  & .. \\ \hline
+ max\_weight   & max size (in bytes) of an input file, prevents uploading 
+bigger files. Input can be a number or a string that will be evaluated in Angular. & .. \\ \hline
+ dtype        & input image expected data type, used as parameter of 
+image.convert() method. Possible values are '1x8i' and '3x8i' which are 
+converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
+ ext          & input image expected extention (ie. file format) & .. \\ \hline
+\caption{Additional keys for the 'text\_file' type.}
+\end{longtable}
+
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{params} section}
@@ -203,7 +260,7 @@ new information can then be used in the archive section.
 \hline \hline
  info\_from\_file    & it contains a list of (key,value) pairs where the key is
             the new information id to create (in lowercase letters) and the
-            value is the correspond text file that contains its contents & no \\ \hline
+            value is the corresponding text file that contains its contents & no \\ \hline
 \caption{keys for the 'config' section.}
 \end{longtable}
 
