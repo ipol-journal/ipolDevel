@@ -18,14 +18,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/125/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type": "make",
       "url"       : "http://www.ipol.im/pub/art/2015/125/NoiseClinic.zip", 
       "srcdir"    : "noise_clinic_src",
       "binaries"  : [ [".","MSD"]  ],
       "flags"     : "OMP=1 -j4",
       "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
-    }
+    }]
   ,
   "inputs": [ 
       {

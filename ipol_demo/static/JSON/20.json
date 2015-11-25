@@ -14,16 +14,18 @@
   "build":
     [
       {
+        "build_type"    : "make",
         "url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz", 
         "srcdir"        : "phs_3",
         "binaries"      : [ [".","horn_schunck_pyramidal"] ],
         "flags"         : "-j4"
       },
       {
+        "build_type"    : "make",
         "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
         "srcdir"        : "imscript",
         "binaries"      : [ [".","bin/"] ],
-       "flags"         : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+       "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
       }
     ]
   ,

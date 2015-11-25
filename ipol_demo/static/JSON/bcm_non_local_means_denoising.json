@@ -10,13 +10,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcm_nlm/"
   }, 
-  "build":
+  "build": [
     {
-      "url"       : "http://www.ipol.im/pub/art/2011/bcm_nlm/nlmeansC.tar.gz", 
-      "srcdir"    : "nlmeansC",
-      "binaries"  : [ [".","nlmeans_ipol"], [".","img_diff_ipol"], [".","img_mse_ipol"] ],
-      "flags"     : "-j4"
-    }
+      "build_type" : "make",
+      "url"        : "http://www.ipol.im/pub/art/2011/bcm_nlm/nlmeansC.tar.gz", 
+      "srcdir"     : "nlmeansC",
+      "binaries"   : [ [".","nlmeans_ipol"], [".","img_diff_ipol"], [".","img_mse_ipol"] ],
+      "flags"      : "-j4"
+    } ]
   ,
   "inputs": [ 
       {

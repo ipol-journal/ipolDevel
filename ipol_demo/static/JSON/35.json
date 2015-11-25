@@ -9,13 +9,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/35/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type": "make",
       "url"       : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
       "srcdir"    : "classic_edge_detectors_1.0",
       "binaries"  : [ [".","edges"] ],
       "flags"     : "-j4"
-    }
+    } ]
   ,
   "inputs": [ 
       {

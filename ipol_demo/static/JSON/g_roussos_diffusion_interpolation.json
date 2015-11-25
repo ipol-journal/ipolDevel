@@ -13,13 +13,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
   }, 
-  "build": {
+  "build": [
+    {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2011/g_rmdi/src.tar.gz", 
       "srcdir"        : "tdinterp-src",
       "binaries"      : [ [".","tdinterp"], [".","imcoarsen"], 
                           [".","imdiff"], [".","nninterp"] ],
       "flags"         : "-j --makefile=makefile.gcc"
-    }
+    } ]
   ,
   "inputs": [ 
       {

@@ -6,13 +6,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/87/"
   }, 
-  "build":
+  "build": [
     {
-      "url"       : "http://www.ipol.im/pub/art/2013/87/gaussian_20131215.tgz", 
-      "srcdir"    : "gaussian_20131215",
-      "binaries"  : [ [".","gaussian_demo"] , [".","imdiff"]],
-      "flags"     : "-j4  --makefile=makefile.gcc"
-    }
+      "build_type" : "make",
+      "url"        : "http://www.ipol.im/pub/art/2013/87/gaussian_20131215.tgz", 
+      "srcdir"     : "gaussian_20131215",
+      "binaries"   : [ [".","gaussian_demo"] , [".","imdiff"]],
+      "flags"      : "-j4  --makefile=makefile.gcc"
+    } ]
   ,
   "inputs": [ 
       {

@@ -6,13 +6,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/gjmr-lsd/"
   }, 
-  "build":
+  "build": [
     {
-      "url"       : "http://www.ipol.im/pub/art/2012/gjmr-lsd/lsd_1.6.zip", 
-      "srcdir"    : "lsd_1.6",
-      "binaries"  : [ [".","lsd"] ],
-      "flags"     : ""
-    }
+      "build_type" : "make",
+      "url"        : "http://www.ipol.im/pub/art/2012/gjmr-lsd/lsd_1.6.zip", 
+      "srcdir"     : "lsd_1.6",
+      "binaries"   : [ [".","lsd"] ],
+      "flags"      : ""
+    } ]
   ,
   "inputs": [ 
       {

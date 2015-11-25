@@ -7,13 +7,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/104/"
   }, 
-  "build": {
+  "build": [ {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2014/104/vj_20140328.tar.gz", 
       "srcdir"        : "vj_20140328",
       "prepare_make"  : "make OMP=1 -j -f makefile eigen",
       "binaries"      : [ [".","detect"] ],
       "flags"         : "OMP=1 -j -f makefile"
-    }
+    } 
+    ]
   ,
   "inputs": [ 
       {

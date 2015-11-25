@@ -21,6 +21,7 @@
         "flags"         : "-j4"
       },
       {
+        "build_type"    : "make",
         "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
         "srcdir"        : "imscript",
         "binaries"      : [ [".","bin/"] ],

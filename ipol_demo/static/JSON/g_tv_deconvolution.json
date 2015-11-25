@@ -34,14 +34,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-tvdc/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2012/g-tvdc/tvdeconv_20120607.tar.gz", 
       "srcdir"        : "tvdeconv_20120607",
       "prepare_make"  : "sed -i -e 's/CPNG=-DUSE_LIBPNG/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DUSE_LIBPNG/g' -e 's/lpng/lpng12/g' makefile.gcc",
       "binaries"      : [ [".","tvdeconv"],[".","imblur"],[".","imdiff"]  ],
       "flags"         : "-f makefile.gcc -j4"
-    }
+    } ]
   ,
   "inputs": [ 
       {

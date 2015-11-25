@@ -10,9 +10,9 @@
                                 "badparams",
                                 "The images must have the same size" ]
   }, 
-  "build":
+  "build": [
     {
-      "build_type"    : "CMake",
+      "build_type"    : "cmake",
       "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
       "srcdir"        : "MissStereo/src",
       "prepare_cmake" : "sed -i 's/-Werror//g' libIO/CMakeLists.txt",
@@ -21,7 +21,7 @@
       "flags"         : "-j4",
       "scripts"       : [ ["../scripts","MissStereo.sh"], 
                           ["../scripts","Rectify.sh"]  ]
-    }
+    } ]
   ,
   "inputs": [ 
       {

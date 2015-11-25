@@ -12,13 +12,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/gl_lcc/"
   }, 
-  "build": {
+  "build": [
+    {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2011/gl_lcc/LCC.tar.gz", 
       "srcdir"        : "LCC",
       "binaries"      : [ [".","localcolorcorrection"] ],
       "prepare_make"  : "sed -i -e 's/-Werror//g' makefile",
       "flags"         : "-j4"
-    }
+    } ]
   ,
   "inputs": [ 
       {

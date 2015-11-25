@@ -15,12 +15,14 @@
   }, 
   "build": [
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2015/131/ColorContrast_1.tgz", 
       "srcdir"        : "ColorContrast_1/code",
       "binaries"      : [ [".","contrast_enhancement"], [".","polynomials/"] ],
       "flags"         : "-j4"
     },
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2015/131/convert8bits.tgz", 
       "srcdir"        : "convert8bits",
       "binaries"      : [ [".","convert8bits"] ],

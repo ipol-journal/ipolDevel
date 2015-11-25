@@ -7,13 +7,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/107/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2014/107/MSR_original.tgz", 
       "srcdir"        : "MSR_original",
       "binaries"      : [ [".","MSR_original"] ],
       "flags"         : "-j4"
-    }
+    }]
   ,
   "inputs": [ 
       {

@@ -11,8 +11,9 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/117/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/pre/117/gaussconv_20140515.zip", 
       "srcdir"        : "gaussconv_20140515",
       "prepare_make"  : "sed -i -e 's/-Werror//g' Makefile",
@@ -22,7 +23,7 @@
                           [".","bin/demo_gaussconv_sampled_kernel"]  
                         ],
       "flags"         : "-j4"
-    }
+    }]
   ,
   "inputs": [ 
       {

@@ -20,14 +20,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/45/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type": "make",
       "url"       : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
       "srcdir"    : "ponomarenko_v4",
       "binaries"  : [ ["ponomarenko","ponomarenko"] , ["fnoise","fnoise"], ["subscale","subscale"] ],
       "flags"     : "-j4",
       "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
-    }
+    } ]
   ,
   "inputs": [ 
       {

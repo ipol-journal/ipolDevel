@@ -8,15 +8,15 @@
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/mmm-oh/",
     "show_results_on_error" : true
   }, 
-  "build":
+  "build": [
     {
-      "build_type"    : "CMake",
+      "build_type"    : "cmake",
       "url"           : "http://www.ipol.im/pub/art/2012/mmm-oh/OrsaHomography_20120515.tar.gz", 
       "srcdir"        : "OrsaHomography_20120515/src",
       "prepare_cmake" : "sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' demo/libImage/CMakeLists.txt; sed -i 's/FIND_PACKAGE(PNG)/#FIND_PACKAGE(PNG)/g' third_party/png/CMakeLists.txt",
       "binaries"      : [ ["demo","demo_orsa_homography"] ],
       "flags"         : "-j4"
-    }
+    } ]
   ,
   "inputs": [ 
       {

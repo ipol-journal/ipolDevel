@@ -22,13 +22,14 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/77/"
   }, 
-  "build":
+  "build": [
     {
+      "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2013/77/two-photos-psf-estim.tar.gz", 
       "srcdir"        : "two-photos-psf-estim",
       "binaries"      : [ [".","two_photos_psf_estim"] ],
       "flags"         : "OMP=1 -j4"
-    }
+    }]
   ,
   "inputs": [ 
       {

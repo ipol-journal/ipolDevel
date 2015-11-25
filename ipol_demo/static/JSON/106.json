@@ -7,13 +7,15 @@
     "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/106/"
   }, 
-  "build":
+  "build": [
     {
-      "url"       : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
-      "srcdir"    : ".",
-      "binaries"  : [ [".","lens_distortion_correction_division_model_1p"] ],
-      "flags"     : "OMP=1 -j4"
+      "build_type" : "make",
+      "url"        : "http://www.ipol.im/pub/art/2014/106/ldm_q1p.zip", 
+      "srcdir"     : ".",
+      "binaries"   : [ [".","lens_distortion_correction_division_model_1p"] ],
+      "flags"      : "OMP=1 -j4"
     }
+    ]
   ,
   "inputs": [ 
       {
