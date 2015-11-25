@@ -232,9 +232,9 @@
                     <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
                 </td>
                 <td style='vertical-align:middle;border:0px;float:left'>
-                  <select style="float:left"  ng-options="CropSize for CropSize in [1, 1.5, 2, 4, 8,16]" 
+                  <select style="float:left"  ng-options="CropSize for CropSize in ['expand',1, 1.5, 2, 4, 8,16]" 
                           ng-model="CropSize" 
-                          ng-init="CropSize=1" id="zoomfactor">
+                          ng-init="CropSize='expand'" id="zoomfactor">
                   </select>
                   <label style="float:left" for="zoomfactor"> &nbsp;&nbsp; Zoom factor </label>
                   <div style="clear:both">
@@ -242,9 +242,16 @@
                         style=" overflow:scroll;
                                 width:{{imwidth*display_ratio+20}}px;
                                 height:{{imheight*display_ratio+20}}px;float:left" >
-                    <img  style="float:left" crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
-                          width="{{CropInfo.coord.w*CropSize}}" 
-                          height="{{CropInfo.coord.h*CropSize}}" />
+                    <div ng-if="CropSize!='expand'">
+                      <img  style="float:left" crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
+                            width="{{CropInfo.coord.w*CropSize}}" 
+                            height="{{CropInfo.coord.h*CropSize}}" />
+                    </div>
+                    <div ng-if="CropSize=='expand'">
+                      <img  style="float:left" crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
+                            width= "{{CropInfo.coord.w*Math.min(imwidth/CropInfo.coord.w,imheight/CropInfo.coord.h)*display_ratio}}" 
+                            height="{{CropInfo.coord.h*Math.min(imwidth/CropInfo.coord.w,imheight/CropInfo.coord.h)*display_ratio}}" />
+                    </div>
                   </div>
                 </td>
               </tr>
