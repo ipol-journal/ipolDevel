@@ -1,5 +1,8 @@
-__author__ = 'josearrecio'
+from apps.controlpanel.mixings import NavbarReusableMixinMF
 
+__author__ = 'josearrecio'
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList, \
@@ -14,12 +17,11 @@ logger = logging.getLogger(__name__)
 
 #VIEWS
 
-#JAK todo add security, only loggede users
 
-class PageView(TemplateView):
-	# template_name = "photogallery/video.html"
+class PageView(NavbarReusableMixinMF,TemplateView):
 	template_name = "demo_result_page.html"
 
+	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		return super(PageView, self).dispatch(*args, **kwargs)
 
@@ -43,9 +45,10 @@ class PageView(TemplateView):
 
 		return result
 
-class DemosView(TemplateView):
+class DemosView(NavbarReusableMixinMF,TemplateView):
 	template_name = "demo_list.html"
 
+	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
 		#self.request.session['menu'] = 'menu-'
@@ -72,9 +75,10 @@ class DemosView(TemplateView):
 
 		return result
 
-class BlobsDemosView(TemplateView):
+class BlobsDemosView(NavbarReusableMixinMF,TemplateView):
 	template_name = "blobs.html"
 
+	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
 		#self.request.session['menu'] = 'menu-'
@@ -101,7 +105,12 @@ class BlobsDemosView(TemplateView):
 
 		return result
 
-class ArchiveDemosView(TemplateView):
+class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
+
 	template_name = "archive.html"
 
 	def dispatch(self, *args, **kwargs):
@@ -122,7 +131,11 @@ class ArchiveDemosView(TemplateView):
 
 		return result
 
-class ArchiveDeleteExperimentView(TemplateView):
+class ArchiveDeleteExperimentView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveDeleteExperimentView, self).dispatch(*args, **kwargs)
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, this json has no interesting data, no template is needed
@@ -143,7 +156,11 @@ class ArchiveDeleteExperimentView(TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
-class ArchiveDeleteDemoView(TemplateView):
+class ArchiveDeleteDemoView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveDeleteDemoView, self).dispatch(*args, **kwargs)
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed
@@ -164,7 +181,11 @@ class ArchiveDeleteDemoView(TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
-class ArchiveDeleteExperimentFileView(TemplateView):
+class ArchiveDeleteExperimentFileView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveDeleteExperimentFileView, self).dispatch(*args, **kwargs)
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed
@@ -185,7 +206,11 @@ class ArchiveDeleteExperimentFileView(TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
-class ArchiveAddExpToTestDemoView(TemplateView):
+class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveAddExpToTestDemoView, self).dispatch(*args, **kwargs)
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, no template is needed

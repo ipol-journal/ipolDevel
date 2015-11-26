@@ -1,3 +1,5 @@
+from apps.controlpanel.mixings import NavbarReusableMixinMF
+
 __author__ = 'josearrecio'
 
 import logging
@@ -6,7 +8,8 @@ from apps.controlpanel.views.ipolwebservices import ipolservices
 from django.http import HttpResponse
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeStatus, DeserializeDemoList
 from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMO
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 logger = logging.getLogger(__name__)
 
 
@@ -15,9 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 #Views
-class StatusView(TemplateView):
+class StatusView(NavbarReusableMixinMF,TemplateView):
 	template_name = "stats.html"
 
+	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		return super(StatusView, self).dispatch(*args, **kwargs)
 
@@ -62,8 +66,11 @@ class StatusView(TemplateView):
 	def get_demo_machine(self):
 		return IPOL_SERVICES_MODULE_DEMO
 
-#JAK todo add security, only loggede users
-class ArchiveShutdownView(TemplateView):
+class ArchiveShutdownView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(ArchiveShutdownView, self).dispatch(*args, **kwargs)
 
 	def render_to_response(self, context, **response_kwargs):
 		#just return the JSON from the ws, this json has no interesting data, no template is needed

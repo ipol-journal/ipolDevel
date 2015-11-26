@@ -1,0 +1,52 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}{{ object.title }} {% endblock %}
+{% block cssfiles %}
+    <style>
+
+        body {
+          padding-top: 40px;
+          padding-bottom: 40px;
+          background-color: #eee;
+        }
+
+        .container-style {
+          max-width: 330px;
+          padding: 15px;
+          margin: 0 auto;
+        }
+        .container-style .container-style-heading {
+          margin-bottom: 10px;
+        }
+
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+
+
+    <div class="container container-style">
+        {#  truco vil y miserable para iterar xxx veces#}
+{#                        {% for i in "xxxx" %}#}
+        <!-- Videos -->
+
+            <p>My user:</p>
+            <p>{{ request.user.username}}</p>
+
+            <p>My profile gallery </p>
+            <p>{{ request.user.profile.gallery.title}}</p>
+
+{#        {% if object %}#}
+{#        {% else %}#}
+{#            <div>#}
+{#                <div>{% blocktrans %}No profile was found.{% endblocktrans %}</div>#}
+{#            </div>#}
+{#        {% endif %}#}
+{#                    {% endfor %}#}
+    </div>
+
+{% endblock %}

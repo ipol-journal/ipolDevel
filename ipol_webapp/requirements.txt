@@ -14,3 +14,6 @@ django-filter
 
 #HTTP high level API
 requests
+
+#Account managemnet
+django-allauth

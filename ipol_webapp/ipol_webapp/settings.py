@@ -48,8 +48,11 @@ local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
 
+#alluth contrll for allowing logins
+ALLAUTH_GESTS = True
 
 if hostname in local_machines:
+	SITE_ID = 2
 
 	HOST = 'local'
 	DEBUG = True
@@ -70,7 +73,9 @@ if hostname in local_machines:
 	IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
 	IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:7777'
 
+
 elif hostname in dev_machines_hostname:
+	SITE_ID = 3
 	# PRO USA APACHE
 	HOST = 'produccion'
 	#asi evito python manage.py collectstatic y servir con apache
@@ -135,7 +140,11 @@ INSTALLED_APPS = (
     'apps.controlpanel',
     'django.contrib.humanize',
     'rest_framework',
-
+	'django.contrib.sites',
+	'allauth',
+	'allauth.account',
+	'allauth.socialaccount',
+	# 'allauth.socialaccount.providers.linkedin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -159,7 +168,7 @@ TEMPLATES = [
         'DIRS': [
 	        #os.path.join(BASE_DIR, 'templates'),
 	        os.path.join(BASE_DIR, 'apps/controlpanel/templates'),
-	        #os.path.join(BASE_DIR, 'vendor/allauth/templates'),
+	        os.path.join(BASE_DIR, 'vendor/allauth/templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -180,6 +189,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ipol_webapp.wsgi.application'
 
+#####################
+#       alluth      #
+#####################
+#alluth
+SOCIALACCOUNT_ENABLED = False
+ACCOUNT_AUTHENTICATION_METHOD = "username"
+#LOGIN_REDIRECT_URL = reverse_lazy('allauth.profile')
+LOGIN_REDIRECT_URL = reverse_lazy('ipol.cp.status')
+ACCOUNT_ADAPTER = 'vendor.allauth.myadapter.accountadapter.AccountAdapter'
+
+AUTHENTICATION_BACKENDS = (
+	# Needed to login by username in Django admin, regardless of `allauth`
+	'django.contrib.auth.backends.ModelBackend',
+	# `allauth` specific authentication methods, such as login by e-mail
+	'allauth.account.auth_backends.AuthenticationBackend',
+
+)
 
 #####################
 #     MEMCACHED     #
