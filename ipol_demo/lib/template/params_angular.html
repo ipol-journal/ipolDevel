@@ -20,6 +20,7 @@
     <div class="action" style="align:left;margin-bottom=20px;margin-top=20px" >
       <input type="hidden" name="key" value="${app.key}">
 
+      <div ng-if="demo.params.length>0">
       <fieldset style="width:65em">
       <legend>Parameters:</legend>
       <!--===================================================================-->
@@ -130,6 +131,7 @@
         <!--=================================================================-->
       </table>
       </fieldset>
+      </div>
 
       <div style="clear:both"> </div>
 <!--       <hr> -->
