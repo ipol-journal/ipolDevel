@@ -46,9 +46,14 @@ Many keys are derived from the static variables of the previous 'app' Python cla
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  demo\_title         & demo title & yes\\ \hline
- input\_description  & description at the top of the input selection page 
+ input\_description  & description at the top of the input selection page, 
+                      contains html as a single string or as an array of string
+                      that will be concatenated and separated with spaces.
                      & yes \\ \hline
- param\_description  & description at the top of the para\-meters page & yes
+ param\_description  & description at the top of the para\-meters page,
+                      contains html as a single string or as an array of string
+                      that will be concatenated and separated with spaces.
+                      & yes
                       \\ \hline
  is\_test           & boolean (true/false), if true will be removed from demos 
 if the server is in production mode.& yes  \\ \hline
@@ -72,16 +77,18 @@ The build section contains an array of build descriptions in the form
 source code is downloaded and compiled using either 'make' or 'cmake' features.
 It has the following information:
 
-\subsubsection{Common values}
+\subsubsection{\emph{make} type}
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- build\_type & optional, default is 'make', for CMake use 'cmake' (cases are ignored) & no \\ \hline
+ build\_type    & make & yes \\ \hline
  url        & full url link to download the demo source code & yes \\ \hline
  srcdir     & subdirectory from the extracted archive where the source code is 
             located & yes \\ \hline
+ prepare\_make & shell command used to fix compilation errors of the source code,
+                since the source code is steady & no  \\ \hline
  binaries   & list of binaries and their associated paths relative to the source 
             code path. In case of 'make' build type, the first path is the compilation
             path, where the make command is called, the second path is the binary
@@ -92,27 +99,17 @@ It has the following information:
  flags      & make command compilation flags & yes \\ \hline
  scripts    & list of scripts and their associated paths relative to the source 
             code path & no  \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
-\end{longtable}
-
-\subsubsection{\emph{make} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- prepare\_make & shell command used to fix compilation errors of the source code,
-                since the source code is steady & no  \\ \hline
-\caption{Additional keys for the 'make' type.}
+\caption{Keys for the 'make' type.}
 \end{longtable}
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-"build": { 
-  "url"      : "http://www.ipol.im/xxx/ldm_q1p.zip", 
-  "srcdir"   : ".",
-  "binaries" : [ [".","lens_distortion_correction"] ],
-  "flags"    : "OMP=1 -j4" }
+"build": [ { 
+  "build_type" : "make",
+  "url"        : "http://www.ipol.im/xxx/ldm_q1p.zip", 
+  "srcdir"     : ".",
+  "binaries"   : [ [".","lens_distortion_correction"] ],
+  "flags"      : "OMP=1 -j4" } ]
 \end{lstlisting}
 
 \subsubsection{\emph{cmake} type}
@@ -121,20 +118,27 @@ It has the following information:
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
+ build\_type  & cmake & yes \\ \hline
+ url          & same as make type & yes \\ \hline
+ srcdir       & same as make type & yes \\ \hline
  prepare\_cmake & shell command used to fix compilation errors of the source code,
                 since the source code is steady & no  \\ \hline
  cmake\_flags  & cmake flags for configuration ('Release' build type is 
                 automatically set) & no  \\ \hline
-\caption{Additional keys for the 'cmake' type.}
+ binaries   &  same as make type& yes \\ \hline
+ flags      &  same as make type & yes \\ \hline
+ scripts    & same as make type & no  \\ \hline
+\caption{Keys for the 'cmake' type.}
 \end{longtable}
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-"build": { 
-  "url"      : "http://www.ipol.im/xxx/ldm_q1p.zip", 
-  "srcdir"   : ".",
-  "binaries" : [ [".","lens_distortion_correction"] ],
-  "flags"    : "OMP=1 -j4" }
+"build": [ { 
+  "build_type" : "cmake",
+  "url"        : "http://www.ipol.im/xxx/ldm_q1p.zip", 
+  "srcdir"     : ".",
+  "binaries"   : [ [".","lens_distortion_correction"] ],
+  "flags"      : "OMP=1 -j4" } ]
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
@@ -142,11 +146,13 @@ It has the following information:
 The inputs section describes the set of input data of the algorithm (images, 
 videos, flows, etc..).
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\subsubsection{\emph{image} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.17\linewidth}|L{\dimexpr 0.68\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- type         & current types are ``image'' and ``flow'' & yes \\ \hline
+ type         & image & yes \\ \hline
  description  & Short name or description of the input, it will used to display 
 the input as the label inside the 'gallery' html display & yes \\ \hline
  max\_pixels   &  sets the maximal number of pixels of the input image, 
@@ -159,7 +165,27 @@ bigger files. Input can be a number or a string that will be evaluated in Angula
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
  ext          & input image expected extention (ie. file format) & .. \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
+\caption{Keys for the 'text\_file' type.}
+\end{longtable}
+
+\subsubsection{\emph{flow} type}
+
+\ToDo{[Karl]: explain how to assiocate an image to represent the flow. }
+
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.17\linewidth}|L{\dimexpr 0.68\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type             & flow & yes \\ \hline
+ description      & same as image & yes \\ \hline
+ max\_pixels      & same as image & yes \\ \hline
+ max\_weight      & same as image & yes \\ \hline
+ dtype            & same as image & yes \\ \hline
+ ext              & same as image & yes \\ \hline
+ required         & boolean: tells if the flow is required for the algorithm
+or optional, default is optional. For example, the ground truth may be optional.& no \\ \hline
+\caption{Keys for the 'text\_file' type.}
 \end{longtable}
 
 
@@ -169,44 +195,6 @@ The params section describes the set of parameters needed by a demo, their
 constraints and their visual appearance. It is defined as an array of sets, 
 where each set contains (key,value) pairs.
 
-\subsubsection{Common values}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
-0.58\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type  & parameter type, one of \{ label, range, selection\_collapsed \}.
-                     & yes \\ \hline
- label & description of the parameter or contents if type is label. & yes
-                      \\ \hline
-\caption{Common keys for the 'params' section ({\em req} means required).}
-\end{longtable}
-
-
-\subsubsection{ \emph{label} type}
-The label type does not need any other value. It can be used as a title to 
-separate groups of parameters.
-
-\subsubsection{ \emph{selection\_collapsed} type}
-
-The values of the selection are stored as strings, so we map each label with a 
-string value. The default value is stored in a separate field.
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
-0.6\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- id     & parameter name in lowercase letters & yes \\ \hline
- values & set of (key,value) pairs, where the key is the displayed text and the 
-value a string representing the corresponding value, for example \{ 
-``black'':``0'', ``1\%'':``0.01'' \} & yes
-                      \\ \hline
- default\_value & defines the default value for this parameter, should be one 
-the values defined in 'values'. & yes \\ \hline
-\caption{Additional keys for the 'selection\_collapsed' type.}
-\end{longtable}
 
 \subsubsection{ \emph{range} type}
 
@@ -218,12 +206,104 @@ required around the values. The default value is stored with the 'values' field.
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
+ type  & range       & yes \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
- values & set min,max,step and default values using the following key/value 
-scheme \{ ``min'':val, ``max'':val, ``step'':val, ``default'':val \} & yes
+ label & description of the parameter or contents if type is label. & yes
                       \\ \hline
-\caption{Additional keys for the 'range' type.}
+ values & set min,max,step and default values using the following key/value 
+scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
+                      \\ \hline
+\caption{Keys for the 'range' type.}
 \end{longtable}
+
+
+\subsubsection{ \emph{selection\_collapsed} type}
+
+The values of the selection are stored as strings, so we map each label with a 
+string value. The default value is stored in a separate field.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
+0.6\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & selection\_collapsed    & yes \\ \hline
+ id     & parameter name in lowercase letters & yes \\ \hline
+ label & description of the parameter. & yes
+                      \\ \hline
+ values & set of (key,value) pairs, where the key is the displayed text and the 
+value a string representing the corresponding value, for example \{ 
+'black':'0', '1\%':'0.01' \} & yes
+                      \\ \hline
+ default\_value & defines the default value for this parameter, should be one 
+the values defined in 'values'. & yes \\ \hline
+\caption{Keys for the 'selection\_collapsed' type.}
+\end{longtable}
+
+\subsubsection{ \emph{label} type}
+
+The label  can be used as a title to separate groups of parameters.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & label       & yes \\ \hline
+ label & html text to display & yes
+                      \\ \hline
+\caption{Common keys for the 'params' section ({\em req} means required).}
+\end{longtable}
+
+
+\subsubsection{ \emph{readonly} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & readonly    & yes \\ \hline
+ label & description of the parameter & yes \\ \hline
+ id         & parameter name in lowercase letters  & yes \\ \hline
+ value\_expr & AngularJS expression used to compute the parameter value 
+            & yes \\ \hline
+\caption{Common keys for the 'params' section ({\em req} means required).}
+\end{longtable}
+
+\subsubsection{ \emph{checkbox} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & checkbox  & yes \\ \hline
+ label & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+ id         & parameter name in lowercase letters  & yes \\ \hline
+ default\_value & boolean: True for checked & \\ \hline
+\caption{Common keys for the 'params' section ({\em req} means required).}
+\end{longtable}
+
+\subsubsection{ \emph{checkboxes} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & checkboxes   & yes \\ \hline
+ label & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+ id         & parameter name in lowercase letters  & yes \\ \hline
+ values     & list of dictionaries: [ {key:value, ...}, ... ]
+            where key is the checkbox id and value is the text associated
+            & yes \\ \hline
+ default     & list of checkboxes that are checked by default  & yes \\ \hline
+\caption{Common keys for the 'params' section ({\em req} means required).}
+\end{longtable}
+
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{run} section}
@@ -277,15 +357,18 @@ new information can then be used in the archive section.
 %-------------------------------------------------------------------------------
 \subsection{The \emph{archive} section}
 
+
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- files    &  & no \\ \hline
- compres\-sed\_\-files   &  & no \\ \hline
- params &  & no \\ \hline
- info    & & no \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
+ files    & (key,value) pairs where key is the file to archive and value is 
+            the associated text information & no \\ \hline
+ compressed\_\-files   & compressed files to add in the same format 
+as files & no \\ \hline
+ params  & list of parameters to archive & no \\ \hline
+ info    & info variables to archive in the form of pairs variable:label & no \\ \hline
+\caption{Keys for the 'text\_file' type.}
 \end{longtable}
 
 
@@ -315,43 +398,6 @@ displayed at the top of the page. The currently available types are described
 below. At the top of the results page, the processing time is displayed and the 
 user is proposed to run the demo again with different input or parameters.
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
-0.7\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type      & type is one of \{  warning, gallery, repeat\_gallery, html\_text, 
-                                file\_download, text\_file \}  & yes \\ \hline
-\caption{Common keys for the 'results' section.}
-\end{longtable}
-
-
-%------ warning  ------
-\subsubsection{ \emph{warning} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
-0.7\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- condition & warning condition evaluated by AngularJS in its 
-the context of the result controler named {\em DemoResultCtrl}. In this 
-context, the user has access, among other variables, to: -'demo' which 
-contains the demo description, - 'params' which contains the current 
-values of all the parameters, - sizeX and sizeY as the input image dimensions.  
-& yes \\ \hline
- contents  & displayed text, can contain both HTML tags and AngularJS 
-expressions of the form '\{\{expression\}\}'. & \\ \hline
-\caption{Additional keys for the 'warning' type.}
-\end{longtable}
-
-\paragraph{Example}:\\
-
-\begin{lstlisting}[language=json,firstnumber=1]
-{ "type":"warning", 
-  "condition":"sizeX * sizeY < X",
-  "contents":"Needs X pixels ({{sizeX *sizeY}} given)<br/>"},
-\end{lstlisting}
 
 %------ gallery  ------
 \subsubsection{ \emph{gallery} type}
@@ -362,11 +408,134 @@ The gallery type uses the gallery class to display images. Its parameters are:
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
+ type      & gallery  & yes \\ \hline
+ label      & html label for the gallery, can be either a single string or 
+             a list of string that will be concatenated with whitespace character
+              in between & yes \\ \hline
+ contents   & label:image\_filename pairs, if a filename does succeed in loading,
+              the image will be removed from the gallery & yes \\ \hline
+ style      & css style associated to the gallery, can contain Angular 
+              expressions evaluated in the HTML template & yes \\ \hline
+\caption{Keys for the 'gallery' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+  {
+    "type"          : "gallery",
+    "label"         : "<h2>Resulting images</h2>",
+    "contents"      : { 
+      "Input"     : "input_0.sel.png", 
+      "Output"    : "output.png"
+    },
+    "style"         : "height:{{sizeY*ZoomFactor}}px"
+  },
+\end{lstlisting}
+
+
+%------ file_download  ------
+\subsubsection{ \emph{file\_download} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type      & file\_download  & yes \\ \hline
+ label     & html title associated to the file download & yes \\ \hline
+ contents  & either a single string of the filename to download, or a list
+              of label:filename pairs for files to download & yes \\ \hline
+\caption{Keys for the 'file\_download' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+   {  "type"     : "file_download", 
+      "label"    : "Download Hough result",
+      "contents" : "output_hough.png" },
+\end{lstlisting}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+    {
+      "type"          : "file_download", 
+      "label"         : "<h3>Download computed optical flow:</h3>",
+      "contents"      : { "tiff": "stuff_tvl1.tiff", 
+                          "flo" : "stuff_tvl1.flo",
+                          "uv"  : "stuff_tvl1.uv" }
+    },
+\end{lstlisting}
+
+
+
+%------ html_text  ------
+\subsubsection{ \emph{html\_text} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type      & html\_text  & yes \\ \hline
+ contents   & & yes \\ \hline
+\caption{Keys for the 'html\_text' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+{ "type"     : "html_text", 
+  "contents" : "Noise variance = {{params.anoise}}<br/>..."},
+\end{lstlisting}
+
+
+%------------ text_file --------------------------
+\subsubsection{ \emph{text\_file} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type      & text\_file  & yes \\ \hline
  label      & & yes \\ \hline
  contents   & & yes \\ \hline
  style      & & yes \\ \hline
-\caption{Additional keys for the 'gallery' type.}
+\caption{Keys for the 'text\_file' type.}
 \end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+{  "type"     : "text_file", 
+  "label"    : "<h2>Additional info<h2>",
+  "contents" : "output.txt",
+  "style"    : "width:{{sizeX}}px;height:14em" },
+\end{lstlisting}
+
+%------ warning  ------
+\subsubsection{ \emph{warning} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
+0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type      & warning  & yes \\ \hline
+ condition & warning condition evaluated by AngularJS in its 
+the context of the result controler named {\em DemoResultCtrl}. In this 
+context, the user has access, among other variables, to: -'demo' which 
+contains the demo description, - 'params' which contains the current 
+values of all the parameters, - sizeX and sizeY as the input image dimensions.  
+& yes \\ \hline
+ contents  & displayed text, can contain both HTML tags and AngularJS 
+expressions of the form '\{\{expression\}\}'. & \\ \hline
+\caption{Keys for the 'warning' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+
+\begin{lstlisting}[language=json,firstnumber=1]
+{ "type":"warning", 
+  "condition":"sizeX * sizeY < X",
+  "contents":"Needs X pixels ({{sizeX *sizeY}} given)<br/>"},
+\end{lstlisting}
+
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
@@ -386,11 +555,12 @@ algorithm.
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
+ type      & repeat\_gallery  & yes \\ \hline
  label      & & yes \\ \hline
  repeat     & & yes \\ \hline
  contents   & & yes \\ \hline
  style      & & yes \\ \hline
-\caption{Additional keys for the 'repeat\_gallery' type.}
+\caption{Keys for the 'repeat\_gallery' type.}
 \end{longtable}
 
 \paragraph{Example}:\\
@@ -402,59 +572,13 @@ algorithm.
   "style"    : "height:600px" },
 \end{lstlisting}
 
-%------ html_text  ------
-\subsubsection{ \emph{html\_text} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- contents   & & yes \\ \hline
-\caption{Additional keys for the 'html\_text' type.}
-\end{longtable}
-
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-{ "type"     : "html_text", 
-  "contents" : "Noise variance = {{params.anoise}}<br/>..."},
-\end{lstlisting}
-
-\subsubsection{ \emph{file\_download} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- label      & & yes \\ \hline
- contents   & & yes \\ \hline
-\caption{Additional keys for the 'file\_download' type.}
-\end{longtable}
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "file_download", 
-      "label"    : "Download Hough result",
-      "contents" : "output_hough.png" },
-\end{lstlisting}
-
-\subsubsection{ \emph{text\_file} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- label      & & yes \\ \hline
- contents   & & yes \\ \hline
- style      & & yes \\ \hline
-\caption{Additional keys for the 'text\_file' type.}
-\end{longtable}
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-{  "type"     : "text_file", 
-  "label"    : "<h2>Additional info<h2>",
-  "contents" : "output.txt",
-  "style"    : "width:{{sizeX}}px;height:14em" },
+{ "type"     : "repeat_gallery",
+  "repeat"   : "params.scales",
+  "label"    : "<h2> Noise Curves </h2>",
+  "contents" : [ "Scale {{idx}}: curve_{{idx}}.png"],
+  "style"    : "height:600px" },
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
