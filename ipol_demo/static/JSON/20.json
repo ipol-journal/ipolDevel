@@ -52,7 +52,6 @@
           "max_weight"        : 5242880,
           "dtype"             : "3x8i",
           "ext"               : ".tiff",
-          "associated_image"  : true,
           "required"          : false
       } 
     ],
