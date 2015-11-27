@@ -149,90 +149,197 @@ def get_values_of_o_arguments(argv):
 
 #-------------------------------------------------------------------------------
 def CheckDemoDescription(desc):
-  # check the general section
-  ok = True
-  required_keys = set([ "general", "build", "inputs", "params", "run", "archive", "results"  ])
-  if not required_keys.issubset(desc.keys()):
-    print "missing sections in JSON file: ", required_keys.difference(desc.keys())
-    return False
+    # check the general section
+    ok = True
+    required_keys = set([ "general", "build", "inputs", "params", "run", "archive", "results"  ])
+    if not required_keys.issubset(desc.keys()):
+        print "missing sections in JSON file: ", required_keys.difference(desc.keys())
+        return False
 
-  # general section
-  required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
-  if not required_keys.issubset(desc['general'].keys()):
-    mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
-    print mess
-    cherrypy.log(mess, context='SETUP', traceback=False)
-    return False
-  return ok
+    # general section
+    required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
+    if not required_keys.issubset(desc['general'].keys()):
+        mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
+        print mess
+        cherrypy.log(mess, context='SETUP', traceback=False)
+        return False
+    return ok
 
+#-------------------------------------------------------------------------------
+def UpdateDemoInfo(demo_description,section_names,section_keys,section_types):
+    """
+    input: demo_description: dictionary from json file
+    updated:
+    section_names
+            set of all the names of main sections in DDL files
+    section_keys
+        Dictionary of dictionaries, for each section k, section_keys[k] contains
+        a dictionary of (key,counter) pairs that counts the number of occurences
+        of each key. 
+        ex: section_names['general']['demo_title'] is the number of occurences
+        of 'demo_title' in 'general' section for all valid json files
+        if a section is of type list, it may contain a list of dictionaries
+        with types refered by its 'type' or 'section_type' key, then we create
+        a dictionary per type in the form:
+        section_names['build:make']['flags'] which counts the number of occurences
+        of the flags key in elements of type 'make' within 'build' sections for 
+        all the valid json files.
+    section_types 
+        Dictionary of dictionaries that counts the number of occurences of 
+        each type for each section 
+    """
+    # save all keys
+    section_names.update(demo_description.keys())
+    for k in demo_description.keys():
+      if k not in section_keys:
+        section_keys[k]=dict()
+        section_types[k]=dict()
+      UpdateCounters(section_types[k],[repr(type(demo_description[k]))])
+      if type(demo_description[k])==dict:
+        UpdateCounters(section_keys[k],demo_description[k].keys())
+      if type(demo_description[k])==list:
+        # create a dict per type
+        for elt in demo_description[k]:
+          if (type(elt)==dict):
+            new_key=''
+            if 'type' in elt:
+              new_key = k+":"+elt['type'].lower()
+            if k+'_type' in elt:
+              new_key = k+":"+elt[k+'_type'].lower()
+            if new_key!='':
+              if new_key not in section_keys:
+                section_keys[new_key]=dict()
+                print "adding key:",new_key, " with ", elt.keys()
+              UpdateCounters(section_keys[new_key],elt.keys())
+            else:
+              UpdateCounters(section_keys[k],elt.keys())
+          else:
+            UpdateCounters(section_keys[k],['list_elt:'+repr(type(elt))])
+
+#-------------------------------------------------------------------------------
+def ParseLatex(section_names,section_keys,latex_sections,ordered_sections):
+    """
+        fills dictionary latex_sections and list ordered_sections
+        latex_sections   contains all the latex code of a subsection related to
+                        a DDL section. If the section is a list with different
+                        types, then each subsubsection part and the common
+                        part are saved.
+        ordered_sections contains the sections in the order of their appearance
+                        in latex
+    """
+    # read latex file to get more info 
+    ddl_tex = open("../doc/ddl/ddl.tex")
+    for l in ddl_tex:
+        if '\subsection' in l:
+            for sn in section_names:
+                if sn.replace('_','\_')  in l:
+                    ordered_sections.append(sn)
+                    current_subsection    = sn
+                    current_subsubsection = ""
+                    # all possible list element types
+                    current_elttypes=[]
+                    # list possible elements types from section_keys
+                    for st in section_keys.keys():
+                        if st.startswith(sn+':'):
+                            elttype=st[st.find(':')+1:]
+                            current_elttypes.append(elttype)
+                            latex_sections[current_subsection+':'+elttype] = ''
+                    latex_sections[current_subsection] = ''
+        if '\section' in l:
+            current_subsection=""
+            current_subsubsection=""
+        if current_subsection:
+            if ('\subsubsection' in l) and current_elttypes:
+                current_subsubsection = ""
+                for t in current_elttypes:
+                    if '{'+t.replace('_','\_')+'}' in l:
+                        current_subsubsection = t
+            if current_subsubsection:
+                latex_sections[current_subsection+':'+current_subsubsection] += l
+            else:
+                latex_sections[current_subsection] += l
+    # adding remaining (not found) sections
+    for sn in section_names:
+        if sn not in ordered_sections:
+            ordered_sections.append(sn)
 
 #-------------------------------------------------------------------------------
 def UpdateCounters(_dict,_list):
-  for l in _list:
-    if l in _dict:
-      _dict[l] += 1
-    else:
-      _dict[l] = 1
+    for l in _list:
+        if l in _dict:
+            _dict[l] += 1
+        else:
+            _dict[l] = 1
 
 #-------------------------------------------------------------------------------
-def WriteDDLOptions(sn,section_types,section_keys,latex_section):
-  """
-    sn: section name
-    section_keys: dict containing the keys for each section
-    latex_section: corresponding text of the latex file
-    return string containing the processed json code
-  """
+def WriteDDLOptions(sn,section_types,section_keys,latex_sections):
+    """
+        sn: section name
+        section_keys: dict containing the keys for each section
+        latex_sections: corresponding text of the latex file
+        return string containing the processed json code
+    """
 
-  max_count = 0
-  for t in section_keys[sn]:
-    max_count = max(max_count,section_keys[sn][t])
+    max_count = 0
+    for t in section_keys[sn]:
+        max_count = max(max_count,section_keys[sn][t])
 
-  res = ''
-  indent=''
-  
-  # only list possible type if it is not an list element
-  if ':' not in sn:
-    res +=  indent+' "{0}_types": '.format(sn)
-    res +=  '[ '
-    index=0
-    for t in section_types[sn]:
-      counter = section_types[sn][t]
-      if t.startswith('<type'): 
-        if index>0:  res +=  ', '
-        res +=  '"{0} ({1})"'.format(t[7:-2],counter)
-        index+=1
-      if t.startswith('list_elt:<type'): 
-        if index>0:  res +=  ', '
-        res +=  '"list:{0} ({1})"'.format(t[16:-2],counter)
-        index+=1
-    res +=  '],\n'
-    res +=  indent+' "{0}": \n'.format(sn)
-  else:
-    indent = '  '
-    res +=  indent+' "{0} ({1})": \n'.format(sn[sn.find(':')+1:],max_count)
-  res +=  indent+'    {\n'
-  
-  for t in section_keys[sn]:
-    counter = section_keys[sn][t]
-    res +=  indent+'    "{0} ({1})":'.format(t,counter)
-    # try to find the associated doc
-    latex_section = re.sub(r'\\-','',latex_section)
-    doc = re.search(r"^[^&]*{0}[^&]*&([^&]*)&([^\\]*)\\".format(t.replace('_','\\\\_')),
-                    latex_section,re.MULTILINE)
-    if doc:
-      res_string = doc.group(1)
-      # get rid of newlines and white spaces
-      res_string = re.sub(r'\s+',' ',res_string)
-      res_string = re.sub(r'\n',' ',res_string)
-      res_string = re.sub(r'\\-','',res_string)
-      res_string = re.sub(r'\\{','{',res_string)
-      res_string = re.sub(r'\\}','}',res_string)
-      res_string = res_string.strip()
-      res +=  '"'+res_string+'",\n'
+    res = ''
+    indent=''
+    
+    # only list possible type if it is not an list element
+    if ':' not in sn:
+        res +=  indent+' "{0}_types": '.format(sn)
+        res +=  '[ '
+        index=0
+        for t in section_types[sn]:
+            counter = section_types[sn][t]
+        if t.startswith('<type'): 
+            if index>0:  res +=  ', '
+            res +=  '"{0} ({1})"'.format(t[7:-2],counter)
+            index+=1
+        if t.startswith('list_elt:<type'): 
+            if index>0:  res +=  ', '
+            res +=  '"list:{0} ({1})"'.format(t[16:-2],counter)
+            index+=1
+        res +=  '],\n'
+        res +=  indent+' "{0}": \n'.format(sn)
     else:
-      res +=  '"*** doc not found ***",\n'
-  res +=  indent+'    },\n'
-  return (res,max_count)
+        indent = '  '
+        res +=  indent+' "{0} ({1})": \n'.format(sn[sn.find(':')+1:],max_count)
+    res +=  indent+'    {\n'
+    
+    keys_doc = []
+    for t in section_keys[sn]:
+        counter = section_keys[sn][t]
+        keydoc =  indent+'    "{0} ({1})":'.format(t,counter)
+        # try to find the associated doc
+        latex_section = re.sub(r'\\-','',latex_sections[sn])
+        doc = re.search(r"^[\s]*{0}[\s]*&([^&]*)&([^\\]*)\\".format(t.replace('_','\\\\_')),
+                        latex_section,re.MULTILINE)
+        if doc:
+            res_string = doc.group(1)
+            keypos = doc.span()[0]
+            # get rid of newlines and white spaces
+            res_string = re.sub(r'\s+',' ',res_string)
+            res_string = re.sub(r'\n',' ',res_string)
+            res_string = re.sub(r'\\-','',res_string)
+            res_string = re.sub(r'\\{','{',res_string)
+            res_string = re.sub(r'\\}','}',res_string)
+            res_string = res_string.replace('\_','_')
+            res_string = res_string.strip()
+            keydoc +=  '"'+res_string+'",\n'
+        else:
+            keydoc +=  '"*** doc not found ***",\n'
+            keypos=0
+        keys_doc.append((keypos,keydoc))
+            
+    # sort keys by their latex position
+    keys_doc.sort(key=lambda res: res[0])
+    for docs in keys_doc:
+        res += docs[1]
+    res +=  indent+'    },\n'
+    return (res,max_count)
   
 
 #-------------------------------------------------------------------------------
@@ -261,8 +368,22 @@ if __name__ == '__main__':
     # load the demo collection
     from app import demo_dict
 
+    # all the names of main sections in DDL files
     section_names = Set()
+    # Dictionary of dictionaries, for each section k, section_keys[k] contains
+    # a dictionary of (key,counter) pairs that counts the number of occurences
+    # of each key. 
+    # ex: section_names['general']['demo_title'] is the number of occurences
+    # of 'demo_title' in 'general' section for all valid json files
+    # if a section is of type list, it may contain a list of dictionaries
+    # with types refered by its 'type' or 'section_type' key, then we create
+    # a dictionary per type in the form:
+    # section_names['build:make']['flags'] which counts the number of occurences
+    # of the flags key in elements of type 'make' within 'build' sections for 
+    # all the valid json files.
     section_keys  = dict()
+    # Dictionary of dictionaries that counts the number of occurences of 
+    # each type for each section 
     section_types = dict()
 
     demo_desc = {}
@@ -278,33 +399,10 @@ if __name__ == '__main__':
         if CheckDemoDescription(demo_description):
           demo_desc[demo_id] = demo_description
           print " --> OK "
-          # save all keys
-          section_names.update(demo_description.keys())
-          for k in demo_description.keys():
-            if k not in section_keys:
-              section_keys[k]=dict()
-              section_types[k]=dict()
-            UpdateCounters(section_types[k],[repr(type(demo_description[k]))])
-            if type(demo_description[k])==dict:
-              UpdateCounters(section_keys[k],demo_description[k].keys())
-            if type(demo_description[k])==list:
-              # create a dict per type
-              for elt in demo_description[k]:
-                if (type(elt)==dict):
-                  new_key=''
-                  if 'type' in elt:
-                    new_key = k+":"+elt['type'].lower()
-                  if k+'_type' in elt:
-                    new_key = k+":"+elt[k+'_type'].lower()
-                  if new_key!='':
-                    if new_key not in section_keys:
-                      section_keys[new_key]=dict()
-                      print "adding key:",new_key, " with ", elt.keys()
-                    UpdateCounters(section_keys[new_key],elt.keys())
-                  else:
-                    UpdateCounters(section_keys[k],elt.keys())
-                else:
-                  UpdateCounters(section_keys[k],['list_elt:'+repr(type(elt))])
+          UpdateDemoInfo(demo_description,
+                         section_names,
+                         section_keys,
+                         section_types)
         else:
           demo_dict.pop(demo_id)
           print "FAILED"
@@ -343,31 +441,18 @@ if __name__ == '__main__':
       elif "run" == arg:
         do_run(demo_dict, demo_desc)
       elif arg == "jsoninfo":
-        # read latex file to get more info 
-        ddl_tex = open("../doc/ddl/ddl.tex")
         # order sections by their position in the latex file
         ordered_sections = []
-        latex_section=dict()
-        for l in ddl_tex:
-          if '\subsection' in l:
-            for sn in section_names:
-              if sn in l:
-                ordered_sections.append(sn)
-                current_subsection=sn
-                latex_section[current_subsection] = ''
-          if '\section' in l:
-            current_subsection=""
-          if current_subsection!="":
-            latex_section[current_subsection] += l
-        for sn in section_names:
-          if sn not in ordered_sections:
-            ordered_sections.append(sn)
+        latex_sections=dict()
+        ParseLatex(section_names,section_keys,latex_sections,ordered_sections)
         
         print "All demo sections are "
-        #print "Latex code"
-        #for sn in ordered_sections:
-          #if sn in latex_section:
-            #print latex_section[sn]
+        print "Latex code"
+        for sn in latex_sections:
+            if "repeat" in sn:
+                print
+                print "---------------- ",sn,"--------------"
+                print latex_sections[sn]
         
         print "JSON help file: see ddl_help.json"
         dllf = open("ddl_help.json","w")
@@ -378,13 +463,13 @@ if __name__ == '__main__':
             dllf.write('   {\n')
           else:
             doc = WriteDDLOptions(os,section_types,
-                            section_keys,latex_section[os])
+                            section_keys,latex_sections)
             dllf.write(doc[0])
           list_res=[]
           for sn in section_keys.keys():
             if sn.startswith(os+":"):
               res = WriteDDLOptions(sn,section_types,
-                              section_keys,latex_section[os])
+                              section_keys,latex_sections)
               list_res.append(res)
           # sort by counters
           list_res.sort(key=lambda res: res[1],reverse=True)

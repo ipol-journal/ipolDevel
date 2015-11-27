@@ -52,7 +52,6 @@
                           "5%":"0.05", 
                           "10%":"0.1", 
                           "50%":"0.5"},
-      "type_format"   : "float",
       "default_value" : "0.005"
     },
     {
@@ -60,7 +59,6 @@
       "type"          : "selection_collapsed", 
       "label"         : "Block",
       "values"        : {"3 x 3":"3", "5 x 5":"5", "7 x 7":"7", "8 x 8":"8", "11 x 11":"11", "15 x 15":"15", "21 x 21":"21"},
-      "type_format"   : "float",
       "default_value" : "8"
     },
     {
@@ -68,7 +66,6 @@
       "type"          : "selection_collapsed", 
       "label"         : "Mean of blocks computation",
       "values"        : {"Mean":"1", "Median":"2"},
-      "type_format"   : "float",
       "default_value" : "2"
     },    
     {
@@ -76,7 +73,6 @@
       "type"          : "selection_collapsed", 
       "label"         : "Curve filter iterations:",
       "values"        : {"None":"0", "1 iteration":"1", "2 iterations":"2", "3 iterations":"3", "4 iterations":"4", "5 iterations":"5", "6 iterations":"6", "7 iterations":"7"},    
-      "type_format"   : "float",
       "default_value" : "5"
     },
     {
@@ -84,7 +80,6 @@
       "type"          : "selection_collapsed", 
       "label"         : "Treatment of groups (2x2) of equal pixels",
       "values"        : {"Use all the pixels in the image":"0", "Ignore that kind of pixels":"1"},
-      "type_format"   : "float",
       "default_value" : "1"
     },
     {
@@ -97,8 +92,7 @@
       "id"            : "noise_variance",
       "type"          : "label", 
       "label"         : " <label> Noise variance (<i>A</i>+<i>B</i><b>u</b>, where <b>u</b> is the input noisy image. Set <i>B</i>=0 for uniform noise) </label>",
-      "default_value" : "A",
-      "type_format"   : "string"
+      "default_value" : "A"
     },
     {
       "id"            : "anoise",

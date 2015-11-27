@@ -210,8 +210,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           $scope.CropInfo.coord = {
             x:Math.round($scope.params.x0*$scope.display_ratio),
             y:Math.round($scope.params.y0*$scope.display_ratio),
-            w:Math.round(($scope.params.x1-$scope.params.x0+1)*$scope.display_ratio),
-            h:Math.round(($scope.params.y1-$scope.params.y0+1)*$scope.display_ratio)
+            w:Math.round(($scope.params.x1-$scope.params.x0)*$scope.display_ratio),
+            h:Math.round(($scope.params.y1-$scope.params.y0)*$scope.display_ratio)
           };
 
           // automatically enable/disable input InputCropped
@@ -219,8 +219,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           // they are the maximal dimensions over all inputs ...
           $scope.CropInfo.enabled = ($scope.params.x0!=0) ||
                                     ($scope.params.y0!=0) ||
-                                    ($scope.params.x1!=$scope.imwidth-1) ||
-                                    ($scope.params.y1!=$scope.imheight-1);
+                                    ($scope.params.x1!=$scope.imwidth) ||
+                                    ($scope.params.y1!=$scope.imheight);
           
         }
       }
