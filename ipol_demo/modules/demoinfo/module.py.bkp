@@ -1,0 +1,344 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+#python main.py demoinfo.conf
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# Module written by Alexis Mongin. Contact : alexis.mongin #~AT~# outlook.com
+
+"""
+This module is an archive system
+for calculations and experiments done with IPOL.
+"""
+
+import sqlite3 as lite
+import sys
+import errno
+import hashlib
+import logging
+import json
+import cherrypy
+import os
+import os.path
+import magic
+import shutil
+
+try:
+    import Image
+except Exception, e:
+    from PIL import Image
+
+
+from mako.template import Template
+
+#GLOBAL VARS
+LOGNAME="demoinfo_log"
+CONFIGFILE="./demoinfo.conf"
+
+
+
+#SQLALCHEMY
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column
+from sqlalchemy.types import String, Integer
+ 
+# Helper to map and register a Python class a db table
+Base = declarative_base()
+ 
+class Message(Base):
+    __tablename__ = 'message'
+    id = Column(Integer, primary_key=True)
+    value =  Column(String)
+ 
+    def __init__(self, message):
+        Base.__init__(self)
+        self.value = message
+ 
+    def __str__(self):
+        return self.value.encode('utf-8')
+ 
+    def __unicode__(self):
+        return self.value
+ 
+    @staticmethod
+    def list(session):
+        return session.query(Message).all()
+
+def init_database(self):
+
+    # Get the SQLAlchemy session associated
+    # with this request.
+    # It'll be released once the request
+    # processing terminates
+    db = cherrypy.request.db
+
+    status = True
+    dbname = self.database_file
+
+    msg='mymsg1'
+    m = Message(msg)
+    cherrypy.request.db.add(m)
+
+
+    # try:
+    #     conn = lite.connect(dbname)
+    #     cursor_db = conn.cursor() 
+    #     cursor_db.execute(""" PRAGMA foreign_keys=ON""")
+        
+    #     cursor_db.execute(
+    #         """CREATE TABLE IF NOT EXISTS "Autor" (
+    #         ID PRIMARY KEY , 
+    #         amount REAL , 
+    #         code CHAR(3) , 
+    #         name VARCHAR , 
+    #         demoId INTEGER , 
+    #         creation TIMESTAMP
+    #         );"""
+    #     )
+    #     conn.commit()
+    #     conn.close()
+    # except Exception as ex:
+    #     self.error_log("init_database", (str(ex)))
+    #     if os.path.isfile(self.database_file):
+    #         try:
+    #             os.remove(self.database_file)
+    #         except Exception as ex:
+    #             self.error_log("init_database remove", str(ex))
+    #     status = False
+    return status
+
+
+
+
+class DemoInfo(object):
+    """
+    This class implement an archive system for experiments and
+    calculations done with the IPOL demo image system.
+    """
+
+#####
+# initialization and static methods.
+#####
+
+    @staticmethod
+    def mkdir_p(path):
+        """
+        Implement the UNIX shell command "mkdir -p"
+        with given path as parameter.
+        """
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+
+    @staticmethod
+    def check_config():
+        """
+        Check if needed datas exist correctly in the config of cherrypy.
+
+        :rtype: bool
+        """
+        if not (
+                #cherrypy.config.has_key("blobs_dir") and
+                cherrypy.config.has_key("database_dir") and
+                #cherrypy.config.has_key("blobs_thumbs_dir") and
+                cherrypy.config.has_key("logs_dir") and
+                cherrypy.config.has_key("url")):
+            print "Missing elements in configuration file."
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def get_extension(path):
+        """
+        Return the extension of a file using its magic number.
+
+        :rtype: string
+        """
+        return magic.from_file(path).split(' ', 1)[0].lower()
+
+    @staticmethod
+    def get_hash_blob(path):
+        """
+        Return sha1 hash of given blob
+
+        :return: sha1 of the blob
+        :rtype: string
+        """
+        with open(path, 'rb') as the_file:
+            return hashlib.sha1(the_file.read()).hexdigest()
+
+    @staticmethod
+    def file_format(the_file):
+        """
+        Return format of the file
+
+        :return: format of file (audio, image or video)
+        :rtype: string
+        """
+        mime = magic.Magic(mime=True)
+        fileformat = mime.from_file(the_file)
+        return fileformat[:5]
+
+    def unit_test(self):
+        for i in range(10):
+            self.add_exp_test()
+        with open(os.path.join(self.database_dir, "test"), "w+") as the_file:
+            self.echo_database(the_file)
+
+    def __init__(self, option):
+        """
+        Initialize Archive class.
+        Attribute status should be checked after each initialisation.
+        It is false if something went wrong.
+        """
+        thumbs_s = None
+        cherrypy.config.update(CONFIGFILE)
+        self.status = self.check_config()
+        if not self.status:
+            sys.exit(1)
+
+        self.blobs_dir = cherrypy.config.get("blobs_dir")
+        self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
+
+        if option == "test":
+            self.database_dir = "test"
+        else:
+            self.database_dir = cherrypy.config.get("database_dir")
+
+        self.logs_dir = cherrypy.config.get("logs_dir")
+        self.url = cherrypy.config.get("url")
+
+        try:
+            thumbs_s = int(cherrypy.config.get("thumbs_size"))
+        except Exception:
+            thumbs_s = 256
+
+        try:
+            self.nb_exp_by_pages = int(cherrypy.config.get("nb_exp_by_pages"))
+        except Exception:
+            self.nb_exp_by_pages = 12
+        self.thumbs_size = (thumbs_s, thumbs_s)
+
+        self.mkdir_p(self.logs_dir)
+        self.mkdir_p(self.database_dir)
+        #self.mkdir_p(self.blobs_dir)
+        #self.mkdir_p(self.blobs_thumbs_dir)
+
+        self.logger = self.init_logging()
+
+        #Database
+        self.database_file = os.path.join(self.database_dir, "demoinfo.db")
+        self.status = self.init_database()
+        if not self.status:
+            sys.exit("Initialisation of database failed. Check the logs.")
+
+        if option == "test":
+            self.unit_test()
+            self.shutdown()
+
+
+    def init_logging(self):
+        """
+        Initialize the error logs of the module.
+        """
+        logger = logging.getLogger(LOGNAME)
+        logger.setLevel(logging.ERROR)
+        handler = logging.FileHandler(os.path.join(self.logs_dir,
+                                                   'error.log'))
+        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
+
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in archive.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string)
+ 
+    def init_database(self):
+        """
+        Initialize the database used by the module if it doesn't exist.
+
+        :return: False if there was an error. True otherwise.
+        :rtype: bool
+        """
+        status = True
+        dbname = self.database_file
+
+        if not os.path.isfile(dbname):
+
+            try:
+                conn = lite.connect(dbname)
+
+                cursor_db = conn.cursor() 
+
+                cursor_db.execute(""" PRAGMA foreign_keys=ON""")
+                
+                # cursor_db.execute("""
+                # CREATE TABLE IF NOT EXISTS autor(
+                # id INTEGER PRIMARY KEY AUTOINCREMENT,
+                # id_demo INTEGER NULL,
+                # name TEXT NULL,
+                # timestamp TIMESTAMP
+                # """)
+
+
+                cursor_db.execute(
+                    """CREATE TABLE IF NOT EXISTS "Autor" (
+                    ID PRIMARY KEY , 
+                    amount REAL , 
+                    code CHAR(3) , 
+                    name VARCHAR , 
+                    demoId INTEGER , 
+                    creation TIMESTAMP
+                    );"""
+                )
+                # cursor_db.execute("""
+                # CREATE TABLE IF NOT EXISTS experiments(
+                # id INTEGER PRIMARY KEY AUTOINCREMENT,
+                # id_demo INTEGER NULL,
+                # params TEXT NULL,
+                # timestamp TIMESTAMP
+                # """)
+                # cursor_db.execute("""
+                # CREATE TABLE IF NOT EXISTS blobs(
+                # id INTEGER PRIMARY KEY AUTOINCREMENT,
+                # hash TEXT NULL,
+                # type TEXT NULL,
+                # format TEXT NULL)
+                # """)
+                # cursor_db.execute("""
+                # CREATE TABLE IF NOT EXISTS correspondence(
+                # id INTEGER PRIMARY KEY AUTOINCREMENT,
+                # id_experiment INTEGER NULL,
+                # id_blob INTEGER NULL,
+                # name TEXT NULL,
+                # FOREIGN KEY(id_experiment) REFERENCES experiments(id)
+                # ON DELETE CASCADE)
+                # """)
+                conn.commit()
+                conn.close()
+            except Exception as ex:
+                self.error_log("init_database", (str(ex)))
+                if os.path.isfile(self.database_file):
+                    try:
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.error_log("init_database remove", str(ex))
+                status = False
+        return status
