@@ -13,8 +13,8 @@ IPOLDemoControllers.controller('DemoListCtrl', ['$scope', 'Demo',
 /*---------------- DemoInputCtrl ---------------------------------------------*/
 IPOLDemoControllers.controller('DemoInputCtrl', 
                               ['$scope', '$sce', '$http','demo_id', 'blob_server', 
-                               'Demo', 'DemoBlobs', 'Params', 
-    function($scope, $sce, $http, demo_id, blob_server, Demo, DemoBlobs, Params ) {
+                               'Demo', 'Params', 
+    function($scope, $sce, $http, demo_id, blob_server, Demo, Params ) {
 
       $scope.demo_id     = demo_id;
       $scope.blob_server = blob_server;
@@ -119,8 +119,8 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.demo_id = demo_id;
       $scope.Math = window.Math;
       $scope.maxdim=768;
-      $scope.imwidth=1024;
-      $scope.imheight=1024;
+//       $scope.imwidth=1024;
+//       $scope.imheight=1024;
       $scope.display_ratio=1;
       //$scope.InputCropped=false;
       $scope.CropInfo = { enabled:false, coord:{ x: 0, y:0, w :100, h:100 } , 
@@ -309,9 +309,9 @@ IPOLDemoControllers.controller('DemoWaitCtrl',
 
 /*---------------- DemoResultCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoResultCtrl', 
-  [ '$scope', '$sce', 'demo_id', 'demo_key', 
+  [ '$scope', '$sce', '$parse', 'demo_id', 'demo_key', 
     'work_url', 'Demo', 'Meta', 'Params', 'Info',
-    function($scope, $sce, demo_id, demo_key, work_url, Demo, Meta ,Params, Info ) 
+    function($scope, $sce, $parse, demo_id, demo_key, work_url, Demo, Meta ,Params, Info ) 
     {
 
       $scope.initResults = function($scope) {
@@ -330,7 +330,6 @@ IPOLDemoControllers.controller('DemoResultCtrl',
           }
         );
       }
-
 
       $scope.idx = 0;
       $scope.maxdim=768;
@@ -391,9 +390,24 @@ IPOLDemoControllers.controller('DemoResultCtrl',
         return angular.isObject(v);
       };
       
-      $scope.DisableImage = function(status,index) { status[index] = "failed";}
-      $scope.LoadedImage  = function(status,index) { status[index] = "loaded";}
+      $scope.DisableImage     = function(status,index) { status[index] = "failed"; }
+      $scope.LoadedImage      = function(status,index) { status[index] = "loaded";}
       
+      $scope.CheckLabelCondition = function(label, scope)
+      {
+          if(label.indexOf('?') === -1) return true;
+          var c = label.split('?')[0];
+          var value = $parse(c)(scope)
+          return value;
+      }
+      
+      $scope.GetLabel = function(label)
+      {
+          if(label.indexOf('?') === -1) 
+              return label;
+          else 
+              return label.split('?')[1];
+      }
     }
   ]
 );

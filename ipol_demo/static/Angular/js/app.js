@@ -2,9 +2,9 @@
 
 /* App Module */
 
+//   'IPOLDemoAnimations',
 var IPOLDemosApp = angular.module('IPOLDemosApp', [
   'ngSanitize',
-  'IPOLDemoAnimations',
   'IPOLDemoControllers',
   'IPOLDemoFilters',
   'IPOLDemoServices',
@@ -225,8 +225,7 @@ IPOLDemosApp.directive('imageonload', function() {
     restrict: 'A',
     link: function(scope, element, attrs) {
         element.bind('load', function() {
-          scope.$apply(attrs.imageonload);
-          ;
+           scope.$apply(attrs.imageonload);
         });
     }
   };
