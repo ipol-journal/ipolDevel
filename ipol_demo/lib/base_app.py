@@ -795,6 +795,8 @@ class base_app(empty_app):
       rd.run_algo()
       # take into account possible changes in parameters
       self.cfg['param'] = rd.get_algo_params()
+      self.cfg['info']  = rd.get_algo_info()
+      self.cfg['meta']  = rd.get_algo_meta()
       print "self.cgf['param']=",self.cfg['param']
       return
 

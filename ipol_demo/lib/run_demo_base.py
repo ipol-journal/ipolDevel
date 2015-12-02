@@ -72,10 +72,16 @@ class RunDemoBase:
   def set_algo_info(self,algo_info):
     self.algo_info=algo_info
 
+  def get_algo_info(self):
+    return self.algo_info
+
   #-----------------------------------------------------------------------------
   # set the algorihtm meta info as a  dictionnary
   def set_algo_meta(self,algo_meta):
     self.algo_meta=algo_meta
+
+  def get_algo_meta(self):
+    return self.algo_meta
 
   #-----------------------------------------------------------------------------
   def set_extra_path(self,p):
