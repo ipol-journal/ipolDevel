@@ -46,7 +46,7 @@
       "detect input_0.sel.png $layer_count $threshold",
       "python:zoomfactor = max(1, int(math.ceil(480.0/max(x1-x0,y1-y0))))",
       [ "zoomfactor>1", 
-          "# here we should save resized images: really needed ??" ]
+          "echo 'here we should save resized images: really needed ??'" ]
    ]
   ,
   "archive":
