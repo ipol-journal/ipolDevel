@@ -115,17 +115,12 @@
                           "first image"                : "input_0s.png",
                           "second image"               : "input_1.png"
                         },
-      "style"         : "width:{{imwidth}}px;height:{{imheight}}px" 
+      "style"         : "width:{{::imwidth}}px;height:{{::imheight}}px" 
     },
     {
       "type"          : "file_download", 
-      "label"         : "Correspondences",
-      "contents"      : "match.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "inliers",
-      "contents"      : "matchOrsa.txt"
+      "label"         : "<h2>Downloads</h2>",
+      "contents"      : { "Correspondences":"match.txt", "inliers":"matchOrsa.txt" }
     },
     {
       "type"          : "text_file", 
