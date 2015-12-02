@@ -250,7 +250,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- label & html text to display & yes
+ label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
 \caption{Common keys for the 'params' section ({\em req} means required).}
 \end{longtable}
@@ -308,6 +308,16 @@ The label  can be used as a title to separate groups of parameters.
 %-------------------------------------------------------------------------------
 \subsection{The \emph{run} section}
 
+The 'run' section contains an array of elements, where each element can be 
+a string or another array of strings:
+\begin{itemize}
+\item if the element is a string, it can be a command to run from the system (shell, 
+python script or demo binary) or a python code to evaluate if the string
+starts with "python:",
+\item if the element is an array of string, the first string is a python
+condition, if this condition is fulfilled, the remaining commands will be
+executed.
+\end{itemize}
 In the command line, you can use \$param\_id to replace the to evaluate a 
 python expression that can contain the parameter ids,
 and '\textgreater output\_file' (without space between '\textgreater' and the 
@@ -316,9 +326,11 @@ working directory.
 If you also want to redirect the standard errors to the same file, use can add 
 '2\textgreater\&1' as another argument. However, pipelines are not allowed 
 ('|' character).
-Python scripts from the PythonTools directory can be used in commands.
+Python scripts from the PythonTools directory can be used in commands: currently
+'count\_lines.py' and 'image\_histogram.py'.
 
-\paragraph{Example}:\\
+
+\paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
 "run": [
   "nlmeans  input_0.sel.png $sigma input_1.png output_1.png",
@@ -326,6 +338,40 @@ Python scripts from the PythonTools directory can be used in commands.
   "img_mse  input_0.sel.png output_1.png >stdout.txt 2>&1"
 ]
 \end{lstlisting}
+
+In this example, the last command adds a new parameters using self.algo\_params,
+this parameter will be saved in the config files. It is also possible to add 
+or change info and meta sections using self.algo\_info and self.algo\_meta.
+\begin{lstlisting}[language=json,firstnumber=1]
+  "run": [ 
+    "mosaic     -p $pattern input_0.sel.png mosaiced.png ",
+    "python:sizeX=x1-x0;sizeY=y1-y0",
+    "python:zoom_factor=max(1, int(math.ceil(200.0/min(sizeX, sizeX))))",
+    "python:sizeX=sizeX*zoom_factor;sizeY=sizeY*zoom_factor",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
+    "python:self.algo_params['zoom_factor']=zoom_factor"
+  ]
+\end{lstlisting}
+
+A more complex example taken from demo 70:
+\begin{lstlisting}[language=json,firstnumber=1]
+  "run": [ 
+      "convert input_0.sel.png inputNG.pgm",
+      [ "threshold_type=='manual'", 
+          "pgm2freeman -min_size $min_c -image inputNG.pgm -outputSDPAll -maxThreshold $tmax -minThreshold $tmin >inputPolygon.txt 2>algoLog.txt"
+      ],
+      [ "threshold_type=='auto'",   
+          "pgm2freeman -min_size $min_c -image inputNG.pgm -outputSDPAll >inputPolygon.txt 2>algoLog.txt",
+          "python:fInfo = open(self.work_dir+'algoLog.txt', 'r')",
+          "python:lines = fInfo.readlines()",
+          "python:line_cases = lines[0].replace(')', ' ').split();",
+          "python:tmax = int(line_cases[17])"
+      ],
+      "python:contoursList = open (self.work_dir+'inputPolygon1.txt', 'w')",
+      ...
+  ]
+\end{lstlisting}
+ 
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{config} section}
@@ -411,25 +457,74 @@ The gallery type uses the gallery class to display images. Its parameters are:
  type      & gallery  & yes \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
-              in between & yes \\ \hline
- contents   & label:image\_filename pairs, if a filename does succeed in loading,
-              the image will be removed from the gallery & yes \\ \hline
+              in between. & yes \\ \hline
+ contents   & pairs of label:imagecontents information, where imagecontents can 
+              have three different forms: a filename, an array of filenames, or
+              a list of title:filename pairs. 
+              If an image filename does succeed in loading,
+              the image will be removed from the gallery. 
+              You can also add a condition evaluated in Angular
+              in the current context to enable or disable the pair display:
+              using a label string of the form "condition?label".
+            & yes \\ \hline
  style      & css style associated to the gallery, can contain Angular 
               expressions evaluated in the HTML template & yes \\ \hline
 \caption{Keys for the 'gallery' type.}
 \end{longtable}
 
-\paragraph{Example}:\\
+\paragraph{Examples}:\\
+Standard example, using single filename strings, the image height depends on
+the variable 'ZoomFactor' that can be selected by the user.
 \begin{lstlisting}[language=json,firstnumber=1]
-  {
-    "type"          : "gallery",
+  { "type"          : "gallery",
     "label"         : "<h2>Resulting images</h2>",
     "contents"      : { 
       "Input"     : "input_0.sel.png", 
       "Output"    : "output.png"
     },
-    "style"         : "height:{{sizeY*ZoomFactor}}px"
-  },
+    "style"         : "height:{{sizeY*ZoomFactor}}px" },
+\end{lstlisting}
+The use of '?' in the label "meta.hastruth?Ground truth" will condition the 
+display of "t.ipol.png" image based on the boolean variable meta.hastruth.
+\begin{lstlisting}[language=json,firstnumber=1]
+  { "type"    : "gallery",
+    "label"   : "<h2>Images</h2>",
+    "contents": 
+      {
+        "Optical flow "              : "stuff_phs.ipol.png", 
+        "meta.hastruth?Ground truth" : "t.ipol.png",
+      },
+    "style": "height:{{Math.max(sizeY*ZoomFactor,350)}}px" },
+\end{lstlisting}
+The use of pairs title:filename in the contents will display a HTML table
+for each tab (here "DFT" and "DCT") with images and their associated titles.
+\begin{lstlisting}[language=json,firstnumber=1]
+  { "type"          : "gallery",
+    "label"         : "<h2>Gaussian filter results</h2>",
+    "contents"      : { 
+      "DFT":
+        { "1 iteration" :"dft_direct.png", 
+          "N iterations":"dft_iter.png", 
+          "difference"  :"dft_diff.png" }, 
+      "DCT":                     
+        { "1 iteration" :"dct_direct.png", 
+          "N iterations":"dct_iter.png",
+          "difference"  :"dct_diff.png" }
+    },
+    "style"         : "height:{{sizeY*ZoomFactor}}px" },
+\end{lstlisting}
+The use of string array in the contents will display HTML table without associated
+titles.
+\begin{lstlisting}[language=json,firstnumber=1]
+  { "type"          : "gallery",
+    "label"         : "<p>The following images were resized...<p>",
+    "contents"      : { 
+      "zoomed-out"  : [ "ipol_imgW.png", "palette1.png" ],
+      "zoomed-in"   : [ "ipol_imgC.png", "palette1.png" ],
+      "residue"     : [ "ipol_diff.png", "palette2.png" ],
+      "mask"        : [ "ipol_mask.png", "palette1.png" ]
+    },
+    "style"         : "height:{{500*ZoomFactor}}px"   },
 \end{lstlisting}
 
 
@@ -441,31 +536,36 @@ The gallery type uses the gallery class to display images. Its parameters are:
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
+ repeat    & range expression (evaluated in Angular):
+              will create a loop in the form idx=0..range-1 & no \\ \hline
  label     & html title associated to the file download & yes \\ \hline
  contents  & either a single string of the filename to download, or a list
               of label:filename pairs for files to download & yes \\ \hline
 \caption{Keys for the 'file\_download' type.}
 \end{longtable}
 
-\paragraph{Example}:\\
+\paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-   {  "type"     : "file_download", 
-      "label"    : "Download Hough result",
-      "contents" : "output_hough.png" },
+  { "type"     : "file_download", 
+    "label"    : "Download Hough result",
+    "contents" : "output_hough.png" },
 \end{lstlisting}
 
-\paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-    {
-      "type"          : "file_download", 
-      "label"         : "<h3>Download computed optical flow:</h3>",
-      "contents"      : { "tiff": "stuff_tvl1.tiff", 
-                          "flo" : "stuff_tvl1.flo",
-                          "uv"  : "stuff_tvl1.uv" }
-    },
+  {
+    "type"          : "file_download", 
+    "label"         : "<h3>Download computed optical flow:</h3>",
+    "contents"      : { "tiff": "stuff_tvl1.tiff", 
+                        "flo" : "stuff_tvl1.flo",
+                        "uv"  : "stuff_tvl1.uv" }  },
 \end{lstlisting}
-
-
+Example using 'repeat':
+\begin{lstlisting}[language=json,firstnumber=1]
+  { "type"          : "file_download", 
+    "repeat"        : "params.scales",
+    "label"         : "Download the estimations obtained at scale {{idx}}",
+    "contents"      : "estimation_s{{idx}}.txt" }
+\end{lstlisting}
 
 %------ html_text  ------
 \subsubsection{ \emph{html\_text} type}
@@ -475,14 +575,20 @@ The gallery type uses the gallery class to display images. Its parameters are:
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- contents   & & yes \\ \hline
+ contents   & array of strings, that will be concatenated to form the html 
+              content. This content can contain Angular expression using \{\{expr\}\}& yes \\ \hline
 \caption{Keys for the 'html\_text' type.}
 \end{longtable}
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-{ "type"     : "html_text", 
-  "contents" : "Noise variance = {{params.anoise}}<br/>..."},
+  { "type"          : "html_text", 
+    "contents"      : [
+      "<p style='font-size:85%'>",
+        "* &ldquo;Exact&rdquo; is computed with FIR, ",
+        "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
+        "(using {{params.sigma<=2?'FIR':'DCT'}}",
+      "</p>" ] },
 \end{lstlisting}
 
 
@@ -494,18 +600,18 @@ The gallery type uses the gallery class to display images. Its parameters are:
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- label      & & yes \\ \hline
- contents   & & yes \\ \hline
- style      & & yes \\ \hline
+ label     & HTML label & yes \\ \hline
+ contents  & text filename to display & yes \\ \hline
+ style     & associated CSS style & yes \\ \hline
 \caption{Keys for the 'text\_file' type.}
 \end{longtable}
 
 \paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-{  "type"     : "text_file", 
-  "label"    : "<h2>Additional info<h2>",
-  "contents" : "output.txt",
-  "style"    : "width:{{sizeX}}px;height:14em" },
+  { "type"          : "text_file", 
+    "label"         : "<h2>Output<h2>",
+    "contents"      : "stdout.txt",
+    "style"         : "width:40em;height:16em;background-color:#eee" }
 \end{lstlisting}
 
 %------ warning  ------
@@ -517,33 +623,23 @@ The gallery type uses the gallery class to display images. Its parameters are:
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type      & warning  & yes \\ \hline
- condition & warning condition evaluated by AngularJS in its 
+ condition & warning condition evaluated by Angular in its 
 the context of the result controler named {\em DemoResultCtrl}. In this 
 context, the user has access, among other variables, to: -'demo' which 
 contains the demo description, - 'params' which contains the current 
 values of all the parameters, - sizeX and sizeY as the input image dimensions.  
 & yes \\ \hline
- contents  & displayed text, can contain both HTML tags and AngularJS 
+ contents  & displayed text, can contain both HTML tags and Angular
 expressions of the form '\{\{expression\}\}'. & \\ \hline
 \caption{Keys for the 'warning' type.}
 \end{longtable}
-
 \paragraph{Example}:\\
-
 \begin{lstlisting}[language=json,firstnumber=1]
 { "type":"warning", 
   "condition":"sizeX * sizeY < X",
   "contents":"Needs X pixels ({{sizeX *sizeY}} given)<br/>"},
 \end{lstlisting}
 
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-{ "type"     : "gallery",
-  "label"    : "<h3>Images</h3>",
-  "contents" : {"Input":"input.png", "Output":"output.png"},
-  "style"    : "width:{{sizeY}}px" },
-\end{lstlisting}
 
 %------ repeat_gallery  ------
 \subsubsection{ \emph{repeat\_gallery} type}
@@ -555,35 +651,103 @@ algorithm.
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- type      & repeat\_gallery  & yes \\ \hline
- label      & & yes \\ \hline
- repeat     & & yes \\ \hline
- contents   & & yes \\ \hline
- style      & & yes \\ \hline
+ type       & repeat\_gallery  & yes \\ \hline
+ label      & html label for the gallery, can be either a single string or 
+             a list of string that will be concatenated with whitespace character
+              in between.& yes \\ \hline
+ repeat     & range expression (evaluated in Angular):
+              will create a loop in the form idx=0..range-1 & yes \\ \hline
+ contents   & an array where the first element is a string representing the label
+              and that can contain angular expression using the index idx, and
+              the second element is either a string or an array of strings
+              representing the image filenames to display. & yes \\ \hline
+ style      & display CSS style, usually setting width and height& yes \\ \hline
 \caption{Keys for the 'repeat\_gallery' type.}
 \end{longtable}
 
-\paragraph{Example}:\\
+\paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-{ "type"     : "repeat_gallery",
-  "repeat"   : "params.scales",
-  "label"    : "<h2> Noise Curves </h2>",
-  "contents" : [ "Scale {{idx}}: curve_{{idx}}.png"],
-  "style"    : "height:600px" },
+  { "type"     : "repeat_gallery",
+    "repeat"   : "params.scales",
+    "label"    : "<h2> Noise Curves </h2>",
+    "contents" : [ "Scale {{idx}}:","curve_{{idx}}.png"],
+    "style"    : "height:600px" },
 \end{lstlisting}
 
-\paragraph{Example}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-{ "type"     : "repeat_gallery",
-  "repeat"   : "params.scales",
-  "label"    : "<h2> Noise Curves </h2>",
-  "contents" : [ "Scale {{idx}}: curve_{{idx}}.png"],
-  "style"    : "height:600px" },
+  { "type"     : "repeat_gallery",
+    "label"    : "<h2>Difference image (left), ...</h2> 
+    "repeat"   : "params.nbscales",
+    "contents" : ["Scale{{idx}}",
+                   [ "denoised_diff_{{idx}}.png",
+                     "denoised_noiseCurves_L_{{idx}}.png",
+                     "denoised_noiseCurves_H_{{idx}}.png"] ],
+    "style"    : "width:400px;height:{{400*sizeY/sizeX}}px" }
 \end{lstlisting}
+
 
 %-------------------------------------------------------------------------------
 \subsection{Full examples}
 
+\paragraph{demo 104}: (the format has been densified on purpose)\\
+\begin{lstlisting}[language=json,firstnumber=1]
+{ 
+  "general": { 
+    "demo_title" : "An Analysis of the Viola-Jones Face Detection Algorithm",
+    "input_description": "",
+    "param_description": "",
+    "enable_crop"      : true,
+    "is_test"          : false,
+    "xlink_article": "http://www.ipol.im/pub/art/2014/104/"}, 
+  "build": [ {
+      "build_type"   : "make",
+      "url"          : "http://www.ipol.im/pub/art/2014/104/vj_20140328.tar.gz", 
+      "srcdir"       : "vj_20140328",
+      "prepare_make" : "make OMP=1 -j -f makefile eigen",
+      "binaries"     : [ [".","detect"] ],
+      "flags"        : "OMP=1 -j -f makefile"
+    } ],
+  "inputs": [  {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "900*900",
+          "max_weight"      : "10*900*900",
+          "dtype"           : "3x8i",
+          "ext"             : ".png" } ],
+  "params": [ 
+    { "id"      : "layer_count",
+      "type"    : "range", 
+      "label"   : "Layer Count",
+      "values"  : { "min":1,"max":31,"step":1,"default":31 }
+    },
+    { "id"      : "threshold",
+      "type"    : "range",
+      "label"   :  "Postprocessing Threshold",
+      "values"  : { "min":0,"max":10,"step":0.1,"default":3 }
+    } ],
+  "run": ["detect input_0.sel.png $layer_count $threshold"],
+  "archive": {
+      "files" : { 
+          "input_0.sel.png"   : "exact image",
+          "detectedraw.png"   : "raw detection",
+          "ppSkin.png"        : "commands",
+          "ppRobust.png"      : "skin color detection",
+          "ppBoth.png"        : "most refined detection" } },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : { 
+        "Original"                  : "input_0.sel.png", 
+        "Detected"                  : "detectedraw.png",
+        "Skin Check Only"           : "ppSkin.png",
+        "Robustness Check Only"     : "ppRobust.png",
+        "Skin and Robustness Check" : "ppBoth.png"
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    } ]
+}
+\end{lstlisting}
 
 \subsubsection{keywords}
 
