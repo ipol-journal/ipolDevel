@@ -107,9 +107,9 @@
               <span bind-html-compile="::GetLabel(label)" > </span> 
               <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
               <!-- if image is a single string, load it from work_url -->
-              <div class="galim" ng-if="::CheckString(image)" ng-init="res_im=(work_url+image|interpolate:current_scope)">
+              <div class="galim" ng-if="::CheckString(image)">
                   <img  style="{{result.style|interpolate:current_scope}}" 
-                        ng-src="{{::res_im}}" 
+                        ng-src="{{work_url+image|interpolate:current_scope}}" 
                         imageonfail="DisableImage(result.status,$index)"
                         imageonload="LoadedImage(result.status,$index)"
                   />
@@ -121,7 +121,7 @@
                   <tr>
                     <td ng-repeat="im in ::image">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{::res_im}}" 
+                            ng-src="{{work_url+image|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />
@@ -137,7 +137,7 @@
                   <tr>
                     <td ng-repeat="(l,im) in image" style="text-align:center">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{::res_im}}" 
+                            ng-src="{{work_url+image|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />
