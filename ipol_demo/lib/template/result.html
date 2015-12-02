@@ -92,30 +92,36 @@
 {{"{{demo.general}}"|interpolate:current_scope}}-->
 
   <!-- display all results -->
-  <span ng-repeat="result in demo.results" >
+  <span ng-repeat="result in ::demo.results" >
     <!-- gallery -->
-    <span ng-if="result.type==='gallery'"> 
+    <span ng-if="::result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
       <div   class="gallery2" style="{{result.style|interpolate:current_scope}}">
         <ul class="index">
-          <li ng-repeat="(label,image) in result.contents" 
-              ng-if="result.status[$index]!='failed'">
-            <a href="#">   
-              <span bind-html-compile="label" > </span> 
+          <!-- if label contains '?' then interpret it as a condition 
+                and filter labels -->
+          <li ng-repeat="(label,image) in ::result.contents" 
+              ng-if="CheckLabelCondition(label,current_scope)&&(result.status[$index]!='failed')"
+              >
+            <a href="#">
+              <span bind-html-compile="::GetLabel(label)" > </span> 
               <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
-              <div class="galim" ng-if="CheckString(image)" >
+              <!-- if image is a single string, load it from work_url -->
+              <div class="galim" ng-if="::CheckString(image)" ng-init="res_im=(work_url+image|interpolate:current_scope)">
                   <img  style="{{result.style|interpolate:current_scope}}" 
-                        ng-src="{{work_url+image|interpolate:current_scope}}" 
+                        ng-src="{{::res_im}}" 
                         imageonfail="DisableImage(result.status,$index)"
                         imageonload="LoadedImage(result.status,$index)"
                   />
               </div>
-              <div class="galim" ng-if="CheckArray(image)" >
+              <!-- if image is an array of strings, load each string
+                   from work_url and display them in a table -->
+              <div class="galim" ng-if="::CheckArray(image)" >
                 <table border="1">
                   <tr>
-                    <td ng-repeat="im in image">
+                    <td ng-repeat="im in ::image">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{work_url+im|interpolate:current_scope}}" 
+                            ng-src="{{::res_im}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />
@@ -123,12 +129,15 @@
                   </tr>
                 </table>
               </div>
+              <!-- if image is an object: list of (label,image)
+                   load each image from work_url and display them in a table 
+                    with associated labels -->
               <div class="galim" ng-if="!CheckArray(image)&&CheckObject(image)" >
                 <table border="1">
                   <tr>
                     <td ng-repeat="(l,im) in image" style="text-align:center">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{work_url+im|interpolate:current_scope}}" 
+                            ng-src="{{::res_im}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />

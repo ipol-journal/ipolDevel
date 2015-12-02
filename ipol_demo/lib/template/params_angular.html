@@ -162,12 +162,12 @@
                   <li ng-repeat ="idx in range(demo.inputs.length)" 
                       ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
                     <a href="#"> 
-                      <span bind-html-compile="demo.inputs[idx].description" > </span> 
+                      <span bind-html-compile="::demo.inputs[idx].description" > </span> 
                       <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
                       <div class="galim">
                         <img  id="original_image"
                               crossOrigin="Anonymous"
-                              ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
+                              ng-src="tmp/{{::demo_key}}/input_{{idx}}.png"
                               style=" padding:5px;
                                       max-width:{{maxdim}}px;
                                       max-height:{{maxdim}}px;
@@ -184,7 +184,7 @@
             </div>
             <div ng-if="demo.inputs.length==1">
               <img  crossOrigin="Anonymous"
-                    ng-src="tmp/{{demo_key}}/input_{{0}}.png"
+                    ng-src="tmp/{{::demo_key}}/input_0.png"
                     style=" padding:5px;
                             max-width:{{maxdim}}px;
                             max-height:{{maxdim}}px;
@@ -198,8 +198,8 @@
             </div>
             <input type="hidden" name="x0" value="0">              
             <input type="hidden" name="y0" value="0">
-            <input type="hidden" name="x"  value="{{imwidth}}">
-            <input type="hidden" name="y"  value="{{imheight}}">
+            <input type="hidden" name="x"  value="{{::imwidth}}">
+            <input type="hidden" name="y"  value="{{::imheight}}">
           </div>
 
           <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
@@ -269,16 +269,16 @@
               <li ng-repeat = "idx in range(demo.inputs.length)" 
                   ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
                   <a href="#"> 
-                  <span bind-html-compile="demo.inputs[idx].description" > </span> 
+                  <span bind-html-compile="::demo.inputs[idx].description" > </span> 
                   <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
                   <div class="galim">
                     <img  id="original_image"
                           crossOrigin="Anonymous"
-                          ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                          style=" padding:5px;max-width:{{maxdim}}px;
+                          ng-src="tmp/{{::demo_key}}/input_{{::idx}}.png"
+                          style=" padding:5px;max-width:{{::maxdim}}px;
                                   max-height:{{maxdim}}px;
                                   width:auto;height:auto;"
-                          alt="{{demo.inputs[idx].description}}"
+                          alt="{{::demo.inputs[idx].description}}"
                           styleParent
                           imageonfail="DisableImage(demo.inputs[idx])"
                           imageonload="LoadedImage (demo.inputs[idx])"
