@@ -30,7 +30,7 @@ urlpatterns = [
 	# control panel app
 	url(r'^cp/', include('apps.controlpanel.urls')),
 
-	# media
+	# media  No media is stored in this app!
 	#(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
 
 	# admin

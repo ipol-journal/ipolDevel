@@ -80,7 +80,7 @@
 
         <form class="login form-signin" method="POST" action="{% url 'account_login' %}">
 
-            <h2 class="form-signin-heading">{% trans "Welcom to IPOL Editor's Control Panel " %}</h2>
+            <h2 class="form-signin-heading">{% trans "Welcome to IPOL Editor's Control Panel " %}</h2>
 
             {% csrf_token %}
             {{ form.non_field_errors }}
@@ -88,17 +88,17 @@
                 {{ form.login.errors }}
                 {#        <label for="{{ form.login.id_login }}">Matri:</label>#}
                 {#                {{ form.login }}#}
-                <input class="form-control"  autofocus="autofocus" id="id_login" maxlength="30" name="login" placeholder={% trans "ph_Usuario" %} type="text">
+                <input class="form-control"  autofocus="autofocus" id="id_login" maxlength="30" name="login" placeholder={% trans "User" %} type="text">
             </div>
             <div>
                 {{ form.password.errors }}
                 {#        <label for="{{ form.password.id_password }}">Passwd</label>#}
                 {#                {{ form.password }}#}
-                <input class="form-control" id="id_password" name="password" placeholder={% trans "ph_Contraseña" %} type="password">
+                <input class="form-control" id="id_password" name="password" placeholder={% trans "Password" %} type="password">
             </div>
             <div>
                 {{ form.remember.errors }}
-                <label for="{{ form.remember.id_remember }}">Remember me:</label>
+                <label for="{{ form.remember.id_remember }}">{% trans "Remember me" %}:</label>
                 {{ form.remember }}
             </div>
 

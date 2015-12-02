@@ -37,7 +37,7 @@ class Terminal(object):
         to the module.
         """
         dict_modules = {}
-        tree = ET.parse('modules.xml')
+        tree = ET.parse('config_common/modules.xml')
         root = tree.getroot()
 
         for module in root.findall('module'):
