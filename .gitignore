@@ -10,3 +10,7 @@ doc/ipol.out
 
 # temporary files
 changes*.txt
+
+# generated files
+*.pyc
+

@@ -12,7 +12,7 @@
 
 
 """
-This module is a proxy for the modules
+This module is a proxy for the other modules
 """
 
 import sys
@@ -23,13 +23,11 @@ import cherrypy
 import os
 import os.path
 import urllib
-import urllib2
-
 import xml.etree.ElementTree as ET
 
 class Proxy(object):
     """
-    This class implement a proxy for the modules.
+    This class implements a proxy for the other modules.
     """
             
 #####
@@ -107,15 +105,40 @@ class Proxy(object):
         self.mkdir_p(self.logs_dir)
         self.logger = self.init_logging()
         self.dict_modules = self.get_dict_modules()
-        
-    def root_index(name):
-        return "Hello, %s!" % name
 
+#####
+# web utilities
+#####
 
+    @cherrypy.expose
+    def ping(self):
+        """
+        Ping pong.
+        :rtype: JSON formatted string
+        """
+        data = {}
+        data["status"] = "OK"
+        data["ping"] = "pong"
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def shutdown(self):
+        """
+        Shutdown the module.
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            cherrypy.engine.exit()
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("shutdown", str(ex))
+        return json.dumps(data)
+      
     @cherrypy.expose
     def index(self, **kwargs):
         """
-        Index for the archive. Redirect a petition for the correct module (if it is found)
+        Index for the archive. Dispatch a request to the corresponding module
         """
         url=kwargs.copy()
         error = {}
@@ -125,38 +148,38 @@ class Proxy(object):
         url_size = len(url)
         error['url_parameters'] = url_size
         
+        # Check Url Parameters
         if url_size == 0:
-		   ex = "url without any information"
-		   print (error_message + ex)
+		   ex = "url without any parameters"
 		   self.error_log("index", ex)
 		   return json.dumps(error)
         
+        # Check if module is specified
         if 'module' not in url:
-           error["cout"] = "0"
+           error["code"] = -1
            ex = "url without module"
-           print (error_message + ex)
            self.error_log("index", ex)
            return json.dumps(error)
 		
-        module=url['module']
+        module = url['module']
         
+        # Check if module is valid
         if module not in self.dict_modules.keys():
-            error["cout"] = "1"
+            error["code"] = -2
             if module == "":
                ex = " module in url is empty"
             else:
                ex = module + " does not appear in the XML file in the proxy "
             
-            print (error_message + ex)
             self.error_log("index", ex)
             return json.dumps(error)
         
         del url['module']
         
+        # Check if service is specified
         if 'service' not in url:
-            error["cout"] = "2"
+            error["code"] = -3
             ex = "Not WS in the url"
-            print (error_message + ex)
             self.error_log("index", ex)
             return json.dumps(error)
 		
@@ -164,17 +187,24 @@ class Proxy(object):
         
         del url['service']
         
+        # Build request URL
         params=""
         if len(url) > 0:
            params = "?" + urllib.urlencode(url)
-           
-        call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
-        print call_service
         
+        # Request module for service   
+        try:
+            call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
+        except Exception as ex:
+            error["code"] = -4
+            self.error_log("index", "Module '" + module + "' communication error; " + str(ex))
+            return json.dumps(error)
+        
+        # Return module response
         try:
             return json.dumps(json.loads(call_service))
         except Exception as ex:
-            error["cout"] = "3"
+            error["code"] = -5
             self.error_log("index", str(ex))
             return json.dumps(error)
         
