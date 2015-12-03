@@ -35,12 +35,37 @@ class Proxy(object):
 #####
 # initialization and static methods.
 #####
+    @staticmethod
+    def get_dict_modules():
+        """
+        Return a dictionary of the differents IPOL modules as keys, and
+        another dictionary as value, containing several keys: a url,
+        the server where the module is, the directory of the module on the
+        server, and a list of strings representing the commands available
+        to the module.
+        """
+        dict_modules = {}
+        tree = ET.parse('../config_common/modules.xml')
+        root = tree.getroot()
+        
+        for module in root.findall('module'):
+            dict_tmp = {}
+            list_tmp = []
 
+            for command in module.findall('command'):
+                list_tmp.append(command.text)
+
+            list_tmp.append("info")
+            dict_tmp["url"] = module.find('url').text
+            dict_tmp["server"] = module.find('server').text
+            dict_tmp["path"] = module.find('path').text
+            dict_tmp["commands"] = list_tmp
+            dict_modules[module.get('name')] = dict_tmp
+            
+        return dict_modules
 
     def __init__(self, option):
-        """
-        """
-        pass
+        self.dict_modules = self.get_dict_modules()
 
     def root_index(name):
         return "Hello, %s!" % name
@@ -48,61 +73,69 @@ class Proxy(object):
     @cherrypy.expose
     def index(self):
         """
-        Small index for the archive.
+        Index for the archive.
         """
-        #print etree.tostring(doc,pretty_print=True ,xml_declaration=True, encoding="utf-8")
+        return json.dumps(self.dict_modules)
+
+    def check_parameter_input(self, module, args_array):
+        """
+        """  
+        data={}
+        data['fail'] = "TRUE"
+        array_size = len(args_array)
+        data['n_parameters'] = array_size
         
-        doc = ET.parse('modules.xml')
-        root=doc.getroot()
-        message_for_the_screen='Welcome to the IPOL proxy module: <br><br>'
-        message_for_the_screen += 'You have ' + str(len(root)) + ' modules for connecting <br><br>'
+        if array_size == 0:
+		   print "There is not parameters"
+		   return data
+        elif module not in self.dict_modules.keys():
+             data['module'] = "No module"
+             print "MODULE: " + module + " does not appear in proxy xml file"
+             return data
+        elif 'service' not in args_array:
+             data['param_setting'] = 'Bad parameter setting'
+             return data
         
-        index_module = 1
-
-        for module in root.findall('module'):
+        service=args_array['service']
+        if service not in self.dict_modules[module]["commands"]:
+           data['WS'] = service + " unavailable"
+           print ("WS " + service + " unavailable for module" + module)
+           return data
+        
+        return service
+        
+    def execute_service(self, module, kwargs):
+        """
+        """
+        service = self.check_parameter_input(module , kwargs)
+        
+        if 'fail' in service:
+            return service
             
-            message_for_the_screen += str(index_module) + "." + module.get('name')
-            index_module=index_module+1
-            
-            message_for_the_screen += " | List of commands = {"
-            for command in module.findall('command'):
-                message_for_the_screen += command.text + ","
-               
-            
-            message_for_the_screen =  message_for_the_screen[:-1] + "}<br>"
-           
-        return message_for_the_screen
-
-
-#def branch_leaf(size):
-#    return str(int(size) + 3)
-
-#mappings = [
-#    (r'^/([^/]+)$', root_index),
-#    (r'^/branch/leaf/(\d+)$', branch_leaf),
-#    ]
-
-    
-    
+        url = self.dict_modules[module]["url"]
+        call_service = urllib.urlopen(url + service).read()
+        return json.loads(call_service)
+        
     @cherrypy.expose
     def archive(self, **kwargs):
         """
+        Execute service in archive module
         """
-
-        #urls_values = urllib.urlencode(data, True)
-        #url = cherrypy.server.base() + req + '?' + urls_values
-        print "HOLA PIVE"
-        return "Nelson mola"
-        res = urllib2.urlopen("http://boucantrin.ovh.hw.ipol.im:9000/ping")
-        res = urllib2.urlopen("http://boucantrin.ovh.hw.ipol.im:9000/ping")
-        tmp = res.read()
-        print tmp
-        qqq = json.loads(tmp)
-        print type(qqq)
-
-        #print kwargs
-
-        #status = {"kwargs" : str(kwargs)}
-        return json.dumps(qqq)
-
-
+        module="archive"
+        return json.dumps(self.execute_service(module, kwargs))        
+    
+    @cherrypy.expose
+    def blobs(self, **kwargs):
+        """
+        Execute service in blobs module
+        """
+        module="blobs"
+        return json.dumps(self.execute_service(module, kwargs))        
+    
+    @cherrypy.expose
+    def demoinfo(self, **kwargs):
+        """
+        Execute service in blobs module
+        """
+        module="demoinfo"
+        return json.dumps(self.execute_service(module, kwargs))
