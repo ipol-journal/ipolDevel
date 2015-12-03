@@ -36,6 +36,21 @@ class Proxy(object):
 # initialization and static methods.
 #####
     @staticmethod
+    def mkdir_p(path):
+        """
+        Implement the UNIX shell command "mkdir -p"
+        with given path as parameter.
+        """
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+                
+                
+    @staticmethod
     def get_dict_modules():
         """
         Return a dictionary of the differents IPOL modules as keys, and
@@ -63,79 +78,104 @@ class Proxy(object):
             dict_modules[module.get('name')] = dict_tmp
             
         return dict_modules
+    
+    def init_logging(self):
+        """
+        Initialize the error logs of the module.
+        """
+        logger = logging.getLogger("archive_log")
+        logger.setLevel(logging.ERROR)
+        handler = logging.FileHandler(os.path.join(self.logs_dir,
+                                                   'error.log'))
+        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in archive.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string)	
+        
+        
     def __init__(self, option):
+        cherrypy.config.update("./proxy.conf")
+        self.logs_dir = cherrypy.config.get("logs_dir")
+        self.mkdir_p(self.logs_dir)
+        self.logger = self.init_logging()
         self.dict_modules = self.get_dict_modules()
-
+        
     def root_index(name):
         return "Hello, %s!" % name
 
-    @cherrypy.expose
-    def index(self):
-        """
-        Index for the archive.
-        """
-        return json.dumps(self.dict_modules)
 
-    def check_parameter_input(self, module, args_array):
+    @cherrypy.expose
+    def index(self, **kwargs):
         """
-        """  
-        data={}
-        data['fail'] = "TRUE"
-        array_size = len(args_array)
-        data['n_parameters'] = array_size
-        
-        if array_size == 0:
-		   print "There is not parameters"
-		   return data
-        elif module not in self.dict_modules.keys():
-             data['module'] = "No module"
-             print "MODULE: " + module + " does not appear in proxy xml file"
-             return data
-        elif 'service' not in args_array:
-             data['param_setting'] = 'Bad parameter setting'
-             return data
-        
-        service=args_array['service']
-        if service not in self.dict_modules[module]["commands"]:
-           data['WS'] = service + " unavailable"
-           print ("WS " + service + " unavailable for module" + module)
-           return data
-        
-        return service
-        
-    def execute_service(self, module, kwargs):
+        Index for the archive. Redirect a petition for the correct module (if it is found)
         """
-        """
-        service = self.check_parameter_input(module , kwargs)
+        url=kwargs.copy()
+        error = {}
+        error["status"] = "KO"
+        error_message="ERROR "
         
-        if 'fail' in service:
-            return service
+        url_size = len(url)
+        error['url_parameters'] = url_size
+        
+        if url_size == 0:
+		   ex = "url without any information"
+		   print (error_message + ex)
+		   self.error_log("index", ex)
+		   return json.dumps(error)
+        
+        if 'module' not in url:
+           error["cout"] = "0"
+           ex = "url without module"
+           print (error_message + ex)
+           self.error_log("index", ex)
+           return json.dumps(error)
+		
+        module=url['module']
+        
+        if module not in self.dict_modules.keys():
+            error["cout"] = "1"
+            if module == "":
+               ex = " module in url is empty"
+            else:
+               ex = module + " does not appear in the XML file in the proxy "
             
-        url = self.dict_modules[module]["url"]
-        call_service = urllib.urlopen(url + service).read()
-        return json.loads(call_service)
+            print (error_message + ex)
+            self.error_log("index", ex)
+            return json.dumps(error)
         
-    @cherrypy.expose
-    def archive(self, **kwargs):
-        """
-        Execute service in archive module
-        """
-        module="archive"
-        return json.dumps(self.execute_service(module, kwargs))        
-    
-    @cherrypy.expose
-    def blobs(self, **kwargs):
-        """
-        Execute service in blobs module
-        """
-        module="blobs"
-        return json.dumps(self.execute_service(module, kwargs))        
-    
-    @cherrypy.expose
-    def demoinfo(self, **kwargs):
-        """
-        Execute service in blobs module
-        """
-        module="demoinfo"
-        return json.dumps(self.execute_service(module, kwargs))
+        del url['module']
+        
+        if 'service' not in url:
+            error["cout"] = "2"
+            ex = "Not WS in the url"
+            print (error_message + ex)
+            self.error_log("index", ex)
+            return json.dumps(error)
+		
+        service=url['service']
+        
+        del url['service']
+        
+        params=""
+        if len(url) > 0:
+           params = "?" + urllib.urlencode(url)
+           
+        call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
+        print call_service
+        
+        try:
+            return json.dumps(json.loads(call_service))
+        except Exception as ex:
+            error["cout"] = "3"
+            self.error_log("index", str(ex))
+            return json.dumps(error)
+        
+        
