@@ -70,8 +70,10 @@ if hostname in local_machines:
 	####################################
 	#Local ENV
 	IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+
 	IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
-	IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:7777'
+	IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:9001'
+	IPOL_SERVICES_MODULE_DEMOINFO ='http://127.0.0.1:9002'
 
 
 elif hostname in dev_machines_hostname:
