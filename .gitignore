@@ -16,3 +16,7 @@ changes*.txt
 
 # logs
 logs
+
+# Database files
+*.db
+
