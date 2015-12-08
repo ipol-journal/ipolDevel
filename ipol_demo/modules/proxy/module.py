@@ -150,9 +150,9 @@ class Proxy(object):
         
         # Check Url Parameters
         if url_size == 0:
-		   ex = "url without any parameters"
-		   self.error_log("index", ex)
-		   return json.dumps(error)
+            ex = "url without any parameters"
+            self.error_log("index", ex)
+        return json.dumps(error)
         
         # Check if module is specified
         if 'module' not in url:
@@ -160,7 +160,7 @@ class Proxy(object):
            ex = "url without module"
            self.error_log("index", ex)
            return json.dumps(error)
-		
+
         module = url['module']
         
         # Check if module is valid
