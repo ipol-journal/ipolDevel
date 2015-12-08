@@ -11,7 +11,7 @@ import cherrypy
 import os
 import os.path
 import sys
-from module import Blob
+from blob import Blob
 from error import print_usage_function
 
 def CORS(): 
