@@ -17,7 +17,7 @@ Main function.
 
 import cherrypy
 import sys
-from module import Proxy
+from proxy import Proxy
 
 if __name__ == '__main__':
     cherrypy.quickstart(Proxy(None), config="proxy.conf")
