@@ -726,7 +726,9 @@ class   Blob(object):
 
     @cherrypy.expose
     def get_blob_url_ws(self, blob_hash, blob_ext):
-        return self.server_address+"/blob_directory/"+blob_hash+blob_ext
+        dic = {}
+        dic['blob_url'] = self.server_address+"/blob_directory/"+blob_hash+blob_ext
+        return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
