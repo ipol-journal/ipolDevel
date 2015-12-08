@@ -725,6 +725,10 @@ class   Blob(object):
                                                                  demoid=demo_id)
 
     @cherrypy.expose
+    def get_blob_url_ws(self, blob_hash, blob_ext):
+        return self.server_address+"/blob_directory/"+blob_hash+blob_ext
+
+    @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blob_ws(self, blob_id):
         """
