@@ -17,7 +17,7 @@ Main function.
 """
 
 import cherrypy
-from module import DemoInfo
+from demoinfo import DemoInfo
 
 #todo This should not be hardcoded
 CONFIGFILE = "./demoinfo.conf"

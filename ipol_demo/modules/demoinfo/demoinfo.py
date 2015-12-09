@@ -24,13 +24,11 @@ from model import *
 
 
 #GLOBAL VARS
+from tools import is_json, Payload
+
 LOGNAME = "demoinfo_log"
 
-#UTILITY FUNCTION
-#get payload from json object
-class Payload(object):
-	def __init__(self, jsonstr):
-		self.__dict__ = json.loads(jsonstr)
+
 
 class DemoInfo(object):
 
@@ -57,6 +55,8 @@ class DemoInfo(object):
 		status = createDb(self.database_name)
 		if not status:
 			sys.exit(1)
+		else:
+			print "DB created"
 		initDb(self.database_name)
 
 		# db testing purposes only!, better use unittests in test folder
@@ -139,12 +139,12 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			conn.close()
 		except Exception as ex:
-			print str(ex)
+			print "demo_list  ",str(ex)
 			self.error_log("demo_list",str(ex))
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				print "demo_list  ",str(ex)
 
 		return json.dumps(data)
 
@@ -308,16 +308,151 @@ class DemoInfo(object):
 				print str(ex)
 		return json.dumps(data)
 
+	@cherrypy.expose
+	@cherrypy.tools.allow(methods=['POST']) #allow only post
+	def add_demo_description(self):
+		#def add_demo_description(self, demojson):
+		#recieves a valid json as a string AS POST DATA
+		#http://stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
+
+		data = {}
+		data["status"] = "KO"
+
+		cl = cherrypy.request.headers['Content-Length']
+		rawbody = cherrypy.request.body.read(int(cl))
+		# print
+		# print "++++ rawbody",rawbody
+		# print "++++ is_json",is_json(rawbody)
+		# print "++++ rawbody type: ",type(rawbody) #json str
+		# print
+		# demojson = json.loads(rawbody)
+		# print
+		# print "++++ demojson: ",demojson
+		# print "++++ is_json: ",is_json(demojson)
+		# print "++++ demojson type: ",type(demojson) #dict unicode
+		# print
+		# #http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python
+		# import yaml
+		# demojson = yaml.safe_load(rawbody) #dict, not unicode
+		# print
+		# print "++++ demojson: ",demojson
+		# print "++++ is_json: ",is_json(demojson)
+		# print "++++ demojson type: ",type(demojson) #dict unicode
+		# print
+
+
+
+		demojson=rawbody
+		if not is_json(demojson):
+			print
+			print "add_demo_description demojson is not a valid json "
+			print "+++++ demojson: ",demojson
+			print "+++++ demojson type: ",type(demojson)
+
+			raise Exception
+
+
+		try:
+
+			conn = lite.connect(self.database_file)
+			dao = DemoDescriptionDAO(conn)
+			id = dao.add(demojson)
+			conn.close()
+			#return id
+			data["status"] = "OK"
+			data["demo_description_id"] = id
+
+		except Exception as ex:
+			error_string=("WS add_demo_description  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+			raise Exception
+
+
+		return json.dumps(data)
+
+
+	#For unittests, should use add_demo_description instead
+	#@cherrypy.expose
+	@cherrypy.tools.allow(methods=['POST']) #allow only post
+	def add_demo_description_using_param(self, demojson):
+		#recieves a valid json as a string AS PARAMETER
+		#http://stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
+
+		data = {}
+		data["status"] = "KO"
+
+		demojson=str(demojson)
+
+		if not is_json(demojson):
+			print "add_demo_description demojson is not a validjson "
+			print "+++++ demojson: ",demojson
+			print "+++++ demojson type: ",type(demojson)
+			raise Exception
+
+		try:
+			conn = lite.connect(self.database_file)
+			dao = DemoDescriptionDAO(conn)
+			id = dao.add(demojson)
+			conn.close()
+			#return id
+			data["status"] = "OK"
+			data["demo_description_id"] = id
+
+		except Exception as ex:
+			error_string=("WS add_demo_description_using_param  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+			raise Exception
+
+		return json.dumps(data)
+
+
+	@cherrypy.expose
+	def read_demo_description(self, demodescriptionID):
+		data = {}
+		data["status"] = "KO"
+		data["demo_description"] = None
+		try:
+			id =int(demodescriptionID)
+			#print "---- read_demo_description"
+			conn = lite.connect(self.database_file)
+			dao = DemoDescriptionDAO(conn)
+			data["demo_description"] = dao.read(id)
+			conn.close()
+		except Exception as ex:
+			error_string=("WS read_demo_description  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+
+		return json.dumps(data)
+
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
-	def add_demo(self,editorsdemoid, title, abstract, zipURL, active, stateID):
+	def add_demo(self,editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None,demodescriptionJson=None):
 
 		try:
-			d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
+
 			conn = lite.connect(self.database_file)
+
+			if demodescriptionJson:
+
+				dao = DemoDescriptionDAO(conn)
+				id=dao.add(demodescriptionJson)
+				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID), int(id))
+
+			elif demodescriptionID:
+
+				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID), int(demodescriptionID))
+
+			else:
+
+				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
+
 			dao = DemoDAO(conn)
 			dao.add(d)
+
 			conn.close()
 		except Exception as ex:
 			error_string=("WS add_demo  e:%s"%(str(ex)))
@@ -456,13 +591,11 @@ class DemoInfo(object):
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def update_demo(self,demo):
 
+
 		#get payload from json object
 		p = Payload(demo)
-
-
 		#convert payload to Author object
-		d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id, p.creation, p.modification)
-
+		d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.demodescriptionID, p.id, p.creation, p.modification)
 		#update Demo
 		try:
 
@@ -571,3 +704,8 @@ class DemoInfo(object):
 			except Exception as ex:
 				pass
 		return json.dumps(data)
+
+
+
+
+
