@@ -50,8 +50,6 @@
                           top: 50%;
                           transform: translateY(-50%);"
                   ng-src="{{demoblobs.url_thumb}}/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
-                  ng-click="selectImage(blob_set[idx])" 
-                  ng-class="{'selected-image': (selected_image === blob_set[idx])}"
                   alt={{blob_set[idx].title}}
                   title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+')'}}"
                   imageonfail="DisableBlobDisplay(blob_set,idx)"
