@@ -725,7 +725,10 @@ algorithm.
       "label"   :  "Postprocessing Threshold",
       "values"  : { "min":0,"max":10,"step":0.1,"default":3 }
     } ],
-  "run": ["detect input_0.sel.png $layer_count $threshold"],
+  "run": ["detect input_0.sel.png $layer_count $threshold"
+          "echo 'creating isGray information'",
+          "python:im=image(self.work_dir+'input_0.sel.png')",
+          "python:self.algo_info['isgray']=im.is_grayscale()"]
   "archive": {
       "files" : { 
           "input_0.sel.png"   : "exact image",
@@ -734,18 +737,18 @@ algorithm.
           "ppRobust.png"      : "skin color detection",
           "ppBoth.png"        : "most refined detection" } },
   "results": [
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
-      "contents"      : { 
-        "Original"                  : "input_0.sel.png", 
-        "Detected"                  : "detectedraw.png",
-        "Skin Check Only"           : "ppSkin.png",
-        "Robustness Check Only"     : "ppRobust.png",
-        "Skin and Robustness Check" : "ppBoth.png"
-      },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
-    } ]
+  {
+    "type"          : "gallery",
+    "label"         : "<h2>Resulting images</h2>",
+    "contents"      : { 
+      "Original"                        : "input_0.sel.png", 
+      "Detected"                        : "detectedraw.png",
+      "!(info.isgray)?Skin Check"       : "ppSkin.png",
+      "Robustness Check"                : "ppRobust.png",
+      "!(info.isgray)?Skin & Robustness Check":"ppBoth.png"
+    },
+    "style"         : "height:{{sizeY*ZoomFactor}}px"
+  } ]
 }
 \end{lstlisting}
 
@@ -770,16 +773,62 @@ The demo input controler defines the following variables in its scope:
   \item demo\_id: taken from the global variable, using CherryPy
   \item blob\_server: taken from the global variable, using CherryPy
   \item demo: the demo information read from the JSON file using the Demo service
+        the demo is preprocessed by the method PreprocessDemo() defined in app.js
+        which can set default values and preprocess some fields.
   \item demoblobs: read from the webservice 'get\_blobs\_of\_demo\_by\_name\_ws' on the 
         blob\_server. Initially implemented as a service, it has changed to 
         a \$http.get() command to allow the use of the blob\_server variable.
         Once the information is obtained, the variable html\_params is created
         that contains the HTML parameters associated to each blob selection.
+  \item a DisableBlobDisplay() method disables the display of a blob if it couldn't
+        be loaded.
 \end{itemize}
 
 \subsubsection{DemoParamCtrl}
+
+The demo input controler defines the following variables in its scope:
+\begin{itemize}
+  \item current\_scope
+  \item demo\_key and demo\_id given by Python in the HTLM template
+  \item Math (for calculation), maxdim, display\_ratio
+  \item CropInfo which contains the boolean enabled, the coord structure and
+        the minsize information.
+  \item the boolean variables got\_meta, got\_param, got\_demo that will be true
+        when the corresponding json files are loaded.
+  \item a function 'initParams' that initialize the parameters obtained from 
+        the DDL json file
+  \item a function updateCropInfo() that compute the real crop information
+        based on the displayed crop (since there is a zoom factor)
+  \item the initialization of demo, params, meta variables using the associated
+        services and calling the PreprocessDemo(),initParams() and updateCropInfo()
+        methods when needed, also updating display\_ratio, imwidth, imheight, 
+        got\_\{demo,param,meta\},
+        and crop\_image\_url variables.
+  \item additional functions: renderHtml, CheckString, CheckArray, 
+        Disable/LoadedImage that allow hiding images that don't load.
+\end{itemize}
+
 \subsubsection{DemoWaitCtrl}
+
+The controller is used to update a timer of the number of seconds that the algorithm
+takes to execute.
+
 \subsubsection{DemoResultCtrl}
+
+This controller contains the following variables in its scope:
+\begin{itemize}
+ \item the function initResults() that adds a load status to each image
+        in a gallery, initial status is 'trying'.
+ \item useful variables idx for loop, maxdim, current\_scope, Math, demo\_id,
+      work\_url
+  \item ZoomFactor allowing the user to scale the images in galleries 
+        (if ZoomFactor is introduced in the 'style' section)
+  \item 3 display parameters display={param1,param2,param3} that can be used
+        by demos that need specific display parameters.
+  \item the demo,params,meta and info parameters read from json files.
+  \item a few more useful functions.
+\end{itemize}
+
 
 \subsection{Templates}
 \subsection{Image crop component}
