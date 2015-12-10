@@ -1,10 +1,122 @@
 \section{The Proxy module}
 
-Dispatcher. Proxy pattern \cite{GoF}.
-\ToDo{Document it!}
-
 \subsection{Introduction}
 \label{sec:proxy_introduction}
+
+%~\cite{GoF}
+Next, we explain the main features of the Proxy module. Its purpose is providing a correct and transparent communication between the different modules that composes the IPOL system. 
+
+This proxy simplifies problems, such as the strong dependence between the machines where are located the other modules. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system will not need more modifications for a correct performance.
+
+\paragraph{Technologies used} \hspace{0pt} \\
+The module is written in Python and uses the Cherrypy framework. The other modules must communicate with the proxy using a correct url (see section~\ref{ta:proxy_input}) while the output returns a JSON message.
+
+\subsection{Architecture}
+
+\paragraph{Module composition} \hspace{0pt} \\
+The module is composed of the following files: the code itself in: ``proxy.py'', a main file for initiating the module: ``main.py''  and a cherrypy configuration file: ``proxy.conf''.  
+It also uses a logs file for storing information when something is wrong using the proxy (see table~\ref{ta:codes}). This is initialised with the Proxy object using the logs directory provided in ``proxy.conf''.
+
+
+\paragraph{Module architecture} \hspace{0pt} \\
+
+The module is composed of a class, named as 'Proxy', that encapsulates all the information needed by the proxy. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making the methods available as webservices. 
+
+The cherrypy engine is launched when the module starts while loading the cherrypy configuration from ``proxy.conf''. It creates (if not exist) a logs folder using the information from the cherrypy configuration file and stores all the modules information provided by the XML file as a dictionary. 
+
+When other module requests a service, it must communicate with the proxy using arguments given through an URL. The latter must follow a few guidelines. If the module does not fullfill well with the required specifications, the proxy will return a JSON message advising the error and writes it in the file ``error.log'' in the logs directory.
+
+\subsection{Communication with the proxy}
+
+\subsubsection{Input}  \hspace{0pt} \\
+\label{sec:input_proxy}
+
+In this section. we explain how the modules must communicate with the proxy for requesting a web service. They must made their petitions by using the following URL:
+\begin{verbatim}
+http://<proxyUrl>:<port>/?module=<module>&service=<ws>
+&parameters=<ws_parameters>
+\end{verbatim}
+
+At the moment the URL is \texttt{http://ns3018037.ip-151-80-24.eu:9003/}.
+ 
+For example, if the ping the service is requested for the archive module~\ref{{sec:archive_introduction}, the correct request is the following:
+\begin{verbatim}
+http://ns3018037.ip-151-80-24.eu:9003/
+?module=archive&service=ping
+\end{verbatim}
+
+
+\begin{table}[tbp]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Information} & \textbf{Mean} \\
+\hline
+-1   & URL without module \\
+\hline
+-2   & Module empty or does not appear in the XML file \\
+\hline
+-3   & Web service not specified. \\
+\hline
+-4   & 
+\begin{tabular}{c}
+An error in the communication \\
+(for example, the requested module is down)
+\end{tabular}
+\\
+\hline
+-5   & Error returning the JSON \\
+\hline
+\end{tabular}
+\label{ta:proxy_input}
+\caption{Flags of the Proxy Module} 
+\end{table}
+
+
+ %{"status": "KO", "url_parameters": 0}
+ 
+%The correct use of the PROXY required a direction as http://proxyUrl:Next, we explain the main features of the Proxy Module, which purpose is providing a correct and transparent communication between the different modules that composes the system. The proxy simplified problems, such as the strong dependence between the machines. For example, if we want to change the location of one of our IPOL modules, we only need to modificate the information in the proxy. As consequence, the system will not need more modifications for a correct performance.
+
+
+If you do not use this protocol the proxy rejects the petition and returns a flag in the JSON file warning you.
+
+The codes are: 
+
+\subsubsection{Output}  \hspace{0pt} \\
+
+In any cases, you can see the logs file on the proxy for information.
+
+The module use the information provided by the XML file contanined in the route %ipol$_$devel/modules/config$_$common.
+o can access to the proxy with url and use service as for example % 
+
+
+\begin{table}[tbp]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Code} & \textbf{Mean} \\
+\hline
+-1   & URL without module \\
+\hline
+-2   & Module empty or does not appear in the XML file \\
+\hline
+-3   & Web service not specified. \\
+\hline
+-4   & 
+\begin{tabular}{c}
+An error in the communication \\
+(for example, the requested module is down)
+\end{tabular}
+\\
+\hline
+-5   & Error returning the JSON \\
+\hline
+\end{tabular}
+\label{ta:codes}
+\caption{Codes determining the type of error when using the proxy module} 
+\end{table}
+
+you need to specify the module and the service and the parameters of the service
 
 \ToDo{Document it!}
 
