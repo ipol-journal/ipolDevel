@@ -10,6 +10,7 @@ import os.path
 import PIL.Image
 import PIL.ImageOps
 import PIL.ImageDraw
+from PIL import ImageChops
 
 import subprocess
 
@@ -517,6 +518,23 @@ class image(object):
 
         self.im = imout
         return self
+
+    def is_grayscale(self):
+        """
+        Check if image is monochrome (1 channel or 3 identical channels)
+        """
+        if self.im.mode not in ("L", "RGB"):
+            raise ValueError("Unsuported image mode for histogram computation")
+
+        # could be slow if the image has a grey border for example
+        # or if it is greyscale RGB: it would traverse the whole image
+        if self.im.mode == "RGB":
+            rgb = self.im.split()
+            if ImageChops.difference(rgb[0],rgb[1]).getextrema()[1]!=0: 
+                return False
+            if ImageChops.difference(rgb[0],rgb[2]).getextrema()[1]!=0: 
+                return False
+        return True
 
     def clone(self):
         '''
