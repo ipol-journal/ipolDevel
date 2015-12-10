@@ -24,8 +24,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
         VALUE = sys.argv[1]
     else:
-        print_usage_function(sys.argv[0])
-        sys.exit(1)
+        VALUE="blobs.conf"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE = os.path.join(BASE_DIR, VALUE)
