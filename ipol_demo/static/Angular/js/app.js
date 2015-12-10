@@ -8,7 +8,6 @@ var IPOLDemosApp = angular.module('IPOLDemosApp', [
   'IPOLDemoControllers',
   'IPOLDemoFilters',
   'IPOLDemoServices',
-  'IPOLFileUpload',
   'IPOLImgCrop'
 ]);
 
