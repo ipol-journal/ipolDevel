@@ -220,6 +220,7 @@ class DemoDAO(object):
 			print (error_string)
 			raise Exception
 
+
 	@validates(typ(int), And(typ(int), between(0, 1, True, True)))
 	def set_active_flag(self, demo_id, active_flag):
 
@@ -271,7 +272,7 @@ class DemoDAO(object):
 		result = None
 		try:
 			self.cursor.execute(
-				'''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID,demojson, id, creation, modification  FROM demo WHERE demo.id=?''',
+				'''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID, demodescriptionID, id, creation, modification  FROM demo WHERE demo.id=?''',
 				(int(id),))
 			# editorsdemo id, title, abstract, zipURL, active, stateID, id=None, creation=None, modification=None
 			self.conn.commit()
@@ -743,7 +744,7 @@ def createDb(database_name):
 				modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				stateID INTEGER,
 				demodescriptionID INTEGER,
-				FOREIGN KEY(demodescriptionID) REFERENCES demodescription(id) ON DELETE CASCADE,
+				FOREIGN KEY(demodescriptionID) REFERENCES demodescription(id),
 				FOREIGN KEY(stateID) REFERENCES state(id),
 				UNIQUE(title)
 				);"""

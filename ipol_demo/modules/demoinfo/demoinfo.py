@@ -308,6 +308,7 @@ class DemoInfo(object):
 				print str(ex)
 		return json.dumps(data)
 
+
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demo_description(self):
@@ -333,11 +334,11 @@ class DemoInfo(object):
 		# print
 		# #http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python
 		# import yaml
-		# demojson = yaml.safe_load(rawbody) #dict, not unicode
+		# demojson = yaml.safe_load(rawbody)
 		# print
 		# print "++++ demojson: ",demojson
 		# print "++++ is_json: ",is_json(demojson)
-		# print "++++ demojson type: ",type(demojson) #dict unicode
+		# print "++++ demojson type: ",type(demojson) #dict, not unicode
 		# print
 
 
@@ -348,12 +349,9 @@ class DemoInfo(object):
 			print "add_demo_description demojson is not a valid json "
 			print "+++++ demojson: ",demojson
 			print "+++++ demojson type: ",type(demojson)
-
 			raise Exception
 
-
 		try:
-
 			conn = lite.connect(self.database_file)
 			dao = DemoDescriptionDAO(conn)
 			id = dao.add(demojson)
@@ -372,20 +370,52 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
-	#For unittests, should use add_demo_description instead
-	#@cherrypy.expose
+	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
+	def update_demo_description(self, demodescriptionID):
+
+		data = {}
+		data["status"] = "KO"
+
+		cl = cherrypy.request.headers['Content-Length']
+		rawbody = cherrypy.request.body.read(int(cl))
+		demojson = rawbody
+
+		if not is_json(demojson):
+			print "add_demo_description demojson is not a valid json "
+			raise Exception
+
+		try:
+			conn = lite.connect(self.database_file)
+			dao = DemoDescriptionDAO(conn)
+			id = dao.update(int(demodescriptionID),demojson)
+			conn.close()
+			#return id
+			data["status"] = "OK"
+
+		except Exception as ex:
+			error_string=("WS add_demo_description  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+			raise Exception
+
+
+		return json.dumps(data)
+
+
+	#For unittests and internal use, in other case you should use add_demo_description instead
+	#@cherrypy.expose
+	#@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demo_description_using_param(self, demojson):
 		#recieves a valid json as a string AS PARAMETER
 		#http://stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
 
 		data = {}
 		data["status"] = "KO"
-
 		demojson=str(demojson)
 
 		if not is_json(demojson):
-			print "add_demo_description demojson is not a validjson "
+			print "add_demo_description_using_param demojson is not a validjson "
 			print "+++++ demojson: ",demojson
 			print "+++++ demojson type: ",type(demojson)
 			raise Exception
@@ -427,27 +457,42 @@ class DemoInfo(object):
 
 		return json.dumps(data)
 
+	@cherrypy.expose
+	def read_demo(self, demoid):
+		demo=None
+		try:
+			id =int(demoid)
+			conn = lite.connect(self.database_file)
+			dao = DemoDAO(conn)
+			demo = dao.read(id)
+			conn.close()
+		except Exception as ex:
+			error_string=("WS read_demo  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+
+		return demo
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
-	def add_demo(self,editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None,demodescriptionJson=None):
+	def add_demo(self,editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
 
 		try:
 
 			conn = lite.connect(self.database_file)
 
 			if demodescriptionJson:
-
+				#creates a demodescription and asigns it to demo
 				dao = DemoDescriptionDAO(conn)
-				id=dao.add(demodescriptionJson)
+				id = dao.add(demodescriptionJson)
 				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID), int(id))
 
 			elif demodescriptionID:
-
+				#asigns to demo an existing demodescription
 				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID), int(demodescriptionID))
 
 			else:
-
+				#demo created without demodescription
 				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
 
 			dao = DemoDAO(conn)
@@ -483,8 +528,23 @@ class DemoInfo(object):
 				# demo_editor_dao = DemoEditorDAO(conn)
 				# demo_editor_dao.delete_all_editors_for_demo(int(demo_id))
 
+				print
+				print "demoid to delete ", demo_id
 				demo_dao = DemoDAO(conn)
+				#read demo
+				demo = demo_dao.read(int(demo_id))
+
+				print "demodescriptionID to delete ", demo.demodescriptionID
+				print demo.__dict__
+				#delete demo
 				demo_dao.delete(int(demo_id))
+
+				#delete demo decription if any
+				print "demodescriptionID to delete ", demo.demodescriptionID
+				demo_description_dao = DemoDescriptionDAO(conn)
+				demo_description_dao.delete(demo.demodescriptionID)
+
+
 
 			conn.close()
 
@@ -494,6 +554,7 @@ class DemoInfo(object):
 			print (error_string)
 			conn.close()
 			raise Exception
+
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post

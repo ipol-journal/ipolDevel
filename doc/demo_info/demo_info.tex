@@ -11,6 +11,52 @@ This module store the textual description of the demo and allows to ask for spec
 \item Demo editor
 \item Demo editor email
 \item Demo zip file containing demo DDL 
+\item Demo DDL Json
 \end{itemize}
 
-This module will be used by the controll panel module, the demo will be extracted from the zip file, it will be created in Demoinfo mudole, The blobs will be addede to Blobs module.
+This module will be used by the controll panel module, the demo will be extracted from the zip file, it will be created in Demoinfo module, The blobs will be addede to Blobs module.
+
+This Module is formed by:
+\begin{itemize}
+\item model.py where the db structure, the DAO (Data access object) clasess and some helper claseses (Demo, Authorand Editor) are defined. It provides a layer of abstarction over the DB.
+\item demoinfo.conf it's the cherrypy config for the webservices module.
+\item demoinfo.py it's the webservices module.
+\item testdemoinfo.py it's the tests to chech that the webservices work.
+\item testdemoinfo.conf it's the cherrypy config for testing.
+\end{itemize}
+
+This module provides a set of webservices, those that return data can be called with GET or other html methods, those that delete,create or update data can be called only by POST.
+
+\begin{itemize}
+\item demo\_list()
+\item author\_list()
+\item editor\_list 
+\item demo\_get\_authors\_list(demo\_id)
+\item author\_get\_demos\_list(author\_id)
+\item demo\_get\_editors\_list(demo\_id)
+\item editor\_get\_demos\_list(editor\_id)
+\item add\_demo\_description(). Creates a demodescription, (a JSON DDL), there is no param, the jsons should be sent in the POST body.
+\item update\_demo\_description( demodescriptionID)
+\item read\_demo\_description( demodescriptionID)
+\item read\_demo( demoid)
+\item add\_demo(editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None). This will add a demo, if a demodescriptionID is provided, it will related the demo with that description, if a demodescriptionJson is providede, a demodescription registry will be created and related that demo. If no demodescription information is provided, thedemo will be created with no demodescription.
+\item delete\_demo(demo\_id,hard\_delete = False), Demos are not deleted, the flag active is set to False. If you wish to delete the demo from the database, use param hard\_delete = True. the demo, its description and its entries in the junction table for authors and editors will be deleted. Not the Author or Editor registries.
+\item add\_author(name, mail)
+\item add\_editor(name, mail)
+\item add\_author\_to\_demo(demo\_id ,author\_id)
+\item add\_editor\_to\_demo(demo\_id ,editor\_id)
+\item remove\_editor\_from\_demo(demo\_id ,editor\_id)
+\item remove\_author\_from\_demo(demo\_id ,author\_id)
+\item update\_demo(demo)
+\item update\_author(author)
+\item update\_editor(editor)
+\item ping()
+\item shutdown()
+\item stats()
+\end{itemize}
+
+
+To test this module enter test folder and run python -m unittest discover.
+
+To perfom manual testing use curl or poster pluguin for firefox (remember that some will only work with post requests) but in testdemoinfo.py, in the last tests you will find a working example of how to use some webservices using the request python library.
+If you add webservices, please add the corresponding tests.
