@@ -193,7 +193,7 @@ class base_app(empty_app):
         # setup the parent class
         empty_app.__init__(self, base_dir)
         
-        self.blob_server = cherrypy.config['demo.blob_server']
+        self.proxy_server = cherrypy.config['demo.proxy_server']
         
         self.read_demo_description()
         self.init_parameters()
@@ -535,6 +535,11 @@ class base_app(empty_app):
             pool = AppPool.get_instance() # Singleton pattern
             pool.add_app(self2.key, self2)
 
+        print "kwargs", kwargs
+        blob_url = kwargs.pop('url',None)
+        print "blob_url", blob_url
+        print "kwargs",kwargs
+        
         print "input_select_angular :", kwargs.keys()
         # copy to work_dir
         blobfile = urllib.URLopener()
@@ -553,8 +558,11 @@ class base_app(empty_app):
           print "inputfiles:",inputfiles
           for inputfile in inputfiles:
             print "inputfile:",inputfile
-            ext = inputfile[inputfile.index('.'):]
-            blobfile.retrieve(self.blob_server+'/blob_directory/'+ inputfile, 
+            basename  = inputfile[:inputfile.index('.')]
+            ext       = inputfile[inputfile.index('.'):]
+            blob_link =  blob_url +'/'+ basename + ext
+            print "blob_link = ", blob_link
+            blobfile.retrieve(blob_link, 
                               self2.work_dir + 'input_{0}{1}'.format(idx,ext))
         
         msg = self2.process_inputs()
