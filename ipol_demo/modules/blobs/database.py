@@ -303,7 +303,7 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
-        print "Databse.get_blobs_of_demo({0})".format(demo_id)
+        print "Database.get_blobs_of_demo({0})".format(demo_id)
         
         # 
         try:
@@ -682,7 +682,7 @@ class   Database(object):
         :rtype: dictionnary
         """
         try:
-            something = self.cursor.execute('''
+            self.cursor.execute('''
             SELECT id, name, is_template, template_id
             FROM demo''')
         except self.database.Error:
@@ -694,9 +694,26 @@ class   Database(object):
         #for item in something:
         #    lis[item[0]] = {"name": item[1], "is_template": item[2], "template_id": item[3]}
 
+        demos_info = self.cursor.fetchall()
+
         lis = list()
-        for item in something:
-            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3]}) 
+        for item in demos_info:
+            try:
+                blob_sets = self.cursor.execute('''
+                    SELECT  blob_set  FROM demo_blob
+                    INNER JOIN demo ON demo_blob.demo_id=demo.id
+                    INNER JOIN blob ON demo_blob.blob_id=blob.id
+                    WHERE demo.id=? GROUP BY blob_set ''', (item[0],))
+            except self.database.Error:
+                print "exception"
+                raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+
+            #blobsets_list = self.cursor.fetchall()
+            print item[0]
+            #print blobsets_list
+            length= len(blob_sets.fetchall())
+            
+            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } ) 
         return lis
 
     def get_name_blob(self, blob_id):
