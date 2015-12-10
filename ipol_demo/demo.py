@@ -209,7 +209,7 @@ def UpdateDemoInfo(demo_description,section_names,section_keys,section_types):
             if new_key!='':
               if new_key not in section_keys:
                 section_keys[new_key]=dict()
-                print "adding key:",new_key, " with ", elt.keys()
+                #print "adding key:",new_key, " with ", elt.keys()
               UpdateCounters(section_keys[new_key],elt.keys())
             else:
               UpdateCounters(section_keys[k],elt.keys())

@@ -13,7 +13,7 @@ tools.proxy.on = True
 tools.proxy.base = "http://127.0.0.1:8092"
 #tools.proxy.local = ''
 
-demo.blob_server = "http://127.0.0.1:7777"
+demo.proxy_server = "http://127.0.0.1:9003/"
 
 # demo paths
 demo.extra_path = '/usr/bin:/bin:/wheezy/usr/local/MATLAB'
