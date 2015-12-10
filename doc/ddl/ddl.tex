@@ -165,7 +165,7 @@ bigger files. Input can be a number or a string that will be evaluated in Angula
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
  ext          & input image expected extention (ie. file format) & .. \\ \hline
-\caption{Keys for the 'text\_file' type.}
+\caption{Keys for the 'image' type.}
 \end{longtable}
 
 \subsubsection{\emph{flow} type}
@@ -185,7 +185,7 @@ converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
  ext              & same as image & yes \\ \hline
  required         & boolean: tells if the flow is required for the algorithm
 or optional, default is optional. For example, the ground truth may be optional.& no \\ \hline
-\caption{Keys for the 'text\_file' type.}
+\caption{Keys for the 'flow' type.}
 \end{longtable}
 
 
@@ -252,7 +252,7 @@ The label  can be used as a title to separate groups of parameters.
  type  & label       & yes \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
-\caption{Common keys for the 'params' section ({\em req} means required).}
+\caption{Common keys for the 'label' type.}
 \end{longtable}
 
 
@@ -268,7 +268,7 @@ The label  can be used as a title to separate groups of parameters.
  id         & parameter name in lowercase letters  & yes \\ \hline
  value\_expr & AngularJS expression used to compute the parameter value 
             & yes \\ \hline
-\caption{Common keys for the 'params' section ({\em req} means required).}
+\caption{Common keys for the 'readonly' type.}
 \end{longtable}
 
 \subsubsection{ \emph{checkbox} type}
@@ -283,7 +283,7 @@ The label  can be used as a title to separate groups of parameters.
                       \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
  default\_value & boolean: True for checked & \\ \hline
-\caption{Common keys for the 'params' section ({\em req} means required).}
+\caption{Common keys for the 'checkbox' type.}
 \end{longtable}
 
 \subsubsection{ \emph{checkboxes} type}
@@ -301,7 +301,7 @@ The label  can be used as a title to separate groups of parameters.
             where key is the checkbox id and value is the text associated
             & yes \\ \hline
  default     & list of checkboxes that are checked by default  & yes \\ \hline
-\caption{Common keys for the 'params' section ({\em req} means required).}
+\caption{Common keys for the 'checkboxes' type.}
 \end{longtable}
 
 
@@ -437,7 +437,7 @@ as files & no \\ \hline
 \subsection{The \emph{results} section}
 
 
-The results section also contains an array of sets, where each each contains 
+The results section also contains an array of sets, where each set contains 
 (key/value) pairs describing one type of output from the algorithm. There are 
 displayed sequentially one below the other, a part from warnings that are 
 displayed at the top of the page. The currently available types are described 
@@ -752,6 +752,34 @@ algorithm.
 \subsubsection{keywords}
 
 \section{AngularJS components}
+Angular is used as a flexible tool in combination to CherryPy to create the web 
+pages from the demo descriptions. Angular files are located in 'static/Angular'
+directory, while the template HTML files are located in 'lib/template' directory.
+The main Angular files are app.js, controllers.js and services.js located in the
+'static/Angular/js' directory.
+The app.js file defines the Angular application, name "IPOLDemosApp".
+
 \subsection{Services}
+Current services are Demo, Params, Meta and Info. They read and return the contents
+of a JSON file.
+
 \subsection{Controlers}
+\subsubsection{DemoInputCtrl}
+The demo input controler defines the following variables in its scope:
+\begin{itemize}
+  \item demo\_id: taken from the global variable, using CherryPy
+  \item blob\_server: taken from the global variable, using CherryPy
+  \item demo: the demo information read from the JSON file using the Demo service
+  \item demoblobs: read from the webservice 'get\_blobs\_of\_demo\_by\_name\_ws' on the 
+        blob\_server. Initially implemented as a service, it has changed to 
+        a \$http.get() command to allow the use of the blob\_server variable.
+        Once the information is obtained, the variable html\_params is created
+        that contains the HTML parameters associated to each blob selection.
+\end{itemize}
+
+\subsubsection{DemoParamCtrl}
+\subsubsection{DemoWaitCtrl}
+\subsubsection{DemoResultCtrl}
+
 \subsection{Templates}
+\subsection{Image crop component}

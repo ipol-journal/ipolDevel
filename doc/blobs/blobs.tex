@@ -191,9 +191,8 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 
 \begin{flushleft}
 \begin{longtable}
-                   {|C{\dimexpr 0.40\linewidth-2\tabcolsep}
-                     ||
-                    L{\dimexpr 0.6\linewidth-2\tabcolsep}|}
+                   {|C{\dimexpr 0.2\linewidth-2\tabcolsep}
+                    L{\dimexpr 0.8\linewidth-2\tabcolsep}|}
 % {|C{\dimexpr 0.30\linewidth-2\tabcolsep}||
 %                     C{\dimexpr 0.20\linewidth-2\tabcolsep}|
 %                     C{\dimexpr 0.18\linewidth-2\tabcolsep}|
@@ -201,80 +200,75 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 %   \hline
 %   {\bf Function Name} & {\bf Description} & {\bf Param.} & {\bf Return} \tabularnewline
   \hline
-  {add\_blob\_ws}
+  \multicolumn{2}{|l|}{\textbf{add\_blob\_ws}(demo\_id, path, tag, ext, the\_set, title, credit)} \\ 
                   & add blob to database \\
-                  & {demo\_id path tag ext the\_set title credit} \\
                   & {\{  return:OK or KO, the\_hash: ...  \}} \\
   \hline
-  {add\_demo\_ws}
+  \multicolumn{2}{|l|}{\textbf{add\_demo\_ws}(name, is\_template, template)} \\ 
                   & add demo to database \\
-                  & {name is\_template template }\\
                   & { \{ return:OK or KO \} }\\
   \hline
-  {add\_tag\-\_to\_blob\_ws}
+  \multicolumn{2}{|l|}{\textbf{add\_tag\_to\_blob\_ws}(blob\_id, tag)} \\ 
                   & add tag to database \\
-                  & { blob\_id tag }\\
                   & { \{ return:OK or KO \} }\\
   \hline
-  {delete\_blob\_ws}
+  \multicolumn{2}{|l|}{\textbf{delete\_blob\_ws}(demo\_id, blob\_id)} \\ 
                   & delete blob from id demo and id blob \\
-                  & {demo\_id blob\_id} \\
                   & { \{ return:OK or KO, delete: (hash, extension) \}} \\
   \hline
-  {demos\_ws}
+  \multicolumn{2}{|l|}{\textbf{demos\_ws}()} \\ 
                   & list demos present  in database \\
                   & {\{ status:OK or KO,
                         list\_demos:  \{ id:int, mame:str, is\_template:int, template\_id:int \} \}} \\
   \hline
-  {get\_blob\_ws}
+  \multicolumn{2}{|l|}{\textbf{get\_blob\_ws}(blob\_id)} \\ 
                   & return blob information from id \\
-                  & {blob\_id }\\
                   &  {\{ return:OK or KO,
                         \{id, hash,  extension, credit \} \} }\\
   \hline
-  {get\_blobs\-\_from\-\_template\_ws}
+  \multicolumn{2}{|l|}{\textbf{get\_blob\_url\_ws}(blob\_hash, blob\_ext)} \\ 
+                  & return the url link of the blob based on its hash and extension \\
+                  &  \{ blob\_url: string that contains the url link of the blob \} \\
+  \hline
+  \multicolumn{2}{|l|}{\textbf{get\_blobs\_from\_template\_ws}(template)} \\ 
                   & list blobs from name template \\
-                  & {template} \\
                   & { \{ return:OK or KO,
                         blobs: \{id, hash,  extension, format \} \} }\\
   \hline
-  {get\_blobs\-\_of\-\_demo\-\_by\_name\_ws}
+  \multicolumn{2}{|l|}{\textbf{get\_blobs\_of\_demo\_by\_name\_ws}(demo\_name)} \\ 
                   & list blobs from demo name \\
-                  & {demo\_name }\\
                   & { \{ return:OK or KO,
                         blobs: \{id, hash,  extension, format \},
-                        use\_template: \{id: name, is\_template, id\_template\}\} }\\
+                        use\_template: \{id: name, is\_template, id\_template\}\},
+                        url : 'blob path url',
+                        url\_thumb : 'blob thumb path url',
+                        physical\_location : 'blob path physical location'
+                    }\\
   \hline
-  {get\_blobs\-\_of\-\_demo\-\_ws}
+  \multicolumn{2}{|l|}{\textbf{get\_blobs\_of\_demo\_ws}(demo)} \\ 
                   & list blobs from demo id \\
-                  & {demo }\\
                   & { \{ return:OK or KO,
                         blobs: \{id, hash,  extension, format \},
                         use\_template: \{id: name, is\_template, id\_template\}\}}\\
   \hline
-  {get\_tags\_ws}
+  \multicolumn{2}{|l|}{\textbf{get\_tags\_ws}(blob\_id)} \\ 
                   & return list tags from blob id \\
-                  & {blob\_id} \\
                   & { \{ \{id: name\} \} }\\
   \hline
-  {get\_tem\-plate\-\_demo\-\_ws} 
+  \multicolumn{2}{|l|}{\textbf{get\_template\_demo\_ws}()} \\ 
                   & return list demos templated \\
-                  &  {}\\
                   &  {\{ return:OK or KO, list\_template: \{id: name\} \}} \\
   \hline
-  {op\_remove\-\_demo\_ws}
+  \multicolumn{2}{|l|}{\textbf{op\_remove\_demo\_ws}(demo\_id)} \\ 
                   & remove demo from id demo  \\
-                  & {demo\_id }\\
                   & { \{ return:OK or KO \} }\\
   \hline
-  {remove\_tag\-\_from\-\_blob\-\_ws}
+  \multicolumn{2}{|l|}{\textbf{remove\_tag\_from\_blob\_ws}(id, tag\_id, blob\_id)} \\ 
                   & remove tag for a blob from id tag and id blob  \\
-                  & { id tag\_id blob\_id }\\
                   & { \{ return:OK or KO \} }\\
   \hline
-  {set\-\_template\-\_ws}
+  \multicolumn{2}{|l|}{\textbf{set\_template\_ws}(demo\_id, id, name)} \\ 
                   & change the current template used by a demo \\
-                  & { demo\_id id name }\\
                   & { \{ return:OK or KO \} }\\
   \hline
 \end{longtable}
