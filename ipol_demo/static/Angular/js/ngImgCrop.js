@@ -15,11 +15,6 @@ IPOLImgCrop.controller('ImgCropCtrl', ['$scope', function($scope) {
   $scope.myImage='';
   $scope.myCroppedImage='';
   
-
-  $scope.go = function() {
-    $scope.myImage = $scope.$parent.selected_image_link;
-  }
-  
 }]);
 
 

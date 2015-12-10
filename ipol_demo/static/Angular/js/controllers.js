@@ -37,21 +37,18 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
     .success(function(demoblobs) {
         console.info("*** demoblobs");
         // preprocess HTML parameters string
+        // for each blob set, in the form
+        // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
         angular.forEach(demoblobs.blobs, 
             function(blobset) {
                 blobset[0].html_params="url="+demoblobs.url+"&"
-                //console.info("set_name=",blobset[0].set_name);
-                //console.info("size=",blobset[0].size);
                 // extract only contents of interest
                 var blobset_contents = blobset.slice(1);
-                //console.info("contents:",blobset_contents);
                 blobset_contents.sort( function(a,b) { 
                     return (a.id_in_set<b.id_in_set?-1: (a.id_in_set>b.id_in_set?1:0) );
                     });
-                //console.info("contents:",blobset_contents);
                 var current_id=""
                 for(var idx=0;idx<blobset_contents.length;idx++) {
-                    //console.info(blobset_contents[idx].title)
                     if (idx==0) {
                         blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
                     } else  {
@@ -67,36 +64,20 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
                     blobset[0].html_params += blobset_contents[idx].hash+
                                             blobset_contents[idx].extension;
                 }
-                //console.info("html_params:",blobset[0].html_params);
             }
         )
         $scope.demoblobs=demoblobs;
         }
     );
+    
+    // upload is done by python
+    //$scope.uploaded_images = [];
       
-      $scope.uploaded_images = [];
-      
-      $scope.DisableBlobDisplay = function(blob_set,index)
-      {
+    $scope.DisableBlobDisplay = function(blob_set,index)
+    {
         blob_set[index].extension = "disabled";
-      }
+    }
       
-      $scope.ImagePickerCtrl =   function($scope) {
-          $scope.selectImage = function (image) {
-          if($scope.selected_image === image) {
-              $scope.selected_image = '';
-          }
-          else {
-              $scope.selected_image = image;
-          }
-          
-          if (typeof $scope.selected_image === "object") {
-              $scope.selected_image_link = $scope.blobpath_url+ 
-                $scope.selected_image.hash + $scope.selected_image.extension;
-          }
-        }
-      }
-
   }
   ]
 );
@@ -106,22 +87,26 @@ IPOLDemoControllers.controller('DemoParamCtrl',
                               ['$scope', '$sce', '$location', 'demo_id', 'demo_key', 'Demo', 'Meta', 'Params', 
     function($scope, $sce, $location, demo_id, demo_key, Demo, Meta, Params ) {
       $scope.current_scope = $scope;
+      // variables given by python
       $scope.demo_key = demo_key;
       $scope.demo_id = demo_id;
+      // to process mathematic calculations
       $scope.Math = window.Math;
+      // default values for maxdim and display_ratio
       $scope.maxdim=768;
-//       $scope.imwidth=1024;
-//       $scope.imheight=1024;
       $scope.display_ratio=1;
-      //$scope.InputCropped=false;
+      // default crop information
       $scope.CropInfo = { enabled:false, coord:{ x: 0, y:0, w :100, h:100 } , 
                           minsize:{w:50,h:50} };
+      // boolean to know which json files has been loaded
       $scope.got_meta = false;
       $scope.got_param= false;
       $scope.got_demo = false;
+      // demo and params values initialized to empty
       $scope.demo     = {};
       $scope.params   = {};
       
+      // initialization of the parameters obtained from the DDL json file
       $scope.initParams = function($scope) {
         console.info("initParams");
 
@@ -255,8 +240,6 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         }
         );
 
-      $scope.page_params = $location.search();
-      console.log($scope.page_params);
       $scope.renderHtml = function(html_code)
       {
         if (angular.isArray(html_code)) {

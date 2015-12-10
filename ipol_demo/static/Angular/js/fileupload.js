@@ -1,5 +1,6 @@
 'use strict';
 
+// not used, upload is done by python ...
 //inject angular file upload directives and services.
 var IPOLFileUpload = angular.module('IPOLFileUpload', ['ngFileUpload']);
 
