@@ -16,12 +16,18 @@ Main function.
 """
 
 import cherrypy
-import sys
+import sys, os
 from proxy import Proxy
 
 def CORS(): 
   cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
 
 if __name__ == '__main__':
+
+    if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
+        conf_file = sys.argv[1]
+    else:
+        conf_file = "proxy.conf"
+
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
-    cherrypy.quickstart(Proxy(None), config="proxy.conf")
+    cherrypy.quickstart(Proxy(None), config=conf_file)
