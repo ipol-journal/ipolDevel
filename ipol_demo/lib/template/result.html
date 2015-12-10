@@ -103,11 +103,12 @@
           <li ng-repeat="(label,image) in ::result.contents" 
               ng-if="CheckLabelCondition(label,current_scope)&&(result.status[$index]!='failed')"
               >
-            <a href="#">
+            <!-- style="width:16em" -->
+            <a href="#" style="width:16em" >
               <span bind-html-compile="::GetLabel(label)" > </span> 
               <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
               <!-- if image is a single string, load it from work_url -->
-              <div class="galim" ng-if="::CheckString(image)">
+              <div class="galim" ng-if="::CheckString(image)" style="left:16em" >
                   <img  style="{{result.style|interpolate:current_scope}}" 
                         ng-src="{{work_url+image|interpolate:current_scope}}" 
                         imageonfail="DisableImage(result.status,$index)"
@@ -116,7 +117,7 @@
               </div>
               <!-- if image is an array of strings, load each string
                    from work_url and display them in a table -->
-              <div class="galim" ng-if="::CheckArray(image)" >
+              <div class="galim" ng-if="::CheckArray(image)" style="left:16em" >
                 <table border="1">
                   <tr>
                     <td ng-repeat="im in ::image">
@@ -132,7 +133,7 @@
               <!-- if image is an object: list of (label,image)
                    load each image from work_url and display them in a table 
                     with associated labels -->
-              <div class="galim" ng-if="!CheckArray(image)&&CheckObject(image)" >
+              <div class="galim" ng-if="!CheckArray(image)&&CheckObject(image)" style="left:16em" >
                 <table border="1">
                   <tr>
                     <td ng-repeat="(l,im) in image" style="text-align:center">

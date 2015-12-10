@@ -49,7 +49,7 @@
                           position: relative;
                           top: 50%;
                           transform: translateY(-50%);"
-                  ng-src="{{blob_server}}/thumbnail/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
+                  ng-src="{{demoblobs.url_thumb}}/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
                   ng-click="selectImage(blob_set[idx])" 
                   ng-class="{'selected-image': (selected_image === blob_set[idx])}"
                   alt={{blob_set[idx].title}}
