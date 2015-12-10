@@ -46,7 +46,10 @@
       "detect input_0.sel.png $layer_count $threshold",
       "python:zoomfactor = max(1, int(math.ceil(480.0/max(x1-x0,y1-y0))))",
       [ "zoomfactor>1", 
-          "echo 'here we should save resized images: really needed ??'" ]
+          "echo 'here we should save resized images: really needed ??'" ],
+      "echo 'creating isGray information'",
+      "python:im=image(self.work_dir + 'input_0.sel.png')",
+      "python:self.algo_info['isgray'] = im.is_grayscale()"
    ]
   ,
   "archive":
@@ -65,11 +68,12 @@
       "type"          : "gallery",
       "label"         : "<h2>Resulting images</h2>",
       "contents"      : { 
-        "Original"                  : "input_0.sel.png", 
-        "Detected"                  : "detectedraw.png",
-        "Skin Check Only"           : "ppSkin.png",
-        "Robustness Check Only"     : "ppRobust.png",
-        "Skin and Robustness Check" : "ppBoth.png"
+        "Original"                                    : "input_0.sel.png", 
+        "Detected"                                    : "detectedraw.png",
+        "!(info.isgray)?Skin Check Only"            : "ppSkin.png",
+        "!(info.isgray)?Robustness Check Only"      : "ppRobust.png",
+        "!(info.isgray)?Skin and Robustness Check"  : "ppBoth.png",
+        "info.isgray?Robustness Check"                : "ppRobust.png"
       },
       "style"         : "height:{{sizeY*ZoomFactor}}px"
     }

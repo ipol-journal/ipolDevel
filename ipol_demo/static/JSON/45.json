@@ -90,7 +90,7 @@
     },
     {
       "type"          : "label", 
-      "label"         : " <label> Noise variance (<i>A</i>+<i>B</i><b>u</b>, where <b>u</b> is the input noisy image. Set <i>B</i>=0 for uniform noise) </label>",
+      "label"         : " <label> Noise variance (<i>A</i>+<i>B</i><b>u</b>, where <b>u</b> is the input noisy image. Set <i>B</i>=0 for uniform noise) </label>"
     },
     {
       "id"            : "anoise",
