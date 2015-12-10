@@ -10,7 +10,7 @@ import cherrypy
 import os
 import os.path
 import sys
-from blob import use_web_service
+from blobs import use_web_service
 from error import print_usage_function
 
 class   Test(threading.Thread):

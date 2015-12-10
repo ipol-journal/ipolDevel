@@ -11,7 +11,7 @@ import cherrypy
 import os
 import os.path
 import sys
-from blob import Blob
+from blobs import Blobs
 from error import print_usage_function
 
 def CORS(): 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF)
 
-    APP = cherrypy.tree.mount(Blob(), '/', CONF)
+    APP = cherrypy.tree.mount(Blobs(), '/', CONF)
     APP.merge(CONF_FILE)
 
     if hasattr(cherrypy.engine, "signal_handler"):
