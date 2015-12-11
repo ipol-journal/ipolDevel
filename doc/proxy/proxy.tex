@@ -4,9 +4,9 @@
 \label{sec:proxy_introduction}
 
 %~\cite{GoF}
-Next, we explain the main features of the Proxy module. Its purpose is providing a correct and transparent communication between the different modules that composes the IPOL system. 
+Next, we explain the main features of the Proxy module. Its purpose is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
 
-This proxy simplifies problems, such as the strong dependence between the machines where are located the other modules. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system will not need more modifications for a correct performance.
+This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system does not need more modifications for a correct performance.
 
 \paragraph{Technologies used} \hspace{0pt} \\
 The module is written in Python and uses the Cherrypy framework. The other modules must communicate with the proxy using a correct URL (see Fig.~\ref{fi:url_protocol}) while the output returns a JSON message.
@@ -14,20 +14,20 @@ The module is written in Python and uses the Cherrypy framework. The other modul
 \subsection{Architecture}
 
 \paragraph{Module composition} \hspace{0pt} \\
-The module is composed of the following files: the code itself in: ``proxy.py'', a main file for initiating the module: ``main.py''  and a cherrypy configuration file: ``proxy.conf''.  
-It also uses a logs file for storing information when something is wrong using the proxy. This is initialised with the Proxy object using the logs directory provided in ``proxy.conf''.
+The module is composed of the following files: the code itself in: “proxy.py”, a main file for initiating the module: “main.py” and a cherrypy configuration file: “proxy.conf”. It also uses a logs file that notifies the reasons when something fails using the proxy. This is initialised with the Proxy object using the logs directory provided in “proxy.conf”.
 
 \paragraph{Module architecture} \hspace{0pt} \\
 
-The module is composed of a class, named as 'Proxy', that encapsulates all the information needed by the proxy. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making the methods available as webservices. 
+The module is composed of a class, named as ’Proxy’, that encapsulates all the information needed. The services offered by the module are all methods of this class. The cherrypy framework provides the abstraction for making the methods available as services. In the case of the proxy, it only has two services: ping and shutdown.
 
 The cherrypy engine is launched when the module starts. Besides, it loads the cherrypy configuration from “proxy.conf”. It also creates (if not exist) a logs folder using the information from the cherrypy configuration file and stores all the modules information provided by the XML file as a dictionary.
 
-When other module requests a service, it must communicate with the proxy using arguments given through an URL. The latter must follow a few guidelines. If the requesting module does not fulfill well with the required specifications, the proxy returns a JSON message that notifies the error and writes it in the file “error.log” in the logs directory
+When other module requests a service, it must communicate with the proxy using arguments given through an URL. The latter must follow a few guidelines. If the requesting module does not fulfill with the required specifications, the proxy returns a JSON message that notifies the error and writes it in the file “error.log”.
 
 \subsection{Communication with the proxy}
 
-In this section, we explain how the modules must communicate with the proxy for requesting a web service. They must input their petitions by using the following protocol for the URL:
+In this section, we explain the protocol that the petitions required for requesting a service. The URL must use the following arguments:
+
 \begin{figure}[!ht]
 \centering
 \begin{verbatim}
@@ -39,7 +39,7 @@ http://<proxyUrl>:<port>/?module=<module>&service=<ws>
 \end{figure}
 
 %At the moment, the URL and the port of the proxy are: \\ \texttt{http://ns3018037.ip-151-80-24.eu:9003/}. \\
-In this sense, an example of the how to use the proxy for requesting a web service is:
+In this sense, an example of how to use the proxy can be:
 
 \begin{figure}[!ht]
 \centering
@@ -50,7 +50,7 @@ service=ping
 \label{fi:url_ping_example}
 \end{figure}
 
-If the module does not use this protocol or something goes wrong, the proxy rejects the petition, writes the error in the log file and returns a JSON string to notify, using a code number, the reason of the failure (see table~\ref{ta:codes}). On the other hand, when the petition succeeded, the proxy outputs the JSON message from the requested web service. \\
+If the module does not use this protocol or something goes wrong, the proxy rejects the petition, writes the error in the log file and returns a JSON string to notify, using a code number, the reason of the failure (see table~\ref{ta:codes}). On the other hand, when the petition succeeded, the proxy outputs the JSON message from the requested  service. \\
 
 The JSON format of the proxy reads as follows:
 \begin{figure}[!ht]
