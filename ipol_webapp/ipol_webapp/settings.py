@@ -105,8 +105,8 @@ elif hostname in dev_machines_hostname:
 
 	# #testing ENV 2
 	IPOL_SERVICES_MODULE_DEMO = None
-	IPOL_SERVICES_MODULE_ACHIVE ='http://ns3018037.ip-151-80-24.eu:8010'
-	IPOL_SERVICES_MODULE_BLOBS ='http://ns3018037.ip-151-80-24.eu:8020'
+	IPOL_SERVICES_MODULE_ACHIVE = 'http://ns3018037.ip-151-80-24.eu:9000'
+	IPOL_SERVICES_MODULE_BLOBS = 'http://ns3018037.ip-151-80-24.eu:9001'
 
 else:
 	print("ERROR: invalid hostname")
