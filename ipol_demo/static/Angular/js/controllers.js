@@ -249,6 +249,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         }
       };
       
+      // Hide images that fail to load
       $scope.DisableImage = function(inputinfo) { inputinfo.status = "failed";}
       $scope.LoadedImage  = function(inputinfo) { inputinfo.status = "loaded";}
       
