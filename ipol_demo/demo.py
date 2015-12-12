@@ -14,6 +14,11 @@ from lib import build_demo_base
 from lib import base_app
 #import json
 import simplejson as json
+# json schema validation
+from jsonschema import validate
+from jsonschema import Draft4Validator
+from jsonschema import ValidationError
+
 from sets import Set
 import re
 
@@ -149,21 +154,32 @@ def get_values_of_o_arguments(argv):
 
 #-------------------------------------------------------------------------------
 def CheckDemoDescription(desc):
-    # check the general section
-    ok = True
-    required_keys = set([ "general", "build", "inputs", "params", "run", "archive", "results"  ])
-    if not required_keys.issubset(desc.keys()):
-        print "missing sections in JSON file: ", required_keys.difference(desc.keys())
-        return False
+    ## check the general section
+    #ok = True
+    #required_keys = set([ "general", "build", "inputs", "params", "run", "archive", "results"  ])
+    #if not required_keys.issubset(desc.keys()):
+        #print "missing sections in JSON file: ", required_keys.difference(desc.keys())
+        #return False
 
-    # general section
-    required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
-    if not required_keys.issubset(desc['general'].keys()):
-        mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
-        print mess
-        cherrypy.log(mess, context='SETUP', traceback=False)
+    ## general section
+    #required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
+    #if not required_keys.issubset(desc['general'].keys()):
+        #mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
+        #print mess
+        #cherrypy.log(mess, context='SETUP', traceback=False)
+        #return False
+    #return ok
+    
+    ddl_schema = json.load(open("ddl_schema.json"))
+    #print "****"
+    #print ddl_schema
+    #print "****"
+    try:
+        validate(desc,ddl_schema)
+    except ValidationError as e:
+        print e.message
         return False
-    return ok
+    return True
 
 #-------------------------------------------------------------------------------
 def UpdateDemoInfo(demo_description,section_names,section_keys,section_types):
@@ -446,13 +462,13 @@ if __name__ == '__main__':
         latex_sections=dict()
         ParseLatex(section_names,section_keys,latex_sections,ordered_sections)
         
-        print "All demo sections are "
-        print "Latex code"
-        for sn in latex_sections:
-            if "repeat" in sn:
-                print
-                print "---------------- ",sn,"--------------"
-                print latex_sections[sn]
+        #print "All demo sections are "
+        #print "Latex code"
+        #for sn in latex_sections:
+            #if "repeat" in sn:
+                #print
+                #print "---------------- ",sn,"--------------"
+                #print latex_sections[sn]
         
         print "JSON help file: see ddl_help.json"
         dllf = open("ddl_help.json","w")
