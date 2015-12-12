@@ -63,7 +63,9 @@ if the server is in production mode.& yes  \\ \hline
  crop\_maxsize      & limit allowed crop size in both width and height, the string
                       can contain an Angular expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
- input\_condition   & sets a condition on inputs using for example the input sizes & no \\ \hline
+ input\_condition   & sets a condition on inputs using for example the input sizes,
+                      it is written as an array of 3 string, the condition,
+                      the exception sent, and the error message& no \\ \hline
  show\_results\_on\-\_error & show results even if the demo returned a run-time error.
                     the demo will be able to display pertinent information & no \\ \hline
 \caption{Keys for the 'general' section ({\em req} means required).}
@@ -179,9 +181,6 @@ converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
 \hline \hline
  type             & flow & yes \\ \hline
  description      & same as image & yes \\ \hline
- max\_pixels      & same as image & yes \\ \hline
- max\_weight      & same as image & yes \\ \hline
- dtype            & same as image & yes \\ \hline
  ext              & same as image & yes \\ \hline
  required         & boolean: tells if the flow is required for the algorithm
 or optional, default is optional. For example, the ground truth may be optional.& no \\ \hline
@@ -266,7 +265,8 @@ The label  can be used as a title to separate groups of parameters.
  type  & readonly    & yes \\ \hline
  label & description of the parameter & yes \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
- value\_expr & AngularJS expression used to compute the parameter value 
+ value\_expr & AngularJS expression used to compute the parameter value, defined as an
+              array of strings that will be concatenated to a single string.
             & yes \\ \hline
 \caption{Common keys for the 'readonly' type.}
 \end{longtable}
