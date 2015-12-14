@@ -36,19 +36,19 @@
               ng-href="/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
           <div  
                 class="select_input"
-                style=' margin:0;padding:0;
-                        float:left;
-                        width:{{demo.general.thumbnail_size}}px; 
-                        height:{{demo.general.thumbnail_size}}px;
-                        vertical-align:middle;'>
+                ng-style="{'margin':'0','padding':'0',
+                        'float':'left',
+                        'width':demo.general.thumbnail_size+'px', 
+                        'height':demo.general.thumbnail_size+'px',
+                        'vertical-align':'middle'}">
             <img
-                  style=" max-width:{{demo.general.thumbnail_size}}px;
-                          max-height:{{demo.general.thumbnail_size}}px;
-                          width:auto;height:auto;
-                          margin:0;padding:0;
-                          position: relative;
-                          top: 50%;
-                          transform: translateY(-50%);"
+                  ng-style="{'max-width':demo.general.thumbnail_size+'px',
+                          'max-height':demo.general.thumbnail_size+'px',
+                          'width':'auto','height':'auto',
+                          'margin':'0','padding':'0',
+                          'position': 'relative',
+                          'top': '50%',
+                          'transform': 'translateY(-50%)'}"
                   ng-src="{{demoblobs.url_thumb}}/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
                   alt={{blob_set[idx].title}}
                   title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+')'}}"
