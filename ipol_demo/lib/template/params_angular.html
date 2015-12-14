@@ -139,13 +139,13 @@
                   margin-left:auto; margin-right: auto;
                   text-align:center;  margin-bottom=20px;margin-top=20px'>
 
-        <div style="style=text-align:left;float:left">
+        <div style="text-align:left;float:left">
           <input type="submit" name="action" value="Run" /> <br/> <br/>
         </div>
         <div style="clear:both"> </div>
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
-           <div style="style=text-align:left;float:left">
+           <div style="text-align:left;float:left">
               <input 
                       id="ID_InputCropped" type="checkbox" 
                       ng-model="CropInfo.enabled"  
@@ -167,10 +167,10 @@
                         <img  id="original_image"
                               crossOrigin="Anonymous"
                               ng-src="tmp/{{::demo_key}}/input_{{idx}}.png"
-                              style=" padding:5px;
-                                      max-width:{{maxdim}}px;
-                                      max-height:{{maxdim}}px;
-                                      width:auto;height:auto;"
+                              ng-style="{'padding':'5px',
+                                      'max-width':maxdim+'px',
+                                      'max-height':maxdim+'px',
+                                      'width':'auto','height':'auto'}"
                               styleParent
                               imageonfail="DisableImage(demo.inputs[idx])"
                               imageonload="LoadedImage (demo.inputs[idx])"
@@ -184,10 +184,10 @@
             <div ng-if="demo.inputs.length==1">
               <img  crossOrigin="Anonymous"
                     ng-src="tmp/{{::demo_key}}/input_0.png"
-                    style=" padding:5px;
-                            max-width:{{maxdim}}px;
-                            max-height:{{maxdim}}px;
-                            width:auto;height:auto;float:left"
+                    ng-style="{'padding':'5px',
+                            'max-width':maxdim+'px',
+                            'max-height':maxdim+'px',
+                            'width':'auto','height':'auto','float':'left'}"
                     styleParent
                     imageonfail="DisableImage(demo.inputs[0])"
                     imageonload="LoadedImage (demo.inputs[0])"
@@ -205,8 +205,8 @@
           <div ng-if="CropInfo.enabled" > 
             <table  style="float:left;border:0px;border-collapse:collapse" >
               <tr style="border:0px">
-                <td style='vertical-align:middle;width:{{(imwidth<maxdim)?(imwidth+10):(maxdim+10)}}px;border:0px'>
-                    <div style="width:{{imwidth*display_ratio}}px;height:{{imheight*display_ratio}}px;margin:5px"
+                <td ng-style="{'vertical-align':'middle','width':(imwidth<maxdim)?(imwidth+10):(maxdim+10)+'px','border':'0px'}">
+                    <div ng-style="{'width':imwidth*display_ratio+'px','height':imheight*display_ratio+'px','margin':'5px'}"
                         class="cropArea" >
                       <img-crop  
                                 crossOrigin="Anonymous"
@@ -240,9 +240,9 @@
                   <label style="float:left" for="zoomfactor"> &nbsp;&nbsp; Zoom factor </label>
                   <div style="clear:both">
                   <div  ng-show="CropInfo.enabled" 
-                        style=" overflow:scroll;
-                                width:{{imwidth*display_ratio+20}}px;
-                                height:{{imheight*display_ratio+20}}px;float:left" >
+                        ng-style="{'overflow':'scroll',
+                                'width':(imwidth*display_ratio+20)+'px',
+                                'height':(imheight*display_ratio+20)+'px','float':'left'}" >
                     <div ng-if="CropSize!='expand'">
                       <img  style="float:left" crossOrigin="Anonymous" ng-src="{{myCroppedImage}}" 
                             width="{{CropInfo.coord.w*CropSize}}" 
@@ -262,42 +262,58 @@
         </div>  <!-- ImCropCtrl -->
         </span> <!-- if crop enabled -->
 
+        <!-- Crop disabled -->
         <span ng-if="(demo.general.enable_crop!==undefined)&&(demo.general.enable_crop===false)">
-          <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
-            <ul class="index">
-              <li ng-repeat = "idx in range(demo.inputs.length)" 
-                  ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-                  <a href="#"> 
-                  <span bind-html-compile="::demo.inputs[idx].description" > </span> 
-                  <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
-                  <div class="galim">
-                    <img  id="original_image"
-                          crossOrigin="Anonymous"
-                          ng-src="tmp/{{::demo_key}}/input_{{::idx}}.png"
-                          style=" padding:5px;max-width:{{::maxdim}}px;
-                                  max-height:{{maxdim}}px;
-                                  width:auto;height:auto;"
-                          alt="{{::demo.inputs[idx].description}}"
-                          styleParent
-                          imageonfail="DisableImage(demo.inputs[idx])"
-                          imageonload="LoadedImage (demo.inputs[idx])"
-                          />
-                  </div>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <input type="hidden" name="x0" value="0">              
-          <input type="hidden" name="y0" value="0">
-          <input type="hidden" name="x"  value="{{imwidth}}">
-          <input type="hidden" name="y"  value="{{imheight}}">
+            <!-- if several inputs, use gallery -->
+            <div ng-if="demo.inputs.length>1">
+                <div class="gallery2" ng-style="{'height':(imheight*display_ratio+5)+'px'}">
+                    <ul class="index">
+                    <li ng-repeat = "idx in range(demo.inputs.length)" 
+                        ng-if     = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
+                        <a href="#"> 
+                        <span bind-html-compile="::demo.inputs[idx].description" > </span> 
+                        <span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>
+                        <div class="galim">
+                            <img  id="original_image"
+                                crossOrigin="Anonymous"
+                                ng-src="tmp/{{::demo_key}}/input_{{::idx}}.png"
+                                ng-style="{'padding':'5px','max-width':maxdim+'px',
+                                        'max-height':maxdim+'px',
+                                        'width':'auto','height':'auto'}"
+                                alt="{{::demo.inputs[idx].description}}"
+                                styleParent
+                                imageonfail="DisableImage(demo.inputs[idx])"
+                                imageonload="LoadedImage (demo.inputs[idx])"
+                                />
+                        </div>
+                        </a>
+                    </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- otherwise display the only image -->
+            <div ng-if="demo.inputs.length==1">
+                <img  crossOrigin="Anonymous"
+                    ng-src="tmp/{{::demo_key}}/input_0.png"
+                    ng-style="{'padding':'5px',
+                            'max-width':maxdim+'px',
+                            'max-height':maxdim+'px',
+                            'width':'auto','height':'auto','float':'left'}"
+                    styleParent
+                    />
+                <div style="clear:both"> </div><br/>
+            </div>
+            <input type="hidden" name="x0" value="0">              
+            <input type="hidden" name="y0" value="0">
+            <input type="hidden" name="x"  value="{{imwidth}}">
+            <input type="hidden" name="y"  value="{{imheight}}">
         </span>
       </div>
     </div> <!-- action -->
     <p>
       <!-- show the remaining images below -->
       <div ng-if="CropInfo.enabled &&(demo.inputs.length>1)" class="gallery2" 
-            style="height:{{imheight+5}}px;">
+            ng-style="{'height':(imheight+5)+'px'}">
         <ul class="index">
           <li ng-repeat="idx in range(1,demo.inputs.length)"
               ng-if    = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
@@ -307,10 +323,10 @@
                 <img  id="original_image"
                       crossOrigin="Anonymous"
                       ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                      style=" padding:5px;
-                              max-width:{{maxdim}}px;
-                              max-height:{{maxdim}}px;
-                              width:auto;height:auto;"
+                      ng-style="{'padding':'5px',
+                              'max-width':maxdim+'px',
+                              'max-height':maxdim+'px',
+                              'width':'auto','height':'auto'}"
                       styleParent
                       />
               </div>
