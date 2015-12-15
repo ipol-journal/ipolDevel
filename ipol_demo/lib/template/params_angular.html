@@ -133,16 +133,37 @@
       </fieldset>
       </div>
 
-      <div style="clear:both"> </div>
-<!--       <hr> -->
-      <div style='vertical-align:middle;
-                  margin-left:auto; margin-right: auto;
-                  text-align:center;  margin-bottom=20px;margin-top=20px'>
+      <span ng-if="CropInfo.enabled">
+        <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
+        <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
+        <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}">
+        <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
+      </span>
+      <span ng-if="!CropInfo.enabled">
+        <input type="hidden" name="x0" value="0">              
+        <input type="hidden" name="y0" value="0">
+        <input type="hidden" name="x"  value="{{imwidth}}">
+        <input type="hidden" name="y"  value="{{imheight}}">
+      </span>
 
-        <div style="text-align:left;float:left">
-          <input type="submit" name="action" value="Run" /> <br/> <br/>
-        </div>
-        <div style="clear:both"> </div>
+      <div style="clear:both"> </div>
+      <div style="text-align:left;float:left">
+            <input type="submit" name="action" value="Run" /> <br/> <br/>
+      </div>
+
+    </div> <!-- action -->
+  </form>
+
+
+
+    <div style="clear:both"> </div>
+    <!--       <hr> -->
+    <div style='vertical-align:middle;
+                margin-left:auto; margin-right: auto;
+                text-align:center;  margin-bottom=20px;margin-top=20px'>
+
+
+        <!--  if enable_crop possible -->
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
         <div ng-controller="ImgCropCtrl"> 
            <div style="text-align:left;float:left">
@@ -154,7 +175,9 @@
           </div>
           <div style="clear:both"> </div>
 
+          <!-- if crop disabled -->
           <div ng-if="!CropInfo.enabled" >
+            <!-- use gallery only if several images -->
             <div ng-if="demo.inputs.length>1">
               <div class="gallery2" style="height:{{imheight*display_ratio+5}}px;">
                 <ul class="index">
@@ -181,6 +204,7 @@
                 </ul>
               </div>
             </div>
+            <!-- otherwise simple image output -->
             <div ng-if="demo.inputs.length==1">
               <img  crossOrigin="Anonymous"
                     ng-src="tmp/{{::demo_key}}/input_0.png"
@@ -189,19 +213,13 @@
                             'max-height':maxdim+'px',
                             'width':'auto','height':'auto','float':'left'}"
                     styleParent
-                    imageonfail="DisableImage(demo.inputs[0])"
-                    imageonload="LoadedImage (demo.inputs[0])"
                     />
               <div style="clear:both"> </div><br/>
-                <span ng-if="demo.inputs[0].status!='loaded'"> (loading) </span>
             </div>
-            <input type="hidden" name="x0" value="0">              
-            <input type="hidden" name="y0" value="0">
-            <input type="hidden" name="x"  value="{{::imwidth}}">
-            <input type="hidden" name="y"  value="{{::imheight}}">
           </div>
 
           <!-- using ng-if instead of ng-show solved refreshing problem and canvas size set to 0x0 -->
+          <!-- if crop enabled -->
           <div ng-if="CropInfo.enabled" > 
             <table  style="float:left;border:0px;border-collapse:collapse" >
               <tr style="border:0px">
@@ -227,10 +245,6 @@
                       {{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}, 
                       {{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}
                     </label>
-                    <input type="hidden" name="x0" value="{{Math.round(CropInfo.coord.x/display_ratio)}}">              
-                    <input type="hidden" name="y0" value="{{Math.round(CropInfo.coord.y/display_ratio)}}">
-                    <input type="hidden" name="x"  value="{{Math.round((CropInfo.coord.x+CropInfo.coord.w)/display_ratio)}}">
-                    <input type="hidden" name="y"  value="{{Math.round((CropInfo.coord.y+CropInfo.coord.h)/display_ratio)}}">
                 </td>
                 <td style='vertical-align:middle;border:0px;float:left'>
                   <select style="float:left"  ng-options="CropSize for CropSize in ['expand',1, 1.5, 2, 4, 8,16]" 
@@ -293,50 +307,98 @@
             </div>
             <!-- otherwise display the only image -->
             <div ng-if="demo.inputs.length==1">
-                <img  crossOrigin="Anonymous"
-                    ng-src="tmp/{{::demo_key}}/input_0.png"
+                <!-- deal with inpainting mask -->
+                <span ng-if="(demo.general.inpainting!==undefined)&&(demo.general.inpainting)">
+                    <form action="${app.base_url + 'inpainting_editmask'}" method="get">
+                        <input type="hidden" id="key" name="key" value="${app.key}" />
+
+                        <p>Select an inpainting domain <i>D</i>:&nbsp;
+                            <input type="submit" id="action" name="action" value="random text" />&nbsp;
+                            <input type="submit" id="action" name="action" value="random walk" />&nbsp;
+                            <input type="submit" id="action" name="action" value="random Bernoulli" />&nbsp;
+                            (click again to regenerate)
+                        </p>
+
+                        <p>Alternatively, click on the image to draw the inpainting domain.</p>
+                        <fieldset>    
+                            <input type="submit" id="action" name="action" value="undo" style="float:left" />
+                            <input type="submit" id="action" name="action" value="clear" style="float:left; margin-left:3pt" />
+                            <div id="penpreview" name="penpreview" style="float:left; margin-left:36px; width:31px; height:31px"></div>
+                            <div style="float:left; margin-left:6px; font-size:9pt; text-align:right;">
+                                pen size&nbsp;&nbsp;&nbsp;
+                                <input  type="text" style="font-family:monospace; text-align:right;"
+                                        size="2" id="pensize" name="pensize" 
+                                        ng-model="demo.params.pensize"
+                                />
+                                <br />
+
+                                <input  style="width:8em; margin-top:2px; font-size:8pt;"  
+                                        type="range" 
+                                        min="1" max="15"  step="1" 
+                                        ng-model="demo.params.pensize"/>
+
+
+                            </div>
+                            <input  type="submit" id="pencolor_yellow" name="pencolor_yellow" value="" 
+                                    style="float:left; margin-left:36px; background:none; background-color:#FFFF00" />
+                            <input  type="submit" id="pencolor_blue" name="pencolor_blue" value="" 
+                                    style="float:left; margin-left:4px; background:none; background-color:#0000FF" />
+                            <input  type="submit" id="pencolor_black" name="pencolor_black" value="" 
+                                    style="float:left; margin-left:4px; background:none; background-color:#000000" />
+                            <div style="clear:both"></div>
+                            <input  type="image" 
+                                    style="float:left; cursor:crosshair; margin-top:5px; background:url('${app.work_url + 'input_0.png'}')"
+                                    width="$ {app.cfg['param']['viewbox_width']}"
+                                    height="$ {app.cfg['param']['viewbox_height']}"
+                                    src="${app.work_url + 'mask.png'}?${app.inpainting_timestamp}" 
+                                    alt="" />
+                        </fieldset>
+                    </form>
+
+                </span>
+                <!-- no impainting: simple image display -->
+                <span ng-if="(demo.general.inpainting==undefined)||(!demo.general.inpainting)">
+                    <img  crossOrigin="Anonymous"
+                        ng-src="tmp/{{::demo_key}}/input_0.png"
+                        ng-style="{'padding':'5px',
+                                'max-width':maxdim+'px',
+                                'max-height':maxdim+'px',
+                                'width':'auto','height':'auto','float':'left'}"
+                        styleParent
+                        />
+                </span>
+                <div style="clear:both"> </div><br/>
+            </div>
+        </span>
+    </div>
+
+
+    <p>
+    <!-- show the remaining images below -->
+    <div ng-if="CropInfo.enabled &&(demo.inputs.length>1)" class="gallery2" 
+        ng-style="{'height':(imheight+5)+'px'}">
+    <ul class="index">
+        <li ng-repeat="idx in range(1,demo.inputs.length)"
+            ng-if    = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
+            <a href="#"> 
+            <span bind-html-compile="demo.inputs[idx].description" > </span> 
+            <div class="galim">
+            <img  id="original_image"
+                    crossOrigin="Anonymous"
+                    ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
                     ng-style="{'padding':'5px',
                             'max-width':maxdim+'px',
                             'max-height':maxdim+'px',
-                            'width':'auto','height':'auto','float':'left'}"
+                            'width':'auto','height':'auto'}"
                     styleParent
                     />
-                <div style="clear:both"> </div><br/>
             </div>
-            <input type="hidden" name="x0" value="0">              
-            <input type="hidden" name="y0" value="0">
-            <input type="hidden" name="x"  value="{{imwidth}}">
-            <input type="hidden" name="y"  value="{{imheight}}">
-        </span>
-      </div>
-    </div> <!-- action -->
-    <p>
-      <!-- show the remaining images below -->
-      <div ng-if="CropInfo.enabled &&(demo.inputs.length>1)" class="gallery2" 
-            ng-style="{'height':(imheight+5)+'px'}">
-        <ul class="index">
-          <li ng-repeat="idx in range(1,demo.inputs.length)"
-              ng-if    = "demo.inputs[idx].type=='image' || $eval('meta.input'+idx+'_has_image')">
-              <a href="#"> 
-              <span bind-html-compile="demo.inputs[idx].description" > </span> 
-              <div class="galim">
-                <img  id="original_image"
-                      crossOrigin="Anonymous"
-                      ng-src="tmp/{{demo_key}}/input_{{idx}}.png"
-                      ng-style="{'padding':'5px',
-                              'max-width':maxdim+'px',
-                              'max-height':maxdim+'px',
-                              'width':'auto','height':'auto'}"
-                      styleParent
-                      />
-              </div>
-            </a>
-          </li>
-        </ul>
-      </div>
+        </a>
+        </li>
+    </ul>
+    </div>
     <p>
 
-  </form>
 </div> <!-- DemoParamCtrl -->
 
 
