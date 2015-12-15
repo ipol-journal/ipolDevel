@@ -1,0 +1,108 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Combined First and Second Order Total Variation Inpainting Using Split Bregman",
+    "input_description"     : "",
+    "param_description"     : "",
+    "enable_crop"           : false,
+    "inpainting"            : true,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/40/",
+    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+                                "badparams",
+                                "The images must have the same size" ]
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2013/40/fstv_1.3.tgz", 
+        "srcdir"        : "fstv_1.3",
+        "binaries"      : [ [".","fstv"], [".","random_mask"] ],
+        "flags"         : "-j4"
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input",
+          "max_pixels"      : "500*500",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      } 
+    ],
+  "params": 
+    [
+      {
+        "id"            : "alpha",
+        "type"          : "range", 
+        "label"         : "<i>&alpha;</i>",
+        "values"        : { "min":1e-5, "max":1e-2, "step":1e-5, "default": 1e-3 }
+      },
+      {
+        "id"            : "beta",
+        "type"          : "range", 
+        "label"         : "<i>&beta;</i>",
+        "values"        : { "min":1e-5, "max":1e-2, "step":1e-5, "default": 1e-3 }
+      }
+    ],
+  "run": [
+    "python:# Open image and inpainting domain mask",
+    "python:img = PIL.Image.open(self.work_dir + 'input_0.png').convert('RGB')",
+    "python:mask = PIL.Image.open(self.work_dir + 'mask.png')",
+    
+    "python:# Extract alpha: alpha is already used as param so use _alpha",
+    "python:_alpha = mask.copy()",
+    "python:_alpha.putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:_alpha = _alpha.convert('L')",
+    
+    "python:# Extract mask palette for display",
+    "python:lut = mask.resize((256, 1))",
+    "python:lut.putdata(range(256))",
+    "python:lut = lut.convert('RGB').getdata()",
+    
+    "python:# Save binary PNG version of the mask",
+    "python:mask.putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:mask.save(self.work_dir + 'mask.png')",
+    
+    "python:# Save image + mask composited version for display",
+    "python:img.paste(lut[255], _alpha)",
+    "python:img.save(self.work_dir + 'composite.png')",
+    
+    "python:# Save another composite where mask is gray for computation",
+    "python:img.paste((128, 128, 128), _alpha)",
+    "python:img.save(self.work_dir + 'u0.png')",
+
+    "fstv u0.png mask.png inpainted.png $alpha $beta"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.png"             : "original image",
+                  "composite.png"           : "input",
+                  "inpainted.png"           : "inpainting result"
+                },
+      "params" :  [ "alpha", "beta" ]
+    },
+  "results": [
+    {
+      "type"          : "file_download",
+      "label"         : "The images can be downloaded here:",
+      "contents"      : { "input"     : "composite.png", 
+                          "inpainted" : "inpainted.png",
+                          "original"  : "input_0.png"
+                        }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : 
+        {   "Input"        : "composite.png", 
+            "Inpainted"    : "inpainted.png",
+            "Original"     : "input_0.png"
+        },
+      "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px" 
+    }
+  ]
+}
