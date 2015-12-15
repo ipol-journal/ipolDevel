@@ -18,6 +18,7 @@
         "url"           : "http://www.ipol.im/pub/art/2013/40/fstv_1.3.tgz", 
         "srcdir"        : "fstv_1.3",
         "binaries"      : [ [".","fstv"], [".","random_mask"] ],
+        "prepare_make"  : "sed -i -e 's/$(LDFLAGS) $(FSRC:.c=.o) -o $(FBIN)/$(FSRC:.c=.o) -o $(FBIN) $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(RSRC:.c=.o) -o $(RBIN)/$(RSRC:.c=.o) -o $(RBIN) $(LDFLAGS)/g' Makefile",
         "flags"         : "-j4"
       }
     ]
