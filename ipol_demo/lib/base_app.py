@@ -32,6 +32,7 @@ from    run_demo_base import RunDemoBase
 from    run_demo_base import TimeoutError
 from    timeit import default_timer as timer
 import  glob
+from PIL import Image,ImageDraw
 
 class AppPool(object):
     """
@@ -649,6 +650,162 @@ class base_app(empty_app):
         tb = traceback.extract_stack() if errcode != "timeout" else None
         return self.tmpl_out("error.html", msg=msg, traceback=tb)
 
+    #===========================================================================
+    # Inpainting related methods
+    #
+    
+    #---------------------------------------------------------------------------
+    def inpainting_init(self):
+        self.inpainting_default_param = {
+                'pensize': 5,
+                'pencolor':'yellow'}
+        self.inpainting_pencolors = {'yellow'   : [255, 255, 0], 
+                'blue'          : [0, 0, 255], 
+                'black'         : [0, 0, 0]}
+        # Generate a new timestamp
+        self.inpainting_timestamp = int(100*time.time())
+
+    #---------------------------------------------------------------------------
+    def inpainting_readcommandlist(self):
+        """
+        Read the drawing commandlist from maskcomands.txt
+        """
+                
+        try:
+            ifile = file(self.work_dir + 'maskcommands.txt', 'r')
+            commandlist = [tuple([int(t) for t in line.split(' ')]) \
+                for line in ifile.readlines()]
+            ifile.close()
+        except IOError:
+            commandlist = []
+        
+        return commandlist
+    
+    
+    #---------------------------------------------------------------------------
+    def print_palette(self,palette):
+        """
+        print palette information to standard output
+        """
+        import array
+        print "mode", palette.mode
+        palarray = array.array('B',palette.palette)
+        size = len(palette.mode)
+        val = range(size)
+        for i in range(256):
+            for j in range(i*size, (i+1)*size):
+                try:
+                    val[j-i*size] =  palarray[j]
+                except IndexError:
+                    val[j-i*size] = 0
+            if (i==0) or (i==255):
+                print "%d" %i,  val
+            else:
+                if val!=prev_val:
+                    print "%d" %i,  val
+            prev_val = val[:]
+        
+    #---------------------------------------------------------------------------
+    def inpainting_rendermask(self):
+        """
+        Render the drawing commandlist into the mask 
+        """        
+        
+        commandlist = self.inpainting_readcommandlist()
+        size = image(self.work_dir + 'input_0.png').size
+        self.cfg['param']['viewbox_width'] = size[0]
+        self.cfg['param']['viewbox_height'] = size[1]
+        
+        mask = Image.new('P', size, 0)   # Create a grayscale image
+        draw = ImageDraw.Draw(mask)
+    
+        for (t, x, y) in commandlist:
+            draw.ellipse((x - t, y - t, x + t + 1, y + t + 1), fill=255)
+        
+        mask.putpalette([128, 128, 128] + [0, 0, 0] * 254
+            + self.inpainting_pencolors[self.cfg['param']['pencolor']])
+        self.print_palette(mask.palette)
+        
+        mask.save(self.work_dir + 'mask.png', transparency=0)
+        
+    
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
+    @init_app
+    def inpainting_editmask(self, **kwargs):
+        """
+        Edit the inpainting mask
+        avoid using gif since the palette is then compressed,
+        use png format for the mask
+        """
+        self.inpainting_init()
+        
+        generate_options = {
+            'random text' : 'rl',
+            'random walk' : 'rw',
+            'random Bernoulli' : 'bernoulli'
+            }
+        commandlist = self.inpainting_readcommandlist()
+        
+        pencolors = set(['pencolor_yellow','pencolor_blue','pencolor_black'])
+        pencolor_arg = pencolors.intersection(kwargs)
+        
+        if 'action' in kwargs:
+            if kwargs['action'] == 'undo':
+                if commandlist:
+                    commandlist.pop()
+            elif kwargs['action'] == 'clear':
+                commandlist = []
+            elif kwargs['action'] in generate_options.keys():
+                self.wait_proc(self.run_proc(['random_mask', 
+                    generate_options[kwargs['action']],
+                    self.work_dir + 'input_0.png', 'mask.png'],
+                    stdout=None, stderr=None), None)
+                
+                if os.path.isfile(self.work_dir + 'maskcommands.txt'):
+                    os.remove(self.work_dir + 'maskcommands.txt')
+                
+                mask = Image.open(self.work_dir + 'mask.png')
+                mask = mask.convert('L')
+                mask = mask.convert('P')
+                mask.putpalette([128, 128, 128] + [0, 0, 0] * 254 
+                    + self.inpainting_pencolors[self.cfg['param']['pencolor']])
+                mask.save(self.work_dir + 'mask.png', transparency=0)
+                                
+                return self.tmpl_out('params_angular.html')
+        elif len(pencolor_arg)>0:
+            color = pencolor_arg.pop()[9:]
+            self.cfg['param']['pencolor'] = color
+            mask = Image.open(self.work_dir + 'mask.png')
+            mask.putpalette([128, 128, 128] + [0, 0, 0] * 254 
+                            + self.inpainting_pencolors[color])
+            mask.save(self.work_dir + 'mask.png', transparency=0)
+            return self.tmpl_out('params_angular.html')
+        else:
+            commandlist.append( (int(kwargs['pensize']), \
+                                int(kwargs['x']), int(kwargs['y'])))
+        
+        f = file(self.work_dir + 'maskcommands.txt', 'w')
+        #f.write('This is a test\n')
+        f.writelines('%i %i %i\n' % (t, x, y)  \
+                    for (t, x, y) in commandlist )
+        f.close()
+        
+        # Generate a new timestamp
+        self.inpainting_timestamp = int(100*time.time())
+                
+        self.cfg['param']['pensize'] = int(kwargs['pensize'])
+        # Set undefined parameters to default values
+        self.cfg['param'] = dict(self.inpainting_default_param, **self.cfg['param'])
+        
+        self.inpainting_rendermask()
+        return self.tmpl_out('params_angular.html')
+    
+    
+    #
+    #
+    #===========================================================================
+
     #
     # PARAMETER HANDLING
     #
@@ -677,8 +834,32 @@ class base_app(empty_app):
         else:
           print "no input condition"
         
+        # check for inpainting option
+        self.inpainting = \
+            (   'inpainting' in self.demo_description['general'].keys() and \
+                self.demo_description['general']['inpainting'])
+        
+        print "inpainting = ", self.inpainting
+        
         if newrun:
+            old_work_dir = self.work_dir
             self.clone_input()
+            if self.inpainting:
+                # Also need to clone maskcommands.txt to keep the mask
+                if os.path.isfile(old_work_dir + 'maskcommands.txt'):
+                    shutil.copy(old_work_dir  + 'maskcommands.txt',
+                                self.work_dir + 'maskcommands.txt')
+                
+        if self.inpainting:
+            self.inpainting_init()
+            # Set undefined parameters to default values
+            self.cfg['param'] = dict(self.inpainting_default_param, **self.cfg['param'])
+            print "self.cfg['param']=",self.cfg['param']
+            
+            # Generate a new timestamp
+            self.inpainting_timestamp = int(100*time.time())
+            self.inpainting_rendermask()
+
         return self.tmpl_out("params_angular.html", msg=msg)
 
     #

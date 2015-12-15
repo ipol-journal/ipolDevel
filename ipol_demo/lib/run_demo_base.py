@@ -7,6 +7,7 @@ import six
 import math
 # importing image for python commands in DDL scripts
 from .image import image
+import PIL
 
 #-----------------------------------------------------------------------------
 class TimeoutError(Exception):
