@@ -170,7 +170,7 @@ def CheckDemoDescription(desc):
         #return False
     #return ok
     
-    ddl_schema = json.load(open("ddl_schema.json"))
+    ddl_schema = json.load(open("modules/config_common/ddl_schema.json"))
     #print "****"
     #print ddl_schema
     #print "****"
