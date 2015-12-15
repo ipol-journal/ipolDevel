@@ -109,6 +109,13 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       // initialization of the parameters obtained from the DDL json file
       $scope.initParams = function($scope) {
         console.info("initParams");
+        
+        // add pensize parameter for inpainting
+        if ($scope.params['pensize']==undefined) {
+          $scope.demo.params.pensize = 5;
+        } else {
+          $scope.demo.params.pensize = $scope.params['pensize'];
+        }
 
         // initialize input loading status
         angular.forEach($scope.demo.inputs, 
