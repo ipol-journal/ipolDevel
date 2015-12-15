@@ -1,0 +1,29 @@
+{% load i18n %}
+
+
+<header>
+    <nav id="header" class=" navbar navbar-default navbar-fixed-top">
+
+
+        <div id="navbar" >
+
+            <ul class="nav nav-pills">
+
+            {% if user.is_authenticated %}
+                
+                <li class="nav-item  {% if request.session.topmenu == 'topmenu-demoinfo-demos' %} active {% endif %} ">
+                    <a href="{% url 'ipol.cp.demoinfo.demos' %}">{% trans 'Demos' %}</a>
+                </li>
+
+                <li class="nav-item {% if request.session.topmenu == 'topmenu-demoinfo-authors' %} active {% endif %}" >
+                    <a href="{% url 'ipol.cp.demoinfo.authors' %}">{% trans 'Authors' %}</a>
+                </li>
+
+                <li class="nav-item {% if request.session.topmenu == 'topmenu-demoinfo-editors' %} active {% endif %}">
+                    <a href="{% url 'ipol.cp.demoinfo.editors' %}">{% trans 'Editors' %}</a>
+                </li>
+
+            {% endif %}
+        </div>
+    </nav>
+</header>

@@ -31,15 +31,7 @@
 
         <h2>Demo List</h2>
 
-        <h2>Common view over archive and blobs</h2>
-        {#   Demo de test con id -1     #}
-            <div class="demo">
-                <a  href="{% url 'ipol.cp.archive.page' -1 %}">
-                    <p style="padding-left: 20px">name: testdemo id:-1</p>
-                </a>
-            </div>
-
-        {% with data=view.result %}
+        {% with data=view.list_demos %}
             <p>STATUS: {{ data.status  }}</p>
 
 

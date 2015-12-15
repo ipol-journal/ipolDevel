@@ -66,8 +66,8 @@
                     <a href="{% url 'ipol.cp.status' %}">{% trans 'Status' %}</a>
                 </li>
 
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.demos' %}">{% trans 'Demos' %}</a>
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}" >
+                    <a style="color:red" href="{% url 'ipol.cp.demos' %}">{% trans 'Demos' %}</a>
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
@@ -79,16 +79,18 @@
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="#">{% trans 'DemoInfoModule' %}</a>
+                    <a href="{% url 'ipol.cp.demoinfo.demos' %}">{% trans 'DemoInfo' %}</a>
+                </li>
+
+
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a style="color:red" href="#">{% trans 'DemoRunnerModule' %}</a>
                 </li>
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="#">{% trans 'DemoRunnerModule' %}</a>
+                    <a style="color:red" href="#">{% trans 'DemoDispatcherModule' %}</a>
                 </li>
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="#">{% trans 'DemoDispatcherModule' %}</a>
-                </li>
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="#">{% trans 'ProxyModule' %}</a>
+                    <a style="color:red" href="#">{% trans 'ProxyModule' %}</a>
                 </li>
                 {#   allauth   #}
                 <li class="nav-item {% if request.session.menu == 'menu-private-logout' %} active {% endif %}">

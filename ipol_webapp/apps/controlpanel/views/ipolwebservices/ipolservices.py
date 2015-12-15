@@ -5,7 +5,8 @@ import requests
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
 	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
-	archive_ws_url_demo_list, archive_ws_url_delete_demo
+	archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
+	demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +21,34 @@ def is_json(myjson):
 		return False
 	return True
 
-def get_JSON_from_webservice(ws_url, params=None):
+#todo add param for html verb, get post etc
+def get_JSON_from_webservice(ws_url,METHOD=None, params=None):
 	"""
 
 	:param ws_url:
 	:param params:
 	:return:  JSON (from WS) or None
+
+	RUNS THE WEBSERVICES, expects a JSON
+
 	"""
+
+	#todo if needeed insert schema validation here
 	result = None
 	try:
-		response = requests.get(ws_url,params)
+
+		if not METHOD or METHOD=='GET':
+			response = requests.get(ws_url,params)
+		elif METHOD=='POST':
+			print ("POST")
+			response = requests.post(ws_url,params)
+		else:
+			msg="get_JSON_from_webservice: Not valid METHOD: %s" % result
+			logger.error(msg)
+			print(msg)
+			raise ValueError(msg)
+
+
 		result =  response.content
 		print "JSON:"
 		print result
@@ -45,11 +64,51 @@ def get_JSON_from_webservice(ws_url, params=None):
 		logger.error(msg)
 	return result
 
+#####################
+#  DEMOINFO MODULE  #
+#####################
+
+def demoinfo_get_stats():
+
+	wsurl = demoinfo_ws_url_stats
+	return get_JSON_from_webservice(wsurl)
+
+def demoinfo_demo_list():
+	"""
+	list demos present in database
+	{ return:OK or KO, list demos:
+	"""
+
+	wsurl = demoinfo_ws_url_demo_list
+	return get_JSON_from_webservice(wsurl)
+
+def demoinfo_delete_demo(demo_id,hard_delete = False):
+
+	wsurl = demoinfo_ws_url_delete_demo
+	params = {'demo_id': demo_id,'hard_delete':hard_delete}
+
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_author_list():
+
+
+	wsurl = demoinfo_ws_url_author_list
+	return get_JSON_from_webservice(wsurl)
+
+
+def demoinfo_editor_list():
+
+
+	wsurl = demoinfo_ws_url_demo_list
+	return get_JSON_from_webservice(wsurl)
+
 
 
 ####################
 #  ARCHIVE MODULE  #
 ####################
+
 def archive_get_page(experimentid , page='1'):
 	"""
 	:param experimentid:
@@ -64,6 +123,7 @@ def archive_get_page(experimentid , page='1'):
 
 	return get_JSON_from_webservice(wsurl,params)
 
+
 def archive_get_stats():
 	"""
 	:param experimentid:
@@ -77,6 +137,7 @@ def archive_get_stats():
 	wsurl = archive_ws_url_stats
 	return get_JSON_from_webservice(wsurl)
 
+
 def archive_shutdown():
 	"""
 	Shutdown archive
@@ -84,6 +145,7 @@ def archive_shutdown():
 
 	wsurl = archive_ws_url_shutdown
 	return get_JSON_from_webservice(wsurl)
+
 
 def archive_demo_list():
 	"""
@@ -94,11 +156,13 @@ def archive_demo_list():
 	wsurl = archive_ws_url_demo_list
 	return get_JSON_from_webservice(wsurl)
 
+
 def archive_add_experiment_to_test_demo():
 
 	wsurl = archive_ws_url_add_experiment_test
 
 	return get_JSON_from_webservice(wsurl)
+
 
 def archive_delete_demo(demo_id):
 
@@ -107,12 +171,14 @@ def archive_delete_demo(demo_id):
 
 	return get_JSON_from_webservice(wsurl,params)
 
+
 def archive_delete_experiment(experiment_id):
 
 	wsurl = archive_ws_url_delete_experiment
 	params = {'experiment_id': experiment_id}
 
 	return get_JSON_from_webservice(wsurl,params)
+
 
 def archive_delete_file(file_id):
 
@@ -121,9 +187,11 @@ def archive_delete_file(file_id):
 
 	return get_JSON_from_webservice(wsurl,params)
 
+
 ####################
 #   BLOBS MODULE   #
 ####################
+
 def get_blobs_demo_list():
 	"""
 	list demos present in database

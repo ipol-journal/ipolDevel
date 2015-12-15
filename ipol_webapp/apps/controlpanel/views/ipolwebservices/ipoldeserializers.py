@@ -13,6 +13,250 @@ logger = logging.getLogger(__name__)
 
 # Serializers , to parse complex JSON to python data structures
 
+#####################
+#  DEMOINFO MODULE  #
+#####################
+
+def DeserializeDemoinfoStatus(jsonresult):
+
+	#Clases that will contain the json data
+	class Stats(object):
+		def __init__(self, status,nb_demos,nb_authors,nb_editors):
+			self.status = status
+			self.nb_demos = nb_demos
+			self.nb_authors = nb_authors
+			self.nb_editors = nb_editors
+
+
+	# Serializers
+	class StatsSerializer(serializers.Serializer):
+		status = serializers.CharField(max_length=200)
+		nb_demos = serializers.IntegerField()
+		nb_authors = serializers.IntegerField()
+		nb_editors = serializers.IntegerField()
+
+		def create(self, validated_data):
+			return Stats(**validated_data)
+
+
+	#JSON TO OBJECTS
+
+	#Using data from WS
+	jsondata = jsonresult
+
+	#print jsondata
+
+
+	#Deserialization.
+	mywstats = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = StatsSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			mywstats = serializer.save()
+
+
+	except Exception,e:
+		msg="Error JSON Deserialization e: %s serializer.errors: "%e
+		logger.error(msg)
+		#logger.error(serializer.errors)
+
+	#print mywstats.__class__
+	return mywstats
+
+
+def DeserializeDemoinfoDemoList(jsonresult):
+
+
+	#Clases that will contain the json data
+	#demodescriptionID is optional a demo may not have one yet!
+
+	class Demo(object):
+		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification, demodescriptionID=None):
+			self.editorsdemoid = editorsdemoid
+			self.title = title
+			self.abstract = abstract
+			self.zipURL = zipURL
+			self.active = active
+			self.stateID = stateID
+			self.demodescriptionID = demodescriptionID
+			self.id = id
+			self.creation = creation
+			self.modification = modification
+
+
+	class DemoList(object):
+		def __init__(self, demo_list,status):
+			self.demo_list = demo_list
+			self.status = status
+
+
+	# Serializers
+	class DemoinfoDemoSerializer(serializers.Serializer):
+
+		editorsdemoid = serializers.IntegerField()
+		title = serializers.CharField()
+		abstract = serializers.CharField()
+		zipURL = serializers.URLField()
+		active = serializers.IntegerField()
+		stateID = serializers.IntegerField()
+		demodescriptionID = serializers.IntegerField(required=False)
+		id = serializers.IntegerField()
+		creation = serializers.DateTimeField()
+		modification = serializers.DateTimeField()
+
+		def create(self, validated_data):
+			return Demo(**validated_data)
+
+
+	class DemoinfoDemoListSerializer(serializers.Serializer):
+		demo_list = DemoinfoDemoSerializer(many=True)
+		status = serializers.CharField(max_length=200)
+
+		def create(self, validated_data):
+			list_demos = validated_data.pop('demo_list')
+			status = validated_data.pop('status')
+			demo_list = list()
+			for demo in list_demos:
+				ds = DemoinfoDemoSerializer(data=demo)
+
+				if ds.is_valid(raise_exception=True):
+					demo_list.append(ds.save())
+
+			demolist = DemoList(demo_list,status)
+
+			return demolist
+
+	#Using data from WS
+	jsondata = jsonresult
+
+	#Deserialization.
+	mydl = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		print "jsondata: ",jsondata
+
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = DemoinfoDemoListSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			mydl = serializer.save()
+
+
+	except Exception,e:
+		msg="Error DeserializeDemoinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
+		logger.error(msg)
+		print(msg)
+		#logger.error(serializer.errors)
+
+	print mydl
+	return mydl
+
+
+def DeserializeDemoinfoAuthorList(jsonresult):
+
+
+	#Clases that will contain the json data
+	#demodescriptionID is optional a demo may not have one yet!
+
+	class Demo(object):
+		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification, demodescriptionID=None):
+			self.editorsdemoid = editorsdemoid
+			self.title = title
+			self.abstract = abstract
+			self.zipURL = zipURL
+			self.active = active
+			self.stateID = stateID
+			self.demodescriptionID = demodescriptionID
+			self.id = id
+			self.creation = creation
+			self.modification = modification
+
+
+	class DemoList(object):
+		def __init__(self, demo_list,status):
+			self.demo_list = demo_list
+			self.status = status
+
+
+	# Serializers
+	class DemoinfoDemoSerializer(serializers.Serializer):
+
+		editorsdemoid = serializers.IntegerField()
+		title = serializers.CharField()
+		abstract = serializers.CharField()
+		zipURL = serializers.URLField()
+		active = serializers.IntegerField()
+		stateID = serializers.IntegerField()
+		demodescriptionID = serializers.IntegerField(required=False)
+		id = serializers.IntegerField()
+		creation = serializers.DateTimeField()
+		modification = serializers.DateTimeField()
+
+		def create(self, validated_data):
+			return Demo(**validated_data)
+
+
+	class DemoinfoDemoListSerializer(serializers.Serializer):
+		demo_list = DemoinfoDemoSerializer(many=True)
+		status = serializers.CharField(max_length=200)
+
+		def create(self, validated_data):
+			list_demos = validated_data.pop('demo_list')
+			status = validated_data.pop('status')
+			demo_list = list()
+			for demo in list_demos:
+				ds = DemoinfoDemoSerializer(data=demo)
+
+				if ds.is_valid(raise_exception=True):
+					demo_list.append(ds.save())
+
+			demolist = DemoList(demo_list,status)
+
+			return demolist
+
+	#Using data from WS
+	jsondata = jsonresult
+
+	#Deserialization.
+	mydl = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		print "jsondata: ",jsondata
+
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = DemoinfoDemoListSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			mydl = serializer.save()
+
+
+	except Exception,e:
+		msg="Error DeserializeDemoinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
+		logger.error(msg)
+		print(msg)
+		#logger.error(serializer.errors)
+
+	print mydl
+	return mydl
+
+
+
+####################
+#  ARCHIVE MODULE  #
+####################
+
 def DeserializePage(jsonresult):
 
 
@@ -174,7 +418,8 @@ def DeserializePage(jsonresult):
 
 	return mywspage
 
-def DeserializeStatus(jsonresult):
+
+def DeserializeArchiveStatus(jsonresult):
 
 	#Clases that will contain the json data
 	class Stats(object):
@@ -221,8 +466,87 @@ def DeserializeStatus(jsonresult):
 		logger.error(msg)
 		#logger.error(serializer.errors)
 
-	print mywstats.__class__
+	#print mywstats.__class__
 	return mywstats
+
+
+def DeserializeArchiveDemoList(jsonresult):
+
+
+	#Clases that will contain the json data
+	class Demo(object):
+		def __init__(self, demo_id):
+			self.demo_id = demo_id
+
+	class DemoList(object):
+		def __init__(self, demo_list,status):
+			self.demo_list = demo_list
+			self.status = status
+
+
+	# Serializers
+	class ArchiveDemoSerializer(serializers.Serializer):
+
+		demo_id = serializers.IntegerField()
+		def create(self, validated_data):
+			return Demo(**validated_data)
+
+
+	class ArchiveDemoListSerializer(serializers.Serializer):
+		demo_list = ArchiveDemoSerializer(many=True)
+		status = serializers.CharField(max_length=200)
+
+		def create(self, validated_data):
+			list_demos = validated_data.pop('demo_list')
+			demo_list = list()
+			for demo in list_demos:
+				ds = ArchiveDemoSerializer(data=demo)
+				if ds.is_valid(raise_exception=True):
+					demo_list.append(ds.save())
+			demolist = DemoList(
+					demo_list,
+					validated_data.pop('status')
+				)
+			return demolist
+
+
+
+	#JSON TO OBJECTS
+	#Using JSON DATA EXAMPLE
+	#jsonexpdata = JSONRenderer().render(serializer.data)
+
+	#Using data from WS
+	jsondata = jsonresult
+
+
+	#Deserialization.
+	mydl = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		print jsondata
+
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = ArchiveDemoListSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			mydl = serializer.save()
+
+
+	except Exception,e:
+		msg="Error JSON Deserialization e: %s serializer.errors: " % e
+		logger.error(msg)
+		print(msg)
+		#logger.error(serializer.errors)
+
+	print mydl
+	return mydl
+
+####################
+#   BLOBS MODULE   #
+####################
 
 def DeserializeDemoList(jsonresult):
 
@@ -307,80 +631,6 @@ def DeserializeDemoList(jsonresult):
 		print(msg)
 		#logger.error(serializer.errors)
 
-	return mydl
-
-def DeserializeArchiveDemoList(jsonresult):
-
-
-	#Clases that will contain the json data
-	class Demo(object):
-		def __init__(self, demo_id):
-			self.demo_id = demo_id
-
-	class DemoList(object):
-		def __init__(self, demo_list,status):
-			self.demo_list = demo_list
-			self.status = status
-
-
-	# Serializers
-	class ArchiveDemoSerializer(serializers.Serializer):
-
-		demo_id = serializers.IntegerField()
-		def create(self, validated_data):
-			return Demo(**validated_data)
-
-
-	class ArchiveDemoListSerializer(serializers.Serializer):
-		demo_list = ArchiveDemoSerializer(many=True)
-		status = serializers.CharField(max_length=200)
-
-		def create(self, validated_data):
-			list_demos = validated_data.pop('demo_list')
-			demo_list = list()
-			for demo in list_demos:
-				ds = ArchiveDemoSerializer(data=demo)
-				if ds.is_valid(raise_exception=True):
-					demo_list.append(ds.save())
-			demolist = DemoList(
-					demo_list,
-					validated_data.pop('status')
-				)
-			return demolist
-
-
-
-	#JSON TO OBJECTS
-	#Using JSON DATA EXAMPLE
-	#jsonexpdata = JSONRenderer().render(serializer.data)
-
-	#Using data from WS
-	jsondata = jsonresult
-
-
-	#Deserialization.
-	mydl = None
-	try:
-
-		#First we parse a stream into Python native datatypes...
-		stream = BytesIO(jsondata)
-		data = JSONParser().parse(stream)
-		print jsondata
-
-		#then we restore those native datatypes into a dictionary of validated data.
-		serializer = ArchiveDemoListSerializer(data=data)
-
-		if serializer.is_valid(raise_exception=True):
-			mydl = serializer.save()
-
-
-	except Exception,e:
-		msg="Error JSON Deserialization e: %s serializer.errors: " % e
-		logger.error(msg)
-		print(msg)
-		#logger.error(serializer.errors)
-
-	print mydl
 	return mydl
 
 

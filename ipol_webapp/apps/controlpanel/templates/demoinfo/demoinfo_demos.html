@@ -1,0 +1,317 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    {% trans 'Demos' %}
+{% endblock %}
+
+{% block cssfiles %}
+
+    <style type="text/css">
+        .ststsok {
+            color:green;
+
+        }
+        .ststsnok {
+            color:red;
+
+        }
+        .demo{
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+            //width: 40%;
+        }
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+
+
+        .griditem{
+            padding-left: 20px
+        }
+
+
+
+    </style>
+
+{% endblock %}
+
+
+{% block topmenu %}
+
+    <!-- topmenu Section for demoinfo   -->
+    {% include 'demoinfo/demoinfo_menu.html' %}
+
+{% endblock %}
+
+
+{% block content %}
+
+
+    <div class="container">
+
+        <h2> {% blocktrans %} DEMOS LIST {%  endblocktrans %}</h2>
+
+        {#  Search bar #}
+        {% with searchurl='ipol.cp.demoinfo.demos' %}
+            {% include 'demoinfo/searchbar.html' %}
+        {% endwith %}
+
+        {#  Add demo btn #}
+        <div class="container">
+            <a class="btn btn-primary" >{% blocktrans %}Add New Demo{%  endblocktrans %}</a>
+        </div>
+
+        {#  Demo list #}
+        {% with data=list_demos %}
+
+            {% if status == "OK" %}
+
+                {% if data %}
+                    {% for demo in data %}
+
+                        <div class="demo row" id="demo_info_{{ demo.id }}" >
+                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>
+                            <div class="griditem col-sm-3">{% trans 'title' %}:{{ demo.title}} </div>
+                            <div class="griditem col-sm-3">{% trans 'abstract' %}:
+                                <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
+                            </div>
+                            <div class="griditem col-sm-3">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
+                            <div class="griditem col-sm-3">{% trans 'state' %}:{{ demo.stateID }} </div>
+                            <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>
+                            <div class="griditem col-sm-3">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+
+
+                            <div class="griditem col-sm-3">
+                                {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
+                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
+
+                                <a class="btn btn-primary" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}',{{ demo.id }} )">{% trans 'DDL' %}</a>
+
+                                {#  btn Edit demo #}
+                                <a class="btn btn-primary" href="#">{% trans 'Edit' %}</a>
+
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                {% else %}
+
+                    <p class="ststsnok"> {% blocktrans %}No demos available.{%  endblocktrans %}</p>
+
+
+                {% endif %}
+
+            {% else %}
+
+                <p class="ststsnok"> {% blocktrans %}Could not conect to demoinfo demos, check demoinfo Status{%  endblocktrans %}</p>
+
+            {% endif %}
+
+            {#  Pagination, remebers the current search #}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if data.has_previous %}
+                        <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
+                    {% endif %}
+
+                    <span class="current">
+                        {% trans 'Page' %} {{ data.number }} {% trans 'of' %} {{ data.paginator.num_pages }}.
+                    </span>
+
+                    {% if data.has_next %}
+                        <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
+                    {% endif %}
+                </span>
+            </div>
+
+
+        {% endwith %}
+
+    </div>
+
+    {#  Modals #}
+
+    <!-- Modal Abstract-->
+    <div class="modal fade" id="ShowAbstractModalID" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3>Abstract</h3>
+                </div>
+                <div class="modal-body" id="modalbody">
+{#                    <input type="text" name="cafeId" id="cafeId" value=""/>#}
+
+                </div>
+{#                <div class="modal-footer">#}
+{#                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
+{#                </div>#}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createDDLFormId" >
+        <div class="modal-header">
+            <a href="#" class="close" data-dismiss="modal">&times;</a>
+            <h3>Create DDL</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal" method="POST" commandName="announceBean" action="/announce" >
+                <input type="hidden" name="cafeId" value="104" />
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label" for="cafeName">Where I am Coding</label>
+                        <div class="controls">
+                            <input id="cafeName" name="cafeName" class="input-xlarge disabled" type="text" readonly="readonly" type="text" value="B&amp;Js"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="date">Date</label>
+                        <div class="controls">
+                            <input type="text" class="input-xlarge" id="date" name="date" />
+                            <p class="help-block"></p>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <input type="submit" class="btn btn-primary" value="save" />
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div>
+
+{% endblock %}
+{% block functionsjs %}
+        <script>
+
+        {#  secure AJAX POST to ws  #}
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $(document).ready(function(){
+            var csrftoken = getCookie('csrftoken');
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        });
+        function send_delete_demo_request(wsurl,demo_id) {
+            var deldemo = confirm('delete this demo: ' + demo_id);
+
+            if (deldemo == true) {
+                $.ajax({
+                    type: 'POST',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data.status);
+                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+                        $('#demo_info_'+ demo_id).html(okhtml);
+
+                    },
+                    error: function(data){
+                        console.error(data.status);
+                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
+                        $('#demo_info_'+ demo_id).html(errorhtml);
+                    }
+                });
+            }
+        }
+
+        function send_get_ddl_request(wsurl,demo_id) {
+            var deldemo = confirm('ddl for this demo: ' + demo_id);
+
+            if (deldemo == true) {
+                $.ajax({
+                    type: 'POST',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data.status);
+                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+{#                        $('#demo_info_'+ demo_id).html(okhtml);#}
+
+                        $("#modalbody").html($(this).data('abstract'));
+{#                      $("#modalbody").html($("#moderador").val());#}
+                        $('#ShowAbstractModalID').modal('show');
+
+                    },
+                    error: function(data){
+                        console.error(data.status);
+                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
+{#                        $('#demo_info_'+ demo_id).html(errorhtml);#}
+                    }
+                });
+            }
+        }
+
+        {#        function send_delete_demo_request(wsurl,demo_id) {#}
+        {#            var deldemo = confirm('delete this demo: ' + demo_id);#}
+        {##}
+        {#            console.log(csrftoken);#}
+        {#            if (deldemo == true) {#}
+        {#                $.ajax({#}
+        {#                    type: 'GET',#}
+        {#                    url: wsurl,#}
+        {#                    dataType: 'json',#}
+        {#                    success: function(data) {#}
+        {#                        console.log(data.status);#}
+        {#                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";#}
+        {#                        $('#demo_info_'+ demo_id).html(okhtml);#}
+        {##}
+        {#                    },#}
+        {#                    error: function(data){#}
+        {#                        console.error(data.status);#}
+        {#                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";#}
+        {#                        $('#demo_info_'+ demo_id).html(errorhtml);#}
+        {#                    }#}
+        {#                });#}
+        {#            }#}
+        {#        }#}
+
+        $(document).ready(function(){
+           $(".abstractmodal").click(function(){ // Click to only happen on announce links
+{#             $("#cafeId").val($(this).data('abstract'));#}
+             $("#modalbody").html($(this).data('abstract'));
+{#             $("#modalbody").html($("#moderador").val());#}
+             $('#ShowAbstractModalID').modal('show');
+           });
+        });
+
+
+
+
+    </script>
+
+
+{% endblock %}
+

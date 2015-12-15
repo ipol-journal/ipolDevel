@@ -4,7 +4,7 @@ import os
 import sqlite3 as lite
 import datetime
 import json
-from validoot import validates, inst, typ, between, regex, And, len_between
+from validoot import validates, inst, typ, between, regex, And, len_between, Or, url, email_address
 
 """
 DATA MODEL
@@ -25,39 +25,46 @@ But it has been decided not to use one because of the small scope of the problem
 #####################
 
 class Demo(object):
-	id = None
+
 	editorsdemoid = None
 	title = None
 	abstract = None
 	zipURL = None
 	active = None
+	stateID = None
+
+	demodescriptionID = None
+	id = None
 	creation = None
 	modification = None
-	stateID = None
-	demodescriptionID = None
 
-	@validates(typ(int),
-	           inst(basestring),
-	           inst(basestring),
-	           None,
-	           typ(int),
-	           typ(int),
-	           typ(int),
-	           None,
-	           None,
-	           None
+
+
+	@validates(editorsdemoid=typ(int),
+	           title=inst(basestring),
+	           abstract=inst(basestring),
+	           #zipurl=type(url),
+	           zipurl=inst(basestring),
+	           active=typ(int),
+	           stateid=typ(int),
+	           demodescriptionid= Or(typ(int) , inst(basestring) ),
+	           id= Or(typ(int) , inst(basestring) ),
+	           creation= Or(typ(datetime.datetime) , inst(basestring) ),
+	           modification= Or(typ(datetime.datetime) , inst(basestring) )
 	           )
-	def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, id=None, creation=None, modification=None):
+	def __init__(self, editorsdemoid, title, abstract, zipurl, active, stateid, demodescriptionid=None, id=None, creation=None, modification=None ):
 
 		self.editorsdemoid = editorsdemoid
 		self.title = title
 		self.abstract = abstract
-		self.zipURL = zipURL
+		self.zipURL = zipurl
 		self.active = active
-		self.stateID = stateID
-		#demojsonid
-		self.demodescriptionID = demodescriptionID
-		self.id = id
+		self.stateID = stateid
+
+		if id:
+			self.id = id
+		if demodescriptionid:
+			self.demodescriptionID = demodescriptionid
 		if creation:
 			self.creation = creation
 		else:
@@ -75,10 +82,11 @@ class Author(object):
 	creation = None
 	# And(inst(basestring),len_between(4,100)),
 	@validates(
-		inst(basestring),
-		regex("[^@]+@[^@]+\.[^@]+"),
-		None,
-		None
+		name=inst(basestring),
+		#mail=regex("[^@]+@[^@]+\.[^@]+"),
+	    mail=type(email_address),
+	    id= Or(typ(int) , inst(basestring) ),
+	    creation= Or(typ(datetime.datetime) , inst(basestring) )
 	)
 	def __init__(self, name, mail, id=None, creation=None):
 		self.id = id
@@ -98,11 +106,12 @@ class Editor(object):
 	creation = None
 
 	@validates(
-		inst(basestring),
-		None,
-		None,
-		None,
-		None
+		name=inst(basestring),
+		#mail=regex("[^@]+@[^@]+\.[^@]+"),
+	    mail=type(email_address),
+	    id= Or(typ(int) , inst(basestring) ),
+		active=typ(int),
+	    creation= Or(typ(datetime.datetime) , inst(basestring) )
 	)
 	def __init__(self, name, mail, id=None, active=None, creation=None):
 
@@ -201,12 +210,12 @@ class DemoDAO(object):
 			# print 'demo.stateID: ',demo.stateID
 			# print 'demo.demodescriptionID: ',demo.demodescriptionID
 			self.cursor.execute('''
-			INSERT INTO demo(editor_demo_id, title, abstract, zipURL,demodescriptionID, active, stateID) VALUES(?, ?,?,?,?,?,?)''',
+			INSERT INTO demo(editor_demo_id, title, abstract, zipURL,demodescriptionID, active, stateID) VALUES(?,?,?,?,?,?,?)''',
 			                    (
 			                    demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL, demo.demodescriptionID, demo.active, demo.stateID,))
 			self.conn.commit()
 		except Exception as ex:
-			error_string = ("add_demo  e:%s" % (str(ex)))
+			error_string = ("add_demo e:%s" % (str(ex)))
 			print (error_string)
 			raise Exception
 

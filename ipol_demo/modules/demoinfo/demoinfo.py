@@ -10,6 +10,7 @@ todo: secure db access
 
 to test POST WS:
 curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
+curl -d editorsdemoid=777 -d title='demo1' -d abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
 
 or use Ffox plugin: Poster
 
@@ -132,6 +133,7 @@ class DemoInfo(object):
 			demo_dao = DemoDAO(conn)
 			for d in demo_dao.list():
 				#convert to Demo class to json
+
 				demo_list.append(d.__dict__)
 
 
@@ -475,7 +477,7 @@ class DemoInfo(object):
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
-	def add_demo(self,editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
+	def add_demo(self, editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
 
 		try:
 
@@ -493,11 +495,13 @@ class DemoInfo(object):
 
 			else:
 				#demo created without demodescription
-				d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
+				#careful with Demo init method's validation!
+				d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract, zipurl=zipURL, active=int(active), stateid=int(stateID))
+
+
 
 			dao = DemoDAO(conn)
 			dao.add(d)
-
 			conn.close()
 		except Exception as ex:
 			error_string=("WS add_demo  e:%s"%(str(ex)))
@@ -508,18 +512,31 @@ class DemoInfo(object):
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def delete_demo(self,demo_id,hard_delete = False):
+		data = {}
+		data["status"] = "KO"
 
 		try:
 
 			conn = lite.connect(self.database_file)
 
-			if not hard_delete:
-				# do not delete, activate /deactivate
+			# hard_delete must be aconvertet to int!
+			try:
+				hard_delete=int(hard_delete)
+				if hard_delete not in [0,1]:
+					raise Exception
+			except Exception as ex:
+				if hard_delete =='False':
+					hard_delete=0
+				elif hard_delete =='True':
+					hard_delete=1
+				else:
+					raise Exception
 
-				demo_dao = DemoDAO(conn)
-				demo_dao.set_active_flag(int(demo_id),int(False))
 
-			else:
+			print "hard_delete",hard_delete
+
+			if hard_delete:
+
 				# delete demo and all authors related, do not delete editors, just remove relations
 
 				# We do not need to do this because of the delete on cascade
@@ -530,23 +547,38 @@ class DemoInfo(object):
 
 				print
 				print "demoid to delete ", demo_id
+				
+
 				demo_dao = DemoDAO(conn)
 				#read demo
 				demo = demo_dao.read(int(demo_id))
 
-				print "demodescriptionID to delete ", demo.demodescriptionID
+				print
 				print demo.__dict__
-				#delete demo
+
+				
+				#delete demodescp
 				demo_dao.delete(int(demo_id))
 
 				#delete demo decription if any
-				print "demodescriptionID to delete ", demo.demodescriptionID
-				demo_description_dao = DemoDescriptionDAO(conn)
-				demo_description_dao.delete(demo.demodescriptionID)
+				if demo.demodescriptionID:
+					print "demodescriptionID to delete ", demo.demodescriptionID
+					demo_description_dao = DemoDescriptionDAO(conn)
+					demo_description_dao.delete(demo.demodescriptionID)
+
+				data["status"] = "OK"
+
+			else:
+				# do not delete, activate /deactivate
+
+				demo_dao = DemoDAO(conn)
+				demo_dao.set_active_flag(int(demo_id),int(False))
+				data["status"] = "OK"
 
 
 
 			conn.close()
+			return json.dumps(data)
 
 
 		except Exception as ex:
@@ -739,7 +771,7 @@ class DemoInfo(object):
 			self.error_log("shutdown", str(ex))
 		return json.dumps(data)
 
-
+	#todo hide sql
 	@cherrypy.expose
 	def stats(self):
 		data = {}
