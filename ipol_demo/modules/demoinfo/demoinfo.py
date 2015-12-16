@@ -245,8 +245,9 @@ class DemoInfo(object):
 
 
 			data["demo_list"] = demo_list
-			data["status"] = "OK"
 			conn.close()
+			data["status"] = "OK"
+			
 		except Exception as ex:
 			print str(ex)
 			self.error_log("author_get_demos_list",str(ex))
@@ -272,8 +273,8 @@ class DemoInfo(object):
 
 
 			data["editor_list"] = editor_list
+			conn.close()			
 			data["status"] = "OK"
-			conn.close()
 		except Exception as ex:
 			print str(ex)
 			self.error_log("demo_get_authors_list",str(ex))
@@ -297,10 +298,9 @@ class DemoInfo(object):
 				#convert to Demo class to json
 				demo_list.append(d.__dict__)
 
-
 			data["demo_list"] = demo_list
-			data["status"] = "OK"
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			print str(ex)
 			self.error_log("author_get_demos_list",str(ex))
@@ -452,6 +452,7 @@ class DemoInfo(object):
 			dao = DemoDescriptionDAO(conn)
 			data["demo_description"] = dao.read(id)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS read_demo_description  e:%s"%(str(ex)))
 			print (error_string)
@@ -478,7 +479,8 @@ class DemoInfo(object):
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demo(self, editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
-
+		data = {}
+		data["status"] = "KO"
 		try:
 
 			conn = lite.connect(self.database_file)
@@ -503,11 +505,13 @@ class DemoInfo(object):
 			dao = DemoDAO(conn)
 			dao.add(d)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
@@ -575,11 +579,7 @@ class DemoInfo(object):
 				demo_dao.set_active_flag(int(demo_id),int(False))
 				data["status"] = "OK"
 
-
-
 			conn.close()
-			return json.dumps(data)
-
 
 		except Exception as ex:
 			error_string=("WS delete_demo  e:%s"%(str(ex)))
@@ -587,104 +587,124 @@ class DemoInfo(object):
 			conn.close()
 			raise Exception
 
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_author(self,name, mail):
+		data = {}
+		data["status"] = "KO"
 		try:
 			a = Author( name, mail)
 			conn = lite.connect(self.database_file)
 			dao = AuthorDAO(conn)
 			dao.add(a)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
+		return json.dumps(data)
 
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_editor(self,name, mail):
+		data = {}
+		data["status"] = "KO"
 		try:
 			e = Editor( name, mail)
 			conn = lite.connect(self.database_file)
 			dao = EditorDAO(conn)
 			dao.add(e)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_author_to_demo(self,demo_id ,author_id):
+		data = {}
+		data["status"] = "KO"
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoAuthorDAO(conn)
 			dao.add(int(demo_id),int(author_id))
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_editor_to_demo(self,demo_id ,editor_id):
+		data = {}
+		data["status"] = "KO"
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoEditorDAO(conn)
 			dao.add(int(demo_id),int(editor_id))
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def remove_editor_from_demo(self,demo_id ,editor_id):
+		data = {}
+		data["status"] = "KO"
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoEditorDAO(conn)
 			dao.remove_editor_from_demo(int(demo_id),int(editor_id))
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def remove_author_from_demo(self,demo_id ,author_id):
+		data = {}
+		data["status"] = "KO"
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoAuthorDAO(conn)
 			dao.remove_author_from_demo(int(demo_id),int(author_id))
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def update_demo(self,demo):
-
-
+		data = {}
+		data["status"] = "KO"
 		#get payload from json object
 		p = Payload(demo)
 		#convert payload to Author object
@@ -696,18 +716,20 @@ class DemoInfo(object):
 			dao = DemoDAO(conn)
 			dao.update(d)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS update_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def update_author(self,author):
-
+		data = {}
+		data["status"] = "KO"
 		#get payload from json object
 		# #{"mail": "authoremail1@gmail.com", "creation": "2015-12-03 20:53:07", "id": 1, "name": "Author Name1"}
 		p = Payload(author)
@@ -722,17 +744,19 @@ class DemoInfo(object):
 			dao = AuthorDAO(conn)
 			dao.update(a)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS update_author  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def update_editor(self,editor):
-
+		data = {}
+		data["status"] = "KO"
 		#get payload from json object
 		p = Payload(editor)
 		#convert payload to Author object
@@ -744,12 +768,13 @@ class DemoInfo(object):
 			dao = EditorDAO(conn)
 			dao.update(e)
 			conn.close()
+			data["status"] = "OK"
 		except Exception as ex:
 			error_string=("WS update_editor  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 			raise Exception
-
+		return json.dumps(data)
 
 	@cherrypy.expose
 	def ping(self):
