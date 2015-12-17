@@ -40,42 +40,133 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
 
 /* adding PreprocessDemo function as global */
 IPOLDemosApp.run(['$rootScope', function($rootScope) {
-  $rootScope.PreprocessDemo = function(scope,demo) {
-    //
-    console.info("PreprocessDemo")
-    console.info(demo)
-    if (demo!=undefined) {
-      angular.forEach(demo.inputs, 
-        function(input) {
-          // do some pre-processing
-          if (angular.isString(input.max_pixels)) {
-            input.max_pixels = scope.$eval(input.max_pixels)
-          }
-          if (angular.isString(input.max_weight)) {
-            input.max_weight = scope.$eval(input.max_weight)
-          }
+    $rootScope.PreprocessDemo = function(scope,demo) {
+        //
+        console.info("PreprocessDemo")
+        console.info(demo)
+        if (demo!=undefined) {
+        angular.forEach(demo.inputs, 
+            function(input) {
+            // do some pre-processing
+            if (angular.isString(input.max_pixels)) {
+                input.max_pixels = scope.$eval(input.max_pixels)
+            }
+            if (angular.isString(input.max_weight)) {
+                input.max_weight = scope.$eval(input.max_weight)
+            }
+            }
+        )
+        //
+        
+        if (demo.general.crop_maxsize==undefined) {
+            // setting the crop_maxsize string to a non integer value with 
+            // disable its behavior, so no limit by default
+            demo.general.crop_maxsize = "NaN";
         }
-      )
-      //
-      
-      if (demo.general.crop_maxsize==undefined) {
-        // setting the crop_maxsize string to a non integer value with 
-        // disable its behavior, so no limit by default
-        demo.general.crop_maxsize = "NaN";
-      }
 
-      if (demo.general.thumbnail_size==undefined) {
-        demo.general.thumbnail_size = 128;
-      }
-      
-      if (angular.isString(demo.general.input_description)) {
-        demo.general.input_description = [ demo.general.input_description ];
-      }
-      if (angular.isString(demo.general.param_description)) {
-        demo.general.param_description = [ demo.general.param_description ];
-      }
+        if (demo.general.thumbnail_size==undefined) {
+            demo.general.thumbnail_size = 128;
+        }
+        
+        if (angular.isString(demo.general.input_description)) {
+            demo.general.input_description = [ demo.general.input_description ];
+        }
+        if (angular.isString(demo.general.param_description)) {
+            demo.general.param_description = [ demo.general.param_description ];
+        }
+        }
+    };
+  
+  
+    // initialization of the parameters obtained from the DDL json file
+    $rootScope.initParams = function(demo,params) {
+        console.info("initParams");
+        
+        // add pensize parameter for inpainting
+        if (params['pensize']==undefined) {
+          demo.params.pensize = 5;
+        } else {
+          demo.params.pensize = params['pensize'];
+        }
+
+        // initialize input loading status
+        angular.forEach(demo.inputs, 
+          function(res) {
+            res.status = "trying";
+          }
+        );
+
+        // initialize parameter values
+        angular.forEach(demo.params, 
+          function(param) {
+            console.info(param.type);
+            // range type
+            if (param.type=='range') {
+              if (params[param.id]==undefined) {
+                param.value = param.values.default;
+              } else {
+                param.value = params[param.id];
+              }
+            }
+            // selection_collapsed type
+            if (param.type=='selection_collapsed') {
+              if (params[param.id]==undefined) {
+                param.value = param.default_value;
+              } else {
+                param.value = params[param.id].toString();
+              }
+            }
+            // selection_radio type
+            if (param.type=='selection_radio') {
+              if (params[param.id]==undefined) {
+                param.value = param.default_value;
+              } else {
+                param.value = params[param.id].toString();
+              }
+            }
+            // checkbox type
+            if (param.type=='checkbox') {
+              // if the variable xxx_checked (hidden input) is
+              // not defined: use default value, otherwise, use
+              // its value (we need this variable because checkboxes
+              // are only returned if they are checked in html)
+              if (params[param.id+"_checked"]==undefined) {
+                param.value = param.default_value;
+              } else {
+                param.value = params[param.id+"_checked"];
+              }
+            }
+            // checkboxes type
+            if (param.type=='checkboxes') {
+              // create one boolean value per checkbox ...
+              param.cb_values = {};
+              angular.forEach(param.values, 
+                function(checkboxes_info) {
+                  angular.forEach(checkboxes_info, 
+                    function(value,key)
+                    {
+                      // if the variable xxx_checked (hidden input) is
+                      // not defined: use default value, otherwise, use
+                      // its value (we need this variable because checkboxes
+                      // are only returned if they are checked in html)
+                      if (params[param.id+"_"+key+"_checked"]==undefined) {
+                        param.cb_values[key]=(param.default.indexOf(key)>-1);
+                      } else {
+                        param.cb_values[key]=params[param.id+"_"+key+"_checked"];
+                      }
+                    }
+                  );
+                }
+              );
+            }
+            if (param.type=='readonly') {
+              param.value='';
+            }
+            //console.info(param.cb_values);
+          }
+        );
     }
-  };
+  
 }]);
 
 

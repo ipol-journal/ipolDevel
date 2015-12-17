@@ -105,87 +105,6 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       // demo and params values initialized to empty
       $scope.demo     = {};
       $scope.params   = {};
-      
-      // initialization of the parameters obtained from the DDL json file
-      $scope.initParams = function($scope) {
-        console.info("initParams");
-        
-        // add pensize parameter for inpainting
-        if ($scope.params['pensize']==undefined) {
-          $scope.demo.params.pensize = 5;
-        } else {
-          $scope.demo.params.pensize = $scope.params['pensize'];
-        }
-
-        // initialize input loading status
-        angular.forEach($scope.demo.inputs, 
-          function(res) {
-            res.status = "trying";
-          }
-        );
-
-        // initialize parameter values
-        angular.forEach($scope.demo.params, 
-          function(param) {
-            console.info(param.type);
-            // range type
-            if (param.type=='range') {
-              if ($scope.params[param.id]==undefined) {
-                param.value = param.values.default;
-              } else {
-                param.value = $scope.params[param.id];
-              }
-            }
-            // selection_collapsed type
-            if (param.type=='selection_collapsed') {
-              if ($scope.params[param.id]==undefined) {
-                param.value = param.default_value;
-              } else {
-                param.value = $scope.params[param.id].toString();
-              }
-            }
-            // checkbox type
-            if (param.type=='checkbox') {
-              // if the variable xxx_checked (hidden input) is
-              // not defined: use default value, otherwise, use
-              // its value (we need this variable because checkboxes
-              // are only returned if they are checked in html)
-              if ($scope.params[param.id+"_checked"]==undefined) {
-                param.value = param.default_value;
-              } else {
-                param.value = $scope.params[param.id+"_checked"];
-              }
-            }
-            // checkboxes type
-            if (param.type=='checkboxes') {
-              // create one boolean value per checkbox ...
-              param.cb_values = {};
-              angular.forEach(param.values, 
-                function(checkboxes_info) {
-                  angular.forEach(checkboxes_info, 
-                    function(value,key)
-                    {
-                      // if the variable xxx_checked (hidden input) is
-                      // not defined: use default value, otherwise, use
-                      // its value (we need this variable because checkboxes
-                      // are only returned if they are checked in html)
-                      if ($scope.params[param.id+"_"+key+"_checked"]==undefined) {
-                        param.cb_values[key]=(param.default.indexOf(key)>-1);
-                      } else {
-                        param.cb_values[key]=$scope.params[param.id+"_"+key+"_checked"];
-                      }
-                    }
-                  );
-                }
-              );
-            }
-            if (param.type=='readonly') {
-              param.value='';
-            }
-            //console.info(param.cb_values);
-          }
-        );
-      }
 
       $scope.updateCropInfo = function($scope) {
         if ($scope.params.x0!=undefined)
@@ -218,7 +137,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
             // crop is applied to the first input image only for the moment
             // we need this string in a variable for the image crop module
             $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
-            if ($scope.got_param) $scope.initParams($scope);
+            if ($scope.got_param) $scope.initParams($scope.demo,$scope.params);
           } 
         );
       
@@ -243,7 +162,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           $scope.got_param=true;
           $scope.params = params;
           if ($scope.got_meta) $scope.updateCropInfo($scope);
-          if ($scope.got_demo) $scope.initParams($scope);
+          if ($scope.got_demo) $scope.initParams($scope.demo,$scope.params);
         }
         );
 
@@ -320,20 +239,29 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       $scope.demo_id = demo_id;
       $scope.work_url = work_url;
       $scope.ZoomFactor = 1;
+      $scope.got_param= false;
+      $scope.got_demo = false;
+      
       // give some parameters to the demos for their own use
       $scope.display = { param1:'', param2:'', param3:''};
       Demo.get( { demoId: $scope.demo_id }, 
         function(demo) { 
           $scope.PreprocessDemo($scope,demo)
+          $scope.got_demo=true;
           $scope.demo = demo;
+          if ($scope.got_param) $scope.initParams($scope.demo,$scope.params);
           $scope.initResults($scope);
           console.info($scope.demo)
         } 
       );
-      $scope.params = Params.get( { key: demo_key },
+      
+      Params.get( { key: demo_key },
         function(params) {  
           $scope.sizeX = params.x1-params.x0;
           $scope.sizeY = params.y1-params.y0;
+          $scope.got_param=true;
+          $scope.params = params;
+          if ($scope.got_demo) $scope.initParams($scope.demo,$scope.params);
         }
       );
       
