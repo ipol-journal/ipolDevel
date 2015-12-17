@@ -208,6 +208,8 @@ required around the values. The default value is stored with the 'values' field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range       & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label & description of the parameter or contents if type is label. & yes
                       \\ \hline
@@ -229,6 +231,8 @@ string value. The default value is stored in a separate field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
  label & description of the parameter. & yes
                       \\ \hline
@@ -241,6 +245,35 @@ the values defined in 'values'. & yes \\ \hline
 \caption{Keys for the 'selection\_collapsed' type.}
 \end{longtable}
 
+\subsubsection{ \emph{selection\_radio} type}
+
+The values of the selection are stored as strings, so we map each label with a 
+string value. The default value is stored in a separate field.
+This type is similar to the selection collapsed type, but display the different
+options using radio buttons.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 
+0.6\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type     & selection\_radio    & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
+ id       & parameter name in lowercase letters & yes \\ \hline
+ label    & description of the parameter. & yes
+                      \\ \hline
+ vertical & boolean, if true use vertical display, otherwise use horizontal
+            display (default=false) & no \\ \hline
+ values   & set of (key,value) pairs, where the key is the displayed text and the 
+value a string representing the corresponding value, for example \{ 
+'black':'0', '1\%':'0.01' \} & yes
+                      \\ \hline
+ default\_value & defines the default value for this parameter, should be one 
+the values defined in 'values'. & yes \\ \hline
+\caption{Keys for the 'selection\_radio' type.}
+\end{longtable}
+
 \subsubsection{ \emph{label} type}
 
 The label  can be used as a title to separate groups of parameters.
@@ -251,6 +284,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
 \caption{Common keys for the 'label' type.}
@@ -265,6 +300,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & readonly    & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & description of the parameter & yes \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
  value\_expr & AngularJS expression used to compute the parameter value, defined as an
@@ -281,6 +318,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & description of the parameter or contents if type is label. & yes
                       \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
@@ -296,6 +335,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkboxes   & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & description of the parameter or contents if type is label. & yes
                       \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
