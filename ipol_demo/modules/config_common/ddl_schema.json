@@ -146,6 +146,7 @@
                         "properties":
                         {
                             "type"        :{ "type":"string", "enum":["range"]},
+                            "visible"     :{ "type":"string"},
                             "id"          :{ "type":"string", "format":"[a-z_][a-z_0-9]*" },
                             "label"       :{ "oneOf": [ 
                                                 { "type":"string" },
@@ -169,6 +170,7 @@
                         "properties":
                         {
                             "type"          :{ "type":"string", "enum":["selection_collapsed"]},
+                            "visible"     :{ "type":"string"},
                             "id"            :{ "type":"string", "format":"[a-z_][a-z_0-9]*"},
                             "label"         :{ "oneOf": [ 
                                                 { "type":"string" },
@@ -183,7 +185,25 @@
                     {   "type":"object",
                         "properties":
                         {
+                            "type"          :{ "type":"string", "enum":["selection_radio"]},
+                            "visible"     :{ "type":"string"},
+                            "id"            :{ "type":"string", "format":"[a-z_][a-z_0-9]*"},
+                            "label"         :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                              },
+                            "vertical"      :{ "type": "boolean" },
+                            "values"        :{ "type": "object" },
+                            "default_value" :{"type":"string"}
+                        },
+                        "required":[ "type", "id", "label", "values", "default_value" ]
+                    },
+                    {   "type":"object",
+                        "properties":
+                        {
                             "type"        :{ "type":"string", "enum": ["label"]},
+                            "visible"     :{ "type":"string"},
                             "label"       :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
@@ -196,6 +216,7 @@
                         "properties":
                         {
                             "type"      : { "type":"string","enum":["readonly"]},
+                            "visible"     :{ "type":"string"},
                             "label"     :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
@@ -210,6 +231,7 @@
                         "properties":
                         {
                             "type"          : { "type":"string", "enum":["checkbox"]},
+                            "visible"     :{ "type":"string"},
                             "label"         :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
@@ -224,6 +246,7 @@
                         "properties":
                         {
                             "type":{  "type":"string", "enum":["checkboxes"]},
+                            "visible"     :{ "type":"string"},
                             "label"         :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
