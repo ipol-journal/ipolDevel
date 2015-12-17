@@ -32,24 +32,36 @@
         </tr>-->
 
         <!--=================================================================-->
-        <tr style="border:0px;" ng-repeat="param in demo.params">
+        <tr style="border:0px;" 
+            ng-repeat="param in demo.params" 
+            ng-if="(param.visible===undefined)||$eval(param.visible)">
           <!--===============================================================-->
           <!-- selection_collapsed type -->
           <td style="border:0px;width:34em" ng-if="param.type==='selection_collapsed'"> 
             <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td style="border:0px;" ng-if="param.type==='selection_collapsed'" colspan="2">
-<!--              <span ng-if="params[param.id] !=  undefined">
-                <span ng-init="param.value=params[param.id].toString()"> </span>
-              </span>
-              <span ng-if="params[param.id] ==  undefined">
-                <span ng-init="param.value=param.default_value"> </span>
-              </span>-->
-              <select  ng-model="param.value" name="{{param.id}}"> <!-- use ng-init here? -->
+              <select  ng-model="param.value" name="{{param.id}}"> 
                 <option ng-repeat="(key, value) in param.values" value="{{value}}"> 
-                  {{key}} 
+                  <span ng-bind-html="renderHtml(key)"> </span> 
                 </option> 
               </select>
+          </td>
+          <!--===============================================================-->
+          <!-- selection_radio type -->
+          <td style="border:0px;width:34em" ng-if="param.type==='selection_radio'"> 
+            <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
+          </td>
+          <td style="border:0px;" ng-if="param.type==='selection_radio'" colspan="2">
+            <span ng-repeat="(key, value) in param.values"> 
+                <label>
+                    <input  type="radio" ng-model="param.value" 
+                            name="{{param.id}}"
+                            ng-value="value"> 
+                  <span ng-bind-html="renderHtml(key)"> </span> 
+                <label> &nbsp;
+                <br ng-if="param.vertical!==undefined && param.vertical">
+            </span> 
           </td>
           <!--===============================================================-->
           <!-- range type -->
@@ -350,7 +362,7 @@
                                     style="float:left; cursor:crosshair; margin-top:5px; background:url('${app.work_url + 'input_0.png'}')"
                                     width="$ {app.cfg['param']['viewbox_width']}"
                                     height="$ {app.cfg['param']['viewbox_height']}"
-                                    src="${app.work_url + 'mask.png'}?${app.inpainting_timestamp}" 
+                                    src="${app.work_url + 'mask.png'}" 
                                     alt="" />
                         </fieldset>
                     </form>

@@ -48,7 +48,8 @@
   <!-- ===== Display parameters if any ===== -->
   <span ng-if="demo.params.length>0">
     <h1>Parameters</h1>
-    <ul ng-repeat="param in demo.params">
+    <ul ng-repeat="param in demo.params"
+        ng-if="(param.visible===undefined)||$eval(param.visible)">
       <span ng-if="param.type==='label'"> 
         <b> <span  ng-bind-html="renderHtml(param.label)"></span> </b><br />
       </span>
@@ -60,7 +61,15 @@
       </li>
       <li ng-if="param.type==='selection_collapsed'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : 
-        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">{{key}} </span>
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">
+            <span ng-bind-html="renderHtml(key)"> </span> 
+        </span>
+      </li>
+      <li ng-if="param.type==='selection_radio'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : 
+        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">
+            <span ng-bind-html="renderHtml(key)"> </span> 
+        </span>
       </li>
       <li ng-if="param.type==='checkbox'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : {{(params[param.id]==true)}} 
