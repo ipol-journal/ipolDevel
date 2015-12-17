@@ -207,11 +207,17 @@ class RunDemoBase:
               if p=='2>&1':
                 stderr_file = stdout_file
               else:
-                last_arg_pos = min(last_arg_pos,i-1)
+                # allow 2>> 
+                if p[2]=='>':
+                    startpos=3
+                    openmode='a'
+                else:
+                    startpos=2
+                    openmode='w'
                 try:
-                  print "opening ", self.work_dir+p[2:]
+                  print "opening ", self.work_dir+p[startpos:]
                   stderr_file.close()
-                  stderr_file = open(self.work_dir+p[2:], 'w')
+                  stderr_file = open(self.work_dir+p[startpos:], openmode)
                 except:
                   print "failed"
                   stderr_file = None
