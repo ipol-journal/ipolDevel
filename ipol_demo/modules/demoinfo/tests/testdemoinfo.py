@@ -5,6 +5,7 @@ import os
 import json
 from os import path
 import urllib
+import datetime
 import requests
 
 
@@ -228,7 +229,7 @@ class TestDemoinfo(unittest.TestCase):
 	def add_demo_1(self):
 		test_passed = True
 		try:
-			editorsdemoid = 24
+			editorsdemoid = 23
 			title = 'DemoTEST1 Title'
 			abstract = 'DemoTEST1 Abstract'
 			zipURL = 'https://DemoTEST1.html'
@@ -249,7 +250,20 @@ class TestDemoinfo(unittest.TestCase):
 			self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionJson = str(json_g_roussos_diffusion_interpolation))
 
 
+			editorsdemoid = 25
+			title = 'DemoTEST3 Title'
+			abstract = 'DemoTEST3 Abstract'
+			zipURL = 'https://DemoTEST3.html'
+			active = 1
+			stateID = 1
+
+			#creates demo and no demodescription
+			self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID)
+
+
+
 		except Exception as ex:
+			print "add_demo_1 ex: ", ex
 			test_passed = False
 
 		self.failUnless(test_passed, 'failure , test_add_demo_1 Failed creating two demos')
@@ -258,19 +272,19 @@ class TestDemoinfo(unittest.TestCase):
 	def add_demo_2(self):
 		test_passed = False
 		try:
-			editorsdemoid = 24
-			title = 'DemoTEST3 Title'
-			abstract = 'DemoTEST3 Abstract'
-			zipURL = 'https://DemoTEST3.html'
+			editorsdemoid = 26
+			title = 'DemoTEST4 Title'
+			abstract = 'DemoTEST4 Abstract'
+			zipURL = 'https://DemoTEST4.html'
 			active = 1
 			stateID = 1
 			demodescriptionID = 2
 			self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
 
-			editorsdemoid = 24
-			title = 'DemoTEST3 Title'
-			abstract = 'DemoTEST3 Abstract'
-			zipURL = 'https://DemoTEST3.html'
+			editorsdemoid = 27
+			title = 'DemoTEST4 Title'
+			abstract = 'DemoTEST5 Abstract'
+			zipURL = 'https://DemoTEST5.html'
 			active = 1
 			stateID = 1
 			demodescriptionID = 2
@@ -278,6 +292,7 @@ class TestDemoinfo(unittest.TestCase):
 
 
 		except Exception as ex:
+			print "add_demo_2 ex: ",ex
 			test_passed = True
 
 			# ajson = self.demoinfo.demo_list()

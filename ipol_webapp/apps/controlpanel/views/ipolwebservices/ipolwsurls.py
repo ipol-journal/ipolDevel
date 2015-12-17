@@ -1,5 +1,5 @@
 # coding=utf-8
-from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS
+from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMOINFO
 
 __author__ = 'josearrecio'
 
@@ -7,7 +7,23 @@ __author__ = 'josearrecio'
 
 
 #GLOBAL WS LIST (todo in DB)
-#ARCHIVE
+
+
+#####################
+#  DEMOINFO MODULE  #
+#####################
+
+
+demoinfo_ws_url_stats = IPOL_SERVICES_MODULE_DEMOINFO+'/stats' # param Nones
+demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list' # param None
+demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list' # param None
+demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list' # param None
+demoinfo_ws_url_delete_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/delete_demo' # method POST,  params demo_id,hard_delete = False
+
+
+####################
+#  ARCHIVE MODULE  #
+####################
 archive_ws_url_page =IPOL_SERVICES_MODULE_ACHIVE+'/page' #param demo_id, page='1'
 archive_ws_url_ping = IPOL_SERVICES_MODULE_ACHIVE+'/ping'# param None
 archive_ws_url_stats = IPOL_SERVICES_MODULE_ACHIVE+'/stats'# param None
@@ -26,6 +42,11 @@ archive_ws_url_add_experiment = IPOL_SERVICES_MODULE_ACHIVE+'/add_experiment'# p
 
 
 
+####################
+#   BLOBS MODULE   #
+####################
+#view list of available demos
+blobs_demo_list=IPOL_SERVICES_MODULE_BLOBS+'/demos_ws'
 
 """
 delete_experiment_web
@@ -147,8 +168,7 @@ delete_experiment
 # http://<localhost>:<port>/stats
 
 #BLOBS
-#view list of available demos
-blobs_demo_list=IPOL_SERVICES_MODULE_BLOBS+'/demos_ws'
+
 
 # add_blob_ws
 # ￼￼

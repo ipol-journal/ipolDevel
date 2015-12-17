@@ -38,7 +38,7 @@
         </h1>
 
 
-        {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine demomachine=view.get_demo_machine%}
+        {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine%}
             {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine %}
                 <b class="ststsnok">Carefull! Some stuff is running locally</b>
                 <p> To RUN Locally DEMO: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python demo.py  (needs buil)</p>
@@ -48,6 +48,23 @@
 
             {% endif %}
 
+
+            <div id="demoinfo_module_info" class="machine">
+                {% if demoinfo_module_stats.status == "OK" %}
+
+                    <p class="ststsok"> <b>DEMOINFO RUNNING at: {{ demoinfomachine }}</b></p>
+
+                    <div style="padding-left: 20px">
+                        <p>nb_demos: {{ demoinfo_module_stats.nb_demos  }}</p>
+                        <p>nb_authors: {{ demoinfo_module_stats.nb_authors  }}</p>
+                        <p>nb_editors: {{ demoinfo_module_stats.nb_editors  }}</p>
+                    </div>
+
+
+                {% else %}
+                    <p class="ststsnok">Demoinfo Module Not running!</p>
+                {% endif %}
+            </div>
 
 
             <div id="archive_module_info" class="machine">
@@ -77,6 +94,7 @@
                 {% endif %}
             </div>
 
+
             <div id="blobs_module_info" class="machine">
                 {% if blobs_module_stats %}
                     <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
@@ -93,6 +111,7 @@
 
                 {% endif %}
             </div>
+
 
             <div id="Demo_module_info" class="machine">
 

@@ -9,10 +9,13 @@
 3 apply migrations and create supersuser.
 	see howto_migrations
 
-4 runserver
+4 install pip requirements
+	pip install  -r requirements.txt
+
+5 runserver
 	(v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_webapp$ python manage.py runserver
 
-5 test it runs in dev machine
+6 test it runs in dev machine
 	A venv has been created: this is how you use it
 	ipol@smartalgo:~$ workon ipol_venv
 
@@ -21,16 +24,16 @@
 
 
 
-Loguin in dev enviroment:
+Login in dev enviroment:
 
---Ipol Cp App
-http://ns3018037.ip-151-80-24.eu:8000
+	--Ipol Cp App
+	http://ns3018037.ip-151-80-24.eu:8000
 
-user:ipoluser
-passwd:ipoluser2015
+		user:ipoluser
+		passwd:ipoluser2015
 
---Ipol CP admin app (this is for configuring the app, do not experiment with this)
-http://ns3018037.ip-151-80-24.eu:8000/admin
+	--Ipol CP admin app (this is for configuring the app, do not experiment with this)
+	http://ns3018037.ip-151-80-24.eu:8000/admin
 
-	ipolcpadmin
-	ipolazsxdc
+		user:ipolcpadmin
+		passwd:ipolazsxdc

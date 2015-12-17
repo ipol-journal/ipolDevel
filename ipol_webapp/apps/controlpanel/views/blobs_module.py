@@ -1,11 +1,8 @@
 from apps.controlpanel.mixings import NavbarReusableMixinMF
-
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from django.http import HttpResponse
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList, \
-	DeserializeArchiveDemoList
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 
@@ -13,19 +10,15 @@ logger = logging.getLogger(__name__)
 
 __author__ = 'josearrecio'
 
-#Utilities
 
-#VIEWS
-
-
-class DemosView(NavbarReusableMixinMF,TemplateView):
-	template_name = "demo_list.html"
+class BlobsDemosView(NavbarReusableMixinMF,TemplateView):
+	template_name = "blobs.html"
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
 		#self.request.session['menu'] = 'menu-'
-		return super(DemosView, self).dispatch(*args, **kwargs)
+		return super(BlobsDemosView, self).dispatch(*args, **kwargs)
 
 
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html

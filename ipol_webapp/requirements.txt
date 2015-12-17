@@ -17,3 +17,5 @@ requests
 
 #Account managemnet
 django-allauth
+
+django-crispy-forms
