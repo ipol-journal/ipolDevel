@@ -1,0 +1,101 @@
+{ 
+  "general": { 
+    "demo_title"            : "Implementation of Nonlocal Pansharpening Image Fusion",
+    "input_description"     : [ "" ],
+    "param_description"     : [ "" ],
+    "enable_crop"           : true,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/pre/98/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/pre/98/Pansharpening.zip", 
+      "srcdir"        : "Pansharpening_code",
+      "binaries"      : [ [".","pansharpening_ipol"], [".","imdiff_ipol"]],
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "sfactor",
+      "type"          : "selection_radio",
+      "label"         : "Subsampling factor (note: the image will be cropped so that its width and height are multiples of the sampling factor)",
+      "values"        : { "2":"2", "4":"4" },
+      "default_value" : "2"
+    }
+  ]
+  ,
+  "run": [ 
+    "python:# first crop input so that its dimensions are multiples of the sampling factor",
+    "python:im = image(self.work_dir + 'input_0.sel.png')",
+    "python:(sizeX, sizeY) = im.size",
+    "python:rX = sizeX % sfactor",
+    "python:rY = sizeY % sfactor",
+    "python:im.crop((0, 0, sizeX-rX, sizeY-rY))",
+    "python:im.save(self.work_dir + 'input_0.sel.png')",
+    "pansharpening_ipol input_0.sel.png pan.png lowspectral.png ihs.png pansharpened.png $sfactor",
+    "imdiff_ipol        input_0.sel.png ihs.png           diffInputIHS.png  >rmse_IHS.txt",
+    "imdiff_ipol        input_0.sel.png pansharpened.png  diffInputPanS.png >rmse_PanS.txt",
+    "python:#embed lowspectral image in white image of the same size as the original",
+    "python:im = PIL.Image.new('RGB', (sizeX, sizeY), 'white')",
+    "python:im0 = PIL.Image.open(self.work_dir + 'lowspectral.png')",
+    "python:(sizeX0, sizeY0) = im0.size",
+    "python:im.paste(im0, (0, 0, sizeX0, sizeY0))",
+    "python:im.save(self.work_dir + 'lowspectral_display.png')"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"     : "input image",
+                  "pan.png"             : "pan image",
+                  "pansharpened.png"    : "pansharpened image",
+                  "lowspectral.png"     : "lowspectral image",
+                  "ihs.png"             : "IHS image",
+                  "diffInputIHS.png"    : "difference input-IHS",
+                  "diffInputPanS.png"   : "difference input-pansharpened"
+                },
+      "params" :  [ "sfactor" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : {
+        "Input"                         : "input_0.sel.png",
+        "Pan"                           : "pan.png", 
+        "LowSpectral"                   : "lowspectral_display.png",
+        "IHS"                           : "ihs.png",
+        "PanSharpened"                  : "pansharpened.png",
+        "Difference Input-PanSharpened" : "diffInputPanS.png",
+        "Difference Input-IHS"          : "diffInputIHS.png"
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h3>Difference pansharpened-original<h3>",
+      "contents"      : "rmse_PanS.txt",
+      "style"         : "width:{{sizeX}}px;height:3em"
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h3>Difference IHS-original<h3>",
+      "contents"      : "rmse_IHS.txt",
+      "style"         : "width:{{sizeX}}px;height:3em"
+    }
+  ]
+
+}
