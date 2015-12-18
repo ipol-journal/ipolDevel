@@ -56,6 +56,9 @@
       <li ng-if="param.type==='range'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
       </li>
+      <li ng-if="param.type==='range_scientific'"> 
+        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
+      </li>
       <li ng-if="param.type==='readonly'"> 
         <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
       </li>
@@ -109,15 +112,15 @@
         <ul class="index">
           <!-- if label contains '?' then interpret it as a condition 
                 and filter labels -->
-          <li ng-repeat="(label,image) in ::result.contents" 
-              ng-if="CheckLabelCondition(label,current_scope)&&(result.status[$index]!='failed')"
+          <li   ng-repeat="(label,image) in result.contents" 
+                 ng-if="CheckLabelCondition(label,current_scope)&&(result.status[$index]!='failed')" 
               >
             <!-- style="width:16em" -->
             <a href="#" style="width:16em" >
-              <span bind-html-compile="::GetLabel(label)" > </span> 
+              <span bind-html-compile="GetLabel(label)" > </span> 
               <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
               <!-- if image is a single string, load it from work_url -->
-              <div class="galim" ng-if="::CheckString(image)" style="left:16em" >
+              <div class="galim" ng-if="CheckString(image)" style="left:16em" >
                   <img  style="{{result.style|interpolate:current_scope}}" 
                         ng-src="{{work_url+image|interpolate:current_scope}}" 
                         imageonfail="DisableImage(result.status,$index)"
@@ -126,12 +129,12 @@
               </div>
               <!-- if image is an array of strings, load each string
                    from work_url and display them in a table -->
-              <div class="galim" ng-if="::CheckArray(image)" style="left:16em" >
+              <div class="galim" ng-if="CheckArray(image)" style="left:16em" >
                 <table border="1">
                   <tr>
-                    <td ng-repeat="im in ::image">
+                    <td ng-repeat="im in image">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{work_url+image|interpolate:current_scope}}" 
+                            ng-src="{{work_url+im|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />
@@ -147,7 +150,7 @@
                   <tr>
                     <td ng-repeat="(l,im) in image" style="text-align:center">
                       <img  style="{{result.style|interpolate:current_scope}}" 
-                            ng-src="{{work_url+image|interpolate:current_scope}}" 
+                            ng-src="{{work_url+im|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
                       />
