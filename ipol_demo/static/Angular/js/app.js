@@ -77,9 +77,28 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
         }
     };
   
+    // function used by the range_scientific parameter type
+    // computes the slider position of a given value
+    $rootScope.num2sci = function(value, numDigits)
+    {
+    var exponent = Math.floor(Math.log(value) / Math.log(10));
+    var mantissa = value / Math.pow(10, exponent - numDigits);
+    return Math.round(mantissa + (9*exponent - 1)*Math.pow(10, numDigits));
+    }
+
+    // function used by the range_scientific parameter type
+    // computes the number value from the slider position
+    $rootScope.sci2str = function(sci, numDigits)
+    {
+    var exponent = Math.floor(sci / (9*Math.pow(10, numDigits)));
+    var mantissa = sci/Math.pow(10, numDigits) - (9*exponent - 1);
+    var value = Math.pow(10, exponent) * mantissa;
+    return value.toExponential(numDigits);
+    }
+
   
     // initialization of the parameters obtained from the DDL json file
-    $rootScope.initParams = function(demo,params) {
+    $rootScope.initParams = function(scope,demo,params) {
         console.info("initParams");
         
         // add pensize parameter for inpainting
@@ -107,6 +126,16 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
               } else {
                 param.value = params[param.id];
               }
+            }
+            // range_scientic type
+            if (param.type=='range_scientific') {
+              if (params[param.id]==undefined) {
+                param.value = param.values.default;
+              } else {
+                param.value = params[param.id];
+              }
+              // initialize the slider position
+              param.value_slider = scope.num2sci(param.value,param.values.digits);
             }
             // selection_collapsed type
             if (param.type=='selection_collapsed') {
