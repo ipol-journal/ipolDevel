@@ -37,15 +37,15 @@
     [
       {
         "id"            : "alpha",
-        "type"          : "range", 
+        "type"          : "range_scientific", 
         "label"         : "<i>&alpha;</i>",
-        "values"        : { "min":1e-5, "max":1e-2, "step":1e-5, "default": 1e-3 }
+        "values"        : { "min":1e-5, "max":1e-2, "digits":0, "default": 1e-3 }
       },
       {
         "id"            : "beta",
-        "type"          : "range", 
+        "type"          : "range_scientific", 
         "label"         : "<i>&beta;</i>",
-        "values"        : { "min":1e-5, "max":1e-2, "step":1e-5, "default": 1e-3 }
+        "values"        : { "min":1e-5, "max":1e-2, "digits":0, "default": 1e-3 }
       }
     ],
   "run": [

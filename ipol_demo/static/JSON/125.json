@@ -62,7 +62,7 @@
       "type"          : "gallery",
       "label"         : "<h2>Noisy, denoised, and difference images</h2>",
       "contents"      : { "Original":"input_0.sel.png", "Denoised":"denoised.png", "Difference":"diff.png"},
-      "style"         : "height:{{sizeY}}px" 
+      "style"         : "height:{{sizeY*ZoomFactor}}px" 
     },
     {
       "type"          : "repeat_gallery",
