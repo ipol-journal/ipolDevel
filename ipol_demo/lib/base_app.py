@@ -349,10 +349,11 @@ class base_app(empty_app):
         '''
         im.convert(input_info['dtype'])
         # check max size
-        resize = prod(im.size) > input_info['max_pixels']
+        max_pixels = eval(input_info['max_pixels'])
+        resize = prod(im.size) > max_pixels
         if resize:
             self.log("input resize")
-            im.resize(input_info['max_pixels'])
+            im.resize(max_pixels)
 
     #---------------------------------------------------------------------------
     def process_inputs(self):
@@ -444,6 +445,7 @@ class base_app(empty_app):
 
             if im.size != im_converted.size:
                 msg = "The image has been resized for a reduced computation time."
+                print msg,": ", im.size, "-->", im_converted.size
             self.max_width  = max(self.max_width,im_converted.size[0])
             self.max_height = max(self.max_height,im_converted.size[1])
             self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
