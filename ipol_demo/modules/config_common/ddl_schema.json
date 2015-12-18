@@ -169,6 +169,30 @@
                     {   "type":"object",
                         "properties":
                         {
+                            "type"        :{ "type":"string", "enum":["range_scientific"]},
+                            "visible"     :{ "type":"string"},
+                            "id"          :{ "type":"string", "format":"[a-z_][a-z_0-9]*" },
+                            "label"       :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                            },
+                            "values"      :{    "type": "object",
+                                                "properties":
+                                                    { 
+                                                    "min"    : { "type" : "number" },
+                                                    "max"    : { "type" : "number" },
+                                                    "digits" : { "type" : "number" },
+                                                    "default": { "type" : "number" }
+                                                    },
+                                                "required": ["min", "max", "digits", "default"]
+                                            }
+                        },
+                        "required":[ "type","id","label","values"]
+                    },
+                    {   "type":"object",
+                        "properties":
+                        {
                             "type"          :{ "type":"string", "enum":["selection_collapsed"]},
                             "visible"     :{ "type":"string"},
                             "id"            :{ "type":"string", "format":"[a-z_][a-z_0-9]*"},
