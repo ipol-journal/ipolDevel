@@ -106,7 +106,7 @@
 
 \end{titlepage}
 
-This documents contains technical documentation for the IPOL Demo System 2.0. Specifically, the architecture of the service-orientted platform, its modules, and the real-time template generation of demos from their textual description.
+This documents contains technical documentation for the IPOL Demo System 2.0. Specifically, the architecture of the service-oriented platform, its modules, and the real-time template generation of demos from their textual description.
 \vspace*{0.6in}
 
 \textbf{Project direction and team coordination}
@@ -115,7 +115,8 @@ Miguel Colom - \url{http://mcolom.info}
 
 \vspace*{0.2in}
 
-\textbf{Software engineers and external consultats (alphabetic order)}
+\textbf{Software engineers and external consultats, past and present (in alphabetic order):}
+
 
 José Arrecio
 
@@ -194,10 +195,10 @@ This section discusses some implementation details and specific configurations n
 \begin{itemize}
   \item The magic module. We use PIP, not the python-magic package found in most distributions. \ToDo{Explain why}.
   \item List of packages needed and how to install them.
-  \item Description of the general requirements needed for a module to be part of the system (start, ping, and shutdown services ; structure of the general launching scrip...
+  \item Description of the general requirements needed for a module to be part of the system (start, ping, and shutdown services ; structure of the general launching script...
 \end{itemize}
 
-List of packages used for installing the system. Packages to be installed with sudo apt-get install :
+- List of packages used for installing the system. Packages to be installed with sudo apt-get install:
 
 \begin{itemize}
 \item python2.7
@@ -210,19 +211,27 @@ List of packages used for installing the system. Packages to be installed with s
 \item gnuplot, gnuplot-nox: to draw figures
 \item python-pip: to install python packages. 
 \item python-yaml: for parsing
-\item
 \end{itemize}
-Packages to be installed with pip install :
+Packages to be installed with pip install:
 \begin{itemize}
 \item python-magic
 \item simplejson
 \end{itemize}
 
-Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
+- Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
-Integrate Openseedragon, \url{https://openseadragon.github.io/}
+- Integrate Openseedragon, \url{https://openseadragon.github.io/}
 
-Document the format of the demo package, with desc.jon, images/, extra/, etc
+- Document the format of the demo package, with desc.jon, images/, extra/, etc
+
+- Most of our modules name the files according to the hash sum of their contents. This file names are OK for internal use, but the users should obtain the files with the proper names. This can be achieved with the ``download" attribute in HTML5. All website interfaces should provide the corresponding human-readable name. For example:
+
+\begin{verbatim}
+<a href="9021384984901238490128490123841222223312.png" download="denoised.png">
+  Download the denoised image
+</a>
+\end{verbatim}
+
 
 \ToDo{Keep adding!}
 
