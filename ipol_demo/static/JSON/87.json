@@ -39,36 +39,37 @@
       "values"        : [ 
                 { "fir"       :"FIR, <i>tol</i>=10<sup>&minus;2</sup>"  }, 
                 { "dct"       :"DCT"  }, 
+                {},
                 {
-                  "box_3"     :"Box, <i>K</i>=3", 
-                  "box_4"     :"Box, <i>K</i>=4", 
-                  "box_5"     :"Box, <i>K</i>=5"
+                  "box_3"     :"<span style='display:inline-block;width:13em;'> Box, <i>K</i>=3</span>", 
+                  "box_4"     :"<i>K</i>=4", 
+                  "box_5"     :"<i>K</i>=5"
                 }, 
                 {
-                  "ebox_3"    :"Extended box, <i>K</i>=3",
-                  "ebox_4"    :"Extended box, <i>K</i>=4",
-                  "ebox_5"    :"Extended box, <i>K</i>=5"
+                  "ebox_3"    :"<span style='display:inline-block;width:13em'> Extended box, <i>K</i>=3</span>",
+                  "ebox_4"    :"<i>K</i>=4",
+                  "ebox_5"    :"<i>K</i>=5"
                 },
                 { 
-                  "sii_3"     :"SII, <i>K</i>=3",
-                  "sii_4"     :"SII, <i>K</i>=4",
-                  "sii_5"     :"SII, <i>K</i>=5"
+                  "sii_3"     :"<span style='display:inline-block;width:13em'> SII, <i>K</i>=3</span>",
+                  "sii_4"     :"<i>K</i>=4",
+                  "sii_5"     :"<i>K</i>=5"
                 },
                 {},
                 {
-                  "am_3"      :"Alvarez&ndash;Mazorra, <i>K</i>=3",
-                  "am_4"      :"Alvarez&ndash;Mazorra, <i>K</i>=4",
-                  "am_5"      :"Alvarez&ndash;Mazorra, <i>K</i>=5"
+                  "am_3"      :"<span style='display:inline-block;width:13em'> Alvarez&ndash;Mazorra, <i>K</i>=3</span>",
+                  "am_4"      :"<i>K</i>=4",
+                  "am_5"      :"<i>K</i>=5"
                 },
                 {
-                  "deriche_2" :"Deriche, <i>K</i>=2",
-                  "deriche_3" :"Deriche, <i>K</i>=3",
-                  "deriche_4" :"Deriche, <i>K</i>=4"
+                  "deriche_2" :"<span style='display:inline-block;width:13em'> Deriche, <i>K</i>=2</span>",
+                  "deriche_3" :"<i>K</i>=3",
+                  "deriche_4" :"<i>K</i>=4"
                 },
                 {
-                  "vyv_3"     :"Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3",
-                  "vyv_4"     :"Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=4",
-                  "vyv_5"     :"Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5"
+                  "vyv_3"     :"<span style='display:inline-block;width:13em'> Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3</span>",
+                  "vyv_4"     :"<i>K</i>=4",
+                  "vyv_5"     :"<i>K</i>=5"
                 }
                         ],
       "default"       : [ "fir", "dct"]

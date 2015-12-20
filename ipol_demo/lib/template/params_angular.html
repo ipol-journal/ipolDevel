@@ -8,26 +8,24 @@
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
 
 <div ng-controller="DemoParamCtrl">
-  <div style="width:65em" >
+  <div  >
   <p> 
-    <span ng-bind-html="renderHtml(demo.general.param_description)"> 
+    <span ng-bind-html="renderHtml(demo.general.param_description)"> </span>
   </p>
   </div>
-
   <br />
-
   <form action="${app.base_url + 'rectangle'}" method="get">
     <div class="action" style="align:left;margin-bottom=20px;margin-top=20px" >
       <input type="hidden" name="key" value="${app.key}">
 
       <div ng-if="demo.params.length>0">
-      <fieldset style="width:65em">
+      <fieldset style="display: inline-block;">
       <legend>Parameters:</legend>
       <!--===================================================================-->
       <table  style="float:left;border:0px;"> 
         <!--=================================================================-->
 <!--        <tr ng-if="demo.params.length>0">
-          <th style="width:34em"> <b>Parameter description</b> </th> 
+          <th style="max-width:34em"> <b>Parameter description</b> </th> 
           <th colspan="2"> <b>Select value</b> </th> 
         </tr>-->
 
@@ -37,19 +35,21 @@
             ng-if="(param.visible===undefined)||$eval(param.visible)">
           <!--===============================================================-->
           <!-- selection_collapsed type -->
-          <td style="border:0px;width:34em" ng-if="param.type==='selection_collapsed'"> 
+          <td style="border:0px;max-width:34em" ng-if="param.type==='selection_collapsed'"> 
             <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td style="border:0px;" ng-if="param.type==='selection_collapsed'" colspan="2">
               <select  ng-model="param.value" name="{{param.id}}"> 
-                <option ng-repeat="(key, value) in param.values" value="{{value}}"> 
-                  <span ng-bind-html="renderHtml(key)"> </span> 
-                </option> 
+                <option ng-repeat="(key, value) in param.values"  value="{{value}}"> 
+                    {{key}}
+                    <!-- not allowed in html ... -->
+                    <!-- <span ng-bind-html="renderHtml(key)"> </span>   -->
+                </option>
               </select>
           </td>
           <!--===============================================================-->
           <!-- selection_radio type -->
-          <td style="border:0px;width:34em" ng-if="param.type==='selection_radio'"> 
+          <td style="border:0px;max-width:34em" ng-if="param.type==='selection_radio'"> 
             <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
           </td>
           <td style="border:0px;" ng-if="param.type==='selection_radio'" colspan="2">
@@ -65,7 +65,7 @@
           </td>
           <!--===============================================================-->
           <!-- range type -->
-          <td  style="border:0px;width:34em" ng-if="param.type==='range'"> 
+          <td  style="border:0px;max-width:34em" ng-if="param.type==='range'"> 
               <label> 
                 <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
                 <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
@@ -85,8 +85,29 @@
                       floatsaving />
           </td>
           <!--===============================================================-->
+          <!-- range_scientific type -->
+          <td  style="border:0px;max-width:34em" ng-if="param.type==='range_scientific'"> 
+              <label> 
+                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
+                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
+              </label>  
+          </td>
+          <td style="border:0px;width:5em" ng-if="param.type==='range_scientific'" >
+            <input  style="width:100%"  type="number" name="{{param.id}}"
+                    value="{{sci2str(param.value_slider,param.values.digits)}}"
+                    readonly/>
+          </td>
+          <td ng-if="param.type==='range_scientific'" style="border:0px;width:24em">
+              <input  style="width:100%" type="range"  
+                      min="{{num2sci(param.values.min,param.values.digits)}}" 
+                      max="{{num2sci(param.values.max,param.values.digits)}}"
+                      step="1"
+                      ng-model="param.value_slider" 
+                      floatsaving />
+          </td>
+          <!--===============================================================-->
           <!-- readonly type -->
-          <td style="border:0px;width:34em" ng-if="param.type==='readonly'"> 
+          <td style="border:0px;max-width:34em" ng-if="param.type==='readonly'"> 
               <label> 
                 <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
                 <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
@@ -106,7 +127,7 @@
           </th>
           <!--===============================================================-->
           <!-- checkbox type -->
-          <td style="border:0px;width:34em" ng-if="param.type==='checkbox'" align="left"> 
+          <td style="border:0px;max-width:34em" ng-if="param.type==='checkbox'" align="left"> 
             <label>
               <span ng-bind-html="renderHtml(param.label)"> </span> 
             </label>
@@ -118,7 +139,7 @@
           </td>
           <!--===============================================================-->
           <!-- checkboxes type -->
-          <td style="border:0px;width:34em" ng-if="param.type==='checkboxes'" align="left"> 
+          <td style="border:0px;max-width:34em" ng-if="param.type==='checkboxes'" align="left"> 
             <label>
               <span ng-bind-html="renderHtml(param.label)"> </span> 
             </label>
@@ -126,16 +147,18 @@
           <td style="border:0px;"  ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
             <!--            <input type="button" value="all"  />
             <input type="button" value="none"  /><br/>-->
-            <div  ng-repeat="group in param.values" 
-                  style="float:left;margin-left:1em;margin-right:1em;margin-bottom:6pt">
+            <div  ng-repeat="group in param.values" >
+<!--                   style="float:left;" > -->
+<!-- margin-left:1em;margin-right:1em;margin-bottom:6pt"> -->
               <span ng-repeat="(id, label) in group">
                 <input  type="checkbox" name="{{param.id}}_{{id}}" id="{{id}}" 
                         ng-model="param.cb_values[id]" />
                 <input  type="text" name="{{param.id}}_{{id}}_checked"  
                         value="{{param.cb_values[id]==true}}" hidden/>
-                <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label>
-                <br />
+                <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label> &nbsp;&nbsp;
+<!--                 <br />  -->
               </span>
+                <br /> 
             </div>
           </td>
           <!--===============================================================-->
@@ -173,7 +196,6 @@
     <div style='vertical-align:middle;
                 margin-left:auto; margin-right: auto;
                 text-align:center;  margin-bottom=20px;margin-top=20px'>
-
 
         <!--  if enable_crop possible -->
         <span ng-if="(demo.general.enable_crop===undefined)||(demo.general.enable_crop===true)">
@@ -320,7 +342,7 @@
             <!-- otherwise display the only image -->
             <div ng-if="demo.inputs.length==1">
                 <!-- deal with inpainting mask -->
-                <span ng-if="(demo.general.inpainting!==undefined)&&(demo.general.inpainting)">
+                <span ng-if="(demo!=={})&&(demo.general.inpainting!==undefined)&&(demo.general.inpainting)">
                     <form action="${app.base_url + 'inpainting_editmask'}" method="get">
                         <input type="hidden" id="key" name="key" value="${app.key}" />
 
@@ -359,10 +381,10 @@
                                     style="float:left; margin-left:4px; background:none; background-color:#000000" />
                             <div style="clear:both"></div>
                             <input  type="image" 
-                                    style="float:left; cursor:crosshair; margin-top:5px; background:url('${app.work_url + 'input_0.png'}')"
-                                    width="$ {app.cfg['param']['viewbox_width']}"
-                                    height="$ {app.cfg['param']['viewbox_height']}"
-                                    src="${app.work_url + 'mask.png'}" 
+                                    style="float:left; cursor:crosshair; margin-top:5px; background:url(tmp/{{::demo_key}}/input_0.png)"
+                                    width="{{params.viewbox_width}}"
+                                    height="{{param.viewbox_height}}"
+                                    ng-src="{{'tmp/'+demo_key+'/mask.png'}}" 
                                     alt="" />
                         </fieldset>
                     </form>

@@ -1,0 +1,103 @@
+{ 
+  "general": { 
+    "demo_title"            : "Image Color Cube Dimensional Filtering and Visualization",
+    "input_description"     : [ "" ],
+    "param_description"     : [ "" ],
+    "enable_crop"           : true,
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/blm-cdf/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/blm-cdf/rgbprocess.tar.gz", 
+      "srcdir"        : "rgbprocess",
+      "binaries"      : [ [".","rgbprocess"] ],
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "400*400",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "run": [ 
+    "python:_stdout = open(self.work_dir + 'stdout.txt', 'w')",
+    "python:img = image(self.work_dir + 'input_0.sel.png')",
+    "python:(dx, dy) = img.size",
+    "python:_stdout.write('Number of pixels of input image: %i' %(dx*dy))",
+    "python:_stdout.close()",
+    "rgbprocess rmisolated      input_0.sel.png input_1.png     >>stdout.txt 2>&1",
+    "rgbprocess RGBviewsparams  RGBviewsparams.txt        2>>stdout.txt",
+    "rgbprocess filter          input_1.png output_1.png  2>>stdout.txt",
+    "python:wOut=300;hOut=300;displayDensity=0",
+    "rgbprocess RGBviews        input_1.png   RGBviewsparams.txt inRGB  $wOut $hOut $displayDensity 2>>stdout.txt",
+    "rgbprocess RGBviews        output_1.png  RGBviewsparams.txt outRGB $wOut $hOut $displayDensity 2>>stdout.txt",
+    "python:displayDensity=1",
+    "rgbprocess densityimage    output_1.png  dstyimage.png 2>>stdout.txt",
+    "rgbprocess RGBviews        output_1.png  RGBviewsparams.txt dstyRGB $wOut $hOut $displayDensity dstyimage.png 2>>stdout.txt",
+    "rgbprocess combineviews RGBviewsparams.txt inRGB outRGB dstyRGB view 2>>stdout.txt", 
+    "rgbprocess mergeimages output_1.png input_0.sel.png output_2.png 2>>stdout.txt",
+    "rgbprocess countcolors output_2.png            >>stdout.txt 2>&1",
+    "rgbprocess computeRMSE input_0.sel.png output_2.png  >>stdout.txt 2>&1",
+    "python:displayDensity = 0",
+    "rgbprocess RGB2VRML2 input_1.png input_1_RGB.wrl $displayDensity",
+    "rgbprocess RGB2VRML2 output_1.png output_1_RGB.wrl $displayDensity",
+    "python:displayDensity = 1",
+    "rgbprocess RGB2VRML2 output_1.png output_1_RGBd.wrl $displayDensity dstyimage.png",
+    "python:#compress .wrl files",
+    "python:from lib.misc import gzip",
+    "python:for fname in ['input_1_RGB', 'output_1_RGB', 'output_1_RGBd']: gzip(self.work_dir + fname + '.wrl')"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                  "input_0.orig.png"     : "uploaded image",
+                  "input_0.png"          : "full-size",
+                  "input_0s.png"         : "sub-image selection",
+                  "input_0s.png"         : "sub-image selection",
+                  "input_0.sel.png"      : "input image",
+                  "output_2.png"         : "output image"
+                }
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Original/Filtered</h2>",
+      "contents"      : {
+        "Original"  : "input_0.sel.png",
+        "Filtered"  : "output_2.png"
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    },
+    {
+      "type"          : "repeat_gallery",
+      "repeat"        : "21",
+      "label"         : "<h2>RGB views</h2><p> Top: original and filtered. Bottom: density. </p>",
+      "contents"      : [ "<small>VIEW {{idx+1}}</small>","view_{{idx+100}}.png"],
+      "style"         : "height:{{Math.max(600,sizeY*ZoomFactor)}}px"
+    },
+    {
+      "type"          : "file_download",
+      "label"         : "<h3>RGB cubes in VRML 2.0 format (compressed):</h3>",
+      "contents"      : { "Original" : "input_1_RGB.wrl.gz", 
+                          "Filtered" : "output_1_RGB.wrl.gz",
+                          "Density"  : "output_1_RGBd.wrl.gz"
+                        }
+    },
+    {
+        "type"      : "text_file",
+        "label"     : "<h2>Additional Info<h2>",
+        "contents"  : "stdout.txt",
+        "style"     : "width:50em;height:10em;background-color:#eee"
+    }
+  ]
+
+}

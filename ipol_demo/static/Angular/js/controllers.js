@@ -86,6 +86,8 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
 IPOLDemoControllers.controller('DemoParamCtrl', 
                               ['$scope', '$sce', '$location', 'demo_id', 'demo_key', 'Demo', 'Meta', 'Params', 
     function($scope, $sce, $location, demo_id, demo_key, Demo, Meta, Params ) {
+      $scope.demo     = {};
+      $scope.params   = {};
       $scope.current_scope = $scope;
       // variables given by python
       $scope.demo_key = demo_key;
@@ -103,8 +105,6 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       $scope.got_param= false;
       $scope.got_demo = false;
       // demo and params values initialized to empty
-      $scope.demo     = {};
-      $scope.params   = {};
 
       $scope.updateCropInfo = function($scope) {
         if ($scope.params.x0!=undefined)
@@ -137,7 +137,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
             // crop is applied to the first input image only for the moment
             // we need this string in a variable for the image crop module
             $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
-            if ($scope.got_param) $scope.initParams($scope.demo,$scope.params);
+            if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
           } 
         );
       
@@ -162,7 +162,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
           $scope.got_param=true;
           $scope.params = params;
           if ($scope.got_meta) $scope.updateCropInfo($scope);
-          if ($scope.got_demo) $scope.initParams($scope.demo,$scope.params);
+          if ($scope.got_demo) $scope.initParams($scope,$scope.demo,$scope.params);
         }
         );
 
@@ -249,7 +249,7 @@ IPOLDemoControllers.controller('DemoResultCtrl',
           $scope.PreprocessDemo($scope,demo)
           $scope.got_demo=true;
           $scope.demo = demo;
-          if ($scope.got_param) $scope.initParams($scope.demo,$scope.params);
+          if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
           $scope.initResults($scope);
           console.info($scope.demo)
         } 
@@ -261,7 +261,7 @@ IPOLDemoControllers.controller('DemoResultCtrl',
           $scope.sizeY = params.y1-params.y0;
           $scope.got_param=true;
           $scope.params = params;
-          if ($scope.got_demo) $scope.initParams($scope.demo,$scope.params);
+          if ($scope.got_demo) $scope.initParams($scope,$scope,$scope.demo,$scope.params);
         }
       );
       

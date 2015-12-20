@@ -1,0 +1,90 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Selective Contrast Adjustment by Poisson Equation",
+    "input_description"     : "",
+    "param_description"     : [""],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/41/"
+  }, 
+  "build": [
+    {
+      "build_type" : "make",
+      "url"        : "http://www.ipol.im/pub/art/2013/41/selective_ipol.tgz", 
+      "srcdir"     : "selective_ipol",
+      "binaries"   : [ [".","poisson_lca"] ],
+      "prepare_make"  : "sed -i -e 's/-Werror//g' makefile",
+      "flags"      : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700 * 700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "t",
+      "type"          : "range", 
+      "label"         : "T:",
+      "values"        : { "min":0, "max":255, "step":1, "default":50 }
+    },
+    {
+      "id"            : "a",
+      "type"          : "range", 
+      "label"         : "a:",
+      "values"        : { "min":0.1, "max":10, "step":0.1, "default":3 }
+    },
+    {
+      "id"            : "alpha",
+      "type"          : "range", 
+      "label"         : "alpha:",
+      "values"        : { "min":0.1, "max":3, "step":0.1, "default":0.8 }
+    }
+  ],
+  "run": [ 
+    "poisson_lca -t $t -a $a -b $alpha input_0.sel.png output_normI.png output_darkI.png output_powerI.png output_normRGB.png output_darkRGB.png output_powerRGB.png",
+    "python:im=image(self.work_dir + 'input_0.sel.png')",
+    "python:self.algo_info['isgray'] = im.is_grayscale()",
+    "image_histogram.py input_0.sel.png output_normI.png output_darkI.png output_powerI.png",
+    [   "not(self.algo_info['isgray'])",
+            "image_histogram.py output_normRGB.png output_darkRGB.png output_powerRGB.png"
+    ]
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"      : "uploaded image",
+                  "input_0.sel.png"       : "original image",
+                  "output_normI.png"      : "normalized (I)",
+                  "output_darkI.png"      : "enhanced dark regions (I)",
+                  "output_powerI.png"     : "global enhancement (I)",
+                  "output_normRGB.png"    : "normalized (RGB)",
+                  "output_darkRGB.png"    : "enhanced dark regions (RGB)",
+                  "output_powerRGB.png"   : "global enhancement (RGB)"
+                },
+      "params" :  [ "t", "a", "alpha" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Results (T={{params.t}}, a={{params.a}}, alpha={{params.alpha}})</h2>",
+      "contents"      : { 
+          "Original"                            : { "Image":"input_0.sel.png",    "Histogram:R,G,B,I":"input_0.sel_hist.png" },
+          "!info.isgray?Normalized (RGB)"       : { "Image":"output_normRGB.png", "Histogram:R,G,B,I":"output_normRGB_hist.png" },
+          "!info.isgray?Enhanced dark (RGB)"    : { "Image":"output_darkRGB.png", "Histogram:R,G,B,I":"output_darkRGB_hist.png" },
+          "!info.isgray?Enhanced global (RGB)"  : { "Image":"output_powerRGB.png","Histogram:R,G,B,I":"output_powerRGB_hist.png" },
+          "Normalized (I)"                      : { "Image":"output_normI.png",   "Histogram:R,G,B,I":"output_normI_hist.png" },
+          "Enhanced dark (I)"                   : { "Image":"output_darkI.png",   "Histogram:R,G,B,I":"output_darkI_hist.png" },
+          "Enhanced global (I)"                 : { "Image":"output_powerI.png",  "Histogram:R,G,B,I":"output_powerI_hist.png" }
+      },
+      "style"         : "height:{{sizeY*ZoomFactor}}px"
+    }
+  ]
+
+}

@@ -220,6 +220,32 @@ scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
 \caption{Keys for the 'range' type.}
 \end{longtable}
 
+\subsubsection{ \emph{range_scientific} type}
+
+The values of the range type are stored as numbers, so no double quotes are 
+required around the values. The default value is stored with the 'values' field.
+The 'range_scientific' type differs from the 'range' type because it displays
+the values in scientific notation with mantissa and exponent, the 'digits' parameter
+sets the number of digits after the decimal points for the mantissa, the slider
+will also to change each digit.
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
+0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type  & range_scientific       & yes \\ \hline
+ visible  & AngularJS boolean expression that can hide the parameter if
+            evaluated to false (if undefined the parameter is visible)& no \\ \hline
+ id     & parameter name in lowercase letters  & yes \\ \hline
+ label & description of the parameter or contents if type is label. & yes
+                      \\ \hline
+ values & set min,max,step and default values using the following key/value 
+scheme \{ 'min':val, 'max':val, 'digits':val, 'default':val \} & yes
+                      \\ \hline
+\caption{Keys for the 'range_scientific' type.}
+\end{longtable}
+
 
 \subsubsection{ \emph{selection\_collapsed} type}
 

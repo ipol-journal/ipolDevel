@@ -36,9 +36,9 @@ class empty_app(object):
         """
         # the demo ID is the folder name
         self.base_dir = os.path.abspath(base_dir) # + os.path.sep
-        print "self.base_dir is ", self.base_dir
+        #print "self.base_dir is ", self.base_dir
         self.id = os.path.basename(base_dir)
-        print "self.id is ", self.id
+        #print "self.id is ", self.id
 
         # TODO: better key initialization
         self.key = ''
