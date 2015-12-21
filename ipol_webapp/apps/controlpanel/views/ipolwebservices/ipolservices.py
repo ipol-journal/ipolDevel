@@ -39,10 +39,12 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None):
 	try:
 
 		if not METHOD or METHOD=='GET':
-			response = requests.get(ws_url,params)
+			if not params :
+				response = requests.get(ws_url,params=params)
+
 		elif METHOD=='POST':
 			print ("POST")
-			response = requests.post(ws_url,params)
+			response = requests.post(ws_url,params=params)
 		else:
 			msg="get_JSON_from_webservice: Not valid METHOD: %s" % result
 			logger.error(msg)
