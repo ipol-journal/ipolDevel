@@ -20,4 +20,4 @@ logs
 
 # Database files
 *.db
-
+*.sqlite3
