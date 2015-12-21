@@ -942,7 +942,7 @@ class DemoInfo(object):
 			conn = lite.connect(self.database_file)
 			cursor_db = conn.cursor()
 			cursor_db.execute("""
-			SELECT COUNT(*) FROM demo""")
+			SELECT COUNT(*) FROM demo WHERE active = 1""")
 			data["nb_demos"] = cursor_db.fetchone()[0]
 			cursor_db.execute("""
 			SELECT COUNT(*) FROM author""")
