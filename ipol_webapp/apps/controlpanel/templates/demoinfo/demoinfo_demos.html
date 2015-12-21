@@ -1,6 +1,8 @@
 {% extends 'base/base.html' %}
 {% load staticfiles %}
 {% load i18n %}
+{% load crispy_forms_tags %}
+
 
 {% block title %}
     {% trans 'Demos' %}
@@ -82,7 +84,7 @@
                             </div>
                             <div class="griditem col-sm-3">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
                             <div class="griditem col-sm-3">{% trans 'state' %}:{{ demo.stateID }} </div>
-                            <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>
+                            {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
                             <div class="griditem col-sm-3">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
 
 
@@ -90,10 +92,18 @@
                                 {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
                                 <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
 
-                                <a class="btn btn-primary" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}',{{ demo.id }} )">{% trans 'DDL' %}</a>
+
 
                                 {#  btn Edit demo #}
                                 <a class="btn btn-primary" href="#">{% trans 'Edit' %}</a>
+
+                                <a class="btn btn-info" onclick=
+{#                                        {% if demo.id %}#}
+                                            "send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}' )">
+{#                                        {% else %}#}
+{#                                            "send_get_ddl_request()">#}
+{#                                        {% endif %}#}
+                                        {% trans 'DDL' %}</a>
 
                             </div>
 
@@ -145,48 +155,35 @@
                     <h3>Abstract</h3>
                 </div>
                 <div class="modal-body" id="modalbody">
-{#                    <input type="text" name="cafeId" id="cafeId" value=""/>#}
+                {#  <input type="text" name="cafeId" id="cafeId" value=""/>#}
 
                 </div>
-{#                <div class="modal-footer">#}
-{#                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
-{#                </div>#}
+                    {# <div class="modal-footer">#}
+                    {# <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
+                    {#  </div>#}
             </div>
         </div>
     </div>
 
+    <!-- Modal show/edit DDL JSON-->
     <div class="modal fade" id="createDDLFormId" >
-        <div class="modal-header">
-            <a href="#" class="close" data-dismiss="modal">&times;</a>
-            <h3>Create DDL</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal" method="POST" commandName="announceBean" action="/announce" >
-                <input type="hidden" name="cafeId" value="104" />
-                <fieldset>
-                    <div class="control-group">
-                        <label class="control-label" for="cafeName">Where I am Coding</label>
-                        <div class="controls">
-                            <input id="cafeName" name="cafeName" class="input-xlarge disabled" type="text" readonly="readonly" type="text" value="B&amp;Js"/>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label class="control-label" for="date">Date</label>
-                        <div class="controls">
-                            <input type="text" class="input-xlarge" id="date" name="date" />
-                            <p class="help-block"></p>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <div class="controls">
-                            <input type="submit" class="btn btn-primary" value="save" />
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="createDDLModalheader" class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3>Create DDL</h3>
+
+                </div>
+                <div class="modal-body" id="createDDLFormmodalbody">
+                    <div id="createddl_modal_errordiv"></div>
+                    {% crispy ddlform %}
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" onclick="prettyPrint('id_ddlJSON')">Pretty Print</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -194,7 +191,7 @@
 {% block functionsjs %}
         <script>
 
-        {#  secure AJAX POST to ws  #}
+        {#  secure AJAX POST to ws ,from django docs #}
         function getCookie(name) {
             var cookieValue = null;
             if (document.cookie && document.cookie != '') {
@@ -224,6 +221,8 @@
                 }
             });
         });
+
+        {#  delete demo  #}
         function send_delete_demo_request(wsurl,demo_id) {
             var deldemo = confirm('delete this demo: ' + demo_id);
 
@@ -247,28 +246,52 @@
             }
         }
 
-        function send_get_ddl_request(wsurl,demo_id) {
-            var deldemo = confirm('ddl for this demo: ' + demo_id);
-
-            if (deldemo == true) {
+        {#  show/edit DDL modal  #}
+        function send_get_ddl_request(wsurl) {
+            // use this if you specifically want to know if b was passed
+            if (wsurl === undefined) {
+                // wsurl was not passed, just open edit modal
+                $('div#createDDLModalheader').html('<h3>New DDL data</h3>');
+                $('#createDDLFormId').modal('show');
+            }else{
+                // wsurl was passed, get data from ws and open show modal
                 $.ajax({
                     type: 'POST',
                     url: wsurl,
                     dataType: 'json',
                     success: function(data) {
                         console.log(data.status);
-                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
-{#                        $('#demo_info_'+ demo_id).html(okhtml);#}
 
-                        $("#modalbody").html($(this).data('abstract'));
-{#                      $("#modalbody").html($("#moderador").val());#}
-                        $('#ShowAbstractModalID').modal('show');
+                        if (data.status=='OK'){
+                            //clear modal  error
+                            $('#createddl_modal_errordiv').html('');
+
+                            //edit/show ddl
+                            if (data.last_demodescription){
+                                console.log(data.last_demodescription);
+                                $('div#createDDLModalheader').html('<h3>Edit DDL data</h3>');
+                                $("#id_ddlJSON").get(0).value = data.last_demodescription.json;
+                                $('#createDDLFormId').modal('show');
+
+                            //create ddl
+                            }else{
+                                $('div#createDDLModalheader').html('<h3>New DDL data</h3>');
+                                $("#id_ddlJSON").get(0).value = '';
+                                $('#createDDLFormId').modal('show');
+
+                            }
+                        }else{
+                            //error, no OK
+                            var errorhtml="<p class=\"ststsnok\">DDL not retrieved sucessfully, refresh page</p>";
+                            $('#createddl_modal_errordiv').html(errorhtml);
+
+                        }
 
                     },
                     error: function(data){
                         console.error(data.status);
-                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
-{#                        $('#demo_info_'+ demo_id).html(errorhtml);#}
+                        var errorhtml="<p class=\"ststsnok\">Error getting DDL, refresh page</p>";
+                        $('#createddl_modal_errordiv').html(errorhtml);
                     }
                 });
             }
@@ -298,11 +321,22 @@
         {#            }#}
         {#        }#}
 
+
+        {#  show pretty json  #}
+        function prettyPrint(formfieldidtopretify) {
+            {# var formfieldidtopretify='id_ddlJSON';#}
+            var ugly = document.getElementById(formfieldidtopretify).value;
+            var obj = JSON.parse(ugly);
+            var pretty = JSON.stringify(obj, undefined, 4);
+            document.getElementById(formfieldidtopretify).value = pretty;
+        }
+
+        {#  show abstract modal  #}
         $(document).ready(function(){
            $(".abstractmodal").click(function(){ // Click to only happen on announce links
-{#             $("#cafeId").val($(this).data('abstract'));#}
+            {#  $("#cafeId").val($(this).data('abstract'));#}
              $("#modalbody").html($(this).data('abstract'));
-{#             $("#modalbody").html($("#moderador").val());#}
+            {#  $("#modalbody").html($("#moderador").val());#}
              $('#ShowAbstractModalID').modal('show');
            });
         });

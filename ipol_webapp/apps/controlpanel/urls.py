@@ -33,7 +33,8 @@ urlpatterns = patterns('',
 
     url(r'^demoinfo_demos/', DemoinfoDemosView.as_view(), name="ipol.cp.demoinfo.demos"),
     url(r'^ajax_delete_demoinfo_demo/(?P<demo_id>[\-\d\w]+)/$', DemoinfoDeleteDemoView.as_view(), name="ipol.cp.demoinfo.delete_demo"),
-    url(r'^ajax_get_demoinfo_ddl/(?P<demo_id>[\-\d\w]+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
+    # url(r'^ajax_get_demoinfo_ddl/(?P<demo_descp_id>\d+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
+    url(r'^ajax_get_demoinfo_ddl/(?P<demo_id>\d+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
 
     url(r'^demoinfo_authors/', DemoinfoAuthorsView.as_view(), name="ipol.cp.demoinfo.authors"),
     url(r'^demoinfo_editors/', DemoinfoEditorsView.as_view(), name="ipol.cp.demoinfo.editors"),

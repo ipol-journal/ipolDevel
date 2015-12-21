@@ -6,7 +6,8 @@ import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
 	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
 	archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
-	demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo
+	demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
+	demoinfo_ws_url_last_demodescription_from_demo
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +51,7 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None):
 
 
 		result =  response.content
-		print "JSON:"
-		print result
+		print "JSON:",result
 
 		if not is_json(result):
 			msg="get_JSON_from_webservice: Not valid JSON: %s" % result
@@ -87,6 +87,26 @@ def demoinfo_delete_demo(demo_id,hard_delete = False):
 	wsurl = demoinfo_ws_url_delete_demo
 	params = {'demo_id': demo_id,'hard_delete':hard_delete}
 
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+
+def demoinfo_read_last_demodescription_from_demo(demo_id,returnjsons=None):
+	wsurl = demoinfo_ws_url_last_demodescription_from_demo
+
+	if returnjsons == True or returnjsons == 'True':
+		params = {'demo_id': demo_id,'returnjsons':True}
+	else:
+		params = {'demo_id': demo_id}
+
+	#ojo, el metodo debe estar en consonancia con la llamada ajax
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+
+def demoinfo_read_demo_description(demo_descp_id):
+	wsurl = demoinfo_ws_url_read_demo_description
+	params = {'demodescriptionID': demo_descp_id}
 	return get_JSON_from_webservice(wsurl,'POST',params)
 
 

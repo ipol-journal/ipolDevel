@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import HttpResponse
+from apps.controlpanel.forms import DDLform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 from django.contrib.auth.decorators import login_required
@@ -77,6 +78,8 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 			#send context vars for template
 			context['status'] = status
 			context['list_demos'] = list_demos
+			context['ddlform'] = DDLform
+
 
 		except Exception as e:
 			msg=" DemoinfoDemosView Error %s "%e
@@ -142,6 +145,38 @@ class DemoinfoDeleteDemoView(NavbarReusableMixinMF,TemplateView):
 
 			return HttpResponse(result, content_type='application/json')
 
+#
+# class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
+#
+# 	@method_decorator(login_required)
+# 	def dispatch(self, *args, **kwargs):
+# 		return super(DemoinfoGetDDLView, self).dispatch(*args, **kwargs)
+#
+# 	def post(self, request, *args, **kwargs):
+# 			context = super(DemoinfoGetDDLView, self).get_context_data(**kwargs)
+# 			try:
+# 				demo_descp_id = int(self.kwargs['demo_descp_id'])
+# 			except ValueError:
+# 				msg= "Id is not an integer"
+# 				logger.error(msg)
+# 				raise ValueError(msg)
+#
+# 			result= ipolservices.demoinfo_read_demo_description(demo_descp_id)
+# 			if result == None:
+# 				msg="DemoinfoGetDDLView: Something went wrong using demoinfo WS"
+# 				logger.error(msg)
+# 				raise ValueError(msg)
+#
+#
+# 			import json
+# 			#your_json = '["foo", {"bar":["baz", null, 1.0, 2]}]'
+# 			# parsed = json.loads(result)
+# 			# result = json.dumps(parsed, indent=4, sort_keys=True)
+#
+# 			print "result: ",result
+# 			return HttpResponse(result,content_type='application/json')
+#
+
 
 class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
 
@@ -151,7 +186,6 @@ class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
 
 	def post(self, request, *args, **kwargs):
 			context = super(DemoinfoGetDDLView, self).get_context_data(**kwargs)
-			#todo could validate a form to get hard_delete checkbox from user
 			try:
 				demo_id = int(self.kwargs['demo_id'])
 			except ValueError:
@@ -159,15 +193,58 @@ class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
 				logger.error(msg)
 				raise ValueError(msg)
 
-			result= ipolservices.demoinfo_delete_demo(demo_id,hard_delete = False)
+			#result= ipolservices.demoinfo_read_last_demodescription_from_demo(demo_id)
+			result= ipolservices.demoinfo_read_last_demodescription_from_demo(demo_id,returnjsons=True)
 			if result == None:
-				msg="DemoinfoDeleteDemoView: Something went wrong using demoinfo WS"
+				msg="DemoinfoGetDDLView: Something went wrong using demoinfo WS"
 				logger.error(msg)
 				raise ValueError(msg)
 
-			print result
 
-			return HttpResponse(result, content_type='application/json')
+
+
+			import json
+			#your_json = '["foo", {"bar":["baz", null, 1.0, 2]}]'
+			# parsed = json.loads(result)
+			# result = json.dumps(parsed, indent=4, sort_keys=True)
+
+			print "result: ",result
+			print "result type: ",type(result)
+
+			return HttpResponse(result,content_type='application/json')
+
+
+
+class DemoinfoSaveDDLView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoSaveDDLView, self).dispatch(*args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+			context = super(DemoinfoSaveDDLView, self).get_context_data(**kwargs)
+			try:
+				demo_descp_id = int(self.kwargs['demo_descp_id'])
+
+			except ValueError:
+				msg= "Id is not an integer"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			result= ipolservices.demoinfo_read_demo_description(demo_descp_id)
+			if result == None:
+				msg="DemoinfoSaveDDLView: Something went wrong using demoinfo WS"
+				logger.error(msg)
+				raise ValueError(msg)
+
+
+			import json
+			#your_json = '["foo", {"bar":["baz", null, 1.0, 2]}]'
+			# parsed = json.loads(result)
+			# result = json.dumps(parsed, indent=4, sort_keys=True)
+
+			print "result: ",result
+			return HttpResponse(result,content_type='application/json')
 
 
 

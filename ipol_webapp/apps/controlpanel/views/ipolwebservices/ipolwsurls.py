@@ -19,6 +19,8 @@ demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list' # param N
 demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list' # param None
 demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list' # param None
 demoinfo_ws_url_delete_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/delete_demo' # method POST,  params demo_id,hard_delete = False
+demoinfo_ws_url_read_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_description' # params  demodescriptionID
+demoinfo_ws_url_last_demodescription_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_last_demodescription_from_demo' # params  demoid,returnjsons=False
 
 
 ####################
