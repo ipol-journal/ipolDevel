@@ -5,14 +5,19 @@
 Demo Info metadata module
 Provides a set of stateless JSON webservices
 
+All exposed WS return JSON
+they must have a status value OK/KO
+they must have error value with the error description
+
+
 todo: secure webservices
 todo: secure db access
 
 to test POST WS:
-curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
-curl -d editorsdemoid=777 -d title='demo1' -d abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
 
-or use Ffox plugin: Poster
+	curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
+	curl -d editorsdemoid=777 -d title='demo1' -d abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
+	or use Ffox plugin: Poster
 
 """
 
@@ -25,7 +30,7 @@ from model import *
 
 
 #GLOBAL VARS
-from tools import is_json, Payload
+from tools import is_json, Payload,convert_str_to_bool
 
 LOGNAME = "demoinfo_log"
 
@@ -150,12 +155,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			conn.close()
 		except Exception as ex:
-			print "demo_list  ",str(ex)
-			self.error_log("demo_list",str(ex))
+			error_string = "demoinfo demo_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print "demo_list  ",str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 
 		return json.dumps(data)
 
@@ -177,12 +185,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			conn.close()
 		except Exception as ex:
-			print str(ex)
-			self.error_log("author_list",str(ex))
+			error_string = "demoinfo author_list error %s" % str(ex)
+			print error_string
+			self.error_log("author_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -203,12 +214,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			conn.close()
 		except Exception as ex:
-			print str(ex)
-			self.error_log("editor_list",str(ex))
+			error_string = "demoinfo editor_list error %s" % str(ex)
+			print error_string
+			self.error_log("editor_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -230,12 +244,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			conn.close()
 		except Exception as ex:
-			print str(ex)
-			self.error_log("demo_get_authors_list",str(ex))
+			error_string = "demoinfo demo_get_authors_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_get_authors_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -258,12 +275,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			
 		except Exception as ex:
-			print str(ex)
-			self.error_log("author_get_demos_list",str(ex))
+			error_string = "demoinfo author_get_demos_list error %s" % str(ex)
+			print error_string
+			self.error_log("author_get_demos_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -285,12 +305,15 @@ class DemoInfo(object):
 			conn.close()			
 			data["status"] = "OK"
 		except Exception as ex:
-			print str(ex)
-			self.error_log("demo_get_authors_list",str(ex))
+			error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -311,14 +334,16 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			print str(ex)
-			self.error_log("editor_get_demos_list",str(ex))
+			error_string = "demoinfo editor_get_demos_list error %s" % str(ex)
+			print error_string
+			self.error_log("editor_get_demos_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
-
 
 
 	@cherrypy.expose
@@ -342,12 +367,15 @@ class DemoInfo(object):
 			conn.close()
 
 		except Exception as ex:
-			print str(ex)
-			self.error_log("demo_get_demodescriptions_list",str(ex))
+			error_string = "demoinfo demo_get_demodescriptions_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_get_demodescriptions_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -366,7 +394,7 @@ class DemoInfo(object):
 			# print type(ddl)
 			# print ddl
 			# print
-			#ddl is stored in db as blob, must be converted to str before dumping
+			# ddl is stored in db as blob, must be converted to str before dumping
 			# calling this ws from CP, dao.read(id) is buffer
 			# calling directly ths ws from python code is unicode.
 			# because data is serialized by request lib
@@ -378,13 +406,17 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS read_demo_description  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
+			error_string = "demoinfo read_demo_description error %s" % str(ex)
+			print error_string
+			self.error_log("read_demo_description",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 
 		return json.dumps(data)
-
-
 
 
 	@cherrypy.expose
@@ -408,14 +440,16 @@ class DemoInfo(object):
 			conn.close()
 
 		except Exception as ex:
-			print str(ex)
-			self.error_log("read_last_demodescription_from_demo",str(ex))
+			error_string = "demoinfo read_last_demodescription_from_demo error %s" % str(ex)
+			print error_string
+			self.error_log("read_last_demodescription_from_demo",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
-				print str(ex)
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
-
 
 
 	@cherrypy.expose
@@ -430,21 +464,21 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_demodescription_to_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_demodescription_to_demo error %s" % str(ex)
+			print error_string
+			self.error_log("add_demodescription_to_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
-
-
-
-
-
 
 
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
-	def add_demo_description(self,demoid=None):
+	def add_demo_description(self,demoid=None,inproduction=None):
 		#def add_demo_description(self, demojson):
 		#recieves a valid json as a string AS POST DATA
 		#http://stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
@@ -485,7 +519,9 @@ class DemoInfo(object):
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoDescriptionDAO(conn)
-			demodescription_id = dao.add(demojson)
+
+			demodescription_id = dao.add(demojson,inproduction=inproduction)
+
 			data["demo_description_id"] = demodescription_id
 
 			if demoid:
@@ -499,10 +535,15 @@ class DemoInfo(object):
 
 
 		except Exception as ex:
-			error_string=("WS add_demo_description  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_demo_description error %s" % str(ex)
+			print error_string
+			self.error_log("add_demo_description",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 
 
 		return json.dumps(data)
@@ -557,34 +598,38 @@ class DemoInfo(object):
 		rawbody = cherrypy.request.body.read(int(cl))
 		demojson = rawbody
 		# print
+		# print "ddl type: ",type(demojson)
+		# type is str
 		# print "ddl: ",demojson
 		# print
 
 		if not is_json(demojson):
-			print "add_demo_description demojson is not a valid json "
-			raise Exception
+			msg= "add_demo_description demojson is not a valid json "
+			raise ValueError(msg)
 
 		try:
 			conn = lite.connect(self.database_file)
 			dao = DemoDescriptionDAO(conn)
-			id = dao.update(int(demodescriptionID),demojson)
+			dao.update(int(demodescriptionID),demojson)
 			conn.close()
-			#return id
 			data["status"] = "OK"
 
 		except Exception as ex:
-			error_string=("WS add_demo_description  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
-
+			error_string = "demoinfo update_demo_description error %s" % str(ex)
+			print error_string
+			self.error_log("update_demo_description",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 
 		return json.dumps(data)
 
 
-
-	@cherrypy.expose
 	def read_demo(self, demoid):
+
 		demo=None
 		try:
 			id =int(demoid)
@@ -592,15 +637,46 @@ class DemoInfo(object):
 			dao = DemoDAO(conn)
 			demo = dao.read(id)
 			conn.close()
+
 		except Exception as ex:
-			error_string=("WS read_demo  e:%s"%(str(ex)))
+			error_string=("read_demo  e:%s"%(str(ex)))
 			print (error_string)
 			conn.close()
 
 		return demo
 
 
+	@cherrypy.expose
+	def read_demo_metainfo(self, demoid):
+		data = dict()
+		data["status"] = "KO"
 
+		try:
+
+			demo = self.read_demo(demoid)
+			data["id"] = demo.id
+			data["editorsdemoid"] = demo.editorsdemoid
+			data["title"] = demo.title
+			data["abstract"] = demo.abstract
+			data["zipURL"] = demo.zipURL
+			data["active"] = demo.active
+			data["stateID"] = demo.stateID
+			data["creation"] = demo.creation
+			data["modification"] = demo.modification
+			data["status"] = "OK"
+
+		except Exception as ex:
+			error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
+			print error_string
+			self.error_log("read_demo_metainfo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
 
 
 	@cherrypy.expose
@@ -608,6 +684,9 @@ class DemoInfo(object):
 	def add_demo(self, editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
 		data = {}
 		data["status"] = "KO"
+
+		active = convert_str_to_bool(active)
+		print "active", active, type(active)
 		try:
 
 			conn = lite.connect(self.database_file)
@@ -636,16 +715,21 @@ class DemoInfo(object):
 				#demo created without demodescription
 				#careful with Demo init method's validation!
 				d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract, zipurl=zipURL, active=int(active), stateid=int(stateID))
-				demoid=dao.add(d)
+				demoid = dao.add(d)
 
 			conn.close()
 			data["status"] = "OK"
 			data["demoid"] = demoid
 		except Exception as ex:
-			error_string=("WS add_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_demo error %s" % str(ex)
+			print error_string
+			self.error_log("add_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -663,14 +747,16 @@ class DemoInfo(object):
 			try:
 				hard_delete=int(hard_delete)
 				if hard_delete not in [0,1]:
-					raise Exception
+					msg=" hard_delete param error"
+					raise ValueError(msg)
 			except Exception as ex:
 				if hard_delete =='False':
 					hard_delete=0
 				elif hard_delete =='True':
 					hard_delete=1
 				else:
-					raise Exception
+					msg=" hard_delete param error"
+					raise ValueError(msg)
 
 
 			#print "hard_delete",hard_delete
@@ -708,10 +794,15 @@ class DemoInfo(object):
 			conn.close()
 
 		except Exception as ex:
-			error_string=("WS delete_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo delete_demo error %s" % str(ex)
+			print error_string
+			self.error_log("delete_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 
 		return json.dumps(data)
 
@@ -730,10 +821,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			data["authorid"] = id
 		except Exception as ex:
-			error_string=("WS add_author  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_author error %s" % str(ex)
+			print error_string
+			self.error_log("add_author",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -751,10 +847,15 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_author  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_editor error %s" % str(ex)
+			print error_string
+			self.error_log("add_editor",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -770,10 +871,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_author_to_demo error %s" % str(ex)
+			print error_string
+			self.error_log("add_author_to_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -789,10 +895,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo add_editor_to_demo error %s" % str(ex)
+			print error_string
+			self.error_log("add_editor_to_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -808,10 +919,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo remove_editor_from_demo error %s" % str(ex)
+			print error_string
+			self.error_log("remove_editor_from_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -827,10 +943,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS add_author_to_demo  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo remove_author_from_demo error %s" % str(ex)
+			print error_string
+			self.error_log("remove_author_from_demo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -841,10 +962,18 @@ class DemoInfo(object):
 		data["status"] = "KO"
 		#get payload from json object
 		p = Payload(demo)
-		#convert payload to Author object
-		d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id, p.creation, p.modification)
+
+		#convert payload to Demo object
+		if hasattr(p, 'creation'):
+			#update creatio ndate
+			d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id, p.creation)
+		else:
+			d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id)
+
 		#update Demo
 		try:
+
+
 
 			conn = lite.connect(self.database_file)
 			dao = DemoDAO(conn)
@@ -852,10 +981,17 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS update_demo  e:%s"%(str(ex)))
+			error_string=(" demoinfo update_demo error %s"%(str(ex)))
 			print (error_string)
-			conn.close()
-			raise Exception
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+
+
 		return json.dumps(data)
 
 
@@ -880,10 +1016,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS update_author  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo update_author error %s" % str(ex)
+			print error_string
+			self.error_log("update_author",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -905,10 +1046,15 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			error_string=("WS update_editor  e:%s"%(str(ex)))
-			print (error_string)
-			conn.close()
-			raise Exception
+			error_string = "demoinfo update_editor error %s" % str(ex)
+			print error_string
+			self.error_log("update_editor",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
@@ -953,14 +1099,49 @@ class DemoInfo(object):
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
-			self.error_log("stats", str(ex))
+			error_string = "demoinfo stats error %s" % str(ex)
+			print error_string
+			self.error_log("stats",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
 				pass
+			#raise Exception
+			data["error"] = error_string
 		return json.dumps(data)
 
 
+	#todo hide sql
+	@cherrypy.expose
+	def read_states(self):
+		data = {}
+		state_list=list()
+		data["status"] = "KO"
+		try:
+			conn = lite.connect(self.database_file)
+			cursor_db = conn.cursor()
+			cursor_db.execute('''SELECT  s.ID, s.name FROM state as s ''')
+			conn.commit()
+			for row in cursor_db.fetchall():
+				s = (row[0], row[1])
+				state_list.append(s)
+
+			conn.close()
+
+			data["status"] = "OK"
+			data["state_list"] = state_list
+		except Exception as ex:
+			error_string = "demoinfo read_states error %s" % str(ex)
+			print error_string
+			self.error_log("read_states",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
 
 
 

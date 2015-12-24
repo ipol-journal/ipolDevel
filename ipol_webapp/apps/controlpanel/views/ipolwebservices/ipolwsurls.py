@@ -14,13 +14,38 @@ __author__ = 'josearrecio'
 #####################
 
 
-demoinfo_ws_url_stats = IPOL_SERVICES_MODULE_DEMOINFO+'/stats' # param Nones
-demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list' # param None
-demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list' # param None
-demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list' # param None
-demoinfo_ws_url_delete_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/delete_demo' # method POST,  params demo_id,hard_delete = False
-demoinfo_ws_url_read_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_description' # params  demodescriptionID
-demoinfo_ws_url_last_demodescription_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_last_demodescription_from_demo' # params  demoid,returnjsons=False
+demoinfo_ws_url_stats = IPOL_SERVICES_MODULE_DEMOINFO+'/stats'
+# param Nones
+demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list'
+# param None
+demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list'
+# param None
+demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list'
+ # param None
+
+demoinfo_ws_url_read_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_description'
+# params  demodescriptionID
+demoinfo_ws_url_last_demodescription_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_last_demodescription_from_demo'
+# params  demoid,returnjsons=False, result = {'id': row[0], 'inproduction': row[1], 'creation': row[2], 'json': row[3]}
+demoinfo_ws_url_update_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/update_demo_description'
+# params demodescriptionID  returns data["status"] = "OK"
+demoinfo_ws_url_add_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/add_demo_description'
+# params demoid=None result: ["demo_description_id"] = demodescription_id ["added_to_demo_id"] = demoid ["status"] = "OK"
+
+demoinfo_ws_url_read_states = IPOL_SERVICES_MODULE_DEMOINFO+'/read_states'
+# method POST,  params none,{"status": "OK", "state_list": [[1, "published", "published"], [2, "preprint", "preprint"], [3, "inactive", "inactive"]]}
+demoinfo_ws_url_delete_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/delete_demo'
+# method POST,  params demo_id,hard_delete = False
+demoinfo_ws_url_read_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_metainfo'
+# method POST, params demoid result:  {"status": "OK", "creation": "2015-12-21 12:39:11", "title": "demo2", "abstract":
+# "demoabstract", "stateID": 1, "editorsdemoid": 777, "active": 1, "id": 2, "zipURL": "http://prueba.com", "modification": "2015-12-21 12:39:11"}
+demoinfo_ws_url_add_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_demo'
+# method POST, params editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
+demoinfo_ws_url_update_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/update_demo'
+ # method POST,  params demo json ='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "stateID": 1, "id": 1, "zipURL": "http://demo1updated.com"}'
+
+
+
 
 
 ####################

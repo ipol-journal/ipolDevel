@@ -1,13 +1,13 @@
 from vendor.allauth.customviews.profile import ProfileView
 
 __author__ = 'josearrecio'
-from django.conf.urls import patterns,  url
+from django.conf.urls import  url
 from django.contrib.auth.decorators import login_required
 from vendor.allauth.customviews.account import MyLoginView, MySignupView, MyLogoutView, MyPasswordChangeView, \
 	MyPasswordSetView, MyAccountInactiveView, MyEmailView, MyConfirmEmailView, MyPasswordResetView, \
 	MyPasswordResetDoneView, MyPasswordResetFromKeyView, MyPasswordResetFromKeyDoneView, MyEmailVerificationSentView
 
-urlpatterns = patterns('',
+urlpatterns = [
 	#extender el login con mi mixin para navbar, deben estar antes del import de urls de allauth! sino se usarian esas urls.
 	url(r'^login/$', MyLoginView.as_view(),name='account_login'),
 	url(r"^signup/$", MySignupView.as_view(), name="account_signup"),
@@ -24,7 +24,6 @@ urlpatterns = patterns('',
     url(r"^password/reset/done/$", MyPasswordResetDoneView.as_view(), name="account_reset_password_done"),
     url(r"^password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$", MyPasswordResetFromKeyView.as_view(), name="account_reset_password_from_key"),
     url(r"^password/reset/key/done/$", MyPasswordResetFromKeyDoneView.as_view(), name="account_reset_password_from_key_done"),
-
     url(r'^profile/', login_required(ProfileView.as_view()), name="allauth.profile"),
 
-)
+]

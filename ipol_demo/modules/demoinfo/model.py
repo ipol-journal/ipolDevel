@@ -160,6 +160,8 @@ class DemoDescriptionDAO(object):
 
 	#@validates(inst(Demo))
 	def update(self, demo_description_id,demojson):
+		# demojson is a json str (json.dumps(jsonpythondict))
+		# carefull doubly-encoding JSON strings
 
 		try:
 			self.cursor.execute('''UPDATE demodescription SET json=? WHERE id=?''', (demojson, demo_description_id))
@@ -212,9 +214,9 @@ class DemoDAO(object):
 			self.conn.commit()
 			return self.cursor.lastrowid
 		except Exception as ex:
-			error_string = ("add_demo e:%s" % (str(ex)))
+			error_string = (" DAO add_demo e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise ValueError(error_string)
 
 	@validates(typ(int))
 	def delete(self, demo_id):
@@ -388,9 +390,9 @@ class DemoDemoDescriptionDAO(object):
 	def read_last_demodescription_from_demo(self, demoid,returnjsons=None):
 
 		result = None
-		print
-		print "   +++++++ read_last_demodescription_from_demo"
-		print type(returnjsons)
+		# print
+		# print "   +++++++ read_last_demodescription_from_demo"
+		# print type(returnjsons)
 		try:
 
 			if returnjsons == True or returnjsons == 'True':

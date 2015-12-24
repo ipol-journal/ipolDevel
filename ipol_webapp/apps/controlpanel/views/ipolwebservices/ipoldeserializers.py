@@ -88,12 +88,10 @@ def DeserializeDemoinfoDemoList(jsonresult):
 			self.creation = creation
 			self.modification = modification
 
-
 	class DemoList(object):
 		def __init__(self, demo_list,status):
 			self.demo_list = demo_list
 			self.status = status
-
 
 	# Serializers
 	class DemoinfoDemoSerializer(serializers.Serializer):
@@ -111,7 +109,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 
 		def create(self, validated_data):
 			return Demo(**validated_data)
-
 
 	class DemoinfoDemoListSerializer(serializers.Serializer):
 		demo_list = DemoinfoDemoSerializer(many=True)
@@ -141,7 +138,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print "jsondata: ",jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = DemoinfoDemoListSerializer(data=data)
@@ -156,7 +152,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print mydl
 	return mydl
 
 

@@ -37,389 +37,389 @@ json_g_roussos_diffusion_interpolation = {"general":{"demo_title":"Roussos-Marag
 #json44 = {"general":{"demo_title":"An Implementation of Combined Local-Global Optical Flow","input_description":"Please select or upload the image pair to rectify. Both images must have the same size.","param_description":["You can now run the rectification process."],"enable_crop":false,"is_test":false,"xlink_article":"http://www.ipol.im/pub/art/2015/44/","input_condition":["(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)","badparams","The images must have the same size"],"thumbnail_size":64},"build":[{"build_type":"cmake","url":"http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz","srcdir":"clg_6.1","binaries":[["../bin","test_clgof"]],"flags":"-j4"},{"build_type":"make","url":"http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz","srcdir":"imscript","binaries":[[".","bin/"]],"flags":"-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"}],"inputs":[{"type":"image","description":"I1","max_pixels":"1024 * 1024","max_weight":5242880,"dtype":"3x8i","ext":".png"},{"type":"image","description":"I2","max_pixels":"1024 * 1024","max_weight":5242880,"dtype":"3x8i","ext":".png"},{"type":"flow","description":"Ground truth","max_weight":5242880,"dtype":"3x8i","ext":".tiff","required":false}],"params":[{"id":"alpha","type":"range","label":" &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)","values":{"min":0.1,"max":100,"step":0.1,"default":15}},{"id":"rho","type":"range","label":" &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)","values":{"min":0.1,"max":100,"step":0.1,"default":10}},{"id":"sigma","type":"range","label":" &sigma; : Pre-processing Gaussian smoothing variance","values":{"min":0.3,"max":10,"step":0.01,"default":0.85}}],"run":["ln -fs input_0.png  a.png ","ln -fs input_1.png  b.png ","ln -fs input_2.tiff t.tiff","run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt","view_clg.sh ipoln  1","view_clg.sh ipol   1","view_clg.sh mid    1","view_clg.sh arrows 1"],"archive":{"files":{"input_0.png":"input #1","input_1.png":"input #2","input_2.tiff":"ground truth","stuff_clg.tiff":"flow","stuff_clg.png":"flow as RGB image"},"params":["alpha","rho","sigma"]},"config":{"info_from_file":{"sixerrors":"sixerror_clg.txt"}},"results":[{"type":"html_text","contents":["<table style='margin-left:0px;margin-right:auto'>","<tr>","<td>","<label> Color-coding of vectors: <\/label>","<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">","<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">","{{scheme}}","<\/option>","<\/select><br/>","<\/td>","<td>","<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />","<\/td>","<\/tr>","<table>"]},{"type":"gallery","label":"<h2>Images<\/h2>","contents":{"Optical flow ":"stuff_clg.{{display.param1}}.1.png","Ground truth":"t.{{display.param1}}.1.png","|flow|":"stuff_clg_abs.png","I<sub>0<\/sub>":"input_0.png","I<sub>1<\/sub>":"input_1.png","div(flow)":"stuff_clg_div.png","grad(flow)":"stuff_clg_grad.png","Warped I<sub>1<\/sub>":"stuff_clg_inv.png","Warped difference":"stuff_clg_aminv.png","Warped average":"stuff_clg_apinv.png","Endpoint error":"stuff_clg_fmt.{{display.param1}}.1.png","Angular error":"stuff_clg_aerr.png"},"style":"height:{{Math.max(sizeY*ZoomFactor,350)}}px"},{"type":"html_text","contents":["<h2>Summary<\/h2>","<div>","<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>","<tr bgcolor='#cccccc'>","<td ><\/td>","<th >Running time<\/th>","<th >Average Backprojection Error<\/th>","<th >Average Endpoint Error<\/th>","<th >Average Angular Error<\/th>","<\/tr>","<tr>","<th bgcolor='#cccccc'>clg<\/th>","<td align='center'>{{info.run_time | number:2 }} s<\/td>","<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels<\/i><\/td>","<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels<\/i><\/td>","<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º<\/td>","<\/tr>","<\/table>","<\/div>"]},{"type":"file_download","label":"<h3>Download inputs:<\/h3>","contents":{"first image I1":"input_0.png","second image I2":"input_1.png","ground truth":"input_2.tiff"}},{"type":"file_download","label":"<h3>Download computed optical flow:<\/h3>","contents":{"tiff":"stuff_tvl1.tiff","flo":"stuff_tvl1.flo","uv":"stuff_tvl1.uv"}},{"type":"html_text","contents":["<p style='font-size:small'>Note on formats:","<ul style='font-size:small'>","<li>The <tt>.tiff<\/tt> file is a two-channel image with floating-point samples.<\/li>","<li>The <tt>.flo<\/tt> file is the same fomat as in the","<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>","Middlebury database","<\/a>.<\/li>","<li>The <tt>.uv<\/tt> file can be read and written by ","<a href='http://dev.ipol.im/~coco/file_uv.h'>simple<\/a> code.<\/li>","<\/ul><\/p>"]}]}
 json44={ 
   "general": { 
-    "demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
-    "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-    "param_description"     : ["You can now run the rectification process."],
-    "enable_crop"           : false,
-    "is_test"               : false,
-    "xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
-    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
-                                "badparams",
-                                "The images must have the same size" ],
-    "thumbnail_size"        : 64
+	"demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
+	"input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+	"param_description"     : ["You can now run the rectification process."],
+	"enable_crop"           : false,
+	"is_test"               : false,
+	"xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
+	"input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+								"badparams",
+								"The images must have the same size" ],
+	"thumbnail_size"        : 64
   },
   "build":
-    [
-      {
-        "build_type"    : "cmake",
-        "url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz", 
-        "srcdir"        : "clg_6.1",
-        "binaries"      : [ ["../bin","test_clgof"] ],
-        "flags"         : "-j4"
-      },
-      {
-        "build_type"    : "make",
-        "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
-        "srcdir"        : "imscript",
-        "binaries"      : [ [".","bin/"] ],
-       "flags"         : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
-      }
-    ]
+	[
+	  {
+		"build_type"    : "cmake",
+		"url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz",
+		"srcdir"        : "clg_6.1",
+		"binaries"      : [ ["../bin","test_clgof"] ],
+		"flags"         : "-j4"
+	  },
+	  {
+		"build_type"    : "make",
+		"url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
+		"srcdir"        : "imscript",
+		"binaries"      : [ [".","bin/"] ],
+	   "flags"         : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+	  }
+	]
   ,
   "inputs": [ 
-      {
-          "type"            : "image", 
-          "description"     : "I1",
-          "max_pixels"      : "1024 * 1024",
-          "max_weight"      : 5242880,
-          "dtype"           : "3x8i",
-          "ext"             : ".png"
-      }, 
-      {
-          "type"            : "image", 
-          "description"     : "I2",
-          "max_pixels"      : "1024 * 1024",
-          "max_weight"      : 5242880,
-          "dtype"           : "3x8i",
-          "ext"             : ".png"
-      }, 
-      {
-          "type"              : "flow", 
-          "description"       : "Ground truth", 
-          "ext"               : ".tiff",
-          "required"          : false
-      } 
-    ],
+	  {
+		  "type"            : "image",
+		  "description"     : "I1",
+		  "max_pixels"      : "1024 * 1024",
+		  "max_weight"      : 5242880,
+		  "dtype"           : "3x8i",
+		  "ext"             : ".png"
+	  },
+	  {
+		  "type"            : "image",
+		  "description"     : "I2",
+		  "max_pixels"      : "1024 * 1024",
+		  "max_weight"      : 5242880,
+		  "dtype"           : "3x8i",
+		  "ext"             : ".png"
+	  },
+	  {
+		  "type"              : "flow",
+		  "description"       : "Ground truth",
+		  "ext"               : ".tiff",
+		  "required"          : false
+	  }
+	],
   "params": 
-    [
-      {
-        "id"            : "alpha",
-        "type"          : "range", 
-        "label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
-        "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
-      }
-      ,
-      {
-        "id"            : "rho",
-        "type"          : "range", 
-        "label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
-        "values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
-      }
-      ,
-      {
-        "id"            : "sigma",
-        "type"          : "range", 
-        "label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
-        "values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
-      }
-    ],
+	[
+	  {
+		"id"            : "alpha",
+		"type"          : "range",
+		"label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
+		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
+	  }
+	  ,
+	  {
+		"id"            : "rho",
+		"type"          : "range",
+		"label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
+		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
+	  }
+	  ,
+	  {
+		"id"            : "sigma",
+		"type"          : "range",
+		"label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
+		"values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
+	  }
+	],
   "run": [
-      "ln -fs input_0.png  a.png ",
-      "ln -fs input_1.png  b.png ",
-      "ln -fs input_2.tiff t.tiff",
-      "run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt",
-      "view_clg.sh ipoln  1",
-      "view_clg.sh ipol   1",
-      "view_clg.sh mid    1",
-      "view_clg.sh arrows 1"
+	  "ln -fs input_0.png  a.png ",
+	  "ln -fs input_1.png  b.png ",
+	  "ln -fs input_2.tiff t.tiff",
+	  "run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt",
+	  "view_clg.sh ipoln  1",
+	  "view_clg.sh ipol   1",
+	  "view_clg.sh mid    1",
+	  "view_clg.sh arrows 1"
   ]
   ,
   "archive":
-    {
-      "files" : { "input_0.png"             : "input #1",
-                  "input_1.png"             : "input #2",
-                  "input_2.tiff"            : "ground truth",
-                  "stuff_clg.tiff"          : "flow",
-                  "stuff_clg.png"           : "flow as RGB image"
-                },
-      "params" :  [ "alpha", "rho", "sigma" ]
-    },
+	{
+	  "files" : { "input_0.png"             : "input #1",
+				  "input_1.png"             : "input #2",
+				  "input_2.tiff"            : "ground truth",
+				  "stuff_clg.tiff"          : "flow",
+				  "stuff_clg.png"           : "flow as RGB image"
+				},
+	  "params" :  [ "alpha", "rho", "sigma" ]
+	},
   "config":
-    {
-      "info_from_file": {  "sixerrors" : "sixerror_clg.txt"
-                        }
-    }
+	{
+	  "info_from_file": {  "sixerrors" : "sixerror_clg.txt"
+						}
+	}
   ,
   "results": [
-    {
-      "type"          : "html_text", 
-      "contents"      : [ 
-        "<table style='margin-left:0px;margin-right:auto'>",
-        "<tr>",
-          "<td>",
-            "<label> Color-coding of vectors: </label>",
-            "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-              "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">", 
-              "{{scheme}}",
-              "</option>",
-            "</select><br/>",
-          "</td>",
-          "<td>",
-            "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-          "</td>",
-        "</tr>",
-        "<table>"
-      ]
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png", 
-                            "Ground truth"        : "t.{{display.param1}}.1.png" ,
-                            "|flow|"              : "stuff_clg_abs.png" ,
-                            "I<sub>0</sub>"       : "input_0.png" ,
-                            "I<sub>1</sub>"       : "input_1.png" ,
-                            "div(flow)"           : "stuff_clg_div.png",
-                            "grad(flow)"          : "stuff_clg_grad.png",
-                            "Warped I<sub>1</sub>": "stuff_clg_inv.png",
-                            "Warped difference"   : "stuff_clg_aminv.png" ,
-                            "Warped average"      : "stuff_clg_apinv.png" ,
-                            "Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
-                            "Angular error"       : "stuff_clg_aerr.png"
-                        },
-      "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px" 
-    },
-    {
-      "type"          : "html_text", 
-      "contents"      : [ 
-          "<h2>Summary</h2>",
-          "<div>",
-          "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-          "<tr bgcolor='#cccccc'>",
-            "<td ></td>",
-            "<th >Running time</th>",
-            "<th >Average Backprojection Error</th>",
-            "<th >Average Endpoint Error</th>",
-            "<th >Average Angular Error</th>",
-          "</tr>",
-          "<tr>",
-            "<th bgcolor='#cccccc'>clg</th>",
-            "<td align='center'>{{info.run_time | number:2 }} s</td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-          "</tr>",
-          "</table>",
-          "</div>"
-        ]
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "<h3>Download inputs:</h3>",
-      "contents"      : { "first image I1"  : "input_0.png", 
-                          "second image I2" : "input_1.png",
-                          "ground truth"    : "input_2.tiff"
-                        }
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "<h3>Download computed optical flow:</h3>",
-      "contents"      : { "tiff": "stuff_tvl1.tiff", 
-                          "flo" : "stuff_tvl1.flo",
-                          "uv"  : "stuff_tvl1.uv" }
-    },
-    {
-      "type"          : "html_text", 
-      "contents"      : [ 
-        "<p style='font-size:small'>Note on formats:",
-        "<ul style='font-size:small'>",
-          "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
-          "<li>The <tt>.flo</tt> file is the same fomat as in the",
-            "<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
-              "Middlebury database",
-            "</a>.</li>",
-          "<li>The <tt>.uv</tt> file can be read and written by ",
-            "<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
-        "</ul></p>"
-      ]
-    }
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		"<table style='margin-left:0px;margin-right:auto'>",
+		"<tr>",
+		  "<td>",
+			"<label> Color-coding of vectors: </label>",
+			"<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
+			  "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
+			  "{{scheme}}",
+			  "</option>",
+			"</select><br/>",
+		  "</td>",
+		  "<td>",
+			"<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
+		  "</td>",
+		"</tr>",
+		"<table>"
+	  ]
+	},
+	{
+	  "type"          : "gallery",
+	  "label"         : "<h2>Images</h2>",
+	  "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png",
+							"Ground truth"        : "t.{{display.param1}}.1.png" ,
+							"|flow|"              : "stuff_clg_abs.png" ,
+							"I<sub>0</sub>"       : "input_0.png" ,
+							"I<sub>1</sub>"       : "input_1.png" ,
+							"div(flow)"           : "stuff_clg_div.png",
+							"grad(flow)"          : "stuff_clg_grad.png",
+							"Warped I<sub>1</sub>": "stuff_clg_inv.png",
+							"Warped difference"   : "stuff_clg_aminv.png" ,
+							"Warped average"      : "stuff_clg_apinv.png" ,
+							"Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
+							"Angular error"       : "stuff_clg_aerr.png"
+						},
+	  "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px"
+	},
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		  "<h2>Summary</h2>",
+		  "<div>",
+		  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
+		  "<tr bgcolor='#cccccc'>",
+			"<td ></td>",
+			"<th >Running time</th>",
+			"<th >Average Backprojection Error</th>",
+			"<th >Average Endpoint Error</th>",
+			"<th >Average Angular Error</th>",
+		  "</tr>",
+		  "<tr>",
+			"<th bgcolor='#cccccc'>clg</th>",
+			"<td align='center'>{{info.run_time | number:2 }} s</td>",
+			"<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
+			"<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
+			"<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
+		  "</tr>",
+		  "</table>",
+		  "</div>"
+		]
+	},
+	{
+	  "type"          : "file_download",
+	  "label"         : "<h3>Download inputs:</h3>",
+	  "contents"      : { "first image I1"  : "input_0.png",
+						  "second image I2" : "input_1.png",
+						  "ground truth"    : "input_2.tiff"
+						}
+	},
+	{
+	  "type"          : "file_download",
+	  "label"         : "<h3>Download computed optical flow:</h3>",
+	  "contents"      : { "tiff": "stuff_tvl1.tiff",
+						  "flo" : "stuff_tvl1.flo",
+						  "uv"  : "stuff_tvl1.uv" }
+	},
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		"<p style='font-size:small'>Note on formats:",
+		"<ul style='font-size:small'>",
+		  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
+		  "<li>The <tt>.flo</tt> file is the same fomat as in the",
+			"<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
+			  "Middlebury database",
+			"</a>.</li>",
+		  "<li>The <tt>.uv</tt> file can be read and written by ",
+			"<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
+		"</ul></p>"
+	  ]
+	}
   ]
 }
 
 json20={
   "general": {
-    "demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
-    "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-    "param_description"     : ["You can now run the rectification process."],
-    "enable_crop"           : false,
-    "is_test"               : false,
-    "xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
-    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
-                                "badparams",
-                                "The images must have the same size" ],
-    "thumbnail_size"        : 64
+	"demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
+	"input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+	"param_description"     : ["You can now run the rectification process."],
+	"enable_crop"           : false,
+	"is_test"               : false,
+	"xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
+	"input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+								"badparams",
+								"The images must have the same size" ],
+	"thumbnail_size"        : 64
   },
   "build":
-    [
-      {
-        "build_type"    : "make",
-        "url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz",
-        "srcdir"        : "phs_3",
-        "binaries"      : [ [".","horn_schunck_pyramidal"] ],
-        "flags"         : "-j4"
-      },
-      {
-        "build_type"    : "make",
-        "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
-        "srcdir"        : "imscript",
-        "binaries"      : [ [".","bin/"] ],
-       "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
-      }
-    ]
+	[
+	  {
+		"build_type"    : "make",
+		"url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz",
+		"srcdir"        : "phs_3",
+		"binaries"      : [ [".","horn_schunck_pyramidal"] ],
+		"flags"         : "-j4"
+	  },
+	  {
+		"build_type"    : "make",
+		"url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
+		"srcdir"        : "imscript",
+		"binaries"      : [ [".","bin/"] ],
+	   "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+	  }
+	]
   ,
   "inputs": [
-      {
-          "type"            : "image",
-          "description"     : "I1",
-          "max_pixels"      : "1024 * 1024",
-          "max_weight"      : 5242880,
-          "dtype"           : "3x8i",
-          "ext"             : ".png"
-      },
-      {
-          "type"            : "image",
-          "description"     : "I2",
-          "max_pixels"      : "1024 * 1024",
-          "max_weight"      : 5242880,
-          "dtype"           : "3x8i",
-          "ext"             : ".png"
-      },
-      {
-          "type"              : "flow",
-          "description"       : "Ground truth",
-          "ext"               : ".tiff",
-          "required"          : false
-      }
-    ],
+	  {
+		  "type"            : "image",
+		  "description"     : "I1",
+		  "max_pixels"      : "1024 * 1024",
+		  "max_weight"      : 5242880,
+		  "dtype"           : "3x8i",
+		  "ext"             : ".png"
+	  },
+	  {
+		  "type"            : "image",
+		  "description"     : "I2",
+		  "max_pixels"      : "1024 * 1024",
+		  "max_weight"      : 5242880,
+		  "dtype"           : "3x8i",
+		  "ext"             : ".png"
+	  },
+	  {
+		  "type"              : "flow",
+		  "description"       : "Ground truth",
+		  "ext"               : ".tiff",
+		  "required"          : false
+	  }
+	],
   "params":
-    [
-      {
-        "id"            : "alpha",
-        "type"          : "range",
-        "label"         : "Weight of the regularization term, e.g. &alpha;=1 discontinuous flow,  &alpha;=40 smooth flow",
-        "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
-      }
-    ],
+	[
+	  {
+		"id"            : "alpha",
+		"type"          : "range",
+		"label"         : "Weight of the regularization term, e.g. &alpha;=1 discontinuous flow,  &alpha;=40 smooth flow",
+		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
+	  }
+	],
   "run": [
-      "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
-      "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
-      "view_method.sh ipoln  1",
-      "view_method.sh ipol   1",
-      "view_method.sh mid    1",
-      "view_method.sh arrows 1",
-      "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
+	  "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
+	  "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
+	  "view_method.sh ipoln  1",
+	  "view_method.sh ipol   1",
+	  "view_method.sh mid    1",
+	  "view_method.sh arrows 1",
+	  "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
   ]
   ,
   "archive":
-    {
-      "files" : { "input_0.png"             : "input #1",
-                  "input_1.png"             : "input #2",
-                  "input_2.tiff"            : "ground truth",
-                  "stuff_phs.tiff"          : "flow",
-                  "stuff_phs.png"           : "flow as RGB image"
-                },
-      "params" :  [ "alpha" ]
-    },
+	{
+	  "files" : { "input_0.png"             : "input #1",
+				  "input_1.png"             : "input #2",
+				  "input_2.tiff"            : "ground truth",
+				  "stuff_phs.tiff"          : "flow",
+				  "stuff_phs.png"           : "flow as RGB image"
+				},
+	  "params" :  [ "alpha" ]
+	},
   "config":
-    {
-      "info_from_file": {  "sixerrors" : "sixerror_phs.txt"
-                        }
-    }
+	{
+	  "info_from_file": {  "sixerrors" : "sixerror_phs.txt"
+						}
+	}
   ,
   "results": [
-    {
-      "type"          : "html_text",
-      "contents"      : [
-        "<table style='margin-left:0px;margin-right:auto'>",
-        "<tr>",
-          "<td>",
-            "<label> Color-coding of vectors: </label>",
-            "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-              "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
-              "{{scheme}}",
-              "</option>",
-            "</select><br/>",
-          "</td>",
-          "<td>",
-            "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-          "</td>",
-        "</tr>",
-        "<table>"
-      ]
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      :
-        {   "Optical flow "                 : "stuff_phs.{{display.param1}}.1.png",
-            "meta.hastruth?Ground truth"    : "t.{{display.param1}}.1.png",
-            "I1"                            : "input_0.png" ,
-            "I2"                            : "input_1.png" ,
-            "|flow|"                        : "stuff_phs_abs.png" ,
-            "div(flow)"                     : "stuff_phs_div.png",
-            "grad(flow)"                    : "stuff_phs_grad.png",
-            "Warped I2"                     : "stuff_phs_inv.png",
-            "Warped difference"             : "stuff_phs_aminv.png" ,
-            "Warped average"                : "stuff_phs_apinv.png" ,
-            "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
-            "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
-        },
-      "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px"
-    },
-    {
-      "type"          : "html_text",
-      "contents"      : [
-          "<h2>Summary</h2>",
-          "<div>",
-          "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-          "<tr bgcolor='#cccccc'>",
-            "<td ></td>",
-            "<th >Running time</th>",
-            "<th >Average Backprojection Error</th>",
-            "<th ng-if='meta.hastruth'>Average Endpoint Error</th>",
-            "<th ng-if='meta.hastruth'>Average Angular Error</th>",
-          "</tr>",
-          "<tr>",
-            "<th bgcolor='#cccccc'>phs</th>",
-            "<td align='center'>{{info.run_time | number:2 }} s</td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-            "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-            "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-          "</tr>",
-          "</table>",
-          "</div>"
-        ]
-    },
-    {
-      "type"          : "file_download",
-      "label"         : "<h3>Download inputs:</h3>",
-      "contents"      : { "first image I1"  : "input_0.png",
-                          "second image I2" : "input_1.png",
-                          "ground truth"    : "input_2.tiff"
-                        }
-    },
-    {
-      "type"          : "file_download",
-      "label"         : "<h3>Download computed optical flow:</h3>",
-      "contents"      : { "tiff": "stuff_phs.tiff",
-                          "flo" : "stuff_phs.flo",
-                          "uv"  : "stuff_phs.uv" }
-    },
-    {
-      "type"          : "html_text",
-      "contents"      : [
-        "<p style='font-size:small'>Note on formats:",
-        "<ul style='font-size:small'>",
-          "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
-          "<li>The <tt>.flo</tt> file is the same fomat as in the",
-            "<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
-              "Middlebury database",
-            "</a>.</li>",
-          "<li>The <tt>.uv</tt> file can be read and written by ",
-            "<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
-        "</ul></p>"
-      ]
-    }
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		"<table style='margin-left:0px;margin-right:auto'>",
+		"<tr>",
+		  "<td>",
+			"<label> Color-coding of vectors: </label>",
+			"<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
+			  "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
+			  "{{scheme}}",
+			  "</option>",
+			"</select><br/>",
+		  "</td>",
+		  "<td>",
+			"<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
+		  "</td>",
+		"</tr>",
+		"<table>"
+	  ]
+	},
+	{
+	  "type"          : "gallery",
+	  "label"         : "<h2>Images</h2>",
+	  "contents"      :
+		{   "Optical flow "                 : "stuff_phs.{{display.param1}}.1.png",
+			"meta.hastruth?Ground truth"    : "t.{{display.param1}}.1.png",
+			"I1"                            : "input_0.png" ,
+			"I2"                            : "input_1.png" ,
+			"|flow|"                        : "stuff_phs_abs.png" ,
+			"div(flow)"                     : "stuff_phs_div.png",
+			"grad(flow)"                    : "stuff_phs_grad.png",
+			"Warped I2"                     : "stuff_phs_inv.png",
+			"Warped difference"             : "stuff_phs_aminv.png" ,
+			"Warped average"                : "stuff_phs_apinv.png" ,
+			"meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
+			"meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
+		},
+	  "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px"
+	},
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		  "<h2>Summary</h2>",
+		  "<div>",
+		  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
+		  "<tr bgcolor='#cccccc'>",
+			"<td ></td>",
+			"<th >Running time</th>",
+			"<th >Average Backprojection Error</th>",
+			"<th ng-if='meta.hastruth'>Average Endpoint Error</th>",
+			"<th ng-if='meta.hastruth'>Average Angular Error</th>",
+		  "</tr>",
+		  "<tr>",
+			"<th bgcolor='#cccccc'>phs</th>",
+			"<td align='center'>{{info.run_time | number:2 }} s</td>",
+			"<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
+			"<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
+			"<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
+		  "</tr>",
+		  "</table>",
+		  "</div>"
+		]
+	},
+	{
+	  "type"          : "file_download",
+	  "label"         : "<h3>Download inputs:</h3>",
+	  "contents"      : { "first image I1"  : "input_0.png",
+						  "second image I2" : "input_1.png",
+						  "ground truth"    : "input_2.tiff"
+						}
+	},
+	{
+	  "type"          : "file_download",
+	  "label"         : "<h3>Download computed optical flow:</h3>",
+	  "contents"      : { "tiff": "stuff_phs.tiff",
+						  "flo" : "stuff_phs.flo",
+						  "uv"  : "stuff_phs.uv" }
+	},
+	{
+	  "type"          : "html_text",
+	  "contents"      : [
+		"<p style='font-size:small'>Note on formats:",
+		"<ul style='font-size:small'>",
+		  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
+		  "<li>The <tt>.flo</tt> file is the same fomat as in the",
+			"<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
+			  "Middlebury database",
+			"</a>.</li>",
+		  "<li>The <tt>.uv</tt> file can be read and written by ",
+			"<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
+		"</ul></p>"
+	  ]
+	}
   ]
 }
 #loqpasoaposter="{'inputs': [{'description': 'input', 'max_pixels': '700 * 700', 'dtype': '3x8i', 'ext': '.png', 'type': 'image', 'max_weight': '10 * 1024 * 1024'}], 'results': [{'style': 'height:{{sizeY*ZoomFactor}}px', 'type': 'gallery', 'contents': {'Input': 'input_0.sel.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=3': 'output-am_3.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=5': 'output-am_5.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=4': 'output-am_4.png', 'DCT': 'output-dct.png', 'FIR, <i>tol<\\\\/i>=10<sup>&minus;2<\\\\/sup>': 'output-fir.png', 'Exact*': 'output-exact.png', 'Box, <i>K<\\\\/i>=3': 'output-box_3.png', 'Box, <i>K<\\\\/i>=4': 'output-box_4.png', 'Box, <i>K<\\\\/i>=5': 'output-box_5.png', 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=5': 'output-vyv_5.png', 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=4': 'output-vyv_4.png', 'Extended box, <i>K<\\\\/i>=3': 'output-ebox_3.png', 'Extended box, <i>K<\\\\/i>=4': 'output-ebox_4.png', 'Extended box, <i>K<\\\\/i>=5': 'output-ebox_5.png', 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=3': 'output-vyv_3.png', 'SII, <i>K<\\\\/i>=3': 'output-sii_3.png', 'SII, <i>K<\\\\/i>=4': 'output-sii_4.png', 'SII, <i>K<\\\\/i>=5': 'output-sii_5.png', 'Deriche, <i>K<\\\\/i>=3': 'output-deriche_3.png', 'Deriche, <i>K<\\\\/i>=2': 'output-deriche_2.png', 'Deriche, <i>K<\\\\/i>=4': 'output-deriche_4.png'}, 'label': 'Images:'}, {'type': 'html_text', 'contents': [\"<p style='font-size:85%'>* &ldquo;Exact&rdquo; is computed with FIR, \", '<i>tol<\\\\/i>=10<sup>&minus;15<\\\\/sup>, for &sigma;&nbsp;&le;&nbsp;2 and ', 'DCT for &sigma;&nbsp;&gt;&nbsp;2 ', \"(using {{params.sigma<=2?'FIR':'DCT'}} for this experiment).<\\\\/p>\"]}, {'type': 'html_text', 'contents': ['<h2>Accuracy<\\\\/h2>', \"<table style='margin:0px;margin-top:10px;text-align:center'>\", '<tr>', '<th>Method<\\\\/th>', '<th>&nbsp;Max Diff&nbsp;<\\\\/th>', '<th>&nbsp;RMSE&nbsp;<\\\\/th>', '<th>&nbsp;PSNR&nbsp;<\\\\/th>', '<\\\\/tr>', '<tr ng-repeat=\\'(k,v) in info\\' ng-if=\\'k.indexOf(\"metrics_\")>-1\\'', 'ng-init=\\'alg={ \"fir\":\"FIR, <i>tol<\\\\/i>=10<sup>&minus;2<\\\\/sup>\", \"dct\":\"DCT\", \"box\":\"Box\", \"ebox\":\"Extended box\", \"sii\":\"SII\", \"deriche\":\"Deriche\" , \"vyv\":\"Vliet&ndash;Young&ndash;Verbeek\", \"am\":\"Alvarez&ndash;Mazorra\" }\\'>', '<td>', '<span ng-bind-html=\"alg[k.substr(8).split(\\'_\\')[0]]\"> <\\\\/span>', '<span ng-if=\"k.substr(8).split(\\'_\\').length>1\">', \", <i>K<\\\\/i>= {{k.substr(8).split('_')[1]}}\", '<\\\\/span>', '<\\\\/td>', \"<td> {{v.split('|')[0].split(':')[1]}} <\\\\/td>\", \"<td> {{v.split('|')[1].split(':')[1]}} <\\\\/td>\", \"<td> {{v.split('|')[2].split(':')[1]}} <\\\\/td>\", '<\\\\/tr>', '<\\\\/table>']}], 'params': [{'values': {'default': 5, 'max': 30, 'step': 0.01, 'min': 0.5}, 'type': 'range', 'id': 'sigma', 'label': '<i>&sigma;<\\\\/i>, Gaussian standard deviation'}, {'default': ['fir', 'dct'], 'values': [{'fir': 'FIR, <i>tol<\\\\/i>=10<sup>&minus;2<\\\\/sup>'}, {'dct': 'DCT'}, {'box_5': 'Box, <i>K<\\\\/i>=5', 'box_4': 'Box, <i>K<\\\\/i>=4', 'box_3': 'Box, <i>K<\\\\/i>=3'}, {'ebox_3': 'Extended box, <i>K<\\\\/i>=3', 'ebox_5': 'Extended box, <i>K<\\\\/i>=5', 'ebox_4': 'Extended box, <i>K<\\\\/i>=4'}, {'sii_3': 'SII, <i>K<\\\\/i>=3', 'sii_5': 'SII, <i>K<\\\\/i>=5', 'sii_4': 'SII, <i>K<\\\\/i>=4'}, {}, {'am_3': 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=3', 'am_5': 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=5', 'am_4': 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=4'}, {'deriche_4': 'Deriche, <i>K<\\\\/i>=4', 'deriche_2': 'Deriche, <i>K<\\\\/i>=2', 'deriche_3': 'Deriche, <i>K<\\\\/i>=3'}, {'vyv_3': 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=3', 'vyv_5': 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=5', 'vyv_4': 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=4'}], 'type': 'checkboxes', 'id': 'algo', 'label': 'Algorithms'}], 'build': [{'url': 'http://www.ipol.im/pub/art/2013/87/gaussian_20131215.tgz', 'srcdir': 'gaussian_20131215', 'binaries': [['.', 'gaussian_demo'], ['.', 'imdiff']], 'flags': '-j4  --makefile=makefile.gcc', 'build_type': 'make'}], 'run': ['run_algorithms.py'], 'config': {'info_from_file': {'metrics_box_3': 'metrics_box_3.txt', 'metrics_box_5': 'metrics_box_5.txt', 'metrics_box_4': 'metrics_box_4.txt', 'metrics_deriche_3': 'metrics_deriche_3.txt', 'metrics_dct': 'metrics_dct.txt', 'metrics_deriche_2': 'metrics_deriche_2.txt', 'metrics_fir': 'metrics_fir.txt', 'metrics_sii_4': 'metrics_sii_4.txt', 'metrics_sii_3': 'metrics_sii_3.txt', 'metrics_am_3': 'metrics_am_3.txt', 'metrics_vyv_3': 'metrics_vyv_3.txt', 'metrics_deriche_4': 'metrics_deriche_4.txt', 'metrics_vyv_5': 'metrics_vyv_5.txt', 'metrics_am_5': 'metrics_am_5.txt', 'metrics_vyv_4': 'metrics_vyv_4.txt', 'metrics_ebox_5': 'metrics_ebox_5.txt', 'metrics_ebox_4': 'metrics_ebox_4.txt', 'metrics_sii_5': 'metrics_sii_5.txt', 'metrics_ebox_3': 'metrics_ebox_3.txt', 'metrics_am_4': 'metrics_am_4.txt'}}, 'archive': {'files': {'output-deriche_2.png': 'output deriche_2', 'output-deriche_3.png': 'output deriche_3', 'output-sii_5.png': 'output sii_5', 'output-ebox_4.png': 'output ebox_4', 'output-am_3.png': 'output am_3', 'output-fir.png': 'output fir', 'output-box_4.png': 'output box_4', 'output-sii_3.png': 'output sii_3', 'output-vyv_5.png': 'output vyv_5', 'output-vyv_4.png': 'output vyv_4', 'output-box_3.png': 'output box_3', 'input_0.orig.png': 'uploaded image', 'output-vyv_3.png': 'output vyv_3', 'output-box_5.png': 'output box_5', 'output-am_5.png': 'output am_5', 'output-am_4.png': 'output am_4', 'input_0.sel.png': 'selected subimage', 'output-dct.png': 'output dct', 'output-deriche_4.png': 'output deriche_4', 'output-ebox_5.png': 'output ebox_5', 'output-sii_4.png': 'output sii_4', 'output-ebox_3.png': 'output ebox_3'}, 'params': ['sigma', 'fir', 'dct', 'box_3', 'box_4', 'box_5', 'ebox_3', 'ebox_4', 'ebox_5', 'sii_3', 'sii_4', 'sii_5', 'am_3', 'am_4', 'am_5', 'deriche_2', 'deriche_3', 'deriche_4', 'vyv_3', 'vyv_4', 'vyv_5']}, 'general': {'demo_title': 'A Survey of Gaussian Convolution Algorithms', 'is_test': 'false', 'xlink_article': 'http://www.ipol.im/pub/art/2013/87/', 'param_description': [''], 'input_description': ''}}"
@@ -604,7 +604,7 @@ class TestDemoinfo(unittest.TestCase):
 			params = {'demoid':1 }
 			r = requests.post(url, json=demojson,params=params)
 			print
-			print (" add_demo_description_2 WS with JSON AS POST DATA RESULT")
+			print (" ADD DEMO WS with JSON AS POST DATA RESULT")
 			print " url: ",r.url
 			print " text: ",r.text
 			print " headers: ",r.headers.get('content-type')
@@ -628,7 +628,7 @@ class TestDemoinfo(unittest.TestCase):
 			params = {'demodescriptionID':id }
 			r = requests.post(url, params=params)
 
-			print (" read_demo_description RESULT")
+			print (" READ  RESULT")
 			print " url: ",r.url
 			print " text: ...",r.text[-50:]
 			print " headers: ",r.headers.get('content-type')
@@ -653,16 +653,24 @@ class TestDemoinfo(unittest.TestCase):
 
 			#UPDATE
 			# WS with JSON AS DATA , no parms
-			print (" add_demo_description_2 update WS with JSON AS POST DATA")
+			print (" UPDATE  ---- update WS with JSON AS POST DATA")
 			url = 'http://127.0.0.1:9002/update_demo_description'
 			#demojson = {"demojson":{"key": "data"}}
 			demojson = json44
 
-
-
 			print " demojson data is json",is_json(json.dumps(demojson))
 			# print " demojson ", demojson
 			print " demojson ...", str(demojson)[-150:]
+			print type(demojson)
+
+			# #convert unicode str to dict for WS
+			# demojson=json.loads(demojson)
+			# print " demojson ...", str(demojson)[-150:]
+			# print type(demojson)
+			# #convert dict to  str
+			demojson=json.dumps(demojson)
+			print " demojson ...", str(demojson)[-150:]
+			print type(demojson)
 			params = {'demodescriptionID':id }
 			r = requests.post(url, params=params, json=demojson )
 			print (" add_demo_description_2 update WS with JSON AS POST DATA RESULT")
@@ -685,9 +693,12 @@ class TestDemoinfo(unittest.TestCase):
 			print " url: ",r.url
 			print " text: ...",r.text[-50:]
 			print
-			resp_dict = yaml.safe_load(r.text) # str
+			#resp_dict = yaml.safe_load(r.text) # str
+			resp_dict=json.loads(r.text)
+
 			read_data = resp_dict["demo_description"]
 			print " read_data is_json: ",is_json(read_data)
+			print " read status: ",resp_dict['status']
 			print " read_data: ..." ,read_data[-150:]
 			print
 
@@ -786,17 +797,21 @@ class TestDemoinfo(unittest.TestCase):
 			active = 1
 			stateID = 1
 			demodescriptionID = 2
-			self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
+			result = self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
+
+			print result
+			if 'error' in result:
+				raise ValueError(result)
 
 
 		except Exception as ex:
-			print "add_demo_2 ex: ",ex
+			print "add_duplicated_demo ex: ",ex
 			test_passed = True
 
 			# ajson = self.demoinfo.demo_list()
 			# print ajson
 
-		self.failUnless(test_passed, 'failure , test_add_demo_2 does not fail creating demo with the same tile')
+		self.failUnless(test_passed, 'failure , add_duplicated_demo does not fail creating demo with the same tile')
 
 
 	def add_author_1(self):
@@ -827,11 +842,15 @@ class TestDemoinfo(unittest.TestCase):
 
 			name='Author Name3'
 			mail = 'authoremail3@gmail.com'
-			self.demoinfo.add_author(name, mail)
+			result=self.demoinfo.add_author(name, mail)
+
+			print result
+			if 'error' in result:
+				raise ValueError(result)
 		except Exception as ex:
 			test_passed = True
 
-		self.failUnless(test_passed, 'failure , add_author_2 does not fail creating two authors  with the same email ')
+		self.failUnless(test_passed, 'failure , add_duplicated_author does not fail creating two authors  with the same email ')
 
 
 	def add_editor_1(self):
@@ -861,7 +880,13 @@ class TestDemoinfo(unittest.TestCase):
 
 			name='editor Name3'
 			mail = 'editoremail3@gmail.com'
-			self.demoinfo.add_editor(name, mail)
+			result=self.demoinfo.add_editor(name, mail)
+
+			print result
+			if 'error' in result:
+				raise ValueError(result)
+
+
 		except Exception as ex:
 			test_passed = True
 
@@ -889,7 +914,10 @@ class TestDemoinfo(unittest.TestCase):
 		test_passed = False
 		try:
 
-			self.demoinfo.add_author_to_demo(1 ,1)
+			result=self.demoinfo.add_author_to_demo(1 ,1)
+			print result
+			if 'error' in result:
+				raise ValueError(result)
 		except Exception as ex:
 			test_passed = True
 
@@ -900,7 +928,10 @@ class TestDemoinfo(unittest.TestCase):
 		test_passed = False
 		try:
 
-			self.demoinfo.add_editor_to_demo(1 ,1)
+			result=self.demoinfo.add_editor_to_demo(1 ,1)
+			print result
+			if 'error' in result:
+				raise ValueError(result)
 		except Exception as ex:
 			test_passed = True
 
@@ -1027,6 +1058,12 @@ class TestDemoinfo(unittest.TestCase):
 			demo2 = self.demoinfo.read_demo(2)
 			print "read demo2: ",demo2.__dict__
 
+			demo2json = self.demoinfo.read_demo_metainfo(2)
+			print "read demo2 demo2json: ",demo2json
+
+
+
+
 
 		except Exception as ex:
 			print ex
@@ -1082,10 +1119,27 @@ class TestDemoinfo(unittest.TestCase):
 			# print al_demo2
 
 		except Exception as ex:
-			print "remove demos 15",ex
+			print "remove demos",ex
 			test_passed = False
 
 		self.failUnless(test_passed, 'failure , removing demos ')
+
+
+
+
+	def read_states(self):
+		test_passed = True
+		try:
+
+			stateslist = self.demoinfo.read_states()
+			print "stateslist json: ",stateslist
+
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , reading states ')
 
 
 	##########################
@@ -1168,9 +1222,13 @@ class TestDemoinfo(unittest.TestCase):
 			print " ---16"
 			print
 			self.remove_demo()
+			print
+			print " ---17"
+			print
+			self.read_states()
 
 			print
-			print " ---17 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
+			print " ---18 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()
