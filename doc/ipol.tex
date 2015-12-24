@@ -234,6 +234,26 @@ Packages to be installed with pip install:
 
 - Look for potential race conditions everywhere in the code, specially at the modules. Use locks to prevent them.
 
+- All webservices should return a \emph{status:KO} when they fail. For example, if they're asked a service which doesn't exist they should return the status:KO, but never simply return a cherrypy message because of an untreated exception. Example of a wrong behavior:
+
+\begin{verbatim}
+http://ns3018037.ip-151-80-24.eu:9002/hello
+
+404 Not Found
+
+The path '/hello' was not found.
+
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/dist-packages/cherrypy/_cprequest.py", line 670, in respond
+    response.body = self.handler()
+  File "/usr/lib/python2.7/dist-packages/cherrypy/lib/encoding.py", line 217, in __call__
+    self.body = self.oldhandler(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/cherrypy/_cperror.py", line 411, in __call__
+    raise self
+NotFound: (404, "The path '/hello' was not found.")
+Powered by CherryPy 3.5.0
+\end{verbatim}
+
 \ToDo{Keep adding!}
 
 
