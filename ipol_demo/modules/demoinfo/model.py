@@ -293,6 +293,26 @@ class DemoDAO(object):
 			print (error_string)
 		return result
 
+	@validates(typ(int))
+	def read_by_editordemoid(self, editordemoid):
+
+		print "editordemoid: ",editordemoid
+		result = None
+		try:
+			self.cursor.execute(
+				'''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE demo.editor_demo_id=?''',
+				(int(editordemoid),))
+
+			self.conn.commit()
+			row = self.cursor.fetchone()
+			if row:
+				d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+				result = d
+		except Exception as ex:
+			error_string = ("read_by_editordemoid  e:%s" % (str(ex)))
+			print (error_string)
+		return result
+
 	def list(self, is_active=True):
 
 		demo_list = list()

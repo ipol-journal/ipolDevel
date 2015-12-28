@@ -1125,6 +1125,28 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , removing demos ')
 
 
+	def read_by_editordemoid(self):
+		test_passed = True
+		try:
+
+
+
+			add_demo_1__editordemoid = 13333
+			demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
+			print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
+
+
+			add_demo_1__editordemoid = 1
+			demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
+			print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
+
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
+
 
 
 	def read_states(self):
@@ -1226,9 +1248,12 @@ class TestDemoinfo(unittest.TestCase):
 			print " ---17"
 			print
 			self.read_states()
-
 			print
-			print " ---18 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
+			print " ---18"
+			print
+			self.read_by_editordemoid()
+			print
+			print " ---19 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()

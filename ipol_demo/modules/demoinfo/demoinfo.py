@@ -646,6 +646,24 @@ class DemoInfo(object):
 		return demo
 
 
+	def read_demo_by_editordemoid(self, editor_demo_id):
+
+		demo=None
+		try:
+			editordemoid =int(editor_demo_id)
+			conn = lite.connect(self.database_file)
+			dao = DemoDAO(conn)
+			demo = dao.read_by_editordemoid(editordemoid)
+			conn.close()
+
+		except Exception as ex:
+			error_string=("read_demo_by_editordemoid  e:%s"%(str(ex)))
+			print (error_string)
+			conn.close()
+
+		return demo
+
+
 	@cherrypy.expose
 	def read_demo_metainfo(self, demoid):
 		data = dict()
@@ -654,6 +672,8 @@ class DemoInfo(object):
 		try:
 
 			demo = self.read_demo(demoid)
+			if demo is None:
+				raise ValueError("No demo retrieved for this id")
 			data["id"] = demo.id
 			data["editorsdemoid"] = demo.editorsdemoid
 			data["title"] = demo.title
@@ -669,6 +689,42 @@ class DemoInfo(object):
 			error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
 			print error_string
 			self.error_log("read_demo_metainfo",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
+
+
+	@cherrypy.expose
+	def read_demo_metainfo_by_editordemoid(self, editordemoid):
+		data = dict()
+		data["status"] = "KO"
+
+		try:
+
+			demo = self.read_demo_by_editordemoid(editordemoid)
+			if demo is None:
+				raise ValueError("No demo retrieved for this id")
+
+			data["id"] = demo.id
+			data["editorsdemoid"] = demo.editorsdemoid
+			data["title"] = demo.title
+			data["abstract"] = demo.abstract
+			data["zipURL"] = demo.zipURL
+			data["active"] = demo.active
+			data["stateID"] = demo.stateID
+			data["creation"] = demo.creation
+			data["modification"] = demo.modification
+			data["status"] = "OK"
+
+		except Exception as ex:
+			error_string = "demoinfo read_demo_metainfo_by_editordemoid error %s" % str(ex)
+			print error_string
+			self.error_log("read_demo_metainfo_by_editordemoid",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
