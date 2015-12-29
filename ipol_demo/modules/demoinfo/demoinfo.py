@@ -25,6 +25,7 @@ import cherrypy
 import sys
 import errno
 import logging
+from math import ceil
 
 from model import *
 
@@ -137,6 +138,7 @@ class DemoInfo(object):
 		return ("Welcome to IPOL demoInfo !")
 
 
+	#todo deprecated
 	@cherrypy.expose
 	def demo_list(self):
 		data = {}
@@ -147,7 +149,6 @@ class DemoInfo(object):
 			demo_dao = DemoDAO(conn)
 			for d in demo_dao.list():
 				#convert to Demo class to json
-
 				demo_list.append(d.__dict__)
 
 
@@ -168,6 +169,107 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
+	@cherrypy.expose
+	def demo_list_pagination_and_filter(self,num_elements_page,page,qfilter=None):
+
+		data = {}
+		data["status"] = "KO"
+		demo_list=list()
+		next_page_number = None
+		previous_page_number = None
+
+		try:
+
+			#validate params
+			num_elements_page=int(num_elements_page)
+			page=int(page)
+			# print "demo_list_pagination_and_filter"
+			# print "num_elements_page",num_elements_page
+			# print "page",page
+			# print "qfilter",qfilter
+			# print
+
+			conn = lite.connect(self.database_file)
+			demo_dao = DemoDAO(conn)
+
+			complete_demo_list = demo_dao.list()
+
+			#filter or return all
+			if qfilter:
+				for demo in complete_demo_list:
+					#print "demo: ",demo
+					if qfilter in demo.title or qfilter in demo.abstract :
+						demo_list.append(demo.__dict__)
+			else:
+				#convert to Demo class to json
+				for demo in complete_demo_list:
+					demo_list.append(demo.__dict__)
+
+			# print
+			# print " demo_list",demo_list
+			# print
+			# print " demo_list",len(demo_list)
+
+			#if demos found, return pagination
+			if demo_list:
+
+				r=float(len(demo_list))/ float(num_elements_page)
+
+				totalpages = int(ceil(r))
+
+				if page is None:
+					page = 1
+				else:
+					if page < 1:
+						page = 1
+					elif page > totalpages:
+						page = totalpages
+
+				next_page_number = page + 1
+				if next_page_number > totalpages:
+					next_page_number = None
+
+				previous_page_number = page - 1
+				if previous_page_number <= 0 :
+					previous_page_number = None
+
+
+				start_element= (page -1) * num_elements_page
+
+				demo_list= demo_list[ start_element:start_element+num_elements_page ]
+
+				# print " totalpages: ",totalpages
+				# print " page: ",page
+				# print " next_page_number: ",next_page_number
+				# print " previous_page_number: ",previous_page_number
+				# print " start_element: ",start_element
+				# print " demo_list",demo_list
+
+			else:
+				totalpages = None
+
+
+			data["demo_list"] = demo_list
+			data["next_page_number"] = next_page_number
+			data["number"] = totalpages
+			data["previous_page_number"] = previous_page_number
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo demo_list_pagination_and_filter error %s" % str(ex)
+			print error_string
+			self.error_log("demo_list_pagination_and_filter",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
+
+
+	#todo deprecated
 	@cherrypy.expose
 	def author_list(self):
 		data = {}
@@ -194,6 +296,86 @@ class DemoInfo(object):
 				pass
 			#raise Exception
 			data["error"] = error_string
+		return json.dumps(data)
+
+
+	@cherrypy.expose
+	def author_list_pagination_and_filter(self,num_elements_page,page,qfilter=None):
+
+		data = {}
+		data["status"] = "KO"
+		author_list=list()
+		next_page_number = None
+		previous_page_number = None
+
+		try:
+
+			#validate params
+			num_elements_page=int(num_elements_page)
+			page = int(page)
+
+			conn = lite.connect(self.database_file)
+			author_dao = AuthorDAO(conn)
+
+			complete_author_list = author_dao.list()
+
+			#filter or return all
+			if qfilter:
+				for a in complete_author_list:
+					#print "demo: ",demo
+					if qfilter in a.name or qfilter in a.mail :
+						author_list.append(a.__dict__)
+			else:
+				#convert to Demo class to json
+				for a in complete_author_list:
+					author_list.append(a.__dict__)
+
+			#if demos found, return pagination
+			if author_list:
+
+				r=float(len(author_list))/ float(num_elements_page)
+
+				totalpages = int(ceil(r))
+
+				if page is None:
+					page = 1
+				else:
+					if page < 1:
+						page = 1
+					elif page > totalpages:
+						page = totalpages
+
+				next_page_number = page + 1
+				if next_page_number > totalpages:
+					next_page_number = None
+
+				previous_page_number = page - 1
+				if previous_page_number <= 0 :
+					previous_page_number = None
+
+				start_element= (page -1) * num_elements_page
+				author_list= author_list[ start_element:start_element+num_elements_page ]
+			else:
+				totalpages = None
+
+
+			data["author_list"] = author_list
+			data["next_page_number"] = next_page_number
+			data["number"] = totalpages
+			data["previous_page_number"] = previous_page_number
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo author_list_pagination_and_filter error %s" % str(ex)
+			print error_string
+			self.error_log("author_list_pagination_and_filter",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
 		return json.dumps(data)
 
 

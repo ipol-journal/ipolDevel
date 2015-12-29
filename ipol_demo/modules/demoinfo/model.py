@@ -319,10 +319,10 @@ class DemoDAO(object):
 		try:
 			if is_active:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY id DESC ''')
 			else:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
@@ -1103,7 +1103,7 @@ def testDb(database_name):
 		print "* DB AuthorDAO"
 		author_dao = AuthorDAO(conn)
 		name = 'jose Arrecio Kubon'
-		mail = 'josearrecio@gmail.com'
+		mail = 'jak@gmail.com'
 		a = Author(name, mail)
 		author_dao.add(a)
 		a = author_dao.read(1)

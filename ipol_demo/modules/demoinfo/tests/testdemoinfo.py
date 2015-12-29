@@ -970,8 +970,6 @@ class TestDemoinfo(unittest.TestCase):
 
 
 			ajson = self.demoinfo.demo_list()
-
-
 			print ' demo list before update demo', ajson
 			print
 
@@ -1149,6 +1147,70 @@ class TestDemoinfo(unittest.TestCase):
 
 
 
+	def list_demos_pagination_filter(self):
+		test_passed = True
+		try:
+
+
+			ajson = self.demoinfo.demo_list()
+			print ' demo list ', ajson
+			print
+
+			num_elements_page = 2
+			page = 1
+			qfilter = 'ddd'
+			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+			print
+			print " num_elements_page: ", num_elements_page
+			print " page: ", page
+			print " qfilter: ", qfilter
+			print
+			print ' demo list filtered and pagination, no result', ajson
+
+			num_elements_page = 2
+			page = 1
+			qfilter = 'DemoTEST3'
+			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+			print
+			print " num_elements_page: ", num_elements_page
+			print " page: ", page
+			print " qfilter: ", qfilter
+			print
+			print ' demo list filtered and pagination', ajson
+
+
+
+			num_elements_page = 1
+			page = 1
+			qfilter = 'Demo'
+			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+			print
+			print " num_elements_page: ", num_elements_page
+			print " page: ", page
+			print " qfilter: ", qfilter
+			print
+			print ' demo list filtered and pagination', ajson
+
+
+			num_elements_page = 1
+			page = 2
+			qfilter = 'Demo'
+			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+			print
+			print " num_elements_page: ", num_elements_page
+			print " page: ", page
+			print " qfilter: ", qfilter
+			print
+			print ' demo list filtered and pagination', ajson
+
+		except Exception as ex:
+			print "edit_demo: ",ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , edit demo')
+
+
+
 	def read_states(self):
 		test_passed = True
 		try:
@@ -1252,8 +1314,12 @@ class TestDemoinfo(unittest.TestCase):
 			print " ---18"
 			print
 			self.read_by_editordemoid()
+			print " ---19"
 			print
-			print " ---19 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
+			self.list_demos_pagination_filter()
+			print
+			print
+			print " ---20 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()
