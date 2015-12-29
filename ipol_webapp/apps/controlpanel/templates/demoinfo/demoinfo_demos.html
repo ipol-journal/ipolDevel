@@ -13,11 +13,9 @@
     <style type="text/css">
         .ststsok {
             color:green;
-
         }
         .ststsnok {
             color:red;
-
         }
         .demo{
             border: 1px solid black;
@@ -29,14 +27,9 @@
             margin: 20px;
             padding: 10px;
         }
-
-
         .griditem{
             padding-left: 20px
         }
-
-
-
     </style>
 
 {% endblock %}
@@ -115,22 +108,39 @@
 
             {% endif %}
 
-            {#  Pagination, remebers the current search #}
+
+            {#  WS Pagination, remebers the current search #}
             <div class="pagination">
                 <span class="step-links">
-                    {% if data.has_previous %}
-                        <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
+                    {% if has_previous %}
+                        <a href="?page={{ previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
                     {% endif %}
 
                     <span class="current">
-                        {% trans 'Page' %} {{ data.number }} {% trans 'of' %} {{ data.paginator.num_pages }}.
+                        {% trans 'Page' %} {{ number }} {% trans 'of' %} {{ num_pages }}.
                     </span>
 
-                    {% if data.has_next %}
-                        <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
+                    {% if has_next %}
+                        <a href="?page={{ next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
                     {% endif %}
                 </span>
             </div>
+            {#  Django Pagination, remebers the current search #}
+            {#            <div class="pagination">#}
+            {#                <span class="step-links">#}
+            {#                    {% if data.has_previous %}#}
+            {#                        <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>#}
+            {#                    {% endif %}#}
+            {##}
+            {#                    <span class="current">#}
+            {#                        {% trans 'Page' %} {{ data.number }} {% trans 'of' %} {{ data.paginator.num_pages }}.#}
+            {#                    </span>#}
+            {##}
+            {#                    {% if data.has_next %}#}
+            {#                        <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>#}
+            {#                    {% endif %}#}
+            {#                </span>#}
+            {#            </div>#}
 
 
         {% endwith %}
@@ -175,8 +185,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-default" onclick="prettyPrint('id_ddlJSON')">Pretty Print</button>
-                    <button type="button" class="btn btn-default" onclick="prettyPrintundo('id_ddlJSON')">Ugly Print</button>
+                    <button type="button" class="btn btn-default" onclick="prettyPrint('id_ddlJSON')">{% trans 'Pretty Print' %}</button>
+                    <button type="button" class="btn btn-default" onclick="prettyPrintundo('id_ddlJSON')">{% trans 'Ugly Print' %}</button>
                 </div>
             </div>
         </div>
@@ -198,13 +208,14 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>
                 </div>
             </div>
         </div>
     </div>
 
 {% endblock %}
+
 {% block functionsjs %}
 
     <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
@@ -308,6 +319,7 @@
                 });
             }
         }
+
 
         {#  show/edit DDL modal  #}
         function send_get_ddl_request(wsurl,demo_id) {
@@ -531,7 +543,8 @@
             }
         }
 
-        {#  submit DDL form  #}
+
+        {#  submit Demo form  #}
         function submitDemoformAJAX(){
 
             console.log("submitDemoformAJAX Submit");
@@ -578,7 +591,7 @@
         }
 
 
-        {#  DDL form validation #}
+        {#  Demo form validation #}
         $($form_demo_id).validate({
             errorClass: "validationerror",//for css
             rules: {
@@ -638,9 +651,6 @@
         });
 
 
-
-
-
         {#  show pretty json  #}
         function prettyPrint(formfieldidtopretify) {
             var ugly = document.getElementById(formfieldidtopretify).value;
@@ -666,8 +676,6 @@
              $($modal_abstract_id).modal('show');
            });
         });
-
-
 
 
     </script>

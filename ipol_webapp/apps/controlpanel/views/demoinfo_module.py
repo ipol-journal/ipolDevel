@@ -2,14 +2,15 @@ from crispy_forms.utils import render_crispy_form
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 from django.http import HttpResponse
-from apps.controlpanel.forms import DDLform, Demoform
+from apps.controlpanel.forms import DDLform, Demoform, Authorform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
+	DeserializeDemoinfoAuthorList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
@@ -19,8 +20,10 @@ logger = logging.getLogger(__name__)
 __author__ = 'josearrecio'
 
 
-PAGINATION_ITEMS_PER_PAGE=4
+PAGINATION_ITEMS_PER_PAGE = 4
 
+
+# demos
 
 class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 	template_name = "demoinfo/demoinfo_demos.html"
@@ -39,41 +42,86 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 		context = super(DemoinfoDemosView, self).get_context_data(**kwargs)
 
 		try:
-			#get data from WS
-			dl = ipolservices.demoinfo_demo_list()
+			#get data from WS, paginate and filter in CP
+			#dl = ipolservices.demoinfo_demo_list()
+			# if dl:
+			# 	result = DeserializeDemoinfoDemoList(dl)
+			# else:
+			# 	raise ValueError("No response from WS")
+			#
+			# list_demos = result.demo_list
+			# status = result.status
+			#
+			# #filter result
+			# query = self.request.GET.get('q')
+			# # print "query",query
+			# list_demos_filtered = list()
+			# if query:
+			# 	for demo in list_demos:
+			# 		# print "demo: ",demo
+			# 		if query in demo.title or query in demo.abstract :
+			# 			print "ok"
+			# 			list_demos_filtered.append(demo)
+			#
+			# 	list_demos = list_demos_filtered
+			# context['q'] = query
+			#
+			# #pagination of result
+			# paginator = Paginator(list_demos, PAGINATION_ITEMS_PER_PAGE)
+			# page = self.request.GET.get('page')
+			# try:
+			# 	list_demos = paginator.page(page)
+			# except PageNotAnInteger:
+			# 	# If page is not an integer, deliver first page.
+			# 	list_demos = paginator.page(1)
+			# except EmptyPage:
+			# 	# If page is out of range (e.g. 9999), deliver last page of results.
+			# 	list_demos = paginator.page(paginator.num_pages)
+
+			#get data from WS paginated and filtered
+
+
+			#filter result
+			query = self.request.GET.get('q')
+			context['q'] = query
+			try:
+				page = self.request.GET.get('page')
+				page = int(page)
+			except :
+				# If page is not an integer, deliver first page.
+				page = 1
+
+
+			dl = ipolservices.demoinfo_demo_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE,page,query)
 			if dl:
 				result = DeserializeDemoinfoDemoList(dl)
 			else:
 				raise ValueError("No response from WS")
 
 			list_demos = result.demo_list
+
+			#print "list_demos",list_demos
 			status = result.status
 
-			#filter result
-			query = self.request.GET.get('q')
-			# print "query",query
-			list_demos_filtered = list()
-			if query:
-				for demo in list_demos:
-					# print "demo: ",demo
-					if query in demo.title or query in demo.abstract :
-						print "ok"
-						list_demos_filtered.append(demo)
-
-				list_demos = list_demos_filtered
-			context['q'] = query
-
 			#pagination of result
-			paginator = Paginator(list_demos, PAGINATION_ITEMS_PER_PAGE)
-			page = self.request.GET.get('page')
-			try:
-				list_demos = paginator.page(page)
-			except PageNotAnInteger:
-				# If page is not an integer, deliver first page.
-				list_demos = paginator.page(1)
-			except EmptyPage:
-				# If page is out of range (e.g. 9999), deliver last page of results.
-				list_demos = paginator.page(paginator.num_pages)
+			if hasattr(result, 'previous_page_number'):
+				context['previous_page_number'] = result.previous_page_number
+				context['has_previous'] = True
+			else:
+				context['has_previous'] = False
+
+			if page:
+				context['number'] = page
+
+			if hasattr(result, 'number'):
+				context['num_pages'] = result.number
+
+			if hasattr(result, 'next_page_number'):
+				context['next_page_number'] = result.next_page_number
+				context['has_next'] = True
+			else:
+				context['has_next'] = False
+
 
 			#send context vars for template
 			context['status'] = status
@@ -394,13 +442,13 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 					print (" update demo ")
 					print
 					demojson = {
-					            "title": title,
-					            "abstract": abstract,
-					            "editorsdemoid": editorsdemoid,
-					            "active": True,
-					            "stateID": stateID,
-					            "id": id,
-					            "zipURL": zipURL,
+								"title": title,
+								"abstract": abstract,
+								"editorsdemoid": editorsdemoid,
+								"active": True,
+								"stateID": stateID,
+								"id": id,
+								"zipURL": zipURL,
 								# "creation": creation,
 								# "modification": modification
 					}
@@ -457,6 +505,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 		return HttpResponse(json.dumps(jres),content_type='application/json')
 		# return super(DemoinfoSaveDDLView, self).form_invalid(form)
 
+#authors
 
 class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 	template_name = "demoinfo/demoinfo_authors.html"
@@ -468,20 +517,150 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 		self.request.session['topmenu'] = 'topmenu-demoinfo-authors'
 		return super(DemoinfoAuthorsView, self).dispatch(*args, **kwargs)
 
-	def list_authors(self):
-		result = None
-		print "list_demos"
+	def get_context_data(self, **kwargs):
+
+		#get context
+		context = super(DemoinfoAuthorsView, self).get_context_data(**kwargs)
+
 		try:
-			page_json = ipolservices.demoinfo_author_list()
-			result = DeserializeDemoinfoDemoList(page_json)
+			# #get data from WS
+			# dl = ipolservices.demoinfo_author_list()
+			# if dl:
+			# 	result = DeserializeDemoinfoAuthorList(dl)
+			# else:
+			# 	raise ValueError("No response from WS")
+			#
+			# list_authors = result.author_list
+			# status = result.status
+			#
+			# #filter result
+			# query = self.request.GET.get('q')
+			# # print "query",query
+			# list_authors_filtered = list()
+			# if query:
+			# 	for author in list_authors:
+			# 		# print "demo: ",demo
+			# 		if query in author.name or query in author.mail :
+			# 			print "ok"
+			# 			list_authors_filtered.append(author)
+			#
+			# 	list_authors = list_authors_filtered
+			# context['q'] = query
+			#
+			# #pagination of result
+			# paginator = Paginator(list_authors, PAGINATION_ITEMS_PER_PAGE)
+			# page = self.request.GET.get('page')
+			# try:
+			# 	list_authors = paginator.page(page)
+			# except PageNotAnInteger:
+			# 	# If page is not an integer, deliver first page.
+			# 	list_authors = paginator.page(1)
+			# except EmptyPage:
+			# 	# If page is out of range (e.g. 9999), deliver last page of results.
+			# 	list_authors = paginator.page(paginator.num_pages)
+
+
+
+			#filter result
+			query = self.request.GET.get('q')
+			context['q'] = query
+			try:
+				page = self.request.GET.get('page')
+				page = int(page)
+			except :
+				# If page is not an integer, deliver first page.
+				page = 1
+
+
+			dl = ipolservices.demoinfo_author_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE,page,query)
+			if dl:
+				result = DeserializeDemoinfoAuthorList(dl)
+			else:
+				raise ValueError("No response from WS")
+
+			list_authors = result.author_list
+
+			print "list_authors",list_authors
+			status = result.status
+
+			#pagination of result
+			if hasattr(result, 'previous_page_number'):
+				context['previous_page_number'] = result.previous_page_number
+				context['has_previous'] = True
+			else:
+				context['has_previous'] = False
+
+			if page:
+				context['number'] = page
+
+			if hasattr(result, 'number'):
+				context['num_pages'] = result.number
+
+			if hasattr(result, 'next_page_number'):
+				context['next_page_number'] = result.next_page_number
+				context['has_next'] = True
+			else:
+				context['has_next'] = False
+
+
+			#send context vars for template
+			context['status'] = status
+			context['list_authors'] = list_authors
+			context['authorform'] = Authorform
+			#context['demoform'] = Demoform(initial={'active': True})
 
 		except Exception as e:
-			msg=" DemoinfoDemosView Error %s "%e
+
+			msg=" DemoinfoAuthorformView Error %s "%e
+			logger.error(msg)
+			context['status'] = 'KO'
+			context['list_authors'] = []
+			context['authorform'] = None
 			logger.error(msg)
 			print(msg)
 
-		return result
 
+		return context
+
+class DemoinfoDeleteAuthorView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoDeleteAuthorView, self).dispatch(*args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+
+			#todo could validate a form to get hard_delete checkbox from user
+			try:
+				author_id = int(self.kwargs['author_id'])
+			except ValueError:
+				msg= "Id is not an integer"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			result= ipolservices.demoinfo_delete_author(author_id)
+			if result == None:
+				msg="DemoinfoDeleteAuthorView: Something went wrong using demoinfo WS"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			print result
+
+			return HttpResponse(result, content_type='application/json')
+
+
+class DemoinfoGetAuthorView(NavbarReusableMixinMF,TemplateView):
+	pass
+
+class DemoinfoGetAuthorView(NavbarReusableMixinMF,TemplateView):
+	pass
+
+class DemoinfoSaveAuthorView(NavbarReusableMixinMF,TemplateView):
+	pass
+
+
+
+#editors
 
 class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
 	template_name = "demoinfo/demoinfo_editors.html"

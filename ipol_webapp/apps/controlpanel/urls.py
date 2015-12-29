@@ -9,7 +9,8 @@ from apps.controlpanel.views.blobs_module import BlobsDemosView
 from apps.controlpanel.views.demo import DemosView
 
 from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoAuthorsView, DemoinfoEditorsView, \
-    DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemoView
+    DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemoView, \
+    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView
 
 __author__ = 'josearrecio'
 
@@ -40,14 +41,16 @@ urlpatterns = [
     url(r'^ajax_get_demoinfo_ddl/(?P<demo_id>\d+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
     # Process the edit/new ddl form  (ajax jq call)
     url(r'^ajax_save_demoinfo_ddl/', DemoinfoSaveDDLView.as_view(), name="ipol.cp.demoinfo.save_ddl"),
-
     url(r'^ajax_get_demoinfo_demo/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.create_demo"),
     url(r'^ajax_get_demoinfo_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.edit_demo"),
     url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemoView.as_view(), name="ipol.cp.demoinfo.save_demo"),
 
-
 	# Author list
     url(r'^demoinfo_authors/', DemoinfoAuthorsView.as_view(), name="ipol.cp.demoinfo.authors"),
+    url(r'^ajax_delete_demoinfo_author/(?P<author_id>[\-\d\w]+)/$', DemoinfoDeleteAuthorView.as_view(), name="ipol.cp.demoinfo.delete_author"),
+    url(r'^ajax_get_demoinfo_author/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.create_author"),
+    url(r'^ajax_get_demoinfo_author/(?P<author_id>\d+)/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.edit_author"),
+    url(r'^ajax_save_demoinfo_author/', DemoinfoSaveAuthorView.as_view(), name="ipol.cp.demoinfo.save_author"),
 
     # Editor list
     url(r'^demoinfo_editors/', DemoinfoEditorsView.as_view(), name="ipol.cp.demoinfo.editors"),

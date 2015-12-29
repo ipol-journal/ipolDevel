@@ -9,7 +9,8 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
 	demoinfo_ws_url_last_demodescription_from_demo,demoinfo_ws_url_update_demo_description, \
 	demoinfo_ws_url_add_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
-	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo
+	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
+	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +95,22 @@ def demoinfo_demo_list():
 	list demos present in database
 	{ return:OK or KO, list demos:
 	"""
-
 	wsurl = demoinfo_ws_url_demo_list
 	return get_JSON_from_webservice(wsurl)
+
+def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilter):
+	"""
+	list demos present in database
+	demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
+	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
+	 "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
+	 "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
+	 "previous_page_number": 1, "number": 2.0}
+	"""
+
+	wsurl = demoinfo_ws_url_demo_list_pagination_and_filter
+	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+	return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 # DDL
@@ -165,35 +179,7 @@ def demoinfo_add_demo_description(pjson,demoid=None,inproduction=None):
 #  helper clases  (copyed from demoinfo) #
 ##########################################
 
-class Demo(object):
 
-	editorsdemoid = None
-	title = None
-	abstract = None
-	zipURL = None
-	active = None
-	stateID = None
-	id = None
-
-	# @validates(editorsdemoid=typ(int),
-	#            title=inst(basestring),
-	#            abstract=inst(basestring),
-	#            #zipurl=type(url),
-	#            zipurl=inst(basestring),
-	#            active=typ(int),
-	#            stateid=typ(int),
-	#            id= Or(typ(int) , inst(basestring) ),
-	#            creation= Or(typ(datetime.datetime) , inst(basestring) ),
-	#            modification= Or(typ(datetime.datetime) , inst(basestring) )
-	#            )
-	def __init__(self, editorsdemoid, title, abstract, zipurl, active, stateid, id=None):
-
-		self.editorsdemoid = editorsdemoid
-		self.title = title
-		self.abstract = abstract
-		self.zipURL = zipurl
-		self.active = active
-		self.stateID = stateid
 
 
 def demoinfo_delete_demo(demo_id,hard_delete = False):
@@ -232,9 +218,23 @@ def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
 
 def demoinfo_author_list():
 
-
 	wsurl = demoinfo_ws_url_author_list
 	return get_JSON_from_webservice(wsurl)
+
+
+def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfilter):
+
+	wsurl = demoinfo_ws_url_author_list_pagination_and_filter
+	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
+def demoinfo_delete_author(author_id):
+
+	wsurl = demoinfo_ws_url_delete_author
+	params = {'author_id': author_id}
+
+	return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 #EDITOR
