@@ -825,7 +825,15 @@ class TestDemoinfo(unittest.TestCase):
 			name='Author Name2'
 			mail = 'authoremail2@gmail.com'
 			a2=self.demoinfo.add_author(name, mail)
-			print " author created",a2
+			print " author created",
+
+
+			name='Author Name3'
+			mail = 'authoremail3@gmail.com'
+			a3=self.demoinfo.add_author(name, mail)
+			print " author created",a3
+
+
 		except Exception as ex:
 			test_passed = False
 
@@ -865,6 +873,11 @@ class TestDemoinfo(unittest.TestCase):
 			mail = 'editoremail2@gmail.com'
 			e2=self.demoinfo.add_editor(name, mail)
 			print " editor created ",e2
+
+			name='editor Name3'
+			mail = 'editoremail3@gmail.com'
+			e3=self.demoinfo.add_editor(name, mail)
+			print " editor created ",e3
 		except Exception as ex:
 			test_passed = False
 
@@ -1226,6 +1239,107 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , reading states ')
 
 
+
+	def delete_author(self):
+		test_passed = True
+		try:
+
+			#
+			# name='Author Name3'
+			# mail = 'authoremail3@gmail.com'
+			# a3=self.demoinfo.add_author(name, mail)
+			# print " author created",a3
+			#
+
+			demoid = 1
+			authorid = 3
+			self.demoinfo.add_author_to_demo(demoid ,authorid)
+			print " author: %d added to demo: %d "%(authorid,demoid)
+			print
+
+			dl = self.demoinfo.demo_get_authors_list(demoid)
+			print " author list for demo: %d "%(demoid)
+			print
+			print dl
+
+			self.demoinfo.remove_author(authorid)
+			print
+			print " author: %d removed from demo: %d "%(authorid,demoid)
+			print
+
+			dl = self.demoinfo.demo_get_authors_list(demoid)
+			print " author list for demo: %d "%(demoid)
+			print
+			print dl
+			print
+
+			al = self.demoinfo.author_list()
+			print " complete author list:  "
+			print
+			print al
+			print
+
+			self.demoinfo.add_author_to_demo(demoid ,authorid)
+			print " author: %d added to demo: %d "%(authorid,demoid)
+			print
+
+			dl = self.demoinfo.demo_get_authors_list(demoid)
+			print " error if try to add inexistent author to demo"
+
+			print " author list for demo: %d "%(demoid)
+			print
+			print dl
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
+
+
+	def delete_editor(self):
+		test_passed = True
+		try:
+
+			# name='editor Name3'
+			# mail = 'editoremail3@gmail.com'
+			# e3=self.demoinfo.add_editor(name, mail)
+			# print " editor created ",e3
+
+			demoid = 1
+			editorid = 3
+			self.demoinfo.add_editor_to_demo(demoid ,editorid)
+			print " editor: %d added to demo: %d "%(editorid,demoid)
+			print
+
+			dl = self.demoinfo.demo_get_editors_list(demoid)
+			print " editor list for demo: %d "%(demoid)
+			print
+			print dl
+
+			self.demoinfo.remove_editor(editorid)
+			print
+			print " editor: %d removed from demo: %d "%(editorid,demoid)
+			print
+
+			dl = self.demoinfo.demo_get_editors_list(demoid)
+			print " editor list for demo: %d "%(demoid)
+			print
+			print dl
+			print
+
+			el = self.demoinfo.editor_list()
+			print " complete editor list:  "
+			print
+			print el
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
+
+
 	##########################
 	# run all tests in order #
 	##########################
@@ -1318,8 +1432,16 @@ class TestDemoinfo(unittest.TestCase):
 			print
 			self.list_demos_pagination_filter()
 			print
+			print " ---20"
 			print
-			print " ---20 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
+			self.delete_author()
+			print
+			print " ---21"
+			print
+			self.delete_editor()
+			print
+			print
+			print " ---22 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()

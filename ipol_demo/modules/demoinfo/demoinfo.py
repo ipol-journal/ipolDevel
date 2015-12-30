@@ -634,6 +634,7 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
+	#todo deprecated
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demodescription_to_demo(self,demo_id, demodescription_id):
@@ -1191,6 +1192,83 @@ class DemoInfo(object):
 			#raise Exception
 			data["error"] = error_string
 		return json.dumps(data)
+
+
+	@cherrypy.expose
+	@cherrypy.tools.allow(methods=['POST']) #allow only post
+	def remove_author(self,author_id):
+		#deletes the author, and its relation with demos
+		data = {}
+		data["status"] = "KO"
+		try:
+
+			authorid=int(author_id)
+
+			conn = lite.connect(self.database_file)
+			dadao = DemoAuthorDAO(conn)
+			#deletes the author relation with its demos
+			demolist = dadao.read_author_demos(authorid)
+			if demolist:
+				#remove author from demos
+				for demo in demolist:
+					dadao.remove_author_from_demo(demo.id,authorid)
+
+			#deletes the author
+			adao = AuthorDAO(conn)
+			adao.delete(authorid)
+
+			conn.close()
+			data["status"] = "OK"
+		except Exception as ex:
+			error_string = "demoinfo remove_author error %s" % str(ex)
+			print error_string
+			self.error_log("remove_author",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+		return json.dumps(data)
+
+	@cherrypy.expose
+	@cherrypy.tools.allow(methods=['POST']) #allow only post
+	def remove_editor(self,editor_id):
+		#deletes the editor, and its relation with demos
+		data = {}
+		data["status"] = "KO"
+		try:
+
+			editorid=int(editor_id)
+
+			conn = lite.connect(self.database_file)
+			dedao = DemoEditorDAO(conn)
+			#deletes the author relation with its demos
+			demolist = dedao.read_editor_demos(editorid)
+			if demolist:
+				#remove editor from demos
+				for demo in demolist:
+					dedao.remove_editor_from_demo(demo.id,editorid)
+
+			#deletes the editor
+			edao = EditorDAO(conn)
+			edao.delete(editorid)
+
+			conn.close()
+			data["status"] = "OK"
+		except Exception as ex:
+			error_string = "demoinfo remove_editor error %s" % str(ex)
+			print error_string
+			self.error_log("remove_editor",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+		return json.dumps(data)
+
+
 
 
 	@cherrypy.expose

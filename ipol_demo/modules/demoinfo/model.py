@@ -764,8 +764,8 @@ class EditorDAO(object):
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				e = Editor(row[0], row[1], row[2], row[3], row[4])
-				print 'editor list'
-				print e.__dict__
+				# print 'editor list'
+				# print e.__dict__
 				editor_list.append(e)
 
 		except Exception as ex:
