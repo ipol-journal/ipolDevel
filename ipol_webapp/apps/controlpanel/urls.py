@@ -47,7 +47,7 @@ urlpatterns = [
 
 	# Author list
     url(r'^demoinfo_authors/', DemoinfoAuthorsView.as_view(), name="ipol.cp.demoinfo.authors"),
-    url(r'^ajax_delete_demoinfo_author/(?P<author_id>[\-\d\w]+)/$', DemoinfoDeleteAuthorView.as_view(), name="ipol.cp.demoinfo.delete_author"),
+    url(r'^ajax_delete_demoinfo_author/(?P<author_id>\d+)/$', DemoinfoDeleteAuthorView.as_view(), name="ipol.cp.demoinfo.delete_author"),
     url(r'^ajax_get_demoinfo_author/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.create_author"),
     url(r'^ajax_get_demoinfo_author/(?P<author_id>\d+)/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.edit_author"),
     url(r'^ajax_save_demoinfo_author/', DemoinfoSaveAuthorView.as_view(), name="ipol.cp.demoinfo.save_author"),

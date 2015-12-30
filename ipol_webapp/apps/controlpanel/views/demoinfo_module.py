@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 __author__ = 'josearrecio'
 
 
-PAGINATION_ITEMS_PER_PAGE = 4
+PAGINATION_ITEMS_PER_PAGE_DEMO_LIST = 4
+PAGINATION_ITEMS_PER_PAGE_AUTHOR_LIST = 4
+PAGINATION_ITEMS_PER_PAGE_EDITOR_LIST = 4
 
 
 # demos
@@ -67,7 +69,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 			# context['q'] = query
 			#
 			# #pagination of result
-			# paginator = Paginator(list_demos, PAGINATION_ITEMS_PER_PAGE)
+			# paginator = Paginator(list_demos, PAGINATION_ITEMS_PER_PAGE_DEMO_LIST)
 			# page = self.request.GET.get('page')
 			# try:
 			# 	list_demos = paginator.page(page)
@@ -92,7 +94,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 				page = 1
 
 
-			dl = ipolservices.demoinfo_demo_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE,page,query)
+			dl = ipolservices.demoinfo_demo_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE_DEMO_LIST,page,query)
 			if dl:
 				result = DeserializeDemoinfoDemoList(dl)
 			else:
@@ -523,43 +525,6 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 		context = super(DemoinfoAuthorsView, self).get_context_data(**kwargs)
 
 		try:
-			# #get data from WS
-			# dl = ipolservices.demoinfo_author_list()
-			# if dl:
-			# 	result = DeserializeDemoinfoAuthorList(dl)
-			# else:
-			# 	raise ValueError("No response from WS")
-			#
-			# list_authors = result.author_list
-			# status = result.status
-			#
-			# #filter result
-			# query = self.request.GET.get('q')
-			# # print "query",query
-			# list_authors_filtered = list()
-			# if query:
-			# 	for author in list_authors:
-			# 		# print "demo: ",demo
-			# 		if query in author.name or query in author.mail :
-			# 			print "ok"
-			# 			list_authors_filtered.append(author)
-			#
-			# 	list_authors = list_authors_filtered
-			# context['q'] = query
-			#
-			# #pagination of result
-			# paginator = Paginator(list_authors, PAGINATION_ITEMS_PER_PAGE)
-			# page = self.request.GET.get('page')
-			# try:
-			# 	list_authors = paginator.page(page)
-			# except PageNotAnInteger:
-			# 	# If page is not an integer, deliver first page.
-			# 	list_authors = paginator.page(1)
-			# except EmptyPage:
-			# 	# If page is out of range (e.g. 9999), deliver last page of results.
-			# 	list_authors = paginator.page(paginator.num_pages)
-
-
 
 			#filter result
 			query = self.request.GET.get('q')
@@ -571,10 +536,9 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 				# If page is not an integer, deliver first page.
 				page = 1
 
-
-			dl = ipolservices.demoinfo_author_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE,page,query)
-			if dl:
-				result = DeserializeDemoinfoAuthorList(dl)
+			al = ipolservices.demoinfo_author_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE_AUTHOR_LIST,page,query)
+			if al:
+				result = DeserializeDemoinfoAuthorList(al)
 			else:
 				raise ValueError("No response from WS")
 
@@ -622,6 +586,7 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 
 		return context
 
+
 class DemoinfoDeleteAuthorView(NavbarReusableMixinMF,TemplateView):
 
 	@method_decorator(login_required)
@@ -649,8 +614,6 @@ class DemoinfoDeleteAuthorView(NavbarReusableMixinMF,TemplateView):
 			return HttpResponse(result, content_type='application/json')
 
 
-class DemoinfoGetAuthorView(NavbarReusableMixinMF,TemplateView):
-	pass
 
 class DemoinfoGetAuthorView(NavbarReusableMixinMF,TemplateView):
 	pass

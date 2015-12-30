@@ -173,22 +173,14 @@
         $modal_author_msg_div='#createauthor_modal_errordiv';
         $modal_author_id='#createAuthorFormModalId';
         $modal_author_header='div#createAuthorModalheader';
+
         $form_author_id='#Authorform';
         //hidden
         $form_author_field_author_id="#Authorform #id_id";
-        {# $form_demo_field_demoddlid_id="#Demoform #id_demoddlid";#}
         //normal
-{#        $form_demo_field_editorsauthor_id="#Authorform #id_editorsdemoid";#}
-{#        $form_demo_field_title_id="#Demoform #id_title";#}
-{#        $form_demo_field_abstract_id="#Demoform #id_abstract";#}
-{#        $form_demo_field_zipURL_id="#Demoform #id_zipURL";#}
-{#        //$form_demo_field_active_id="#Demoform #id_active";#}
-{#        $form_demo_field_state_id="#Demoform #id_state";#}
-        {#  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";#}
+        $form_author_field_name_id="#Authorform #id_name";
+        $form_author_field_mail_id="#Authorform #id_mail";
         var $authorform = $($form_author_id);
-
-
-
         
         {#  js error msg#}
         $ws_down=" check webservices are running, go to status page";
@@ -258,16 +250,15 @@
 
             if (author_id === undefined) {
                 // author_id was not passed, just open create modal
-                $($modal_demo_header).html('<h3>New author data</h3>');
+                $($modal_author_header).html('<h3>New author data</h3>');
                 //clear data
                 $($modal_author_msg_div).html('');
-{#                $($form_author_field_author_id).get(0).value = '';#}
-{#                $($form_demo_field_editorsauthor_id).get(0).value = '';#}
-{#                $($form_demo_field_title_id).get(0).value = '';#}
-{#                $($form_demo_field_abstract_id).get(0).value = '';#}
-{#                $($form_demo_field_zipURL_id).get(0).value = '';#}
-{#                //$($form_demo_field_active_id).get(0).value = '';#}
-{#                $($form_demo_field_state_id).get(0).value = '';#}
+
+                $($form_author_field_author_id).get(0).value = '';
+                $($form_author_field_name_id).get(0).value = '';
+                $($form_author_field_mail_id).get(0).value = '';
+
+
                 $authorform.show();
                 $($modal_author_id).modal('show');
             }else{
@@ -295,13 +286,10 @@
                                 $($modal_author_msg_div).html('');
 
                                 $($modal_author_header).html('<h3>Edit Author data</h3>');
-{#                                $($form_demo_field_author_id).get(0).value = data.id;#}
-{#                                $($form_demo_field_editorsauthor_id).get(0).value = data.editorsdemoid;#}
-{#                                $($form_demo_field_title_id).get(0).value = data.title;#}
-{#                                $($form_demo_field_abstract_id).get(0).value = data.abstract;#}
-{#                                $($form_demo_field_zipURL_id).get(0).value = data.zipURL;#}
-{#                                //$($form_demo_field_active_id).get(0).value = data.active;#}
-{#                                $($form_demo_field_state_id).get(0).value = data.stateID;#}
+                                $($form_author_field_author_id).get(0).value = data.id;
+                                $($form_author_field_name_id).get(0).value = data.editorsdemoid;
+                                $($form_author_field_mail_id).get(0).value = data.title;
+
                                 $($modal_author_id).modal('show');
                                 $authorform.show();
 
@@ -311,14 +299,11 @@
                                 //error, no OK
                                 var errorhtml="<p class=\"ststsnok\">Author Data not retrieved sucessfully, check demoinfo consistency</p>";
                                 $($modal_author_msg_div).html(errorhtml);
-{#                                //clear form data#}
-{#                                $($form_demo_field_author_id).get(0).value = '';#}
-{#                                $($form_demo_field_editorsauthor_id).get(0).value = '';#}
-{#                                $($form_demo_field_title_id).get(0).value = '';#}
-{#                                $($form_demo_field_abstract_id).get(0).value = '';#}
-{#                                $($form_demo_field_zipURL_id).get(0).value = '';#}
-{#                                //$($form_demo_field_active_id).get(0).value = '';#}
-                                $($form_author_field_state_id).get(0).value = '';
+                                //clear form data
+                                $($form_author_field_author_id).get(0).value = '';
+                                $($form_author_field_name_id).get(0).value = '';
+                                $($form_author_field_mail_id).get(0).value = '';
+
                                 $($modal_author_id).modal('show');
                                 //$authorform.show();
                             }
@@ -386,54 +371,33 @@
         }
 
 
+
+                $form_author_field_author_id="#Authorform #id_id";
+                $form_author_field_name_id="#Authorform #id_name";
+                $form_author_field_mail_id="#Authorform #id_mail";
+
+
         {#  Author form validation #}
         $($form_author_id).validate({
             errorClass: "validationerror",//for css
             rules: {
-                title: {
+                name: {
                     required: true,
                     minlength: 5
                 },
-{#                active: {#}
-{#                    required: true#}
-{#                },#}
-                abstract: {
-                    required: true,
-                    minlength: 5
-                },
-                state: {
-                    required: true
-                },
-                editorsdemoid: {
-                    required: true
-                },
-                zipURL: {
+                mail: {
                     required: true,
                     minlength: 5
                 }
             },
             messages: {
-
-                title: {
-                    required: "please fill title field",
-                    minlength: "Your title must be at least 5 characters"
+                name: {
+                    required: "please fill name field",
+                    minlength: "Your name must be at least 5 characters"
                 },
-{#                active: {#}
-{#                    required: "please fill active field"#}
-{#                },#}
-                abstract: {
-                    required: "please fill abstract field",
-                    minlength: "Your abstract must be at least 5 characters"
-                },
-                state: {
-                    required: "please fill  state"
-                },
-                editorsdemoid: {
-                    required: "please fill  editorsdemoid"
-                },
-                zipURL: {
-                    required: "please fill zipURL field",
-                    minlength: "Your zipURL must be at least 5 characters"
+                mail: {
+                    required: "please fill mail field",
+                    minlength: "Your mail must be at least 5 characters"
                 }
             },
             submitHandler: function() {

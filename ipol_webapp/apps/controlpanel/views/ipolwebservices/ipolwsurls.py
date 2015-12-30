@@ -53,8 +53,8 @@ demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list'
 demoinfo_ws_url_author_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list_pagination_and_filter'
 # param num_elements_page, page, qfilter
 
-demoinfo_ws_url_delete_author = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list'
-# param None
+demoinfo_ws_url_delete_author = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_author'
+# param author_id
 
 
 #EDITOR

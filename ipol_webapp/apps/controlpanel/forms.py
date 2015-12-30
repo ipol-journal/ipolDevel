@@ -60,15 +60,16 @@ def get_demoinfo_demo_list():
 	try:
 		demo_list_json = demoinfo_demo_list()
 		demo_list_dict= json.loads(demo_list_json)
-		print "demo_list_dict", demo_list_dict
+		# print "demo_list_dict", demo_list_dict
 
 		demo_list= demo_list_dict['demo_list']
 
+		demo_list_option.append( (0,"None selected") )
 		for d in demo_list:
-			d = (d["id"],d["editorsdemoid"])
+			d = (d["id"],str(d["editorsdemoid"])+", "+str(d["title"]))
 			demo_list_option.append(d)
 
-		print "demo_list_option", demo_list_dict
+		print "demo_list_option", demo_list_option
 
 	except Exception as e:
 		msg=" get_demoinfo_demo_list Error %s "%e
@@ -119,16 +120,13 @@ class Demoform(forms.Form):
 		self.fields['state'] = forms.ChoiceField(label='state',required=True, choices=get_demoinfo_module_states() )
 
 
-# "author_list": [{"mail": "authoremail1@gmail.com", "creation": "2015-12-28 16:47:54", "id": 1, "name": "Author Name1"}]}
+# for edit
 class Authorform(forms.Form):
 	#hidden
 	id = forms.IntegerField(label='authorid',required=False)
 	#normal
 	name = forms.CharField(label='name',required=True)
 	mail = forms.EmailField(label='mail',required=True)
-
-	# select a demo for this author
-	demo = forms.ChoiceField(label='demo(editorid) ',required=True)
 
 	helper = FormHelper()
 	helper.form_id = "Authorform"
@@ -143,7 +141,33 @@ class Authorform(forms.Form):
 			Submit('save_author', 'Save', css_class="btn-primary"),
 		)
 	)
+
+#for new (lets the user assign author to one demo...)
+class AuthorNewform(forms.Form):
+	#hidden
+	id = forms.IntegerField(label='authorid',required=False)
+	#normal
+	name = forms.CharField(label='name',required=True)
+	mail = forms.EmailField(label='mail',required=True)
+
+	# select a demo for this author
+	demo = forms.ChoiceField(label='demo(editorid,title)',required=True)
+
+	helper = FormHelper()
+	helper.form_id = "Authorform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_author')
+	helper.form_method = 'POST'
+	helper.form_class = 'form-horizontal'
+	helper.layout = Layout(
+		Field('id', type='hidden'),
+		Field('name'),
+		Field('mail', css_class='form-control'),
+		Field('demo', css_class='form-control'),
+		FormActions(
+			Submit('save_author', 'Save', css_class="btn-primary"),
+		)
+	)
 	def __init__(self, *args, **kwargs):
 		#dinamic way to get staes of demo in demoinfo module
-		super(Authorform, self).__init__(*args, **kwargs)
-		self.fields['state'] = forms.ChoiceField(label='state',required=True, choices=get_demoinfo_demo_list() )
+		super(AuthorNewform, self).__init__(*args, **kwargs)
+		self.fields['demo'] = forms.ChoiceField(label='demo(editorid,title)',required=True, choices=get_demoinfo_demo_list() )

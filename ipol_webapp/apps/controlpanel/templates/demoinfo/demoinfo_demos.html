@@ -68,31 +68,47 @@
                 {% if data %}
                     {% for demo in data %}
 
-                        <div class="demo row" id="demo_info_{{ demo.id }}" >
-                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>
-                            <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>
-                            <div class="griditem col-sm-3">{% trans 'title' %}:{{ demo.title}} </div>
-                            <div class="griditem col-sm-3">{% trans 'abstract' %}:
-                                <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
+                        <div class="demo" id="demo_info_{{ demo.id }}" >
+
+                            <div class="row">
+                                <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>
+                                <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>
+                                <div class="griditem col-sm-3">{% trans 'title' %}:{{ demo.title}} </div>
+                                <div class="griditem col-sm-3">{% trans 'abstract' %}:
+                                    <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
+                                </div>
+                                <div class="griditem col-sm-3">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
+                                <div class="griditem col-sm-3">{% trans 'state' %}:{{ demo.stateID }} </div>
+                                {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
+                                <div class="griditem col-sm-3">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+
+
+                                <div class="griditem col-sm-3">
+                                    {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
+                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
+
+                                    {#  btn Edit demo #}
+                                    <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.id %}', {{ demo.id }}  )">{% trans 'Edit' %}</a>
+
+                                </div>
+
                             </div>
-                            <div class="griditem col-sm-3">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
-                            <div class="griditem col-sm-3">{% trans 'state' %}:{{ demo.stateID }} </div>
-                            {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
-                            <div class="griditem col-sm-3">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+
+                            <div class="row">
+                                <div class="griditem col-sm-6">
 
 
-                            <div class="griditem col-sm-3">
-                                {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
+                                    {#  btn Edit demo's DDL #}
+                                    <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}', {{ demo.id }} )">{% trans 'DDL' %}</a>
 
-                                {#  btn Edit demo #}
-                                <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.id %}', {{ demo.id }}  )">{% trans 'Edit' %}</a>
+                                    {#  btn Edit demo's AUTHORS #}
+                                    <a class="btn btn-info" onclick="alert(' manage demos authors')">{% trans 'AUTHORS' %}</a>
 
-                                {#  btn Edit demo's DDL #}
-                                <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}', {{ demo.id }} )">{% trans 'DDL' %}</a>
+                                    {#  btn Edit demo's EDITORS #}
+                                    <a class="btn btn-info" onclick="alert(' manage demos editors')">{% trans 'EDITORS' %}</a>
 
+                                </div>
                             </div>
-
                         </div>
                     {% endfor %}
                 {% else %}
