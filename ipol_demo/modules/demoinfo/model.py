@@ -121,6 +121,7 @@ class Editor(object):
 ###########################
 #  DAO (data access obj ) #
 ###########################
+
 class DemoDescriptionDAO(object):
 	def __init__(self, conn):
 		self.conn = conn
@@ -144,7 +145,7 @@ class DemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("add demo_description  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 
 	@validates(typ(int))
@@ -155,7 +156,7 @@ class DemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("delete_demo_description  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 
 	#@validates(inst(Demo))
@@ -169,7 +170,7 @@ class DemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("update demo_description  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):
@@ -184,6 +185,7 @@ class DemoDescriptionDAO(object):
 			error_string = ("read demo_description  e:%s" % (str(ex)))
 			print (error_string)
 		return result
+
 
 class DemoDAO(object):
 	def __init__(self, conn):
@@ -226,7 +228,7 @@ class DemoDAO(object):
 		except Exception as ex:
 			error_string = ("delete_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 
 	@validates(typ(int), And(typ(int), between(0, 1, True, True)))
@@ -241,7 +243,7 @@ class DemoDAO(object):
 		except Exception as ex:
 			error_string = ("set_active_flag  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(inst(Demo))
 	def update(self, demo):
@@ -273,7 +275,7 @@ class DemoDAO(object):
 		except Exception as ex:
 			error_string = ("update_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):
@@ -333,6 +335,7 @@ class DemoDAO(object):
 			print (error_string)
 		return demo_list
 
+
 class DemoDemoDescriptionDAO(object):
 	def __init__(self, conn):
 		self.conn = conn
@@ -356,7 +359,7 @@ class DemoDemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("add_demo_demodescription  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete(self, id):
@@ -366,7 +369,7 @@ class DemoDemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("delete_demo_demodescription  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete_all_demodescriptions_for_demo(self, demoid):
@@ -378,7 +381,8 @@ class DemoDemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("delete_all_demodescriptions_for_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
+
 
 	@validates(typ(int), typ(int))
 	def remove_demodescription_from_demo(self, demoid, demodescriptionid):
@@ -388,7 +392,8 @@ class DemoDemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("remove_editor_from_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
+
 
 	@validates(typ(int))
 	def read(self, id):
@@ -404,7 +409,8 @@ class DemoDemoDescriptionDAO(object):
 		except Exception as ex:
 			error_string = ("read_demo_editor  e:%s" % (str(ex)))
 			print (error_string)
-		return result	\
+		return result
+
 
 	@validates(typ(int))
 	def read_last_demodescription_from_demo(self, demoid,returnjsons=None):
@@ -440,6 +446,7 @@ class DemoDemoDescriptionDAO(object):
 			print (error_string)
 		return result
 
+
 	@validates(typ(int))
 	def read_demodescrption_demos(self, demodescriptionid):
 		#todo only one or more then one?
@@ -456,7 +463,6 @@ class DemoDemoDescriptionDAO(object):
 			error_string = ("read_editor_demos  e:%s" % (str(ex)))
 			print (error_string)
 		return demo_list	\
-
 
 
 	@validates(typ(int))
@@ -511,9 +517,9 @@ class AuthorDAO(object):
 			return self.cursor.lastrowid
 
 		except Exception as ex:
-			error_string = ("add_author  e:%s" % (str(ex)))
+			error_string = ("add_author,  %s " % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete(self, id):
@@ -524,7 +530,7 @@ class AuthorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_author  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(inst(Author))
 	def update(self, author):
@@ -543,7 +549,7 @@ class AuthorDAO(object):
 		except Exception as ex:
 			error_string = ("update_author  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):
@@ -607,7 +613,7 @@ class DemoAuthorDAO(object):
 		except Exception as ex:
 			error_string = ("add_demo_author  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete(self, id):
@@ -617,7 +623,7 @@ class DemoAuthorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_demo_author  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete_all_authors_for_demo(self, demoid):
@@ -627,7 +633,7 @@ class DemoAuthorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_all_authors_for_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int), typ(int))
 	def remove_author_from_demo(self, demoid, authorid):
@@ -637,7 +643,7 @@ class DemoAuthorDAO(object):
 		except Exception as ex:
 			error_string = ("remove_author_from_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):
@@ -711,7 +717,7 @@ class EditorDAO(object):
 		except Exception as ex:
 			error_string = ("add_editor  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete(self, id):
@@ -721,7 +727,7 @@ class EditorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_editor  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(inst(Editor))
 	def update(self, editor):
@@ -741,7 +747,7 @@ class EditorDAO(object):
 		except Exception as ex:
 			error_string = ("update_editor  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):
@@ -797,7 +803,7 @@ class DemoEditorDAO(object):
 		except Exception as ex:
 			error_string = ("add_demo_editor  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete(self, id):
@@ -807,7 +813,7 @@ class DemoEditorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_demo_editor  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def delete_all_editors_for_demo(self, demoid):
@@ -817,7 +823,7 @@ class DemoEditorDAO(object):
 		except Exception as ex:
 			error_string = ("delete_all_editors_for_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int), typ(int))
 	def remove_editor_from_demo(self, demoid, editorid):
@@ -827,7 +833,7 @@ class DemoEditorDAO(object):
 		except Exception as ex:
 			error_string = ("remove_editor_from_demo  e:%s" % (str(ex)))
 			print (error_string)
-			raise Exception
+			raise Exception(error_string)
 
 	@validates(typ(int))
 	def read(self, id):

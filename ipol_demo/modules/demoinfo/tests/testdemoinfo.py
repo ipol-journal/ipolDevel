@@ -1159,7 +1159,6 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
 
 
-
 	def list_demos_pagination_filter(self):
 		test_passed = True
 		try:
@@ -1223,7 +1222,6 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , edit demo')
 
 
-
 	def read_states(self):
 		test_passed = True
 		try:
@@ -1239,8 +1237,7 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , reading states ')
 
 
-
-	def delete_author(self):
+	def read_delete_author(self):
 		test_passed = True
 		try:
 
@@ -1251,8 +1248,16 @@ class TestDemoinfo(unittest.TestCase):
 			# print " author created",a3
 			#
 
+
+
 			demoid = 1
 			authorid = 3
+
+			a3 = self.demoinfo.read_author(authorid)
+			print " author: %d : "%(authorid)
+			print a3
+			print
+
 			self.demoinfo.add_author_to_demo(demoid ,authorid)
 			print " author: %d added to demo: %d "%(authorid,demoid)
 			print
@@ -1297,7 +1302,7 @@ class TestDemoinfo(unittest.TestCase):
 		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
 
 
-	def delete_editor(self):
+	def read_delete_editor(self):
 		test_passed = True
 		try:
 
@@ -1308,6 +1313,12 @@ class TestDemoinfo(unittest.TestCase):
 
 			demoid = 1
 			editorid = 3
+
+			e3 = self.demoinfo.read_editor(editorid)
+			print " editor: %d : "%(editorid)
+			print e3
+			print
+
 			self.demoinfo.add_editor_to_demo(demoid ,editorid)
 			print " editor: %d added to demo: %d "%(editorid,demoid)
 			print
@@ -1434,11 +1445,11 @@ class TestDemoinfo(unittest.TestCase):
 			print
 			print " ---20"
 			print
-			self.delete_author()
+			self.read_delete_author()
 			print
 			print " ---21"
 			print
-			self.delete_editor()
+			self.read_delete_editor()
 			print
 			print
 			print " ---22 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
