@@ -10,7 +10,8 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_last_demodescription_from_demo,demoinfo_ws_url_update_demo_description, \
 	demoinfo_ws_url_add_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
 	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
-	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author
+	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
+	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,10 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 #  DEMOINFO MODULE  #
 #####################
 
+
+# MISC
+
+
 def demoinfo_get_stats():
 
 	wsurl = demoinfo_ws_url_stats
@@ -88,29 +93,6 @@ def demoinfo_get_states():
 
 	wsurl = demoinfo_ws_url_read_states
 	return get_JSON_from_webservice(wsurl)
-
-
-def demoinfo_demo_list():
-	"""
-	list demos present in database
-	{ return:OK or KO, list demos:
-	"""
-	wsurl = demoinfo_ws_url_demo_list
-	return get_JSON_from_webservice(wsurl)
-
-def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilter):
-	"""
-	list demos present in database
-	demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
-	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
-	 "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
-	 "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
-	 "previous_page_number": 1, "number": 2.0}
-	"""
-
-	wsurl = demoinfo_ws_url_demo_list_pagination_and_filter
-	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
-	return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 # DDL
@@ -175,11 +157,28 @@ def demoinfo_add_demo_description(pjson,demoid=None,inproduction=None):
 
 # DEMO
 
-##########################################
-#  helper clases  (copyed from demoinfo) #
-##########################################
+def demoinfo_demo_list():
+	"""
+	list demos present in database
+	{ return:OK or KO, list demos:
+	"""
+	wsurl = demoinfo_ws_url_demo_list
+	return get_JSON_from_webservice(wsurl)
 
 
+def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilter):
+	"""
+	list demos present in database
+	demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
+	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
+	 "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
+	 "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
+	 "previous_page_number": 1, "number": 2.0}
+	"""
+
+	wsurl = demoinfo_ws_url_demo_list_pagination_and_filter
+	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+	return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_delete_demo(demo_id,hard_delete = False):
@@ -191,7 +190,7 @@ def demoinfo_delete_demo(demo_id,hard_delete = False):
 
 
 def demoinfo_read_demo(demo_id):
-	print "demoinfo_update_demo"
+	# print "demoinfo_read_demo"
 	wsurl = demoinfo_ws_url_read_demo
 	params = {'demoid': demo_id}
 	return get_JSON_from_webservice(wsurl,'POST',params)
@@ -205,6 +204,7 @@ def demoinfo_update_demo(demo):
 	params = {'demo': json.dumps(demo)}
 	return get_JSON_from_webservice(wsurl,'POST',params)
 
+
 def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
 	# print
 	# print "demoinfo_add_demo"
@@ -212,6 +212,7 @@ def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
 	wsurl = demoinfo_ws_url_add_demo
 	params = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'stateID': stateID}
 	return get_JSON_from_webservice(wsurl,'POST',params)
+
 
 # AUTHOR
 
@@ -235,6 +236,32 @@ def demoinfo_delete_author(author_id):
 	params = {'author_id': author_id}
 
 	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_add_author( name ,mail):
+	print
+	print "demoinfo_add_demo"
+	print
+	wsurl = demoinfo_ws_url_add_author
+	params = {'name': name,'mail': mail}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_read_author(author_id):
+	# print "demoinfo_read_demo"
+	wsurl = demoinfo_ws_url_read_author
+	params = {'authorid': author_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_update_author(author):
+	print
+	print "demoinfo_update author"
+	print
+	wsurl = demoinfo_ws_url_update_author
+	params = {'author': json.dumps(author)}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
 
 
 #EDITOR

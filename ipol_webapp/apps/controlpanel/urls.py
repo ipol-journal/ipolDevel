@@ -10,7 +10,8 @@ from apps.controlpanel.views.demo import DemosView
 
 from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoAuthorsView, DemoinfoEditorsView, \
     DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemoView, \
-    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView
+    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, DemoinfoAddAuthorToDemoView, \
+	DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView
 
 __author__ = 'josearrecio'
 
@@ -43,6 +44,7 @@ urlpatterns = [
     url(r'^ajax_save_demoinfo_ddl/', DemoinfoSaveDDLView.as_view(), name="ipol.cp.demoinfo.save_ddl"),
     url(r'^ajax_get_demoinfo_demo/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.create_demo"),
     url(r'^ajax_get_demoinfo_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.edit_demo"),
+
     url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemoView.as_view(), name="ipol.cp.demoinfo.save_demo"),
 
 	# Author list
@@ -51,6 +53,15 @@ urlpatterns = [
     url(r'^ajax_get_demoinfo_author/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.create_author"),
     url(r'^ajax_get_demoinfo_author/(?P<author_id>\d+)/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.edit_author"),
     url(r'^ajax_save_demoinfo_author/', DemoinfoSaveAuthorView.as_view(), name="ipol.cp.demoinfo.save_author"),
+
+	# Demo's Authors add/remove/get
+	# todo this goes first, if miki likes this, do the same for editor
+    url(r'^ajax_get_demoinfo_authors_of_demo/', DemoinfoGetDemoAuthorView.as_view(), name="ipol.cp.demoinfo.get_demos_authors"),
+    url(r'^ajax_delete_demoinfo_author_from_demo/', DemoinfoDeleteAuthorFromDemoView.as_view(), name="ipol.cp.demoinfo.delete_author_from_demo"),
+    url(r'^ajax_add_demoinfo_author_to_demo/', DemoinfoAddAuthorToDemoView.as_view(), name="ipol.cp.demoinfo.add_author_to_demo"),
+
+
+
 
     # Editor list
     url(r'^demoinfo_editors/', DemoinfoEditorsView.as_view(), name="ipol.cp.demoinfo.editors"),

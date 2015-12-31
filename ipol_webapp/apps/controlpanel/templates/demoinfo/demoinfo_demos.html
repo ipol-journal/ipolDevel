@@ -5,7 +5,7 @@
 
 
 {% block title %}
-    {% trans 'Demos' %}
+    {% trans 'Demoinfo Demos' %}
 {% endblock %}
 
 {% block cssfiles %}
@@ -230,6 +230,33 @@
         </div>
     </div>
 
+
+
+    <!-- Modal AUTHORS add/remove from demo -->
+    <div class="modal fade" id="AuthorModalId" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="AuthorModalheader" class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3>Demos Authors</h3>
+
+                </div>
+                <div class="modal-body" id="AuthorModalbody">
+
+                    <div id="author_modal_list_div">
+                        List of authors here
+
+                    </div>
+                    <div id="author_modal_error_div"></div>
+                    {% crispy demoform %}
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block functionsjs %}

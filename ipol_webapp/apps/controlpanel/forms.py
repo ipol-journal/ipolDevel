@@ -11,8 +11,6 @@ from django import forms
 
 # Forms use bootstrap clases for layout
 
-
-
 class DDLform(forms.Form):
 
 	#hidden
@@ -52,6 +50,7 @@ def get_demoinfo_module_states():
 		print(msg)
 
 	return state_list
+
 
 #todo podria tener un ws q solo devolviera los dos campos q nececisto para el select del form
 def get_demoinfo_demo_list():
@@ -123,7 +122,7 @@ class Demoform(forms.Form):
 # for edit
 class Authorform(forms.Form):
 	#hidden
-	id = forms.IntegerField(label='authorid',required=False)
+	id = forms.IntegerField(label='id',required=False)
 	#normal
 	name = forms.CharField(label='name',required=True)
 	mail = forms.EmailField(label='mail',required=True)
@@ -131,6 +130,7 @@ class Authorform(forms.Form):
 	helper = FormHelper()
 	helper.form_id = "Authorform"
 	helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_author')
+	# helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_demo')
 	helper.form_method = 'POST'
 	helper.form_class = 'form-horizontal'
 	helper.layout = Layout(
@@ -142,10 +142,11 @@ class Authorform(forms.Form):
 		)
 	)
 
+
 #for new (lets the user assign author to one demo...)
 class AuthorNewform(forms.Form):
 	#hidden
-	id = forms.IntegerField(label='authorid',required=False)
+	id = forms.IntegerField(label='id',required=False)
 	#normal
 	name = forms.CharField(label='name',required=True)
 	mail = forms.EmailField(label='mail',required=True)
@@ -171,3 +172,28 @@ class AuthorNewform(forms.Form):
 		#dinamic way to get staes of demo in demoinfo module
 		super(AuthorNewform, self).__init__(*args, **kwargs)
 		self.fields['demo'] = forms.ChoiceField(label='demo(editorid,title)',required=True, choices=get_demoinfo_demo_list() )
+
+
+#for new (lets the user assign author to one demo...)
+class DemoAuthorform(forms.Form):
+	#hidden
+	demoid = forms.IntegerField(label='id',required=False)
+	# select a demo for this author
+	author = forms.ChoiceField(label='author(name)',required=True)
+
+	helper = FormHelper()
+	helper.form_id = "DemoAuthorform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_author_to_demo')
+	helper.form_method = 'POST'
+	helper.form_class = 'form-horizontal'
+	helper.layout = Layout(
+		Field('demoid', type='hidden'),
+		Field('author', css_class='form-control'),
+		FormActions(
+			Submit('save_author_to_demo', 'Save', css_class="btn-primary"),
+		)
+	)
+	# def __init__(self, *args, **kwargs):
+	# 	#dinamic way to get staes of demo in demoinfo module
+	# 	super(DemoAuthorform, self).__init__(*args, **kwargs)
+	# 	self.fields['author'] = forms.ChoiceField(label='author(name)',required=True, choices = get_demoinfo__available_author_list() )

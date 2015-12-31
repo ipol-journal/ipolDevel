@@ -5,7 +5,7 @@
 
 
 {% block title %}
-    {% trans 'Authors' %}
+    {% trans 'Demoinfo Authors' %}
 {% endblock %}
 
 {% block cssfiles %}
@@ -287,8 +287,8 @@
 
                                 $($modal_author_header).html('<h3>Edit Author data</h3>');
                                 $($form_author_field_author_id).get(0).value = data.id;
-                                $($form_author_field_name_id).get(0).value = data.editorsdemoid;
-                                $($form_author_field_mail_id).get(0).value = data.title;
+                                $($form_author_field_name_id).get(0).value = data.name;
+                                $($form_author_field_mail_id).get(0).value = data.mail;
 
                                 $($modal_author_id).modal('show');
                                 $authorform.show();
@@ -331,6 +331,8 @@
             var csrftoken = getCookie('csrftoken');
             var $serializedData = $authorform.serialize();
             var $ajaxurl = $authorform.attr("action");
+            console.log($ajaxurl);
+            console.log($serializedData);
 
             $.ajax({
                 url: $ajaxurl,
@@ -369,13 +371,6 @@
                 }
             });
         }
-
-
-
-                $form_author_field_author_id="#Authorform #id_id";
-                $form_author_field_name_id="#Authorform #id_name";
-                $form_author_field_mail_id="#Authorform #id_mail";
-
 
         {#  Author form validation #}
         $($form_author_id).validate({
