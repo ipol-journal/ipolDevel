@@ -15,14 +15,14 @@
   Status : {{info.status}}
 </p>
 <span ng-if="info.status=='failure'">
-  <p class="error">  {{info.error}} </p>
+  <p class="error"> {{info.error}} </p>
 </span>
 
 
   <span ng-repeat="result in demo.results">
     <!-- warning -->
     <span ng-if="result.type==='warning'"> 
-      <span ng-if="$eval(result.condition)">
+      <span ng-if="$eval(result.visible)">
         <p style='border: 1px solid; margin: 10px 0px; padding:15px 10px 15px 50px; color: #9F6000;'>
           <b><u>WARNING</u></b><br/><br/>
           <span bind-html-compile="result.contents"></span> <br/><br/>
@@ -104,7 +104,8 @@
 {{"{{demo.general}}"|interpolate:current_scope}}-->
 
   <!-- display all results -->
-  <span ng-repeat="result in ::demo.results" >
+  <span ng-repeat="result in ::demo.results"
+        ng-if="(result.visible===undefined)||$eval(result.visible)" >
     <!-- gallery -->
     <span ng-if="::result.type==='gallery'"> 
       <b> <span bind-html-compile="result.label"></span></b><br/>
