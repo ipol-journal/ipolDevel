@@ -8,12 +8,7 @@
 <script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
 
 <div ng-controller="DemoParamCtrl">
-  <div  >
-  <p> 
-    <span ng-bind-html="renderHtml(demo.general.param_description)"> </span>
-  </p>
-  </div>
-  <br />
+  <span ng-bind-html="renderHtml(demo.general.param_description)"> </span>
   <form action="${app.base_url + 'rectangle'}" method="get">
     <div class="action" style="align:left;margin-bottom=20px;margin-top=20px" >
       <input type="hidden" name="key" value="${app.key}">
