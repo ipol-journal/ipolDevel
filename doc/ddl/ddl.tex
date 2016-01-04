@@ -526,7 +526,10 @@ The gallery type uses the gallery class to display images. Its parameters are:
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- type      & gallery  & yes \\ \hline
+ type       & gallery  & yes \\ \hline
+ visible    & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+              controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+              evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between. & yes \\ \hline
@@ -608,6 +611,9 @@ titles.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
+ visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+             evaluated to false (if undefined the result is visible)& no \\ \hline
  repeat    & range expression (evaluated in Angular):
               will create a loop in the form idx=0..range-1 & no \\ \hline
  label     & html title associated to the file download & yes \\ \hline
@@ -647,8 +653,11 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- contents   & array of strings, that will be concatenated to form the html 
-              content. This content can contain Angular expression using \{\{expr\}\}& yes \\ \hline
+ visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+             evaluated to false (if undefined the result is visible)& no \\ \hline
+ contents  & array of strings, that will be concatenated to form the html 
+             content. This content can contain Angular expression using \{\{expr\}\}& yes \\ \hline
 \caption{Keys for the 'html\_text' type.}
 \end{longtable}
 
@@ -672,6 +681,9 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
+ visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+             evaluated to false (if undefined the result is visible)& no \\ \hline
  label     & HTML label & yes \\ \hline
  contents  & text filename to display & yes \\ \hline
  style     & associated CSS style & yes \\ \hline
@@ -695,12 +707,9 @@ Example using 'repeat':
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type      & warning  & yes \\ \hline
- condition & warning condition evaluated by Angular in its 
-the context of the result controler named {\em DemoResultCtrl}. In this 
-context, the user has access, among other variables, to: -'demo' which 
-contains the demo description, - 'params' which contains the current 
-values of all the parameters, - sizeX and sizeY as the input image dimensions.  
-& yes \\ \hline
+ visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+             evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & displayed text, can contain both HTML tags and Angular
 expressions of the form '\{\{expression\}\}'. & \\ \hline
 \caption{Keys for the 'warning' type.}
@@ -724,6 +733,9 @@ algorithm.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & repeat\_gallery  & yes \\ \hline
+ visible    & AngularJS boolean expression evaluted in the context of DemoResultCtrl
+              controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+              evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between.& yes \\ \hline
@@ -885,7 +897,7 @@ The demo input controler defines the following variables in its scope:
 The controller is used to update a timer of the number of seconds that the algorithm
 takes to execute.
 
-\subsubsection{DemoResultCtrl}
+\subsubsection{DemoResultCtrl} \label{sec:DemoResultCtrl}
 
 This controller contains the following variables in its scope:
 \begin{itemize}
@@ -898,6 +910,9 @@ This controller contains the following variables in its scope:
   \item 3 display parameters display={param1,param2,param3} that can be used
         by demos that need specific display parameters.
   \item the demo,params,meta and info parameters read from json files.
+  \item the dimensions of the (possibly cropped) input image: sizeX and sizeY 
+  \item the maximal dimension of original input images: imwidth and imheight and 
+        the display ratio: display\_ratio.
   \item a few more useful functions.
 \end{itemize}
 
