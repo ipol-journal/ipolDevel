@@ -103,6 +103,7 @@ It has the following information:
  flags      & make command compilation flags & yes \\ \hline
  scripts    & list of scripts and their associated paths relative to the source 
             code path & no  \\ \hline
+ post\_build & shell command to run after the build & no \\ \hline
 \caption{Keys for the 'make' type.}
 \end{longtable}
 
@@ -129,9 +130,10 @@ It has the following information:
                 since the source code is steady & no  \\ \hline
  cmake\_flags  & cmake flags for configuration ('Release' build type is 
                 automatically set) & no  \\ \hline
- binaries   &  same as make type& yes \\ \hline
- flags      &  same as make type & yes \\ \hline
- scripts    & same as make type & no  \\ \hline
+ binaries     & same as make type & yes \\ \hline
+ flags        & same as make type & yes \\ \hline
+ scripts      & same as make type & no  \\ \hline
+ post\_build  & same as make type & no \\ \hline
 \caption{Keys for the 'cmake' type.}
 \end{longtable}
 
