@@ -164,6 +164,11 @@ class BuildDemoBase:
           shutil.move(path.join(src_path, script[0], script[1]),self.scripts_dir)
           # Give exec permission to the script
           os.chmod( path.join( self.scripts_dir, script[1]), stat.S_IREAD | stat.S_IEXEC )
+      # prepare_cmake can fix some options before configuration
+      if ('post_build' in self.params.keys()):
+        print 'post_build command:', self.params['post_build']
+        build.run(self.params['post_build'],
+                stdout=self.log_file, cwd=src_path)
           
       # cleanup the source dir
       shutil.rmtree(self.src_dir)
