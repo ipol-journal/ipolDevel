@@ -1,0 +1,126 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Non-parametric Sub-pixel Local Point Spread Function Estimation",
+    "input_description"     : "<p> This demo interface performs PSF estimation from a photograph of a PSF calibration pattern. </p>",
+    "param_description"     : [
+        "Three inputs are required by the PSF estimation algorithm:",
+        "<ul>",
+            "<li>s : the superresolution factor (1x,2x,3x,4x)</li>",
+            "<li>k : the kernel support sie (k x k pixels in the superresolved estimation, recommended  k = 4s+1)</li>",
+            "<li>t : the least squares algorithm (ls, ls + thresholding, non-negative ls)</li>",
+        "</ul>"
+        ],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/admm-nppsf/",
+    "show_results_on_error" : true
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2012/admm-nppsf/psfestim_1.3.tar.gz", 
+      "srcdir"        : "psfestim_1.3",
+      "prepare_make"  : "sed -i 's/-lblas/-L\\\/usr\\\/lib64\\\/atlas -ltatlas/g' Makefile",
+      "binaries"      : [ [".","psf_estim"] ],
+      "flags"         : "-j4",
+      "post_build"    : "cp pattern_noise.pgm ../../bin"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "2000*2000",
+          "max_weight"      : "3 * 1024 * 1024",
+          "dtype"           : "1x8i",
+          "ext"             : ".pgm"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "s",
+      "type"          : "selection_radio", 
+      "label"         : "<i>s</i>:",
+      "values"        : {"1x":"1", "2x":"2", "3x":"3", "4x":"4"},
+      "default_value" : "4"
+    },
+    {
+      "id"            : "k",
+      "type"          : "range", 
+      "label"         : "<i>k</i>:",
+      "values"        : { "min":0, "max":100, "step":0.1, "default":17 }
+    },
+    {
+      "id"            : "t",
+      "type"          : "selection_radio", 
+      "label"         : "<i>t</i>:",
+      "values"        : { "LS":"0", "LS+TH":"1", "NNLS":"2" },
+      "default_value" : "1"
+    }
+  ],
+  "run": [ 
+    "python:im = image(self.work_dir + 'input_0.sel.png')",
+    "python:im.save(   self.work_dir + 'input_0.sel.pgm')",
+    "cp ../../bin/pattern_noise.pgm .",
+    "psf_estim -p pattern_noise.pgm -s $s -k $k -d det_out.ppm -t $t -o psf.pgm input_0.sel.pgm psf.txt >stdout.txt 2>&1",
+    "python: # re adjust width and height to avoid visualization interpolation",
+    "python:im = image(self.work_dir + 'psf.pgm')",
+    "python:im = im.resize((400, 400), 'nearest')",
+    "python:im.save(self.work_dir + 'psf.png')",
+    "python:im = image(self.work_dir + 'det_out.ppm')",
+    "python:im.save(self.work_dir + 'det_out.png')"
+  ]
+  ,
+  "config":
+    {
+      "info_from_file": {  "output" : "stdout.txt"
+                        }
+    },
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"   : "original image",
+                  "det_out.png"       : "det_out",
+                  "psf.png"           : "psf"
+                },
+      "compressed_files" : { "psf.txt":"psf", "stdout.txt":"stdout"},
+      "params" :  [ "s", "k", "t" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "warning", 
+      "visible"       : "info.output.indexOf('No pattern was detected.')>-1",
+      "contents"      : "Pattern Not Found. Are you sure that there is a pattern in the image? It may have not been detected if pattern covers only a small part of the image. Crop the image so that the pattern covers at least half of the image and re-run. Otherwise, upload an image containing a pattern."
+    },
+    {
+      "type"          : "warning", 
+      "visible"       : "info.output.indexOf('More than one pattern was detected.')>-1",
+      "contents"      : "More than one pattern was detected. Crop the image surounding the desired pattern and re-run."
+    },
+    {
+      "visible"       : "info.status!='failure'",
+      "type"          : "gallery",
+      "label"         : "<h2>PSF</h2> This image has been resized from its original size {{params.k}} x {{params.k}} pixels for better visualization.",
+      "contents"      : { 
+        "PSF"    : "psf.png" 
+      },
+      "style"         : "height:{{Math.min(sizeY*ZoomFactor,600)}}px"
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Results</h2>",
+      "contents"      : { 
+        "input"    : "input_0.sel.png" ,
+        "detected" : "det_out.png"
+      },
+      "style"         : "height:{{Math.min(sizeY*ZoomFactor,800)}}px"
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h2>Program Output<h2>",
+      "contents"      : "stdout.txt",
+      "style"         : "width:50em;height:30em;background-color:#eee"
+    }
+  ]
+
+}
