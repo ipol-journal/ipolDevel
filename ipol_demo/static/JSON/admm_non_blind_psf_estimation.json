@@ -19,7 +19,7 @@
       "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2012/admm-nppsf/psfestim_1.3.tar.gz", 
       "srcdir"        : "psfestim_1.3",
-      "prepare_make"  : "sed -i 's/-lblas/-L\\\/usr\\\/lib64\\\/atlas -ltatlas/g' Makefile",
+      "prepare_make"  : "sed -i 's/-lblas/-lblas -lgslcblas/g' Makefile",
       "binaries"      : [ [".","psf_estim"] ],
       "flags"         : "-j4",
       "post_build"    : "cp pattern_noise.pgm ../../bin"
