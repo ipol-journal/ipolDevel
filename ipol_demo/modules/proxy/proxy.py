@@ -150,13 +150,14 @@ class Proxy(object):
         
         # Check Url Parameters
         if url_size == 0:
+            error["code"] = -1
             ex = "url without any parameters"
             self.error_log("index", ex)
             return json.dumps(error)
         
         # Check if module is specified
         if 'module' not in url:
-           error["code"] = -1
+           error["code"] = -2
            ex = "url without module"
            self.error_log("index", ex)
            return json.dumps(error)
@@ -165,7 +166,7 @@ class Proxy(object):
         
         # Check if module is valid
         if module not in self.dict_modules.keys():
-            error["code"] = -2
+            error["code"] = -3
             if module == "":
                ex = " module in url is empty"
             else:
@@ -178,7 +179,7 @@ class Proxy(object):
         
         # Check if service is specified
         if 'service' not in url:
-            error["code"] = -3
+            error["code"] = -4
             ex = "Not WS in the url"
             self.error_log("index", ex)
             return json.dumps(error)
@@ -196,7 +197,7 @@ class Proxy(object):
         try:
             call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
         except Exception as ex:
-            error["code"] = -4
+            error["code"] = -5
             self.error_log("index", "Module '" + module + "' communication error; " + str(ex))
             return json.dumps(error)
         
@@ -204,7 +205,7 @@ class Proxy(object):
         try:
             return json.dumps(json.loads(call_service))
         except Exception as ex:
-            error["code"] = -5
+            error["code"] = -6
             self.error_log("index", str(ex))
             return json.dumps(error)
         

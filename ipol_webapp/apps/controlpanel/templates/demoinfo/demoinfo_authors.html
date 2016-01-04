@@ -1,9 +1,11 @@
 {% extends 'base/base.html' %}
 {% load staticfiles %}
 {% load i18n %}
+{% load crispy_forms_tags %}
+
 
 {% block title %}
-    Demos
+    {% trans 'Demoinfo Authors' %}
 {% endblock %}
 
 {% block cssfiles %}
@@ -11,21 +13,22 @@
     <style type="text/css">
         .ststsok {
             color:green;
-
         }
         .ststsnok {
             color:red;
-
         }
-        .demo{
+        .author{
             border: 1px solid black;
             margin: 20px;
             padding: 10px;
-            width: 40%;
+            //width: 40%;
         }
         .container{
             margin: 20px;
             padding: 10px;
+        }
+        .griditem{
+            padding-left: 20px
         }
     </style>
 
@@ -33,6 +36,7 @@
 
 
 {% block topmenu %}
+
     <!-- topmenu Section for demoinfo   -->
     {% include 'demoinfo/demoinfo_menu.html' %}
 
@@ -42,84 +46,366 @@
 {% block content %}
 
 
-
-
     <div class="container">
 
-        <h2> AUTHORS LIST</h2>
+        <h2> {% blocktrans %} AUTHORS LIST {%  endblocktrans %}</h2>
 
-        {% with data=view.list_authors %}
+        {#  Search bar #}
+        {% with searchurl='ipol.cp.demoinfo.authors' %}
+            {% include 'demoinfo/searchbar.html' %}
+        {% endwith %}
 
-            {% if data.status == "OK" %}
+        {#  Add Author btn #}
+        <div class="container">
+            <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.create_author' %}' )">{% blocktrans %}Add New Author{%  endblocktrans %}</a>
+        </div>
 
-                {% if data.demo_list %}
-                    {% for demo in data.demo_list%}
+        {#  Author list #}
+        {% with data=list_authors %}
 
-                        <div class="demo" id="demo_info_{{ demo.id }}" >
-                            <a  href="#">
-                                <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
-                            </a>
-                            <p style="padding-left: 20px">title:{{ demo.title }} </p>
-                            <p style="padding-left: 20px">abstract:{{ demo.abstract }} </p>
-                            <p style="padding-left: 20px">zipURL:<a  href="#">{{ demo.zipURL }}</a> </p>
-                            <p style="padding-left: 20px">editorsdemoid:{{ demo.editorsdemoid }} </p>
-                            <p style="padding-left: 20px">stateID:{{ demo.stateID }} </p>
-                            <p style="padding-left: 20px">demodescriptionID:{{ demo.demodescriptionID }} </p>
-                            <p style="padding-left: 20px">modification:{{ demo.modification }} </p>
-                            {#  boton Delete demo#}
-                            <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('urldelete',{{ demo.demo_id  }} )">Delete</a>
+            {% if status == "OK" %}
+
+                {% if data %}
+                    {% for author in data %}
+
+                        <div class="author row" id="author_info_{{ author.id }}" >
+                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ author.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'name' %}:{{ author.name }} </div>
+                            <div class="griditem col-sm-3">{% trans 'email' %}:{{ author.mail}} </div>
+
+
+                            <div class="griditem col-sm-3">
+                                {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
+                                <a class="btn btn-primary" onclick="send_delete_author_request('{% url 'ipol.cp.demoinfo.delete_author' author.id %}',{{ author.id }} )">{% trans 'Delete' %}</a>
+
+                                {#  btn Edit author #}
+                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )">{% trans 'Edit' %}</a>
+
                             </div>
 
                         </div>
                     {% endfor %}
                 {% else %}
 
-                    <p class="ststsnok">No demos available in Demoinfo</p>
-                    <p>
-                        You can create test demo adding experiments to test demo from the
-                        <a  href="{% url 'ipol.cp.status'%}">
-                            status page
-                        </a>
-                    </p>
+                    <p class="ststsnok"> {% blocktrans %}No Authors available.{%  endblocktrans %}</p>
+
 
                 {% endif %}
 
             {% else %}
 
-                <p class="ststsnok"> Could not conect to demoinfo, check demoinfo Status</p>
+                <p class="ststsnok"> {% blocktrans %}Could not connect to demoinfo authors, check demoinfo Status{%  endblocktrans %}</p>
 
             {% endif %}
+
+            {#  WS Pagination, remebers the current search #}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if has_previous %}
+                        <a href="?page={{ previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
+                    {% endif %}
+
+                    <span class="current">
+                        {% trans 'Page' %} {{ number }} {% trans 'of' %} {{ num_pages }}.
+                    </span>
+
+                    {% if has_next %}
+                        <a href="?page={{ next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
+                    {% endif %}
+                </span>
+            </div>
+            {#  Django Pagination, remebers the current search #}
+            {#            <div class="pagination">#}
+            {#                <span class="step-links">#}
+            {#                    {% if data.has_previous %}#}
+            {#                        <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>#}
+            {#                    {% endif %}#}
+            {##}
+            {#                    <span class="current">#}
+            {#                        {% trans 'Page' %} {{ data.number }} {% trans 'of' %} {{ data.paginator.num_pages }}.#}
+            {#                    </span>#}
+            {##}
+            {#                    {% if data.has_next %}#}
+            {#                        <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>#}
+            {#                    {% endif %}#}
+            {#                </span>#}
+            {#            </div>#}
+
 
         {% endwith %}
 
     </div>
 
+    {#  Modals #}
+
+
+    <!-- Modal author show/edit -->
+    <div class="modal fade" id="createAuthorFormModalId" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="createAuthorModalheader" class="modal-header">
+                    <a href="#" class="close" data-dismiss="modal">&times;</a>
+                    <h3>Create Author</h3>
+
+                </div>
+                <div class="modal-body" id="createAuthorFormmodalbody">
+                    <div id="createauthor_modal_errordiv"></div>
+                    {% crispy authorform %}
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
-{% block functionsjs %}
-        <script>
 
-        function send_delete_demo_request(wsurl,demo_id) {
-            var deldemo = confirm('delete this demo: ' + demo_id);
-            if (deldemo == true) {
+{% block functionsjs %}
+
+    <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+    <script>
+        {#  global vars #}
+
+
+        {#  modal author #}
+        $modal_author_msg_div='#createauthor_modal_errordiv';
+        $modal_author_id='#createAuthorFormModalId';
+        $modal_author_header='div#createAuthorModalheader';
+
+        $form_author_id='#Authorform';
+        //hidden
+        $form_author_field_author_id="#Authorform #id_id";
+        //normal
+        $form_author_field_name_id="#Authorform #id_name";
+        $form_author_field_mail_id="#Authorform #id_mail";
+        var $authorform = $($form_author_id);
+        
+        {#  js error msg#}
+        $ws_down=" check webservices are running, go to status page";
+
+        {#  secure AJAX POST to ws ,from django docs #}
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $(document).ready(function(){
+            var csrftoken = getCookie('csrftoken');
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        });
+
+        {#  delete author  #}
+        function send_delete_author_request(wsurl,author_id) {
+            var delauthor = confirm('delete this author: ' + author_id);
+
+            if (delauthor == true) {
                 $.ajax({
-                    type: 'GET',
+                    type: 'POST',
                     url: wsurl,
                     dataType: 'json',
                     success: function(data) {
-                        //console.error(data.status);
-                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
-                        $('#demo_info_'+ demo_id).html(okhtml);
+                        console.log(data.status);
+                        var okhtml="<p class=\"ststsok\">author Deleted</p>";
+                        $('#author_info_'+ author_id).html(okhtml);
+                        //todo better to only reload part of list, but shoul change django pagination for js pagination
+                        window.location.reload(true);
 
                     },
                     error: function(data){
-                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
-                        $('#demo_info_'+ demo_id).html(errorhtml);
+                        console.error(data.status);
+                        var errorhtml="<p class=\"ststsnok\">author not deleted sucessfully, "+$ws_down+"</p>";
+                        $('#author_info_'+ author_id).html(errorhtml);
                     }
                 });
             }
         }
+
+
+        {#  show/edit author modal  #}
+        function send_get_author_request(wsurl,author_id){
+            console.log(wsurl);
+            console.log(author_id);
+
+            if (author_id === undefined) {
+                // author_id was not passed, just open create modal
+                $($modal_author_header).html('<h3>New author data</h3>');
+                //clear data
+                $($modal_author_msg_div).html('');
+
+                $($form_author_field_author_id).get(0).value = '';
+                $($form_author_field_name_id).get(0).value = '';
+                $($form_author_field_mail_id).get(0).value = '';
+
+
+                $authorform.show();
+                $($modal_author_id).modal('show');
+            }else{
+                // wsurl was passed, get data from ws and open show modal
+                console.log("send_get_author_request");
+                $.ajax({
+                    type: 'POST',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+
+                        console.log(data.status);
+
+                        if (data.status=='OK'){
+                            //clear modal  error
+                            $($modal_author_msg_div).html('');
+
+                            //edit/show Author
+                            if ( data.id ){
+
+                                console.log(" GEt form Author data");
+                                //Load ddl data in form
+                                //console.log(data.last_demodescription);
+                                //clear error data
+                                $($modal_author_msg_div).html('');
+
+                                $($modal_author_header).html('<h3>Edit Author data</h3>');
+                                $($form_author_field_author_id).get(0).value = data.id;
+                                $($form_author_field_name_id).get(0).value = data.name;
+                                $($form_author_field_mail_id).get(0).value = data.mail;
+
+                                $($modal_author_id).modal('show');
+                                $authorform.show();
+
+                            //create Author
+                            }else{
+                                console.log("error no authorid in form ");
+                                //error, no OK
+                                var errorhtml="<p class=\"ststsnok\">Author Data not retrieved sucessfully, check demoinfo consistency</p>";
+                                $($modal_author_msg_div).html(errorhtml);
+                                //clear form data
+                                $($form_author_field_author_id).get(0).value = '';
+                                $($form_author_field_name_id).get(0).value = '';
+                                $($form_author_field_mail_id).get(0).value = '';
+
+                                $($modal_author_id).modal('show');
+                                //$authorform.show();
+                            }
+                        }else{
+                            //error, no OK
+                            var errorhtml="<p class=\"ststsnok\">Author not retrieved sucessfully, "+$ws_down+"</p>";
+                            $($modal_ddl_msg_div).html(errorhtml);
+                        }
+                    },
+                    error: function(data){
+                        var errorhtml="<p class=\"ststsnok\">Error getting Author, "+$ws_down+"</p>";
+                        $($modal_author_msg_div).html(errorhtml);
+                        $($modal_author_id).modal('show');
+                        $authorform.hide();
+                    }
+                });
+            }
+        }
+
+
+        {#  submit Author form  #}
+        function submitAuthorformAJAX(){
+
+            console.log("submitAuthorformAJAX Submit");
+            var csrftoken = getCookie('csrftoken');
+            var $serializedData = $authorform.serialize();
+            var $ajaxurl = $authorform.attr("action");
+            console.log($ajaxurl);
+            console.log($serializedData);
+
+            $.ajax({
+                url: $ajaxurl,
+                type: "POST",
+                {# dataType: "json",#}
+                data: $serializedData,
+                success: function(data) {
+
+                    console.log("AJAX CALL status: "+data.status);
+                    if (data.status == "OK") {
+                        $($modal_author_msg_div).html('Author saved').show();
+                        $authorform.hide();
+                        //todo better to only reload part of list, but shoul change django pagination for js pagination
+                        window.location.reload(true);
+                    }
+                    else {
+
+                        $authorform.show();
+                        if (data.error){
+                            var errorhtml="<p class=\"ststsnok\">Author not saved, error: "+data.error+"</p>";
+                            $($modal_author_msg_div).html(errorhtml).show();
+                        }else{
+                            var errorhtml="<p class=\"ststsnok\">Author not saved, error unidefined</p>";
+                            $($modal_author_msg_div).html(errorhtml).show();
+                        }
+
+
+                    }
+                },
+                error: function () {
+                    console.log("ajax error");
+                    var errorhtml="<p class=\"ststsnok\">Error saving Author, "+$ws_down+"</p>";
+                    $($modal_author_msg_div).html(errorhtml);
+                    $($modal_author_id).modal('show');
+                    $authorform.hide();
+                }
+            });
+        }
+
+        {#  Author form validation #}
+        $($form_author_id).validate({
+            errorClass: "validationerror",//for css
+            rules: {
+                name: {
+                    required: true,
+                    minlength: 5
+                },
+                mail: {
+                    required: true,
+                    minlength: 5
+                }
+            },
+            messages: {
+                name: {
+                    required: "please fill name field",
+                    minlength: "Your name must be at least 5 characters"
+                },
+                mail: {
+                    required: "please fill mail field",
+                    minlength: "Your mail must be at least 5 characters"
+                }
+            },
+            submitHandler: function() {
+                console.log("validated ok submitAuthorformAJAX");
+                // your ajax loading logic
+                // form.submit(); // use this to finally submit form data at the last step
+                submitAuthorformAJAX();
+                return false;  // prevent form submit because you are doing the ajax
+            }
+        });
+
+
+
     </script>
 
 

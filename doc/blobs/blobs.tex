@@ -154,7 +154,7 @@ relations.
 The library used to insert, select or update database is
 \emph{SQLite} \cite{SQLite}. This thereof manages, internally,
 the concurrent access to database. Indeed, when two people want to
-access to the database : the first one will do his request while
+access to the database: the first one will do his request while
 the other will be locked by mutex. This principle is also used by transactions
 (BEGIN or END/COMMIT).
 Therefore, at the beginning of development, it was thought only need a
@@ -240,8 +240,8 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
                   & { \{ return:OK or KO,
                         blobs: \{id, hash,  extension, format \},
                         use\_template: \{id: name, is\_template, id\_template\}\},
-                        url : 'blob path url',
-                        url\_thumb : 'blob thumb path url',
+                        url: 'blob path url',
+                        url\_thumb: 'blob thumb path url',
                         physical\_location : 'blob path physical location'
                     }\\
   \hline

@@ -48,7 +48,7 @@ local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
 
-#alluth contrll for allowing logins
+#alluth control for allowing logins
 ALLAUTH_GESTS = True
 
 if hostname in local_machines:
@@ -147,6 +147,7 @@ INSTALLED_APPS = (
 	'allauth',
 	'allauth.account',
 	'allauth.socialaccount',
+	'crispy_forms',
 	# 'allauth.socialaccount.providers.linkedin',
 )
 

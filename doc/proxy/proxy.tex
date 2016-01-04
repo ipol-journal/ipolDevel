@@ -71,27 +71,27 @@ The JSON format of the proxy reads as follows:
 \hline
 \textbf{Code} & \textbf{Mean} \\
 \hline
- 0   & URL without parameters \\
+-1   & URL without parameters \\
 \hline
--1   & The URL does not fulfill the protocol  \\
+-2   & The URL does not fulfill the protocol  \\
 \hline
--2   & 
+-3   & 
 \begin{tabular}{c}
 Parameter for the module empty or  \\
 the proxy does not recognize it
 \end{tabular}
 \\
 \hline
--3   & Web service not specified. \\
+-4   & Web service not specified. \\
 \hline
--4   & 
+-5   & 
 \begin{tabular}{c}
 An error in the communication \\
 (for example, the requested module is down)
 \end{tabular}
 \\
 \hline
--5   & Error from the requested module \\
+-6   & Error from the requested module \\
 \hline
 \end{tabular}
 \label{ta:codes}

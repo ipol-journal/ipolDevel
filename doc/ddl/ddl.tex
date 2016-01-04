@@ -1,4 +1,5 @@
 \section{The Demo Description Language}
+\ToDo{[Miguel]: The reference documentation for the DDL should go to a separate document (inside the same repository, of course), not mixed with the technical documentation.}
 
 current version is 1.0
 
@@ -221,11 +222,11 @@ scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
 \caption{Keys for the 'range' type.}
 \end{longtable}
 
-\subsubsection{ \emph{range_scientific} type}
+\subsubsection{ \emph{range\_scientific} type}
 
 The values of the range type are stored as numbers, so no double quotes are 
 required around the values. The default value is stored with the 'values' field.
-The 'range_scientific' type differs from the 'range' type because it displays
+The 'range\_scientific' type differs from the 'range' type because it displays
 the values in scientific notation with mantissa and exponent, the 'digits' parameter
 sets the number of digits after the decimal points for the mantissa, the slider
 will also to change each digit.
@@ -235,7 +236,7 @@ will also to change each digit.
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- type  & range_scientific       & yes \\ \hline
+ type  & range\_scientific       & yes \\ \hline
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
@@ -244,7 +245,7 @@ will also to change each digit.
  values & set min,max,step and default values using the following key/value 
 scheme \{ 'min':val, 'max':val, 'digits':val, 'default':val \} & yes
                       \\ \hline
-\caption{Keys for the 'range_scientific' type.}
+\caption{Keys for the 'range\_scientific' type.}
 \end{longtable}
 
 

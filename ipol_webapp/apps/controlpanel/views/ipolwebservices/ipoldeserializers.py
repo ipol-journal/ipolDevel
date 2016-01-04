@@ -77,23 +77,28 @@ def DeserializeDemoinfoDemoList(jsonresult):
 	#demodescriptionID is optional a demo may not have one yet!
 
 	class Demo(object):
-		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification, demodescriptionID=None):
+		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification):
 			self.editorsdemoid = editorsdemoid
 			self.title = title
 			self.abstract = abstract
 			self.zipURL = zipURL
 			self.active = active
 			self.stateID = stateID
-			self.demodescriptionID = demodescriptionID
 			self.id = id
 			self.creation = creation
 			self.modification = modification
 
 
 	class DemoList(object):
-		def __init__(self, demo_list,status):
+		def __init__(self, demo_list,status,previous_page_number=None,number=None,next_page_number=None):
 			self.demo_list = demo_list
 			self.status = status
+			if next_page_number:
+				self.next_page_number = next_page_number
+			if number:
+				self.number = number
+			if previous_page_number:
+				self.previous_page_number = previous_page_number
 
 
 	# Serializers
@@ -105,7 +110,7 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		zipURL = serializers.URLField()
 		active = serializers.IntegerField()
 		stateID = serializers.IntegerField()
-		demodescriptionID = serializers.IntegerField(required=False)
+		#demodescriptionID = serializers.IntegerField(required=False)
 		id = serializers.IntegerField()
 		creation = serializers.DateTimeField()
 		modification = serializers.DateTimeField()
@@ -113,14 +118,26 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		def create(self, validated_data):
 			return Demo(**validated_data)
 
-
 	class DemoinfoDemoListSerializer(serializers.Serializer):
 		demo_list = DemoinfoDemoSerializer(many=True)
 		status = serializers.CharField(max_length=200)
+		next_page_number = serializers.IntegerField(required=False, allow_null=True)
+		number = serializers.IntegerField(required=False, allow_null=True)
+		previous_page_number = serializers.IntegerField(required=False, allow_null=True)
 
 		def create(self, validated_data):
 			list_demos = validated_data.pop('demo_list')
 			status = validated_data.pop('status')
+			try:
+				next_page_number = validated_data.pop('next_page_number')
+				number = validated_data.pop('number')
+				previous_page_number = validated_data.pop('previous_page_number')
+			except:
+				next_page_number=None
+				number=None
+				previous_page_number=None
+				print "no pagination or filtering"
+
 			demo_list = list()
 			for demo in list_demos:
 				ds = DemoinfoDemoSerializer(data=demo)
@@ -128,9 +145,34 @@ def DeserializeDemoinfoDemoList(jsonresult):
 				if ds.is_valid(raise_exception=True):
 					demo_list.append(ds.save())
 
-			demolist = DemoList(demo_list,status)
+			demolist = DemoList(demo_list,status,previous_page_number,number,next_page_number)
 
 			return demolist
+
+	# class DemoList(object):
+	# 	def __init__(self, demo_list,status):
+	# 		self.demo_list = demo_list
+	# 		self.status = status
+
+	# class DemoinfoDemoListSerializer(serializers.Serializer):
+	# 	demo_list = DemoinfoDemoSerializer(many=True)
+	# 	status = serializers.CharField(max_length=200)
+	#
+	# 	def create(self, validated_data):
+	# 		list_demos = validated_data.pop('demo_list')
+	# 		status = validated_data.pop('status')
+	# 		demo_list = list()
+	# 		for demo in list_demos:
+	# 			ds = DemoinfoDemoSerializer(data=demo)
+	#
+	# 			if ds.is_valid(raise_exception=True):
+	# 				demo_list.append(ds.save())
+	#
+	# 		demolist = DemoList(demo_list,status)
+	#
+	# 		return demolist
+
+
 
 	#Using data from WS
 	jsondata = jsonresult
@@ -142,7 +184,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print "jsondata: ",jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = DemoinfoDemoListSerializer(data=data)
@@ -157,7 +198,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print mydl
 	return mydl
 
 
@@ -165,69 +205,75 @@ def DeserializeDemoinfoAuthorList(jsonresult):
 
 
 	#Clases that will contain the json data
-	#demodescriptionID is optional a demo may not have one yet!
+	#"author_list": [{"mail": "authoremail1@gmail.com", "creation": "2015-12-28 16:47:54", "id": 1, "name": "Author Name1"}]}
 
-	class Demo(object):
-		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification, demodescriptionID=None):
-			self.editorsdemoid = editorsdemoid
-			self.title = title
-			self.abstract = abstract
-			self.zipURL = zipURL
-			self.active = active
-			self.stateID = stateID
-			self.demodescriptionID = demodescriptionID
+	class Author(object):
+		def __init__(self, id,name, mail,creation):
+
 			self.id = id
+			self.name = name
+			self.mail = mail
 			self.creation = creation
-			self.modification = modification
 
 
-	class DemoList(object):
-		def __init__(self, demo_list,status):
-			self.demo_list = demo_list
+	class AuthorList(object):
+		def __init__(self, author_list,status,previous_page_number,number,next_page_number):
+			self.author_list = author_list
 			self.status = status
-
+			if next_page_number:
+				self.next_page_number = next_page_number
+			if number:
+				self.number = number
+			if previous_page_number:
+				self.previous_page_number = previous_page_number
 
 	# Serializers
-	class DemoinfoDemoSerializer(serializers.Serializer):
+	class DemoinfoAuthorSerializer(serializers.Serializer):
 
-		editorsdemoid = serializers.IntegerField()
-		title = serializers.CharField()
-		abstract = serializers.CharField()
-		zipURL = serializers.URLField()
-		active = serializers.IntegerField()
-		stateID = serializers.IntegerField()
-		demodescriptionID = serializers.IntegerField(required=False)
 		id = serializers.IntegerField()
+		name = serializers.CharField()
+		mail = serializers.EmailField()
 		creation = serializers.DateTimeField()
-		modification = serializers.DateTimeField()
 
 		def create(self, validated_data):
-			return Demo(**validated_data)
+			return Author(**validated_data)
 
 
-	class DemoinfoDemoListSerializer(serializers.Serializer):
-		demo_list = DemoinfoDemoSerializer(many=True)
+	class DemoinfoAuthorListSerializer(serializers.Serializer):
+		author_list = DemoinfoAuthorSerializer(many=True,required=False)
 		status = serializers.CharField(max_length=200)
+		next_page_number = serializers.IntegerField(required=False, allow_null=True)
+		number = serializers.IntegerField(required=False, allow_null=True)
+		previous_page_number = serializers.IntegerField(required=False, allow_null=True)
 
 		def create(self, validated_data):
-			list_demos = validated_data.pop('demo_list')
+			list_authors = validated_data.pop('author_list')
 			status = validated_data.pop('status')
-			demo_list = list()
-			for demo in list_demos:
-				ds = DemoinfoDemoSerializer(data=demo)
+			try:
+				next_page_number = validated_data.pop('next_page_number')
+				number = validated_data.pop('number')
+				previous_page_number = validated_data.pop('previous_page_number')
+			except:
+				next_page_number=None
+				number=None
+				previous_page_number=None
+				print "no pagination or filtering"
+			author_list = list()
+			for author in list_authors:
+				asrlzr = DemoinfoAuthorSerializer(data=author)
 
-				if ds.is_valid(raise_exception=True):
-					demo_list.append(ds.save())
+				if asrlzr.is_valid(raise_exception=True):
+					author_list.append(asrlzr.save())
 
-			demolist = DemoList(demo_list,status)
+			authorlist = AuthorList(author_list,status,previous_page_number,number,next_page_number)
 
-			return demolist
+			return authorlist
 
 	#Using data from WS
 	jsondata = jsonresult
 
 	#Deserialization.
-	mydl = None
+	myal = None
 	try:
 
 		#First we parse a stream into Python native datatypes...
@@ -236,20 +282,18 @@ def DeserializeDemoinfoAuthorList(jsonresult):
 		print "jsondata: ",jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
-		serializer = DemoinfoDemoListSerializer(data=data)
+		serializer = DemoinfoAuthorListSerializer(data=data)
 
 		if serializer.is_valid(raise_exception=True):
-			mydl = serializer.save()
-
+			myal = serializer.save()
 
 	except Exception,e:
-		msg="Error DeserializeDemoinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
+		msg="Error DeserializeAuthorinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
 		logger.error(msg)
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print mydl
-	return mydl
+	return myal
 
 
 
