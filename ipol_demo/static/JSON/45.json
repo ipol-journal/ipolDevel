@@ -114,12 +114,12 @@
   "results": [
     {
       "type"          : "warning", 
-      "condition"     : "sizeX * sizeY < 42000",
+      "visible"       : "sizeX * sizeY < 42000",
       "contents"      : "Image too small: the input image needs to be at least 42000 pixels to get a reliable estimate<br/> Forced to use one bin for the estimation."
     },
     {
       "type"          : "warning", 
-      "condition"     : "sizeX * sizeY < 20000",
+      "visible"       : "sizeX * sizeY < 20000",
       "contents"      : "Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with {{sizeX * sizeY}} pixels<br/>"
     },
     {
