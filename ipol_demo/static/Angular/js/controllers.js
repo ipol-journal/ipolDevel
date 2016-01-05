@@ -285,6 +285,15 @@ IPOLDemoControllers.controller('DemoResultCtrl',
         }
       };
       
+      $scope.joinHtml = function(html_code)
+      {
+        if (angular.isArray(html_code)) {
+          return html_code.join(' ');
+        } else {
+          return html_code;
+        }
+      };
+
       $scope.CheckString = function(v)
       {
         return angular.isString(v);
@@ -313,10 +322,10 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       
       $scope.GetLabel = function(label)
       {
-          if(label.indexOf('?') === -1) 
-              return label;
-          else 
-              return label.split('?')[1];
+        if(label.indexOf('?') === -1) 
+            return label;
+        else 
+            return label.split('?')[1];
       }
     }
   ]
