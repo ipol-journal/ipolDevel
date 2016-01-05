@@ -1,0 +1,86 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Simplest Color Balance",
+    "input_description"     : "",
+    "param_description"     : [
+        "<h2>Algorithm Parameters</h2>",
+        "<p>",
+            "Choose the percentage of pixels saturated to black (s1) and white (s2).For example, if you choose s1=1% and s2=2% then the 1% darker pixels in each channel will be saturated to black, and the 2% brightest pixels to white.",
+        "</p>" 
+    ],
+    "is_test"               : false,
+    "enable_crop"           : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/llmps-scb/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/llmps-scb/simplest_color_balance.tar.gz", 
+      "srcdir"        : "simplest_color_balance",
+      "binaries"      : [ [".","balance"] ],
+      "prepare_make"  : "sed -i -e 's/-lpng/-lpng -lm/g' makefile",
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "s1",
+      "type"          : "range", 
+      "label"         : "s1:",
+      "values"        : { "min":0.0, "max":20.0, "step":0.1, "default":1.5 }
+    },
+    {
+      "id"            : "s2",
+      "type"          : "range", 
+      "label"         : "s2:",
+      "values"        : { "min":1.0, "max":20.0, "step":0.1, "default":1.5 }
+    }
+  ],
+  "run": [ 
+    "balance rgb  $s1 $s2 input_0.sel.png output_rgb.png",
+    "balance irgb $s1 $s2 input_0.sel.png output_irgb.png",
+    "image_histogram.py input_0.sel.png output_rgb.png output_irgb.png"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.orig.png"  : "uploaded image",
+                  "input_0.sel.png"   : "original image",
+                  "output_rgb.png"    : "result image RGB",
+                  "output_irgb.png"   : "result image IRGB"
+                },
+      "params" :  [ "s1", "s2" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : [
+        "<h2>Results (s1={{params.s1}}, s2={{params.s2}})</h2>",
+        "<p>",
+            "Histogram scale is set to the histogram size of the input image. Dark colors indicate overflows and truncated bins.",
+        "</p>"
+        ],
+      "contents"      : 
+        {   "input "  : [   "input_0.sel.png",  
+                            "input_0.sel_hist.png" ],
+            "RGB"     : [   "output_rgb.png",
+                            "output_rgb_hist.png" ],
+            "IRGB"     : [  "output_irgb.png",
+                            "output_irgb_hist.png" ]
+        },
+      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+    }
+  ]
+
+}
