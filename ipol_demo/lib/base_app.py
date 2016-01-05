@@ -1008,7 +1008,7 @@ class base_app(empty_app):
         """
         # draw selected rectangle on the image
         imgS        = image(self.work_dir + 'input_0.png')
-        max_pixels  = self.demo_description['inputs'][0]['max_pixels']
+        max_pixels  = eval(self.demo_description['inputs'][0]['max_pixels'])
         imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
                        color="red")
         imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
@@ -1023,7 +1023,7 @@ class base_app(empty_app):
         dx = img.size[0]
         if dx != dx0:
             z = float(dx0)/float(dx)
-            im0.crop((int(x0*z), int(y0*z), int(x1*z), int(y1*z)))
+            im0.crop((int(x0*z+0.5), int(y0*z+0.5), int(x1*z+0.5), int(y1*z+0.5)))
             # resize if cropped image is too big
             if max_pixels and prod(im0.size) > max_pixels:
                 im0.resize(max_pixels, method="antialias")
