@@ -107,8 +107,8 @@
   <span ng-repeat="result in ::demo.results"
         ng-if="(result.visible===undefined)||$eval(result.visible)" >
     <!-- gallery -->
-    <span ng-if="::result.type==='gallery'"> 
-      <b> <span bind-html-compile="result.label"></span></b><br/>
+    <span ng-if="result.type==='gallery'"> 
+      <span bind-html-compile="joinHtml(result.label)"></span><br/>
       <div   class="gallery2" style="{{result.style|interpolate:current_scope}}">
         <ul class="index">
           <!-- if label contains '?' then interpret it as a condition 
@@ -173,7 +173,7 @@
     </span>
     <!-- repeat_gallery -->
     <span ng-if="result.type==='repeat_gallery'"> 
-      <b> <span bind-html-compile="result.label"></span></b><br/>
+      <span bind-html-compile="result.label"></span><br/>
       <div class="gallery2" style="{{result.style|interpolate:current_scope}}" >
         <ul class="index">
           <li ng-repeat="idx in range($eval(result.repeat))" >
