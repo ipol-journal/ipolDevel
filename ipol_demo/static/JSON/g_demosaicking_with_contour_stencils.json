@@ -1,0 +1,263 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Image Demosaicking with Contour Stencils",
+    "input_description"     : "<p>A variational demosaicking method using a graph-regularization, where the graph is guided by a mosaicked version of contour stencils.</p>",
+    "param_description"     : [
+        "<p> The algorithm runs in 2 steps:",
+        "<ol>",
+            "<li> a Bayer pattern mosaic is extracted from the input image;</li>",
+            "<li> the demosaicking algorithm is used to reconstruct the original image.</li>",
+        "</ol>",
+        "</p>",
+        "Mosaicing patterns <br/>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+        "</table> <div style='clear:both'><br/>"
+    ],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-dwcs/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2012/g-dwcs/src.tar.gz", 
+      "srcdir"        : "dmcswl1-src",
+      "binaries"      : [   [".","dmcswl1"],
+                            [".","dmbilinear"],
+                            [".","mosaic"],
+                            [".","imdiff"]],
+      "flags"         : " --makefile=makefile.gcc -j4"
+    } ]
+  ,
+  "inputs": [  
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "pattern",
+      "type"          : "selection_collapsed",
+      "label"         : "Mosaicing pattern",
+      "values"        : { "RGGB":"RGGB", "GRBG":"GRBG", "GBRB":"GBRG", "BGGR":"BGGR" },
+      "default_value" : "RGGB"
+    },
+    {
+      "id"            : "alpha",
+      "type"          : "range", 
+      "label"         : "Chroma weight:",
+      "values"        : { "min":1.0, "max":3.0, "step":0.1, "default":1.8 }
+    }
+  ],
+  "run": [ 
+    "#--- showcontours_max_pixels is the max image size in pixels for showing",
+    "#--- the contours as a PDF",
+    "#--- If the image is small enough, the estimated contours are rendered",
+    "#--- as EPS and converted with Ghostscript to PDF",
+    "python:showcontours_max_pixels = 25000",
+    "python:padding=16",
+    "#--- Crop image if necessary",
+    "python:img = image(self.work_dir + 'input_0.sel.png')",
+    "python:(sizeX, sizeY) = img.size",
+    "python:cropsize = (min(sizeX, 800), min(sizeY, 800))",
+    [ "(sizeX, sizeY) != cropsize",
+        "python:(x0, y0) = (int(floor((sizeX - cropsize[0])/2)),int(floor((sizeY - cropsize[1])/2)))",
+        "python:img.crop((x0, y0, x0 + cropsize[0], y0 + cropsize[1]))",
+        "python:img.save('input_0.sel.png')"
+    ],
+    "python:showcontours = (cropsize[0]*cropsize[1] <= showcontours_max_pixels)",
+    "#--- Mosaic image with 16-pixel padding",
+    "mosaic -p $pattern -e $padding input_0.sel.png mosaicked.png",
+    "#--- Demosaic image, CPU times are recorded in stdout_*.txt files",
+    "dmcswl1 -p $pattern -a $alpha mosaicked.png dmcswl1.png >stdout_dmcswl1.txt",
+    "dmbilinear -p $pattern mosaicked.png bilinear.png >stdout_bilinear.txt",
+    "#--- Display estimate image contours as EPS",
+    ["showcontours",
+        "dmcswl1 -p $pattern -s input_0.sel.png contours.eps"],
+    "#--- Trim the padding",
+    "python:img=image(self.work_dir +'mosaicked.png')",
+    "python:img.crop((padding,padding,padding+cropsize[0],padding+cropsize[1]))",
+    "python:img.save(self.work_dir +'mosaicked.png')",
+    "python:img=image(self.work_dir +'bilinear.png')",
+    "python:img.crop((padding,padding,padding+cropsize[0],padding+cropsize[1]))",
+    "python:img.save(self.work_dir +'bilinear.png')",
+    "python:img=image(self.work_dir +'dmcswl1.png')",
+    "python:img.crop((padding,padding,padding+cropsize[0],padding+cropsize[1]))",
+    "python:img.save(self.work_dir +'dmcswl1.png')",
+    "#--- Compute MSEs, the results are saved in files mse_*.txt",
+    "imdiff -mmse input_0.sel.png bilinear.png >mse_bilinear.txt",
+    "imdiff -mmse input_0.sel.png dmcswl1.png  >mse_dmcswl1.txt",
+    "#--- Read the mse_*.txt and stdout_*.txt files",
+    "#--- save info.{mse,cpu}_{bilinear,dmcwl1}",
+    "#--- process bilinear ",
+    "python:f = open(self.work_dir + 'mse_bilinear.txt', 'r')",
+    "python:self.algo_info['mse_bilinear']='%.2f' % float(f.readline())",
+    "python:f.close()",
+    "python:f = open(self.work_dir + 'stdout_bilinear.txt', 'r')",
+    "python:time_lines= ( line for line in f if line.count('CPU Time:')>0)",
+    "python:for line in time_lines: self.algo_info['cpu_bilinear']=line.split(':',1)[1]",
+    "python:f.close()",
+    "#--- process dmcswl1 ",
+    "python:f = open(self.work_dir + 'mse_dmcswl1.txt', 'r')",
+    "python:self.algo_info['mse_dmcswl1']='%.2f' % float(f.readline())",
+    "python:f.close()",
+    "python:f = open(self.work_dir + 'stdout_dmcswl1.txt', 'r')",
+    "python:time_lines= ( line for line in f if line.count('CPU Time:')>0)",
+    "python:for line in time_lines: self.algo_info['cpu_dmcswl1']=line.split(':',1)[1]",
+    "python:f.close()",
+    "#--- Compute image differences",
+    "imdiff input_0.sel.png dmcswl1.png  diffdmcswl1.png",
+    "imdiff input_0.sel.png bilinear.png diffbilinear.png",
+    "#--- Convert EPS to PDF",
+    "gs -dSAFER -q -P- -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=contours.pdf -c .setpdfwrite -f contours.eps",
+    "#--- Resize for visualization (new size of the smallest dimension = 200)",
+    "python:zoomfactor = int(max(1, math.ceil(200.0/min(cropsize[0], cropsize[1]))))",
+    "python:(sizeX, sizeY) = (zoomfactor*cropsize[0], zoomfactor*cropsize[1])",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} mosaicked.png      mosaicked_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} dmcswl1.png        dmcswl1_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} bilinear.png       bilinear_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffdmcswl1.png    diffdmcswl1_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffbilinear.png   diffbilinear_zoom.png",
+    "#--- save algorithm information",
+    "python:self.algo_info['displayheight']           = sizeY",
+    "python:self.algo_info['zoomfactor']              = zoomfactor",
+    "python:self.algo_info['showcontours']            = showcontours",
+    "python:self.algo_info['showcontours_max_pixels'] = showcontours_max_pixels"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"   : "selected subimage",
+                  "mosaicked.png"     : "mosaicked image",
+                  "dmcswl1.png"       : "contour stencils demosaicked",
+                  "diffdmcswl1.png"   : "difference image for contour stencils",
+                  "bilinear.png"      : "bilinear demosaicked",
+                  "diffbilinear.png"  : "difference image for bilinear",
+                  "contours.pdf"      : "contours estimated from the mosaicked image"
+                },
+      "params" :  [ "pattern", "alpha" ]
+    }
+  ,
+  "results": [
+    {
+        "type"      : "file_download",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "mosaick"                       : "mosaicked.png",
+                "bilinear demosaicked"          : "bilinear.png",
+                "contour stencils demosaicked"  : "dmcswl1.png",
+                "original"                      : "input_0.sel.png"
+            }
+    },
+    {
+        "type"      : "file_download",
+        "visible"   : "info.showcontours",
+        "label"     : "Contours estimated from the mosaicked image",
+        "contents"  : "contours.pdf"
+    },
+    {
+        "type"      : "html_text",
+        "visible"   : "!info.showcontours",
+        "contents"  : "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>"
+    },
+    {
+      "type"          : "gallery",
+      "label"         : [
+        "<h2>Images</h2>",
+        "<p>",
+            "Notice that if the image dimensions exceeded 800&times;800, then the image has been cropped.",
+        "</p>"
+        ],
+      "contents"      : 
+        {
+            "Mosaick"                       : "mosaicked_zoom.png",
+            "Bilinear demosaicked"          : "bilinear_zoom.png",
+            "Contour stencils demosaicked"  : "dmcswl1_zoom.png",
+            "Original"                      : "input_0.sel_zoom.png",
+            "Bilinear difference"           : "diffbilinear_zoom.png",
+            "Contour stencils difference"   : "diffdmcswl1_zoom.png"
+        },
+      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+    },
+    {
+        "type"    : "html_text",
+      "contents"      : [
+        "<table border='0' cellspacing='0' cellpadding='2px' style='background:none; margin:0; padding:0; margin-top:20px; margin-bottom:20px; border-top:1px solid black; border-bottom:1px solid black'>",
+          "<tr>",
+            "<td style='border-bottom:1px solid black'>Method</td>",
+            "<td style='border-bottom:1px solid black'>Mean squared error&nbsp;&nbsp;&nbsp;</td>",
+            "<td style='border-bottom:1px solid black'>CPU time</td>",
+          "</tr>",
+          "<tr>",
+            "<td>Bilinear demosaicking</td>",
+            "<td>{{info.mse_bilinear}}</td>",
+            "<td>{{info.cpu_bilinear}}</td>",
+          "</tr>",
+          "<tr>",
+            "<td>Contour stencils demosaicking&nbsp;&nbsp;&nbsp;</td>",
+            "<td>{{info.mse_dmcswl1}}</td>",
+            "<td>{{info.cpu_dmcswl1}}</td>",
+          "</tr>",
+       "</table>"
+      ]
+    },
+    {
+        "type"    : "html_text",
+        "contents"      : [
+            "<p>In the difference images, the error range [&minus;20,20] is linearly transformed to [0,255] for visualization purposes. Errors outside this range are saturated to 0 and 255 respectively.</p>",
+            "<p>",
+            "The displayed error is:",
+            "<ul>",
+                "<li> 0 if the error is under &minus;20</li>",
+                "<li> 128 + 128/20 * error if the error is between &minus;20 and 20 </li>",
+                "<li> 255 if the error is over 20 </li>",
+            "</ul>",
+            "</p>"
+      ]
+    }
+  ]
+
+}
