@@ -2,7 +2,7 @@ from crispy_forms.utils import render_crispy_form
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 from django.http import HttpResponse
-from apps.controlpanel.forms import DDLform, Demoform, Authorform
+from apps.controlpanel.forms import DDLform, Demoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 from django.contrib.auth.decorators import login_required
@@ -39,12 +39,17 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 
 
 	def get_context_data(self, **kwargs):
+		# I work with contex because I have to manage the filtering and pagination, so i refere to do this in context
+		#  instead of using different functions in the view object like I do in ArchiveDemosView's method list_demos
+
 
 		#get context
 		context = super(DemoinfoDemosView, self).get_context_data(**kwargs)
 
 		try:
-			#get data from WS, paginate and filter in CP
+
+			#get data from WS, paginate and filter in CP (using django pagination)
+
 			#dl = ipolservices.demoinfo_demo_list()
 			# if dl:
 			# 	result = DeserializeDemoinfoDemoList(dl)
@@ -80,8 +85,8 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 			# 	# If page is out of range (e.g. 9999), deliver last page of results.
 			# 	list_demos = paginator.page(paginator.num_pages)
 
-			#get data from WS paginated and filtered
 
+			#get data from WS paginated and filtered
 
 			#filter result
 			query = self.request.GET.get('q')
@@ -363,6 +368,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 	template_name = ''
 	form_class = Demoform
 
+	logger.warning("________________DemoinfoSaveDemoView")
 
 	def form_valid(self, form):
 
@@ -468,7 +474,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
 		else:
 			jres['error'] = 'form_valid no ajax'
-			logger.warning('DemoinfoSaveDemoView form_valid no ajax')
+			logger.error('DemoinfoSaveDemoView form_valid no ajax')
 
 
 		return HttpResponse(json.dumps(jres),content_type='application/json')
@@ -637,7 +643,7 @@ class DemoinfoGetAuthorView(NavbarReusableMixinMF,TemplateView):
 
 			return HttpResponse(result,content_type='application/json')
 
-# mucho ojo con el FormView!! como uses templatevie por error, la llamada ajax falla de forma raras :)
+
 class DemoinfoSaveAuthorView(NavbarReusableMixinMF,FormView):
 
 	template_name = ''
@@ -760,8 +766,82 @@ class DemoinfoSaveAuthorView(NavbarReusableMixinMF,FormView):
 
 
 # demo-authors
+
+
+
+
+class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
+
+	template_name = "demoinfo/manage_authors_for_demo.html"
+
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoGetDemoAuthorView, self).dispatch(*args, **kwargs)
+
+	def get_context_data(self, **kwargs):
+
+		#get context
+		context = super(DemoinfoGetDemoAuthorView, self).get_context_data(**kwargs)
+
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_authors_for_demo %s"%e
+				print(msg)
+				pass
+
+			#send context vars for template
+
+			context['demo_id'] = demo_id
+			context['choosedemoauthorform'] = ChooseAuthorForDemoform
+			context['demoauthorform'] = DemoAuthorform
+			context['authorform'] = Authorform
+			#context['demoform'] = Demoform(initial={'active': True})
+
+		except Exception as e:
+
+			msg=" DemoinfoGetDemoAuthorView Error %s "%e
+			logger.error(msg)
+
+			context['demo_id'] = None
+			context['choosedemoauthorform'] = None
+			context['demoauthorform'] = None
+			context['authorform'] = None
+			logger.error(msg)
+			print(msg)
+
+
+		return context
+
+	# no need for filtering and pagination
+	def list_authors_for_demo(self):
+		result = None
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_authors_for_demo %s"%e
+				print(msg)
+				pass
+
+			print "  list_authors_for_demo demoid: ", demo_id
+			page_json = ipolservices.demoinfo_author_list()
+			result = DeserializeDemoinfoAuthorList(page_json)
+
+		except Exception as e:
+			msg="Error list_authors_for_demo %s"%e
+			logger.error(msg)
+			print(msg)
+
+		return result
+
+
 class DemoinfoDeleteAuthorFromDemoView(NavbarReusableMixinMF,TemplateView):
-	pass
+
 
 	# @method_decorator(login_required)
 	# def dispatch(self, *args, **kwargs):
@@ -786,162 +866,199 @@ class DemoinfoDeleteAuthorFromDemoView(NavbarReusableMixinMF,TemplateView):
 	# 		print result
 	#
 	# 		return HttpResponse(result, content_type='application/json')
-
-
-class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
-
-	"""
-	Must return:
-
-	-List of the authos of a demo
-	-Authorselection form, initialized whith the available authors, so you can select one and add it to the demo
-	"""
-
-	@method_decorator(login_required)
-	def dispatch(self, *args, **kwargs):
-		return super(DemoinfoGetDemoAuthorView, self).dispatch(*args, **kwargs)
-
-	def post(self, *args, **kwargs):
-			# print "DemoinfoGetAuthorView"
-			try:
-				author_id = int(self.kwargs['author_id'])
-			except ValueError:
-				msg= "Id is not an integer"
-				logger.error(msg)
-				raise ValueError(msg)
-
-			result= ipolservices.demoinfo_read_author(author_id)
-			if result == None:
-				msg="DemoinfoGetDemoAuthorView: Something went wrong using demoinfo WS"
-				logger.error(msg)
-				raise ValueError(msg)
-
-
-			# print "Demoinfo  DemoinfoGetAuthorView result: ",result
-			# print "result type: ",type(result)
-
-			return HttpResponse(result,content_type='application/json')
-
-class DemoinfoAddAuthorToDemoView(NavbarReusableMixinMF,FormView):
 	pass
-	#
-	# template_name = ''
-	# form_class = Authorform
-	#
-	#
-	# def form_valid(self, form):
-	#
-	# 	jres = dict()
-	# 	jres['status'] = 'KO'
-	#
-	# 	# print "valid form"
-	#
-	#
-	# 	if self.request.is_ajax():
-	#
-	# 		# print "valid ajax form"
-	# 		# print form
-	# 		# print
-	#
-	# 		# get form fields
-	# 		id = None
-	# 		name = None
-	# 		mail = None
-	# 		# creation = None
-	# 		# if form has id field set, I must update, if not, create a new demo
-	# 		try:
-	# 			id = form.cleaned_data['id']
-	# 			id = int(id)
-	# 			print " id ",id
-	# 		except Exception :
-	# 			id = None
-	# 		try:
-	# 			name = form.cleaned_data['name']
-	# 			mail = form.cleaned_data['mail']
-	# 			# print " name ",name
-	# 			# print
-	# 			#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
-	# 		except Exception as e:
-	# 			msg = "DemoinfoSaveAuthorView form data error: %s" % e
-	# 			print msg
-	# 			logger.error(msg)
-	#
-	# 		#  send info to be saved in demoinfo module
-	# 		# save
-	# 		if id is None :
-	#
-	# 			try:
-	# 				# print (" create author")
-	# 				# print
-	#
-	# 				jsonresult = ipolservices.demoinfo_add_author(name,mail)
-	# 				print "jsonresult", jsonresult
-	# 				status,error = get_status_and_error_from_json(jsonresult)
-	# 				jres['status'] = status
-	# 				if error is not None:
-	# 						jres['error'] = error
-	#
-	# 			except Exception as e:
-	# 				msg = "create author error: %s" % e
-	# 				jres['error'] = msg
-	# 				logger.error(msg)
-	# 				print msg
-	# 		else:
-	# 			try:
-	# 				print (" update author ")
-	# 				print
-	# 				demojson = {
-	# 							"id": id,
-	# 							"name": name,
-	# 							"mail": mail
-	# 							# "creation": creation
-	# 				}
-	# 				jsonresult = ipolservices.demoinfo_update_author(demojson)
-	# 				status,error = get_status_and_error_from_json(jsonresult)
-	# 				jres['status'] = status
-	# 				if error is not None:
-	# 						jres['error'] = error
-	# 						print jres['error']
-	#
-	# 				#TODO todos los WS deben devolver status y errors, asi se lo paso directamente al html
-	# 			except Exception as e:
-	# 				msg = "update author error: %s" % e
-	# 				jres['error'] = msg
-	# 				logger.error(msg)
-	# 				print msg
-	#
-	# 	else:
-	# 		jres['error'] = 'form_valid no ajax'
-	# 		logger.warning('DemoinfoSaveAuthorView form_valid no ajax')
-	#
-	#
-	# 	return HttpResponse(json.dumps(jres),content_type='application/json')
-	#
-	#
-	# def form_invalid(self, form):
-	#
-	# 	jres = dict()
-	# 	jres['status'] = 'KO'
-	# 	print "invalid form"
-	#
-	# 	if self.request.is_ajax():
-	#
-	# 		print " ---invalid ajax form"
-	# 		print form.errors
-	# 		print form
-	#
-	# 		#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
-	# 		# form_html = render_crispy_form(form)
-	# 		# logger.warning(form_html)
-	#
-	# 		jres['error'] = str(form.errors)
-	# 		jres['status'] = 'KO'
-	#
-	# 	else:
-	# 		jres['error'] = 'form_invalid no ajax'
-	# 		logger.warning('form_invalid no ajax')
-	#
-	# 	return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
+	##one save view for all two different forms used in modals? nope, better to have different views for each ajax call
+
+	template_name = ''
+	form_class = ChooseAuthorForDemoform
+
+
+	def form_valid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+
+		print "valid form"
+
+
+		if self.request.is_ajax():
+
+			# get form fields
+			demoid = None
+			authorid = None
+
+			try:
+				demoid = form.cleaned_data['demoid']
+				demoid = int(demoid)
+				authorid = form.cleaned_data['author']
+			except Exception as e:
+				msg = "DemoinfoAddExistingAuthorToDemoView form data error: %s" % e
+				jres['error'] = msg
+				print msg
+				logger.error(msg)
+
+			#  send info to be saved in demoinfo module to be saved
+			try:
+				jsonresult = ipolservices.demoinfo_add_author_to_demo(demoid,authorid)
+				print "jsonresult", jsonresult
+				status,error = get_status_and_error_from_json(jsonresult)
+				jres['status'] = status
+				if error is not None:
+						jres['error'] = error
+
+			except Exception as e:
+				msg = " DemoinfoAddExistingAuthorToDemoView error: %s" % e
+				jres['error'] = msg
+				logger.error(msg)
+				print msg
+
+
+		else:
+			jres['error'] = 'form_valid no ajax'
+			logger.warning('DemoinfoAddExistingAuthorToDemoView form_valid no ajax')
+
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+	def form_invalid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+		print "invalid form"
+
+		if self.request.is_ajax():
+
+			print " invalid ajax form"
+			print form.errors
+			print form
+
+			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
+			# form_html = render_crispy_form(form)
+			# logger.warning(form_html)
+
+			jres['error'] = str(form.errors)
+			jres['status'] = 'KO'
+
+		else:
+			jres['error'] = 'form_invalid no ajax'
+			logger.warning('form_invalid no ajax')
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+class DemoinfoAddNewAuthorToDemoView(NavbarReusableMixinMF,FormView):
+
+	template_name = ''
+	form_class = DemoAuthorform
+
+
+	def form_valid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+
+		print "valid form"
+
+
+		if self.request.is_ajax():
+
+			# get form fields
+			demoid = None
+			name = None
+			mail = None
+
+			try:
+				demoid = form.cleaned_data['demoid']
+				demoid = int(demoid)
+				name = form.cleaned_data['name']
+				mail = form.cleaned_data['mail']
+			except Exception as e:
+				msg = "DemoinfoAddNewAuthorToDemoView form data error: %s" % e
+				jres['error'] = msg
+				print msg
+				logger.error(msg)
+
+			#  send info to be saved in demoinfo module to be saved
+
+			# create author
+			try:
+
+				jsonresult = ipolservices.demoinfo_add_author(name,mail)
+				print "jsonresult create author", jsonresult
+				resultdict = json.loads(jsonresult)
+				status = resultdict['status']
+				authorid = resultdict['authorid']
+				authorid = int(authorid)
+				if status != 'OK' or 'error' in resultdict:
+					msg= " DemoinfoAddNewAuthorToDemoView Could not create author "
+					logger.error(msg)
+					raise ValueError(msg+resultdict['error'])
+
+
+				# add author to demo
+				print "aki"
+				print "authorid",authorid
+				print
+
+				try:
+
+					jsonresult = ipolservices.demoinfo_add_author_to_demo(demoid,authorid)
+					print "jsonresult author to demo", jsonresult
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+
+				except Exception as e:
+					msg = " DemoinfoAddNewAuthorToDemoView add author to demo error: %s" % e
+					jres['error'] = msg
+					logger.error(msg)
+					print msg
+
+			except Exception as e:
+				msg = " DemoinfoAddNewAuthorToDemoView create author error: %s" % e
+				jres['error'] = msg
+				logger.error(msg)
+				print msg
+
+
+
+		else:
+			jres['error'] = 'form_valid no ajax'
+			logger.warning('DemoinfoAddExistingAuthorToDemoView form_valid no ajax')
+
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+	def form_invalid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+		print "invalid form"
+
+		if self.request.is_ajax():
+
+			print " ---invalid ajax form"
+			print form.errors
+			print form
+
+			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
+			# form_html = render_crispy_form(form)
+			# logger.warning(form_html)
+
+			jres['error'] = str(form.errors)
+			jres['status'] = 'KO'
+
+		else:
+			jres['error'] = 'form_invalid no ajax'
+			logger.warning('form_invalid no ajax')
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
 
 #editors
 

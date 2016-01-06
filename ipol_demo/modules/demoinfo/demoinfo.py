@@ -474,10 +474,12 @@ class DemoInfo(object):
 		data = {}
 		data["status"] = "KO"
 
-		active = convert_str_to_bool(active)
-		print "active", active, type(active)
+
 		try:
 
+			active = convert_str_to_bool(active)
+			print "active", active, type(active)
+			
 			conn = lite.connect(self.database_file)
 			dao = DemoDAO(conn)
 
@@ -510,7 +512,7 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			data["demoid"] = demoid
 		except Exception as ex:
-			error_string = "demoinfo add_demo error %s" % str(ex)
+			error_string = " --- demoinfo add_demo error %s" % str(ex)
 			print error_string
 			self.error_log("add_demo",error_string)
 			try:

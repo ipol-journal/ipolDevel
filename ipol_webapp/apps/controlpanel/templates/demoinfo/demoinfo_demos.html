@@ -102,10 +102,10 @@
                                     <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}', {{ demo.id }} )">{% trans 'DDL' %}</a>
 
                                     {#  btn Edit demo's AUTHORS #}
-                                    <a class="btn btn-info" onclick="alert(' manage demos authors')">{% trans 'AUTHORS' %}</a>
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.id %}">{% trans 'AUTHORS' %}</a>
 
                                     {#  btn Edit demo's EDITORS #}
-                                    <a class="btn btn-info" onclick="alert(' manage demos editors')">{% trans 'EDITORS' %}</a>
+                                    <a class="btn btn-info" onclick="alert(' manage demos editors, not implemented yet')">{% trans 'EDITORS' %}</a>
 
                                 </div>
                             </div>
@@ -232,31 +232,7 @@
 
 
 
-    <!-- Modal AUTHORS add/remove from demo -->
-    <div class="modal fade" id="AuthorModalId" >
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div id="AuthorModalheader" class="modal-header">
-                    <a href="#" class="close" data-dismiss="modal">&times;</a>
-                    <h3>Demos Authors</h3>
 
-                </div>
-                <div class="modal-body" id="AuthorModalbody">
-
-                    <div id="author_modal_list_div">
-                        List of authors here
-
-                    </div>
-                    <div id="author_modal_error_div"></div>
-                    {% crispy demoform %}
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>
-                </div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
 
 {% block functionsjs %}
@@ -591,9 +567,12 @@
         function submitDemoformAJAX(){
 
             console.log("submitDemoformAJAX Submit");
+
             var csrftoken = getCookie('csrftoken');
             var $serializedData = $demoform.serialize();
             var $ajaxurl = $demoform.attr("action");
+
+            console.log($ajaxurl);
 
             $.ajax({
                 url: $ajaxurl,
@@ -603,10 +582,12 @@
                 success: function(data) {
 
                     console.log("AJAX CALL status: "+data.status);
+                    console.log("AJAX CALL error: "+data.error);
+                    console.log("AJAX CALL data: "+data);
                     if (data.status == "OK") {
                         $($modal_demo_msg_div).html('Demo saved').show();
                         $demoform.hide();
-                        //todo better to only reload part of list, but shoul change django pagination for js pagination
+                        //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);
                     }
                     else {

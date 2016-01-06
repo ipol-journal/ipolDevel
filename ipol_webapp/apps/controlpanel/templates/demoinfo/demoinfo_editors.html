@@ -42,58 +42,62 @@
 {% block content %}
 
 
-
-
-    <div class="container">
-
-        <h2> EDITORS LIST</h2>
-
-        {% with data=view.list_editors %}
-
-            {% if data.status == "OK" %}
-
-                {% if data.demo_list %}
-                    {% for demo in data.demo_list%}
-
-                        <div class="demo" id="demo_info_{{ demo.id }}" >
-                            <a  href="#">
-                                <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
-                            </a>
-                            <p style="padding-left: 20px">title:{{ demo.title }} </p>
-                            <p style="padding-left: 20px">abstract:{{ demo.abstract }} </p>
-                            <p style="padding-left: 20px">zipURL:<a  href="#">{{ demo.zipURL }}</a> </p>
-                            <p style="padding-left: 20px">editorsdemoid:{{ demo.editorsdemoid }} </p>
-                            <p style="padding-left: 20px">stateID:{{ demo.stateID }} </p>
-                            <p style="padding-left: 20px">demodescriptionID:{{ demo.demodescriptionID }} </p>
-                            <p style="padding-left: 20px">modification:{{ demo.modification }} </p>
-                            {#  boton Delete demo#}
-                            <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('urldelete',{{ demo.demo_id  }} )">Delete</a>
-                            </div>
-
-                        </div>
-                    {% endfor %}
-                {% else %}
-
-                    <p class="ststsnok">No demos available in Demoinfo</p>
-                    <p>
-                        You can create test demo adding experiments to test demo from the
-                        <a  href="{% url 'ipol.cp.status'%}">
-                            status page
-                        </a>
-                    </p>
-
-                {% endif %}
-
-            {% else %}
-
-                <p class="ststsnok"> Could not conect to archive, check Archive Status</p>
-
-            {% endif %}
-
-        {% endwith %}
-
+   <div class="container">
+    <h2> EDITORS NOT IMPLEMETED YET</h2>
     </div>
+
+
+{##}
+{#    <div class="container">#}
+{##}
+{#        <h2> EDITORS LIST</h2>#}
+{##}
+{#        {% with data=view.list_editors %}#}
+{##}
+{#            {% if data.status == "OK" %}#}
+{##}
+{#                {% if data.demo_list %}#}
+{#                    {% for demo in data.demo_list%}#}
+{##}
+{#                        <div class="demo" id="demo_info_{{ demo.id }}" >#}
+{#                            <a  href="#">#}
+{#                                <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>#}
+{#                            </a>#}
+{#                            <p style="padding-left: 20px">title:{{ demo.title }} </p>#}
+{#                            <p style="padding-left: 20px">abstract:{{ demo.abstract }} </p>#}
+{#                            <p style="padding-left: 20px">zipURL:<a  href="#">{{ demo.zipURL }}</a> </p>#}
+{#                            <p style="padding-left: 20px">editorsdemoid:{{ demo.editorsdemoid }} </p>#}
+{#                            <p style="padding-left: 20px">stateID:{{ demo.stateID }} </p>#}
+{#                            <p style="padding-left: 20px">demodescriptionID:{{ demo.demodescriptionID }} </p>#}
+{#                            <p style="padding-left: 20px">modification:{{ demo.modification }} </p>#}
+                            {#  boton Delete demo#}
+{#                            <div style="padding-left: 20px" >#}
+{#                                <a class="btn btn-primary" onclick="send_delete_demo_request('urldelete',{{ demo.demo_id  }} )">Delete</a>#}
+{#                            </div>#}
+{##}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                {% else %}#}
+{##}
+{#                    <p class="ststsnok">No demos available in Demoinfo</p>#}
+{#                    <p>#}
+{#                        You can create test demo adding experiments to test demo from the#}
+{#                        <a  href="{% url 'ipol.cp.status'%}">#}
+{#                            status page#}
+{#                        </a>#}
+{#                    </p>#}
+{##}
+{#                {% endif %}#}
+{##}
+{#            {% else %}#}
+{##}
+{#                <p class="ststsnok"> Could not conect to archive, check Archive Status</p>#}
+{##}
+{#            {% endif %}#}
+{##}
+{#        {% endwith %}#}
+{##}
+{#    </div>#}
 
 
 {% endblock %}
