@@ -213,11 +213,16 @@
         </span>
       </span>
       <span ng-if="result.repeat==undefined">
-        <span bind-html-compile="result.label"></span>
-        <span ng-repeat="(label,file) in result.contents">
-          &nbsp;[&nbsp;<a href="{{work_url+file}}">{{label|interpolate:current_scope}}</a>&nbsp;]&nbsp;
+        <span ng-if="CheckObject(result.contents)">
+            <span bind-html-compile="result.label"></span>
+            <span ng-repeat="(label,file) in result.contents">
+            &nbsp;[&nbsp;<a href="{{work_url+file}}">{{label|interpolate:current_scope}}</a>&nbsp;]&nbsp;
+            </span>
         </span>
-        <br/>
+        <span ng-if="!CheckObject(result.contents)">
+            <a href="{{work_url+result.contents}}"><span bind-html-compile="result.label"></span></a>
+        </span>
+        <br/><br/>
       </span>
     </span>
     <!-- text_file -->
