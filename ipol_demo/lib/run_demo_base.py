@@ -148,7 +148,12 @@ class RunDemoBase:
       if run_cmd:
         for subcmd in cmds:
           print "subcmd = ", subcmd
+          
+          # accept # for comments
+          if subcmd.startswith('#'):
+              continue
 
+          # python commands start with "python:"
           if subcmd.startswith('python:'):
             print "Running python command ",subcmd[7:]
             exec(subcmd[7:])
