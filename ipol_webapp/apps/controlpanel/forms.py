@@ -114,13 +114,15 @@ class Demoform(forms.Form):
 	editorsdemoid = forms.IntegerField(label='editorsdemoid',required=True)
 	title = forms.CharField(label='title',required=True)
 	zipURL = forms.URLField(label='zipURL',required=True)
+
 	# must not be displayed, always true! its what we use to delete a demo
+	active = forms.IntegerField(label='active',required=True)
+	# problems using bool in form, just use int...
 	# active = forms.BooleanField(label='active',required=False,initial=True)
+
 	state = forms.ChoiceField(label='state',required=True)
 	abstract = forms.CharField(label='abstract',widget=forms.Textarea,required=True)
-	# optional
-	# demoddlid = forms.IntegerField(label='demodescriptionID',required=False)
-	# demoddlJSON = forms.CharField(label='ddlJSON',widget=forms.Textarea,required=False)
+
 
 	helper = FormHelper()
 	helper.form_id = "Demoform"
@@ -131,14 +133,13 @@ class Demoform(forms.Form):
 	helper.layout = Layout(
 
 		Field('id', type='hidden'),
+		Field('active', type='hidden'),
+		# PrependedText('active', ''),
 		Field('editorsdemoid'),
 		Field('title', css_class='form-control'),
 		Field('zipURL', css_class='form-control'),
-		# PrependedText('active', ''),
 		Field('state'),
 		Field('abstract', rows="8", css_class='form-control'),
-		# Field('demoddlid', type='hidden'),
-		# Field('demoddlJSON', rows="8", css_class='form-control'),
 		FormActions(
 			Submit('save_demo', 'Save', css_class="btn-primary"),
 		)

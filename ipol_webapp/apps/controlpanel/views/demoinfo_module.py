@@ -8,7 +8,7 @@ from apps.controlpanel.mixings import NavbarReusableMixinMF
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
-from apps.controlpanel.tools import get_status_and_error_from_json
+from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
 	DeserializeDemoinfoAuthorList
 from apps.controlpanel.views.ipolwebservices import ipolservices
@@ -401,8 +401,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 				id = int(id)
 				print " id ",id
 			except Exception :
-				print "AKI"
-				id = None
+				pass
 
 			try:
 				title = form.cleaned_data['title']
@@ -411,11 +410,14 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 				stateID = int(stateID)
 				editorsdemoid = form.cleaned_data['editorsdemoid']
 				editorsdemoid = int(editorsdemoid)
-				#active = form.cleaned_data['active']
+				active = form.cleaned_data['active']
+				active=convert_str_to_bool(active)
+
 				zipURL = form.cleaned_data['zipURL']
 				# creation = form.cleaned_data['creation']
 				# modification = form.cleaned_data['modification']
 				print " title ",title
+
 				print " active ",active, type(active)
 				print
 				#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
@@ -432,7 +434,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 					# print (" create demo")
 					# print
 
-					jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,True ,stateID)
+					jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID)
 					print "jsonresult", jsonresult
 					status,error = get_status_and_error_from_json(jsonresult)
 					jres['status'] = status
@@ -452,7 +454,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 								"title": title,
 								"abstract": abstract,
 								"editorsdemoid": editorsdemoid,
-								"active": True,
+								"active": active,
 								"stateID": stateID,
 								"id": id,
 								"zipURL": zipURL,
