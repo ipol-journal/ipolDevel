@@ -122,7 +122,7 @@ class empty_app(object):
         # json file
         description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                            "../static/JSON/{0}.json".format(self.id))
-        print description_filename
+        #print description_filename
         try:
           demo_file = open(description_filename)
           self.demo_description = json.load(demo_file)
