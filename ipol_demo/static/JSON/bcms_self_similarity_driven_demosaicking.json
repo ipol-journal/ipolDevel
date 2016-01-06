@@ -1,0 +1,178 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Self-Similarity Driven Demosaicking",
+    "input_description"     : "This will reconstruct a full image from a Bayer filter RGB mosaic image. To simplify this demonstration, a mosaic will first be extracted from a full image, and the original will then be reconstructed from the mosaic.",
+    "param_description"     : [
+        "<p> The algorithm runs in 2 steps:",
+        "<ol>",
+            "<li> a Bayer pattern mosaic is extracted from the input image;</li>",
+            "<li> the demosaicking algorithm is used to reconstruct the original image.</li>",
+        "</ol>",
+        "</p>",
+        "Mosaicing patterns <br/>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+        "</table> <div style='clear:both'><br/>"
+    ],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcms-ssdd/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/bcms-ssdd/src.tar.gz", 
+      "srcdir"        : "src",
+      "binaries"      : [   [".","mosaic"],
+                            [".","demosaickingIpol"],
+                            [".","imgdiff"]],
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [  
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "pattern",
+      "type"          : "selection_collapsed",
+      "label"         : "Mosaicing pattern",
+      "values"        : { "RGGB":"RGGB", "GRBG":"GRBG", "GBRB":"GBRG", "BGGR":"BGGR" },
+      "default_value" : "RGGB"
+    }
+  ],
+  "run": [ 
+    "#--- convert image to TIFF format",
+    "python:im = image(self.work_dir + 'input_0.sel.png')",
+    "python:im.save(self.work_dir + 'input_0.sel.tiff')",
+    "#--- Mosaic image",
+    "mosaic             input_0.sel.tiff  input_1.tiff  $pattern",
+    "#--- Demosaic image",
+    "demosaickingIpol   input_1.tiff      output_1.tiff $pattern",
+    "#--- Compute image differences",
+    "python:D=20",
+    "imgdiff            input_0.sel.tiff  output_1.tiff $D output_2.tiff >stdout.txt 2>&1",
+    "#--- convert results to PNG format",
+    "python:im = image(self.work_dir + 'input_1.tiff')",
+    "python:im.save(self.work_dir + 'input_1.png')",
+    "python:im = image(self.work_dir + 'output_1.tiff')",
+    "python:im.save(self.work_dir + 'output_1.png')",
+    "python:im = image(self.work_dir + 'output_2.tiff')",
+    "python:im.save(self.work_dir + 'output_2.png')",
+    "#--- Resize for visualization (new size of the smallest dimension = 200)",
+    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
+    "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
+    "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png  input_0.sel_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_1.png      input_1_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} output_1.png     output_1_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} output_2.png     output_2_zoom.png",
+    "#--- save algorithm information",
+    "python:self.algo_info['displayheight'] = sizeY"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.orig.png"  : "uploaded image",
+                  "input_0.sel.png"   : "selected subimage",
+                  "input_1.png"       : "mosaicked image",
+                  "output_1.png"      : "demosaicked image",
+                  "output_2.png"      : "difference image"
+                },
+      "params" :  [ "pattern" ]
+    }
+  ,
+  "results": [
+    {
+        "type"      : "html_text",
+        "visible"   : "info.zoom_factor>1",
+        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+    },
+    {
+        "type"      : "file_download",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "mosaic"         : "input_1.png",
+                "demosaic"       : "output_1.png",
+                "original"       : "input_0.sel.png",
+                "difference"     : "output_2.png"
+            }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : [ "<h2>Images</h2>" ],
+      "contents"      : 
+        {
+            "Mosaic"             : "input_1_zoom.png",
+            "Demosaic"           : "output_1_zoom.png",
+            "Original"           : "input_0.sel_zoom.png",
+            "Difference"         : "output_2_zoom.png"
+        },
+      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+    },
+    {
+        "type"    : "html_text",
+        "contents"      : [
+            "<p>In the difference images, the error range [&minus;20,20] is linearly transformed to [0,255] for visualization purposes. Errors outside this range are saturated to 0 and 255 respectively.</p>",
+            "<p>",
+            "The displayed error is:",
+            "<ul>",
+                "<li> 0 if the error is under &minus;20</li>",
+                "<li> 128 + 128/20 * error if the error is between &minus;20 and 20 </li>",
+                "<li> 255 if the error is over 20 </li>",
+            "</ul>",
+            "</p>"
+      ]
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h3>Program output<h3>",
+      "contents"      : "stdout.txt",
+      "style"         : "width:40em;height:4em;background-color:#eee"
+    }
+  ]
+
+}
