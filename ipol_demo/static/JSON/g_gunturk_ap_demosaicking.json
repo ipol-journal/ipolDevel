@@ -114,14 +114,13 @@
     {
       "files" : { 
                   "input_0.sel.png"   : "selected subimage",
-                  "mosaicked.png"     : "mosaicked image",
-                  "dmcswl1.png"       : "contour stencils demosaicked",
-                  "diffdmcswl1.png"   : "difference image for contour stencils",
-                  "bilinear.png"      : "bilinear demosaicked",
-                  "diffbilinear.png"  : "difference image for bilinear",
-                  "contours.pdf"      : "contours estimated from the mosaicked image"
+                  "mosaiced.png"      : "mosaiced image",
+                  "gunturk.png"       : "Gunturk demosaiced image",
+                  "diffgunturk.png"   : "difference image for Gunturk",
+                  "ha.png"            : "Hamilton-Adams demosaiced image",
+                  "diffha.png"        : "difference image for Hamilton-Adams"
                 },
-      "params" :  [ "pattern", "alpha" ]
+      "params" :  [ "pattern" ]
     }
   ,
   "results": [
