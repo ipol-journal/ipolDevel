@@ -49,7 +49,7 @@ demoinfo_ws_url_update_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/update_demo'
 #AUTHOR
 
 demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list'
-# param None
+# param None, returns {"status": "OK", "author_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "author2"}, ...
 demoinfo_ws_url_author_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list_pagination_and_filter'
 # param num_elements_page, page, qfilter
 
@@ -58,10 +58,14 @@ demoinfo_ws_url_delete_author = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_author'
 demoinfo_ws_url_read_author = IPOL_SERVICES_MODULE_DEMOINFO+'/read_author'
 # param author_id
 demoinfo_ws_url_add_author = IPOL_SERVICES_MODULE_DEMOINFO+'/add_author'
-# param name,mail
+# param name,mail  returns jsonresult {"status": "OK", "authorid": 8}
+
 demoinfo_ws_url_update_author = IPOL_SERVICES_MODULE_DEMOINFO+'/update_author'
 # param author data
 
+
+demoinfo_ws_url_add_author_to_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_author_to_demo'
+# param demo_id ,author_id
 
 
 #EDITOR

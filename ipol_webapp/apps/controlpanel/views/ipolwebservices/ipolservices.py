@@ -11,7 +11,7 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_add_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
 	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
 	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
-	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author
+	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +240,7 @@ def demoinfo_delete_author(author_id):
 
 def demoinfo_add_author( name ,mail):
 	print
-	print "demoinfo_add_demo"
+	print "demoinfo_add_author"
 	print
 	wsurl = demoinfo_ws_url_add_author
 	params = {'name': name,'mail': mail}
@@ -262,6 +262,14 @@ def demoinfo_update_author(author):
 	params = {'author': json.dumps(author)}
 	return get_JSON_from_webservice(wsurl,'POST',params)
 
+
+def demoinfo_add_author_to_demo( demo_id ,author_id):
+	print
+	print "demoinfo_add_author_to_demo"
+	print
+	wsurl = demoinfo_ws_url_add_author_to_demo
+	params = {'demo_id': demo_id,'author_id': author_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 #EDITOR

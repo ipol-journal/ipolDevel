@@ -102,10 +102,10 @@
                                     <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}', {{ demo.id }} )">{% trans 'DDL' %}</a>
 
                                     {#  btn Edit demo's AUTHORS #}
-                                    <a class="btn btn-info" onclick="alert(' manage demos authors')">{% trans 'AUTHORS' %}</a>
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.id %}">{% trans 'AUTHORS' %}</a>
 
                                     {#  btn Edit demo's EDITORS #}
-                                    <a class="btn btn-info" onclick="alert(' manage demos editors')">{% trans 'EDITORS' %}</a>
+                                    <a class="btn btn-info" onclick="alert(' manage demos editors, not implemented yet')">{% trans 'EDITORS' %}</a>
 
                                 </div>
                             </div>
@@ -232,31 +232,7 @@
 
 
 
-    <!-- Modal AUTHORS add/remove from demo -->
-    <div class="modal fade" id="AuthorModalId" >
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div id="AuthorModalheader" class="modal-header">
-                    <a href="#" class="close" data-dismiss="modal">&times;</a>
-                    <h3>Demos Authors</h3>
 
-                </div>
-                <div class="modal-body" id="AuthorModalbody">
-
-                    <div id="author_modal_list_div">
-                        List of authors here
-
-                    </div>
-                    <div id="author_modal_error_div"></div>
-                    {% crispy demoform %}
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans 'Close' %}</button>
-                </div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
 
 {% block functionsjs %}
@@ -285,7 +261,9 @@
         $form_demo_field_title_id="#Demoform #id_title";
         $form_demo_field_abstract_id="#Demoform #id_abstract";
         $form_demo_field_zipURL_id="#Demoform #id_zipURL";
-        //$form_demo_field_active_id="#Demoform #id_active";
+
+        $form_demo_field_active_id="#Demoform #id_active";
+
         $form_demo_field_state_id="#Demoform #id_state";
         {#  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";#}
         var $demoform = $($form_demo_id);
@@ -502,6 +480,7 @@
             console.log(demo_id);
 
             if (demo_id === undefined) {
+                console.log("send_get_demo_request  demo_id === undefined");
                 // demo_id was not passed, just open create modal
                 $($modal_demo_header).html('<h3>New Demo data</h3>');
                 //clear data
@@ -511,7 +490,7 @@
                 $($form_demo_field_title_id).get(0).value = '';
                 $($form_demo_field_abstract_id).get(0).value = '';
                 $($form_demo_field_zipURL_id).get(0).value = '';
-                //$($form_demo_field_active_id).get(0).value = '';
+                $($form_demo_field_active_id).get(0).value = 1;
                 $($form_demo_field_state_id).get(0).value = '';
                 $demoform.show();
                 $($modal_demo_id).modal('show');
@@ -548,7 +527,7 @@
                                 $($form_demo_field_title_id).get(0).value = data.title;
                                 $($form_demo_field_abstract_id).get(0).value = data.abstract;
                                 $($form_demo_field_zipURL_id).get(0).value = data.zipURL;
-                                //$($form_demo_field_active_id).get(0).value = data.active;
+                                $($form_demo_field_active_id).get(0).value = data.active;
                                 $($form_demo_field_state_id).get(0).value = data.stateID;
                                 $($modal_demo_id).modal('show');
                                 $demoform.show();
@@ -565,7 +544,7 @@
                                 $($form_demo_field_title_id).get(0).value = '';
                                 $($form_demo_field_abstract_id).get(0).value = '';
                                 $($form_demo_field_zipURL_id).get(0).value = '';
-                                //$($form_demo_field_active_id).get(0).value = '';
+                                $($form_demo_field_active_id).get(0).value = 1;
                                 $($form_demo_field_state_id).get(0).value = '';
                                 $($modal_demo_id).modal('show');
                                 //$demoform.show();
@@ -591,9 +570,12 @@
         function submitDemoformAJAX(){
 
             console.log("submitDemoformAJAX Submit");
+
             var csrftoken = getCookie('csrftoken');
             var $serializedData = $demoform.serialize();
             var $ajaxurl = $demoform.attr("action");
+
+            console.log($ajaxurl);
 
             $.ajax({
                 url: $ajaxurl,
@@ -603,10 +585,12 @@
                 success: function(data) {
 
                     console.log("AJAX CALL status: "+data.status);
+                    console.log("AJAX CALL error: "+data.error);
+                    console.log("AJAX CALL data: "+data);
                     if (data.status == "OK") {
                         $($modal_demo_msg_div).html('Demo saved').show();
                         $demoform.hide();
-                        //todo better to only reload part of list, but shoul change django pagination for js pagination
+                        //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);
                     }
                     else {

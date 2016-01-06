@@ -474,9 +474,11 @@ class DemoInfo(object):
 		data = {}
 		data["status"] = "KO"
 
-		active = convert_str_to_bool(active)
-		print "active", active, type(active)
+
 		try:
+
+			active = convert_str_to_bool(active)
+			print "active", active, type(active)
 
 			conn = lite.connect(self.database_file)
 			dao = DemoDAO(conn)
@@ -507,10 +509,13 @@ class DemoInfo(object):
 				demoid = dao.add(d)
 
 			conn.close()
+
+
+
 			data["status"] = "OK"
 			data["demoid"] = demoid
 		except Exception as ex:
-			error_string = "demoinfo add_demo error %s" % str(ex)
+			error_string = " --- demoinfo add_demo error %s" % str(ex)
 			print error_string
 			self.error_log("add_demo",error_string)
 			try:
@@ -519,6 +524,7 @@ class DemoInfo(object):
 				pass
 			#raise Exception
 			data["error"] = error_string
+
 		return json.dumps(data)
 
 
@@ -604,9 +610,16 @@ class DemoInfo(object):
 		#get payload from json object
 		p = Payload(demo)
 
+		print
+		print "update_demo"
+		print "p.active" ,p.active
+		print
 		#convert payload to Demo object
 		if hasattr(p, 'creation'):
 			#update creatio ndate
+
+
+
 			d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id, p.creation)
 		else:
 			d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id)

@@ -3,7 +3,8 @@ from crispy_forms.bootstrap import FormActions, PrependedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
 from django.core.urlresolvers import reverse, reverse_lazy
-from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list
+from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
+	demoinfo_author_list
 
 __author__ = 'josearrecio'
 from django import forms
@@ -77,6 +78,35 @@ def get_demoinfo_demo_list():
 	return demo_list_option
 
 
+#todo podria tener un ws q solo devolviera los dos campos q nececisto para el select del form
+# todo no mostrar los autores que ya pertenecen a la demo en question
+def get_demoinfo_author_list(demoid=None):
+
+
+	author_list_option=list()
+
+	try:
+		print "get_demoinfo_author_list"
+		author_list_json = demoinfo_author_list()
+		author_list_dict= json.loads(author_list_json)
+		# print "demo_list_dict", demo_list_dict
+
+		author_list= author_list_dict['author_list']
+
+		author_list_option.append( (0,"None selected") )
+		for a in author_list:
+			a = (a["id"],str(a["name"])+", "+str(a["mail"]))
+			author_list_option.append(a)
+
+		print "get_demoinfo_author_list", author_list_option
+
+	except Exception as e:
+		msg=" get_demoinfo_author_list Error %s "%e
+		print(msg)
+
+	return author_list_option
+
+
 class Demoform(forms.Form):
 	#hidden
 	id = forms.IntegerField(label='demoid',required=False)
@@ -84,13 +114,15 @@ class Demoform(forms.Form):
 	editorsdemoid = forms.IntegerField(label='editorsdemoid',required=True)
 	title = forms.CharField(label='title',required=True)
 	zipURL = forms.URLField(label='zipURL',required=True)
+
 	# must not be displayed, always true! its what we use to delete a demo
+	active = forms.IntegerField(label='active',required=True)
+	# problems using bool in form, just use int...
 	# active = forms.BooleanField(label='active',required=False,initial=True)
+
 	state = forms.ChoiceField(label='state',required=True)
 	abstract = forms.CharField(label='abstract',widget=forms.Textarea,required=True)
-	# optional
-	# demoddlid = forms.IntegerField(label='demodescriptionID',required=False)
-	# demoddlJSON = forms.CharField(label='ddlJSON',widget=forms.Textarea,required=False)
+
 
 	helper = FormHelper()
 	helper.form_id = "Demoform"
@@ -101,14 +133,13 @@ class Demoform(forms.Form):
 	helper.layout = Layout(
 
 		Field('id', type='hidden'),
+		Field('active', type='hidden'),
+		# PrependedText('active', ''),
 		Field('editorsdemoid'),
 		Field('title', css_class='form-control'),
 		Field('zipURL', css_class='form-control'),
-		# PrependedText('active', ''),
 		Field('state'),
 		Field('abstract', rows="8", css_class='form-control'),
-		# Field('demoddlid', type='hidden'),
-		# Field('demoddlJSON', rows="8", css_class='form-control'),
 		FormActions(
 			Submit('save_demo', 'Save', css_class="btn-primary"),
 		)
@@ -143,57 +174,84 @@ class Authorform(forms.Form):
 	)
 
 
-#for new (lets the user assign author to one demo...)
-class AuthorNewform(forms.Form):
+#for new (lets the user create and  assign author to one demo...)
+class DemoAuthorform(forms.Form):
 	#hidden
-	id = forms.IntegerField(label='id',required=False)
+	demoid = forms.IntegerField(label='demoid',required=False)
+	# no need for author id, whe add it from the select or create it
 	#normal
 	name = forms.CharField(label='name',required=True)
 	mail = forms.EmailField(label='mail',required=True)
 
-	# select a demo for this author
-	demo = forms.ChoiceField(label='demo(editorid,title)',required=True)
-
 	helper = FormHelper()
-	helper.form_id = "Authorform"
-	helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_author')
+	helper.form_id = "DemoAuthorform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_new_author_to_demo')
 	helper.form_method = 'POST'
 	helper.form_class = 'form-horizontal'
 	helper.layout = Layout(
-		Field('id', type='hidden'),
+		Field('demoid', type='hidden'),
 		Field('name'),
 		Field('mail', css_class='form-control'),
-		Field('demo', css_class='form-control'),
 		FormActions(
 			Submit('save_author', 'Save', css_class="btn-primary"),
 		)
 	)
-	def __init__(self, *args, **kwargs):
-		#dinamic way to get staes of demo in demoinfo module
-		super(AuthorNewform, self).__init__(*args, **kwargs)
-		self.fields['demo'] = forms.ChoiceField(label='demo(editorid,title)',required=True, choices=get_demoinfo_demo_list() )
 
 
-#for new (lets the user assign author to one demo...)
-class DemoAuthorform(forms.Form):
+#for existing author (lets the user select and assign  author to one demo...)
+class ChooseAuthorForDemoform(forms.Form):
 	#hidden
-	demoid = forms.IntegerField(label='id',required=False)
+	demoid = forms.IntegerField(label='demoid',required=False)
+	# no need for author id, whe add it from the select or create it
 	# select a demo for this author
-	author = forms.ChoiceField(label='author(name)',required=True)
+	author = forms.ChoiceField(label='author(name,email)',required=True)
 
 	helper = FormHelper()
-	helper.form_id = "DemoAuthorform"
-	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_author_to_demo')
+	helper.form_id = "ChooseAuthorForDemoform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_existing_author_to_demo')
 	helper.form_method = 'POST'
 	helper.form_class = 'form-horizontal'
 	helper.layout = Layout(
 		Field('demoid', type='hidden'),
 		Field('author', css_class='form-control'),
 		FormActions(
-			Submit('save_author_to_demo', 'Save', css_class="btn-primary"),
+			Submit('save_selected_author_for_demo', 'Save', css_class="btn-primary"),
 		)
 	)
-	# def __init__(self, *args, **kwargs):
-	# 	#dinamic way to get staes of demo in demoinfo module
-	# 	super(DemoAuthorform, self).__init__(*args, **kwargs)
-	# 	self.fields['author'] = forms.ChoiceField(label='author(name)',required=True, choices = get_demoinfo__available_author_list() )
+	def __init__(self, *args, **kwargs):
+		#dinamic way to get staes of demo in demoinfo module
+		super(ChooseAuthorForDemoform, self).__init__(*args, **kwargs)
+		self.fields['author'] = forms.ChoiceField(label='author(name,email)',required=True, choices=get_demoinfo_author_list() )
+
+
+# class DemoAuthorform(forms.Form):
+#   #Add a author to a certain demo
+# 	#hidden
+# 	demoid = forms.IntegerField(label='id',required=False)
+# 	# no need for author id, whe add it from the select or create it
+# 	#normal
+# 	name = forms.CharField(label='name',required=True)
+# 	mail = forms.EmailField(label='mail',required=True)
+#
+# 	# select a demo for this author
+# 	demo = forms.ChoiceField(label='demo(editorid,title)',required=True)
+#
+# 	helper = FormHelper()
+# 	helper.form_id = "DemoAuthorform"
+# 	helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_author')
+# 	helper.form_method = 'POST'
+# 	helper.form_class = 'form-horizontal'
+# 	helper.layout = Layout(
+# 		Field('demoid', type='hidden'),
+# 		Field('name'),
+# 		Field('mail', css_class='form-control'),
+# 		Field('demo', css_class='form-control'),
+# 		FormActions(
+# 			Submit('save_author', 'Save', css_class="btn-primary"),
+# 		)
+# 	)
+# 	def __init__(self, *args, **kwargs):
+# 		#dinamic way to get staes of demo in demoinfo module
+# 		super(DemoAuthorform, self).__init__(*args, **kwargs)
+# 		self.fields['demo'] = forms.ChoiceField(label='demo(editorid,title)',required=True, choices=get_demoinfo_demo_list() )
+#
