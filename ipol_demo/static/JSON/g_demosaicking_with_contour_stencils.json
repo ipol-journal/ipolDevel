@@ -201,7 +201,7 @@
     {
         "type"      : "html_text",
         "visible"   : "!info.showcontours",
-        "contents"  : "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>"
+        "contents"  : [ "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>" ]
     },
     {
       "type"          : "gallery",
