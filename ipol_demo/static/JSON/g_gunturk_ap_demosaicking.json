@@ -1,0 +1,175 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Gunturk-Altunbasak-Mersereau Alternating Projections Image Demosaicking",
+    "input_description"     : "<p>The color demosaicking method of Gunturk, Altunbasak, and Russell using wavelets and projections onto convex sets.</p>",
+    "param_description"     : [
+        "<p> The algorithm runs in 2 steps:",
+        "<ol>",
+            "<li> a Bayer pattern mosaic is extracted from the input image;</li>",
+            "<li> the demosaicking algorithm is used to reconstruct the original image.</li>",
+        "</ol>",
+        "</p>",
+        "Mosaicing patterns <br/>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+        "</table> <div style='clear:both'><br/>"
+    ],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_gapd/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/g_gapd/src.tar.gz", 
+      "srcdir"        : "dmgunturk-src",
+      "binaries"      : [   [".","dmgunturk"],
+                            [".","dmha"],
+                            [".","dmbilinear"],
+                            [".","mosaic"],
+                            [".","imdiff"]],
+      "prepare_make"  : "sed -i -e 's/CPNG=-DLIBPNG_SUPPORT/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DLIBPNG_SUPPORT/g' -e 's/lpng/lpng12/g' makefile.gcc",
+      "flags"         : " --makefile=makefile.gcc -j4"
+    } ]
+  ,
+  "inputs": [  
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "pattern",
+      "type"          : "selection_collapsed",
+      "label"         : "Mosaicing pattern",
+      "values"        : { "RGGB":"RGGB", "GRBG":"GRBG", "GBRB":"GBRG", "BGGR":"BGGR" },
+      "default_value" : "RGGB"
+    }
+  ],
+  "run": [ 
+    "#--- Mosaic image",
+    "mosaic     -p $pattern input_0.sel.png mosaiced.png >stdout.txt 2>&1",
+    "#--- Demosaic image",
+    "dmha       -p $pattern mosaiced.png ha.png   >stdout.txt 2>&1",
+    "dmgunturk  -p $pattern ha.png gunturk.png    >stdout.txt 2>&1",
+    "#--- Compute image differences",
+    "imdiff input_0.sel.png gunturk.png diffgunturk.png",
+    "imdiff input_0.sel.png ha.png      diffha.png",
+    "#--- Resize for visualization (new size of the smallest dimension = 200)",
+    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
+    "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
+    "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} mosaiced.png       mosaiced_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} gunturk.png        gunturk_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} ha.png             ha_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffgunturk.png    diffgunturk_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffha.png         diffha_zoom.png",
+    "#--- save algorithm information",
+    "python:self.algo_info['displayheight']           = sizeY",
+    "python:self.algo_info['zoomfactor']              = zoomfactor"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"   : "selected subimage",
+                  "mosaicked.png"     : "mosaicked image",
+                  "dmcswl1.png"       : "contour stencils demosaicked",
+                  "diffdmcswl1.png"   : "difference image for contour stencils",
+                  "bilinear.png"      : "bilinear demosaicked",
+                  "diffbilinear.png"  : "difference image for bilinear",
+                  "contours.pdf"      : "contours estimated from the mosaicked image"
+                },
+      "params" :  [ "pattern", "alpha" ]
+    }
+  ,
+  "results": [
+    {
+        "type"      : "html_text",
+        "visible"   : "info.zoom_factor>1",
+        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+    },
+    {
+        "type"      : "file_download",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "mosaic"                        : "mosaiced.png",
+                "Hamilton-Adams demosaic"       : "ha.png",
+                "Gunturk demosaic"              : "gunturk.png",
+                "original"                      : "input_0.sel.png",
+                "Hamilton-Admas difference"     : "diffha.png",
+                "Gunturk difference"            : "diffgunturk.png"
+            }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : [ "<h2>Images</h2>" ],
+      "contents"      : 
+        {
+            "Mosaick"                       : "mosaiced_zoom.png",
+            "Hamilton-Adams demosaiced"     : "ha_zoom.png",
+            "Gunturk demosaiced"            : "gunturk_zoom.png",
+            "Original"                      : "input_0.sel_zoom.png",
+            "Hamilton-Adams  difference"    : "diffha_zoom.png",
+            "Gunturk difference"            : "diffgunturk_zoom.png"
+        },
+      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+    },
+    {
+        "type"    : "html_text",
+        "contents"      : [
+            "<p>In the difference images, the error range [&minus;20,20] is linearly transformed to [0,255] for visualization purposes. Errors outside this range are saturated to 0 and 255 respectively.</p>",
+            "<p>",
+            "The displayed error is:",
+            "<ul>",
+                "<li> 0 if the error is under &minus;20</li>",
+                "<li> 128 + 128/20 * error if the error is between &minus;20 and 20 </li>",
+                "<li> 255 if the error is over 20 </li>",
+            "</ul>",
+            "</p>"
+      ]
+    }
+  ]
+
+}
