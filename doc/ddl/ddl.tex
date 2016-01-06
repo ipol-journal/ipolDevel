@@ -383,6 +383,7 @@ The label  can be used as a title to separate groups of parameters.
 The 'run' section contains an array of elements, where each element can be 
 a string or another array of strings:
 \begin{itemize}
+\item if the element is a string starting with '#', it is considered as a comment
 \item if the element is a string, it can be a command to run from the system (shell, 
 python script or demo binary) or a python code to evaluate if the string
 starts with "python:",
@@ -405,6 +406,7 @@ Python scripts from the PythonTools directory can be used in commands: currently
 \paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
 "run": [
+  "#--- comment ---"
   "nlmeans  input_0.sel.png $sigma input_1.png output_1.png",
   "img_diff input_0.sel.png input_1.png $sigma output_2.png",
   "img_mse  input_0.sel.png output_1.png >stdout.txt 2>&1"
