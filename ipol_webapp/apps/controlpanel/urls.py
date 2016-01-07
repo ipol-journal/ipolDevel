@@ -62,17 +62,11 @@ urlpatterns = [
 	# Manage Demo's Authors add/remove/get
 	# todo this goes first, if miki likes this, do the same for editor
     url(r'^authors_of_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoAuthorView.as_view(), name="ipol.cp.demoinfo.get_demos_authors"),
-
-
 	#save forms
     url(r'^ajax_add_demoinfo_existing_author_to_demo/', DemoinfoAddExistingAuthorToDemoView.as_view(), name="ipol.cp.demoinfo.add_existing_author_to_demo"),
     url(r'^ajax_add_demoinfo_new_author_to_demo/', DemoinfoAddNewAuthorToDemoView.as_view(), name="ipol.cp.demoinfo.add_new_author_to_demo"),
-
-	#falta
-	# lista de autores de una demo, ahora uso author_list
-	#lista de autores q no son de la demo, para el form, nuevo ws!
-	#borrar autor de demo, sin borrarlo de autores
-    url(r'^ajax_delete_demoinfo_author_from_demo/(?P<author_id>\d+)/$', DemoinfoDeleteAuthorFromDemoView.as_view(), name="ipol.cp.demoinfo.delete_author_from_demo"),
+	#deletes author from demo, but does not delete the author itself
+    url(r'^ajax_delete_demoinfo_author_from_demo/(?P<demo_id>\d+)/(?P<author_id>\d+)/$', DemoinfoDeleteAuthorFromDemoView.as_view(), name="ipol.cp.demoinfo.delete_author_from_demo"),
 
 
 	#EDITORS
@@ -84,6 +78,8 @@ urlpatterns = [
 	###################
     # Archive module  #
 	###################
+
+    #todo, carefull, a demo can have negative id WTF!
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
     url(r'^demo_result_page/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),

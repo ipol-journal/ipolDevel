@@ -48,7 +48,7 @@
 
     <div class="container">
 
-        <h2> {% blocktrans %} Manage demo {{ demo_id }}'s Authors   WORKING ON THIS NOW!!!!!!  {%  endblocktrans %}</h2>
+        <h2> {% blocktrans %} Manage demo {{ demo_id }}'s Authors  {%  endblocktrans %}</h2>
 
         {#  Search bar #}
 {#        {% with searchurl='ipol.cp.demoinfo.authors' %}#}
@@ -62,12 +62,11 @@
             <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
         </div>
 
-        {#  Author list #}
+        {#  Author list for this demo#}
         {% with data=view.list_authors_for_demo %}
-
             {% if data.status == "OK" %}
 
-                {% if data %}
+                {% if data.author_list %}
                     {% for author in data.author_list %}
 
                         <div class="author row" id="author_info_{{ author.id }}" >
@@ -78,7 +77,7 @@
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo' author.id %}',{{ author.id }} )">{% trans 'Delete Author from demo' %}</a>
+                                <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo'  demo_id author.id %}',{{ author.id }} )">{% trans 'Delete Author from demo' %}</a>
 
                                 {#  btn Edit author #}
                                 <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )">{% trans 'Edit Author' %}</a>
@@ -266,15 +265,15 @@
                     dataType: 'json',
                     success: function(data) {
                         console.log(data.status);
-                        var okhtml="<p class=\"ststsok\">author Deleted</p>";
+                        var okhtml="<p class=\"ststsok\">author removed from demo</p>";
                         $('#author_info_'+ author_id).html(okhtml);
-                        //todo better to only reload part of list, but shoul change django pagination for js pagination
+                        //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);
 
                     },
                     error: function(data){
                         console.error(data.status);
-                        var errorhtml="<p class=\"ststsnok\">author not deleted sucessfully, "+$ws_down+"</p>";
+                        var errorhtml="<p class=\"ststsnok\">author not removed from demo sucessfully, "+$ws_down+"</p>";
                         $('#author_info_'+ author_id).html(errorhtml);
                     }
                 });
@@ -500,6 +499,7 @@
                 success: function(data) {
 
                     console.log("AJAX CALL status: "+data.status);
+
                     if (data.status == "OK") {
                         $($modal_choosedemoauthor_msg_div).html('choosedemoAuthor saved').show();
                         $choosedemoauthorform.hide();
@@ -508,7 +508,7 @@
                     }
                     else {
 
-                        $authorform.show();
+                        $choosedemoauthorform.show();
                         if (data.error){
                             var errorhtml="<p class=\"ststsnok\">Author not added to demo, error: "+data.error+"</p>";
                             $($modal_choosedemoauthor_msg_div).html(errorhtml).show();

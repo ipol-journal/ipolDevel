@@ -1,3 +1,6 @@
+from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
+	demoinfo_available_author_list_for_demo, demoinfo_author_list
+
 __author__ = 'josearrecio'
 
 import json
@@ -35,3 +38,77 @@ def convert_str_to_bool(b):
 	elif b == 1:
 		r = True
 	return r
+
+
+def get_demoinfo_module_states():
+	# returns demoinfo states for the demos form, pubhished,etc
+	state_list=None
+
+	try:
+		statesjson = demoinfo_get_states()
+		statesdict= json.loads(statesjson)
+		#print "statesdict", statesdict
+
+		state_list= statesdict['state_list']
+	except Exception as e:
+		msg=" get_demoinfo_module_states Error %s "%e
+		print(msg)
+
+	return state_list
+
+
+def get_demoinfo_demo_list():
+	#returns the list of demos in demoinfo module
+
+	demo_list_option=list()
+
+	try:
+		demo_list_json = demoinfo_demo_list()
+		demo_list_dict= json.loads(demo_list_json)
+		# print "demo_list_dict", demo_list_dict
+
+		demo_list= demo_list_dict['demo_list']
+
+		demo_list_option.append( (0,"None selected") )
+		for d in demo_list:
+			d = (d["id"],str(d["editorsdemoid"])+", "+str(d["title"]))
+			demo_list_option.append(d)
+
+		print "demo_list_option", demo_list_option
+
+	except Exception as e:
+		msg=" get_demoinfo_demo_list Error %s "%e
+		print(msg)
+
+	return demo_list_option
+
+
+def get_demoinfo_available_author_list(demoid=None):
+	#returns the list of authors not currently asigned to a demo, if demoid is provided.
+	#if not, returns all authors
+
+	author_list_option=list()
+
+	try:
+
+		#get authors from demoinfo module
+		if demoid:
+			author_list_json = demoinfo_available_author_list_for_demo(demoid)
+		else:
+			author_list_json = demoinfo_author_list()
+
+
+		author_list_dict= json.loads(author_list_json)
+		author_list= author_list_dict['author_list']
+		#author_list_option.append( (0,"None selected") )
+		for a in author_list:
+			a = (a["id"],str(a["name"])+", "+str(a["mail"]))
+			author_list_option.append(a)
+
+
+	except Exception as e:
+		msg=" get_demoinfo_available_author_list Error %s "%e
+		print(msg)
+
+	return author_list_option
+
