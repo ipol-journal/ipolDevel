@@ -299,6 +299,47 @@ class DemoInfo(object):
 
 
 	@cherrypy.expose
+	def demo_get_available_authors_list(self,demo_id):
+		# lista all authors that are not currently assigned to a demo
+		data = {}
+		data["status"] = "KO"
+		available_author_list=list()
+
+		try:
+			conn = lite.connect(self.database_file)
+
+			# get all available authors
+			a_dao=AuthorDAO(conn)
+			list_of_all_authors=a_dao.list()
+
+			# get the authors of this demo
+			da_dao = DemoAuthorDAO(conn)
+			list_of_authors_assigned_to_this_demo = da_dao.read_demo_authors(int(demo_id))
+
+			for a in list_of_all_authors:
+				if not a  in list_of_authors_assigned_to_this_demo:
+					#convert to Demo class to json
+					available_author_list.append(a.__dict__)
+
+
+			data["author_list"] = available_author_list
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo demo_get_available_authors_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_get_available_authors_list",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+		return json.dumps(data)
+
+
+
+	@cherrypy.expose
 	def demo_get_editors_list(self,demo_id):
 		data = {}
 		data["status"] = "KO"
@@ -502,7 +543,6 @@ class DemoInfo(object):
 				ddddao.add(int(demoid),int(demodescriptionID))
 
 			else:
-				# print "else"
 				#demo created without demodescription
 				#careful with Demo init method's validation!
 				d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract, zipurl=zipURL, active=int(active), stateid=int(stateID))

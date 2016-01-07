@@ -91,6 +91,12 @@ class Author(object):
 			self.creation = datetime.datetime.now()
 
 
+	def __eq__(self, other):
+		# print "eq"
+		# print self.__dict__
+		# print other.__dict__
+		return self.__dict__ == other.__dict__
+
 class Editor(object):
 	id = None
 	name = None
@@ -116,6 +122,7 @@ class Editor(object):
 			self.creation = creation
 		else:
 			self.creation = datetime.datetime.now()
+
 
 
 ###########################
@@ -569,7 +576,7 @@ class AuthorDAO(object):
 	def list(self):
 		author_list = list()
 		try:
-			self.cursor.execute('''SELECT name, mail,id, creation FROM author ''')
+			self.cursor.execute('''SELECT name, mail,id, creation FROM author ORDER BY id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				a = Author(row[0], row[1], row[2], row[3])
@@ -766,7 +773,7 @@ class EditorDAO(object):
 		editor_list = list()
 		try:
 			# name, mail, id=None,active=None, creation=
-			self.cursor.execute('''SELECT  name, mail,  id, active, creation FROM editor ''')
+			self.cursor.execute('''SELECT  name, mail,  id, active, creation FROM editor ORDER BY id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				e = Editor(row[0], row[1], row[2], row[3], row[4])
