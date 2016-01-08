@@ -71,26 +71,29 @@
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.archive.demos' %}">{% trans 'Archive' %}</a>
+                    <a href="{% url 'ipol.cp.archive.demos' %}">{% trans 'Archive Module' %}</a>
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.blobs.demos' %}">{% trans 'Blobs' %}</a>
+                    <a href="{% url 'ipol.cp.blobs.demos' %}">{% trans 'Blobs Module' %}</a>
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.demoinfo.demos' %}">{% trans 'DemoInfo' %}</a>
+                    <a href="{% url 'ipol.cp.demoinfo.demos' %}">{% trans 'DemoInfo Module' %}</a>
                 </li>
 
 
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'DemoRunnerModule' %}</a>
+                    <a style="color:red" href="#">{% trans 'DemoRunner Module' %}</a>
                 </li>
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'DemoDispatcherModule' %}</a>
+                    <a style="color:red" href="#">{% trans 'DemoDispatcher Module' %}</a>
                 </li>
                 <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'ProxyModule' %}</a>
+                    <a style="color:red" href="#">{% trans 'Proxy Module' %}</a>
+                </li>
+                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
+                    <a style="color:red" href="#">{% trans 'User Manual' %}</a>
                 </li>
                 {#   allauth   #}
                 <li class="nav-item {% if request.session.menu == 'menu-private-logout' %} active {% endif %}">

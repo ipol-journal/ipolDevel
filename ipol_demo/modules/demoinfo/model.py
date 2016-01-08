@@ -744,7 +744,7 @@ class EditorDAO(object):
 			# todo validate user input
 			if editor.creation:
 				self.cursor.execute('''
-				UPDATE editor SET name=?, mail=?,active=?,creation=?WHERE id=?''',
+				UPDATE editor SET name=?, mail=?,active=?,creation=? WHERE id=?''',
 				                    (editor.name, editor.mail, editor.active, editor.creation, editor.id))
 			else:
 				self.cursor.execute('''
