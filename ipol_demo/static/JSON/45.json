@@ -109,7 +109,14 @@
      "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
      "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
      "run_algo.py"
-  ]
+  ],
+  "archive":
+    {
+      "files" : { "input_0.orig.png": "uploaded image",
+                  "input_0.sel.png" : "selected subimage"
+                },
+      "params" :  [ "percentile", "block", "curvefilter", "removeequals", "bins", "anoise", "bnoise", "mean_type"]
+    }
   ,
   "results": [
     {
@@ -149,13 +156,5 @@
       "label"         : "Download the estimations obtained at scale {{idx}} (gnuplot compatible format)",
       "contents"      : "estimation_s{{idx}}.txt"
     }
-  ],
-  "archive":
-    {
-      "files" : { "input_0.orig.png": "uploaded image",
-                  "input_0.sel.png" : "selected subimage"
-                },
-      "params" :  [ "percentile", "block", "curvefilter", "removeequals", "bins", "anoise", "bnoise", "mean_type"]
-    }
-
+  ]
 }
