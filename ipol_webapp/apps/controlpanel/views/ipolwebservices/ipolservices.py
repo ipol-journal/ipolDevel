@@ -11,7 +11,9 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_add_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
 	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
 	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
-	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo
+	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo, \
+	demoinfo_ws_url_author_list_for_demo, demoinfo_ws_url_available_author_list_for_demo, \
+	demoinfo_ws_url_delete_author_from_demo
 
 logger = logging.getLogger(__name__)
 
@@ -124,21 +126,6 @@ def demoinfo_update_demo_description(demodescriptionID,pjson=None):
 	wsurl = demoinfo_ws_url_update_demo_description
 	params = {'demodescriptionID': demodescriptionID}
 
-	# print
-	# print "SEND demoinfo_update_demo_description"
-	# print "params ",params
-	# print "json ",pjson[-50:]
-	# print "json type",type(pjson)
-	# print
-	#
-	# # #convert unicode str to dict for WS
-	# # pjson=json.loads(pjson)
-	# # #convert dict to  str
-	# # pjson=json.dumps(pjson)
-	#
-	# print "json ",pjson
-	# print "json type",type(pjson)
-
 	return get_JSON_from_webservice(wsurl,'POST',params=params,json=pjson)
 
 
@@ -223,6 +210,22 @@ def demoinfo_author_list():
 	return get_JSON_from_webservice(wsurl)
 
 
+def demoinfo_author_list_for_demo(demo_id):
+
+	wsurl = demoinfo_ws_url_author_list_for_demo
+	params = {'demo_id': demo_id}
+
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
+def demoinfo_available_author_list_for_demo(demo_id=None):
+
+	wsurl = demoinfo_ws_url_available_author_list_for_demo
+	params = {'demo_id': demo_id}
+
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
 def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfilter):
 
 	wsurl = demoinfo_ws_url_author_list_pagination_and_filter
@@ -255,21 +258,29 @@ def demoinfo_read_author(author_id):
 
 
 def demoinfo_update_author(author):
-	print
-	print "demoinfo_update author"
-	print
+	# print
+	# print "demoinfo_update author"
+	# print
 	wsurl = demoinfo_ws_url_update_author
 	params = {'author': json.dumps(author)}
 	return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_author_to_demo( demo_id ,author_id):
-	print
-	print "demoinfo_add_author_to_demo"
-	print
+	# print
+	# print "demoinfo_add_author_to_demo"
+	# print
 	wsurl = demoinfo_ws_url_add_author_to_demo
 	params = {'demo_id': demo_id,'author_id': author_id}
 	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_delete_author_from_demo(demo_id,author_id):
+
+	wsurl = demoinfo_ws_url_delete_author_from_demo
+	params = {'demo_id': demo_id,'author_id': author_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
 
 
 #EDITOR
