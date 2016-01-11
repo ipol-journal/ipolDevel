@@ -1,5 +1,6 @@
 from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
-	demoinfo_available_author_list_for_demo, demoinfo_author_list
+	demoinfo_available_author_list_for_demo, demoinfo_author_list, demoinfo_available_editor_list_for_demo, \
+	demoinfo_editor_list
 
 __author__ = 'josearrecio'
 

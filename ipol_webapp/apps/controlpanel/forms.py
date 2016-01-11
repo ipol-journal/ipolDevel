@@ -3,7 +3,8 @@ from crispy_forms.bootstrap import FormActions, PrependedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
 from django.core.urlresolvers import reverse, reverse_lazy
-from apps.controlpanel.tools import get_demoinfo_module_states, get_demoinfo_available_author_list
+from apps.controlpanel.tools import get_demoinfo_module_states, get_demoinfo_available_author_list, \
+	get_demoinfo_available_editor_list
 from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
 	demoinfo_available_author_list_for_demo, demoinfo_author_list
 
@@ -263,6 +264,10 @@ class ChooseEditorForDemoform(forms.Form):
 		else:
 			# all editors
 			self.fields['editor'].choices=get_demoinfo_available_editor_list()
+
+		print
+		print "self.fields['editor'].choices",self.fields['editor'].choices
+		print
 
 
 # class DemoAuthorform(forms.Form):

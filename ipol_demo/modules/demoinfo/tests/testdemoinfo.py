@@ -1441,6 +1441,47 @@ class TestDemoinfo(unittest.TestCase):
 
 		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
 
+	def test_demo_get_available_author_list(self):
+		test_passed = True
+		try:
+
+			print "test_demo_get_available_author_list"
+			print
+
+			demoid = 1
+
+			al = self.demoinfo.demo_get_available_authors_list(demoid)
+
+			print al
+
+
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+
+	def test_demo_get_available_editors_list(self):
+		test_passed = True
+		try:
+
+			print "test_demo_get_available_editor_list"
+			print
+
+
+			demoid = 1
+
+			el = self.demoinfo.demo_get_available_editors_list(demoid)
+
+			print el
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+
 
 
 	##########################
@@ -1556,8 +1597,17 @@ class TestDemoinfo(unittest.TestCase):
 			self.test_editor_list_pagination_and_filter()
 			print
 			print
-
-			print " ---24 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
+			print " ---24"
+			print
+			self.test_demo_get_available_author_list()
+			print
+			print
+			print " ---25"
+			print
+			self.test_demo_get_available_editors_list()
+			print
+			print
+			print " ---26 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()

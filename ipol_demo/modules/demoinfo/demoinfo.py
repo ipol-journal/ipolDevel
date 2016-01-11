@@ -338,7 +338,6 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
-
 	@cherrypy.expose
 	def demo_get_editors_list(self,demo_id):
 		data = {}
@@ -360,6 +359,45 @@ class DemoInfo(object):
 			error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
 			print error_string
 			self.error_log("demo_list",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+		return json.dumps(data)
+
+
+	@cherrypy.expose
+	def demo_get_available_editors_list(self,demo_id):
+		# lista all editors that are not currently assigned to a demo
+		data = {}
+		data["status"] = "KO"
+		available_editor_list=list()
+
+		try:
+			conn = lite.connect(self.database_file)
+
+			# get all available editors
+			a_dao = EditorDAO(conn)
+			list_of_all_editors = a_dao.list()
+
+			# get the editors of this demo
+			da_dao = DemoEditorDAO(conn)
+			list_of_editors_assigned_to_this_demo = da_dao.read_demo_editors(int(demo_id))
+
+			for a in list_of_all_editors:
+				if not a  in list_of_editors_assigned_to_this_demo:
+					#convert to Demo class to json
+					available_editor_list.append(a.__dict__)
+
+			data["editor_list"] = available_editor_list
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo demo_get_available_editors_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_get_available_editors_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
@@ -1216,9 +1254,10 @@ class DemoInfo(object):
 			e = Editor( name, mail)
 			conn = lite.connect(self.database_file)
 			dao = EditorDAO(conn)
-			dao.add(e)
+			id = dao.add(e)
 			conn.close()
 			data["status"] = "OK"
+			data["editorid"] = id
 		except Exception as ex:
 			error_string = "demoinfo add_editor error %s" % str(ex)
 			print error_string
