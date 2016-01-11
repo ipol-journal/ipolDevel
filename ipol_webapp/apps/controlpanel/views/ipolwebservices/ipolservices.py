@@ -47,9 +47,11 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 	result = None
 	# print
 	# print "SEND WS, get_JSON_from_webservice"
-	# print "params ",params
-	# print "json ",json
+	print "params ",params
+	print "json ",json
 	# print "json type",type(json)
+	print "METHOD",METHOD
+	print "METHOD",type(METHOD)
 	try:
 
 		if not METHOD or METHOD=='GET':
@@ -383,7 +385,7 @@ def archive_get_page(experimentid , page='1'):
 	wsurl = archive_ws_url_page
 	params = {'demo_id': experimentid, 'page': page}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_get_stats():
@@ -431,7 +433,7 @@ def archive_delete_demo(demo_id):
 	wsurl = archive_ws_url_delete_demo
 	params = {'demo_id': demo_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_experiment(experiment_id):
@@ -439,7 +441,7 @@ def archive_delete_experiment(experiment_id):
 	wsurl = archive_ws_url_delete_experiment
 	params = {'experiment_id': experiment_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_file(file_id):
@@ -447,7 +449,7 @@ def archive_delete_file(file_id):
 	wsurl = archive_ws_url_delete_blob_w_deps
 	params = {'id_blob': file_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 ####################
