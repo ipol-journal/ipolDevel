@@ -23,7 +23,8 @@ urlpatterns = [
 
 
 
-    # Common integrated view (mixes stuff from different modules and presents it toghetrer)
+    # Common integrated view (mixes stuff from different modules and presents it together)
+	#todo blobs should use stats
     url(r'^status/', StatusView.as_view(), name="ipol.cp.status"),
     url(r'^demos/', DemosView.as_view(), name="ipol.cp.demos"),
 
@@ -31,11 +32,8 @@ urlpatterns = [
     # Demoinfo module #
 	###################
 
-	# Demo list: pagina con tres pestanas, y me carga la primera llamando a demos
-    # cada pestana pone acomo activa al ser seleccionada y se trae los datos del demoinfo
-	# cada pestana tiene su vista y se trae los datos del demoinfo, aplica filtos y paginacion
-	# cada pestana tiene su busqueda ajax=jquery y paginacion, es ecir, se llama a la vista con post por el form de busqueda
-	# y se devuelven los datos filtrados,
+	# Menu option Demoinfo Module: has threee tabs (demos, authors or editors), loads first tab by default, Demos
+    # Each tab call the demoinfo module WS to create the list of demos, authors or editors, each tab has pagination and filters
 
 	# DEMOS
 
@@ -92,10 +90,13 @@ urlpatterns = [
     # Archive module  #
 	###################
 
+	# Menu option Archive Module:
     #todo, carefull, a demo can have negative id WTF!
+	#todo list_demos should be nicer
+	#todo archive shoud use pagination, it doesnt now
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
-    url(r'^demo_result_page/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
+    url(r'^archive_demo/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
   	#ajax calls
     url(r'^ajax_shutdown/', ArchiveShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
     url(r'^ajax_add_exp_to_test_demo/', ArchiveAddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
@@ -105,9 +106,12 @@ urlpatterns = [
     url(r'^ajax_delete_experiment_file/(?P<file_id>\d+)/$',
         ArchiveDeleteExperimentFileView.as_view(), name="ipol.cp.archive.delete_experiment_file"),
 
+
+
 	###################
     # Blobs module    #
 	###################
+	#todo not much done here
     url(r'^blobs_module/', BlobsDemosView.as_view(), name="ipol.cp.blobs.demos"),
 
 	###################
@@ -129,11 +133,6 @@ urlpatterns = [
     # Docs            #
 	###################
     #todo, documentacion en la app! el pdf del latex al principio...
-
-
-    #test
-    #url(r'^test/', Test1.as_view(), name="photogallery.test"),
-    #url(r'^test2/', Test2.as_view(), name="photogallery.test2"),
 
 
 

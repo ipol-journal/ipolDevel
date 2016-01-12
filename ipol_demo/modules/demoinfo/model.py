@@ -955,7 +955,8 @@ def createDb(database_name):
 				modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				stateID INTEGER,
 				FOREIGN KEY(stateID) REFERENCES state(id),
-				UNIQUE(title)
+				UNIQUE(title),
+				UNIQUE(editor_demo_id)
 				);"""
 			)
 
@@ -967,8 +968,7 @@ def createDb(database_name):
 				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
 				FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
-				UNIQUE(demoID, demodescriptionId)
-
+				UNIQUE(demoID)
 				);"""
 			)
 
