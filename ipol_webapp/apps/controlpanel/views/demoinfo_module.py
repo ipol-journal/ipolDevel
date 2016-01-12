@@ -2,15 +2,17 @@
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 from django.http import HttpResponse
-from apps.controlpanel.forms import DDLform, Demoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform
+from apps.controlpanel.forms import DDLform, Demoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
+	DemoEditorform, ChooseEditorForDemoform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
-from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list
+from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
+	get_demoinfo_available_editor_list
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
-	DeserializeDemoinfoAuthorList
+	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
@@ -1050,9 +1052,10 @@ class DemoinfoDeleteAuthorFromDemoView(NavbarReusableMixinMF,TemplateView):
 
 #editors
 
-class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
-	template_name = "demoinfo/demoinfo_editors.html"
 
+class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
+
+	template_name = "demoinfo/demoinfo_editors.html"
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
@@ -1060,19 +1063,535 @@ class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
 		self.request.session['topmenu'] = 'topmenu-demoinfo-editors'
 		return super(DemoinfoEditorsView, self).dispatch(*args, **kwargs)
 
-	def list_editors(self):
-		result = None
-		print "list_demos"
+	def get_context_data(self, **kwargs):
+
+		#get context
+		context = super(DemoinfoEditorsView, self).get_context_data(**kwargs)
+
 		try:
-			page_json = ipolservices.demoinfo_demo_list()
-			result = DeserializeDemoinfoDemoList(page_json)
+
+			#filter result
+			query = self.request.GET.get('q')
+			context['q'] = query
+			try:
+				page = self.request.GET.get('page')
+				page = int(page)
+			except :
+				# If page is not an integer, deliver first page.
+				page = 1
+
+			el = ipolservices.demoinfo_editor_list_pagination_and_filtering(PAGINATION_ITEMS_PER_PAGE_AUTHOR_LIST,page,query)
+			if el:
+				result = DeserializeDemoinfoEditorList(el)
+			else:
+				raise ValueError("No response from WS")
+
+			list_editors = result.editor_list
+
+			print "list_editors",list_editors
+			status = result.status
+
+			#pagination of result
+			if hasattr(result, 'previous_page_number'):
+				context['previous_page_number'] = result.previous_page_number
+				context['has_previous'] = True
+			else:
+				context['has_previous'] = False
+
+			if page:
+				context['number'] = page
+
+			if hasattr(result, 'number'):
+				context['num_pages'] = result.number
+
+			if hasattr(result, 'next_page_number'):
+				context['next_page_number'] = result.next_page_number
+				context['has_next'] = True
+			else:
+				context['has_next'] = False
+
+
+			#send context vars for template
+			context['status'] = status
+			context['list_editors'] = list_editors
+			context['editorform'] = Editorform
 
 		except Exception as e:
-			msg=" DemoinfoDemosView Error %s "%e
+
+			msg=" DemoinfoEditorsView Error %s "%e
+			logger.error(msg)
+			context['status'] = 'KO'
+			context['list_editors'] = []
+			context['editorform'] = None
+			logger.error(msg)
+			print(msg)
+
+
+		return context
+
+
+class DemoinfoDeleteEditorView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoDeleteEditorView, self).dispatch(*args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+
+			#todo could validate a form to get hard_delete checkbox from user
+			try:
+				editor_id = int(self.kwargs['editor_id'])
+			except ValueError:
+				msg= "Id is not an integer"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			result= ipolservices.demoinfo_delete_editor(editor_id)
+			if result == None:
+				msg="DemoinfoDeleteEditorView: Something went wrong using demoinfo WS"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			print result
+
+			return HttpResponse(result, content_type='application/json')
+
+
+class DemoinfoGetEditorView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoGetEditorView, self).dispatch(*args, **kwargs)
+
+	def post(self, *args, **kwargs):
+			# print "DemoinfoGetEditorView"
+			try:
+				editor_id = int(self.kwargs['editor_id'])
+			except ValueError:
+				msg= "Id is not an integer"
+				logger.error(msg)
+				raise ValueError(msg)
+
+			result= ipolservices.demoinfo_read_editor(editor_id)
+			if result == None:
+				msg="DemoinfoGetEditorView: Something went wrong using demoinfo WS"
+				logger.error(msg)
+				raise ValueError(msg)
+
+
+			# print "Demoinfo  DemoinfoGetEditorView result: ",result
+			# print "result type: ",type(result)
+
+			return HttpResponse(result,content_type='application/json')
+
+
+class DemoinfoSaveEditorView(NavbarReusableMixinMF,FormView):
+
+	template_name = ''
+	form_class = Editorform
+
+	def form_valid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+
+		# print "valid form"
+
+
+		if self.request.is_ajax():
+
+			print "valid ajax form"
+			print form
+			print
+
+			# get form fields
+			id = None
+			name = None
+			mail = None
+			# creation = None
+			# if form has id field set, I must update, if not, create a new demo
+			try:
+				id = form.cleaned_data['id']
+				id = int(id)
+				print " id ",id
+			except Exception :
+				id = None
+			try:
+				name = form.cleaned_data['name']
+				mail = form.cleaned_data['mail']
+				# print " name ",name
+				# print
+				#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
+			except Exception as e:
+				msg = "DemoinfoSaveEditorView form data error: %s" % e
+				print msg
+				logger.error(msg)
+
+			#  send info to be saved in demoinfo module
+			# save
+			if id is None :
+
+				try:
+					# print (" create editor")
+					# print
+
+					jsonresult = ipolservices.demoinfo_add_editor(name,mail)
+					print "jsonresult", jsonresult
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+
+				except Exception as e:
+					msg = "create editor error: %s" % e
+					jres['error'] = msg
+					logger.error(msg)
+					print msg
+			else:
+				try:
+					print (" update editor ")
+					print
+					demojson = {
+								"id": id,
+								"name": name,
+								"mail": mail
+								# "creation": creation
+					}
+					jsonresult = ipolservices.demoinfo_update_editor(demojson)
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+							print jres['error']
+
+					#TODO todos los WS deben devolver status y errors, asi se lo paso directamente al html
+				except Exception as e:
+					msg = "update editor error: %s" % e
+					jres['error'] = msg
+					logger.error(msg)
+					print msg
+
+		else:
+			jres['error'] = 'form_valid no ajax'
+			logger.warning('DemoinfoSaveEditorView form_valid no ajax')
+
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+	def form_invalid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+		print "invalid form"
+
+		if self.request.is_ajax():
+
+			print " ---invalid ajax form"
+			print form.errors
+			print form
+
+			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
+			# form_html = render_crispy_form(form)
+			# logger.warning(form_html)
+
+			jres['error'] = str(form.errors)
+			jres['status'] = 'KO'
+
+		else:
+			jres['error'] = 'form_invalid no ajax'
+			logger.warning('form_invalid no ajax')
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+
+# demo-authors
+
+
+class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
+
+	template_name = "demoinfo/manage_editors_for_demo.html"
+
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoGetDemoEditorView, self).dispatch(*args, **kwargs)
+
+	def get_context_data(self, **kwargs):
+
+		#get context
+		context = super(DemoinfoGetDemoEditorView, self).get_context_data(**kwargs)
+
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_editors_for_demo %s"%e
+				print(msg)
+
+			#send context vars for template
+			context['demo_id'] = demo_id
+
+			print ""
+			print "demo_id",demo_id
+
+			available_editor_list = get_demoinfo_available_editor_list(demo_id)
+
+
+			print "available_editor_list",available_editor_list
+			print ""
+			initial_editor_choicedict={'editor':available_editor_list }
+			context['choosedemoeditorform'] = ChooseEditorForDemoform(initial=initial_editor_choicedict)
+			context['demoeditorform'] = DemoEditorform
+			context['editorform'] = Editorform
+			#context['demoform'] = Demoform(initial={'active': True})
+
+		except Exception as e:
+
+			msg=" DemoinfoGetDemoEditorView Error %s "%e
+			logger.error(msg)
+			context['demo_id'] = None
+			context['choosedemoeditorform'] = None
+			context['demoeditorform'] = None
+			context['editorform'] = None
+			logger.error(msg)
+			print(msg)
+
+
+		return context
+
+	# no need for filtering and pagination
+	def list_editors_for_demo(self):
+		result = None
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_editors_for_demo %s"%e
+				print(msg)
+				pass
+
+			print "  list_editors_for_demo demoid: ", demo_id
+			page_json = ipolservices.demoinfo_editor_list_for_demo(demo_id)
+			result = DeserializeDemoinfoEditorList(page_json)
+
+		except Exception as e:
+			msg="Error list_editors_for_demo %s"%e
 			logger.error(msg)
 			print(msg)
 
 		return result
+
+
+class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
+	##one save view for all two different forms used in modals? nope, better to have different views for each ajax call
+
+	template_name = ''
+	form_class = ChooseEditorForDemoform
+
+
+	def form_valid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+
+
+		if self.request.is_ajax():
+
+			# get form fields
+			demoid = None
+			editorid = None
+
+			try:
+				demoid = form.cleaned_data['demoid']
+				demoid = int(demoid)
+				editorid = form.cleaned_data['editor']
+			except Exception as e:
+				msg = "DemoinfoAddExistingEditorToDemoView form data error: %s" % e
+				jres['error'] = msg
+				print msg
+				logger.error(msg)
+
+			#  send info to be saved in demoinfo module to be saved
+			try:
+				jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
+				status,error = get_status_and_error_from_json(jsonresult)
+				jres['status'] = status
+				if error is not None:
+						jres['error'] = error
+
+			except Exception as e:
+				msg = " DemoinfoAddExistingEditorToDemoView error: %s" % e
+				jres['error'] = msg
+				logger.error(msg)
+				print msg
+
+
+		else:
+			jres['error'] = 'form_valid no ajax'
+			logger.warning('DemoinfoAddExistingEditorToDemoView form_valid no ajax')
+
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+	def form_invalid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+		print "invalid form"
+
+		if self.request.is_ajax():
+
+			print " invalid ajax form"
+			# print form.errors
+			# print form
+			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
+			# form_html = render_crispy_form(form)
+			# logger.warning(form_html)
+
+			jres['error'] = str(form.errors)
+			jres['status'] = 'KO'
+
+		else:
+			jres['error'] = 'form_invalid no ajax'
+			logger.warning('form_invalid no ajax')
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+class DemoinfoAddNewEditorToDemoView(NavbarReusableMixinMF,FormView):
+	template_name = ''
+	form_class = DemoEditorform
+
+
+	def form_valid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+
+		print "valid form"
+
+
+		if self.request.is_ajax():
+
+			# get form fields
+			demoid = None
+			name = None
+			mail = None
+
+			try:
+				demoid = form.cleaned_data['demoid']
+				demoid = int(demoid)
+				name = form.cleaned_data['name']
+				mail = form.cleaned_data['mail']
+			except Exception as e:
+				msg = "DemoinfoAddNewEditorToDemoView form data error: %s" % e
+				jres['error'] = msg
+				print msg
+				logger.error(msg)
+
+			#  send info to be saved in demoinfo module to be saved
+
+			# create editor
+			try:
+
+				jsonresult = ipolservices.demoinfo_add_editor(name,mail)
+				resultdict = json.loads(jsonresult)
+				status = resultdict['status']
+				editorid = resultdict['editorid']
+				editorid = int(editorid)
+				if status != 'OK' or 'error' in resultdict:
+					msg= " DemoinfoAddNewEditorToDemoView Could not create editor "
+					logger.error(msg)
+					raise ValueError(msg+resultdict['error'])
+
+
+				# add editor to demo
+				try:
+					jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
+					print "jsonresult editor to demo", jsonresult
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+				except Exception as e:
+					msg = " DemoinfoAddNewEditorToDemoView add editor to demo error: %s" % e
+					jres['error'] = msg
+					logger.error(msg)
+					print msg
+
+			except Exception as e:
+				msg = " DemoinfoAddNewEditorToDemoView create editor error: %s" % e
+				jres['error'] = msg
+				logger.error(msg)
+				print msg
+
+		else:
+			jres['error'] = 'form_valid no ajax'
+			logger.warning('DemoinfoAddExistingEditorToDemoView form_valid no ajax')
+
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+	def form_invalid(self, form):
+
+		jres = dict()
+		jres['status'] = 'KO'
+		print "invalid form"
+
+		if self.request.is_ajax():
+
+			print " invalid ajax form"
+			# print form.errors
+			# print form
+
+			jres['error'] = str(form.errors)
+			jres['status'] = 'KO'
+
+		else:
+			jres['error'] = 'form_invalid no ajax'
+			logger.warning('form_invalid no ajax')
+
+		return HttpResponse(json.dumps(jres),content_type='application/json')
+
+
+class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoDeleteEditorFromDemoView, self).dispatch(*args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+
+		print
+		print "DemoinfoDeleteEditorFromDemoView"
+		print
+
+		#todo could validate a form to get hard_delete checkbox from user
+		try:
+			editor_id = int(self.kwargs['editor_id'])
+			demo_id = int(self.kwargs['demo_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		result= ipolservices.demoinfo_delete_editor_from_demo(demo_id,editor_id)
+		if result == None:
+			msg="DemoinfoDeleteEditorFromDemoView: Something went wrong using demoinfo WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		print result
+
+		return HttpResponse(result, content_type='application/json')
+
+
 
 
 #
@@ -1106,3 +1625,5 @@ class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
 # 			print "result: ",result
 # 			return HttpResponse(result,content_type='application/json')
 #
+
+

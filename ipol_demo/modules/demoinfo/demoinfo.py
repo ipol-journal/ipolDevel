@@ -338,7 +338,6 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
-
 	@cherrypy.expose
 	def demo_get_editors_list(self,demo_id):
 		data = {}
@@ -360,6 +359,45 @@ class DemoInfo(object):
 			error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
 			print error_string
 			self.error_log("demo_list",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+		return json.dumps(data)
+
+
+	@cherrypy.expose
+	def demo_get_available_editors_list(self,demo_id):
+		# lista all editors that are not currently assigned to a demo
+		data = {}
+		data["status"] = "KO"
+		available_editor_list=list()
+
+		try:
+			conn = lite.connect(self.database_file)
+
+			# get all available editors
+			a_dao = EditorDAO(conn)
+			list_of_all_editors = a_dao.list()
+
+			# get the editors of this demo
+			da_dao = DemoEditorDAO(conn)
+			list_of_editors_assigned_to_this_demo = da_dao.read_demo_editors(int(demo_id))
+
+			for a in list_of_all_editors:
+				if not a  in list_of_editors_assigned_to_this_demo:
+					#convert to Demo class to json
+					available_editor_list.append(a.__dict__)
+
+			data["editor_list"] = available_editor_list
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo demo_get_available_editors_list error %s" % str(ex)
+			print error_string
+			self.error_log("demo_get_available_editors_list",error_string)
 			try:
 				conn.close()
 			except Exception as ex:
@@ -1057,6 +1095,86 @@ class DemoInfo(object):
 
 
 	@cherrypy.expose
+	def editor_list_pagination_and_filter(self,num_elements_page,page,qfilter=None):
+
+		data = {}
+		data["status"] = "KO"
+		editor_list=list()
+		next_page_number = None
+		previous_page_number = None
+
+		try:
+
+			#validate params
+			num_elements_page=int(num_elements_page)
+			page = int(page)
+
+			conn = lite.connect(self.database_file)
+			editor_dao = EditorDAO(conn)
+
+			complete_editor_list = editor_dao.list()
+
+			#filter or return all
+			if qfilter:
+				for a in complete_editor_list:
+					#print "demo: ",demo
+					if qfilter in a.name or qfilter in a.mail :
+						editor_list.append(a.__dict__)
+			else:
+				#convert to Demo class to json
+				for a in complete_editor_list:
+					editor_list.append(a.__dict__)
+
+			#if demos found, return pagination
+			if editor_list:
+
+				r=float(len(editor_list))/ float(num_elements_page)
+
+				totalpages = int(ceil(r))
+
+				if page is None:
+					page = 1
+				else:
+					if page < 1:
+						page = 1
+					elif page > totalpages:
+						page = totalpages
+
+				next_page_number = page + 1
+				if next_page_number > totalpages:
+					next_page_number = None
+
+				previous_page_number = page - 1
+				if previous_page_number <= 0 :
+					previous_page_number = None
+
+				start_element= (page -1) * num_elements_page
+				editor_list= editor_list[ start_element:start_element+num_elements_page ]
+			else:
+				totalpages = None
+
+
+			data["editor_list"] = editor_list
+			data["next_page_number"] = next_page_number
+			data["number"] = totalpages
+			data["previous_page_number"] = previous_page_number
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo editor_list_pagination_and_filter error %s" % str(ex)
+			print error_string
+			self.error_log("editor_list_pagination_and_filter",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
+
+
+	@cherrypy.expose
 	def editor_get_demos_list(self,editor_id):
 		data = {}
 		data["status"] = "KO"
@@ -1136,10 +1254,10 @@ class DemoInfo(object):
 			e = Editor( name, mail)
 			conn = lite.connect(self.database_file)
 			dao = EditorDAO(conn)
-			dao.add(e)
+			id = dao.add(e)
 			conn.close()
 			data["status"] = "OK"
-			data["status"] = "OK"
+			data["editorid"] = id
 		except Exception as ex:
 			error_string = "demoinfo add_editor error %s" % str(ex)
 			print error_string
@@ -1246,11 +1364,18 @@ class DemoInfo(object):
 		data["status"] = "KO"
 		#get payload from json object
 		p = Payload(editor)
-		#convert payload to Author object
-		if hasattr(p,'creation'):
-			 e= Editor(p.name,p.mail,p.id,p.active,p.creation)
+		#convert payload to Editor object
+		if hasattr(p,'active'):
+			if hasattr(p,'creation'):
+				e= Editor(p.name,p.mail,p.id,p.active,p.creation)
+			else:
+				e = Editor(p.name,p.mail,p.id,p.active)
 		else:
-			e = Editor(p.name,p.mail,p.id,p.active)
+			if hasattr(p,'creation'):
+				#todo, if active is not provideed, we suppose its True
+				e= Editor(p.name,p.mail,id=p.id,active=1,creation=p.creation)
+			else:
+				e = Editor(p.name,p.mail,id=p.id)
 
 		#update Editor
 		try:

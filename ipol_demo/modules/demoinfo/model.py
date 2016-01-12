@@ -67,6 +67,8 @@ class Demo(object):
 		else:
 			self.modification = datetime.datetime.now()
 
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
 
 class Author(object):
 	id = None
@@ -123,7 +125,8 @@ class Editor(object):
 		else:
 			self.creation = datetime.datetime.now()
 
-
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
 
 ###########################
 #  DAO (data access obj ) #
@@ -744,7 +747,7 @@ class EditorDAO(object):
 			# todo validate user input
 			if editor.creation:
 				self.cursor.execute('''
-				UPDATE editor SET name=?, mail=?,active=?,creation=?WHERE id=?''',
+				UPDATE editor SET name=?, mail=?,active=?,creation=? WHERE id=?''',
 				                    (editor.name, editor.mail, editor.active, editor.creation, editor.id))
 			else:
 				self.cursor.execute('''

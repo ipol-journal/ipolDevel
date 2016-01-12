@@ -101,9 +101,38 @@ demoinfo_ws_url_delete_author_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/remove
 
 #EDITOR
 
-
 demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list'
- # param None
+# param None, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2"...
+
+demoinfo_ws_url_editor_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list_pagination_and_filter'
+# param num_elements_page, page, qfilter
+
+#editors of this demo
+demoinfo_ws_url_editor_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_editors_list'
+# param demo_id, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2" ...
+
+#editors I can assign to this demo
+demoinfo_ws_url_available_editor_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_available_editors_list'
+# param demo_id, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2" ...
+
+demoinfo_ws_url_delete_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_editor'
+# param editor_id
+
+demoinfo_ws_url_read_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/read_editor'
+# param editor_id
+
+demoinfo_ws_url_add_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/add_editor'
+# param name,mail  returns jsonresult {"status": "OK", "editorid": 8}
+
+demoinfo_ws_url_update_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/update_editor'
+# param editor data
+
+demoinfo_ws_url_add_editor_to_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_editor_to_demo'
+# param demo_id ,editor_id
+
+demoinfo_ws_url_delete_editor_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_editor_from_demo'
+# param demo_id,editor_id
+
 
 
 ####################

@@ -1,5 +1,6 @@
 from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
-	demoinfo_available_author_list_for_demo, demoinfo_author_list
+	demoinfo_available_author_list_for_demo, demoinfo_author_list, demoinfo_available_editor_list_for_demo, \
+	demoinfo_editor_list
 
 __author__ = 'josearrecio'
 
@@ -112,3 +113,32 @@ def get_demoinfo_available_author_list(demoid=None):
 
 	return author_list_option
 
+
+def get_demoinfo_available_editor_list(demoid=None):
+	#returns the list of editors not currently asigned to a demo, if demoid is provided.
+	#if not, returns all editors
+
+	editor_list_option=list()
+
+	try:
+
+		#get editors from demoinfo module
+		if demoid:
+			editor_list_json = demoinfo_available_editor_list_for_demo(demoid)
+		else:
+			editor_list_json = demoinfo_editor_list()
+
+
+		editor_list_dict= json.loads(editor_list_json)
+		editor_list= editor_list_dict['editor_list']
+		#editor_list_option.append( (0,"None selected") )
+		for a in editor_list:
+			a = (a["id"],str(a["name"])+", "+str(a["mail"]))
+			editor_list_option.append(a)
+
+
+	except Exception as e:
+		msg=" get_demoinfo_available_editor_list Error %s "%e
+		print(msg)
+
+	return editor_list_option

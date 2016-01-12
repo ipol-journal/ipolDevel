@@ -57,8 +57,8 @@
 
         {#  Add Author btn #}
         <div class="container">
-            <a class="btn btn-primary" onclick="show_choosedemoauthor_form('{% url 'ipol.cp.demoinfo.create_author' %}',{{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
-            <a class="btn btn-primary" onclick="show_demoauthor_form('{% url 'ipol.cp.demoinfo.add_new_author_to_demo' %}',{{ demo_id }})">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+            <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
+            <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
             <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
         </div>
 
@@ -457,11 +457,8 @@
 
         {#  show/edit choosedemoauthor modal  #}
 
-        function show_choosedemoauthor_form(wsurl,demo_id){
-            console.log(wsurl);
+        function show_choosedemoauthor_form(demo_id){
             console.log(demo_id);
-
-
 
             if (demo_id === undefined) {
                 // demo_id was not passed, error
@@ -562,8 +559,7 @@
 
         {#  show/edit demoauthor modal  #}
 
-        function show_demoauthor_form(wsurl,demo_id){
-            console.log(wsurl);
+        function show_demoauthor_form(demo_id){
             console.log(demo_id);
 
             if (demo_id === undefined) {

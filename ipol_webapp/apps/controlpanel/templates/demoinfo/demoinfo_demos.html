@@ -105,7 +105,7 @@
                                     <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.id %}">{% trans 'AUTHORS' %}</a>
 
                                     {#  btn Edit demo's EDITORS #}
-                                    <a class="btn btn-info" onclick="alert(' manage demos editors, not implemented yet')">{% trans 'EDITORS' %}</a>
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_editors' demo.id %}">{% trans 'EDITORS' %}</a>
 
                                 </div>
                             </div>

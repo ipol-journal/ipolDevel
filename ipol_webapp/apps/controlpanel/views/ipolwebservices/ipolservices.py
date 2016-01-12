@@ -13,7 +13,10 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
 	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo, \
 	demoinfo_ws_url_author_list_for_demo, demoinfo_ws_url_available_author_list_for_demo, \
-	demoinfo_ws_url_delete_author_from_demo
+	demoinfo_ws_url_delete_author_from_demo, demoinfo_ws_url_editor_list, demoinfo_ws_url_editor_list_for_demo, \
+	demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
+	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
+	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +47,11 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 	result = None
 	# print
 	# print "SEND WS, get_JSON_from_webservice"
-	# print "params ",params
-	# print "json ",json
+	print "params ",params
+	print "json ",json
 	# print "json type",type(json)
+	print "METHOD",METHOD
+	print "METHOD",type(METHOD)
 	try:
 
 		if not METHOD or METHOD=='GET':
@@ -288,10 +293,80 @@ def demoinfo_delete_author_from_demo(demo_id,author_id):
 
 def demoinfo_editor_list():
 
-
-	wsurl = demoinfo_ws_url_demo_list
+	wsurl = demoinfo_ws_url_editor_list
 	return get_JSON_from_webservice(wsurl)
 
+
+def demoinfo_editor_list_for_demo(demo_id):
+
+	wsurl = demoinfo_ws_url_editor_list_for_demo
+	params = {'demo_id': demo_id}
+
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
+def demoinfo_available_editor_list_for_demo(demo_id=None):
+
+	wsurl = demoinfo_ws_url_available_editor_list_for_demo
+	params = {'demo_id': demo_id}
+
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
+def demoinfo_editor_list_pagination_and_filtering( num_elements_page, page, qfilter):
+
+	wsurl = demoinfo_ws_url_editor_list_pagination_and_filter
+	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+	return get_JSON_from_webservice(wsurl,'GET',params)
+
+
+def demoinfo_delete_editor(editor_id):
+
+	wsurl = demoinfo_ws_url_delete_editor
+	params = {'editor_id': editor_id}
+
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_add_editor( name ,mail):
+	print
+	print "demoinfo_add_editor"
+	print
+	wsurl = demoinfo_ws_url_add_editor
+	params = {'name': name,'mail': mail}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_read_editor(editor_id):
+	# print "demoinfo_read_demo"
+	wsurl = demoinfo_ws_url_read_editor
+	params = {'editorid': editor_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_update_editor(editor):
+	# print
+	# print "demoinfo_update editor"
+	# print
+	wsurl = demoinfo_ws_url_update_editor
+	params = {'editor': json.dumps(editor)}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_add_editor_to_demo( demo_id ,editor_id):
+	# print
+	# print "demoinfo_add_editor_to_demo"
+	# print
+	wsurl = demoinfo_ws_url_add_editor_to_demo
+	params = {'demo_id': demo_id,'editor_id': editor_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
+
+
+def demoinfo_delete_editor_from_demo(demo_id,editor_id):
+
+	wsurl = demoinfo_ws_url_delete_editor_from_demo
+	params = {'demo_id': demo_id,'editor_id': editor_id}
+	return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 ####################
@@ -310,7 +385,7 @@ def archive_get_page(experimentid , page='1'):
 	wsurl = archive_ws_url_page
 	params = {'demo_id': experimentid, 'page': page}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_get_stats():
@@ -358,7 +433,7 @@ def archive_delete_demo(demo_id):
 	wsurl = archive_ws_url_delete_demo
 	params = {'demo_id': demo_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_experiment(experiment_id):
@@ -366,7 +441,7 @@ def archive_delete_experiment(experiment_id):
 	wsurl = archive_ws_url_delete_experiment
 	params = {'experiment_id': experiment_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_file(file_id):
@@ -374,7 +449,7 @@ def archive_delete_file(file_id):
 	wsurl = archive_ws_url_delete_blob_w_deps
 	params = {'id_blob': file_id}
 
-	return get_JSON_from_webservice(wsurl,params)
+	return get_JSON_from_webservice(wsurl,params=params)
 
 
 ####################
