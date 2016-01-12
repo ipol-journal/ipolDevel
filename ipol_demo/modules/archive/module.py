@@ -822,15 +822,7 @@ class Archive(object):
 			cursor_db = conn.cursor()
 			cursor_db.execute("""
 			SELECT DISTINCT id_demo FROM experiments""")
-			# wd=True
-			# while wd:
-			#     try:
-			#         demoid = cursor_db.fetchone()[0]
-			#         demo_list.append({'demo_id':demoid})
-			#     except Exception, e:
-			#         wd=False
-			#
-			# conn.commit()
+
 			for row in cursor_db.fetchall():
 				print "loop"
 				demoid = row[0]

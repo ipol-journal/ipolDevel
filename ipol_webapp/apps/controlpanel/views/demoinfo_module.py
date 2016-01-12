@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
-	get_demoinfo_available_editor_list
+	get_demoinfo_available_editor_list, get_demoinfo_module_states
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
 	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList
 from apps.controlpanel.views.ipolwebservices import ipolservices
@@ -139,6 +139,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 			context['list_demos'] = list_demos
 			context['ddlform'] = DDLform
 			context['demoform'] = Demoform
+			context['states'] = get_demoinfo_module_states()
 			#context['demoform'] = Demoform(initial={'active': True})
 
 		except Exception as e:
@@ -149,6 +150,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 			context['list_demos'] = []
 			context['ddlform'] = None
 			context['demoform'] = None
+			context['states'] = None
 			logger.error(msg)
 			print(msg)
 

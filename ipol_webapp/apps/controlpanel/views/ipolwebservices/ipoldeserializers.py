@@ -675,13 +675,14 @@ def DeserializeArchiveDemoList(jsonresult):
 			mydl = serializer.save()
 
 
+
 	except Exception,e:
 		msg="Error JSON Deserialization e: %s serializer.errors: " % e
 		logger.error(msg)
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print mydl
+	print "mydl",mydl
 	return mydl
 
 ####################

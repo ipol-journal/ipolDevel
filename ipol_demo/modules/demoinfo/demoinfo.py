@@ -169,6 +169,49 @@ class DemoInfo(object):
 
 
 	@cherrypy.expose
+	def demo_list_by_demoeditorid(self,demoeditorid_list):
+		"""
+		demoeditorid_list is a list of demo_editor_id's IN JSON FORMAT, the unique id that identifies demos across all modules
+		, given this list of ids, return the demo's metinfo
+		"""
+
+		data = {}
+		data["status"] = "KO"
+		demo_list=list()
+
+		#get json lis into python object
+		if is_json(demoeditorid_list):
+			demoeditorid_list=json.loads(demoeditorid_list)
+		else:
+			raise ValueError("demoeditorid_list is not a valid JSON")
+
+
+		try:
+
+			conn = lite.connect(self.database_file)
+			demo_dao = DemoDAO(conn)
+			for d in demo_dao.list():
+				#convert to Demo class to json
+				if d.editorsdemoid in demoeditorid_list:
+					demo_list.append(d.__dict__)
+
+			data["demo_list"] = demo_list
+			data["status"] = "OK"
+			conn.close()
+		except Exception as ex:
+			error_string = "demoinfo demo_list_by_demoeditorid error %s" % str(ex)
+			print error_string
+			self.error_log("demo_list_by_demoeditorid",error_string)
+			try:
+				conn.close()
+			except Exception as ex:
+				pass
+			#raise Exception
+			data["error"] = error_string
+
+		return json.dumps(data)
+
+	@cherrypy.expose
 	def demo_list_pagination_and_filter(self,num_elements_page,page,qfilter=None):
 
 		data = {}

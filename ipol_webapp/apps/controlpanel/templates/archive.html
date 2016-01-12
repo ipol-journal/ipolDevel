@@ -54,21 +54,46 @@
             Deleting a demo from this module deletes all the experiments of this demo in archive.
         </p>
 
+
+        {# view.list_demos returns a tuple, so i can know if i must paint the -1 demo for testing or not#}
+        {# todo this is kind of nasty, i would remove this from archive#}
         {% with data=view.list_demos %}
 
-            {% if data.status == "OK" %}
 
-                {% if data.demo_list %}
-                    {% for demo in data.demo_list%}
 
-                        <div class="demo" id="demo_info_{{ demo.demo_id }}" >
-                            <a  href="{% url 'ipol.cp.archive.page' demo.demo_id %}">
-                                <p style="padding-left: 20px">demo_id:{{ demo.demo_id }} </p>
+
+            {% if data.1  %}
+                <div class="demo" id="demo_info_test}" >
+                    <p style="padding-left: 20px">demo_id:-1  </p>
+                    <a  href="{% url 'ipol.cp.archive.page' -1 %}">
+                        <p style="padding-left: 20px">title: test </p>
+                    </a>
+
+                    {#  boton Delete demo#}
+                    <div style="padding-left: 20px" >
+                        <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' -1  %}',-1 )">Delete</a>
+                    </div>
+
+                </div>
+            {% endif %}
+
+
+            {% if data.0.status == "OK" %}
+
+                {% if data.0.demo_list %}
+
+
+                    {% for demo in data.0.demo_list%}
+
+                        <div class="demo" id="demo_info_{{ demo.id }}" >
+                            <p style="padding-left: 20px">demo_id:{{ demo.editorsdemoid }} </p>
+                            <a  href="{% url 'ipol.cp.archive.page' demo.id %}">
+                                <p style="padding-left: 20px">title: {{ demo.title }} </p>
                             </a>
 
                             {#  boton Delete demo#}
                             <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.demo_id  %}',{{ demo.demo_id  }} )">Delete</a>
+                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.id  %}',{{ demo.id  }} )">Delete</a>
                             </div>
 
                         </div>
@@ -103,7 +128,7 @@
         <script>
 
         function send_delete_demo_request(wsurl,demo_id) {
-            var deldemo = confirm('delete this demo: ' + demo_id);
+            var deldemo = confirm('delete this demo from archive module: ' + demo_id);
             if (deldemo == true) {
                 $.ajax({
                     type: 'GET',

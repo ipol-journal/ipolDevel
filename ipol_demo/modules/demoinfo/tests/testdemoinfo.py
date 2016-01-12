@@ -1482,6 +1482,26 @@ class TestDemoinfo(unittest.TestCase):
 
 		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
 
+	def test_demo_list_by_demoeditorid(self):
+		test_passed = True
+		try:
+
+			print "test_demo_list_by_demoeditorid"
+			print
+
+
+			editorsdemoid_list = [26]
+
+			dl = self.demoinfo.demo_list_by_demoeditorid(editorsdemoid_list)
+
+			print dl
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_demo_list_by_demoeditorid Failed ')
+
 
 
 	##########################
@@ -1607,7 +1627,12 @@ class TestDemoinfo(unittest.TestCase):
 			self.test_demo_get_available_editors_list()
 			print
 			print
-			print " ---26 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
+			print " ---26"
+			print
+			self.test_demo_list_by_demoeditorid()
+			print
+			print
+			print " ---27 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()

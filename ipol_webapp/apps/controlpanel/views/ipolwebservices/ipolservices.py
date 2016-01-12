@@ -16,7 +16,8 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_delete_author_from_demo, demoinfo_ws_url_editor_list, demoinfo_ws_url_editor_list_for_demo, \
 	demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
 	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
-	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo
+	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo, \
+	demoinfo_ws_url_demo_list_by_demoeditorid
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 	# print "json type",type(json)
 	print "METHOD",METHOD
 	print "METHOD",type(METHOD)
+	print
 	try:
 
 		if not METHOD or METHOD=='GET':
@@ -156,6 +158,25 @@ def demoinfo_demo_list():
 	"""
 	wsurl = demoinfo_ws_url_demo_list
 	return get_JSON_from_webservice(wsurl)
+
+def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
+	"""
+	list demos present in database with demo_editor_id in  demoeditorid_list
+	demoeditorid_list must be sent to WS as a JSON string
+	if no demoeditorid_list is provided return None
+
+	{ return:OK or KO, list demos:...
+	"""
+	result = None
+	if demoeditorid_list :
+		wsurl = demoinfo_ws_url_demo_list_by_demoeditorid
+		params = {'demoeditorid_list': json.dumps(demoeditorid_list)}
+		result = get_JSON_from_webservice(wsurl,'GET',params)
+	else:
+		# I expect a JSON
+		result = {"status": "KO","error": "No demoeditorid_list provided to CP demoinfo_demo_list_by_demoeditorid"}
+
+	return result
 
 
 def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilter):

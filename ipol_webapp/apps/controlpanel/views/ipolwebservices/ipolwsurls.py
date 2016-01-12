@@ -27,6 +27,10 @@ demoinfo_ws_url_stats = IPOL_SERVICES_MODULE_DEMOINFO+'/stats'
 demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list'
 # param None , "demo_list": [{"creation": "2015-12-28 16:47:54", "stateID": 1, "abstract": "DemoTEST1 Abstract", "title": "DemoTEST1 Title", "editorsdemoid": 23, "active": 1, "id": 1, "zipURL": "https://DemoTEST1.html", "modification": "2015-12-28 16:47:54"},
 
+demoinfo_ws_url_demo_list_by_demoeditorid = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list_by_demoeditorid'
+# param demoeditorid_list  , "demo_list": {"status": "OK", "demo_list": [{"creation": "2016-01-12 20:46:38", "stateID": 1, "abstract": "DemoTEST4 Abstract", "title": "DemoTEST4 Title", "editorsdemoid": 26, "active": 1, "id": 4, "zipURL": "https://DemoTEST4.html", "modification": "2016-01-12 20:46:38"}]}[{"c
+
+
 demoinfo_ws_url_demo_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list_pagination_and_filter'
 # param num_elements_page, page, qfilter ,
 # result	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,

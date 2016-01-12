@@ -71,19 +71,42 @@
                         <div class="demo" id="demo_info_{{ demo.id }}" >
 
                             <div class="row">
-                                <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>
-                                <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>
-                                <div class="griditem col-sm-3">{% trans 'title' %}:{{ demo.title}} </div>
-                                <div class="griditem col-sm-3">{% trans 'abstract' %}:
-                                    <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
+                                {#  <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>#}
+                                <div class="col-sm-4">
+                                    <div class="griditem">
+                                        {% trans 'id' %}:<span class="badge">{{ demo.editorsdemoid }}</span>
+
+
+
+
+                                    </div>
+                                    {#  <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>#}
+                                    <div class="griditem">{% trans 'title' %}:{{ demo.title}} </div>
+                                    <div class="griditem">{% trans 'abstract' %}:
+                                        <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
+                                    </div>
                                 </div>
-                                <div class="griditem col-sm-3">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
-                                <div class="griditem col-sm-3">{% trans 'state' %}:{{ demo.stateID }} </div>
-                                {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
-                                <div class="griditem col-sm-3">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+                                <div class="col-sm-4">
+                                    <div class="griditem">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
 
 
-                                <div class="griditem col-sm-3">
+
+
+                                    <div class="griditem">
+                                        {% trans 'state' %}:
+                                        {# {{ demo.stateID }}#}
+                                        {% for sid,sname in states %}
+                                            {% if sid == demo.stateID %}
+                                                {{ sname }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+
+                                    {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
+                                    <div class="griditem">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+                                </div>
+
+                                <div class=" col-sm-4">
                                     {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
                                     <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
 

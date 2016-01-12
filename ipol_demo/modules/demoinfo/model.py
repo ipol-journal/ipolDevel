@@ -308,7 +308,7 @@ class DemoDAO(object):
 	@validates(typ(int))
 	def read_by_editordemoid(self, editordemoid):
 
-		print "editordemoid: ",editordemoid
+		# print "editordemoid: ",editordemoid
 		result = None
 		try:
 			self.cursor.execute(
@@ -331,10 +331,10 @@ class DemoDAO(object):
 		try:
 			if is_active:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY id DESC ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY editor_demo_id DESC ''')
 			else:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY id DESC ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY editor_demo_id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
@@ -920,10 +920,9 @@ def createDb(database_name):
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "state" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				name VARCHAR(500),
+				name VARCHAR(500) UNIQUE,
 				description TEXT,
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(name)
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
@@ -946,17 +945,15 @@ def createDb(database_name):
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "demo" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				editor_demo_id INTEGER,
-				title VARCHAR,
+				editor_demo_id INTEGER UNIQUE NOT NULL,
+				title VARCHAR UNIQUE NOT NULL,
 				abstract TEXT,
 				zipURL VARCHAR,
 				active INTEGER(1) DEFAULT 1,
 				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				stateID INTEGER,
-				FOREIGN KEY(stateID) REFERENCES state(id),
-				UNIQUE(title),
-				UNIQUE(editor_demo_id)
+				FOREIGN KEY(stateID) REFERENCES state(id)
 				);"""
 			)
 
@@ -977,19 +974,17 @@ def createDb(database_name):
 				"""CREATE TABLE IF NOT EXISTS "author" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR ,
-				mail VARCHAR(320),
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(mail)
+				mail VARCHAR(320) UNIQUE,
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "editor" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR ,
-				mail VARCHAR(320),
+				mail VARCHAR(320) UNIQUE,
 				active INTEGER(1) DEFAULT 1,
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(mail)
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
