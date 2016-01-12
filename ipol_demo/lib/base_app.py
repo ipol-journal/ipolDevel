@@ -964,7 +964,7 @@ class base_app(empty_app):
         # let's add all the parameters
         if 'params' in desc.keys():
           for p in desc['params']:
-            if p in self.cgf['param']:
+            if p in self.cfg['param']:
               ar.add_info({ p: self.cfg['param'][p]})
           
         if 'info' in desc.keys():
