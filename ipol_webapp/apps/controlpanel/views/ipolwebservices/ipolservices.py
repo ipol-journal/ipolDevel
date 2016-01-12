@@ -172,9 +172,6 @@ def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
 		wsurl = demoinfo_ws_url_demo_list_by_demoeditorid
 		params = {'demoeditorid_list': json.dumps(demoeditorid_list)}
 		result = get_JSON_from_webservice(wsurl,'GET',params)
-	else:
-		# I expect a JSON
-		result = {"status": "KO","error": "No demoeditorid_list provided to CP demoinfo_demo_list_by_demoeditorid"}
 
 	return result
 

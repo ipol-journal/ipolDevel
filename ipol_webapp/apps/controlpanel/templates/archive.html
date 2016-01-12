@@ -55,11 +55,9 @@
         </p>
 
 
-        {# view.list_demos returns a tuple, so i can know if i must paint the -1 demo for testing or not#}
+        {# view.list_demos returns a tuple, so i can know if I must paint the -1 demo for testing or not#}
         {# todo this is kind of nasty, i would remove this from archive#}
         {% with data=view.list_demos %}
-
-
 
 
             {% if data.1  %}
@@ -111,8 +109,11 @@
                 {% endif %}
 
             {% else %}
-
-                <p class="ststsnok"> Could not conect to archive, check Archive Status</p>
+                {% if data.0.error %}
+                    <p class="ststsnok"> {{ data.0.error }}</p>
+                {% else %}
+                    <p class="ststsnok"> Could not conect to archive, check Archive Status</p>
+                {% endif %}
 
             {% endif %}
 

@@ -68,7 +68,14 @@ class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
 					else:
 						archivetestdemo = True
 				result2json = ipolservices.demoinfo_demo_list_by_demoeditorid(idlist)
-				result2 = DeserializeDemoinfoDemoList(result2json)
+				if result2json:
+					result2 = DeserializeDemoinfoDemoList(result2json)
+				else:
+					# I expect a dict for template
+					result2 = {"status": "KO","error": "No demos in archive"}
+
+
+			print "result2",result2
 
 
 		except Exception as e:
