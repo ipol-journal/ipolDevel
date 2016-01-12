@@ -550,6 +550,12 @@ class DemoInfo(object):
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demo(self, editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
+		"""
+		Allows you to create a demo:
+		- only creating the demo
+		- creating the demo and assigning an existing ddl (with id demodescriptionID) to it
+		- create the demo and create a ddl , whith the json passed by param (demodescriptionJson)
+		"""
 		data = {}
 		data["status"] = "KO"
 
@@ -557,7 +563,7 @@ class DemoInfo(object):
 		try:
 
 			active = convert_str_to_bool(active)
-			print "active", active, type(active)
+			#print "active", active, type(active)
 
 			conn = lite.connect(self.database_file)
 			dao = DemoDAO(conn)
@@ -584,6 +590,7 @@ class DemoInfo(object):
 				#demo created without demodescription
 				#careful with Demo init method's validation!
 				d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract, zipurl=zipURL, active=int(active), stateid=int(stateID))
+				print "aki"
 				demoid = dao.add(d)
 
 			conn.close()
@@ -593,7 +600,7 @@ class DemoInfo(object):
 			data["status"] = "OK"
 			data["demoid"] = demoid
 		except Exception as ex:
-			error_string = " --- demoinfo add_demo error %s" % str(ex)
+			error_string = " demoinfo add_demo error %s" % str(ex)
 			print error_string
 			self.error_log("add_demo",error_string)
 			try:
