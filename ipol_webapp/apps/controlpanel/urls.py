@@ -96,6 +96,8 @@ urlpatterns = [
 	#todo archive shoud use pagination, it doesnt now
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
+
+    url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<pagenum>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
   	#ajax calls
     url(r'^ajax_shutdown/', ArchiveShutdownView.as_view(), name="ipol.cp.archive.shutdown"),

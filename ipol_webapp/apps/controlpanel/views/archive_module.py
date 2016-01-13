@@ -25,7 +25,7 @@ class ArchiveShutdownView(NavbarReusableMixinMF,TemplateView):
 		#just return the JSON from the ws, this json has no interesting data, no template is needed
 		result= ipolservices.archive_shutdown()
 		if result is None:
-			msg="ShutdownView: Something went wrong using archive shutdown WS"
+			msg="ArchiveShutdownView: Something went wrong using archive shutdown WS"
 			logger.error(msg)
 			raise ValueError(msg)
 
@@ -34,16 +34,17 @@ class ArchiveShutdownView(NavbarReusableMixinMF,TemplateView):
 
 
 class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
+	template_name = "archive/archive.html"
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
 
-	template_name = "archive.html"
+
 
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
-		#self.request.session['menu'] = 'menu-'
+		self.request.session['menu'] = 'menu-archive'
 		return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
 
 	def list_demos(self):
@@ -84,8 +85,6 @@ class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
 			print(msg)
 
 		return result2,archivetestdemo
-
-
 
 
 class ArchiveDeleteExperimentView(NavbarReusableMixinMF,TemplateView):
@@ -185,7 +184,7 @@ class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
 
 
 class ArchivePageView(NavbarReusableMixinMF,TemplateView):
-	template_name = "demo_result_page.html"
+	template_name = "archive/demo_result_page.html"
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
@@ -195,6 +194,16 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
 	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
 	def result(self):
 		demo_id = self.kwargs['id']
+
+		# optional param for pagination
+		pagenum=None
+		try:
+			pagenum = self.kwargs['pagenum']
+		except Exception , e:
+			pagenum = 1
+
+
+
 		#todo validate id, debe ser un numero?
 		#print(id)
 
@@ -202,15 +211,82 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
 		try:
 			print(" demo_id: %d"%int(demo_id))
 
-			page_json = ipolservices.archive_get_page(int(demo_id),1)
+			page_json = ipolservices.archive_get_page(int(demo_id),pagenum)
 			result = DeserializePage(page_json)
 
+			print(" demo_id: %d"%int(demo_id))
+			print " result %s"%result
+
 		except Exception , e:
-			msg="Error %s"%e
+			msg="ArchivePageView Error %s"%e
 			logger.error(msg)
+			print msg
 
 		return result
 
 
-
-
+	# def get_context_data(self, **kwargs):
+	#
+	# 	#get context
+	# 	context = super(ArchivePageView, self).get_context_data(**kwargs)
+	#
+	#
+	#
+	# 	try:
+	#
+	# 		demo_id = self.kwargs['id']
+	#
+	# 		# optional param
+	# 		pagenum=None
+	# 		try:
+	# 			pagenum = self.kwargs['pagenum']
+	# 		except Exception , e:
+	# 			pagenum = 1
+	#
+	#
+	#
+	# 		#todo validate id, debe ser un numero?
+	# 		#print(id)
+	#
+	# 		result =None
+	# 		try:
+	# 			print(" demo_id: %d"%int(demo_id))
+	#
+	# 			page_json = ipolservices.archive_get_page(int(demo_id),pagenum)
+	# 			result = DeserializePage(page_json)
+	#
+	# 		except Exception , e:
+	# 			msg="Error %s"%e
+	# 			logger.error(msg)
+	#
+	#
+	#
+	# 		#pagination of result
+	# 		if hasattr(result, 'previous_page_number'):
+	# 			context['previous_page_number'] = result.previous_page_number
+	# 			context['has_previous'] = True
+	# 		else:
+	# 			context['has_previous'] = False
+	#
+	# 		if page:
+	# 			context['number'] = page
+	#
+	# 		if hasattr(result, 'number'):
+	# 			context['num_pages'] = result.number
+	#
+	# 		if hasattr(result, 'next_page_number'):
+	# 			context['next_page_number'] = result.next_page_number
+	# 			context['has_next'] = True
+	# 		else:
+	# 			context['has_next'] = False
+	#
+	#
+	# 	except Exception as e:
+	#
+	# 		msg=" ArchivePageView Error %s "%e
+	# 		logger.error(msg)
+	# 		print(msg)
+	#
+	#
+	# 	return context
+	#
