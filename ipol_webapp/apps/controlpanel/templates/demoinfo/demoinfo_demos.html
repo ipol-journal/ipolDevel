@@ -341,26 +341,29 @@
         {#  delete demo  #}
         function send_delete_demo_request(wsurl,demo_id) {
             var deldemo = confirm('delete this demo: ' + demo_id);
-
             if (deldemo == true) {
-                $.ajax({
-                    type: 'POST',
-                    url: wsurl,
-                    dataType: 'json',
-                    success: function(data) {
-                        console.log(data.status);
-                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
-                        $('#demo_info_'+ demo_id).html(okhtml);
-                        //todo better to only reload part of list, but shoul change django pagination for js pagination
-                        window.location.reload(true);
 
-                    },
-                    error: function(data){
-                        console.error(data.status);
-                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, "+$ws_down+"</p>";
-                        $('#demo_info_'+ demo_id).html(errorhtml);
-                    }
-                });
+                var deldemo2 = confirm('Are you reaaaallly sure you want to delete this demo: ' + demo_id +' from the DB');
+                if (deldemo2 == true) {
+                    $.ajax({
+                        type: 'POST',
+                        url: wsurl,
+                        dataType: 'json',
+                        success: function(data) {
+                            console.log(data.status);
+                            var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+                            $('#demo_info_'+ demo_id).html(okhtml);
+                            //todo better to only reload part of list, but shoul change django pagination for js pagination
+                            window.location.reload(true);
+
+                        },
+                        error: function(data){
+                            console.error(data.status);
+                            var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, "+$ws_down+"</p>";
+                            $('#demo_info_'+ demo_id).html(errorhtml);
+                        }
+                    });
+                }
             }
         }
 

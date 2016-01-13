@@ -12,12 +12,14 @@ __author__ = 'josearrecio'
 
 
 class BlobsDemosView(NavbarReusableMixinMF,TemplateView):
-	template_name = "blobs.html"
+	template_name = "blobs/blobs.html"
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
 		#self.request.session['menu'] = 'menu-'
+
+		self.request.session['menu'] = 'menu-blob'
 		return super(BlobsDemosView, self).dispatch(*args, **kwargs)
 
 

@@ -24,7 +24,8 @@ class DemosView(NavbarReusableMixinMF,TemplateView):
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
-		#self.request.session['menu'] = 'menu-'
+
+		self.request.session['menu'] = 'menu-demos'
 		return super(DemosView, self).dispatch(*args, **kwargs)
 
 

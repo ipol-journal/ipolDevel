@@ -39,6 +39,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 	def dispatch(self, *args, **kwargs):
 		# para las pestanas
 		self.request.session['topmenu'] = 'topmenu-demoinfo-demos'
+		self.request.session['menu'] = 'menu-demoinfo'
 		return super(DemoinfoDemosView, self).dispatch(*args, **kwargs)
 
 
@@ -174,7 +175,7 @@ class DemoinfoDeleteDemoView(NavbarReusableMixinMF,TemplateView):
 				logger.error(msg)
 				raise ValueError(msg)
 
-			result= ipolservices.demoinfo_delete_demo(demo_id,hard_delete = False)
+			result= ipolservices.demoinfo_delete_demo(demo_id,hard_delete = True)
 			if result == None:
 				msg="DemoinfoDeleteDemoView: Something went wrong using demoinfo WS"
 				logger.error(msg)
