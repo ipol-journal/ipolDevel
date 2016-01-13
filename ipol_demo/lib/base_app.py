@@ -616,7 +616,7 @@ class base_app(empty_app):
             if not data:
                 break
             size += len(data)
-            if size > inputs_desc[i]['max_weight']:
+            if 'max_weight' in inputs_desc[i] and size > inputs_desc[i]['max_weight']:
                 # file too heavy
                 raise cherrypy.HTTPError(400, # Bad Request
                                           "File too large, " +
