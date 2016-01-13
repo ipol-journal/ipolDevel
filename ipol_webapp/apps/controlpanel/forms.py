@@ -3,8 +3,10 @@ from crispy_forms.bootstrap import FormActions, PrependedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
 from django.core.urlresolvers import reverse, reverse_lazy
+from apps.controlpanel.tools import get_demoinfo_module_states, get_demoinfo_available_author_list, \
+	get_demoinfo_available_editor_list
 from apps.controlpanel.views.ipolwebservices.ipolservices import demoinfo_get_states, demoinfo_demo_list, \
-	demoinfo_author_list
+	demoinfo_available_author_list_for_demo, demoinfo_author_list
 
 __author__ = 'josearrecio'
 from django import forms
@@ -34,77 +36,6 @@ class DDLform(forms.Form):
 			Submit('save_ddl', 'Save', css_class="btn-primary"),
 		)
 	)
-
-
-# demoinfo states for the demos form, pubhished,etc
-def get_demoinfo_module_states():
-	state_list=None
-
-	try:
-		statesjson = demoinfo_get_states()
-		statesdict= json.loads(statesjson)
-		#print "statesdict", statesdict
-
-		state_list= statesdict['state_list']
-	except Exception as e:
-		msg=" get_demoinfo_module_states Error %s "%e
-		print(msg)
-
-	return state_list
-
-
-#todo podria tener un ws q solo devolviera los dos campos q nececisto para el select del form
-def get_demoinfo_demo_list():
-	demo_list_option=list()
-
-	try:
-		demo_list_json = demoinfo_demo_list()
-		demo_list_dict= json.loads(demo_list_json)
-		# print "demo_list_dict", demo_list_dict
-
-		demo_list= demo_list_dict['demo_list']
-
-		demo_list_option.append( (0,"None selected") )
-		for d in demo_list:
-			d = (d["id"],str(d["editorsdemoid"])+", "+str(d["title"]))
-			demo_list_option.append(d)
-
-		print "demo_list_option", demo_list_option
-
-	except Exception as e:
-		msg=" get_demoinfo_demo_list Error %s "%e
-		print(msg)
-
-	return demo_list_option
-
-
-#todo podria tener un ws q solo devolviera los dos campos q nececisto para el select del form
-# todo no mostrar los autores que ya pertenecen a la demo en question
-def get_demoinfo_author_list(demoid=None):
-
-
-	author_list_option=list()
-
-	try:
-		print "get_demoinfo_author_list"
-		author_list_json = demoinfo_author_list()
-		author_list_dict= json.loads(author_list_json)
-		# print "demo_list_dict", demo_list_dict
-
-		author_list= author_list_dict['author_list']
-
-		author_list_option.append( (0,"None selected") )
-		for a in author_list:
-			a = (a["id"],str(a["name"])+", "+str(a["mail"]))
-			author_list_option.append(a)
-
-		print "get_demoinfo_author_list", author_list_option
-
-	except Exception as e:
-		msg=" get_demoinfo_author_list Error %s "%e
-		print(msg)
-
-	return author_list_option
 
 
 class Demoform(forms.Form):
@@ -150,7 +81,7 @@ class Demoform(forms.Form):
 		self.fields['state'] = forms.ChoiceField(label='state',required=True, choices=get_demoinfo_module_states() )
 
 
-# for edit
+# for edit Author
 class Authorform(forms.Form):
 	#hidden
 	id = forms.IntegerField(label='id',required=False)
@@ -174,7 +105,7 @@ class Authorform(forms.Form):
 	)
 
 
-#for new (lets the user create and  assign author to one demo...)
+# for new Author (lets the user create and  assign author to one demo...)
 class DemoAuthorform(forms.Form):
 	#hidden
 	demoid = forms.IntegerField(label='demoid',required=False)
@@ -198,7 +129,7 @@ class DemoAuthorform(forms.Form):
 	)
 
 
-#for existing author (lets the user select and assign  author to one demo...)
+# for existing Author (allows the user to select and assign an author to one demo...)
 class ChooseAuthorForDemoform(forms.Form):
 	#hidden
 	demoid = forms.IntegerField(label='demoid',required=False)
@@ -219,9 +150,124 @@ class ChooseAuthorForDemoform(forms.Form):
 		)
 	)
 	def __init__(self, *args, **kwargs):
-		#dinamic way to get staes of demo in demoinfo module
+		#dinamic way to get choice values
+		initial =  kwargs.get('initial', {})
+		author = initial.get('author', None)
+
+		# set just the initial value
+		if author:
+			kwargs['initial']['author'] = author[0]
+
+		# create the form
 		super(ChooseAuthorForDemoform, self).__init__(*args, **kwargs)
-		self.fields['author'] = forms.ChoiceField(label='author(name,email)',required=True, choices=get_demoinfo_author_list() )
+
+		# self.fields only exist after, so a double validation is needed
+		if  author :
+			# initial authors available for demo (initialized in the view with the proper demoid)
+			self.fields['author'].choices = author
+		else:
+			# all authors
+			self.fields['author'].choices=get_demoinfo_available_author_list()
+
+	# cannot do this, i only know the demmid in the view
+	# def __init__(self, *args, **kwargs):
+	# 	#dinamic way to get staes of demo in demoinfo module
+	# 	print "AKI __init__"
+	# 	super(ChooseAuthorForDemoform, self).__init__(*args, **kwargs)
+	# 	self.fields['author'] = forms.ChoiceField(label='author(name,email)',required=True, choices=get_demoinfo_available_author_list() )
+	#
+
+
+
+#for now we ignore the editors active flag (true by default)
+# for edit Editor
+class Editorform(forms.Form):
+	#hidden
+	id = forms.IntegerField(label='id',required=False)
+	#normal
+	name = forms.CharField(label='name',required=True)
+	mail = forms.EmailField(label='mail',required=True)
+	helper = FormHelper()
+	helper.form_id = "Editorform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_editor')
+	# helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_demo')
+	helper.form_method = 'POST'
+	helper.form_class = 'form-horizontal'
+	helper.layout = Layout(
+		Field('id', type='hidden'),
+		Field('name'),
+		Field('mail', css_class='form-control'),
+		FormActions(
+			Submit('save_editor', 'Save', css_class="btn-primary"),
+		)
+	)
+
+
+# for new Editor (lets the user create and  assign editor to one demo...)
+class DemoEditorform(forms.Form):
+	#hidden
+	demoid = forms.IntegerField(label='demoid',required=False)
+	# no need for editor id, whe add it from the select or create it
+	#normal
+	name = forms.CharField(label='name',required=True)
+	mail = forms.EmailField(label='mail',required=True)
+	helper = FormHelper()
+	helper.form_id = "DemoEditorform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_new_editor_to_demo')
+	helper.form_method = 'POST'
+	helper.form_class = 'form-horizontal'
+	helper.layout = Layout(
+		Field('demoid', type='hidden'),
+		Field('name'),
+		Field('mail', css_class='form-control'),
+		FormActions(
+			Submit('save_editor', 'Save', css_class="btn-primary"),
+		)
+	)
+
+
+# for existing Editor (allows the user to select and assign an editor to one demo...)
+class ChooseEditorForDemoform(forms.Form):
+	#hidden
+	demoid = forms.IntegerField(label='demoid',required=False)
+	# no need for editor id, whe add it from the select or create it
+	# select a demo for this editor
+	editor = forms.ChoiceField(label='editor(name,email)',required=True)
+	helper = FormHelper()
+	helper.form_id = "ChooseEditorForDemoform"
+	helper.form_action = reverse_lazy('ipol.cp.demoinfo.add_existing_editor_to_demo')
+	helper.form_method = 'POST'
+	helper.form_class = 'form-horizontal'
+	helper.layout = Layout(
+		Field('demoid', type='hidden'),
+		Field('editor', css_class='form-control'),
+		FormActions(
+			Submit('save_selected_editor_for_demo', 'Save', css_class="btn-primary"),
+		)
+	)
+	def __init__(self, *args, **kwargs):
+		#dinamic way to get choice values
+		initial =  kwargs.get('initial', {})
+		editor = initial.get('editor', None)
+
+		# set just the initial value
+		if editor:
+			kwargs['initial']['editor'] = editor[0]
+
+		# create the form
+		super(ChooseEditorForDemoform, self).__init__(*args, **kwargs)
+
+		# self.fields only exist after, so a double validation is needed
+		if  editor :
+			# initial editors available for demo (initialized in the view with the proper demoid)
+			self.fields['editor'].choices = editor
+		else:
+			# all editors
+			self.fields['editor'].choices=get_demoinfo_available_editor_list()
+
+		print
+		print "self.fields['editor'].choices",self.fields['editor'].choices
+		print
 
 
 # class DemoAuthorform(forms.Form):

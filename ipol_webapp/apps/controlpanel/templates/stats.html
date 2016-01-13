@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block title %}
-    HW
+    Control Panel Satus
 {% endblock %}
 
 {% block cssfiles %}
@@ -34,12 +34,15 @@
 
     <div class="container">
         <h1>
-            <p>SYSTEM STATS</p>
+            <p>Control Panel SYSTEM STATS</p>
         </h1>
 
 
         {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine%}
             {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine %}
+                <p> The purpose of this page is to monitor the status of the diferent modules that provide functionality (this is a microservices architecture) used by Control Panel</p>
+                <p> </p>
+
                 <b class="ststsnok">Carefull! Some stuff is running locally</b>
                 <p> To RUN Locally DEMO: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python demo.py  (needs buil)</p>
                 <p> To RUN Locally ARCHIVE: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo/modules/archive$ python main.py archive.josearrecio.conf</p>
@@ -78,9 +81,9 @@
                     </div>
 
                     {#boton shutdown#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>
-                    </div>
+                    {#    <div style="padding-left: 20px" >#}
+                    {#        <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>#}
+                    {#    </div>#}
 
                     <p>For testing purposes Archive module has experiment with id=-1, you can add experiments to it (an experiment consists of two pokemon images)</p>
                     <div style="padding-left: 20px" >

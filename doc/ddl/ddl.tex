@@ -383,15 +383,15 @@ The label  can be used as a title to separate groups of parameters.
 The 'run' section contains an array of elements, where each element can be 
 a string or another array of strings:
 \begin{itemize}
-\item if the element is a string starting with '\#', it is considered as a comment
+\item if the element is a string starting with '\#', it is considered as a comment.
 \item if the element is a string, it can be a command to run from the system (shell, 
 python script or demo binary) or a python code to evaluate if the string
 starts with "python:",
-\item if the element is an array of string, the first string is a python
+\item if the element is an array of strings, the first string is a python
 condition, if this condition is fulfilled, the remaining commands will be
 executed.
 \end{itemize}
-In the command line, you can use \$param\_id to replace the to evaluate a 
+In the command line, you can use \$param\_id to evaluate a 
 python expression that can contain the parameter ids,
 and '\textgreater output\_file' (without space between '\textgreater' and the 
 filename) to redirect the standard output to a given file, save in the current 

@@ -37,7 +37,7 @@ class BuildDemoBase:
     """
     program build/update
     """
-    print "make(clean_previous={0})".format(clean_previous)
+    #print "make(clean_previous={0})".format(clean_previous)
     zip_filename  = urlparse.urlsplit(self.params['url']).path.split('/')[-1]
     src_dir_name  = self.params['srcdir']
     src_path      = path.join(self.src_dir, src_dir_name)
@@ -114,8 +114,9 @@ class BuildDemoBase:
             for file_name in src_files:
               full_file_name = os.path.join(bin_path, file_name)
               if (os.path.isfile(full_file_name)):
-                print "{0}-->{1}".format(full_file_name, self.bin_dir)
+                print "{0}; ".format(file_name),
                 shutil.copy(full_file_name, self.bin_dir)
+            print ''
           else:
             # copy binary to bin dir
             print "{0}-->{1}".format(bin_path,self.bin_dir)
@@ -149,8 +150,9 @@ class BuildDemoBase:
             for file_name in src_files:
               full_file_name = os.path.join(bin_path, file_name)
               if (os.path.isfile(full_file_name)):
-                print "{0}-->{1}".format(full_file_name, self.bin_dir)
+                print "{0}; ".format(file_name),
                 shutil.copy(full_file_name, self.bin_dir)
+            print ''
           else:
             # copy binary to bin dir
             print "{0}-->{1}".format(bin_path,self.bin_dir)

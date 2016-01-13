@@ -298,6 +298,12 @@ class base_app(empty_app):
         """
         demo presentation and input menu
         """
+        
+        #if no input go directly to parameters
+        if self.nb_inputs==0:
+            # jump to the params page
+            return self.params()
+        
         # read the input index as a dict
         inputd = config.file_dict(self.input_dir)
         tn_size = int(cherrypy.config.get('input.thumbnail.size', '192'))
@@ -940,7 +946,11 @@ class base_app(empty_app):
           self.cfg.save()
 
       # archive
-      if self.cfg['meta']['original']:
+      if self.nb_inputs==0:
+          self.cfg['meta']['original'] = True
+          self.cfg.save()
+          
+      if (self.nb_inputs==0) or (self.cfg['meta']['original']):
         desc = self.demo_description['archive']
         ar = self.make_archive()
         if 'files' in desc.keys():
@@ -954,7 +964,7 @@ class base_app(empty_app):
         # let's add all the parameters
         if 'params' in desc.keys():
           for p in desc['params']:
-            if p in self.cgf['param']:
+            if p in self.cfg['param']:
               ar.add_info({ p: self.cfg['param'][p]})
           
         if 'info' in desc.keys():
@@ -1049,7 +1059,7 @@ class base_app(empty_app):
         for key in kwargs:
             self.cfg['param'][key] = kwargs[key]
 
-        if x != None:
+        if (self.nb_inputs>0)and(x != None):
           #save parameters
           try:
             # already done ...
@@ -1068,12 +1078,13 @@ class base_app(empty_app):
         else:
           self.cfg.save()
 
-        # use the whole image if no subimage is available
-        try:
-            img = image(self.work_dir + 'input_0.sel.png')
-        except IOError:
-            img = image(self.work_dir + 'input_0.png')
-            img.save(self.work_dir + 'input_0.sel.png')
+        if self.nb_inputs>0:
+            # use the whole image if no subimage is available
+            try:
+                img = image(self.work_dir + 'input_0.sel.png')
+            except IOError:
+                img = image(self.work_dir + 'input_0.png')
+                img.save(self.work_dir + 'input_0.sel.png')
 
         # go to the wait page, with the key
         http.redir_303(self.base_url + "wait?key=%s" % ((self.key)))

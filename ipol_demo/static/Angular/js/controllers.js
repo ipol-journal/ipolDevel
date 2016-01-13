@@ -195,9 +195,16 @@ IPOLDemoControllers.controller('DemoParamCtrl',
 
 /*---------------- DemoWaitCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoWaitCtrl',
-  [ '$scope','$timeout',
-    function($scope,$timeout) 
+  [ '$scope','$timeout','Demo',
+    function($scope,$timeout, Demo) 
     {
+      // get the demo information
+      Demo.get( { demoId: $scope.demo_id }, 
+        function(demo) { 
+          $scope.PreprocessDemo($scope,demo)
+          $scope.demo = demo;
+        } 
+      );
       $scope.counter = 0;
       $scope.onTimeout = function(){
           $scope.counter++;

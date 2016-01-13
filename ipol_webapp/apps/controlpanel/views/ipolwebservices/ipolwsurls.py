@@ -6,7 +6,7 @@ __author__ = 'josearrecio'
 #todo This should go in the DB
 
 
-#GLOBAL WS LIST (todo in DB)
+#GLOBAL WS LIST
 
 
 #####################
@@ -14,63 +14,129 @@ __author__ = 'josearrecio'
 #####################
 
 
+# MISC
+
+
 demoinfo_ws_url_stats = IPOL_SERVICES_MODULE_DEMOINFO+'/stats'
-# param Nones
+# param None
+
 
 # DEMO
+
+
 demoinfo_ws_url_demo_list = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list'
 # param None , "demo_list": [{"creation": "2015-12-28 16:47:54", "stateID": 1, "abstract": "DemoTEST1 Abstract", "title": "DemoTEST1 Title", "editorsdemoid": 23, "active": 1, "id": 1, "zipURL": "https://DemoTEST1.html", "modification": "2015-12-28 16:47:54"},
+
+demoinfo_ws_url_demo_list_by_demoeditorid = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list_by_demoeditorid'
+# param demoeditorid_list  , "demo_list": {"status": "OK", "demo_list": [{"creation": "2016-01-12 20:46:38", "stateID": 1, "abstract": "DemoTEST4 Abstract", "title": "DemoTEST4 Title", "editorsdemoid": 26, "active": 1, "id": 4, "zipURL": "https://DemoTEST4.html", "modification": "2016-01-12 20:46:38"}]}[{"c
+
+
 demoinfo_ws_url_demo_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_list_pagination_and_filter'
 # param num_elements_page, page, qfilter ,
 # result	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
 # 	 "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
 # 	 "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
 # 	 "previous_page_number": 1, "number": 2.0}
+
 demoinfo_ws_url_read_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_description'
 # params  demodescriptionID
+
 demoinfo_ws_url_last_demodescription_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_last_demodescription_from_demo'
 # params  demoid,returnjsons=False, result = {'id': row[0], 'inproduction': row[1], 'creation': row[2], 'json': row[3]}
+
 demoinfo_ws_url_update_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/update_demo_description'
 # params demodescriptionID  returns data["status"] = "OK"
+
 demoinfo_ws_url_add_demo_description = IPOL_SERVICES_MODULE_DEMOINFO+'/add_demo_description'
 # params demoid=None result: ["demo_description_id"] = demodescription_id ["added_to_demo_id"] = demoid ["status"] = "OK"
+
 demoinfo_ws_url_read_states = IPOL_SERVICES_MODULE_DEMOINFO+'/read_states'
 # method POST,  params none,{"status": "OK", "state_list": [[1, "published", "published"], [2, "preprint", "preprint"], [3, "inactive", "inactive"]]}
+
 demoinfo_ws_url_delete_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/delete_demo'
 # method POST,  params demo_id,hard_delete = False
+
 demoinfo_ws_url_read_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/read_demo_metainfo'
 # method POST, params demoid result:  {"status": "OK", "creation": "2015-12-21 12:39:11", "title": "demo2", "abstract":
 # "demoabstract", "stateID": 1, "editorsdemoid": 777, "active": 1, "id": 2, "zipURL": "http://prueba.com", "modification": "2015-12-21 12:39:11"}
+
 demoinfo_ws_url_add_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_demo'
 # method POST, params editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
+
 demoinfo_ws_url_update_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/update_demo'
  # method POST,  params demo json ='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "stateID": 1, "id": 1, "zipURL": "http://demo1updated.com"}'
 
+
 #AUTHOR
+
 
 demoinfo_ws_url_author_list = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list'
 # param None, returns {"status": "OK", "author_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "author2"}, ...
+
 demoinfo_ws_url_author_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/author_list_pagination_and_filter'
 # param num_elements_page, page, qfilter
 
+#authors of this demo
+demoinfo_ws_url_author_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_authors_list'
+# param demo_id, returns {"status": "OK", "author_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "author2"}, ...
+
+#authors I can assign to this demo
+demoinfo_ws_url_available_author_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_available_authors_list'
+# param demo_id, returns {"status": "OK", "author_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "author2"}, ...
+
 demoinfo_ws_url_delete_author = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_author'
 # param author_id
+
 demoinfo_ws_url_read_author = IPOL_SERVICES_MODULE_DEMOINFO+'/read_author'
 # param author_id
+
 demoinfo_ws_url_add_author = IPOL_SERVICES_MODULE_DEMOINFO+'/add_author'
 # param name,mail  returns jsonresult {"status": "OK", "authorid": 8}
 
 demoinfo_ws_url_update_author = IPOL_SERVICES_MODULE_DEMOINFO+'/update_author'
 # param author data
 
-
 demoinfo_ws_url_add_author_to_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_author_to_demo'
 # param demo_id ,author_id
 
+demoinfo_ws_url_delete_author_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_author_from_demo'
+# param demo_id,author_id
+
 
 #EDITOR
+
 demoinfo_ws_url_editor_list = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list'
- # param None
+# param None, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2"...
+
+demoinfo_ws_url_editor_list_pagination_and_filter = IPOL_SERVICES_MODULE_DEMOINFO+'/editor_list_pagination_and_filter'
+# param num_elements_page, page, qfilter
+
+#editors of this demo
+demoinfo_ws_url_editor_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_editors_list'
+# param demo_id, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2" ...
+
+#editors I can assign to this demo
+demoinfo_ws_url_available_editor_list_for_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/demo_get_available_editors_list'
+# param demo_id, returns {"status": "OK", "editor_list": [{"mail": "pepe@jak.com", "creation": "2015-12-31 12:18:39.015639", "id": 2, "name": "editor2" ...
+
+demoinfo_ws_url_delete_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_editor'
+# param editor_id
+
+demoinfo_ws_url_read_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/read_editor'
+# param editor_id
+
+demoinfo_ws_url_add_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/add_editor'
+# param name,mail  returns jsonresult {"status": "OK", "editorid": 8}
+
+demoinfo_ws_url_update_editor = IPOL_SERVICES_MODULE_DEMOINFO+'/update_editor'
+# param editor data
+
+demoinfo_ws_url_add_editor_to_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/add_editor_to_demo'
+# param demo_id ,editor_id
+
+demoinfo_ws_url_delete_editor_from_demo = IPOL_SERVICES_MODULE_DEMOINFO+'/remove_editor_from_demo'
+# param demo_id,editor_id
+
 
 
 ####################

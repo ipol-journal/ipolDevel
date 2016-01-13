@@ -705,6 +705,7 @@ class TestDemoinfo(unittest.TestCase):
 
 		except Exception as ex:
 			print "special_test ",ex
+			print "check demoinfo is up and running locally"
 			test_passed = False
 
 		self.failUnless(test_passed, 'failure , edit_editor  updating  editor')
@@ -1350,6 +1351,158 @@ class TestDemoinfo(unittest.TestCase):
 
 		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
 
+	def test_author_list_pagination_and_filter(self):
+		test_passed = True
+		try:
+
+			print "test_author_list_pagination_and_filter"
+			print
+
+			num_elements_page=1
+			page = 1
+
+			p1 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p1
+			print
+
+
+			page = 2
+			p2 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
+
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p2
+			print
+
+			qfilter='demo'
+			p3 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p3
+			print
+
+			qfilter='Name1_updated'
+			p4 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p4
+			print
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_author_list_pagination_and_filter Failed ')
+
+	def test_editor_list_pagination_and_filter(self):
+		test_passed = True
+		try:
+
+			print "test_editor_list_pagination_and_filter"
+			print
+
+			num_elements_page=1
+			page = 1
+
+			p1 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p1
+			print
+
+
+			page = 2
+			p2 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
+
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p2
+			print
+
+			qfilter='demo'
+			p3 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p3
+			print
+
+			qfilter='Name1_updated'
+			p4 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
+
+			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+			print p4
+			print
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+
+	def test_demo_get_available_author_list(self):
+		test_passed = True
+		try:
+
+			print "test_demo_get_available_author_list"
+			print
+
+			demoid = 1
+
+			al = self.demoinfo.demo_get_available_authors_list(demoid)
+
+			print al
+
+
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+
+	def test_demo_get_available_editors_list(self):
+		test_passed = True
+		try:
+
+			print "test_demo_get_available_editor_list"
+			print
+
+
+			demoid = 1
+
+			el = self.demoinfo.demo_get_available_editors_list(demoid)
+
+			print el
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+
+	def test_demo_list_by_demoeditorid(self):
+		test_passed = True
+		try:
+
+			print "test_demo_list_by_demoeditorid"
+			print
+
+
+			editorsdemoid_list = [26]
+
+			dl = self.demoinfo.demo_list_by_demoeditorid(editorsdemoid_list)
+
+			print dl
+
+		except Exception as ex:
+			print ex
+			test_passed = False
+
+		self.failUnless(test_passed, 'failure , test_demo_list_by_demoeditorid Failed ')
+
+
 
 	##########################
 	# run all tests in order #
@@ -1362,6 +1515,8 @@ class TestDemoinfo(unittest.TestCase):
 			print
 			print(" Monolithic Test Started")
 			print(" From the initialized Db, with no demos,authors o editors, create them and manipulate them using the WS provided by demoInfo module")
+			print(" Every WEBSERVICE you expose MUST have its test, or be part of at least one test")
+			print(" run with ../tests$ python -m unittest discover")
 
 
 			print " ---0"
@@ -1452,7 +1607,32 @@ class TestDemoinfo(unittest.TestCase):
 			self.read_delete_editor()
 			print
 			print
-			print " ---22 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING"
+			print " ---22"
+			print
+			self.test_author_list_pagination_and_filter()
+			print
+			print
+			print " ---23"
+			print
+			self.test_editor_list_pagination_and_filter()
+			print
+			print
+			print " ---24"
+			print
+			self.test_demo_get_available_author_list()
+			print
+			print
+			print " ---25"
+			print
+			self.test_demo_get_available_editors_list()
+			print
+			print
+			print " ---26"
+			print
+			self.test_demo_list_by_demoeditorid()
+			print
+			print
+			print " ---27 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
 			#app demoinfo must be running ! works with the NOT TEST database
 			# for testing ws that get the json from the the data, not params
 			self.special_test()

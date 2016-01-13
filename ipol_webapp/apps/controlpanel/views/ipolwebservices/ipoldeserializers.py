@@ -296,6 +296,102 @@ def DeserializeDemoinfoAuthorList(jsonresult):
 	return myal
 
 
+def DeserializeDemoinfoEditorList(jsonresult):
+
+
+	#Clases that will contain the json data
+	#"editor_list": [{"mail": "editoremail1@gmail.com", "creation": "2015-12-28 16:47:54", "id": 1, "name": "Editor Name1"}]}
+
+	class Editor(object):
+		def __init__(self, id,name, mail,creation):
+
+			self.id = id
+			self.name = name
+			self.mail = mail
+			self.creation = creation
+
+
+	class EditorList(object):
+		def __init__(self, editor_list,status,previous_page_number,number,next_page_number):
+			self.editor_list = editor_list
+			self.status = status
+			if next_page_number:
+				self.next_page_number = next_page_number
+			if number:
+				self.number = number
+			if previous_page_number:
+				self.previous_page_number = previous_page_number
+
+	# Serializers
+	class DemoinfoEditorSerializer(serializers.Serializer):
+
+		id = serializers.IntegerField()
+		name = serializers.CharField()
+		mail = serializers.EmailField()
+		creation = serializers.DateTimeField()
+
+		def create(self, validated_data):
+			return Editor(**validated_data)
+
+
+	class DemoinfoEditorListSerializer(serializers.Serializer):
+		editor_list = DemoinfoEditorSerializer(many=True,required=False)
+		status = serializers.CharField(max_length=200)
+		next_page_number = serializers.IntegerField(required=False, allow_null=True)
+		number = serializers.IntegerField(required=False, allow_null=True)
+		previous_page_number = serializers.IntegerField(required=False, allow_null=True)
+
+		def create(self, validated_data):
+			list_editors = validated_data.pop('editor_list')
+			status = validated_data.pop('status')
+			try:
+				next_page_number = validated_data.pop('next_page_number')
+				number = validated_data.pop('number')
+				previous_page_number = validated_data.pop('previous_page_number')
+			except:
+				next_page_number=None
+				number=None
+				previous_page_number=None
+				print "no pagination or filtering"
+			editor_list = list()
+			for editor in list_editors:
+				asrlzr = DemoinfoEditorSerializer(data=editor)
+
+				if asrlzr.is_valid(raise_exception=True):
+					editor_list.append(asrlzr.save())
+
+			editorlist = EditorList(editor_list,status,previous_page_number,number,next_page_number)
+
+			return editorlist
+
+	#Using data from WS
+	jsondata = jsonresult
+
+	#Deserialization.
+	myel = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		print "jsondata: ",jsondata
+
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = DemoinfoEditorListSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			myel = serializer.save()
+
+	except Exception,e:
+		msg="Error DeserializeEditorinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
+		logger.error(msg)
+		print(msg)
+		#logger.error(serializer.errors)
+
+	return myel
+
+
+
 
 ####################
 #  ARCHIVE MODULE  #
@@ -579,13 +675,14 @@ def DeserializeArchiveDemoList(jsonresult):
 			mydl = serializer.save()
 
 
+
 	except Exception,e:
 		msg="Error JSON Deserialization e: %s serializer.errors: " % e
 		logger.error(msg)
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print mydl
+	print "mydl",mydl
 	return mydl
 
 ####################

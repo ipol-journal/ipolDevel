@@ -66,13 +66,13 @@
             {% if status == "OK" %}
 
                 {% if data %}
+
                     {% for author in data %}
 
                         <div class="author row" id="author_info_{{ author.id }}" >
                             <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ author.id }}</span> </div>
                             <div class="griditem col-sm-3">{% trans 'name' %}:{{ author.name }} </div>
                             <div class="griditem col-sm-3">{% trans 'email' %}:{{ author.mail}} </div>
-
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
@@ -89,9 +89,7 @@
 
                     <p class="ststsnok"> {% blocktrans %}No Authors available.{%  endblocktrans %}</p>
 
-
                 {% endif %}
-
             {% else %}
 
                 <p class="ststsnok"> {% blocktrans %}Could not connect to demoinfo authors, check demoinfo Status{%  endblocktrans %}</p>

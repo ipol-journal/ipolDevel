@@ -67,6 +67,8 @@ class Demo(object):
 		else:
 			self.modification = datetime.datetime.now()
 
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
 
 class Author(object):
 	id = None
@@ -90,6 +92,12 @@ class Author(object):
 		else:
 			self.creation = datetime.datetime.now()
 
+
+	def __eq__(self, other):
+		# print "eq"
+		# print self.__dict__
+		# print other.__dict__
+		return self.__dict__ == other.__dict__
 
 class Editor(object):
 	id = None
@@ -117,6 +125,8 @@ class Editor(object):
 		else:
 			self.creation = datetime.datetime.now()
 
+	def __eq__(self, other):
+		return self.__dict__ == other.__dict__
 
 ###########################
 #  DAO (data access obj ) #
@@ -298,7 +308,7 @@ class DemoDAO(object):
 	@validates(typ(int))
 	def read_by_editordemoid(self, editordemoid):
 
-		print "editordemoid: ",editordemoid
+		# print "editordemoid: ",editordemoid
 		result = None
 		try:
 			self.cursor.execute(
@@ -321,10 +331,10 @@ class DemoDAO(object):
 		try:
 			if is_active:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY id DESC ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY editor_demo_id DESC ''')
 			else:
 				self.cursor.execute(
-					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY id DESC ''')
+					'''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY editor_demo_id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
@@ -569,7 +579,7 @@ class AuthorDAO(object):
 	def list(self):
 		author_list = list()
 		try:
-			self.cursor.execute('''SELECT name, mail,id, creation FROM author ''')
+			self.cursor.execute('''SELECT name, mail,id, creation FROM author ORDER BY id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				a = Author(row[0], row[1], row[2], row[3])
@@ -737,7 +747,7 @@ class EditorDAO(object):
 			# todo validate user input
 			if editor.creation:
 				self.cursor.execute('''
-				UPDATE editor SET name=?, mail=?,active=?,creation=?WHERE id=?''',
+				UPDATE editor SET name=?, mail=?,active=?,creation=? WHERE id=?''',
 				                    (editor.name, editor.mail, editor.active, editor.creation, editor.id))
 			else:
 				self.cursor.execute('''
@@ -766,7 +776,7 @@ class EditorDAO(object):
 		editor_list = list()
 		try:
 			# name, mail, id=None,active=None, creation=
-			self.cursor.execute('''SELECT  name, mail,  id, active, creation FROM editor ''')
+			self.cursor.execute('''SELECT  name, mail,  id, active, creation FROM editor ORDER BY id DESC ''')
 			self.conn.commit()
 			for row in self.cursor.fetchall():
 				e = Editor(row[0], row[1], row[2], row[3], row[4])
@@ -910,10 +920,9 @@ def createDb(database_name):
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "state" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				name VARCHAR(500),
+				name VARCHAR(500) UNIQUE,
 				description TEXT,
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(name)
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
@@ -936,16 +945,15 @@ def createDb(database_name):
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "demo" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
-				editor_demo_id INTEGER,
-				title VARCHAR,
+				editor_demo_id INTEGER UNIQUE NOT NULL,
+				title VARCHAR UNIQUE NOT NULL,
 				abstract TEXT,
 				zipURL VARCHAR,
 				active INTEGER(1) DEFAULT 1,
 				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				stateID INTEGER,
-				FOREIGN KEY(stateID) REFERENCES state(id),
-				UNIQUE(title)
+				FOREIGN KEY(stateID) REFERENCES state(id)
 				);"""
 			)
 
@@ -957,8 +965,7 @@ def createDb(database_name):
 				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
 				FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
-				UNIQUE(demoID, demodescriptionId)
-
+				UNIQUE(demoID)
 				);"""
 			)
 
@@ -967,19 +974,17 @@ def createDb(database_name):
 				"""CREATE TABLE IF NOT EXISTS "author" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR ,
-				mail VARCHAR(320),
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(mail)
+				mail VARCHAR(320) UNIQUE,
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
 				"""CREATE TABLE IF NOT EXISTS "editor" (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR ,
-				mail VARCHAR(320),
+				mail VARCHAR(320) UNIQUE,
 				active INTEGER(1) DEFAULT 1,
-				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(mail)
+				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 				);"""
 			)
 			cursor_db.execute(
