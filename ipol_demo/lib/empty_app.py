@@ -114,21 +114,21 @@ class empty_app(object):
             value = object.__getattribute__(self, attr)
         return value
 
-    #---------------------------------------------------------------------------
-    def read_demo_description(self):
-        """
-        Read the demo description file (JSON format) as a python dictionnary
-        """
-        # json file
-        description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                           "../static/JSON/{0}.json".format(self.id))
-        #print description_filename
-        try:
-          demo_file = open(description_filename)
-          self.demo_description = json.load(demo_file)
-          demo_file.close()
-        except:
-          cherrypy.log("failed to read JSON demo description {0}".format(description_filename))
+    ##---------------------------------------------------------------------------
+    #def read_demo_description(self):
+        #"""
+        #Read the demo description file (JSON format) as a python dictionnary
+        #"""
+        ## json file
+        #description_filename= os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                           #"../static/JSON/{0}.json".format(self.id))
+        ##print description_filename
+        #try:
+          #demo_file = open(description_filename)
+          #self.demo_description = json.load(demo_file)
+          #demo_file.close()
+        #except:
+          #cherrypy.log("failed to read JSON demo description {0}".format(description_filename))
     
 
     def init_key(self, key):
