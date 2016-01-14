@@ -13,7 +13,8 @@ import shutil
 from lib import build_demo_base
 from lib import base_app
 #import json
-import simplejson as json
+#import simplejson as json
+import json
 # json schema validation
 from jsonschema import validate
 from jsonschema import Draft4Validator
@@ -21,6 +22,7 @@ from jsonschema import ValidationError
 
 from sets import Set
 import re
+import urllib2
 
 #-------------------------------------------------------------------------------
 def CORS(): 
@@ -72,7 +74,7 @@ class demo_index(object):
                     description="")
 
 #-------------------------------------------------------------------------------
-def do_build(demo_dict,clean):
+def do_build(demo_dict,demo_desc,clean):
     """
     build/update the demo programs
     """
@@ -81,10 +83,10 @@ def do_build(demo_dict,clean):
       print "\n---- demo: ",demo_id
       # get demo dir
       current_dir = os.path.dirname(os.path.abspath(__file__))
-      demo_dir = os.path.join(current_dir,"app",demo_id)
+      
       # read JSON file
       # update the demo apps programs
-      demo = base_app(demo_path)
+      demo = base_app(demo_path, demo_desc[demo_id])
       
       # we should have a dict or a list of dict
       if isinstance(demo.demo_description['build'],dict):
@@ -94,7 +96,7 @@ def do_build(demo_dict,clean):
       
       first_build = True
       for build_params in builds:
-        bd = build_demo_base.BuildDemoBase( demo_dir)
+        bd = build_demo_base.BuildDemoBase( demo_path)
         bd.set_params(build_params)
         
         cherrypy.log("building", context='SETUP/%s' % demo_id,
@@ -120,7 +122,7 @@ def do_run(demo_dict, demo_desc):
     for (demo_id, demo_path) in demo_dict.items():
         # mount the demo apps
         try:
-          demo = base_app(demo_path)
+          demo = base_app(demo_path,demo_desc[demo_id])
           cherrypy.log("loading", context='SETUP/%s' % demo_id,
                       traceback=False)
           cherrypy.tree.mount(demo, script_name='/%s' % demo_id)
@@ -357,6 +359,10 @@ def WriteDDLOptions(sn,section_types,section_keys,latex_sections):
     res +=  indent+'    },\n'
     return (res,max_count)
   
+def ensure_dir(f):
+    d = os.path.dirname(f)
+    if not os.path.exists(d):
+        os.makedirs(d)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -381,8 +387,27 @@ if __name__ == '__main__':
 
     cherrypy.config.update(conf_file)
 
-    # load the demo collection
-    from app import demo_dict
+
+    # using demoinfo module to create demo_dict ...
+    # use proxy
+    proxy_server = cherrypy.config['demo.proxy_server']
+    get_demolist_url = proxy_server+'/?module=demoinfo&service=demo_list'
+    res = urllib2.urlopen(get_demolist_url)
+    resjson = json.loads(res.read())
+    demo_dict=dict()
+    internalid_dict=dict()
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    if resjson['status']=="OK":
+        for d in resjson['demo_list']:
+            id_str = str(d['editorsdemoid'])
+            print id_str
+            demo_dict[id_str]=CURRENT_DIR+'/app_new/'+str(d['editorsdemoid'])
+            internalid_dict[id_str]=d['id']
+            ensure_dir(demo_dict[id_str])
+   
+            
+    ## load the demo collection
+    #from app import demo_dict
 
     # all the names of main sections in DDL files
     section_names = Set()
@@ -404,29 +429,62 @@ if __name__ == '__main__':
 
     demo_desc = {}
     demo_count=0
+    i = 0
     # check for json files
     for (demo_id, demo_app) in demo_dict.items():
-      jsonpath = os.path.join(base_dir, "static/JSON/{0}.json".format(demo_id))
-      try:
-        demo_count += 1
-        print " ",demo_count,"\treading json ",demo_id,
-        demo_file = open(jsonpath)
-        demo_description = json.load(demo_file)
-        if CheckDemoDescription(demo_description):
-          demo_desc[demo_id] = demo_description
-          print " --> OK "
-          UpdateDemoInfo(demo_description,
-                         section_names,
-                         section_keys,
-                         section_types)
-        else:
-          demo_dict.pop(demo_id)
-          print "FAILED"
-        demo_file.close()
-      except ValueError as e:
-        print "EXCEPTION: ", e
-        cherrypy.log("failed to read JSON demo description")
-        demo_dict.pop(demo_id)
+
+      doit=True
+      if doit:
+        print "--------------------------------"
+        print "demo_id = ", demo_id
+        try:
+            # read demo descriptions
+            res1 = urllib2.urlopen(proxy_server + "/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id="+str(internalid_dict[demo_id])+"&returnjsons=True" )
+            res1json = json.loads(res1.read())
+            if res1json['status'] == 'OK':
+                ddl_info = res1json['last_demodescription']
+                if ddl_info:
+                    ddl = ddl_info['json']
+                    demo_description = json.loads(ddl)
+                    demo_description = json.loads(demo_description)
+                    if CheckDemoDescription(demo_description):
+                        demo_desc[demo_id] = demo_description
+                        print " --> OK "
+                        UpdateDemoInfo(demo_description,
+                                        section_names,
+                                        section_keys,
+                                        section_types)
+                    else:
+                        demo_dict.pop(demo_id)
+                        print "FAILED"
+        except ValueError as e:
+            print "EXCEPTION: ", e
+            cherrypy.log("failed to read JSON demo description")
+            demo_dict.pop(demo_id)
+      i=i+1
+
+
+      #jsonpath = os.path.join(base_dir, "static/JSON/{0}.json".format(demo_id))
+      #try:
+        #demo_count += 1
+        #print " ",demo_count,"\treading json ",demo_id,
+        #demo_file = open(jsonpath)
+        #demo_description = json.load(demo_file)
+        #if CheckDemoDescription(demo_description):
+          #demo_desc[demo_id] = demo_description
+          #print " --> OK "
+          #UpdateDemoInfo(demo_description,
+                         #section_names,
+                         #section_keys,
+                         #section_types)
+        #else:
+          #demo_dict.pop(demo_id)
+          #print "FAILED"
+        #demo_file.close()
+      #except ValueError as e:
+        #print "EXCEPTION: ", e
+        #cherrypy.log("failed to read JSON demo description")
+        #demo_dict.pop(demo_id)
         
     #print demo_dict
     #print demo_desc
@@ -451,7 +509,7 @@ if __name__ == '__main__':
         sys.argv += ["run"]
     for arg in sys.argv[1:]:
       if "build" == arg:
-        do_build(demo_dict,False)
+        do_build(demo_dict, demo_desc, False)
       elif "clean" == arg:
         do_build(demo_dict,True)
       elif "run" == arg:
