@@ -956,10 +956,10 @@ class base_app(empty_app):
         ar = self.make_archive()
         if 'files' in desc.keys():
           for filename in desc['files']:
-            ar.add_file(filename, desc['files'][filename])
+            ar.add_file(filename, info=desc['files'][filename])
         if 'compressed_files' in desc.keys():
           for filename in desc['compressed_files']:
-            ar.add_file(filename, desc['compressed_files'][filename], 
+            ar.add_file(filename, info=desc['compressed_files'][filename], 
                         compress=True)
           
         # let's add all the parameters
@@ -984,6 +984,9 @@ class base_app(empty_app):
       """
       the core algo runner
       """
+      
+      # refresh demo description ??
+      
       rd = run_demo_base.RunDemoBase(self.base_dir, self.work_dir)
       rd.set_logger(cherrypy.log)
       if 'demo.extra_path' in cherrypy.config:
@@ -1186,6 +1189,7 @@ class base_app(empty_app):
                                              limit=limit, offset=offset,
                                              public=True,
                                              path=self.archive_dir)]
+            
             return self.tmpl_out("archive_index.html",
                                  bucket_list=buckets,
                                  page=page, nbpage=nbpage,
