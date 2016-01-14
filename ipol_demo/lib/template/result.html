@@ -1,9 +1,12 @@
 <%include file="header.html" />
 
 
-<script>  IPOLDemosApp.value("demo_id","${app.id}");  </script>
-<script>  IPOLDemosApp.value("demo_key","${app.key}");  </script>
-<script>  IPOLDemosApp.value("work_url","${app.work_url}");  </script>
+<script>  
+    IPOLDemosApp.value("demo_id","${app.id}");
+    IPOLDemosApp.value("demo_key","${app.key}");
+    IPOLDemosApp.value("work_url","${app.work_url}");  
+    IPOLDemosApp.value("proxy_server",  "${app.proxy_server}"); 
+</script>
 
 
 <div ng-controller="DemoResultCtrl" >
