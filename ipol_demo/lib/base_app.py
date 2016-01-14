@@ -138,7 +138,7 @@ def init_app(func):
         #
         self2 = pool.get_app(key)
         if self2 is None:
-            self2 = base_app(self.base_dir)
+            self2 = base_app(self.base_dir, self.demo_description)
             self2.__class__ = self.__class__
             self2.__dict__.update(self.__dict__)
             pool.add_app(key, self2)
@@ -186,7 +186,7 @@ class base_app(empty_app):
     """ base demo app class with a typical flow """
 
     #---------------------------------------------------------------------------
-    def __init__(self, base_dir):
+    def __init__(self, base_dir, ddl_dict):
         """
         app setup
         base_dir is supposed to be received from a subclass
@@ -196,7 +196,8 @@ class base_app(empty_app):
         
         self.proxy_server = cherrypy.config['demo.proxy_server']
         
-        self.read_demo_description()
+        self.demo_description  = ddl_dict
+        #self.read_demo_description()
         self.init_parameters()
         
         cherrypy.log("base_dir: %s" % self.base_dir,
@@ -529,7 +530,7 @@ class base_app(empty_app):
         key_is_empty = (self.key == "")
         if key_is_empty:
             # New execution: create new app object
-            self2 = base_app(self.base_dir)
+            self2 = base_app(self.base_dir, self.demo_description)
             self2.__class__ = self.__class__
             self2.__dict__.update(self.__dict__)
         else:
