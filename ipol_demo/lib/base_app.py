@@ -356,7 +356,7 @@ class base_app(empty_app):
         '''
         im.convert(input_info['dtype'])
         # check max size
-        max_pixels = eval(input_info['max_pixels'])
+        max_pixels = eval(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
         if resize:
             self.log("input resize")
@@ -617,7 +617,7 @@ class base_app(empty_app):
             if not data:
                 break
             size += len(data)
-            if 'max_weight' in inputs_desc[i] and size > inputs_desc[i]['max_weight']:
+            if 'max_weight' in inputs_desc[i] and size > eval(str(inputs_desc[i]['max_weight'])):
                 # file too heavy
                 raise cherrypy.HTTPError(400, # Bad Request
                                           "File too large, " +
@@ -1019,7 +1019,7 @@ class base_app(empty_app):
         """
         # draw selected rectangle on the image
         imgS        = image(self.work_dir + 'input_0.png')
-        max_pixels  = eval(self.demo_description['inputs'][0]['max_pixels'])
+        max_pixels  = eval(str(self.demo_description['inputs'][0]['max_pixels']))
         imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
                        color="red")
         imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
