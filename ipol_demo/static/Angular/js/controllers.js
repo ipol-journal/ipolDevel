@@ -18,12 +18,41 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
 
     $scope.demo_id     = demo_id;
     $scope.proxy_server = proxy_server;
-    $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
-        function(demo) { 
-            $scope.PreprocessDemo($scope,demo)
-            $scope.ThumbnailSize = demo.general.thumbail_size;
-        } );
+//     $scope.demo = Demo.get( { demoId: $scope.demo_id }, 
+//         function(demo) { 
+//             $scope.PreprocessDemo($scope,demo)
+//             $scope.ThumbnailSize = demo.general.thumbail_size;
+//         } );
     
+    console.info("get demo list from server");
+    $scope.internal_demoid = -1
+    
+    // Get demo list from server to find the internal demo id
+    $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
+    .success(function(demolist) {
+        console.info("demolist", demolist)
+        angular.forEach(demolist.demo_list, function(dinfo) {
+            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
+        });
+        if ($scope.internal_demoid>0) {
+            // Get demo DDL from server
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            .success(function(demo_ddl) {
+                console.info("read demo ddl status = ", demo_ddl.status);
+                if (demo_ddl.status=="OK") {
+                    // need to deserialize twice: TODO: fix this problem
+                    var ddl_json = angular.fromJson(demo_ddl.last_demodescription.json);
+                    ddl_json = angular.fromJson(ddl_json);
+                    $scope.PreprocessDemo($scope,ddl_json)
+                    $scope.demo = ddl_json;
+                    $scope.ThumbnailSize = $scope.demo.general.thumbail_size;
+                }
+            });
+        }
+    });
+    
+    
+
     $scope.renderHtml = function(html_code)
     {
         if (angular.isArray(html_code)) {
@@ -33,6 +62,9 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
         }
     };
 
+    
+    
+    
     $http.get(proxy_server+'/?module=blobs&service=get_blobs_of_demo_by_name_ws&demo_name='+demo_id)
     .success(function(demoblobs) {
         console.info("*** demoblobs");
@@ -84,8 +116,8 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
 
 /*---------------- DemoParamCtrl ---------------------------------------------*/
 IPOLDemoControllers.controller('DemoParamCtrl', 
-                              ['$scope', '$sce', '$location', 'demo_id', 'demo_key', 'Demo', 'Meta', 'Params', 
-    function($scope, $sce, $location, demo_id, demo_key, Demo, Meta, Params ) {
+                              ['$scope', '$sce', '$location', '$http', 'demo_id','proxy_server', 'demo_key', 'Demo', 'Meta', 'Params', 
+    function($scope, $sce, $location, $http, demo_id, proxy_server, demo_key, Demo, Meta, Params ) {
       $scope.demo     = {};
       $scope.params   = {};
       $scope.current_scope = $scope;
@@ -127,19 +159,55 @@ IPOLDemoControllers.controller('DemoParamCtrl',
         }
       }
 
-      Demo.get( 
-          { demoId: $scope.demo_id }, 
-          function(demo) { 
-            console.info("getting demo");
-            $scope.PreprocessDemo($scope,demo)
-            $scope.got_demo=true;
-            $scope.demo = demo;
-            // crop is applied to the first input image only for the moment
-            // we need this string in a variable for the image crop module
-            $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
-            if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
-          } 
-        );
+//       Demo.get( 
+//           { demoId: $scope.demo_id }, 
+//           function(demo) { 
+//             console.info("getting demo");
+//             $scope.PreprocessDemo($scope,demo)
+//             $scope.got_demo=true;
+//             $scope.demo = demo;
+//             // crop is applied to the first input image only for the moment
+//             // we need this string in a variable for the image crop module
+//             $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
+//             if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
+//           } 
+//         );
+
+
+      console.info("get demo list from server");
+      $scope.internal_demoid = -1
+    
+      // Get demo list from server to find the internal demo id
+      $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
+      .success(function(demolist) {
+        console.info("demolist", demolist)
+        angular.forEach(demolist.demo_list, function(dinfo) {
+            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
+        });
+        if ($scope.internal_demoid>0) {
+            // Get demo DDL from server
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            .success(function(demo_ddl) {
+                console.info("read demo ddl status = ", demo_ddl.status);
+                if (demo_ddl.status=="OK") {
+                    // need to deserialize twice: TODO: fix this problem
+                    var ddl_json = angular.fromJson(demo_ddl.last_demodescription.json);
+                    ddl_json = angular.fromJson(ddl_json);
+
+                    console.info("getting demo");
+                    $scope.PreprocessDemo($scope,ddl_json)
+                    $scope.got_demo=true;
+                    $scope.demo = ddl_json;
+                    // crop is applied to the first input image only for the moment
+                    // we need this string in a variable for the image crop module
+                    $scope.crop_image_url='tmp/'+demo_key+'/input_0.png';
+                    if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
+                }
+            });
+        }
+      });
+
+
       
       $scope.meta = Meta.get(
         { key: demo_key },
@@ -195,16 +263,44 @@ IPOLDemoControllers.controller('DemoParamCtrl',
 
 /*---------------- DemoWaitCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoWaitCtrl',
-  [ '$scope','$timeout','Demo',
-    function($scope,$timeout, Demo) 
+  [ '$scope','$timeout', '$http',  'demo_id', 'proxy_server', 'Demo',
+    function($scope,$timeout, $http, demo_id, proxy_server, Demo) 
     {
-      // get the demo information
-      Demo.get( { demoId: $scope.demo_id }, 
-        function(demo) { 
-          $scope.PreprocessDemo($scope,demo)
-          $scope.demo = demo;
-        } 
-      );
+//       // get the demo information
+//       Demo.get( { demoId: $scope.demo_id }, 
+//         function(demo) { 
+//           $scope.PreprocessDemo($scope,demo)
+//           $scope.demo = demo;
+//         } 
+//       );
+      
+      console.info("get demo list from server ", demo_id);
+      $scope.internal_demoid = -1
+    
+      // Get demo list from server to find the internal demo id
+      $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
+      .success(function(demolist) {
+        console.info("demolist", demolist)
+        angular.forEach(demolist.demo_list, function(dinfo) {
+            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
+        });
+        if ($scope.internal_demoid>0) {
+            // Get demo DDL from server
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            .success(function(demo_ddl) {
+                console.info("read demo ddl status = ", demo_ddl.status);
+                if (demo_ddl.status=="OK") {
+                    // need to deserialize twice: TODO: fix this problem
+                    var ddl_json = angular.fromJson(demo_ddl.last_demodescription.json);
+                    ddl_json = angular.fromJson(ddl_json);
+                    $scope.PreprocessDemo($scope,ddl_json)
+                    $scope.demo = ddl_json;
+                }
+            });
+        }
+      });
+      
+      
       $scope.counter = 0;
       $scope.onTimeout = function(){
           $scope.counter++;
@@ -217,9 +313,9 @@ IPOLDemoControllers.controller('DemoWaitCtrl',
 
 /*---------------- DemoResultCtrl --------------------------------------------*/
 IPOLDemoControllers.controller('DemoResultCtrl', 
-  [ '$scope', '$sce', '$parse', 'demo_id', 'demo_key', 
+  [ '$scope', '$sce', '$parse','$http', 'demo_id', 'proxy_server', 'demo_key', 
     'work_url', 'Demo', 'Meta', 'Params', 'Info',
-    function($scope, $sce, $parse, demo_id, demo_key, work_url, Demo, Meta ,Params, Info ) 
+    function($scope, $sce, $parse, $http, demo_id, proxy_server, demo_key, work_url, Demo, Meta ,Params, Info ) 
     {
 
       $scope.initResults = function($scope) {
@@ -251,16 +347,53 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       
       // give some parameters to the demos for their own use
       $scope.display = { param1:'', param2:'', param3:''};
-      Demo.get( { demoId: $scope.demo_id }, 
-        function(demo) { 
-          $scope.PreprocessDemo($scope,demo)
-          $scope.got_demo=true;
-          $scope.demo = demo;
-          if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
-          $scope.initResults($scope);
-          console.info($scope.demo)
-        } 
-      );
+      
+//       Demo.get( { demoId: $scope.demo_id }, 
+//         function(demo) { 
+//           $scope.PreprocessDemo($scope,demo)
+//           $scope.got_demo=true;
+//           $scope.demo = demo;
+//           if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
+//           $scope.initResults($scope);
+//           console.info($scope.demo)
+//         } 
+//       );
+
+
+
+      console.info("get demo list from server");
+      $scope.internal_demoid = -1
+    
+      // Get demo list from server to find the internal demo id
+      $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
+      .success(function(demolist) {
+        console.info("demolist", demolist)
+        angular.forEach(demolist.demo_list, function(dinfo) {
+            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
+        });
+        
+        if ($scope.internal_demoid>0) {
+            // Get demo DDL from server
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            .success(function(demo_ddl) {
+                console.info("read demo ddl status = ", demo_ddl.status);
+                if (demo_ddl.status=="OK") {
+                    // need to deserialize twice: TODO: fix this problem
+                    var ddl_json = angular.fromJson(demo_ddl.last_demodescription.json);
+                    ddl_json = angular.fromJson(ddl_json);
+
+                    $scope.PreprocessDemo($scope,ddl_json)
+                    $scope.got_demo=true;
+                    $scope.demo = ddl_json;
+                    if ($scope.got_param) $scope.initParams($scope,$scope.demo,$scope.params);
+                    $scope.initResults($scope);
+                    console.info($scope.demo)
+                }
+            });
+        }
+      });
+
+
       
       Params.get( { key: demo_key },
         function(params) {  

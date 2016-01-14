@@ -11,6 +11,13 @@ IPOLDemoServices.factory('Demo', ['$resource',
     });
   }]);
 
+
+IPOLDemoServices.factory('Demo2', ['$resource',
+  function($resource){
+    return $resource('http://127.0.0.1:9003/?module=demoingo&service=read_last_demodescription_from_demo&returnjsons=True&demo_id=:demoId', 
+                     {demoId: "@demoId"} );
+  }]);
+
 // // not really working, not used
 // IPOLDemoServices.factory('DemoBlobs', ['$resource', '$http',
 //   function($resource,$http){
