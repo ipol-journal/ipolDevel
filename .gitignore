@@ -3,7 +3,11 @@
 *.bak
 *.backup
 
+# Databases
 /ipol_demo/modules/blobs/blob.db
+
+# server configuration
+demo.conf
 
 # Documentation
 doc/ipol.out
