@@ -12,6 +12,7 @@ Pillow
 
 #python-sqlite,It is included in the standard library (since Python 2.5).
 simplejson
+jsonschema
 
 # acrhive
 #http://www.brambraakman.com/blog/comments/installing_libmagic_in_mac_os_x_for_python-magic/
