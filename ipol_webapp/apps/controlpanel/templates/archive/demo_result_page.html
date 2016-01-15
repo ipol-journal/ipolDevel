@@ -100,7 +100,7 @@
                 {# Archive Pagination #}
                 <div class="pagination">
                     {% for i in data.nb_pages|get_range %}
-                        Pages: 
+                        Pages:
                         <a  href="{% url 'ipol.cp.archive.page' data.id_demo i %}">{{ i }}</a>
                     {% endfor %}
                 </div>

@@ -13,6 +13,8 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+
+
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import RedirectView
@@ -20,7 +22,6 @@ from django.core.urlresolvers import reverse_lazy
 from ipol_webapp.settings import ALLAUTH_GESTS
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
 
 
     # home
@@ -36,6 +37,12 @@ urlpatterns = [
 
 	# admin
 	url(r'^admin/', include(admin.site.urls)),
+
+	#autocomplete_light
+	#http://django-autocomplete-light.readthedocs.org/en/master/
+	#http://django-autocomplete-light.readthedocs.org/en/master/autocomplete.html?highlight=shortcuts#examples
+	#http://django-autocomplete-light.readthedocs.org/en/master/tutorial.html
+	url(r'^autocomplete/', include('autocomplete_light.urls')),
 
 ]
 

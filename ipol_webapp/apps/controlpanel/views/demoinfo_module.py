@@ -792,6 +792,8 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
 		context = super(DemoinfoGetDemoAuthorView, self).get_context_data(**kwargs)
 
 		try:
+
+			demo_id=None
 			try:
 				demo_id = self.kwargs['demo_id']
 				demo_id = int(demo_id)
@@ -801,9 +803,21 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
 
 			#send context vars for template
 			context['demo_id'] = demo_id
-			available_autor_list = get_demoinfo_available_author_list(demo_id)
-			initial_author_choicedict={'author':available_autor_list }
-			context['choosedemoauthorform'] = ChooseAuthorForDemoform(initial=initial_author_choicedict)
+
+			# ChooseAuthorForDemoform with dropdown select
+			# available_autor_list = get_demoinfo_available_author_list(demo_id)
+			# initial_author_choicedict={'author':available_autor_list }
+			# context['choosedemoauthorform'] = ChooseAuthorForDemoform(initial=initial_author_choicedict)
+
+
+			# ChooseAuthorForDemoform with autocomplete
+			self.request.session['authors_avilable_for_demo_id']=demo_id
+			context['choosedemoauthorform'] = ChooseAuthorForDemoform()
+
+			print
+			print " +ChooseAuthorForDemoform created"
+			print
+
 			context['demoauthorform'] = DemoAuthorform
 			context['authorform'] = Authorform
 			#context['demoform'] = Demoform(initial={'active': True})
@@ -858,17 +872,32 @@ class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
 		jres = dict()
 		jres['status'] = 'KO'
 
-
 		if self.request.is_ajax():
 
 			# get form fields
 			demoid = None
 			authorid = None
+			authorid_list = None
+			choicefielddata =None
 
 			try:
 				demoid = form.cleaned_data['demoid']
 				demoid = int(demoid)
-				authorid = form.cleaned_data['author']
+
+				# simple/multiple choicefield data,
+				# In ChooseAuthorForDemoform  change author form field to MultipleChoiceField or ChoiceField
+				choicefielddata = form.cleaned_data['author']
+
+				if type(choicefielddata) is not list:
+					#simple choicefield
+					authorid = choicefielddata
+					# print "authorid", authorid
+				else:
+					#simple choicefield
+					authorid_list = choicefielddata
+					# print "authorid_list", authorid_list
+
+
 			except Exception as e:
 				msg = "DemoinfoAddExistingAuthorToDemoView form data error: %s" % e
 				jres['error'] = msg
@@ -877,19 +906,31 @@ class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
 
 			#  send info to be saved in demoinfo module to be saved
 			try:
-				jsonresult = ipolservices.demoinfo_add_author_to_demo(demoid,authorid)
-				status,error = get_status_and_error_from_json(jsonresult)
-				jres['status'] = status
-				if error is not None:
-						jres['error'] = error
+
+				if type(choicefielddata) is not list:
+					#multiple choicefield
+
+					jsonresult = ipolservices.demoinfo_add_author_to_demo(demoid,authorid)
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+				else:
+					#multiple choicefield
+
+					for id in authorid_list:
+						id=int(id)
+						jsonresult = ipolservices.demoinfo_add_author_to_demo(demoid,id)
+						status,error = get_status_and_error_from_json(jsonresult)
+						jres['status'] = status
+						if error is not None:
+								jres['error'] = error
 
 			except Exception as e:
 				msg = " DemoinfoAddExistingAuthorToDemoView error: %s" % e
 				jres['error'] = msg
 				logger.error(msg)
 				print msg
-
-
 		else:
 			jres['error'] = 'form_valid no ajax'
 			logger.warning('DemoinfoAddExistingAuthorToDemoView form_valid no ajax')
@@ -906,7 +947,7 @@ class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
 
 		if self.request.is_ajax():
 
-			print " invalid ajax form"
+			# print " invalid ajax ChooseAuthorForDemoform"
 			# print form.errors
 			# print form
 			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
@@ -1008,8 +1049,8 @@ class DemoinfoAddNewAuthorToDemoView(NavbarReusableMixinMF,FormView):
 		if self.request.is_ajax():
 
 			print " invalid ajax form"
-			# print form.errors
-			# print form
+			print form.errors
+			print form
 
 			jres['error'] = str(form.errors)
 			jres['status'] = 'KO'
@@ -1337,16 +1378,24 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
 			#send context vars for template
 			context['demo_id'] = demo_id
 
-			print ""
-			print "demo_id",demo_id
-
-			available_editor_list = get_demoinfo_available_editor_list(demo_id)
 
 
-			print "available_editor_list",available_editor_list
-			print ""
-			initial_editor_choicedict={'editor':available_editor_list }
-			context['choosedemoeditorform'] = ChooseEditorForDemoform(initial=initial_editor_choicedict)
+
+			# ChooseEditorForDemoform with dropdown select
+			# available_editor_list = get_demoinfo_available_editor_list(demo_id)
+			# initial_editor_choicedict={'editor':available_editor_list }
+			# context['choosedemoeditorform'] = ChooseEditorForDemoform(initial=initial_editor_choicedict)
+			#
+
+			# ChooseAuthorForDemoform with autocomplete
+			self.request.session['editors_avilable_for_demo_id']=demo_id
+			context['choosedemoeditorform'] = ChooseEditorForDemoform()
+
+
+			print
+			print " +ChooseEditorForDemoform created"
+			print
+
 			context['demoeditorform'] = DemoEditorform
 			context['editorform'] = Editorform
 			#context['demoform'] = Demoform(initial={'active': True})
@@ -1377,7 +1426,7 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
 				print(msg)
 				pass
 
-			print "  list_editors_for_demo demoid: ", demo_id
+			# print "  list_editors_for_demo demoid: ", demo_id
 			page_json = ipolservices.demoinfo_editor_list_for_demo(demo_id)
 			result = DeserializeDemoinfoEditorList(page_json)
 
@@ -1411,7 +1460,20 @@ class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
 			try:
 				demoid = form.cleaned_data['demoid']
 				demoid = int(demoid)
-				editorid = form.cleaned_data['editor']
+				choicefielddata = form.cleaned_data['editor']
+
+				if type(choicefielddata) is not list:
+					#simple choicefield
+					editorid = choicefielddata
+					print " -editorid", editorid
+				else:
+					#simple choicefield
+					editorid_list = choicefielddata
+					print " -editorid_list", editorid_list
+
+
+
+
 			except Exception as e:
 				msg = "DemoinfoAddExistingEditorToDemoView form data error: %s" % e
 				jres['error'] = msg
@@ -1420,11 +1482,23 @@ class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
 
 			#  send info to be saved in demoinfo module to be saved
 			try:
-				jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
-				status,error = get_status_and_error_from_json(jsonresult)
-				jres['status'] = status
-				if error is not None:
-						jres['error'] = error
+
+				if type(choicefielddata) is not list:
+					jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
+					status,error = get_status_and_error_from_json(jsonresult)
+					jres['status'] = status
+					if error is not None:
+							jres['error'] = error
+				else:
+					for id in editorid_list:
+
+						print id
+						id =int(id)
+						jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,id)
+						status,error = get_status_and_error_from_json(jsonresult)
+						jres['status'] = status
+						if error is not None:
+								jres['error'] = error
 
 			except Exception as e:
 				msg = " DemoinfoAddExistingEditorToDemoView error: %s" % e

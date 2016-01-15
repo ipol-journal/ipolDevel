@@ -134,6 +134,7 @@ else:
 ####################################
 
 INSTALLED_APPS = (
+	'autocomplete_light',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,6 +149,7 @@ INSTALLED_APPS = (
 	'allauth.account',
 	'allauth.socialaccount',
 	'crispy_forms',
+
 	# 'allauth.socialaccount.providers.linkedin',
 )
 
