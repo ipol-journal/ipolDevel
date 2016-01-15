@@ -6,7 +6,14 @@
 %~\cite{GoF}
 Next, we explain the main features of the Proxy module. Its purpose is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
 
-This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system does not need more modifications for a correct performance.
+This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system does not need more modifications for a correct performance. Figure ~\ref{fi:proxy_example} shows an example of the idea behind the proxy module.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{proxy/images/proxy_diagram.pdf}
+\caption{Proxy Example} 
+\label{fi:proxy_example}
+\end{figure}
 
 \paragraph{Technologies used} \hspace{0pt} \\
 The module is written in Python and uses the Cherrypy framework. The other modules must communicate with the proxy using a correct URL (see Fig.~\ref{fi:url_protocol}) while the output returns a JSON message.
