@@ -27,6 +27,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
+		self.request.session['menu'] = 'menu-status'
 		return super(StatusView, self).dispatch(*args, **kwargs)
 
 	def get_demoinfo_module_stats(self):
@@ -94,3 +95,10 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 
 	def get_demo_machine(self):
 		return IPOL_SERVICES_MODULE_DEMO
+
+
+	# def get_context_data(self, **kwargs):
+	# 	context = super(StatusView, self).get_context_data(**kwargs)
+	# 	self.request.session['menu'] = 'menu-status'
+	# 	return context
+

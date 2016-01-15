@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 class NavbarReusableMixinMF(object):
 
 
-
 	def allauth_guests(self):
 		try:
 			a = ALLAUTH_GESTS

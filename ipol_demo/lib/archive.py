@@ -191,14 +191,16 @@ class bucket(object):
         # TODO: atomic save()
         # save the pending files
         for (src, dst) in self.pend_files:
-            shutil.copy(src, dst)
+            if os.path.exists(src):
+                shutil.copy(src, dst)
         self.pend_files = []
         for (src, dst) in self.pend_zfiles:
-            f_src = open(src, 'rb')
-            f_dst = gzip.open(dst, 'wb')
-            f_dst.writelines(f_src)
-            f_dst.close()
-            f_src.close()
+            if os.path.exists(src):
+                f_src = open(src, 'rb')
+                f_dst = gzip.open(dst, 'wb')
+                f_dst.writelines(f_src)
+                f_dst.close()
+                f_src.close()
         self.pend_zfiles = []
         # update the config
         self.cfg.save()

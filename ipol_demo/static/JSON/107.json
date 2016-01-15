@@ -73,7 +73,15 @@
       "python:medium_scale=min(medium_scale,maxscale)",
       "python:high_scale  =min(high_scale,  maxscale)",
       "MSR_original -S 3 -L $low_scale -M $medium_scale -H $high_scale -N 1 -l $prc_left -R $prc_right input_0.sel.png output_RGB.png output_I.png >stdout.txt 2>&1",
-      "create_histograms.py"
+      "#--- Check if input image is monochrome",
+      "python:im=image(self.work_dir + 'input_0.sel.png')",
+      "python:isgray = im.is_grayscale()",
+      "#--- Compute histograms",
+      "image_histogram.py input_0.sel.png output_I.png",
+      ["not(isgray)",
+        "image_histogram.py output_RGB.png"
+      ],
+      "python:self.algo_info['isgray'] = isgray"
   ]
   ,
   "archive":
@@ -92,8 +100,8 @@
       "type"          : "gallery",
       "label"         : "<h2>Resulting images</h2>",
       "contents"      : { 
-        "Original"  : { "Image":"input_0.sel.png","Histograms:R,G,B,I":"input_0_sel_hist.png"},
-        "MS Retinex on each color"  :
+        "Original"  : { "Image":"input_0.sel.png","Histograms:R,G,B,I":"input_0.sel_hist.png"},
+        "!info.isgray?MS Retinex on each color"  :
                       { "Image":"output_RGB.png", "Histograms:R,G,B,I":"output_RGB_hist.png" }, 
         "MS Retinex on intensity"  :
                       { "Image":"output_I.png",   "Histograms:R,G,B,I":"output_I_hist.png"}

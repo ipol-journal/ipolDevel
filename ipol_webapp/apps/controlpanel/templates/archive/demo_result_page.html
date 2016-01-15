@@ -1,7 +1,7 @@
 {% extends 'base/base.html' %}
 {% load staticfiles %}
 {% load i18n %}
-
+{% load templatefilter %}
 {% block title %}
     Demo page test
 {% endblock %}
@@ -95,12 +95,32 @@
                         </div>
                     </div>
                 {% endfor %}
-        {% else  %}
-            <p>No Data Received</p>
-        {% endif %}
+
+
+                {# Archive Pagination #}
+                <div class="pagination">
+                    {% for i in data.nb_pages|get_range %}
+                        Pages: 
+                        <a  href="{% url 'ipol.cp.archive.page' data.id_demo i %}">{{ i }}</a>
+                    {% endfor %}
+                </div>
+
+
+            {% else  %}
+                <p>No Data Received</p>
+            {% endif %}
+
+
+
+
+
 
         {% endwith %}
     </div>
+
+
+
+
 
 {% endblock %}
 

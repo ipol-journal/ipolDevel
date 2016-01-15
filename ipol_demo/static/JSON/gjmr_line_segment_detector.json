@@ -27,10 +27,23 @@
     ],
   "params": [  ],
   "run": [
-      "convert_png2pgm.py input_0.sel",
+      "convert input_0.sel.png input_0.sel.pgm",
       "lsd -P output.eps -S output.svg input_0.sel.pgm output.txt",
-      "convert_eps2png.py output",
-      "update_config.py"
+      "#--- convert the EPS result into a PNG image",
+      "gs -dNOPAUSE -dBATCH -sDEVICE=pnggray -dGraphicsAlphaBits=4 -r72 -dEPSCrop -sOutputFile=output.png output.eps",
+      "python:im = PIL.Image.open(self.work_dir+'output.png')",
+      "python:im = im.convert('L') # corresponds to '1x8i'",
+      "python:im = PIL.ImageOps.invert(im)",
+      "python:im.save(self.work_dir+'output-inv.png')",
+      "#--- save the number of detections",
+      "python:num_lines = sum(1 for line in open(self.work_dir+'output.txt'))",
+      "python:self.algo_info['num_detections'] = num_lines",
+      "#--- save the binary version",
+      "lsd --version >version.txt",
+      "python:version_file = open(self.work_dir+'version.txt', 'r')",
+      "python:version_info = version_file.readline()",
+      "python:version_file.close()",
+      "python:self.algo_info['version'] = version_info"
   ]
   ,
   "results": [

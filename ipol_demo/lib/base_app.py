@@ -138,7 +138,7 @@ def init_app(func):
         #
         self2 = pool.get_app(key)
         if self2 is None:
-            self2 = base_app(self.base_dir)
+            self2 = base_app(self.base_dir, self.demo_description)
             self2.__class__ = self.__class__
             self2.__dict__.update(self.__dict__)
             pool.add_app(key, self2)
@@ -186,7 +186,7 @@ class base_app(empty_app):
     """ base demo app class with a typical flow """
 
     #---------------------------------------------------------------------------
-    def __init__(self, base_dir):
+    def __init__(self, base_dir, ddl_dict):
         """
         app setup
         base_dir is supposed to be received from a subclass
@@ -196,7 +196,8 @@ class base_app(empty_app):
         
         self.proxy_server = cherrypy.config['demo.proxy_server']
         
-        self.read_demo_description()
+        self.demo_description  = ddl_dict
+        #self.read_demo_description()
         self.init_parameters()
         
         cherrypy.log("base_dir: %s" % self.base_dir,
@@ -355,7 +356,7 @@ class base_app(empty_app):
         '''
         im.convert(input_info['dtype'])
         # check max size
-        max_pixels = eval(input_info['max_pixels'])
+        max_pixels = eval(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
         if resize:
             self.log("input resize")
@@ -529,7 +530,7 @@ class base_app(empty_app):
         key_is_empty = (self.key == "")
         if key_is_empty:
             # New execution: create new app object
-            self2 = base_app(self.base_dir)
+            self2 = base_app(self.base_dir, self.demo_description)
             self2.__class__ = self.__class__
             self2.__dict__.update(self.__dict__)
         else:
@@ -616,7 +617,7 @@ class base_app(empty_app):
             if not data:
                 break
             size += len(data)
-            if size > inputs_desc[i]['max_weight']:
+            if 'max_weight' in inputs_desc[i] and size > eval(str(inputs_desc[i]['max_weight'])):
                 # file too heavy
                 raise cherrypy.HTTPError(400, # Bad Request
                                           "File too large, " +
@@ -955,10 +956,10 @@ class base_app(empty_app):
         ar = self.make_archive()
         if 'files' in desc.keys():
           for filename in desc['files']:
-            ar.add_file(filename, desc['files'][filename])
+            ar.add_file(filename, info=desc['files'][filename])
         if 'compressed_files' in desc.keys():
           for filename in desc['compressed_files']:
-            ar.add_file(filename, desc['compressed_files'][filename], 
+            ar.add_file(filename, info=desc['compressed_files'][filename], 
                         compress=True)
           
         # let's add all the parameters
@@ -983,6 +984,9 @@ class base_app(empty_app):
       """
       the core algo runner
       """
+      
+      # refresh demo description ??
+      
       rd = run_demo_base.RunDemoBase(self.base_dir, self.work_dir)
       rd.set_logger(cherrypy.log)
       if 'demo.extra_path' in cherrypy.config:
@@ -1018,7 +1022,7 @@ class base_app(empty_app):
         """
         # draw selected rectangle on the image
         imgS        = image(self.work_dir + 'input_0.png')
-        max_pixels  = eval(self.demo_description['inputs'][0]['max_pixels'])
+        max_pixels  = eval(str(self.demo_description['inputs'][0]['max_pixels']))
         imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
                        color="red")
         imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
@@ -1185,6 +1189,7 @@ class base_app(empty_app):
                                              limit=limit, offset=offset,
                                              public=True,
                                              path=self.archive_dir)]
+            
             return self.tmpl_out("archive_index.html",
                                  bucket_list=buckets,
                                  page=page, nbpage=nbpage,
