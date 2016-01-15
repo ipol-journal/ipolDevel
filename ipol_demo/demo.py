@@ -492,8 +492,8 @@ if __name__ == '__main__':
     # filter out test demos
     if cherrypy.config['server.environment'] == 'production':
       for (demo_id, demo_app) in demo_dict.items():
-        print "is_test:", demo_desc[demo_id]["is_test"]
-        if demo_desc[demo_id]["is_test"]:
+        print "is_test:", demo_desc[demo_id]['general']["is_test"]
+        if demo_desc[demo_id]['general']["is_test"]:
             demo_dict.pop(demo_id)
 
     # if there is any "-o" command line option, keep only the mentioned demos
