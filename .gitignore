@@ -8,6 +8,8 @@
 
 # server configuration
 demo.conf
+ipol_demo/modules/blobs/blobs_nelson.conf
+ipol_demo/modules/blobs/module changes_with_MIGUEL.py
 
 # Documentation
 doc/ipol.out
