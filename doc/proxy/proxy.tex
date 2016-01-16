@@ -11,7 +11,7 @@ This proxy simplifies problems, such as the strong dependency between the machin
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=0.5\columnwidth]{proxy/images/proxy_diagram.pdf}
-\caption{Proxy Example} 
+\caption{Proxy Example.} 
 \label{fi:proxy_example}
 \end{figure}
 
@@ -64,8 +64,8 @@ The JSON format of the proxy reads as follows:
 \centering
 \begin{verbatim}
 {
-    status : KO
-    url_parameters: Number of parameters introduced in the URL
+    status : KO,
+    url_parameters: Number of parameters introduced in the URL,
     code: Flag indicating the reason of the failure
 }
 \end{verbatim}
@@ -78,14 +78,14 @@ The JSON format of the proxy reads as follows:
 \hline
 \textbf{Code} & \textbf{Mean} \\
 \hline
--1   & URL without parameters \\
+-1   & URL without parameters. \\
 \hline
--2   & The URL does not fulfill the protocol  \\
+-2   & The URL does not fulfill the protocol.  \\
 \hline
 -3   & 
 \begin{tabular}{c}
 Parameter for the module empty or  \\
-the proxy does not recognize it
+the proxy does not recognize it.
 \end{tabular}
 \\
 \hline
@@ -94,15 +94,13 @@ the proxy does not recognize it
 -5   & 
 \begin{tabular}{c}
 An error in the communication \\
-(for example, the requested module is down)
+(for example, the requested module is down).
 \end{tabular}
 \\
 \hline
--6   & Error from the requested module \\
+-6   & Error from the requested module. \\
 \hline
 \end{tabular}
 \label{ta:codes}
-\caption{Codes determining the type of error when using the proxy module} 
+\caption{Codes determining the type of error when using the proxy module.} 
 \end{table}
-
-\ToDo{Document it!}
