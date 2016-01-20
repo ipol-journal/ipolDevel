@@ -22,12 +22,17 @@
   }, 
   "build": [
     {
-      "build_type": "make",
-      "url"       : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
-      "srcdir"    : "ponomarenko_v4",
-      "binaries"  : [ ["ponomarenko","ponomarenko"] , ["fnoise","fnoise"], ["subscale","subscale"] ],
-      "flags"     : "-j4",
-      "scripts"   : [ ["scripts","writeNoiseCurve.sh"] ]
+      "build_type"    : "make",
+      "url*previous"  : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/45/ponomarenko_v4.tgz", 
+      "srcdir"        : "ponomarenko_v4",
+      "binaries"      : [   ["ponomarenko","ponomarenko"] , 
+                            ["fnoise","fnoise"], 
+                            ["subscale","subscale"],
+                            [".", "demo_scripts/", "run_algo.py"]
+                        ],
+      "flags"         : "-j4",
+      "scripts"       : [ ["scripts","writeNoiseCurve.sh"] ]
     } ]
   ,
   "inputs": [ 
