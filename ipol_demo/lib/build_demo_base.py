@@ -59,7 +59,6 @@ class BuildDemoBase:
         prog_file = path.join( self.bin_dir,  os.path.basename(prog_filename) )
         if os.path.basename(prog_filename)=='' and len(program)==3:
             prog_file = path.join( self.bin_dir,program[2])
-        
         if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
             rebuild_needed = True
 
