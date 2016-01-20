@@ -61,6 +61,14 @@ class BuildDemoBase:
             prog_file = path.join( self.bin_dir,program[2])
         if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
             rebuild_needed = True
+            
+    # test timestamp for scripts too
+    if 'scripts' in self.params.keys():
+        for script in self.params['scripts']:
+            script_file = path.join(  self.scripts_dir, 
+                                      os.path.basename(script[1]))
+            if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
+                rebuild_needed = True
 
     #--- build
     if not(rebuild_needed):
