@@ -21,7 +21,8 @@
         "binaries"      : [ ["../bin","test_clgof"] ],
         "flags"         : "-j4",
         "scripts"       : [ ["demo_scripts", "view_clg.sh"],  
-                            ["demo_scripts", "run_clg_noview.sh"]]
+                            ["demo_scripts", "run_clg_noview.sh"],
+                            ["demo_scripts", "colorwheel.tiff"]]
       },
       {
         "build_type"    : "make",
