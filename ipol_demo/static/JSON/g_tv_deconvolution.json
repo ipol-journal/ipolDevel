@@ -37,11 +37,13 @@
   "build": [
     {
       "build_type"    : "make",
-      "url"           : "http://www.ipol.im/pub/art/2012/g-tvdc/tvdeconv_20120607.tar.gz", 
+      "url*previous"  : "http://www.ipol.im/pub/art/2012/g-tvdc/tvdeconv_20120607.tar.gz", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/1000001/tvdeconv_20120607.tar.gz", 
       "srcdir"        : "tvdeconv_20120607",
       "prepare_make"  : "sed -i -e 's/CPNG=-DUSE_LIBPNG/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DUSE_LIBPNG/g' -e 's/lpng/lpng12/g' makefile.gcc",
       "binaries"      : [ [".","tvdeconv"],[".","imblur"],[".","imdiff"]  ],
-      "flags"         : "-f makefile.gcc -j4"
+      "flags"         : "-f makefile.gcc -j4",
+      "scripts"       : [ [ "demo_scripts", "run_algo.py"] ]
     } ]
   ,
   "inputs": [ 
