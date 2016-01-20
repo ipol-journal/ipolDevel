@@ -22,10 +22,15 @@
       },
       {
         "build_type"    : "make",
-        "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
+        "url*previous"  : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
+        "url"           : "http://151.80.24.28:8080/DemoSource/20/imscript_dec2011.tar.gz", 
         "srcdir"        : "imscript",
         "binaries"      : [ [".","bin/", "plambda"] ],
-       "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+        "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'",
+        "scripts"       : [ ["demo_scripts", "run_method_noview.sh"],  
+                            ["demo_scripts", "hs_uniform.sh"],
+                            ["demo_scripts", "view_method.sh"],
+                            ["demo_scripts", "colorwheel.tiff"] ]
       }
     ]
   ,
