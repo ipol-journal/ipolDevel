@@ -18,7 +18,7 @@
       "build_type"    : "make",
       "url"           : "http://www.ipol.im/pub/art/2015/131/ColorContrast_1.tgz", 
       "srcdir"        : "ColorContrast_1/code",
-      "binaries"      : [ [".","contrast_enhancement"], [".","polynomials/"] ],
+      "binaries"      : [ [".","contrast_enhancement"], [".","polynomials/","ACE_epsilon20.dat"] ],
       "flags"         : "-j4"
     },
     {
