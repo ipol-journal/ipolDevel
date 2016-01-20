@@ -879,9 +879,14 @@ class   Blobs(object):
         file_dest = os.path.join(file_directory, ('thumbnail_' + name))
         name = "thumbnail_" + name
         fil_format = file_format(src)
+        print "creating ",file_dest
         try:
             if fil_format == 'image':
-                image = PIL.Image.open(src)
+                try:
+                    image = PIL.Image.open(src)
+                except:
+                    print "Warning: failed to open image file"
+                    return
                 image.thumbnail((256, 256))
                 image.save(file_dest)
         except IOError:
