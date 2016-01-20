@@ -11,12 +11,14 @@
   }, 
   "build": [
     {
-      "build_type": "make",
-      "url"       : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
-      "srcdir"    : "classic_edge_detectors_1.0",
-      "binaries"  : [ [".","edges"] ],
-      "flags"     : "-j4"
-    } ]
+      "build_type"    : "make",
+      "url*previous*" : "http://www.ipol.im/pub/art/2015/35/classic_edge_detectors_1.0.zip", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/35/classic_edge_detectors_1.0.tgz", 
+      "srcdir"        : "classic_edge_detectors_1.0",
+      "binaries"      : [ [".","edges"], [".", "demo_scripts/", "PythonInvert.py"] ],
+      "flags"         : "-j4"
+    }
+  ]
   ,
   "inputs": [ 
       {
