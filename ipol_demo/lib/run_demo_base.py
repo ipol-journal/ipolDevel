@@ -307,7 +307,7 @@ class RunDemoBase:
       
     #
     p = self.get_MATLAB_path()
-    if p is None:
+    if not (p is None):
       self.log("warning: MATLAB path directory %s does not exist" % p,
                 context='SETUP/%s' % self.get_demo_id(), 
                 traceback=False)
