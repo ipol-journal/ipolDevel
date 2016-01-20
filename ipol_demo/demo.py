@@ -78,9 +78,9 @@ def do_build(demo_dict,demo_desc,clean):
     """
     build/update the demo programs
     """
-    print "do_build"
+    print "\n===== Build demos source code ====="
     for (demo_id, demo_path) in demo_dict.items():
-      print "\n---- demo: ",demo_id
+      print "---- demo: {0:10}".format(demo_id),
       # get demo dir
       current_dir = os.path.dirname(os.path.abspath(__file__))
       
@@ -112,6 +112,7 @@ def do_build(demo_dict,demo_desc,clean):
           cherrypy.log("build failed (see the build log)",
                         context='SETUP/%s' % demo_id,
                         traceback=False)
+      print ""
     return
 
 #-------------------------------------------------------------------------------
@@ -400,7 +401,7 @@ if __name__ == '__main__':
     if resjson['status']=="OK":
         for d in resjson['demo_list']:
             id_str = str(d['editorsdemoid'])
-            print id_str
+            #print id_str
             demo_dict[id_str]=CURRENT_DIR+'/app_new/'+str(d['editorsdemoid'])
             internalid_dict[id_str]=d['id']
             ensure_dir(demo_dict[id_str])
@@ -435,8 +436,7 @@ if __name__ == '__main__':
 
       doit=True
       if doit:
-        print "--------------------------------"
-        print "demo_id = ", demo_id
+        print "---- Checking json schema for demo {0:10}".format(demo_id),
         try:
             # read demo descriptions
             res1 = urllib2.urlopen(proxy_server + "/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id="+str(internalid_dict[demo_id])+"&returnjsons=True" )
@@ -492,7 +492,7 @@ if __name__ == '__main__':
     # filter out test demos
     if cherrypy.config['server.environment'] == 'production':
       for (demo_id, demo_app) in demo_dict.items():
-        print "is_test:", demo_desc[demo_id]['general']["is_test"]
+        #print "is_test:", demo_desc[demo_id]['general']["is_test"]
         if demo_desc[demo_id]['general']["is_test"]:
             demo_dict.pop(demo_id)
 
