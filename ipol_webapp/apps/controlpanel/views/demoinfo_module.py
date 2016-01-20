@@ -423,10 +423,9 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 				zipURL = form.cleaned_data['zipURL']
 				# creation = form.cleaned_data['creation']
 				# modification = form.cleaned_data['modification']
-				print " title ",title
-
-				print " active ",active, type(active)
-				print
+				# print " title ",title
+				# print " active ",active, type(active)
+				# print
 				#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
 			except Exception as e:
 				msg = "DemoinfoSaveDemoView form data error: %s" % e
@@ -497,21 +496,14 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 		Otherwise, proceed as normal.
 		"""
 		jres = dict()
+		jres['status'] = 'KO'
 		if self.request.is_ajax():
 
-			# print " ---invalid ajax form"
-			# print form.errors
-			# print form
 
-			#form CON ERORRES, se lo puedo pasar al JS...pero si substituyo el form actual por este..pierdo el submit ajax.
-			# form_html = render_crispy_form(form)
-			# logger.warning(form_html)
-
-			jres['form_html'] = str(form.errors)
-			jres['status'] = 'KO'
+			jres['error'] = str(form.errors)
 
 		else:
-			jres['status'] = 'form_invalid no ajax'
+			jres['error'] = 'form_invalid no ajax'
 			logger.warning('form_invalid no ajax')
 
 		#return HttpResponseBadRequest(json.dumps(form.errors),mimetype="application/json")
@@ -813,14 +805,9 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
 			# ChooseAuthorForDemoform with autocomplete
 			self.request.session['authors_avilable_for_demo_id']=demo_id
 			context['choosedemoauthorform'] = ChooseAuthorForDemoform()
-
-			print
-			print " +ChooseAuthorForDemoform created"
-			print
-
 			context['demoauthorform'] = DemoAuthorform
 			context['authorform'] = Authorform
-			#context['demoform'] = Demoform(initial={'active': True})
+			#context['form'] = form(initial={'active': True})
 
 		except Exception as e:
 
@@ -917,6 +904,7 @@ class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
 							jres['error'] = error
 				else:
 					#multiple choicefield
+					#todo improvement: wds in demoinfo that adds a list of authors to demo
 
 					for id in authorid_list:
 						id=int(id)
@@ -1390,15 +1378,8 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
 			# ChooseAuthorForDemoform with autocomplete
 			self.request.session['editors_avilable_for_demo_id']=demo_id
 			context['choosedemoeditorform'] = ChooseEditorForDemoform()
-
-
-			print
-			print " +ChooseEditorForDemoform created"
-			print
-
 			context['demoeditorform'] = DemoEditorform
 			context['editorform'] = Editorform
-			#context['demoform'] = Demoform(initial={'active': True})
 
 		except Exception as e:
 
@@ -1490,6 +1471,8 @@ class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
 					if error is not None:
 							jres['error'] = error
 				else:
+
+					#todo improvement: wds in demoinfo that adds a list of editors to demo
 					for id in editorid_list:
 
 						print id
@@ -1668,39 +1651,5 @@ class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
 
 		return HttpResponse(result, content_type='application/json')
 
-
-
-
-#
-# class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
-#
-# 	@method_decorator(login_required)
-# 	def dispatch(self, *args, **kwargs):
-# 		return super(DemoinfoGetDDLView, self).dispatch(*args, **kwargs)
-#
-# 	def post(self, request, *args, **kwargs):
-# 			context = super(DemoinfoGetDDLView, self).get_context_data(**kwargs)
-# 			try:
-# 				demo_descp_id = int(self.kwargs['demo_descp_id'])
-# 			except ValueError:
-# 				msg= "Id is not an integer"
-# 				logger.error(msg)
-# 				raise ValueError(msg)
-#
-# 			result= ipolservices.demoinfo_read_demo_description(demo_descp_id)
-# 			if result == None:
-# 				msg="DemoinfoGetDDLView: Something went wrong using demoinfo WS"
-# 				logger.error(msg)
-# 				raise ValueError(msg)
-#
-#
-# 			import json
-# 			#your_json = '["foo", {"bar":["baz", null, 1.0, 2]}]'
-# 			# parsed = json.loads(result)
-# 			# result = json.dumps(parsed, indent=4, sort_keys=True)
-#
-# 			print "result: ",result
-# 			return HttpResponse(result,content_type='application/json')
-#
 
 

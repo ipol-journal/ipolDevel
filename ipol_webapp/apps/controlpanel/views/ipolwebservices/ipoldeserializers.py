@@ -13,6 +13,63 @@ logger = logging.getLogger(__name__)
 
 # Serializers , to parse complex JSON to python data structures
 
+
+#####################
+#  PROXY MODULE  #
+#####################
+
+def DeserializeProxyStatus(jsonresult):
+
+	#Clases that will contain the json data
+	class Stats(object):
+		def __init__(self, status,ping):
+			self.status = status
+			self.ping = ping
+
+
+	# Serializers
+	class StatsSerializer(serializers.Serializer):
+		status = serializers.CharField(max_length=200)
+		ping = serializers.CharField(max_length=200)
+
+		def create(self, validated_data):
+			return Stats(**validated_data)
+
+
+	#JSON TO OBJECTS
+
+	#Using data from WS
+	jsondata = jsonresult
+
+	print jsondata
+
+
+	#Deserialization.
+	mywstats = None
+	try:
+
+		#First we parse a stream into Python native datatypes...
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		#then we restore those native datatypes into a dictionary of validated data.
+		serializer = StatsSerializer(data=data)
+
+		if serializer.is_valid(raise_exception=True):
+			mywstats = serializer.save()
+
+
+	except Exception,e:
+		msg="Error JSON DeserializeProxyStatus Deserialization e: %s serializer.errors: "%e
+		logger.error(msg)
+		print msg
+		#logger.error(serializer.errors)
+
+	#print mywstats.__class__
+	return mywstats
+
+
+
+
 #####################
 #  DEMOINFO MODULE  #
 #####################
