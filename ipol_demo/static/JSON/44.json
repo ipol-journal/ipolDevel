@@ -15,10 +15,13 @@
     [
       {
         "build_type"    : "cmake",
-        "url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz", 
+        "url*previous"  : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz", 
+        "url"           : "http://151.80.24.28:8080/DemoSource/44/clg_6.1.tgz", 
         "srcdir"        : "clg_6.1",
         "binaries"      : [ ["../bin","test_clgof"] ],
-        "flags"         : "-j4"
+        "flags"         : "-j4",
+        "scripts"       : [ ["demo_scripts", "view_clg.sh"],  
+                            ["demo_scripts", "run_clg_noview.sh"]]
       },
       {
         "build_type"    : "make",
