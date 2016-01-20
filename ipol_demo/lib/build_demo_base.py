@@ -65,8 +65,9 @@ class BuildDemoBase:
     # test timestamp for scripts too
     if 'scripts' in self.params.keys():
         for script in self.params['scripts']:
-            script_file = path.join(  self.scripts_dir, 
-                                      os.path.basename(script[1]))
+            script_file = path.join(  self.scripts_dir, script[1])
+            if os.path.basename(script[1])=='' and len(script)==3:
+                script_file = path.join( self.scripts_dir,script[1],script[2])
             if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
                 rebuild_needed = True
 
@@ -181,9 +182,16 @@ class BuildDemoBase:
         # Move scripts to the scripts dir
         for script in self.params['scripts']:
           print "moving ",path.join(src_path, script[0], script[1]), " to ", self.scripts_dir
+          new_file = path.join( self.scripts_dir, script[1])
+          if os.path.exists(new_file):
+              if path.isfile(new_file): 
+                os.remove(new_file)
+              else:
+                os.chmod( new_file, stat.S_IRWXU )
+                shutil.rmtree(new_file)
           shutil.move(path.join(src_path, script[0], script[1]),self.scripts_dir)
           # Give exec permission to the script
-          os.chmod( path.join( self.scripts_dir, script[1]), stat.S_IREAD | stat.S_IEXEC )
+          os.chmod( new_file, stat.S_IREAD | stat.S_IEXEC )
       # prepare_cmake can fix some options before configuration
       if ('post_build' in self.params.keys()):
         print 'post_build command:', self.params['post_build']
@@ -192,6 +200,7 @@ class BuildDemoBase:
           
       # cleanup the source dir
       shutil.rmtree(self.src_dir)
+      
     return 
 
   
