@@ -25,7 +25,7 @@
     {
       "build_type"    : "make",
       "url*previous"  : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
-      "url"           : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.zip", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
       "srcdir"        : "percentile_v1/",
       "binaries"      : [ ["fnoise","fnoise"], ["subscale","subscale"], ["percentile","percentile"] ],
       "flags"         : "-j4",
