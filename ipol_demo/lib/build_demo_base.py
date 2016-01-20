@@ -37,22 +37,35 @@ class BuildDemoBase:
     """
     program build/update
     """
+    
+    programs = self.params['binaries']
+    
     #print "make(clean_previous={0})".format(clean_previous)
     zip_filename  = urlparse.urlsplit(self.params['url']).path.split('/')[-1]
     src_dir_name  = self.params['srcdir']
     src_path      = path.join(self.src_dir, src_dir_name)
-    # use first binary name to check time
-    prog_filename = self.params['binaries'][0][1]
 
     # store common file path in variables
     tgz_file  = path.join( self.dl_dir,   zip_filename  )
-    prog_file = path.join( self.bin_dir,  prog_filename )
     # get the latest source archive
     build.download(self.params['url'], tgz_file)
-    # test if the dest file is missing, or too old
-    if path.isfile(prog_file) and (ctime(tgz_file) < ctime(prog_file)):
-      print("no rebuild needed")
-      return 
+
+    rebuild_needed = False
+
+    # test if the dest file is missing, or too old, for each program to build
+    for program in programs:
+        # use first binary name to check time
+        prog_filename = program[1]
+        prog_file = path.join( self.bin_dir,  os.path.basename(prog_filename) )
+        if os.path.basename(prog_filename)=='' and len(program)==3:
+            prog_file = path.join( self.bin_dir,program[2])
+        
+        if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
+            rebuild_needed = True
+
+    #--- build
+    if not(rebuild_needed):
+      print "no rebuild needed ",
     else:
       print "extracting archive"
       # extract the archive
@@ -76,9 +89,7 @@ class BuildDemoBase:
         #if clean_previous: 
           #shutil.rmtree(self.scripts_dir)
           #os.mkdir(self.scripts_dir)
-      
-      programs = self.params['binaries']
-      
+            
       #----- CMAKE build
       if  ('build_type' in self.params.keys()) and \
           (self.params['build_type'].upper()=='cmake'.upper()):
