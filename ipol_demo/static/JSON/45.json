@@ -28,11 +28,11 @@
       "srcdir"        : "ponomarenko_v4",
       "binaries"      : [   ["ponomarenko","ponomarenko"] , 
                             ["fnoise","fnoise"], 
-                            ["subscale","subscale"],
-                            [".", "demo_scripts/", "run_algo.py"]
+                            ["subscale","subscale"]
                         ],
       "flags"         : "-j4",
-      "scripts"       : [ ["scripts","writeNoiseCurve.sh"] ]
+      "scripts"       : [   ["scripts","writeNoiseCurve.sh"], 
+                            [ "demo_scripts", "run_algo.py"] ]
     } ]
   ,
   "inputs": [ 

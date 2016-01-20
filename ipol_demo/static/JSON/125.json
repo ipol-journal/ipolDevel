@@ -24,9 +24,10 @@
       "url*previous" : "http://www.ipol.im/pub/art/2015/125/NoiseClinic.zip", 
       "url"          : "http://151.80.24.28:8080/DemoSource/125/NoiseClinic.tgz", 
       "srcdir"       : "noise_clinic_src",
-      "binaries"     : [ [".","MSD"], [".", "demo_scripts/", "ProcessNoiseCurves.py"] ],
+      "binaries"     : [ [".","MSD"] ],
       "flags"        : "OMP=1 -j4",
-      "scripts"      : [ ["scripts","writeNoiseCurve.sh"] ]
+      "scripts"      : [    ["scripts"      ,"writeNoiseCurve.sh"], 
+                            ["demo_scripts" , "ProcessNoiseCurves.py"] ]
     }]
   ,
   "inputs": [ 
