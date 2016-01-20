@@ -15,9 +15,12 @@
   "build": [
     {
       "build_type"    : "make",
-      "url"           : "http://www.ipol.im/pub/art/2012/lps-pae/piecewise_eq.tgz", 
+      "url*previous"  : "http://www.ipol.im/pub/art/2012/lps-pae/piecewise_eq.tgz", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/27/piecewise_eq.tgz", 
       "srcdir"        : "piecewise_eq",
-      "binaries"      : [ [".","piecewise_equalization"] ],
+      "binaries"      : [   [".","piecewise_equalization"] , 
+                            [".", "demo_scripts/", "compute_hist_and_curves.py"]
+                        ],
       "flags"         : "-j4"
     } ]
   ,
