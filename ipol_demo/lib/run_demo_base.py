@@ -308,11 +308,11 @@ class RunDemoBase:
     #
     p = self.get_MATLAB_path()
     if not (p is None):
-      self.log("warning: MATLAB path directory %s does not exist" % p,
-                context='SETUP/%s' % self.get_demo_id(), 
-                traceback=False)
-    else:
       path = path + ":" + p
+    #else:
+      #self.log("warning: MATLAB path directory %s does not exist" % p,
+                #context='SETUP/%s' % self.get_demo_id(), 
+                #traceback=False)
       
     newenv.update({'PATH' : path, 'LD_LIBRARY_PATH' : self.bin_dir})
 
