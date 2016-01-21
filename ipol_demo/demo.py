@@ -76,7 +76,7 @@ class demo_index(object):
                     description="")
 
 #-------------------------------------------------------------------------------
-def do_build(demo_dict,demo_desc,clean):
+def do_build(demo_dict,demo_desc, clean):
     """
     build/update the demo programs
     """
@@ -159,22 +159,9 @@ def get_values_of_o_arguments(argv):
 
 #-------------------------------------------------------------------------------
 def CheckDemoDescription(desc):
-    ## check the general section
-    #ok = True
-    #required_keys = set([ "general", "build", "inputs", "params", "run", "archive", "results"  ])
-    #if not required_keys.issubset(desc.keys()):
-        #print "missing sections in JSON file: ", required_keys.difference(desc.keys())
-        #return False
-
-    ## general section
-    #required_keys = set([ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ])
-    #if not required_keys.issubset(desc['general'].keys()):
-        #mess =  "missing keys in 'general' secton of JSON file: {0}".format(required_keys.difference(desc['general'].keys()))
-        #print mess
-        #cherrypy.log(mess, context='SETUP', traceback=False)
-        #return False
-    #return ok
-    
+    """
+        Check the demo description based on the json schema
+    """
     ddl_schema = json.load(open("modules/config_common/ddl_schema.json"))
     #print "****"
     #print ddl_schema
@@ -441,7 +428,9 @@ if __name__ == '__main__':
         print "---- Checking json schema for demo {0:10}".format(demo_id),
         try:
             # read demo descriptions
-            res1 = urllib2.urlopen(proxy_server + "/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id="+str(internalid_dict[demo_id])+"&returnjsons=True" )
+            res1 = urllib2.urlopen(proxy_server +\
+                    "/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id="+\
+                    str(internalid_dict[demo_id])+"&returnjsons=True" )
             res1json = json.loads(res1.read())
             if res1json['status'] == 'OK':
                 ddl_info = res1json['last_demodescription']
@@ -511,11 +500,11 @@ if __name__ == '__main__':
         sys.argv += ["run"]
     for arg in sys.argv[1:]:
       if "build" == arg:
-        do_build(demo_dict, demo_desc, False)
+        do_build(demo_dict, demo_desc,  False)
       elif "clean" == arg:
-        do_build(demo_dict,True)
+        do_build(demo_dict, demo_desc,  True)
       elif "run" == arg:
-        do_run(demo_dict, demo_desc, proxy_server)
+        do_run(demo_dict, demo_desc,  proxy_server)
       elif arg == "jsoninfo":
         # order sections by their position in the latex file
         ordered_sections = []

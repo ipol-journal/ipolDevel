@@ -25,7 +25,13 @@ from .empty_app import empty_app
 from .image import thumbnail, image
 from .misc import prod
 from shutil import rmtree
+
 import json
+# json schema validation
+from jsonschema import validate
+from jsonschema import Draft4Validator
+from jsonschema import ValidationError
+import urllib2
 
 import  run_demo_base
 from    run_demo_base import RunDemoBase
@@ -217,6 +223,71 @@ class base_app(empty_app):
         # params() is modified from the template
         app_expose(base_app.params)
         
+
+    #---------------------------------------------------------------------------
+    def CheckDemoDescription(self,desc):
+        """
+            Check the demo description based on the json schema
+        """
+        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+        ddl_schema = json.load(open(CURRENT_DIR+"/../modules/config_common/ddl_schema.json"))
+        #print "****"
+        #print ddl_schema
+        #print "****"
+        try:
+            validate(desc,ddl_schema)
+        except ValidationError as e:
+            print e.message
+            return False
+        return True
+
+    #---------------------------------------------------------------------------
+    def reload_demo_description(self):
+        # we need:
+        # demo_id
+        # internalid for demo
+        # json package
+        # CheckDemoDescription method
+        
+        print "---- Reload json schema for demo {0:10}".format(self.id)
+        
+        
+        #
+        try:
+            # find internal id: demo with the same title
+            # using demoinfo module to create demo_dict ...
+            # use proxy
+            proxy_server = cherrypy.config['demo.proxy_server']
+            get_demolist_url = proxy_server+'/?module=demoinfo&service=demo_list'
+            res = urllib2.urlopen(get_demolist_url)
+            resjson = json.loads(res.read())
+            internalid=-1
+            if resjson['status']=="OK":
+                for d in resjson['demo_list']:
+                    id_str = str(d['editorsdemoid'])
+                    if id_str==str(self.id):
+                        internalid=d['id']
+            if internalid==-1:
+                raise cherrypy.HTTPError(400, "Failed to find a demo with the same id")
+            else:
+                # read demo descriptions
+                res1 = urllib2.urlopen(proxy_server +\
+                        "/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id="+\
+                        str(internalid)+"&returnjsons=True" )
+                res1json = json.loads(res1.read())
+                if res1json['status'] == 'OK':
+                    ddl_info = res1json['last_demodescription']
+                    if ddl_info:
+                        ddl = ddl_info['json']
+                        demo_description = json.loads(ddl)
+                        demo_description = json.loads(demo_description)
+                        if self.CheckDemoDescription(demo_description):
+                            print " --> OK "
+                            self.demo_description = demo_description
+        except ValueError as e:
+            print "EXCEPTION: ", e
+            cherrypy.log("failed to reload JSON demo description")
+
 
     #---------------------------------------------------------------------------
     def init_parameters(self):
@@ -523,6 +594,9 @@ class base_app(empty_app):
         """
         use the selected available input images
         """
+        
+        # reload demo description
+        self.reload_demo_description()
 
         # When we arrive here, self.key should be empty.
         # If not, it means that the execution belongs to another thread
@@ -898,6 +972,10 @@ class base_app(empty_app):
       """
       algo execution and redirection to result
       """
+      
+      # reload demo description
+      self.reload_demo_description()
+      
       # run the algorithm
       try:
         run_time = time.time()

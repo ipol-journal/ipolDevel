@@ -131,6 +131,8 @@ class empty_app(object):
           #cherrypy.log("failed to read JSON demo description {0}".format(description_filename))
     
 
+
+    #---------------------------------------------------------------------------
     def init_key(self, key):
         """
         reinitialize the key between 2 page calls
@@ -140,6 +142,7 @@ class empty_app(object):
         # regenerate key-related attributes
         self.new_key(key)
 
+    #---------------------------------------------------------------------------
     def init_cfg(self):
         """
         reinitialize the config dictionary between 2 page calls
