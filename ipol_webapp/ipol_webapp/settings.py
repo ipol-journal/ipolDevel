@@ -48,8 +48,20 @@ local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
 
-#alluth control for allowing logins
+#alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
+
+
+####################################
+#            IPOL WS               #
+####################################
+
+#Proxy module reads module xml and ofers the other modules as services, default True
+IPOL_PROXY = True
+# If using proxy , you do not need the following urls to access the modules directly
+IPOL_SERVICES_MODULE_ACHIVE = None
+IPOL_SERVICES_MODULE_BLOBS = None
+IPOL_SERVICES_MODULE_DEMOINFO = None
 
 if hostname in local_machines:
 	SITE_ID = 2
@@ -70,10 +82,14 @@ if hostname in local_machines:
 	####################################
 	#Local ENV
 	IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
+	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.0.1:9003/%s'
+	if not IPOL_PROXY:
+		#urls to access the modules directly
+		IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000/%s'
+		IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:9001/%s'
+		IPOL_SERVICES_MODULE_DEMOINFO ='http://127.0.0.1:9002/%s'
 
-	IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000'
-	IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:9001'
-	IPOL_SERVICES_MODULE_DEMOINFO ='http://127.0.0.1:9002'
 
 
 elif hostname in dev_machines_hostname:
@@ -98,34 +114,18 @@ elif hostname in dev_machines_hostname:
 	####################################
 	#            IPOL WS               #
 	####################################
-	# #testing ENV 1
-	# IPOL_SERVICES_MODULE_DEMO =''
-	# IPOL_SERVICES_MODULE_ACHIVE ='http://boucantrin.ovh.hw.ipol.im:9000'
-	# IPOL_SERVICES_MODULE_BLOBS ='http://boucantrin.ovh.hw.ipol.im:9010'
-
-	# #testing ENV 2
+	# testing ENV 2
 	IPOL_SERVICES_MODULE_DEMO = None
-	IPOL_SERVICES_MODULE_ACHIVE = 'http://ns3018037.ip-151-80-24.eu:9000'
-	IPOL_SERVICES_MODULE_BLOBS = 'http://ns3018037.ip-151-80-24.eu:9001'
-	IPOL_SERVICES_MODULE_DEMOINFO = 'http://ns3018037.ip-151-80-24.eu:9002'
+	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
+	IPOL_SERVICES_MODULE_PROXY = 'http://ns3018037.ip-151-80-24.eu:9003/%s'
+	if not IPOL_PROXY:
+		#urls to access the modules directly
+		IPOL_SERVICES_MODULE_ACHIVE = 'http://ns3018037.ip-151-80-24.eu:9000/%s'
+		IPOL_SERVICES_MODULE_BLOBS = 'http://ns3018037.ip-151-80-24.eu:9001/%s'
+		IPOL_SERVICES_MODULE_DEMOINFO = 'http://ns3018037.ip-151-80-24.eu:9002/%s'
 
 else:
 	print("ERROR: invalid hostname")
-
-
-####################################
-#            IPOL WS               #
-####################################
-
-# Do not forget to change .conf de archive y blobs modules
-
-# #Production ENV
-# IPOL_SERVICES_MODULE_DEMO =''
-# IPOL_SERVICES_MODULE_ACHIVE =''
-# IPOL_SERVICES_MODULE_BLOBS =''
-
-
-
 
 
 
@@ -198,13 +198,13 @@ WSGI_APPLICATION = 'ipol_webapp.wsgi.application'
 #####################
 #       alluth      #
 #####################
-#alluth
+
+
 SOCIALACCOUNT_ENABLED = False
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 #LOGIN_REDIRECT_URL = reverse_lazy('allauth.profile')
 LOGIN_REDIRECT_URL = reverse_lazy('ipol.cp.status')
 ACCOUNT_ADAPTER = 'vendor.allauth.myadapter.accountadapter.AccountAdapter'
-
 AUTHENTICATION_BACKENDS = (
 	# Needed to login by username in Django admin, regardless of `allauth`
 	'django.contrib.auth.backends.ModelBackend',
@@ -352,7 +352,6 @@ LOG_LEVEL = 'DEBUG'
 DISABLE_GUNICOR_LOGUER = False
 
 
-
 LOGGING = {
 	'version': 1,
 	'disable_existing_loggers': DISABLE_GUNICOR_LOGUER,
@@ -393,6 +392,7 @@ LOGGING = {
 		},
 	}
 }
+
 #####################
 #    REST WS        #
 #####################

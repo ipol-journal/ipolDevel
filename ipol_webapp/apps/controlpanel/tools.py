@@ -18,6 +18,9 @@ def get_status_and_error_from_json(result):
 		status = resultdict['status']
 		if 'error' in resultdict:
 			error = resultdict['error']
+		#if using proxy, get proxy error codes
+		if 'code' in resultdict:
+			error = resultdict['code']
 	except Exception as e:
 		print "get_status_and_error_from_json error"
 		raise ValueError

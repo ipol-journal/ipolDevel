@@ -38,19 +38,46 @@
         </h1>
 
 
-        {% with archive_module_stats=view.get_archive_module_stats blobs_module_stats=view.get_blobs_module_stats archivemachine=view.get_archive_machine  blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine%}
-            {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine %}
+        {% with proxy_module_stats=view.get_proxy_module_stats proxymachine=view.get_proxy_machine archive_module_stats=view.get_archive_module_stats archivemachine=view.get_archive_machine blobs_module_stats=view.get_blobs_module_stats blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine %}
+
+
+
+
+            {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine or '127.0.0.1' in proxymachine %}
                 <p> The purpose of this page is to monitor the status of the diferent modules that provide functionality (this is a microservices architecture) used by Control Panel</p>
-                <p> </p>
 
                 <b class="ststsnok">Carefull! Some stuff is running locally</b>
+                <p> To RUN Locally PROXY: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python proxy.py  proxy.conf</p>
+                <p> Remember to change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally </p>
+
                 <p> To RUN Locally DEMO: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python demo.py  (needs buil)</p>
                 <p> To RUN Locally ARCHIVE: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo/modules/archive$ python main.py archive.josearrecio.conf</p>
                 <p> To RUN Locally BLOBS: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo/modules/blobs$ python main.py blobs.josearrecio.conf </p>
-                <p> Note: Some modules have .conf hardcoded, you have to: cp archive.josearrecio.conf archive.conf </p>
+{#                <p> Note: Some modules have .conf hardcoded, you have to: cp archive.josearrecio.conf archive.conf </p>#}
 
             {% endif %}
 
+            <div id="proxy_module_info" class="machine">
+                {% if proxy_module_stats.status == "OK" %}
+
+                    <p class="ststsok"> <b>PROXY RUNNING at: {{ proxymachine }}</b></p>
+
+{#                    <div style="padding-left: 20px">#}
+{#                        <p>nb_demos: {{ proxy_module_stats.nb_demos  }}</p>#}
+{#                        <p>nb_authors: {{ proxy_module_stats.nb_authors  }}</p>#}
+{#                        <p>nb_editors: {{ proxy_module_stats.nb_editors  }}</p>#}
+{#                    </div>#}
+                    {% if '9003' in archivemachine or '9003'  in blobmachine or '9003'  in demomachine  %}
+                        <p class="ststsok"> <b>PROXY RUNNING, ALL MODULES RUNNING THROUGH PROXY</b></p>
+                    {% else %}
+                        <p class="ststsnok"> <b>PROXY RUNNING, BUT NOT BEEING USED !! check settings param IPOL_PROXY {{ archivemachine }}</b></p>
+                    {% endif %}
+
+                {% else %}
+                    <p class="ststsnok">Proxy Module Not running!</p>
+                    <p class="ststsnok">CP will not work</p>
+                {% endif %}
+            </div>
 
             <div id="demoinfo_module_info" class="machine">
                 {% if demoinfo_module_stats.status == "OK" %}

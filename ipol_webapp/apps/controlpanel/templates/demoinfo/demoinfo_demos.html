@@ -306,6 +306,21 @@
         
         {#  js error msg#}
         $ws_down=" check webservices are running, go to status page";
+        var $ws_error_msg="";
+
+        {#  find errors if WS response is KO #}
+        function find_ws_errors(data) {
+            var error_msg = null;
+
+            if (data.code){
+                error_msg = "code: " + data.code;
+            }
+            if (data.error){
+                error_msg = "error: " + data.error;
+            }
+            console.log("error_msg" + error_msg)
+            return error_msg
+        }
 
         {#  secure AJAX POST to ws ,from django docs #}
         function getCookie(name) {
@@ -452,14 +467,10 @@
                     }else {
 
                         $ddlform.show();
-                        //$($modal_ddl_msg_div).html('DDL not saved, errors:'+data.form_html).show();
-                        if (data.error){
-                            var errorhtml="<p class=\"ststsnok\">DDL not saved, error: "+data.error+"</p>";
-                            $($modal_ddl_msg_div).html(errorhtml).show();
-                        }else{
-                            var errorhtml="<p class=\"ststsnok\">DDL not saved, error unidefined</p>";
-                            $($modal_ddl_msg_div).html(errorhtml).show();
-                        }
+                        $error_msg=find_ws_errors(data);
+                        var errorhtml="<p class=\"ststsnok\">DDL not saved,ws returned: "+$error_msg+"</p>";
+                        $($modal_ddl_msg_div).html(errorhtml).show();
+
 
                     }
                 },
@@ -577,8 +588,13 @@
                             }
                         }else{
                             //error, no OK
-                            var errorhtml="<p class=\"ststsnok\">Demo not retrieved sucessfully, "+$ws_down+"</p>";
-                            $($modal_ddl_msg_div).html(errorhtml);
+                            console.log(" Error, ws returned KO");
+
+                            $error_msg=find_ws_errors(data);
+                            var errorhtml="<p class=\"ststsnok\">Demo not retrieved sucessfully, ws returned "+$error_msg+"</p>";
+                            $($modal_demo_id).modal('show');
+                            $demoform.hide();
+                            $($modal_demo_msg_div).html(errorhtml);
                         }
                     },
                     error: function(data){
@@ -613,6 +629,7 @@
                     console.log("AJAX CALL status: "+data.status);
                     console.log("AJAX CALL error: "+data.error);
                     console.log("AJAX CALL data: "+data);
+
                     if (data.status == "OK") {
                         $($modal_demo_msg_div).html('Demo saved').show();
                         $demoform.hide();
@@ -622,14 +639,12 @@
                     else {
 
                         $demoform.show();
-                        if (data.error){
-                            var errorhtml="<p class=\"ststsnok\">Demo not saved, error: "+data.error+"</p>";
-                            $($modal_demo_msg_div).html(errorhtml).show();
-                        }else{
-                            var errorhtml="<p class=\"ststsnok\">Demo not saved, error unidefined</p>";
-                            $($modal_demo_msg_div).html(errorhtml).show();
-                        }
 
+                        console.log(" Error, ws returned KO");
+
+                        $error_msg = find_ws_errors(data);
+                        var errorhtml="<p class=\"ststsnok\">Demo not saved, ws returned  "+$error_msg+"</p>";
+                        $($modal_demo_msg_div).html(errorhtml).show();
 
                     }
                 },

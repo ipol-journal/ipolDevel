@@ -1,4 +1,7 @@
 # coding=utf-8
+from ipol_webapp.settings import IPOL_PROXY, IPOL_SERVICES_MODULE_PROXY, IPOL_SERVICES_MODULE_DEMOINFO, \
+	IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS
+
 __author__ = 'josearrecio'
 import json
 import requests
@@ -17,7 +20,7 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
 	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
 	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo, \
-	demoinfo_ws_url_demo_list_by_demoeditorid
+	demoinfo_ws_url_demo_list_by_demoeditorid, proxy_ws_url_stats, proxy_ws_url_service_call
 
 logger = logging.getLogger(__name__)
 
@@ -41,24 +44,28 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 	:param params:
 	:return:  JSON (from WS) or None
 
-	RUNS THE WEBSERVICES, expects a JSON
+	MAKES THE WEBSERVICE CALL using reuqests library, expects ws to return a valid JSON
+
+	http://docs.python-requests.org/en/latest/user/quickstart/
+	Instead of encoding the dict yourself, you can also pass it directly using the json parameter
+	(added in version 2.4.2) and it will be encoded automatically:
 
 	"""
 	#todo if needeed insert schema validation here
 	result = None
 	# print
 	# print "SEND WS, get_JSON_from_webservice"
-	print "params ",params
-	print "json ",json
+	# print
+	# print "params ",params
+	# print "json ",json
 	# print "json type",type(json)
-	print "METHOD",METHOD
-	print "METHOD",type(METHOD)
-	print
+	# print "METHOD",METHOD
+	# print "METHOD",type(METHOD)
+	# print
 	try:
 
 		if not METHOD or METHOD=='GET':
 			response = requests.get(ws_url,params=params)
-
 		elif METHOD=='POST':
 			print ("POST")
 			if json is not None:
@@ -72,7 +79,7 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 			raise ValueError(msg)
 
 		result =  response.content
-		print "JSON:",result
+		# print "JSON:",result
 
 		if not is_json(result):
 			msg="get_JSON_from_webservice: Not valid JSON: %s" % result
@@ -85,44 +92,121 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 		logger.error(msg)
 	return result
 
+
+
+
+#####################
+#  PROXY MODULE  #
+#####################
+
+
+# MISC
+
+#todo proxy has no stats, only ping, create stats ws on proxy
+def proxy_get_stats():
+
+	wsurl = proxy_ws_url_stats
+	return get_JSON_from_webservice(wsurl)
+
+
+
 #####################
 #  DEMOINFO MODULE  #
 #####################
 
 
 # MISC
-
-
 def demoinfo_get_stats():
 
-	wsurl = demoinfo_ws_url_stats
-	return get_JSON_from_webservice(wsurl)
+	service_name = demoinfo_ws_url_stats
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		return get_JSON_from_webservice(wsurl)
+
 
 def demoinfo_get_states():
 
-	wsurl = demoinfo_ws_url_read_states
-	return get_JSON_from_webservice(wsurl)
+	service_name = demoinfo_ws_url_read_states
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 # DDL
 
 
 def demoinfo_read_last_demodescription_from_demo(demo_id,returnjsons=None):
-	wsurl = demoinfo_ws_url_last_demodescription_from_demo
 
-	if returnjsons == True or returnjsons == 'True':
-		params = {'demo_id': demo_id,'returnjsons':True}
+
+	service_name = demoinfo_ws_url_last_demodescription_from_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		if returnjsons == True or returnjsons == 'True':
+			serviceparams = {'demo_id': demo_id,'returnjsons':True}
+		else:
+			serviceparams = {'demo_id': demo_id}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = None
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
 	else:
-		params = {'demo_id': demo_id}
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
 
-	#ojo, el metodo debe estar en consonancia con la llamada ajax
-	return get_JSON_from_webservice(wsurl,'POST',params)
+		if returnjsons == True or returnjsons == 'True':
+			params = {'demo_id': demo_id,'returnjsons':True}
+		else:
+			params = {'demo_id': demo_id}
+
+		#ojo, el metodo debe estar en consonancia con la llamada ajax
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_read_demo_description(demo_descp_id):
-	wsurl = demoinfo_ws_url_read_demo_description
-	params = {'demodescriptionID': demo_descp_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_read_demo_description
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		serviceparams = {'demodescriptionID': demo_descp_id}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = None
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demodescriptionID': demo_descp_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_update_demo_description(demodescriptionID,pjson=None):
@@ -130,34 +214,88 @@ def demoinfo_update_demo_description(demodescriptionID,pjson=None):
 	#pjson is unicode str, directly returned from form cleaned data, its is sent as the body of the post request
 	# to demoinfo update_demo_description (no need to json dump, this would result in doubly-encoding JSON strings)
 
-	wsurl = demoinfo_ws_url_update_demo_description
-	params = {'demodescriptionID': demodescriptionID}
+	print
+	print "demoinfo_update_demo_description"
+	print
 
-	return get_JSON_from_webservice(wsurl,'POST',params=params,json=pjson)
+	service_name = demoinfo_ws_url_update_demo_description
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		serviceparams = {'demodescriptionID': demodescriptionID}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = pjson
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'demodescriptionID': demodescriptionID}
+		return get_JSON_from_webservice(wsurl,'POST',params=params,json=pjson)
 
 
 def demoinfo_add_demo_description(pjson,demoid=None,inproduction=None):
 
-	wsurl = demoinfo_ws_url_add_demo_description
-	if demoid is not None and inproduction is not None:
-		params = {'demoid': demoid,'inproduction':inproduction}
-	elif demoid is not None:
-		params = {'demoid': demoid}
-	elif inproduction is not None:
-		params = {'inproduction':inproduction}
 
-	return get_JSON_from_webservice(wsurl,'POST',params=params,json=pjson)
+	service_name = demoinfo_ws_url_add_demo_description
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		if demoid is not None and inproduction is not None:
+			serviceparams = {'demoid': demoid,'inproduction':inproduction}
+		elif demoid is not None:
+			serviceparams = {'demoid': demoid}
+		elif inproduction is not None:
+			serviceparams = {'inproduction':inproduction}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = pjson
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		if demoid is not None and inproduction is not None:
+			params = {'demoid': demoid,'inproduction':inproduction}
+		elif demoid is not None:
+			params = {'demoid': demoid}
+		elif inproduction is not None:
+			params = {'inproduction':inproduction}
+
+		return get_JSON_from_webservice(wsurl,'POST',params=params,json=pjson)
 
 
 # DEMO
 
+#todo se usa esto?
 def demoinfo_demo_list():
 	"""
 	list demos present in database
 	{ return:OK or KO, list demos:
 	"""
-	wsurl = demoinfo_ws_url_demo_list
-	return get_JSON_from_webservice(wsurl)
+
+	service_name = demoinfo_ws_url_demo_list
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		return get_JSON_from_webservice(wsurl)
 
 def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
 	"""
@@ -167,11 +305,25 @@ def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
 
 	{ return:OK or KO, list demos:...
 	"""
+
+	service_name = demoinfo_ws_url_demo_list_by_demoeditorid
 	result = None
+
 	if demoeditorid_list :
-		wsurl = demoinfo_ws_url_demo_list_by_demoeditorid
-		params = {'demoeditorid_list': json.dumps(demoeditorid_list)}
-		result = get_JSON_from_webservice(wsurl,'GET',params)
+		if IPOL_PROXY:
+
+			proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+			serviceparams = {'demoeditorid_list': json.dumps(demoeditorid_list)}
+			serviceparams = json.dumps(serviceparams)
+			servicejson = None
+			proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+			result = get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+		else:
+
+			wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+			params = {'demoeditorid_list': json.dumps(demoeditorid_list)}
+			result = get_JSON_from_webservice(wsurl,'GET',params)
 
 	return result
 
@@ -186,42 +338,112 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
 	 "previous_page_number": 1, "number": 2.0}
 	"""
 
-	wsurl = demoinfo_ws_url_demo_list_pagination_and_filter
-	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	service_name = demoinfo_ws_url_demo_list_pagination_and_filter
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "GET"
+		servicejson = None
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_delete_demo(demo_id,hard_delete = False):
 
-	wsurl = demoinfo_ws_url_delete_demo
-	params = {'demo_id': demo_id,'hard_delete':hard_delete}
+	service_name = demoinfo_ws_url_delete_demo
 
-	return get_JSON_from_webservice(wsurl,'POST',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id,'hard_delete':hard_delete}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id,'hard_delete':hard_delete}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_read_demo(demo_id):
-	# print "demoinfo_read_demo"
-	wsurl = demoinfo_ws_url_read_demo
-	params = {'demoid': demo_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_read_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {"demoid": demo_id}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demoid': demo_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_update_demo(demo):
-	# print
-	# print "demoinfo_update_demo"
-	# print
-	wsurl = demoinfo_ws_url_update_demo
-	params = {'demo': json.dumps(demo)}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_update_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		serviceparams = {'demo': json.dumps(demo)}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = None
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo': json.dumps(demo)}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
-	# print
-	# print "demoinfo_add_demo"
-	# print
-	wsurl = demoinfo_ws_url_add_demo
-	params = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'stateID': stateID}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_add_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		#proxy can be called by GET or POST, prefer POST if submiting data to server
+		module = "demoinfo"
+		serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'stateID': stateID}
+		#send as string to proxy, proxy will load this into a dict for the request lib call
+		serviceparams = json.dumps(serviceparams)
+		servicehtmlmethod = "POST"
+		servicejson = None
+		proxyparams = {'module': module,'service': service_name ,'servicehtmlmethod':servicehtmlmethod ,'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'stateID': stateID}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 # AUTHOR
@@ -229,80 +451,195 @@ def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
 
 def demoinfo_author_list():
 
-	wsurl = demoinfo_ws_url_author_list
-	return get_JSON_from_webservice(wsurl)
+	service_name = demoinfo_ws_url_author_list
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 def demoinfo_author_list_for_demo(demo_id):
 
-	wsurl = demoinfo_ws_url_author_list_for_demo
-	params = {'demo_id': demo_id}
+	service_name = demoinfo_ws_url_author_list_for_demo
 
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
-def demoinfo_available_author_list_for_demo(demo_id=None):
+def demoinfo_available_author_list_for_demo(demo_id = None):
 
-	wsurl = demoinfo_ws_url_available_author_list_for_demo
-	params = {'demo_id': demo_id}
+	service_name = demoinfo_ws_url_available_author_list_for_demo
 
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfilter):
 
-	wsurl = demoinfo_ws_url_author_list_pagination_and_filter
-	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	service_name = demoinfo_ws_url_author_list_pagination_and_filter
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_delete_author(author_id):
 
-	wsurl = demoinfo_ws_url_delete_author
-	params = {'author_id': author_id}
+	service_name = demoinfo_ws_url_delete_author
 
-	return get_JSON_from_webservice(wsurl,'POST',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'author_id': author_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'author_id': author_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_author( name ,mail):
-	print
-	print "demoinfo_add_author"
-	print
-	wsurl = demoinfo_ws_url_add_author
-	params = {'name': name,'mail': mail}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_add_author
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'name': name,'mail': mail}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'name': name,'mail': mail}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_read_author(author_id):
-	# print "demoinfo_read_demo"
-	wsurl = demoinfo_ws_url_read_author
-	params = {'authorid': author_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_read_author
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'authorid': author_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'authorid': author_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_update_author(author):
-	# print
-	# print "demoinfo_update author"
-	# print
-	wsurl = demoinfo_ws_url_update_author
-	params = {'author': json.dumps(author)}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_update_author
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'author': json.dumps(author)}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'author': json.dumps(author)}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_author_to_demo( demo_id ,author_id):
-	# print
-	# print "demoinfo_add_author_to_demo"
-	# print
-	wsurl = demoinfo_ws_url_add_author_to_demo
-	params = {'demo_id': demo_id,'author_id': author_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_add_author_to_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id,'author_id': author_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id,'author_id': author_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_delete_author_from_demo(demo_id,author_id):
 
-	wsurl = demoinfo_ws_url_delete_author_from_demo
-	params = {'demo_id': demo_id,'author_id': author_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+	service_name = demoinfo_ws_url_delete_author_from_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id,'author_id': author_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id,'author_id': author_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 
@@ -311,80 +648,190 @@ def demoinfo_delete_author_from_demo(demo_id,author_id):
 
 def demoinfo_editor_list():
 
-	wsurl = demoinfo_ws_url_editor_list
-	return get_JSON_from_webservice(wsurl)
+	service_name = demoinfo_ws_url_editor_list
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 def demoinfo_editor_list_for_demo(demo_id):
 
-	wsurl = demoinfo_ws_url_editor_list_for_demo
-	params = {'demo_id': demo_id}
+	service_name = demoinfo_ws_url_editor_list_for_demo
 
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_available_editor_list_for_demo(demo_id=None):
 
-	wsurl = demoinfo_ws_url_available_editor_list_for_demo
-	params = {'demo_id': demo_id}
+	service_name = demoinfo_ws_url_available_editor_list_for_demo
 
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'demo_id': demo_id}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_editor_list_pagination_and_filtering( num_elements_page, page, qfilter):
 
-	wsurl = demoinfo_ws_url_editor_list_pagination_and_filter
-	params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
-	return get_JSON_from_webservice(wsurl,'GET',params)
+	service_name = demoinfo_ws_url_editor_list_pagination_and_filter
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
+		params = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+		return get_JSON_from_webservice(wsurl,'GET',params)
 
 
 def demoinfo_delete_editor(editor_id):
 
-	wsurl = demoinfo_ws_url_delete_editor
-	params = {'editor_id': editor_id}
+	service_name = demoinfo_ws_url_delete_editor
 
-	return get_JSON_from_webservice(wsurl,'POST',params)
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'editor_id': editor_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'editor_id': editor_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_editor( name ,mail):
-	print
-	print "demoinfo_add_editor"
-	print
-	wsurl = demoinfo_ws_url_add_editor
-	params = {'name': name,'mail': mail}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_add_editor
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'name': name,'mail': mail}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'name': name,'mail': mail}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_read_editor(editor_id):
-	# print "demoinfo_read_demo"
-	wsurl = demoinfo_ws_url_read_editor
-	params = {'editorid': editor_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_read_editor
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'editorid': editor_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'editorid': editor_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_update_editor(editor):
-	# print
-	# print "demoinfo_update editor"
-	# print
-	wsurl = demoinfo_ws_url_update_editor
-	params = {'editor': json.dumps(editor)}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_update_editor
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'editor': json.dumps(editor)}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'editor': json.dumps(editor)}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_add_editor_to_demo( demo_id ,editor_id):
-	# print
-	# print "demoinfo_add_editor_to_demo"
-	# print
-	wsurl = demoinfo_ws_url_add_editor_to_demo
-	params = {'demo_id': demo_id,'editor_id': editor_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+
+	service_name = demoinfo_ws_url_add_editor_to_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'demo_id': demo_id,'editor_id': editor_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 
-	wsurl = demoinfo_ws_url_delete_editor_from_demo
-	params = {'demo_id': demo_id,'editor_id': editor_id}
-	return get_JSON_from_webservice(wsurl,'POST',params)
+	service_name = demoinfo_ws_url_delete_editor_from_demo
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "demoinfo",'service': service_name,'servicehtmlmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_DEMOINFO %  service_name
+		params = {'demo_id': demo_id,'editor_id': editor_id}
+		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
 ####################
@@ -400,10 +847,22 @@ def archive_get_page(experimentid , page='1'):
 	that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
 	the browser
 	"""
-	wsurl = archive_ws_url_page
-	params = {'demo_id': experimentid, 'page': page}
 
-	return get_JSON_from_webservice(wsurl,params=params)
+	service_name = archive_ws_url_page
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': experimentid, 'page': page}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_ACHIVE % service_name
+		params = {'demo_id': experimentid, 'page': page}
+		return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_get_stats():
@@ -416,17 +875,39 @@ def archive_get_stats():
 	the browser
 	"""
 
-	wsurl = archive_ws_url_stats
-	return get_JSON_from_webservice(wsurl)
+	service_name = archive_ws_url_stats
 
+	if IPOL_PROXY:
 
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl = IPOL_SERVICES_MODULE_ACHIVE % service_name
+		return get_JSON_from_webservice(wsurl)
+
+#todo remove this method not used any more
 def archive_shutdown():
 	"""
 	Shutdown archive
 	"""
 
-	wsurl = archive_ws_url_shutdown
-	return get_JSON_from_webservice(wsurl)
+	service_name = archive_ws_url_shutdown
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 def archive_demo_list():
@@ -435,39 +916,93 @@ def archive_demo_list():
 	{ return:OK or KO, list demos: {id,name, id template, template } }
 	"""
 
-	wsurl = archive_ws_url_demo_list
-	return get_JSON_from_webservice(wsurl)
+	service_name = archive_ws_url_demo_list
+
+	if IPOL_PROXY:
+
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 def archive_add_experiment_to_test_demo():
+#todo delete should use POST
+	service_name = archive_ws_url_add_experiment_test
 
-	wsurl = archive_ws_url_add_experiment_test
+	if IPOL_PROXY:
 
-	return get_JSON_from_webservice(wsurl)
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		return get_JSON_from_webservice(wsurl)
 
 
 def archive_delete_demo(demo_id):
+#todo delete should use POST
+	service_name = archive_ws_url_delete_demo
 
-	wsurl = archive_ws_url_delete_demo
-	params = {'demo_id': demo_id}
+	if IPOL_PROXY:
 
-	return get_JSON_from_webservice(wsurl,params=params)
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'demo_id': demo_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		params = {'demo_id': demo_id}
+		return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_experiment(experiment_id):
+#todo delete should use POST
+	service_name = archive_ws_url_delete_experiment
 
-	wsurl = archive_ws_url_delete_experiment
-	params = {'experiment_id': experiment_id}
+	if IPOL_PROXY:
 
-	return get_JSON_from_webservice(wsurl,params=params)
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'experiment_id': experiment_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		params = {'experiment_id': experiment_id}
+		return get_JSON_from_webservice(wsurl,params=params)
 
 
 def archive_delete_file(file_id):
+#todo delete should use POST
+	service_name = archive_ws_url_delete_blob_w_deps
 
-	wsurl = archive_ws_url_delete_blob_w_deps
-	params = {'id_blob': file_id}
+	if IPOL_PROXY:
 
-	return get_JSON_from_webservice(wsurl,params=params)
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = {'id_blob': file_id}
+		serviceparams = json.dumps(serviceparams)
+		servicejson = None
+		proxyparams = {'module': "archive",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_ACHIVE % service_name
+		params = {'id_blob': file_id}
+		return get_JSON_from_webservice(wsurl,params=params)
 
 
 ####################
@@ -479,34 +1014,17 @@ def get_blobs_demo_list():
 	list demos present in database
 	{ return:OK or KO, list demos: {id,name, id template, template } }
 	"""
+	service_name = blobs_demo_list
 
-	wsurl = blobs_demo_list
-	return get_JSON_from_webservice(wsurl)
+	if IPOL_PROXY:
 
+		proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+		serviceparams = None
+		servicejson = None
+		proxyparams = {'module': "blobs",'service': service_name,'servicehtmlmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+		return get_JSON_from_webservice(proxywsurl,params=proxyparams)
 
-#
-# def get_demo_list():
-# 	"""
-# 	list demos present in database
-# 	{ return:OK or KO, list demos: {id:name, id template, template } }
-# 	"""
-# 	#todo deberia devolver demo_id, debe ser un numero
-# 	result = None
-# 	try:
-#
-# 		r = requests.get(blobs_demo_list)
-# 		result = r.json()
-#
-#
-# 		if not is_json(result):
-# 			msg="No es un Json valido:  is_json:%s" % is_json(result)
-# 			logger.error(msg)
-# 			print(msg)
-# 			raise ValueError(msg)
-#
-#
-# 	except Exception as e:
-# 		msg=" get_demo_list: error=%s"%(e)
-# 		print(msg)
-# 		logger.error(msg)
-# 	return result
+	else:
+		wsurl =  IPOL_SERVICES_MODULE_BLOBS % service_name
+		return get_JSON_from_webservice(wsurl)
+

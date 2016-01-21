@@ -41,11 +41,11 @@
             {% for demo in data.list_demos%}
 
                 <div class="demo">
-                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">
+{#                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">#}
                         <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
-                    </a>
+{#                    </a>#}
                     <p style="padding-left: 20px">name:{{ demo.name }} </p>
-                    <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>
+                    <p style="padding-left: 20px">is_template:{{ demo.is_template }} </p>
                     <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>
 
                     {#boton Delete demo#}
