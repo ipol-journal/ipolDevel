@@ -1,0 +1,189 @@
+{ 
+  "general": { 
+    "demo_title"            : "Chambolle's Projection Algorithm for Total Variation Denoising",
+    "input_description"     : [ "" ],
+    "param_description"     : [ "" ],
+    "is_test"               : false,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/61/"
+  }, 
+  "build": [
+    {
+      "build_type": "make",
+      "url"       : "http://www.ipol.im/pub/art/2013/61/CDS_ChambolleTV.tgz", 
+      "srcdir"    : "CDS_ChambolleTV",
+      "binaries"  : [ [".","chambolle_ipol"], [".","imdiff_ipol"] ],
+      "flags"     : "-j4"
+    }]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700 * 700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "runmode",
+      "type"          : "selection_radio", 
+      "label"         : "Select running option",
+      "values"        : {   "Add   noise" : "0",
+                            "Guess noise" : "1"},
+      "default_value" : "1"
+    },
+    {
+      "id"            : "sigma",
+      "type"          : "range", 
+      "label"         : "<span ng-if='demo.params[0].value==\"0\"'>Select</span> <span ng-if='demo.params[0].value==\"1\"'>Guess</span> a level (standard deviation) of additive Gaussian noise, &sigma;",
+      "values"        : {   "min":0,   "max":100,  "step":1, "default":10 }
+    },
+    {
+        "id"            : "guesslambda",
+        "type"          : "checkbox",
+        "label"         : "Compute &lambda; dynamically",
+        "default_value" : false
+    },
+    {
+        "visible"       : "!demo.params[2].value",
+        "id*comment"    : "lambda is a python keyword so avoid using it",
+        "id"            : "_lambda",
+        "type"          : "range", 
+        "label"         : "&lambda;",
+        "values"        : { "min":0.01, "max":0.99, "step":0.01, "default":0.08 }
+    }
+  ],
+  
+  "run": [
+    ["guesslambda_checked",
+        "# need to create the '_lambda' parameter as if it was already present",
+        "python:self.algo_params['_lambda']=0",
+        "# the local variable is the one to modify, it will then be copied to algo_params...",
+        "python:_lambda=0"
+    ],
+    "python:option=0",
+    [ "runmode==0", 
+        "python:option=1 if guesslambda_checked else 2" ],
+    [ "runmode==1", 
+        "python:option=3 if guesslambda_checked else 4" ],
+    "python:print 'option = ', option",
+    "chambolle_ipol $option input_0.sel.png $sigma $_lambda noisy.png denoised.png >guessed_lambda.txt 2>&1",
+    [ "runmode==0",
+        "imdiff_ipol input_0.sel.png noisy.png    diff.png $sigma >rmse_noisy.txt    2>&1",
+        "imdiff_ipol input_0.sel.png denoised.png diff.png $sigma >rmse_denoised.txt 2>&1",
+        "# Read the rmse_*.txt files",
+        "python:f = open(self.work_dir + 'rmse_noisy.txt', 'r')",
+        "python:self.algo_info['rmse_noisy'] = '%.2f' % float(f.readline().split(':',1)[1])",
+        "python:f.close()",
+        "python:f = open(self.work_dir + 'rmse_denoised.txt', 'r')",
+        "python:self.algo_info['rmse_denoised'] = '%.2f' % float(f.readline().split(':',1)[1])",
+        "python:f.close()"
+    ],
+    [ "runmode==1",
+        "imdiff_ipol input_0.sel.png denoised.png diff.png $sigma" ],
+    "# Resize for visualization (always zoom by at least 2x)",
+    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
+    "python:zoomfactor = max(1, int(math.ceil(480.0/max(sizeX, sizeY))))",
+    "python:has_zoom=zoomfactor>1",
+    [ "has_zoom",
+        "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
+        "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png  input_0.sel_zoom.png",
+        "convert -filter point -resize ${sizeX}x${sizeY} denoised.png     denoised_zoom.png",
+        "convert -filter point -resize ${sizeX}x${sizeY} diff.png         diff_zoom.png"
+    ],
+    [ "has_zoom and runmode==0",
+        "convert -filter point -resize ${sizeX}x${sizeY} noisy.png noisy_zoom.png"
+    ],
+    "#--- save algorithm information",
+    "python:self.algo_info['displayheight'] = sizeY",
+    "python:self.algo_info['has_zoom'] = has_zoom",
+    "python:self.algo_info['zoomfactor'] = zoomfactor"
+  ],
+  "archive":
+    {
+      "files" : { "input_0.sel.png"         : "selected subimage",
+                  "noisy.png"               : "input image",
+                  "denoised.png"            : "denoised image",
+                  "diff.png"                : "denoised difference"
+                },
+      "params" :  [ "sigma" , "_lambda"]
+    },
+  "results": [
+    {
+        "type"      : "html_text",
+        "visible"   : "info.has_zoom",
+        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+    },
+    {
+        "type"      : "file_download",
+        "visible"   : "params.runmode==1",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "input"          : "input_0.sel.png",
+                "denoised"       : "denoised.png"
+            }
+    },
+    {
+        "type"      : "file_download",
+        "visible"   : "params.runmode==0",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "input"          : "noisy.png",
+                "denoised"       : "denoised.png",
+                "exact"          : "input_0.sel.png"
+            }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : [ "<h2>Images</h2>",
+            "<p>",
+                "Noise standard deviation ",
+                "<span ng-if='params.runmode==0'>(guessed)",
+                "</span> <span ng-if='params.runmode==1'>(added)</span>:",
+                " &sigma;  = {{params.sigma}}",
+            "</p>"
+            ],
+      "contents"      : 
+        {
+            "params.runmode==0&&!params.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy.png",
+            "params.runmode==0&&!params.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised.png",
+            "params.runmode==0&&!params.has_zoom?Original"                                 : "input_0.sel.png",
+
+            "params.runmode==0&&params.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy_zoom.png",
+            "params.runmode==0&&params.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised_zoom.png",
+            "params.runmode==0&&params.has_zoom?Original"                                 : "input_0.sel_zoom.png",
+
+            "params.runmode==1&&!params.has_zoom?Input"     : "input_0.sel.png",
+            "params.runmode==1&&!params.has_zoom?Denoised"  : "denoised.png",
+
+            "params.runmode==1&&params.has_zoom?Input"      : "input_0.sel_zoom.png",
+            "params.runmode==1&&params.has_zoom?Denoised"   : "denoised_zoom.png"
+
+        },
+      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+    },
+    {
+      "type"          : "text_file", 
+      "visible"       : "params.runmode==0",
+      "label"         : "<p>Difference denoised-original:</p>",
+      "contents"      : "rmse_denoised.txt",
+      "style"         : "width:40em;height:4em;background-color:#eee"
+    },
+    {
+      "type"          : "text_file", 
+      "visible"       : "params.runmode==0",
+      "label"         : "<p>Difference noisy-original:</p>",
+      "contents"      : "rmse_noisy.txt",
+      "style"         : "width:40em;height:4em;background-color:#eee"
+    },
+    {
+      "type"          : "text_file", 
+      "visible"       : "params._lambda==0",
+      "label"         : "<p>&lambda; (dynamic computation):</p>",
+      "contents"      : "guessed_lambda.txt",
+      "style"         : "width:40em;height:10em;background-color:#eee"
+    }
+  ]
+}
