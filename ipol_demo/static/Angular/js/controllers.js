@@ -10,6 +10,28 @@ IPOLDemoControllers.controller('DemoListCtrl', ['$scope', 'Demo',
     $scope.orderProp = 'title';
   }]);
 
+
+/*---------------- DemoIndexCtrl --------------------------------------------*/
+IPOLDemoControllers.controller('DemoIndexCtrl',
+  [ '$scope','$timeout', '$http', 'proxy_server', 
+    function($scope,$timeout, $http, proxy_server) 
+    {
+      
+      $scope.internal_demoid = -1;
+      $scope.demo_list = undefined;
+    
+      // Get demo list from server to find the internal demo id
+      $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
+      .success(function(demolist) {
+          $scope.demo_list = demolist.demo_list;
+           console.info("demo_list", $scope.demo_list);
+      });
+    }
+  ]
+);
+
+
+
 /*---------------- DemoInputCtrl ---------------------------------------------*/
 IPOLDemoControllers.controller('DemoInputCtrl', 
                               ['$scope', '$sce', '$http','demo_id', 'proxy_server', 
@@ -30,7 +52,7 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
     // Get demo list from server to find the internal demo id
     $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
     .success(function(demolist) {
-        console.info("demolist", demolist)
+        console.info("demolist", demolist);
         angular.forEach(demolist.demo_list, function(dinfo) {
             if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
         });
@@ -180,7 +202,7 @@ IPOLDemoControllers.controller('DemoParamCtrl',
       // Get demo list from server to find the internal demo id
       $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
       .success(function(demolist) {
-        console.info("demolist", demolist)
+        console.info("demolist", demolist);
         angular.forEach(demolist.demo_list, function(dinfo) {
             if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
         });
@@ -367,7 +389,7 @@ IPOLDemoControllers.controller('DemoResultCtrl',
       // Get demo list from server to find the internal demo id
       $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
       .success(function(demolist) {
-        console.info("demolist", demolist)
+        console.info("demolist", demolist);
         angular.forEach(demolist.demo_list, function(dinfo) {
             if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
         });
