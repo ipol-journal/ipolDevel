@@ -50,12 +50,13 @@ class demo_index(object):
     simplistic demo index used as the root app
     """
 
-    def __init__(self, indexd, demo_desc):
+    def __init__(self, indexd, demo_desc, proxy_server):
         """
         initialize with demo_dict for indexing
         """
-        self.indexd    = indexd
-        self.demo_desc = demo_desc
+        self.indexd       = indexd
+        self.demo_desc    = demo_desc
+        self.proxy_server = proxy_server
 
     @cherrypy.expose
     def index(self):
@@ -70,6 +71,7 @@ class demo_index(object):
                                      encoding_errors='replace')
         return tmpl_lookup.get_template('index.html')\
             .render(indexd=self.demo_desc,
+                    proxy_server=self.proxy_server,
                     title="Demonstrations",
                     description="")
 
@@ -116,7 +118,7 @@ def do_build(demo_dict,demo_desc,clean):
     return
 
 #-------------------------------------------------------------------------------
-def do_run(demo_dict, demo_desc):
+def do_run(demo_dict, demo_desc, proxy_server):
     """
     run the demo app server
     """
@@ -137,7 +139,7 @@ def do_run(demo_dict, demo_desc):
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
     print demo_dict
     # start the server
-    cherrypy.quickstart(demo_index(demo_dict,demo_desc), config=conf_file)
+    cherrypy.quickstart(demo_index(demo_dict,demo_desc, proxy_server), config=conf_file)
     return
 
 #-------------------------------------------------------------------------------
@@ -513,7 +515,7 @@ if __name__ == '__main__':
       elif "clean" == arg:
         do_build(demo_dict,True)
       elif "run" == arg:
-        do_run(demo_dict, demo_desc)
+        do_run(demo_dict, demo_desc, proxy_server)
       elif arg == "jsoninfo":
         # order sections by their position in the latex file
         ordered_sections = []
