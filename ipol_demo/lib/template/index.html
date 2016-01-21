@@ -1,6 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="IPOLDemosApp">
+
+  <%include file="angular_includes.html" />
+
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>IPOL: Demonstrations</title>
@@ -18,18 +21,37 @@
 	  -->
     </style>
   </head>
+
+<script>  
+    IPOLDemosApp.value("proxy_server",  "${proxy_server}"); 
+</script>
+
+
   <body>
     <div id="main">
       <div id="pagetitle">
-	Demonstrations
+        IPOL Demonstrations
       </div> <!-- #pagetitle -->
       <div id="content">
+    
+<p>
+      Search: <input ng-model="query">
+</p>
+
+<p>
+<small> 1: published, 2: preprint, 3: inactive </small>
+</p>
+
+    <div ng-controller="DemoIndexCtrl" >
+<!-- {{demolist}} -->
+        <ul  ng-repeat="demo in demo_list | filter:query | orderBy:'+title'">
+            <li >
+                <a href='./{{demo.editorsdemoid}}/'>{{demo.title}}</a>
+                <sup>{{demo.stateID}}</sup> 
+            </li>
+        </ul>
+    </div>
 	
-	<ul>
-	  % for key in indexd:
-	  <li><a href='./${key}/'>${indexd[key]["general"]["demo_title"]}</a></li>
-	  % endfor
-	</ul>
-	
+
 	<%include file="./footer.html" />
 	
