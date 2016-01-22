@@ -51,44 +51,49 @@
   <!-- ===== Display parameters if any ===== -->
   <span ng-if="demo.params.length>0">
     <h1>Parameters</h1>
-    <ul ng-repeat="param in demo.params"
-        ng-if="(param.visible===undefined)||$eval(param.visible)">
-      <span ng-if="param.type==='label'"> 
-        <b> <span  ng-bind-html="renderHtml(param.label)"></span> </b><br />
-      </span>
-      <li ng-if="param.type==='range'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
-      </li>
-      <li ng-if="param.type==='range_scientific'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
-      </li>
-      <li ng-if="param.type==='readonly'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : {{params[param.id]}} 
-      </li>
-      <li ng-if="param.type==='selection_collapsed'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : 
-        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">
-            <span ng-bind-html="renderHtml(key)"> </span> 
+
+    <span ng-repeat="param_group in demo.params_layout">
+
+        <br/>{{param_group[0]}}
+        <ul ng-repeat="pos in param_group[1]"
+            ng-if="(demo.params[pos].visible===undefined)||$eval(demo.params[pos].visible)">
+        <span ng-if="demo.params[pos].type==='label'"> 
+            <b> <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> </b><br />
         </span>
-      </li>
-      <li ng-if="param.type==='selection_radio'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : 
-        <span ng-repeat="(key,value) in param.values  | withvalue:params[param.id]">
-            <span ng-bind-html="renderHtml(key)"> </span> 
-        </span>
-      </li>
-      <li ng-if="param.type==='checkbox'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : {{(params[param.id]==true)}} 
-      </li>
-      <li ng-if="param.type==='checkboxes'"> 
-        <span  ng-bind-html="renderHtml(param.label)"></span> : 
-          <span  ng-repeat="group in param.values">
-            <span ng-repeat="(id, label) in group" ng-if="params[param.id+'_'+id]==true">
-              &nbsp; <span ng-bind-html="renderHtml(label)"></span>; &nbsp; 
+        <li ng-if="demo.params[pos].type==='range'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : {{params[demo.params[pos].id]}} 
+        </li>
+        <li ng-if="demo.params[pos].type==='range_scientific'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : {{params[demo.params[pos].id]}} 
+        </li>
+        <li ng-if="demo.params[pos].type==='readonly'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : {{params[demo.params[pos].id]}} 
+        </li>
+        <li ng-if="demo.params[pos].type==='selection_collapsed'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : 
+            <span ng-repeat="(key,value) in demo.params[pos].values  | withvalue:params[demo.params[pos].id]">
+                <span ng-bind-html="renderHtml(key)"> </span> 
             </span>
-          </span>
-      </li>
-    </ul>
+        </li>
+        <li ng-if="demo.params[pos].type==='selection_radio'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : 
+            <span ng-repeat="(key,value) in demo.params[pos].values  | withvalue:params[demo.params[pos].id]">
+                <span ng-bind-html="renderHtml(key)"> </span> 
+            </span>
+        </li>
+        <li ng-if="demo.params[pos].type==='checkbox'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : {{(params[demo.params[pos].id]==true)}} 
+        </li>
+        <li ng-if="demo.params[pos].type==='checkboxes'"> 
+            <span  ng-bind-html="renderHtml(demo.params[pos].label)"></span> : 
+            <span  ng-repeat="group in demo.params[pos].values">
+                <span ng-repeat="(id, label) in group" ng-if="params[demo.params[pos].id+'_'+id]==true">
+                &nbsp; <span ng-bind-html="renderHtml(label)"></span>; &nbsp; 
+                </span>
+            </span>
+        </li>
+        </ul>
+    </span>
   </span>
 <!--   <hr /> -->
 
