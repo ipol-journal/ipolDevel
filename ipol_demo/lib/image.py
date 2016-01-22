@@ -412,7 +412,7 @@ class image(object):
 
         # check image mode
         if self.im.mode not in ("L", "RGB"):
-            raise ValueError("Unsuported image mode for histogram computation")
+            raise ValueError("Unsuported image mode for histogram computation (mode = {0})".format(self.im.mode))
 
         if self.im.mode == "RGB":
             # compute grey level image: I = (R + G + B) / 3
@@ -464,7 +464,7 @@ class image(object):
 
         # check image mode
         if self.im.mode not in ("L", "RGB"):
-            raise ValueError("Unsuported image mode for histogram computation")
+            raise ValueError("Unsuported image mode for histogram computation (mode = {0})".format(self.im.mode))
 
         if self.im.mode == "RGB":
             # compute grey level image: I = (R + G + B) / 3
@@ -524,7 +524,7 @@ class image(object):
         Check if image is monochrome (1 channel or 3 identical channels)
         """
         if self.im.mode not in ("L", "RGB"):
-            raise ValueError("Unsuported image mode for histogram computation")
+            raise ValueError("Unsuported image mode for histogram computation (mode = {0])".format(self.im.mode))
 
         # could be slow if the image has a grey border for example
         # or if it is greyscale RGB: it would traverse the whole image
