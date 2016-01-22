@@ -155,6 +155,11 @@
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
                                             },
+                            "comments"       :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                            },
                             "values"      :{    "type": "object",
                                                 "properties":
                                                     { 
@@ -175,6 +180,11 @@
                             "visible"     :{ "type":"string"},
                             "id"          :{ "type":"string", "format":"[a-z_][a-z_0-9]*" },
                             "label"       :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                            },
+                            "comments"       :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
@@ -203,6 +213,11 @@
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
                                               },
+                            "comments"         :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                              },
                             "values"        :{ "type": "object" },
                             "default_value" :{"type":"string"}
                         },
@@ -215,6 +230,11 @@
                             "visible"     :{ "type":"string"},
                             "id"            :{ "type":"string", "format":"[a-z_][a-z_0-9]*"},
                             "label"         :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                              },
+                            "comments"         :{ "oneOf": [ 
                                                 { "type":"string" },
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
@@ -263,6 +283,11 @@
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
                                               },
+                            "comments"         :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                              },
                             "id"            : { "type": "string", "format":"[a-z_][a-z_0-9]*" },
                             "default_value" : { "type": "boolean" }
                         },
@@ -278,6 +303,11 @@
                                                 { "type":"array","items": {"type":"string"} } 
                                                 ]
                                               },
+                            "comments"         :{ "oneOf": [ 
+                                                { "type":"string" },
+                                                { "type":"array","items": {"type":"string"} } 
+                                                ]
+                                              },
                             "id": { "type": "string",   "format":"[a-z_][a-z_0-9]*" },
                             "values": { "type":"array",
                                         "items":{ "type":"object"},
@@ -288,6 +318,10 @@
                     }
                 ]}
           },
+      "params":
+        {   "type": "array",
+            "items" : { "type" : "array" }
+        },
       "run": 
         {   "type": "array",
             "items": { "oneOf": [
