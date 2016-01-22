@@ -1,6 +1,6 @@
 { 
   "general": { 
-    "demo_title"            : "Gaussian Semigroup",
+    "demo_title"            : "Computing an Exact Gaussian Scale-space",
     "input_description"     : [
         "<p>",
           "Run four Gaussian smoothing algorithms.",

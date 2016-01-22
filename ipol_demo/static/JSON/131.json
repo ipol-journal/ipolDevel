@@ -1,6 +1,6 @@
 { 
   "general": { 
-    "demo_title"            : "Local Contrast Enhancement and Color Cast Cancelation",
+    "demo_title"            : "An Algorithmic Analysis of Variational Models for Perceptual Local Contrast Enhancement",
     "input_description"     : [ "" ],
     "param_description"     : [
       "<h2>Algorithm Parameters</h2>",
