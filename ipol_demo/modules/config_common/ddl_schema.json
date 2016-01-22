@@ -318,7 +318,7 @@
                     }
                 ]}
           },
-      "params":
+      "params_layout":
         {   "type": "array",
             "items" : { "type" : "array" }
         },
