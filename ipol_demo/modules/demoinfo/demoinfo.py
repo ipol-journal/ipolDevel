@@ -18,7 +18,7 @@ to test POST WS:
 
 """
 
-# todo: secure webservices
+# todo: secure webservices oauth perhaps?
 # todo: secure db access
 
 
@@ -137,7 +137,7 @@ class DemoInfo(object):
 	# DEMO
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
 	@cherrypy.expose
 	def demo_list(self):
 		data = {}
@@ -484,7 +484,9 @@ class DemoInfo(object):
 
 
 	def read_demo(self, demoid):
-
+		print
+		print "demoid", demoid
+		print
 		demo=None
 		try:
 			id =int(demoid)
@@ -523,6 +525,8 @@ class DemoInfo(object):
 	def read_demo_metainfo(self, demoid):
 		data = dict()
 		data["status"] = "KO"
+		print "params ",demoid
+		print "params ",type(demoid)
 
 		try:
 
@@ -738,10 +742,13 @@ class DemoInfo(object):
 		#get payload from json object
 		p = Payload(demo)
 
-		print
-		print "update_demo"
-		print "p.active" ,p.active
-		print
+		# print
+		# print "update_demo"
+		# print "p.active" ,p.active
+		# print "p " ,p
+		# print "p type" ,type(p)
+		# print
+
 		#convert payload to Demo object
 		if hasattr(p, 'creation'):
 			#update creatio ndate
@@ -780,7 +787,7 @@ class DemoInfo(object):
 	# AUTHOR
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...
 	@cherrypy.expose
 	def author_list(self):
 		data = {}
@@ -1523,7 +1530,7 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demodescription_to_demo(self,demo_id, demodescription_id):

@@ -15,12 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 
-#Utilities
-
-
-#Views
-
-
+#View
 
 class StatusView(NavbarReusableMixinMF,TemplateView):
 	template_name = "stats.html"
@@ -38,11 +33,11 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 			proxy_stats_json = ipolservices.proxy_get_stats()
 			result = DeserializeProxyStatus(proxy_stats_json)
 
-			print " get_proxy_module_stats result",result
+			#print " get_proxy_module_stats result",result
 			#result = page_json
 
 		except Exception , e:
-			msg="Error %s"%e
+			msg="Error get_proxy_module_stats %s"%e
 			print(msg)
 			logger.error(msg)
 
@@ -59,7 +54,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 			#result = page_json
 
 		except Exception , e:
-			msg="Error %s"%e
+			msg="Error get_demoinfo_module_stats %s"%e
 			print(msg)
 			logger.error(msg)
 
@@ -76,7 +71,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 			#result = page_json
 
 		except Exception , e:
-			msg="Error %s"%e
+			msg="Error get_archive_module_stats %s"%e
 			print(msg)
 			logger.error(msg)
 
@@ -93,7 +88,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 			#result = blobs_json
 
 		except Exception , e:
-			msg="Error %s"%e
+			msg="Error get_blobs_module_stats %s"%e
 			print(msg)
 			logger.error(msg)
 
@@ -115,8 +110,10 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
 	def get_demo_machine(self):
 		return IPOL_SERVICES_MODULE_DEMO
 
+
 	def get_proxy_machine(self):
 		return IPOL_SERVICES_MODULE_PROXY
+
 	# def get_context_data(self, **kwargs):
 	# 	context = super(StatusView, self).get_context_data(**kwargs)
 	# 	self.request.session['menu'] = 'menu-status'

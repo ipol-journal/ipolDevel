@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 __author__ = 'josearrecio'
 
 #Utilities
-
+# TODO NOT IMPLEMENTED YET, shoul be an integrated view of the system, now it just gets some blobs info and presents it
 #VIEWS
 
 

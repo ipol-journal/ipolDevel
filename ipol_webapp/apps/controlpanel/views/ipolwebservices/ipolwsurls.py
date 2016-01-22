@@ -4,7 +4,7 @@ from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODU
 
 __author__ = 'josearrecio'
 
-#todo This should go in the DB
+#todo This could  go in the DB, and we could let a certain user profile (sysops or admin) manage this.
 
 
 #GLOBAL WS LIST
@@ -21,7 +21,7 @@ __author__ = 'josearrecio'
 
 
 proxy_ws_url_service_call = 'proxy_service_call'
-proxy_ws_url_stats = IPOL_SERVICES_MODULE_PROXY % 'ping'
+proxy_ws_url_stats =  'ping'
 
 
 # param None
@@ -177,7 +177,7 @@ archive_ws_url_demo_list =  'demo_list'# param None
 archive_ws_url_add_experiment_test =  'add_exp_test'# param None
 archive_ws_url_delete_demo =  'delete_demo_w_deps'# param demo_id
 
-#todo
+#todo , remove if not necessary
 archive_ws_url_add_experiment =  'add_experiment'# param None
 
 
