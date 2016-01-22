@@ -150,8 +150,10 @@
     "#--- Compute image differences",
     "imdiff input_0.sel.png dmcswl1.png  diffdmcswl1.png",
     "imdiff input_0.sel.png bilinear.png diffbilinear.png",
-    "#--- Convert EPS to PDF",
-    "gs -dSAFER -q -P- -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=contours.pdf -c .setpdfwrite -f contours.eps",
+    [ "showcontours",
+        "#--- Convert EPS to PDF",
+        "gs -dSAFER -q -P- -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=contours.pdf -c .setpdfwrite -f contours.eps"
+    ],
     "#--- Resize for visualization (new size of the smallest dimension = 200)",
     "python:zoomfactor = int(max(1, math.ceil(200.0/min(cropsize[0], cropsize[1]))))",
     "python:(sizeX, sizeY) = (zoomfactor*cropsize[0], zoomfactor*cropsize[1])",

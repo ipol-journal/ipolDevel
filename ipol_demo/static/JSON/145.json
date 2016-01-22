@@ -37,7 +37,9 @@
         "visible"       : "!demo.params[0].value",
         "id"            : "beta",
         "type"          : "range", 
-        "label"         : "&beta; ( Note: Optimal value for Kodak dataset: &beta;=1.0 ; Optimal value for McMaster (IMAX) images: &beta;=0.7 )",
+        "label"         : "&beta;",
+        "comments"      : [ "Optimal value for Kodak dataset: &beta;=1.0 <br/>",
+                            "Optimal value for McMaster (IMAX) images: &beta;=0.7" ],
         "values"        : { "min":0.7, "max":1.0, "step":0.01, "default":0.7 }
     }
   ],
