@@ -21,18 +21,33 @@ if __name__ == '__main__':
       imname = sys.argv[1]
       print imname
       im = image(imname)
-      maxH = im.max_histogram(option="all")
-      im.histogram(option="all", maxRef=maxH)
+      
+      # histogram does not allow RGBA so convert to RGB
+      if im.im.mode=="RGBA":
+          im.convert("3x8i")
+      
+      try:
+        maxH = im.max_histogram(option="all")
+        im.histogram(option="all", maxRef=maxH)
+      except Exception as e:
+        print "Histogram creation failed ", e
+        
       im.save(os.path.splitext(imname)[0]+"_hist.png")
       
       for imname in sys.argv[2:]:
         try:
           im = image(imname)
-          im.histogram(option="all", maxRef=maxH)
+          # histogram does not allow RGBA so convert to RGB
+          if im.im.mode=="RGBA":
+            im.convert("3x8i")
+          try:
+            im.histogram(option="all", maxRef=maxH)
+          except Exception as e:
+            print "Histogram creation failed ", e
           im.save(os.path.splitext(imname)[0]+"_hist.png")
-        except:
-          print "failed to create histogram for ", imname
-    except:
-      print "Histogram creation failed"
+        except Exception as e:
+          print "failed to create histogram for ", imname, " ", e
+    except Exception as e:
+      print "Histogram creation failed ", e
   else:
     print "need at least one input image to process"
