@@ -683,7 +683,10 @@ class base_app(empty_app):
                 inputs_desc[i]['required']:
               # missing file
               raise cherrypy.HTTPError(400, # Bad Request
-                                        "Missing input file")
+                                        "Missing input file number {0}".format(i))
+            else:
+                # skip this input
+                continue
           size = 0
           while True:
             # TODO larger data size
