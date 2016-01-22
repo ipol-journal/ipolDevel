@@ -173,6 +173,7 @@
 
 {% endblock %}
 
+{#TODO js en archivo separado y minimized#}
 {% block functionsjs %}
 
     <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
@@ -254,6 +255,13 @@
             });
         });
 
+
+        {#  focus on  inputs with autofocus atribute when modal is loaded  #}
+        $(document).on('shown.bs.modal', '.modal', function() {
+          $(this).find('[autofocus]').focus();
+        });
+
+
         {#  delete author  #}
         function send_delete_demo_author_request(wsurl,author_id) {
             var delauthor = confirm('delete this author: ' + author_id);
@@ -279,10 +287,6 @@
                 });
             }
         }
-
-
-
-
 
 
         {#  AUTHOR EDIT MODAL  #}
@@ -449,16 +453,12 @@
         });
 
 
-
-
-
-
         {#  EXISTING DEMO AUTHOR  MODAL  #}
 
         {#  show/edit choosedemoauthor modal  #}
 
         function show_choosedemoauthor_form(demo_id){
-            console.log(demo_id);
+            //console.log(demo_id);
 
             if (demo_id === undefined) {
                 // demo_id was not passed, error
@@ -474,6 +474,8 @@
                 $($form_choosedemoauthor_field_demoid_id).get(0).value = demo_id;
                 $($modal_choosedemoauthor_id).modal('show');
                 $choosedemoauthorform.show();
+                //focus on autocomplete field
+                $("#id_author-autocomplete").attr( 'autofocus', true);
             }
         }
 

@@ -159,6 +159,7 @@ class ChooseAuthorForDemoform(forms.Form):
 	)
 
 
+
 #for now we ignore the editors active flag (true by default)
 # for edit Editor
 class Editorform(forms.Form):

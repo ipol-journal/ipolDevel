@@ -240,7 +240,7 @@ class DemoInfo(object):
 			if qfilter:
 				for demo in complete_demo_list:
 					#print "demo: ",demo
-					if qfilter in demo.title or qfilter in demo.abstract :
+					if qfilter.lower() in demo.title.lower() or qfilter.lower() in demo.abstract.lower() :
 						demo_list.append(demo.__dict__)
 			else:
 				#convert to Demo class to json
@@ -841,7 +841,7 @@ class DemoInfo(object):
 			if qfilter:
 				for a in complete_author_list:
 					#print "demo: ",demo
-					if qfilter in a.name or qfilter in a.mail :
+					if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower() :
 						author_list.append(a.__dict__)
 			else:
 				#convert to Demo class to json
@@ -1175,7 +1175,7 @@ class DemoInfo(object):
 			if qfilter:
 				for a in complete_editor_list:
 					#print "demo: ",demo
-					if qfilter in a.name or qfilter in a.mail :
+					if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower() :
 						editor_list.append(a.__dict__)
 			else:
 				#convert to Demo class to json

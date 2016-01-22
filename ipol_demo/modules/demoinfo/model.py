@@ -953,7 +953,9 @@ def createDb(database_name):
 				creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				stateID INTEGER,
-				FOREIGN KEY(stateID) REFERENCES state(id)
+				FOREIGN KEY(stateID) REFERENCES state(id),
+
+
 				);"""
 			)
 

@@ -1369,7 +1369,10 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
 
 			# ChooseAuthorForDemoform with autocomplete
 			self.request.session['editors_avilable_for_demo_id']=demo_id
-			context['choosedemoeditorform'] = ChooseEditorForDemoform()
+			# context['choosedemoeditorform'] = ChooseEditorForDemoform()
+			form = ChooseEditorForDemoform()
+			# form.fields['author'].widget.attrs.push("autofocus", True)
+			context['choosedemoeditorform'] = form
 			context['demoeditorform'] = DemoEditorform
 			context['editorform'] = Editorform
 
