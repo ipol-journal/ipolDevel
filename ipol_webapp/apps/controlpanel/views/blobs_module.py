@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 __author__ = 'josearrecio'
 
+# TODO NOT MUCH IMPLEMENTED YET
 
 class BlobsDemosView(NavbarReusableMixinMF,TemplateView):
 	template_name = "blobs/blobs.html"

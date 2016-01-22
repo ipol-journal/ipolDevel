@@ -61,6 +61,7 @@ def get_demoinfo_module_states():
 	return state_list
 
 
+#todo remove if not beeing used
 def get_demoinfo_demo_list():
 	#returns the list of demos in demoinfo module
 

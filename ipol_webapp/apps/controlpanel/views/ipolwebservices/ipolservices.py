@@ -67,7 +67,6 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 		if not METHOD or METHOD=='GET':
 			response = requests.get(ws_url,params=params)
 		elif METHOD=='POST':
-			print ("POST")
 			if json is not None:
 				response = requests.post(ws_url,params=params, json=json)
 			else:
@@ -105,7 +104,7 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 #todo proxy has no stats, only ping, create stats ws on proxy
 def proxy_get_stats():
 
-	wsurl = proxy_ws_url_stats
+	wsurl =  IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_stats
 	return get_JSON_from_webservice(wsurl)
 
 
@@ -116,6 +115,8 @@ def proxy_get_stats():
 
 
 # MISC
+
+
 def demoinfo_get_stats():
 
 	service_name = demoinfo_ws_url_stats
@@ -296,6 +297,7 @@ def demoinfo_demo_list():
 	else:
 		wsurl =  IPOL_SERVICES_MODULE_DEMOINFO % service_name
 		return get_JSON_from_webservice(wsurl)
+
 
 def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
 	"""
@@ -642,7 +644,6 @@ def demoinfo_delete_author_from_demo(demo_id,author_id):
 		return get_JSON_from_webservice(wsurl,'POST',params)
 
 
-
 #EDITOR
 
 
@@ -889,6 +890,7 @@ def archive_get_stats():
 		wsurl = IPOL_SERVICES_MODULE_ACHIVE % service_name
 		return get_JSON_from_webservice(wsurl)
 
+
 #todo remove this method not used any more
 def archive_shutdown():
 	"""
@@ -1008,6 +1010,7 @@ def archive_delete_file(file_id):
 ####################
 #   BLOBS MODULE   #
 ####################
+
 
 def get_blobs_demo_list():
 	"""
