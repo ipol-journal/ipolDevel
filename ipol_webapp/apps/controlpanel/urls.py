@@ -131,3 +131,9 @@ urlpatterns = [
 
 
 ]
+
+#SERVE STATIFILES FROM settings.STATIC_ROOT in LOCAL (in production staic files are served by apache...or similar)
+#rmeber to run $  python manage.py collectstatic
+# ifsettings.HOST == 'local' :   #if DEBUG is True it will be served automatically
+# 	#url must be difined in settings.STATIC_URL
+# 	urlpatterns += patterns('',url(r'^app_static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}))
