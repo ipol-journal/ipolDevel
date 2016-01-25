@@ -1491,6 +1491,8 @@ class TestDemoinfo(unittest.TestCase):
 
 
 			editorsdemoid_list = [26]
+			editorsdemoid_list = json.dumps(editorsdemoid_list)
+			# remeber that demo_list_by_demoeditorid expects a JSON list , then it will load it into a python list
 
 			dl = self.demoinfo.demo_list_by_demoeditorid(editorsdemoid_list)
 
