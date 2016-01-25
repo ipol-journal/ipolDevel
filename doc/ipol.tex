@@ -163,6 +163,7 @@ The list of datatypes used (images, audio, video, 3D pointclouds, 3D meshes) and
 
 % The Demo Info module
 \input{demo_info/demo_info.tex}
+\ToDo{Secure access to Ws, oauth perhaps?}
 
 \section{DemoDispatcher module}
 In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
@@ -180,7 +181,7 @@ It can obtain the system load from {\tt /proc/loadavg}. The first three numbers 
 
 % The Control Panel Module 
 \input{control_panel/control_panel.tex}
-\ToDo{Document it!}
+\ToDo{Secure access to Ws, oauth perhaps?}
 
 \section{Automatic testing}
 Two kind of tests:

@@ -1,0 +1,84 @@
+\subsection{Tecnical information}
+This module is implemented using Django framework.
+The use or virtualenv is recomended.
+
+\subsection{Project structure}
+This is the Django project structure.
+One project ipolwebapp with one app named controlpanel.
+
+Describe folders.
+
+\begin{itemize}
+\item  apps
+This folder is where you the apps you create for the ipol\_webapp project should go.There is only one app at this time, controlpanel.
+\item  apps\/controlpanel
+Is the folder of the controlpanel app, it contaisn folder and some import files , like models.py that contains the controlpanel app model, beacuse controlpanel only uses the services provided by the modules, it does not have a model, its does not store any data from the modules in its DB (it does stores user prfiles information so you can login and more stuff so the app can work )
+\item  apps\/controlpanel\/controlpanel\_static
+Staic files go in this folder, js, css etc.
+\item  apps\/controlpanel\/templates
+Templates for each module, each module has a folder.
+\item  apps\/controlpanel\/views
+Here you have the business logic code. you will find a .py file for each module
+\item  apps\/controlpanel\/views\/ipolwebservices
+Here you have code that allows controlpanel to access the diferent webservices, 
+ipolwsurls.py contains the name of the services that controlpanel will need
+ipolservices.py contains functions that make the call using the service names provided by ipolwsurls.py to the proper module.
+ipoldeserializers.py provides code to deserialize the json returned by the ws and conver it to python objects. This is donde for complex objects like lists. They are reused in many places. 
+\item  bin
+Empty at the present moment, contains deployment scripts
+\item  docs
+Howto docs
+\item  ipol\_webapp
+The project folder, contains the main configuration files.
+\item  tests
+Empty at the present moment,Unit tests shoul go here.
+\item  vendor
+External apps that require adaptation to project. (you cant just install them with pip and use.)
+The only app that has been adapted is allauth. Its installed with pip like the rest, but in vendors I provide adaptos and templates so I can customize allauth.
+\end{itemize}
+
+Describe important/configuration files
+
+\begin{itemize}
+\item  ipol\_webapp\/settings.py
+\item  ipol\_webapp\/urls.py
+\item  ipol\_webapp\/wsgi.py
+
+\item  ipol\_webapp\/apps\/controlpanel\/urls.py
+\item  db.sqlite3
+\item  requirements.txt
+\item  ipol\_webapp
+\item  tests
+\item  vendor
+\end{itemize}
+
+
+
+\subsubsection{Apps}
+Describe the external apps ipolwebapp uses and why it needs them.
+
+\subsubsection{Model}
+The model of ipolwebapp
+
+\subsubsection{Learning Django}
+Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design. Built by experienced developers, it takes care of much of the hassle of Web development, so you can focus on writing your app without needing to reinvent the wheel. It’s free and open source.
+
+Django usefull information:
+
+Django project - \url{https://www.djangoproject.com/}
+
+\subsection{Deployment}
+For testing you can run it using runserver as described in ipol\_Webapps docs folder
+But for a production enviroment you should not use runserver. Apache or nginx as a reverse proxy and gunicorn is recomended.
+
+\subsubsection{Test Enviroment}
+For the test enviroment yu can use the testing server that comes with django.
+
+\subsubsection{Production Enviroment}
+The production eviroment requires a secure deployment.
+
+Django deployment tutorial - \url{http://pyvideo.org/video/236/pycon-2010--django-deployment-workshop}
+
+
+\subsubsection{Manage static content in Production Enviroment }
+Here describe how to setup static content with apache or nginx. find tutorials
