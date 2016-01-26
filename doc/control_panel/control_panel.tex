@@ -6,12 +6,12 @@ The Control Panel web application offers a unified interface to configure and ad
 At the present moment, the control panel provides a navigation menu option for each module , 
 so you can interact with each modile using the webservices they provide.
 
-The Integrated view of the whole sistem is not ready , but it will be bult uppon the pieces that manage each module.
+The Integrated view of the whole sistem is not ready , but it will be built uppon the pieces that manage each module. This 
 
 \subsection{Status navigation menu option}
 The user will be able to monitor if the modules are running and in what machine they are runing.This will be done using the ping or stats ws provided by the different modules.
 It's also possible to add tests experiments to the testing demo.
-All modules shoul run under proxy module.
+All modules should run under proxy module.
 
 \subsection{Archive navigation menu option}
 The Archive module is responsible for storing the experiments made bay users. When a user select a file of his own instead of using ono of the files proposed by the demo, This file is uploaded and used to run the demo bt Demo module, then teh result of this execution is sent to Archive module to be stored. Some demos have 40000 experiments.
@@ -28,11 +28,23 @@ He will be able to remove, add, edit and delete blobs from a demo.
 Not ready yet. Partially implemented.
 
 \subsection{Demoinfo navigation menu option}
-\subsection{Demo Dispatcher navigation menu option}
-\subsection{Demo Runner navigation menu option}
-\subsection{Proxy navigation menu option}
-\subsection{user manual navigation menu option}
+Allows you to manage the demoinfo module.
 
+
+\subsection{Demo Dispatcher navigation menu option}
+Not ready yet.
+
+\subsection{Demo Runner navigation menu option}
+Not ready yet.
+
+\subsection{Proxy navigation menu option}
+The ointegration between proxy and demoinfo is done, but this section remains beacuse it would be interesting to be able to get some stats from the proxy module and present them to the user of the control panel, perhaps not to the editors, but to the admin.
+If this funcionality is not requiered, this menu entry should be deleted.
+Not ready yet.
+
+\subsection{user manual navigation menu option}
+A user manual for the editors that will use the control panel, could be as simple as a pdf link or a help page.
+Not ready yet.
 
 \subsection{Demos navigation menu option}
 The Demo execution system consists od a Demo Dispatcher module, a Demo Runner module and a DemoInfo module.
