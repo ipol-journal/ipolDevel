@@ -142,6 +142,18 @@ Nelson Monzón
 \section{Introduction}
 \ToDo{Introduction}
 
+The system is built as a microservices architecture.
+In microservices, the business functionality is decomposed into a set of independent, self-contained services that communicate with each other via an API. Each of the services has their own application release cycle, and are developed and deployed independently—often using different languages, technology stacks and tools that best fit the job.
+
+By splitting the monolithic application into smaller services and decoupling interdependencies (between apps, dev teams, technologies, environments, and tooling), microservices allow for more flexibility and agility as you scale your organization’s productivity
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{proxy/images/microservice_architecture_system.pdf}
+\caption{Proxy Example.} 
+\label{fi:proxy_example}
+\end{figure}
+
 \section{The Demo System Core}
 Centralized webservice.
 
@@ -163,6 +175,7 @@ The list of datatypes used (images, audio, video, 3D pointclouds, 3D meshes) and
 
 % The Demo Info module
 \input{demo_info/demo_info.tex}
+\ToDo{Secure access to Ws, oauth perhaps?}
 
 \section{DemoDispatcher module}
 In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
@@ -180,7 +193,7 @@ It can obtain the system load from {\tt /proc/loadavg}. The first three numbers 
 
 % The Control Panel Module 
 \input{control_panel/control_panel.tex}
-\ToDo{Document it!}
+\ToDo{Secure access to Ws, oauth perhaps?}
 
 \section{Automatic testing}
 Two kind of tests:

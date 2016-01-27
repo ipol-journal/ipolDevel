@@ -108,7 +108,7 @@
 
                                 <div class=" col-sm-4">
                                     {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} )">{% trans 'Delete' %}</a>
+                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} ,{{ demo.editorsdemoid }} ,'{{ demo.title }}' )">{% trans 'Delete' %}</a>
 
                                     {#  btn Edit demo #}
                                     <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.id %}', {{ demo.id }}  )">{% trans 'Edit' %}</a>
@@ -288,9 +288,7 @@
         $form_demo_field_title_id="#Demoform #id_title";
         $form_demo_field_abstract_id="#Demoform #id_abstract";
         $form_demo_field_zipURL_id="#Demoform #id_zipURL";
-
         $form_demo_field_active_id="#Demoform #id_active";
-
         $form_demo_field_state_id="#Demoform #id_state";
         {#  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";#}
         var $demoform = $($form_demo_id);
@@ -358,11 +356,16 @@
         });
 
         {#  delete demo  #}
-        function send_delete_demo_request(wsurl,demo_id) {
-            var deldemo = confirm('delete this demo: ' + demo_id);
+        {#  todo change browdser dialogs for confirm, use http://jqueryui.com/dialog/  #}
+        function send_delete_demo_request(wsurl, demo_id, demo_editorsdemoid, demo_title) {
+
+            var deldemo = confirm("WARNING: this operation will remove completely demo with editor's id: "+
+                    demo_editorsdemoid + " ("+ demo_title +") and all associated data from the system. Please confirm " +
+                    "that this is what you really want. Note that you can instead change the state of the demo to testing, which is 'safe'.");
             if (deldemo == true) {
 
-                var deldemo2 = confirm('Are you reaaaallly sure you want to delete this demo: ' + demo_id +' from the DB');
+                var deldemo2 = confirm( "This is your last change to cancel the total removal of the demo with editor's id: "+
+                    demo_editorsdemoid + " ("+ demo_title +") Please confirm that you want to totally remove it from the system");
                 if (deldemo2 == true) {
                     $.ajax({
                         type: 'POST',

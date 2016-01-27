@@ -177,9 +177,9 @@ class DemoInfo(object):
 
 		data = {}
 		data["status"] = "KO"
-		demo_list=list()
+		demo_list = list()
 
-		#get json lis into python object
+		#get json list into python object
 		if is_json(demoeditorid_list):
 			demoeditorid_list=json.loads(demoeditorid_list)
 		else:
