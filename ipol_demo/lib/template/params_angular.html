@@ -27,8 +27,8 @@
         <!--=================================================================-->
         <tr style="border:0px;" 
             ng-repeat="pos in param_group[1]" 
-            ng-if="(demo.params[pos].visible===undefined)||$eval(demo.params[pos].visible)">
-
+            ng-if="(demo.params[pos].visible===undefined)||$eval(demo.params[pos].visible)"
+            >
           <!--===============================================================-->
           <!-- selection_collapsed type -->
           <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='selection_collapsed'"> 
