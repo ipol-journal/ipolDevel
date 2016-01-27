@@ -226,7 +226,9 @@ required around the values. The default value is stored with the 'values' field.
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
- label & description of the parameter or contents if type is label. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  values & set min,max,step and default values using the following key/value 
 scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
@@ -252,7 +254,9 @@ will also to change each digit.
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
- label & description of the parameter or contents if type is label. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  values & set min,max,step and default values using the following key/value 
 scheme \{ 'min':val, 'max':val, 'digits':val, 'default':val \} & yes
@@ -275,7 +279,9 @@ string value. The default value is stored in a separate field.
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
- label & description of the parameter. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  values & set of (key,value) pairs, where the key is the displayed text and the 
 value a string representing the corresponding value, for example \{ 
@@ -302,7 +308,9 @@ options using radio buttons.
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id       & parameter name in lowercase letters & yes \\ \hline
- label    & description of the parameter. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  vertical & boolean, if true use vertical display, otherwise use horizontal
             display (default=false) & no \\ \hline
@@ -361,7 +369,9 @@ The label  can be used as a title to separate groups of parameters.
  type  & checkbox  & yes \\ \hline
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label & description of the parameter or contents if type is label. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
  default\_value & boolean: True for checked & \\ \hline
@@ -378,7 +388,9 @@ The label  can be used as a title to separate groups of parameters.
  type  & checkboxes   & yes \\ \hline
  visible  & AngularJS boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label & description of the parameter or contents if type is label. & yes
+ label  & name and/or description of the parameter, appears on the left side. & yes
+                      \\ \hline
+ comments & description of the parameter, appears on the right side. & no
                       \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
  values     & list of dictionaries: [ {key:value, ...}, ... ]
@@ -388,6 +400,25 @@ The label  can be used as a title to separate groups of parameters.
 \caption{Common keys for the 'checkboxes' type.}
 \end{longtable}
 
+
+%-------------------------------------------------------------------------------
+\subsection{The \emph{params\_layout} section}
+
+The default layout of parameters is to stack them together within an 'HTML field'
+entitle 'Parameters:'. However, if a demo needs to group together some parameters,
+it can use a specific params\_layout section that contains an array of
+sets of parameters, where each set is defined by an array containing the group 
+title as the first element and the list of parameters ids as the second element,
+where the parameters ids are their position in the params section (starting at 0).
+
+\paragraph{Examples}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+  "params_layout": [
+        [ "General parameters:",          [ 0,1]  ],
+        [ "Sampled Gaussian kernel",      [2]     ],
+        [ "Lindeberg's smoothing method", [3]     ]
+    ],
+\end{lstlisting}
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{run} section}
