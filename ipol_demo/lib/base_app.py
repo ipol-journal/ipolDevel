@@ -33,6 +33,8 @@ from jsonschema import Draft4Validator
 from jsonschema import ValidationError
 import urllib2
 
+import build_demo_base
+
 import  run_demo_base
 from    run_demo_base import RunDemoBase
 from    run_demo_base import TimeoutError
@@ -969,6 +971,38 @@ class base_app(empty_app):
                                     for i in range(self.nb_inputs)])
 
     #---------------------------------------------------------------------------
+    def check_build(self):
+        """
+            rebuild demo from source code if required
+        """
+        
+        # reload demo description
+        self.reload_demo_description()
+        demo_id   = self.id
+        demo_path = self.base_dir
+        print "---- check_build demo: {0:10}".format(demo_id),
+        # we should have a dict or a list of dict
+        if isinstance(self.demo_description['build'],dict):
+            builds = [ self.demo_description['build'] ]
+        else:
+            builds = self.demo_description['build']
+        first_build = True
+        for build_params in builds:
+            bd = build_demo_base.BuildDemoBase( demo_path)
+            bd.set_params(build_params)
+            cherrypy.log("building", context='SETUP/%s' % demo_id,
+                        traceback=False)
+            try:
+                bd.make(first_build)
+                first_build=False
+            except Exception as e:
+                print "Build failed with exception ",e
+                cherrypy.log("build failed (see the build log)",
+                                context='SETUP/%s' % demo_id,
+                                traceback=False)
+        print ""
+
+    #---------------------------------------------------------------------------
     @cherrypy.expose
     @init_app
     def run(self, **kwargs):
@@ -976,8 +1010,7 @@ class base_app(empty_app):
       algo execution and redirection to result
       """
       
-      # reload demo description
-      self.reload_demo_description()
+      self.check_build()
       
       # run the algorithm
       try:
