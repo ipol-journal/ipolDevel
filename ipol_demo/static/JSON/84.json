@@ -30,13 +30,15 @@
     {
       "id"            : "l",
       "type"          : "range_scientific",
-      "label"         : "<i>&lambda;</i>: tradeoff parameter. It can't be zero because in this case the algorithm would just perform a simplest color balance.",
+      "label"         : "<i>&lambda;</i> ",
+      "comments"      : "Tradeoff parameter. It can't be zero because in this case the algorithm would just perform a simplest color balance.",
       "values"        : { "min":1e-6, "max":0.1, "digits":1, "default": 1e-4 }
     },
     {
       "id"            : "s",
       "type"          : "range", 
-      "label"         : "s: percentage of saturation for the simplest color balance. We apply a simplest color balance to the input image to stretch as much as possible the range of the image before processing it. Finally we apply a simplest color balance to the output of the algorithm.",
+      "label"         : "s ",
+      "comments"      : "Percentage of saturation for the simplest color balance. We apply a simplest color balance to the input image to stretch as much as possible the range of the image before processing it. Finally we apply a simplest color balance to the output of the algorithm.",
       "values"        : { "min":0.0, "max":1.0, "step":0.1, "default": 0.1 }
     }
     ],
