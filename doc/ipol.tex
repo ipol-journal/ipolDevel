@@ -151,7 +151,7 @@ By splitting the monolithic application into smaller services and decoupling int
 \centering
 \includegraphics[width=0.5\columnwidth]{proxy/images/microservice_architecture_system.pdf}
 \caption{Microservice Architecture} 
-\label{fi:proxy_example}
+\label{fi:microservice_architecture}
 \end{figure}
 
 \section{The Demo System Core}
@@ -194,6 +194,7 @@ It can obtain the system load from {\tt /proc/loadavg}. The first three numbers 
 % The Control Panel Module 
 \input{control_panel/control_panel.tex}
 \ToDo{Secure access to Ws, oauth perhaps?}
+\ToDo{Use Postgess not sqlite3?}
 
 \section{Automatic testing}
 Two kind of tests:
