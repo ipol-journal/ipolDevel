@@ -841,7 +841,7 @@ class   Blobs(object):
         res = use_web_service('/demos_ws', data)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("demos.html").render(the_list=res["list_demos"])
+        return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
     #---------------------------------------------------------------------------
     def move_to_input_directory(self, path, the_hash, extension):

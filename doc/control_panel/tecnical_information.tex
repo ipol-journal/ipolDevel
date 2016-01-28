@@ -12,7 +12,7 @@ One project ipolwebapp with one app named controlpanel.
 \centering
 \includegraphics[width=0.5\columnwidth]{control_panel/images/ipol_webapp_project.pdf}
 \caption{Project Structure (Pycharm IDE tool, wich I recommend). } 
-\label{fi:proxy_example}
+\label{fi:project_structure}
 \end{figure}
 Describe folders.
 
@@ -93,10 +93,42 @@ Customized django apps, only allauth (for user login ) at the present moment. Th
 
 
 \subsubsection{Apps}
-Describe the external apps ipolwebapp uses and why it needs them.
+This section describes the external apps ipolwebapp uses and why it needs them. I wil not discuss the django.contrib apps, only external aps
+
+\begin{itemize}
+
+\item  autocomplete\_light
+\url{https://django-autocomplete-light.readthedocs.org/en/master/}
+This package allows you to enable autocompletes quickly and properly in a django project.
+
+\item  rest\_framework
+\url{http://www.django-rest-framework.org/}
+Django REST framework is a powerful and flexible toolkit for building Web APIs. It is used in this project in ipolserializers.py and only to serialize / deserialize data.
+
+\item  allauth
+\url{https://github.com/pennersr/django-allauth}
+Integrated set of Django applications addressing authentication, registration, account management as well as 3rd party (social) account authentication.
+
+\item  crispy\_forms
+\url{https://github.com/maraujop/django-crispy-forms}
+django-crispy-forms provides you with a 
+\begin{lstlisting}[language=Python,firstnumber=1]
+|crispy 
+\end{lstlisting}
+ filter and 
+\begin{lstlisting}[language=Python,firstnumber=1]
+{% crispy %} 
+\end{lstlisting}
+tag that will let you control the rendering behavior of your Django forms in a very elegant and DRY way. Have full control without writing custom form templates. All this without breaking the standard way of doing things in Django, so it plays nice with any other form application.
+
+\end{itemize}
+
 
 \subsubsection{Model}
-The model of ipolwebapp
+The model of ipolwebapp's controlpanel app.
+There is none, no data is stored by controlpanel app.
+Note that the other apps in the project do have a model (for example, allauth need to store users etc so you can login).
+
 
 \subsubsection{Learning Django}
 Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design. Built by experienced developers, it takes care of much of the hassle of Web development, so you can focus on writing your app without needing to reinvent the wheel. It’s free and open source.
@@ -104,7 +136,9 @@ Django is a high-level Python Web framework that encourages rapid development an
 Django usefull information:
 
 Django project - \url{https://www.djangoproject.com/}
+
 Class based views in django - \url{http://ccbv.co.uk/}
+
 \subsection{Deployment}
 For testing you can run it using runserver as described in ipol\_Webapps docs folder
 But for a production enviroment you should not use runserver. Apache or nginx as a reverse proxy and gunicorn is recomended.

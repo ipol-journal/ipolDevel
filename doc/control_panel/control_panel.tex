@@ -3,10 +3,9 @@ In the modular architecture of IPOL all the modules are able to work standalone 
 
 The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove unused experiments for the archive or add new images to a demo.
 
-At the present moment, the control panel provides a navigation menu option for each module , 
-so you can interact with each modile using the webservices they provide.
+At the present moment, the control panel provides a navigation menu option for each module, so you can interact with each modile using the webservices they provide.
 
-The Integrated view of the whole sistem is not ready , but it will be built uppon the pieces that manage each module. This 
+The Integrated view of the whole sistem is not ready, but it will be built uppon the pieces that manage each module. 
 
 \subsection{Status navigation menu option}
 The user will be able to monitor if the modules are running and in what machine they are runing.This will be done using the ping or stats ws provided by the different modules.
@@ -38,11 +37,11 @@ Not ready yet.
 Not ready yet.
 
 \subsection{Proxy navigation menu option}
-The ointegration between proxy and demoinfo is done, but this section remains beacuse it would be interesting to be able to get some stats from the proxy module and present them to the user of the control panel, perhaps not to the editors, but to the admin.
+The integration between proxy and demoinfo is done, but this section remains because it would be interesting to be able to get some stats from the proxy module and present them to the user of the control panel, perhaps not to the editors, but to the admin.
 If this funcionality is not requiered, this menu entry should be deleted.
 Not ready yet.
 
-\subsection{user manual navigation menu option}
+\subsection{User manual navigation menu option}
 A user manual for the editors that will use the control panel, could be as simple as a pdf link or a help page.
 Not ready yet.
 
@@ -51,6 +50,53 @@ The Demo execution system consists od a Demo Dispatcher module, a Demo Runner mo
 Integrated view of the previous sections whith the demo system.
 Not ready yet.
 
-% The Control Panel Module 
+\subsection{Control Panel users}
+The app runs on port 8000, this is configured in settings.py.
+To loguin just acces the folling url, if you where already loged in, it will redirect you to the status page.
+
+\url{http://ns3018037.ip-151-80-24.eu:8000}
+
+user:ipoluser
+
+passwd:ipoluser2015
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{control_panel/images/login.pdf}
+\caption{Login page} 
+\label{fi:login_page}
+\end{figure}
+
+\subsection{Control Panel Admin user}
+This is the ipolwebapp projects's admin page, 
+It offers some configuration options for the project and apps the project uses. The most important, you can add users credentials etc.
+
+\url{http://ns3018037.ip-151-80-24.eu:8000/admin}
+
+user:ipolcpadmin
+
+passwd:ipolazsxdc
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{control_panel/images/admin.pdf}
+\caption{Admin page} 
+\label{fi:admin_page}
+\end{figure}
+
+
+If you somehow delete the ipolwebapp database, you will need to recreate the database, and create all the users from scratch. Django provides a usefull command: 
+
+\begin{lstlisting}[language=Python,firstnumber=1]
+python manage.py createsuperuser
+\end{lstlisting}
+
+Run it from the project's directory and create the ipolcpadmin user, 
+with this user create all othe accounts.
+Remeber to run all migrations!
+
+
+
+% The Control Panel Module Tecnical Info
 \input{control_panel/tecnical_information.tex}
 
