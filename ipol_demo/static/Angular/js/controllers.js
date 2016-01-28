@@ -90,6 +90,20 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
     $http.get(proxy_server+'/?module=blobs&service=get_blobs_of_demo_by_name_ws&demo_name='+demo_id)
     .success(function(demoblobs) {
         console.info("*** demoblobs");
+        console.info(demoblobs.use_template)
+        // Check for template
+        if (  demoblobs.use_template.hasOwnProperty('name') )
+        {
+            // get template blobs
+            var template_name = demoblobs.use_template.name;
+            $http.get(  proxy_server+
+                        '/?module=blobs&service=get_blobs_from_template_ws&template='+
+                        template_name)
+            .success(function(tmplblobs) {
+                // add template blobs to demo blobs?
+                demoblobs.blobs = demoblobs.blobs.concat(tmplblobs.blobs);
+            });
+        }
         // preprocess HTML parameters string
         // for each blob set, in the form
         // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
@@ -123,6 +137,8 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
         $scope.demoblobs=demoblobs;
         }
     );
+    
+    
     
     // upload is done by python
     //$scope.uploaded_images = [];
