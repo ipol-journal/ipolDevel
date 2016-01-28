@@ -241,9 +241,9 @@ class   Blobs(object):
         """
         data = instance_database()
         dic = {}
-        dic["list_template"] = {}
+        dic["template_list"] = {}
         try:
-            dic["list_template"] = data.list_of_template()
+            dic["template_list"] = data.list_of_template()
             dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot have the list of templates demos")
@@ -263,7 +263,7 @@ class   Blobs(object):
         res = use_web_service('/get_template_demo_ws', data)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["list_template"])
+        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["template_list"])
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -653,17 +653,17 @@ class   Blobs(object):
         :return: mako templated html page (refer to get.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = {"demo": demo_id}
-        res = use_web_service('/get_blobs_of_demo_ws', data)
-        data = {}
-        result = use_web_service('/get_template_demo_ws', data)
-        template = {}
-        template["blobs"] = {}
-        #print res
-        if res["use_template"]:
-            data = {"template": res["use_template"]["name"]}
-            template = use_web_service('/get_blobs_from_template_ws', data)
-            for blob_set in template["blobs"]:
+
+        demo_blobs = use_web_service('/get_blobs_of_demo_ws', {"demo": demo_id})
+        template_list_res = use_web_service('/get_template_demo_ws', {})
+        template        = {}
+        template_blobs  = {}
+        #--- if the demo uses a template, process its blobs
+        if demo_blobs["use_template"]:
+            template_blobs_res = use_web_service('/get_blobs_from_template_ws', 
+                                                 {"template": demo_blobs["use_template"]["name"]})
+            template_blobs = template_blobs_res['blobs']
+            for blob_set in template_blobs:
               blob_size = blob_set[0]['size']
               for idx in range(1,blob_size+1):
                 blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
@@ -679,7 +679,7 @@ class   Blobs(object):
                                                 blob_set[idx]["extension"]
 
 
-        for blob_set in res["blobs"]:
+        for blob_set in demo_blobs["blobs"]:
           blob_size = blob_set[0]['size']
           for idx in range(1,blob_size+1):
             blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
@@ -696,11 +696,12 @@ class   Blobs(object):
 
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(the_list=res["blobs"],
-                                                           demo_id=demo_id,
-                                                           demo=res,
-                                                           res_tmpl=result["list_template"],
-                                                           list_tmpl=template["blobs"])
+        return tmpl_lookup.get_template("get.html").render(
+                blobs_list = demo_blobs["blobs"],
+                demo_id    = demo_id,
+                demo       = demo_blobs,
+                tmpl_list  = template_list_res["template_list"],
+                tmpl_blobs = template_blobs)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose

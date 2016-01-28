@@ -25,8 +25,8 @@
 	  <input type="hidden" name="demo[id]" value="${demo_id}">
 	  <select name="name_template" value="">
 	    <option>None</option>
-	    %for item in res_tmpl:
-	    <option>${res_tmpl[item]["name"]}</option>
+	    %for item in tmpl_list:
+        <option>${tmpl_list[item]["name"]}</option>
 	    %endfor
 	  </select>
 	  <br>
@@ -37,38 +37,52 @@
 	<a href="blob?demo_id=${demo_id}">add blob</a><br>
 	<a href="zip?demo_id=${demo_id}">add zip</a><br>
 	<a href="op_remove_demo?demo_id=${demo_id}">remove this demo</a><br><br>
-	%if len(the_list):
-	<h1>List of blob of this demo</h1>
-	%endif
-  %for blob_set in the_list:
-    <table style="margin:5px">
-      <tr>
-      %for idx in range(1,blob_set[0]['size']+1):
-        <td>
-        <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_id=${demo_id}">
-          <img src="${blob_set[idx]["url_thumb"]}"> </img></a>
-        </td>
-      %endfor
-      <tr>
-      <tr>
-        <td colspan="2" align="center">
-          ${blob_set[1]['title']}
-          <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${blob_set[idx]["id"]}">
-            delete
-          </a>
-        </td>
-      <tr>
-    </table>
-    <br>
-  %endfor
-	%if len(list_tmpl):
-	<h1>List of blob of the demo template</h1>
-	%endif
-	%for item in list_tmpl:
-	<a href="edit_blob?blob_id=${item["id"]}&demo_id=${demo_id}">
-	  <img src="${item["url_thumb"]}"> </img></a>
-	<br>
-	%endfor
+	%if len(blobs_list):
+    <h1>List of blob of this demo</h1>
+    %for blob_set in blobs_list:
+        <table style="margin:5px">
+        <tr>
+        %for idx in range(1,blob_set[0]['size']+1):
+            <td>
+            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_id=${demo_id}">
+            <img src="${blob_set[idx]["url_thumb"]}"> </img></a>
+            </td>
+        %endfor
+        <tr>
+        <tr>
+            <td colspan="2" align="center">
+            ${blob_set[1]['title']}
+            <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${blob_set[idx]["id"]}">
+                delete
+            </a>
+            </td>
+        <tr>
+        </table>
+        <br>
+    %endfor
+  %endif
+
+	%if len(tmpl_blobs):
+    <h1>List of blob of the demo template</h1>
+    %for blob_set in tmpl_blobs:
+        <table style="margin:5px">
+        <tr>
+        %for idx in range(1,blob_set[0]['size']+1):
+            <td>
+            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_id=${demo_id}">
+            <img src="${blob_set[idx]["url_thumb"]}"> </img></a>
+            </td>
+        %endfor
+        <tr>
+        <tr>
+            <td colspan="2" align="center">
+            ${blob_set[1]['title']}
+            </td>
+        <tr>
+        </table>
+        <br>
+    %endfor
+  %endif
       </ul>
     </body>
 </html>

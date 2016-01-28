@@ -241,9 +241,9 @@ class   Blob(object):
         """
         data = instance_database()
         dic = {}
-        dic["list_template"] = {}
+        dic["template_list"] = {}
         try:
-            dic["list_template"] = data.list_of_template()
+            dic["template_list"] = data.list_of_template()
             dic["return"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot have the list of templates demos")
@@ -263,7 +263,7 @@ class   Blob(object):
         res = use_web_service('/get_template_demo_ws', data)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["list_template"])
+        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["template_list"])
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -692,7 +692,7 @@ class   Blob(object):
         return tmpl_lookup.get_template("get.html").render(the_list=res["blobs"],
                                                            demo_id=demo_id,
                                                            demo=res,
-                                                           res_tmpl=result["list_template"],
+                                                           res_tmpl=result["template_list"],
                                                            list_tmpl=template["blobs"])
 
     @cherrypy.expose
