@@ -5,7 +5,7 @@ from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 __author__ = 'josearrecio'
 
-
+# TODO TEST HelloWorld simple view example
 
 class Home(NavbarReusableMixinMF,TemplateView):
 	template_name = "home.html"
@@ -18,7 +18,7 @@ class Home(NavbarReusableMixinMF,TemplateView):
 		# Call the base Test first to get a context
 		context = super(Home, self).get_context_data(**kwargs)
 
-		context['myvar'] = ['hola','mundo']
+		context['myvar'] = ['hello','world']
 
 		return context
 

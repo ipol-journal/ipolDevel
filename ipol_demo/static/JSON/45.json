@@ -138,7 +138,7 @@
       "type"          : "gallery",
       "label"         : "Input image:",
       "contents"      : { "Input" : "scale_s0.png" },
-      "style"         : "width:600px"
+      "style"         : "width:{{600*ZoomFactor}}px"
     },
     {
       "type"          : "html_text", 
@@ -153,7 +153,7 @@
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
       "contents"      : [ "Scale S{{idx}}:", "curve_s{{idx}}.png"],
-      "style"         : "height:600px" 
+      "style"         : "height:{{600*ZoomFactor}}px" 
     },
     {
       "repeat"        : "params.scales",

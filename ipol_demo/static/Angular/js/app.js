@@ -12,8 +12,10 @@ var IPOLDemosApp = angular.module('IPOLDemosApp', [
 ]);
 
 
-/* adding range function to simplify interations on numbers */
+
 IPOLDemosApp.run(['$rootScope', function($rootScope) {
+
+    /* adding range function to simplify interations on numbers */
     $rootScope.range = function(min, max, step) {
         // parameters validation for method overloading
         if (max == undefined) {
@@ -35,11 +37,8 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
     $rootScope.Utils = {
       keys : Object.keys
     };
-}]);
 
-
-/* adding PreprocessDemo function as global */
-IPOLDemosApp.run(['$rootScope', function($rootScope) {
+    /* adding PreprocessDemo function as global */
     $rootScope.PreprocessDemo = function(scope,demo) {
         //
         console.info("PreprocessDemo")
@@ -73,6 +72,11 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
         }
         if (angular.isString(demo.general.param_description)) {
             demo.general.param_description = [ demo.general.param_description ];
+        }
+        
+        // create default params_layout property if it is not defined
+        if (demo.params_layout==undefined) {
+            demo.params_layout= [ [ "Parameters:", scope.range(demo.params.length) ] ];
         }
         }
     };
@@ -252,7 +256,11 @@ IPOLDemosApp.directive('bindHtmlCompile', ['$compile', function ($compile) {
         // In case value is a TrustedValueHolderType, sometimes it
         // needs to be explicitly called into a string in order to
         // get the HTML string.
-        element.html(value && value.toString());
+        if (angular.isArray(value)) {
+            element.html(value && value.join(' ').toString());
+        } else {
+            element.html(value && value.toString());
+        }
         // If scope is provided use it, otherwise use parent scope
         var compileScope = scope;
         if (attrs.bindHtmlScope) {

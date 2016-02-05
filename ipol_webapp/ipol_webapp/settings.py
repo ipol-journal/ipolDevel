@@ -47,6 +47,7 @@ hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
+production_machines = ['my_production_hostname']
 
 #alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
@@ -57,8 +58,12 @@ ALLAUTH_GESTS = True
 ####################################
 
 #Proxy module reads module xml and ofers the other modules as services, default True
-IPOL_PROXY = True
+#CP WORKS ONLY WITH PROXY,
+# IPOL_PROXY = True
+
+
 # If using proxy , you do not need the following urls to access the modules directly
+IPOL_SERVICES_MODULE_PROXY = None
 IPOL_SERVICES_MODULE_ACHIVE = None
 IPOL_SERVICES_MODULE_BLOBS = None
 IPOL_SERVICES_MODULE_DEMOINFO = None
@@ -84,22 +89,20 @@ if hostname in local_machines:
 	IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
 	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.0.1:9003/%s'
-	if not IPOL_PROXY:
-		#urls to access the modules directly
-		IPOL_SERVICES_MODULE_ACHIVE ='http://127.0.0.1:9000/%s'
-		IPOL_SERVICES_MODULE_BLOBS ='http://127.0.0.1:9001/%s'
-		IPOL_SERVICES_MODULE_DEMOINFO ='http://127.0.0.1:9002/%s'
+	#urls to access the modules by proxy
+	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
 
 
 elif hostname in dev_machines_hostname:
 	SITE_ID = 3
 	# PRO USA APACHE
-	HOST = 'produccion'
+	HOST = 'development'
 	#asi evito python manage.py collectstatic y servir con apache
 	DEBUG = True
 	TEMPLATEDEBUG = True
-
 	DBHOST = 'localhost'
 	DBUSER = ''
 	DBPSSWD = ''
@@ -118,12 +121,37 @@ elif hostname in dev_machines_hostname:
 	IPOL_SERVICES_MODULE_DEMO = None
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
 	IPOL_SERVICES_MODULE_PROXY = 'http://ns3018037.ip-151-80-24.eu:9003/%s'
-	if not IPOL_PROXY:
-		#urls to access the modules directly
-		IPOL_SERVICES_MODULE_ACHIVE = 'http://ns3018037.ip-151-80-24.eu:9000/%s'
-		IPOL_SERVICES_MODULE_BLOBS = 'http://ns3018037.ip-151-80-24.eu:9001/%s'
-		IPOL_SERVICES_MODULE_DEMOINFO = 'http://ns3018037.ip-151-80-24.eu:9002/%s'
+	# 	#urls to access the modules by proxy
+	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
+elif hostname in production_machines:
+	SITE_ID = 3
+	# PRO USA APACHE
+	HOST = 'produccion'
+	#asi evito python manage.py collectstatic y servir con apache
+	DEBUG = False
+	TEMPLATEDEBUG = False
+	DBHOST = 'localhost'
+	DBUSER = ''
+	DBPSSWD = ''
+	HTTPS = False
+	# permite modo debug False
+	DOMAIN_NAME = 'localhost'
+	ADMINS = (('JAK', 'josearrecio@gmail.com'))
+	# dominio y subdominios , ojo por ip no funciona.
+	ALLOWED_HOSTS = dev_machines
+	MANAGERS = ADMINS
+	USE_MEMCACHED = False
+	####################################
+	#            IPOL WS               #
+	####################################
+	IPOL_SERVICES_MODULE_DEMO = None
+	IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
+	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 else:
 	print("ERROR: invalid hostname")
 

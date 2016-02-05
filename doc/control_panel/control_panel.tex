@@ -1,13 +1,18 @@
 \section{The Control Panel web application}
 In the modular architecture of IPOL all the modules are able to work standalone since they are servers implementing Stateless webservices. However, a coordinated view from both the functional and administrative point of view is needed.
 
-The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove undue experiments for the archive or add new images to a demo.
+The Control Panel web application offers a unified interface to configure and administrate the platform. For example, the Editors can remove unused experiments for the archive or add new images to a demo.
 
-\subsection{Status tab}
-The user will be able to monitor if the modules are running and in what machine they are runing.This will be done using ping ws provided from different modules.
-Archive module can be shutdown from this page, and it's also possible to add tests experiments to the testing demo.
+At the present moment, the control panel provides a navigation menu option for each module, so you can interact with each modile using the webservices they provide.
 
-\subsection{Archive tab}
+The Integrated view of the whole sistem is not ready, but it will be built uppon the pieces that manage each module. 
+
+\subsection{Status navigation menu option}
+The user will be able to monitor if the modules are running and in what machine they are runing.This will be done using the ping or stats ws provided by the different modules.
+It's also possible to add tests experiments to the testing demo.
+All modules should run under proxy module.
+
+\subsection{Archive navigation menu option}
 The Archive module is responsible for storing the experiments made bay users. When a user select a file of his own instead of using ono of the files proposed by the demo, This file is uploaded and used to run the demo bt Demo module, then teh result of this execution is sent to Archive module to be stored. Some demos have 40000 experiments.
 
 The user will be presented with a list of demos that have experiments in the archive module, the user will be able to delete these demos from the archive, with all their related info.
@@ -15,20 +20,83 @@ The user will be presented with a list of demos that have experiments in the arc
 When the user selects a demo, he will be presented with a list of all the experiments of the demo (we\'ll use pagin), and each experiment will display its information, files included. A user can delete experiments and files. If a file is deleted, all demos that use this file will also be deleted.
 
 
-\subsection{Blobs tab}
+\subsection{Blobs navigation menu option}
 The Blobs module is responsible for storing the images used as default images for runing the demos.
 The user will be presented with a list of demos that have blobs in the blob module,
 He will be able to remove, add, edit and delete blobs from a demo.
+Not ready yet. Partially implemented.
 
-\subsection{Demos tab}
+\subsection{Demoinfo navigation menu option}
+Allows you to manage the demoinfo module.
+
+
+\subsection{Demo Dispatcher navigation menu option}
+Not ready yet.
+
+\subsection{Demo Runner navigation menu option}
+Not ready yet.
+
+\subsection{Proxy navigation menu option}
+The integration between proxy and demoinfo is done, but this section remains because it would be interesting to be able to get some stats from the proxy module and present them to the user of the control panel, perhaps not to the editors, but to the admin.
+If this funcionality is not requiered, this menu entry should be deleted.
+Not ready yet.
+
+\subsection{User manual navigation menu option}
+A user manual for the editors that will use the control panel, could be as simple as a pdf link or a help page.
+Not ready yet.
+
+\subsection{Demos navigation menu option}
 The Demo execution system consists od a Demo Dispatcher module, a Demo Runner module and a DemoInfo module.
 Integrated view of the previous sections whith the demo system.
 Not ready yet.
 
-\subsection{Tecnical information}
-This module is implemented using a Django web app.
-The use or virtualenv is recomended.
+\subsection{Control Panel users}
+The app runs on port 8000, this is configured in settings.py.
+To loguin just acces the folling url, if you where already loged in, it will redirect you to the status page.
 
-\subsubsection{Deployment}
-For testing you can run it using runserver as described in ipol\_Webapps docs folder
-But for a production enviroment you should not use runserver. Apache or nginx as a reverse proxy and gunicorn is recomended.
+\url{http://ns3018037.ip-151-80-24.eu:8000}
+
+user:ipoluser
+
+passwd:ipoluser2015
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{control_panel/images/login.pdf}
+\caption{Login page} 
+\label{fi:login_page}
+\end{figure}
+
+\subsection{Control Panel Admin user}
+This is the ipolwebapp projects's admin page, 
+It offers some configuration options for the project and apps the project uses. The most important, you can add users credentials etc.
+
+\url{http://ns3018037.ip-151-80-24.eu:8000/admin}
+
+user:ipolcpadmin
+
+passwd:ipolazsxdc
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.5\columnwidth]{control_panel/images/admin.pdf}
+\caption{Admin page} 
+\label{fi:admin_page}
+\end{figure}
+
+
+If you somehow delete the ipolwebapp database, you will need to recreate the database, and create all the users from scratch. Django provides a usefull command: 
+
+\begin{lstlisting}[language=Python,firstnumber=1]
+python manage.py createsuperuser
+\end{lstlisting}
+
+Run it from the project's directory and create the ipolcpadmin user, 
+with this user create all othe accounts.
+Remeber to run all migrations!
+
+
+
+% The Control Panel Module Tecnical Info
+\input{control_panel/tecnical_information.tex}
+

@@ -41,7 +41,7 @@ def DeserializeProxyStatus(jsonresult):
 	#Using data from WS
 	jsondata = jsonresult
 
-	print jsondata
+	# print jsondata
 
 
 	#Deserialization.
@@ -193,7 +193,7 @@ def DeserializeDemoinfoDemoList(jsonresult):
 				next_page_number=None
 				number=None
 				previous_page_number=None
-				print "no pagination or filtering"
+				# print "no pagination or filtering"
 
 			demo_list = list()
 			for demo in list_demos:
@@ -314,7 +314,7 @@ def DeserializeDemoinfoAuthorList(jsonresult):
 				next_page_number=None
 				number=None
 				previous_page_number=None
-				print "no pagination or filtering"
+				# print "no pagination or filtering"
 			author_list = list()
 			for author in list_authors:
 				asrlzr = DemoinfoAuthorSerializer(data=author)
@@ -336,7 +336,7 @@ def DeserializeDemoinfoAuthorList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print "jsondata: ",jsondata
+		# print "jsondata: ",jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = DemoinfoAuthorListSerializer(data=data)
@@ -409,7 +409,7 @@ def DeserializeDemoinfoEditorList(jsonresult):
 				next_page_number=None
 				number=None
 				previous_page_number=None
-				print "no pagination or filtering"
+				# print "no pagination or filtering"
 			editor_list = list()
 			for editor in list_editors:
 				asrlzr = DemoinfoEditorSerializer(data=editor)
@@ -431,7 +431,7 @@ def DeserializeDemoinfoEditorList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print "jsondata: ",jsondata
+		# print "jsondata: ",jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = DemoinfoEditorListSerializer(data=data)
@@ -455,10 +455,6 @@ def DeserializeDemoinfoEditorList(jsonresult):
 ####################
 
 def DeserializePage(jsonresult):
-
-
-
-
 
 	#Clases that will contain the json data
 	class ExperimentFiles(object):
@@ -723,7 +719,7 @@ def DeserializeArchiveDemoList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print jsondata
+		# print jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = ArchiveDemoListSerializer(data=data)
@@ -739,7 +735,7 @@ def DeserializeArchiveDemoList(jsonresult):
 		print(msg)
 		#logger.error(serializer.errors)
 
-	print "mydl",mydl
+
 	return mydl
 
 ####################
@@ -814,7 +810,7 @@ def DeserializeDemoList(jsonresult):
 		#First we parse a stream into Python native datatypes...
 		stream = BytesIO(jsondata)
 		data = JSONParser().parse(stream)
-		print jsondata
+		# print jsondata
 
 		#then we restore those native datatypes into a dictionary of validated data.
 		serializer = DemoListSerializer(data=data)
@@ -824,14 +820,14 @@ def DeserializeDemoList(jsonresult):
 
 
 	except Exception,e:
-		msg="Error JSON Deserialization e: %s serializer.errors: "%e
+		msg="BLOBS MODULE Error JSON Deserialization e: %s serializer.errors: "%e
 		logger.error(msg)
 		print(msg)
 		#logger.error(serializer.errors)
 
 	return mydl
 
-
+# todo remove if not usefull any more
 #TEST AND OTHER STUFF
 def DeserializePageTest(jsonresult):
 
@@ -1022,6 +1018,7 @@ def DeserializePageTest(jsonresult):
 	print mywspage.experiments[0].id
 	print mywspage.experiments[0].files[0].url
 
+# todo remove if not usefull any more
 def SerializerTest2(jsonresult):
 
 	print("SerializerTest2")

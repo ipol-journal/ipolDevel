@@ -1,6 +1,6 @@
 { 
   "general": { 
-    "demo_title"            :  "Automatic Lens Distortion Correction Using One-Parameter Division Model",
+    "demo_title"            :  "Automatic Lens Distortion Correction Using One-Parameter Division Models",
     "input_description"     : "",
     "param_description"     : [""],
     "enable_crop"           : false,

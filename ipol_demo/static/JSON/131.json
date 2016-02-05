@@ -1,6 +1,6 @@
 { 
   "general": { 
-    "demo_title"            : "Local Contrast Enhancement and Color Cast Cancelation",
+    "demo_title"            : "An Algorithmic Analysis of Variational Models for Perceptual Local Contrast Enhancement",
     "input_description"     : [ "" ],
     "param_description"     : [
       "<h2>Algorithm Parameters</h2>",
@@ -83,7 +83,7 @@
       "cp ../../bin/ACE_epsilon20.dat polynomials/",
       "cp ../../bin/michelson_epsilon20.dat polynomials/",
       "cp ../../bin/minmax_epsilon20.dat polynomials/",
-      "convert input_0.sel.png input_0.sel.tiff",
+      "convert  -compress None input_0.sel.png input_0.sel.tiff",
       "contrast_enhancement input_0.sel.tiff output.tiff $cfunction $alpha $beta $kernel $sizek >stdout.txt 2>&1",
       "convert8bits output.tiff output.png 0 >stdout.txt 2>&1"
   ]

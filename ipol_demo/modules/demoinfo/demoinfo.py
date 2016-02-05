@@ -18,7 +18,7 @@ to test POST WS:
 
 """
 
-# todo: secure webservices
+# todo: secure webservices oauth perhaps?
 # todo: secure db access
 
 
@@ -137,7 +137,7 @@ class DemoInfo(object):
 	# DEMO
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
 	@cherrypy.expose
 	def demo_list(self):
 		data = {}
@@ -177,9 +177,9 @@ class DemoInfo(object):
 
 		data = {}
 		data["status"] = "KO"
-		demo_list=list()
+		demo_list = list()
 
-		#get json lis into python object
+		#get json list into python object
 		if is_json(demoeditorid_list):
 			demoeditorid_list=json.loads(demoeditorid_list)
 		else:
@@ -240,7 +240,7 @@ class DemoInfo(object):
 			if qfilter:
 				for demo in complete_demo_list:
 					#print "demo: ",demo
-					if qfilter in demo.title or qfilter in demo.abstract :
+					if qfilter.lower() in demo.title.lower() or qfilter.lower() in demo.abstract.lower() :
 						demo_list.append(demo.__dict__)
 			else:
 				#convert to Demo class to json
@@ -484,7 +484,9 @@ class DemoInfo(object):
 
 
 	def read_demo(self, demoid):
-
+		print
+		print "demoid", demoid
+		print
 		demo=None
 		try:
 			id =int(demoid)
@@ -523,6 +525,8 @@ class DemoInfo(object):
 	def read_demo_metainfo(self, demoid):
 		data = dict()
 		data["status"] = "KO"
+		print "params ",demoid
+		print "params ",type(demoid)
 
 		try:
 
@@ -738,10 +742,13 @@ class DemoInfo(object):
 		#get payload from json object
 		p = Payload(demo)
 
-		print
-		print "update_demo"
-		print "p.active" ,p.active
-		print
+		# print
+		# print "update_demo"
+		# print "p.active" ,p.active
+		# print "p " ,p
+		# print "p type" ,type(p)
+		# print
+
 		#convert payload to Demo object
 		if hasattr(p, 'creation'):
 			#update creatio ndate
@@ -780,7 +787,7 @@ class DemoInfo(object):
 	# AUTHOR
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...
 	@cherrypy.expose
 	def author_list(self):
 		data = {}
@@ -834,7 +841,7 @@ class DemoInfo(object):
 			if qfilter:
 				for a in complete_author_list:
 					#print "demo: ",demo
-					if qfilter in a.name or qfilter in a.mail :
+					if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower() :
 						author_list.append(a.__dict__)
 			else:
 				#convert to Demo class to json
@@ -1168,7 +1175,7 @@ class DemoInfo(object):
 			if qfilter:
 				for a in complete_editor_list:
 					#print "demo: ",demo
-					if qfilter in a.name or qfilter in a.mail :
+					if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower() :
 						editor_list.append(a.__dict__)
 			else:
 				#convert to Demo class to json
@@ -1523,7 +1530,7 @@ class DemoInfo(object):
 		return json.dumps(data)
 
 
-	#todo deprecated
+	#todo check its not usefull any more and delete...
 	@cherrypy.expose
 	@cherrypy.tools.allow(methods=['POST']) #allow only post
 	def add_demodescription_to_demo(self,demo_id, demodescription_id):

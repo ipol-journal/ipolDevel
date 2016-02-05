@@ -1,6 +1,6 @@
 { 
   "general": { 
-    "demo_title"            : "Gaussian Semigroup",
+    "demo_title"            : "Computing an Exact Gaussian Scale-space",
     "input_description"     : [
         "<p>",
           "Run four Gaussian smoothing algorithms.",
@@ -39,29 +39,38 @@
     {
       "id"            : "sigma",
       "type"          : "range", 
-      "label"         : " &sigma; (Smoothing parameter)",
+      "label"         : " &sigma;",
+      "comments"      : "Smoothing parameter",
       "values"        : { "min":0.1, "max":8.0, "step":0.1, "default": 0.5 }
     },
     {
       "id"            : "n",
       "type"          : "range", 
-      "label"         : "N (number of iterations) a smoothing of parameter <math><msqrt><mi>N</mi></msqrt></math> &sigma; is compared to <math><mi>N</mi></math> iterations with parameter &sigma;",
+      "label"         : "N",
+      "comments"      : "Number of iterations, a smoothing of parameter <math><msqrt><mi>N</mi></msqrt></math> &sigma; is compared to <math><mi>N</mi></math> iterations with parameter &sigma;",
       "values"        : { "min":1, "max":10, "step":1, "default": 3 }
     },
     {
-      "id"            : "k",
-      "type"          : "range", 
-      "label"         : "k (sampled Gaussian kernel) it is truncated at ceil(k&sigma;)",
-      "values"        : { "min":1, "max":10, "step":1, "default": 3 }
+        "id"            : "k",
+        "type"          : "range", 
+        "label"         : "k",
+        "comments"      : "truncated at ceil(k&sigma;)",
+        "values"        : { "min":1, "max":10, "step":1, "default": 3 }
     },
     {
-      "id"            : "gamma",
-      "type"          : "range", 
-      "label"         : "&gamma; (Lindeberg's smoothing method) it controls the shape of the Laplacian discrete operator",
-      "values"        : { "min":0, "max":0.5001, "step":0.01, "default": 0.5 }
+        "id"            : "gamma",
+        "type"          : "range", 
+        "label"         : "&gamma;",
+        "comments"      : "controls the shape of the Laplacian discrete operator",
+        "values"        : { "min":0, "max":0.5001, "step":0.01, "default": 0.5 }
     }
   ]
   ,
+  "params_layout": [
+        [ "General parameters:",          [ 0,1]  ],
+        [ "Sampled Gaussian kernel",      [2]     ],
+        [ "Lindeberg's smoothing method", [3]     ]
+    ],
   "run": [ 
       "demo_gaussconv_dft             input_0.sel.png $sigma $n     dft             >rmse_dft.txt", 
       "demo_gaussconv_dct             input_0.sel.png $sigma $n     dct             >rmse_dct.txt", 

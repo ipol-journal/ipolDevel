@@ -32,9 +32,6 @@ urlpatterns = [
     # Demoinfo module #
 	###################
 
-	# Menu option Demoinfo Module: has threee tabs (demos, authors or editors), loads first tab by default, Demos
-    # Each tab call the demoinfo module WS to create the list of demos, authors or editors, each tab has pagination and filters
-
 	# DEMOS
 
 	# Demo list
@@ -46,7 +43,6 @@ urlpatterns = [
     url(r'^ajax_save_demoinfo_ddl/', DemoinfoSaveDDLView.as_view(), name="ipol.cp.demoinfo.save_ddl"),
     url(r'^ajax_get_demoinfo_demo/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.create_demo"),
     url(r'^ajax_get_demoinfo_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.edit_demo"),
-
     url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemoView.as_view(), name="ipol.cp.demoinfo.save_demo"),
 
 	# AUTHORS
@@ -58,7 +54,6 @@ urlpatterns = [
     url(r'^ajax_get_demoinfo_author/(?P<author_id>\d+)/$', DemoinfoGetAuthorView.as_view(), name="ipol.cp.demoinfo.edit_author"),
     url(r'^ajax_save_demoinfo_author/', DemoinfoSaveAuthorView.as_view(), name="ipol.cp.demoinfo.save_author"),
 	# Manage Demo's Authors add/remove/get
-	# todo this goes first, if miki likes this, do the same for editor
     url(r'^authors_of_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoAuthorView.as_view(), name="ipol.cp.demoinfo.get_demos_authors"),
 	#save forms
     url(r'^ajax_add_demoinfo_existing_author_to_demo/', DemoinfoAddExistingAuthorToDemoView.as_view(), name="ipol.cp.demoinfo.add_existing_author_to_demo"),
@@ -76,7 +71,6 @@ urlpatterns = [
     url(r'^ajax_get_demoinfo_editor/(?P<editor_id>\d+)/$', DemoinfoGetEditorView.as_view(), name="ipol.cp.demoinfo.edit_editor"),
     url(r'^ajax_save_demoinfo_editor/', DemoinfoSaveEditorView.as_view(), name="ipol.cp.demoinfo.save_editor"),
 	# Manage Demo's Editors add/remove/get
-	# todo this goes first, if miki likes this, do the same for editor
     url(r'^editors_of_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoEditorView.as_view(), name="ipol.cp.demoinfo.get_demos_editors"),
 	#save forms
     url(r'^ajax_add_demoinfo_existing_editor_to_demo/', DemoinfoAddExistingEditorToDemoView.as_view(), name="ipol.cp.demoinfo.add_existing_editor_to_demo"),
@@ -93,10 +87,8 @@ urlpatterns = [
 	# Menu option Archive Module:
     #todo, carefull, a demo can have negative id WTF!
 	#todo list_demos should be nicer
-	#todo archive shoud use pagination, it doesnt now
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
-
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<pagenum>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
   	#ajax calls
@@ -113,6 +105,7 @@ urlpatterns = [
 	###################
     # Blobs module    #
 	###################
+
 	#todo not much done here
     url(r'^blobs_module/', BlobsDemosView.as_view(), name="ipol.cp.blobs.demos"),
 
@@ -134,12 +127,13 @@ urlpatterns = [
 	###################
     # Docs            #
 	###################
-    #todo, documentacion en la app! el pdf del latex al principio...
+    #todo, documentacion in the app would be nice to have! atfirst jut link pdf......
 
 
-
-    #media
-    #(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-    #admin
-    #url(r'^admin/', include(admin.site.urls)),
 ]
+
+#SERVE STATIFILES FROM settings.STATIC_ROOT in LOCAL (in production staic files are served by apache...or similar)
+#rmeber to run $  python manage.py collectstatic
+# ifsettings.HOST == 'local' :   #if DEBUG is True it will be served automatically
+# 	#url must be difined in settings.STATIC_URL
+# 	urlpatterns += patterns('',url(r'^app_static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}))

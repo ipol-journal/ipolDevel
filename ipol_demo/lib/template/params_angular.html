@@ -17,153 +17,168 @@
       <input type="hidden" name="key" value="${app.key}">
 
       <div ng-if="demo.params.length>0">
+
+      <span ng-repeat="param_group in demo.params_layout">
+
       <fieldset style="display: inline-block;">
-      <legend>Parameters:</legend>
+      <legend>{{param_group[0]}}</legend>
       <!--===================================================================-->
       <table  style="float:left;border:0px;"> 
         <!--=================================================================-->
-<!--        <tr ng-if="demo.params.length>0">
-          <th style="max-width:34em"> <b>Parameter description</b> </th> 
-          <th colspan="2"> <b>Select value</b> </th> 
-        </tr>-->
-
-        <!--=================================================================-->
         <tr style="border:0px;" 
-            ng-repeat="param in demo.params" 
-            ng-if="(param.visible===undefined)||$eval(param.visible)">
+            ng-repeat="pos in param_group[1]" 
+            ng-if="(demo.params[pos].visible===undefined)||$eval(demo.params[pos].visible)"
+            >
           <!--===============================================================-->
           <!-- selection_collapsed type -->
-          <td style="border:0px;max-width:34em" ng-if="param.type==='selection_collapsed'"> 
-            <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
+          <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='selection_collapsed'"> 
+            <label> <span ng-bind-html="renderHtml(demo.params[pos].label)"> </span> </label>  
           </td>
-          <td style="border:0px;" ng-if="param.type==='selection_collapsed'" colspan="2">
-              <select  ng-model="param.value" name="{{param.id}}"> 
-                <option ng-repeat="(key, value) in param.values"  value="{{value}}"> 
+          <td style="border:0px;" ng-if="demo.params[pos].type==='selection_collapsed'" colspan="2">
+              <select  ng-model="demo.params[pos].value" name="{{demo.params[pos].id}}"> 
+                <option ng-repeat="(key, value) in demo.params[pos].values"  value="{{value}}"> 
                     {{key}}
                     <!-- not allowed in html ... -->
                     <!-- <span ng-bind-html="renderHtml(key)"> </span>   -->
                 </option>
               </select>
           </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='selection_collapsed'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
+          </td>
           <!--===============================================================-->
           <!-- selection_radio type -->
-          <td style="border:0px;max-width:34em" ng-if="param.type==='selection_radio'"> 
-            <label> <span ng-bind-html="renderHtml(param.label)"> </span> </label>  
+          <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='selection_radio'"> 
+            <label> <span ng-bind-html="renderHtml(demo.params[pos].label)"> </span> </label>  
           </td>
-          <td style="border:0px;" ng-if="param.type==='selection_radio'" colspan="2">
-            <span ng-repeat="(key, value) in param.values"> 
+          <td style="border:0px;" ng-if="demo.params[pos].type==='selection_radio'" colspan="2">
+            <span ng-repeat="(key, value) in demo.params[pos].values"> 
                 <label>
-                    <input  type="radio" ng-model="param.value" 
-                            name="{{param.id}}"
+                    <input  type="radio" ng-model="demo.params[pos].value" 
+                            name="{{demo.params[pos].id}}"
                             ng-value="value"> 
                   <span ng-bind-html="renderHtml(key)"> </span> 
                 <label> &nbsp;
-                <br ng-if="param.vertical!==undefined && param.vertical">
+                <br ng-if="demo.params[pos].vertical!==undefined && demo.params[pos].vertical">
             </span> 
+          </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='selection_radio'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
           </td>
           <!--===============================================================-->
           <!-- range type -->
-          <td  style="border:0px;max-width:34em" ng-if="param.type==='range'"> 
-              <label> 
-                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
-                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
-              </label>  
+          <td  style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='range'"> 
+                <label bind-html-compile="demo.params[pos].label"> </label>
           </td>
-          <td style="border:0px;width:5em" ng-if="param.type==='range'" >
-            <input  style="width:100%"  type="number" name="{{param.id}}"
-                    min="{{param.values.min}}" max="{{param.values.max}}" 
-                    step="{{param.values.step}}" 
-                    ng-model="param.value"/>
+          <td style="border:0px;width:5em" ng-if="demo.params[pos].type==='range'" >
+            <input  style="width:100%"  type="number" name="{{demo.params[pos].id}}"
+                    min="{{demo.params[pos].values.min}}" max="{{demo.params[pos].values.max}}" 
+                    step="{{demo.params[pos].values.step}}" 
+                    ng-model="demo.params[pos].value"/>
           </td>
-          <td ng-if="param.type==='range'" style="border:0px;width:24em">
+          <td ng-if="demo.params[pos].type==='range'" style="border:0px;width:24em">
               <input  style="width:100%" type="range"  
-                      min="{{param.values.min}}" max="{{param.values.max}}"
-                      step="{{param.values.step}}"
-                      ng-model="param.value" 
+                      min="{{demo.params[pos].values.min}}" max="{{demo.params[pos].values.max}}"
+                      step="{{demo.params[pos].values.step}}"
+                      ng-model="demo.params[pos].value" 
                       floatsaving />
+          </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='range'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
           </td>
           <!--===============================================================-->
           <!-- range_scientific type -->
-          <td  style="border:0px;max-width:34em" ng-if="param.type==='range_scientific'"> 
-              <label> 
-                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
-                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
-              </label>  
+          <td  style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='range_scientific'"> 
+              <label bind-html-compile="demo.params[pos].label"> </label>  
           </td>
-          <td style="border:0px;width:5em" ng-if="param.type==='range_scientific'" >
-            <input  style="width:100%"  type="number" name="{{param.id}}"
-                    value="{{sci2str(param.value_slider,param.values.digits)}}"
+          <td style="border:0px;width:5em" ng-if="demo.params[pos].type==='range_scientific'" >
+            <input  style="width:100%"  type="number" name="{{demo.params[pos].id}}"
+                    value="{{sci2str(demo.params[pos].value_slider,demo.params[pos].values.digits)}}"
                     readonly/>
           </td>
-          <td ng-if="param.type==='range_scientific'" style="border:0px;width:24em">
+          <td ng-if="demo.params[pos].type==='range_scientific'" style="border:0px;width:24em">
               <input  style="width:100%" type="range"  
-                      min="{{num2sci(param.values.min,param.values.digits)}}" 
-                      max="{{num2sci(param.values.max,param.values.digits)}}"
+                      min="{{num2sci(demo.params[pos].values.min,demo.params[pos].values.digits)}}" 
+                      max="{{num2sci(demo.params[pos].values.max,demo.params[pos].values.digits)}}"
                       step="1"
-                      ng-model="param.value_slider" 
+                      ng-model="demo.params[pos].value_slider" 
                       floatsaving />
+          </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='range_scientific'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
           </td>
           <!--===============================================================-->
           <!-- readonly type -->
-          <td style="border:0px;max-width:34em" ng-if="param.type==='readonly'"> 
-              <label> 
-                <span ng-if="CheckArray(param.label)" bind-html-compile="param.label.join('')"> </span> 
-                <span ng-if="CheckString(param.label)" bind-html-compile="param.label"> </span> 
-              </label>  
+          <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='readonly'"> 
+              <label bind-html-compile="demo.params[pos].label"> </label>
           </td>
-          <td style="border:0px;" ng-if="param.type==='readonly'" colspan="2"  >
+          <td style="border:0px;" ng-if="demo.params[pos].type==='readonly'" colspan="2"  >
             <input  style="20em"  
                     type="text" 
-                    name="{{param.id}}" 
-                    value="{{param.value_expr.join('')|interpolate:current_scope}}"
+                    name="{{demo.params[pos].id}}" 
+                    value="{{demo.params[pos].value_expr.join('')|interpolate:current_scope}}"
                     readonly/>
           </td>
           <!--===============================================================-->
           <!-- label type -->
-          <th style="border:0px;" ng-if="param.type==='label'" colspan=3> 
-              <div  ng-bind-html="renderHtml(param.label)"></div> 
+          <th style="border:0px;" ng-if="demo.params[pos].type==='label'" colspan=3> 
+              <div  ng-bind-html="renderHtml(demo.params[pos].label)"></div> 
           </th>
           <!--===============================================================-->
           <!-- checkbox type -->
-          <td style="border:0px;max-width:34em" ng-if="param.type==='checkbox'" align="left"> 
+          <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='checkbox'" align="left"> 
             <label>
-              <span ng-bind-html="renderHtml(param.label)"> </span> 
+              <span ng-bind-html="renderHtml(demo.params[pos].label)"> </span> 
             </label>
           </td>
-          <td style="border:0px;" ng-if="param.type==='checkbox'" colspan="2" align="left"> 
-            <input  type="checkbox" name="{{param.id}}" ng-model="param.value" />
-            <input  type="text" name="{{param.id}}_checked" 
-                    value="{{param.value==true}}" hidden />
+          <td style="border:0px;" ng-if="demo.params[pos].type==='checkbox'" colspan="2" align="left"> 
+            <input  type="checkbox" name="{{demo.params[pos].id}}" ng-model="demo.params[pos].value" />
+            <input  type="text" name="{{demo.params[pos].id}}_checked" 
+                    value="{{demo.params[pos].value==true}}" hidden />
+          </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='checkbox'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
           </td>
           <!--===============================================================-->
           <!-- checkboxes type -->
-          <td style="border:0px;max-width:34em" ng-if="param.type==='checkboxes'" align="left"> 
+          <td style="border:0px;max-width:34em" ng-if="demo.params[pos].type==='checkboxes'" align="left"> 
             <label>
-              <span ng-bind-html="renderHtml(param.label)"> </span> 
+              <span ng-bind-html="renderHtml(demo.params[pos].label)"> </span> 
             </label>
           </td>
-          <td style="border:0px;"  ng-if="param.type==='checkboxes'" colspan="2" align="left"> 
+          <td style="border:0px;"  ng-if="demo.params[pos].type==='checkboxes'" colspan="2" align="left"> 
             <!--            <input type="button" value="all"  />
             <input type="button" value="none"  /><br/>-->
-            <div  ng-repeat="group in param.values" >
+            <div  ng-repeat="group in demo.params[pos].values" >
 <!--                   style="float:left;" > -->
 <!-- margin-left:1em;margin-right:1em;margin-bottom:6pt"> -->
               <span ng-repeat="(id, label) in group">
-                <input  type="checkbox" name="{{param.id}}_{{id}}" id="{{id}}" 
-                        ng-model="param.cb_values[id]" />
-                <input  type="text" name="{{param.id}}_{{id}}_checked"  
-                        value="{{param.cb_values[id]==true}}" hidden/>
+                <input  type="checkbox" name="{{demo.params[pos].id}}_{{id}}" id="{{id}}" 
+                        ng-model="demo.params[pos].cb_values[id]" />
+                <input  type="text" name="{{demo.params[pos].id}}_{{id}}_checked"  
+                        value="{{demo.params[pos].cb_values[id]==true}}" hidden/>
                 <label for="{{id}}" ng-bind-html="renderHtml(label)">  </label> &nbsp;&nbsp;
 <!--                 <br />  -->
               </span>
                 <br /> 
             </div>
           </td>
+          <td   style="border:0px;max-width:34em" 
+                ng-if="demo.params[pos].type==='checkboxes'&&demo.params[pos].comments!=undefined"> 
+              <label bind-html-compile="demo.params[pos].comments"> </label>  
+          </td>
           <!--===============================================================-->
         </tr>
         <!--=================================================================-->
       </table>
       </fieldset>
+      </span>
+
       </div>
 
       <span ng-if="CropInfo.enabled">
@@ -381,7 +396,7 @@
                             <input  type="image" 
                                     style="float:left; cursor:crosshair; margin-top:5px; background:url(tmp/{{::demo_key}}/input_0.png)"
                                     width="{{params.viewbox_width}}"
-                                    height="{{param.viewbox_height}}"
+                                    height="{{params.viewbox_height}}"
                                     ng-src="{{'tmp/'+demo_key+'/mask.png'}}" 
                                     alt="" />
                         </fieldset>

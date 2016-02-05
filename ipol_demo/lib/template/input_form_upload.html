@@ -19,7 +19,6 @@
             <input type="file" name="file_{{i}}" id="file_{{i]}" size="40" />
           </td>
           <td>
-            <input type="submit" value="upload" />
             <span ng-if="demo.inputs[i].max_pixels!=undefined"> 
               / max {{demo.inputs[i].max_pixels}} pixels
             </span>
@@ -29,6 +28,7 @@
           </td>
         </tr>
       </table>
+      <input type="submit" value="upload" />
     </div>
 
     <p class="note">

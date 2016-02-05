@@ -62,21 +62,24 @@
       {
         "id"            : "alpha",
         "type"          : "range", 
-        "label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
+        "label"         : " &alpha;",
+        "comments"      : "global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
         "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
       }
       ,
       {
         "id"            : "rho",
         "type"          : "range", 
-        "label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
+        "label"         : " &rho;",
+        "comments"      : "neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
         "values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
       }
       ,
       {
         "id"            : "sigma",
         "type"          : "range", 
-        "label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
+        "label"         : " &sigma;",
+        "comments"      : "Pre-processing Gaussian smoothing variance",
         "values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
       }
     ],

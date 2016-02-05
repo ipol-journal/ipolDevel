@@ -173,6 +173,8 @@
 
 {% endblock %}
 
+
+{#TODO js en archivo separado y minimized#}
 {% block functionsjs %}
 
     <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
@@ -254,6 +256,14 @@
             });
         });
 
+
+
+        {#  focus on  inputs with autofocus atribute when modal is loaded  #}
+        $(document).on('shown.bs.modal', '.modal', function() {
+          $(this).find('[autofocus]').focus();
+        });
+
+
         {#  delete editor  #}
         function send_delete_demo_editor_request(wsurl,editor_id) {
             var deleditor = confirm('delete this editor: ' + editor_id);
@@ -279,10 +289,6 @@
                 });
             }
         }
-
-
-
-
 
 
         {#  AUTHOR EDIT MODAL  #}
@@ -473,6 +479,8 @@
                 $($form_choosedemoeditor_field_demoid_id).get(0).value = demo_id;
                 $($modal_choosedemoeditor_id).modal('show');
                 $choosedemoeditorform.show();
+                //focus on autocomplete field
+                $("#id_editor-autocomplete").attr( 'autofocus', true);
             }
         }
 

@@ -32,28 +32,40 @@
         <h2>Blobs module</h2>
 
         <p> The purpose of this page is  to store the images used as default images for running the demos.</p>
-        <p> PARTIALLY IMPLEMENTED </p>
+        <p style="color: red"> PARTIALLY IMPLEMENTED </p>
+
 
         {% with data=view.result %}
-            <p>STATUS: {{ data.status  }}</p>
+            {% if data.status == "OK"  %}
+                {% if data.list_demos %}
+
+                    {#  <p>STATUS: {{ data.status  }}</p>#}
+
+                    {% for demo in data.list_demos%}
+
+                        <div class="demo">
+                            {#  <a  href="{% url 'ipol.cp.archive.page' demo.id %}">#}
+                                <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
+                            {# </a>#}
+                            <p style="padding-left: 20px">name:{{ demo.name }} </p>
+                            <p style="padding-left: 20px">is_template:{{ demo.is_template }} </p>
+                            <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>
+
+                            {# Delete demo button#}
+                            <div style="padding-left: 20px" >
+                                <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.id }} )">Delete</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                {% else %}
+                    <p style="color: red"> NO DEMOS IN BLOB MODULE</p>
+                {% endif %}
+            {% else %}
+                <p style="color: red"> BLOB MODULE not running, check STATUS PAGE</p>
+            {% endif %}
 
 
-            {% for demo in data.list_demos%}
-
-                <div class="demo">
-{#                    <a  href="{% url 'ipol.cp.archive.page' demo.id %}">#}
-                        <p style="padding-left: 20px">demo_id:{{ demo.id }} </p>
-{#                    </a>#}
-                    <p style="padding-left: 20px">name:{{ demo.name }} </p>
-                    <p style="padding-left: 20px">is_template:{{ demo.is_template }} </p>
-                    <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>
-
-                    {#boton Delete demo#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_delete_demo_request( {{ demo.id }} )">Delete</a>
-                    </div>
-                </div>
-            {% endfor %}
 
         {% endwith %}
 
@@ -69,7 +81,7 @@
 {#        var myshdwnurl="{% url 'ipol.cp.archive.delete_experiment' %}";#}
         //console.log(myshdwnurl);
         function send_delete_demo_request(experiment_id) {
-            var deldemo = confirm('delete this demo dummy: ' + experiment_id);
+            var deldemo = confirm('NOT IMPLEMENTED, delete this demo dummy: ' + experiment_id);
             if (deldemo == true) {
 {#            $.ajax({#}
 {#                type: 'GET',#}

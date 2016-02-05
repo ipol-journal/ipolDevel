@@ -167,7 +167,6 @@ class DemoinfoDeleteDemoView(NavbarReusableMixinMF,TemplateView):
 
 	def post(self, request, *args, **kwargs):
 
-			#todo could validate a form to get hard_delete checkbox from user
 			try:
 				demo_id = int(self.kwargs['demo_id'])
 			except ValueError:
@@ -546,8 +545,7 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 				raise ValueError("No response from WS")
 
 			list_authors = result.author_list
-
-			print "list_authors",list_authors
+			# print "list_authors",list_authors
 			status = result.status
 
 			#pagination of result
@@ -598,7 +596,6 @@ class DemoinfoDeleteAuthorView(NavbarReusableMixinMF,TemplateView):
 
 	def post(self, request, *args, **kwargs):
 
-			#todo could validate a form to get hard_delete checkbox from user
 			try:
 				author_id = int(self.kwargs['author_id'])
 			except ValueError:
@@ -803,7 +800,7 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
 
 
 			# ChooseAuthorForDemoform with autocomplete
-			self.request.session['authors_avilable_for_demo_id']=demo_id
+			self.request.session['authors_avilable_for_demo_id']= demo_id
 			context['choosedemoauthorform'] = ChooseAuthorForDemoform()
 			context['demoauthorform'] = DemoAuthorform
 			context['authorform'] = Authorform
@@ -835,7 +832,7 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
 				print(msg)
 				pass
 
-			print "  list_authors_for_demo demoid: ", demo_id
+			# print "  list_authors_for_demo demoid: ", demo_id
 			page_json = ipolservices.demoinfo_author_list_for_demo(demo_id)
 			result = DeserializeDemoinfoAuthorList(page_json)
 
@@ -1058,11 +1055,7 @@ class DemoinfoDeleteAuthorFromDemoView(NavbarReusableMixinMF,TemplateView):
 
 	def post(self, request, *args, **kwargs):
 
-		print
-		print "DemoinfoDeleteAuthorFromDemoView"
-		print
 
-		#todo could validate a form to get hard_delete checkbox from user
 		try:
 			author_id = int(self.kwargs['author_id'])
 			demo_id = int(self.kwargs['demo_id'])
@@ -1119,8 +1112,7 @@ class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
 				raise ValueError("No response from WS")
 
 			list_editors = result.editor_list
-
-			print "list_editors",list_editors
+			# print "list_editors",list_editors
 			status = result.status
 
 			#pagination of result
@@ -1296,7 +1288,7 @@ class DemoinfoSaveEditorView(NavbarReusableMixinMF,FormView):
 							jres['error'] = error
 							print jres['error']
 
-					#TODO todos los WS deben devolver status y errors, asi se lo paso directamente al html
+
 				except Exception as e:
 					msg = "update editor error: %s" % e
 					jres['error'] = msg
@@ -1377,7 +1369,10 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
 
 			# ChooseAuthorForDemoform with autocomplete
 			self.request.session['editors_avilable_for_demo_id']=demo_id
-			context['choosedemoeditorform'] = ChooseEditorForDemoform()
+			# context['choosedemoeditorform'] = ChooseEditorForDemoform()
+			form = ChooseEditorForDemoform()
+			# form.fields['author'].widget.attrs.push("autofocus", True)
+			context['choosedemoeditorform'] = form
 			context['demoeditorform'] = DemoEditorform
 			context['editorform'] = Editorform
 
@@ -1628,11 +1623,6 @@ class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
 
 	def post(self, request, *args, **kwargs):
 
-		print
-		print "DemoinfoDeleteEditorFromDemoView"
-		print
-
-		#todo could validate a form to get hard_delete checkbox from user
 		try:
 			editor_id = int(self.kwargs['editor_id'])
 			demo_id = int(self.kwargs['demo_id'])
