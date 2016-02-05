@@ -6,17 +6,17 @@
 %~\cite{GoF}
 Next, we explain the main features of the Proxy module. Its purpose is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
 
-This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As consequence, the system does not need more modifications for a correct performance. Figure ~\ref{fi:proxy_example} shows an example of the idea behind the proxy module.
+This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As a consequence, the system does not need more modifications for a correct performance. Figure ~\ref{fig:proxy_example} shows an example of the idea behind the proxy module.
 
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=0.5\columnwidth]{proxy/images/proxy_diagram.pdf}
 \caption{Proxy Example.} 
-\label{fi:proxy_example}
+\label{fig:proxy_example}
 \end{figure}
 
 \paragraph{Technologies used} \hspace{0pt} \\
-The module is written in Python and uses the Cherrypy framework. The other modules must communicate with the proxy using a correct URL (see Fig.~\ref{fi:url_protocol}) while the output returns a JSON message.
+The module is written in Python and uses the Cherrypy framework. The other modules must communicate with the proxy using a correct URL (see Fig.~\ref{fig:url_protocol}) while the output returns a JSON message.
 
 \subsection{Architecture}
 
@@ -42,7 +42,7 @@ http://<proxyUrl>:<port>/?module=<module>&service=<ws>
 &parameters=<ws_parameters>
 \end{verbatim}
 %\caption{Url protocol for a correct use of the proxy.} 
-\label{fi:url_protocol}
+\label{fig:url_protocol}
 \end{figure}
 
 %At the moment, the URL and the port of the proxy are: \\ \texttt{http://ns3018037.ip-151-80-24.eu:9003/}. \\
@@ -54,8 +54,20 @@ In this sense, an example of how to use the proxy can be:
 http://ns3018037.ip-151-80-24.eu:9003/?module=archive&
 service=ping
 \end{verbatim}
-\label{fi:url_ping_example}
+\label{fig:url_ping_example}
 \end{figure}
+
+Another example is 
+
+\begin{figure}[!ht]
+\centering
+\begin{verbatim}
+http://ns3018037.ip-151-80-24.eu:9003/?module=archive&
+service=page&demo_id=-1&page=2
+\end{verbatim}
+\label{fig:url_ping_example}
+\end{figure}
+
 
 If the module does not use this protocol or something goes wrong, the proxy rejects the petition, writes the error in the log file and returns a JSON string to notify, using a code number, the reason of the failure (see table~\ref{ta:codes}). On the other hand, when the petition succeeded, the proxy outputs the JSON message from the requested  service. \\
 

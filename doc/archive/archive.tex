@@ -55,11 +55,10 @@ The correspondence table is defined as such : the id field ; the id of the exper
 \paragraph{Adding an experiment to the archive} \hspace{0pt} \\
 Example :
 \begin{verbatim}
-http://<localhost>:<port>/add_exp_test?demo_id=42&blobs=
+http://<localhost>:<port>/add_experiment?demo_id=42&blobs=
 <json_blobs>&parameters=<json_parameters>
 \end{verbatim}
 The method ``add\_experiment'' takes in the entry of the id of the demo used ; a JSON string of the format : 
-
 \begin{verbatim}
 {
     url_blob : name,
@@ -76,6 +75,22 @@ containing a description of each blob used by and produced by the experiment, wi
 \end{verbatim}
 
 If status is KO, a log describing the error will be written.
+
+The following lines area an example og using the archive. 
+\begin{verbatim}
+http://<localhost>:<port>/add_experiment?demo_id=1000018&blobs=
+{"/home/ipol/ipolDevel/ipol_demo/app_new/
+1000018/tmp/683D6476AACA4EB929F5D44600AF5F1C/input_0.sel.png": 
+"selected subimage", "/home/ipol/ipolDevel/ipol_demo/
+app_new/1000018/tmp/683D6476AACA4EB929F5D44600AF5F1C/input_1.png":
+"noisy image", "/home/ipol/ipolDevel/ipol_demo/app_new/
+1000018/tmp/683D6476AACA4EB929F5D44600AF5F1C/input_0.orig.png": 
+"uploaded image", "/home/ipol/ipolDevel/ipol_demo/app_new/
+1000018/tmp/683D6476AACA4EB929F5D44600AF5F1C/output_2.png": 
+"difference image","/home/ipol/ipolDevel/ipol_demo/app_new/
+1000018/tmp/683D6476AACA4EB929F5D44600AF5F1C/output_1.png":
+"denoised image"}&parameters={"run time": 0.620905876159668, "sigma": 10}
+\end{verbatim}
 
 \paragraph{Deleting an experiment from the archive} \hspace{0pt} \\
 When removing an experiment from the database via the method ``delete\_experiment'', every blob linked to this experiment and only to this experiment is removed. After that, all the entries in the correspondence table referencing this experiment are removed automatically due to a foreign key constraint. It return a json response containing the status of the operation of the same format as the return of the method ``add\_experiment''. The method shouldn't be called anywhere else than through the user interface described later.

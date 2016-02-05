@@ -347,6 +347,11 @@ class Archive(object):
 		:rtype: JSON formatted string.
 		"""
 		status = {"status" : "KO"}
+		print "*************************************"
+		print "DEMO ID = " + demo_id
+		print "BLOBS = " + blobs
+		print "parameters = " + parameters
+		print "*************************************"
 		try:
 			demo_id = int(demo_id)
 			conn = lite.connect(self.database_file)
@@ -366,6 +371,7 @@ class Archive(object):
 				pass
 		return json.dumps(status)
 
+	
 #####
 # displaying a page of archive
 #####

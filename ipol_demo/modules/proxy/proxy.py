@@ -141,7 +141,7 @@ class Proxy(object):
 	@cherrypy.expose
 	def index(self, **kwargs):
 		"""
-		Index for the archive. Dispatch a request to the corresponding module
+		Index for the proxy. Dispatch a request to the corresponding module
 		"""
 		url=kwargs.copy()
 		error = {}
@@ -198,7 +198,10 @@ class Proxy(object):
 
 		# Request module for service
 		try:
-			call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
+			#call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
+                        call = "http://127.0.0.1:9000/" + service + params
+                        call_service = urllib.urlopen(call).read()
+                        print call_service
 		except Exception as ex:
 			error["code"] = -5
 			self.error_log("index", "Module '" + module + "' communication error; " + str(ex))

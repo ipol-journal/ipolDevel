@@ -18,6 +18,7 @@ S_644 = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 from . import config
 from .image import thumbnail
 
+
 def key2url(key):
     """
     url construction scheme
@@ -222,8 +223,6 @@ class item(object):
         """
         self.path = os.path.abspath(path)
         self.name = os.path.basename(path)
-        #self.ctime = misc.ctime(path, format="iso")
-        #self.mtime = misc.mtime(path, format="iso")
         self.info = info
         if os.path.isdir(path):
             self.is_file = False

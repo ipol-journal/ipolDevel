@@ -15,6 +15,7 @@ import copy
 import threading
 import time
 import urllib
+import requests
 from lib.misc import app_expose, ctime
 
 from mako.exceptions import RichTraceback
@@ -946,34 +947,89 @@ class base_app(empty_app):
         if info_changed:
           self.cfg.save()
 
-      # archive
+      # archive (OLD CODE)
+      #if self.nb_inputs==0:
+      #    self.cfg['meta']['original'] = True
+      #    self.cfg.save()
+      #    
+      #if (self.nb_inputs==0) or (self.cfg['meta']['original']):
+      #  desc = self.demo_description['archive']
+      #  ar = self.make_archive()
+      #  if 'files' in desc.keys():
+      #    for filename in desc['files']:
+      #      ar.add_file(filename, info=desc['files'][filename])
+      #  if 'compressed_files' in desc.keys():
+      #    for filename in desc['compressed_files']:
+      #      ar.add_file(filename, info=desc['compressed_files'][filename], 
+      #                  compress=True)
+      #    
+      #  # let's add all the parameters
+      #  if 'params' in desc.keys():
+      #    for p in desc['params']:
+      #      if p in self.cfg['param']:
+      #        ar.add_info({ p: self.cfg['param'][p]})
+      #    
+      #  if 'info' in desc.keys():
+      #    # save info
+      #    for i in desc['info']:
+      #      if i in self.cfg['info']:
+      #        ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
+      #  ar.save()
+      #return self.tmpl_out("run.html")
+      # End archive (OLD CODE)
+      
+      # archive (NEW CODE)
       if self.nb_inputs==0:
           self.cfg['meta']['original'] = True
           self.cfg.save()
-          
+       
+      
+      #Files must be stored by the archive module
       if (self.nb_inputs==0) or (self.cfg['meta']['original']):
+        
         desc = self.demo_description['archive']
-        ar = self.make_archive()
+        src = self.work_dir 
+        
+        blobs = {}
         if 'files' in desc.keys():
           for filename in desc['files']:
-            ar.add_file(filename, info=desc['files'][filename])
-        if 'compressed_files' in desc.keys():
-          for filename in desc['compressed_files']:
-            ar.add_file(filename, info=desc['compressed_files'][filename], 
-                        compress=True)
+            file_complete_route = os.path.join(src, filename)
+            blobs[file_complete_route] = desc['files'][filename]
           
         # let's add all the parameters
+        parameters = {}
         if 'params' in desc.keys():
           for p in desc['params']:
             if p in self.cfg['param']:
-              ar.add_info({ p: self.cfg['param'][p]})
-          
+               parameters[p] = self.cfg['param'][p]
+
+        if 'compressed_files' in desc.keys(): # Comprimir GZ y guardar como 
+          for filename in desc['compressed_files']:
+             parameters[filename] = desc['compressed_files'][filename]
+             print str(desc['compressed_files'][filename])
+        #    ar.add_file(filename, info=desc['compressed_files'][filename], 
+        #                compress=True)
+
+        
         if 'info' in desc.keys():
           # save info
           for i in desc['info']:
             if i in self.cfg['info']:
-              ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
-        ar.save()
+               parameters[desc['info'][i]] = self.cfg['info'][i]
+        print parameters
+        try:
+		print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+		url_proxy_in_local = "http://127.0.0.1:9003/"
+        	request = '?module=archive&service=add_experiment&demo_id=' + self.id
+        	#call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+        	call_service = urllib.urlopen(url_proxy_in_local + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+        	print call_service
+        except Exception as ex:
+	       return self.error(errcode='modulefailure',
+                              errmsg="The archive module has failed: " + str(ex))
+
+        print "end of archive code in base_app"
+
       return self.tmpl_out("run.html")
     
 

@@ -73,3 +73,38 @@
 2015-11-20 13:35:18 ERROR in echo_database: expected a character buffer object
 2015-11-20 13:35:18 ERROR in echo_database: expected a character buffer object
 2015-11-20 13:42:39 ERROR in echo_database: expected a character buffer object
+2016-01-21 17:58:05 ERROR in echo_page: Page requested don't exist.
+2016-01-21 17:58:39 ERROR in echo_page: Page requested don't exist.
+2016-01-21 17:59:06 ERROR in echo_page: Page requested don't exist.
+2016-01-21 17:59:10 ERROR in echo_page: Page requested don't exist.
+2016-01-21 18:58:17 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 18:59:29 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:00:23 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:00:24 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:01:01 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:06:01 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:29:25 ERROR in add_experiment: Expecting ':' delimiter: line 1 column 79 (char 78)
+2016-01-21 19:47:19 ERROR in add_experiment: 'unicode' object has no attribute 'items'
+2016-01-21 19:56:31 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-21 19:56:34 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-22 10:32:43 ERROR in echo_page: Page requested don't exist.
+2016-01-22 10:32:47 ERROR in echo_page: Page requested don't exist.
+2016-01-22 10:51:22 ERROR in echo_page: Page requested don't exist.
+2016-01-22 10:51:26 ERROR in echo_page: Page requested don't exist.
+2016-01-22 14:42:50 ERROR in echo_page: Page requested don't exist.
+2016-01-22 15:49:18 ERROR in add_experiment: cannot concatenate 'str' and 'int' objects
+2016-01-22 15:51:07 ERROR in add_experiment: cannot concatenate 'str' and 'int' objects
+2016-01-22 16:36:16 ERROR in add_experiment: cannot concatenate 'str' and 'dict' objects
+2016-01-26 16:03:12 ERROR in add_experiment: [Errno 2] No such file or directory: u'blobs/squirtle'
+2016-01-26 16:36:23 ERROR in add_experiment: No JSON object could be decoded
+2016-01-26 16:38:00 ERROR in add_experiment: No JSON object could be decoded
+2016-01-26 16:38:43 ERROR in add_experiment: No JSON object could be decoded
+2016-01-26 20:52:02 ERROR in add_experiment: No JSON object could be decoded
+2016-01-26 20:55:50 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 20:57:34 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 20:58:56 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 21:15:02 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 21:15:43 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 21:22:35 ERROR in add_experiment: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2016-01-26 21:30:05 ERROR in add_experiment: [Errno 2] No such file or directory: u'output image of Prewitt algorithm'
+2016-01-26 21:32:55 ERROR in add_experiment: [Errno 2] No such file or directory: u'out_mh.png'
