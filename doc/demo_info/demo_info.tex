@@ -4,25 +4,25 @@ This module store the textual description of the demo and allows to ask for spec
 \item Demo id
 \item Abstract
 \item Title 
-\item Autors list
-\item Autors email list
+\item Authors list
+\item Authors email list
 \item Article URL
 \item State (inactive,preprint, published)
 \item Demo editor
 \item Demo editor email
 \item Demo zip file containing demo DDL 
-\item Demo DDL Json
+\item Demo DDL JSON
 \end{itemize}
 
-This module will be used by the controll panel module, the demo will be extracted from the zip file, it will be created in Demoinfo module, The blobs will be addede to Blobs module.
+This module will be used by the control panel module, the demo will be extracted from the zip file, it will be created in Demoinfo module, The blobs will be added to Blobs module.
 
 \subsection{ demoinfo module structure}
 This Module is formed by:
 \begin{itemize}
-\item model.py where the db structure, the DAO (Data access object) clasess and some helper claseses (Demo, Authorand Editor) are defined. It provides a layer of abstarction over the DB.
+\item model.py where the db structure, the DAO (Data access object) classes and some helper classes (Demo, Author and Editor) are defined. It provides a layer of abstraction over the DB.
 \item demoinfo.conf it's the cherrypy config for the webservices module.
 \item demoinfo.py it's the webservices module.
-\item testdemoinfo.py it's the tests to chech that the webservices work.
+\item testdemoinfo.py it's the tests to check that the webservices work.
 \item testdemoinfo.conf it's the cherrypy config for testing.
 \end{itemize}
 
@@ -42,7 +42,7 @@ A demo may be created without a DDL (but you will need to provide one so you can
 Ddlschema is not used at the moment, but it has been created so that a schema validation can be done to the DDL of each demo, if a user provides a valid json for the DDL but this json is not a valid DDL , whe should be able to detect thisand return an error.
 
 \subsection{Web services available}
-This module provides a set of webservices, those that return data can be called with GET or other html methods, those that delete,create or update data can be called only by POST.
+This module provides a set of webservices, those that return data can be called with GET or other HTML methods, those that delete,create or update data can be called only by POST.
 These webservices are shown grouped by functionality, 
 
 
@@ -51,7 +51,7 @@ DEMO
 \begin{itemize}
 \item  demo\_list(self)
 \item  demo\_list\_by\_demoeditorid(self,demoeditorid\_list)
-\item  demo\_list\_pagination\_and\_filter(self,num\_elements\_page,page,qfilter=None)
+\item  demo\_list\_pagination\_and\_filter(self,number\_elements\_page,page,qfilter=None)
 \item  demo\_get\_authors\_list(self,demo\_id)
 \item  demo\_get\_available\_authors\_list(self,demo\_id)
 \item  demo\_get\_editors\_list(self,demo\_id)
@@ -65,7 +65,7 @@ Allows you to create a demo
 - allow only post
 - only creating the demo
 - creating the demo and assigning an existing ddl (with id demodescriptionID) to it
-- create the demo and create a ddl , whith the json passed by param (demodescriptionJson)
+- create the demo and create a ddl , with the json passed by param (demodescriptionJson)
 
 \item  delete\_demo(self,demo\_id,hard\_delete = False)
 allow only post
@@ -78,7 +78,7 @@ AUTHOR
 
 \begin{itemize}
 \item  author\_list(self)
-\item  author\_list\_pagination\_and\_filter(self,num\_elements\_page,page,qfilter=None)
+\item  author\_list\_pagination\_and\_filter(self,number\_elements\_page,page,qfilter=None)
 \item  read\_author(self, authorid)
 \item  author\_get\_demos\_list(self,author\_id)
 \item  add\_author(self,name, mail)
@@ -98,7 +98,7 @@ EDITOR
 
 \begin{itemize}
 \item  editor\_list(self)
-\item  editor\_list\_pagination\_and\_filter(self,num\_elements\_page,page,qfilter=None)
+\item  editor\_list\_pagination\_and\_filter(self,number\_elements\_page,page,qfilter=None)
 \item  editor\_get\_demos\_list(self,editor\_id)
 \item  read\_editor(self, editorid)
 \item  add\_editor(self,name, mail)
@@ -143,5 +143,5 @@ To test this module enter test folder and run
 python -m unittest discover.
 \end{lstlisting}
 
-To perfom manual testing use curl or poster pluguin for firefox (remember that some will only work with post requests) but in testdemoinfo.py, in the last tests you will find a working example of how to use some webservices using the request python library.
+To perform manual testing use curl or poster plugging for firefox (remember that some will only work with post requests) but in testdemoinfo.py, in the last tests you will find a working example of how to use some webservices using the request python library.
 If you add webservices, please add the corresponding tests.
