@@ -1094,24 +1094,30 @@ class base_app(empty_app):
       #return self.tmpl_out("run.html")
       # End archive (OLD CODE)
       
-      # archive (NEW CODE)
-      if self.nb_inputs==0:
-          self.cfg['meta']['original'] = True
-          self.cfg.save()
-       
-      
-      #Files must be stored by the archive module
+       #Files must be stored by the archive module
       if (self.nb_inputs==0) or (self.cfg['meta']['original']):
         
         desc = self.demo_description['archive']
-        src = self.work_dir 
         
         blobs = {}
         if 'files' in desc.keys():
           for filename in desc['files']:
-            file_complete_route = os.path.join(src, filename)
-            blobs[file_complete_route] = desc['files'][filename]
-          
+            file_complete_route = os.path.join(self.work_dir, filename)
+            if os.path.exists(file_complete_route):
+               blobs[file_complete_route] = desc['files'][filename]
+        
+        if 'compressed_files' in desc.keys(): 
+          for filename in desc['compressed_files']:
+            file_complete_route = os.path.join(self.work_dir, filename)
+            file_complete_route_compressed = file_complete_route + '.gz'
+            if os.path.exists(file_complete_route):
+               f_src = open(file_complete_route, 'rb')
+               f_dst = gzip.open(file_complete_route_compressed, 'wb')
+               f_dst.writelines(f_src)
+               f_dst.close()
+               f_src.close()
+               blobs[file_complete_route_compressed] = desc['compressed_files'][filename]  
+            
         # let's add all the parameters
         parameters = {}
         if 'params' in desc.keys():
@@ -1119,32 +1125,19 @@ class base_app(empty_app):
             if p in self.cfg['param']:
                parameters[p] = self.cfg['param'][p]
 
-        if 'compressed_files' in desc.keys(): # Comprimir GZ y guardar como 
-          for filename in desc['compressed_files']:
-             parameters[filename] = desc['compressed_files'][filename]
-             print str(desc['compressed_files'][filename])
-        #    ar.add_file(filename, info=desc['compressed_files'][filename], 
-        #                compress=True)
-
-        
+        # save info
         if 'info' in desc.keys():
-          # save info
           for i in desc['info']:
             if i in self.cfg['info']:
                parameters[desc['info'][i]] = self.cfg['info'][i]
-        print parameters
+        
         try:
-		print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-		url_proxy_in_local = "http://127.0.0.1:9003/"
         	request = '?module=archive&service=add_experiment&demo_id=' + self.id
-        	#call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
-        	call_service = urllib.urlopen(url_proxy_in_local + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
-        	print call_service
+                call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
         except Exception as ex:
 	       return self.error(errcode='modulefailure',
-                              errmsg="The archive module has failed: " + str(ex))
+                             errmsg="The archive module has failed: " + str(ex))
 
-        print "end of archive code in base_app"
 
       return self.tmpl_out("run.html")
     
