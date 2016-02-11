@@ -677,9 +677,6 @@ class base_app(empty_app):
         
         for i in range(self.nb_inputs):
           file_up = kwargs['file_%i' % i]
-          # suppose than the file is in the correct format for its extension
-          ext = inputs_desc[i]['ext']
-          file_save = file(self.work_dir + 'input_%i' % i + ext, 'wb')
           
           if file_up.filename == '':
             if  not('required' in inputs_desc[i].keys()) or \
@@ -690,6 +687,11 @@ class base_app(empty_app):
             else:
                 # skip this input
                 continue
+
+          # suppose than the file is in the correct format for its extension
+          ext = inputs_desc[i]['ext']
+          file_save = file(self.work_dir + 'input_%i' % i + ext, 'wb')
+
           size = 0
           while True:
             # TODO larger data size

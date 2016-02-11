@@ -4,7 +4,7 @@
 \label{sec:proxy_introduction}
 
 %~\cite{GoF}
-Next, we explain the main features of the Proxy module. Its purpose is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
+The purpose of the Proxy module is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
 
 This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As a consequence, the system does not need more modifications for a correct performance. Figure ~\ref{fig:proxy_example} shows an example of the idea behind the proxy module.
 

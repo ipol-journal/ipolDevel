@@ -137,6 +137,16 @@
                             "required"    :{ "type": "boolean"}
                         },
                         "required":[ "type", "description", "ext", "required" ]
+                    },
+                    {   "type":"object",
+                        "properties":
+                        {
+                            "type"        :{ "type":"string","enum":["3dpoints"]},
+                            "description" :{ "type":"string"},
+                            "ext"         :{"type":"string" },
+                            "required"    :{ "type": "boolean"}
+                        },
+                        "required":[ "type", "description", "ext", "required" ]
                     } ]
                 }
         },

@@ -43,13 +43,16 @@
 </p>
 
     <div ng-controller="DemoIndexCtrl" >
-<!-- {{demolist}} -->
-        <ul  ng-repeat="demo in demo_list | filter:query | orderBy:'+title'">
+
+        <span ng-repeat="state in ['published', 'preprint', 'inactive']">
+        <p>{{state}}:</p>
+        <ul  ng-repeat="demo in demo_list | filter: {stateID : $index+1} | filter:query | orderBy:'+title'">
             <li >
                 <a href='./{{demo.editorsdemoid}}/'>{{demo.title}}</a>
                 <sup>{{demo.stateID}}</sup> 
             </li>
         </ul>
+        </span>
     </div>
 	
 

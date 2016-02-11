@@ -25,6 +25,9 @@
             <span ng-if="demo.inputs[i].max_weight!=undefined"> 
               / max {{demo.inputs[i].max_weight/(1024*1024)}} Mb
             </span>
+            <span ng-if="demo.inputs[i].required!=undefined && !demo.inputs[i].required"> 
+              (optional)
+            </span>
           </td>
         </tr>
       </table>
