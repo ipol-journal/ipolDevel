@@ -35,38 +35,25 @@ When other module requests a service, it must communicate with the proxy using a
 
 In this section, we explain the protocol that the petitions required for requesting a service. The URL must use the following arguments:
 
-\begin{figure}[!ht]
-\centering
 \begin{verbatim}
 http://<proxyUrl>:<port>/?module=<module>&service=<ws>
 &parameters=<ws_parameters>
 \end{verbatim}
-%\caption{Url protocol for a correct use of the proxy.} 
 \label{fig:url_protocol}
-\end{figure}
 
-%At the moment, the URL and the port of the proxy are: \\ \texttt{http://ns3018037.ip-151-80-24.eu:9003/}. \\
 In this sense, an example of how to use the proxy can be:
 
-\begin{figure}[!ht]
-\centering
 \begin{verbatim}
 http://ns3018037.ip-151-80-24.eu:9003/?module=archive&
 service=ping
 \end{verbatim}
-\label{fig:url_ping_example}
-\end{figure}
 
 Another example is 
 
-\begin{figure}[!ht]
-\centering
 \begin{verbatim}
 http://ns3018037.ip-151-80-24.eu:9003/?module=archive&
 service=page&demo_id=-1&page=2
 \end{verbatim}
-\label{fig:url_ping_example}
-\end{figure}
 
 
 If the module does not use this protocol or something goes wrong, the proxy rejects the petition, writes the error in the log file and returns a JSON string to notify, using a code number, the reason of the failure (see table~\ref{ta:codes}). On the other hand, when the petition succeeded, the proxy outputs the JSON message from the requested  service. \\
