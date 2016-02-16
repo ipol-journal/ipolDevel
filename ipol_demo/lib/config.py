@@ -28,6 +28,10 @@ class file_dict(dict):
         self.flag = flag
         self.mode = mode
         self.filename = filename
+        # create temporary directory 
+        self.tmpdir = os.path.dirname(self.filename)+"/tmp"
+        if not os.path.exists(self.tmpdir):  
+            os.makedirs(self.tmpdir)
         self.filename_mtime = 0
         if os.path.isdir(filename):
             filepath = filename
@@ -106,7 +110,7 @@ class file_dict(dict):
         # readonly: do nothing
         if self.flag == 'r':
             return
-        (fd, tempname) = tempfile.mkstemp()
+        (fd, tempname) = tempfile.mkstemp(dir=self.tmpdir)
         outfile = os.fdopen(fd, 'wb')
         try:
             self.dump(outfile)
@@ -121,7 +125,7 @@ class file_dict(dict):
         self.filename_mtime = os.path.getmtime(self.filename)
         # save params as json
         if 'param' in self.keys():
-          (fd, tempname) = tempfile.mkstemp()
+          (fd, tempname) = tempfile.mkstemp(dir=self.tmpdir)
           outfile = os.fdopen(fd, 'wb')
           try:
               json.dump(self['param'],outfile)
@@ -135,7 +139,7 @@ class file_dict(dict):
           shutil.move(tempname, self.params_filename)    # atomic commit
         # save meta as json
         if 'meta' in self.keys():
-          (fd, tempname) = tempfile.mkstemp()
+          (fd, tempname) = tempfile.mkstemp(dir=self.tmpdir)
           outfile = os.fdopen(fd, 'wb')
           try:
               json.dump(self['meta'],outfile)
@@ -149,7 +153,7 @@ class file_dict(dict):
           shutil.move(tempname, self.meta_filename)    # atomic commit
         # save info as json
         if 'info' in self.keys():
-          (fd, tempname) = tempfile.mkstemp()
+          (fd, tempname) = tempfile.mkstemp(dir=self.tmpdir)
           outfile = os.fdopen(fd, 'wb')
           try:
               json.dump(self['info'],outfile)
