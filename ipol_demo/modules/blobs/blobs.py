@@ -96,7 +96,7 @@ class   Blobs(object):
         return tmpl_lookup.get_template("add_blob.html").render(demo_id=demo_id)
 
     @cherrypy.expose
-    def zip(self, demo_id):
+    def archive(self, demo_id):
         """
         Function used for upload zip file to one demo
 
@@ -106,7 +106,7 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_zip.html").render(demo_id=demo_id)
+        return tmpl_lookup.get_template("add_archive.html").render(demo_id=demo_id)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -127,6 +127,8 @@ class   Blobs(object):
         :param credit:          credit blob string
         :return:                hash of current blob (dictionnary) json format
         """
+        print "*********************"
+        print "*********************"
         print "add_blob_ws"
         blob_hash = get_hash_blob(path)
         print blob_hash
@@ -172,12 +174,12 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo = kwargs['demo[id]']
-        tag = kwargs['demo[tag]']
-        blob = kwargs['demo[blob]']
-        blob_set = kwargs['demo[set]']
-        title = kwargs['demo[title]']
-        credit = kwargs['demo[credit]']
+        demo      = kwargs['demo[id]']
+        tag       = kwargs['demo[tag]']
+        blob      = kwargs['demo[blob]']
+        blob_set  = kwargs['demo[set]']
+        title     = kwargs['demo[title]']
+        credit    = kwargs['demo[credit]']
 
         pattern = re.compile("^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
@@ -203,6 +205,9 @@ class   Blobs(object):
             self.create_thumbnail(file_dest)
         else:
             os.remove(path)
+
+        #tmpl_lookup = TemplateLookup(directories=[self.html_dir])
+        #return tmpl_lookup.get_template("get_blobs_of_demo.html").render(demo_id=demo)
 
         return self.get_blobs_of_demo(demo)
 
@@ -372,7 +377,7 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    def add_from_zip(self, **kwargs):
+    def add_from_archive(self, **kwargs):
         """
         This function implements post request for /zip
         It corresponds to upload of the zip file
@@ -382,25 +387,59 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo_id = kwargs['demo[id]']
-        the_zip = kwargs['zip']
+        demo_id     = kwargs['demo[id]']
+        the_archive = kwargs['archive']
 
-        _, ext = os.path.splitext(the_zip.filename)
-        assert isinstance(the_zip, cherrypy._cpreqbody.Part)
+        _, ext = os.path.splitext(the_archive.filename)
+        assert isinstance(the_archive, cherrypy._cpreqbody.Part)
 
         tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
         print "tmp_directory = ", tmp_directory
-        path = create_tmp_file(the_zip, tmp_directory)
-        self.parse_archive(ext, path, tmp_directory, the_zip.filename, demo_id)
+        path = create_tmp_file(the_archive, tmp_directory)
+        self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
 
         return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def delete_blob_ws(self, demo_id, blob_id):
+    def delete_blobset_ws(self, demo_id, blobset):
+        """
+        This functions implements web service associated to '/delete_blob'
+        Delete blob from demo name and hash blob in database
+
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blobset: id blob
+        :type blobset: string
+        return: name of the blob if it is not associated to demo and
+        "OK" if not error else "KO"
+        :rtype: dictionnary
+        """
+        data = instance_database()
+        dic = {}
+        dic["delete"] = ""
+        try:
+            blob_name = data.get_blob_name(blob_id)
+            value_return = data.delete_blobset_from_demo(demo_id, blobset)
+            data.commit()
+
+            if not value_return:
+                dic["delete"] = blob_name
+            dic["return"] = "OK"
+
+        except DatabaseError as error:
+            print_exception_function(error, "Cannot delete item in database")
+            data.rollback()
+            dic["return"] = "KO"
+
+        return json.dumps(dic)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def delete_blob_ws(self, demo_id, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
         Delete blob from demo name and hash blob in database
@@ -417,8 +456,8 @@ class   Blobs(object):
         dic = {}
         dic["delete"] = ""
         try:
-            blob_name = data.get_name_blob(blob_id)
-            value_return = data.delete_blob_from_demo(demo_id, blob_id)
+            blob_name     = data.get_blob_name(blob_id)
+            value_return  = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
             data.commit()
 
             if not value_return:
@@ -526,19 +565,19 @@ class   Blobs(object):
         return self.edit_blob(blob_id, demo_id)
 
     @cherrypy.expose
-    def op_remove_blob_from_demo(self, demo_id, blob_id):
+    def op_remove_blobset_from_demo(self, demo_id, blobset):
         """
-        Delete one blob from demo
+        Delete one blobset from demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: mako templated html page (refer to get.html)
-        :rtype: mako.lookup.TemplatedLookup
+        :param demo_id    : demo id
+        :type demo_id     : integer
+        :param blobset : blobset
+        :type blobset  : string
+        :return           : mako templated html page (refer to edit_demo_blobs.html)
+        :rtype            : mako.lookup.TemplatedLookup
         """
-        data = {"demo_id": demo_id, "blob_id": blob_id}
-        res = use_web_service('/delete_blob_ws', data)
+        data = {"demo_id": demo_id, "blobset": blobset}
+        res = use_web_service('/delete_blobset_ws', data)
 
         if (res["return"] == "OK" and res["delete"]):
             path_file = os.path.join(self.current_directory, self.final_dir,
@@ -549,6 +588,29 @@ class   Blobs(object):
                 os.remove(path_file)
             if os.path.isfile(path_thumb):
                 os.remove(path_thumb)
+
+        return self.get_blobs_of_demo(demo_id)
+
+    @cherrypy.expose
+    def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
+        """
+        Delete one blob from demo
+
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: mako templated html page (refer to edit_demo_blobs.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
+        res = use_web_service('/delete_blob_ws', data)
+
+        if (res["return"] == "OK" and res["delete"]):
+            path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
+            path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
+            if os.path.isfile(path_file) :  os.remove(path_file)
+            if os.path.isfile(path_thumb):  os.remove(path_thumb)
 
         return self.get_blobs_of_demo(demo_id)
 
@@ -650,7 +712,7 @@ class   Blobs(object):
 
         :param demo_id: id demo
         :type demo_id: integer
-        :return: mako templated html page (refer to get.html)
+        :return: mako templated html page (refer to edit_demo_blobs.html)
         :rtype: mako.lookup.TemplatedLookup
         """
 
@@ -696,7 +758,7 @@ class   Blobs(object):
 
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("get.html").render(
+        return tmpl_lookup.get_template("edit_demo_blobs.html").render(
                 blobs_list = demo_blobs["blobs"],
                 demo_id    = demo_id,
                 demo       = demo_blobs,
@@ -895,7 +957,7 @@ class   Blobs(object):
                 inspect.currentframe().f_code.co_name)
 
     #---------------------------------------------------------------------------
-    def parse_archive(self, ext, path, tmp_directory, the_zip, demo_id):
+    def parse_archive(self, ext, path, tmp_directory, the_archive, demo_id):
         """
         Open archive (zip, tar) file
         Extract blob object in function informations in 'index.cfg' file
@@ -907,8 +969,8 @@ class   Blobs(object):
         :type path: string
         :param tmp_directory: path of the temporary directory
         :type tmp_directory: string
-        :param the_zip: name zip file
-        :type the_zip: string
+        :param the_archive: name zip file
+        :type the_archive: string
         """
         if ext == '.zip':
             src = zipfile.ZipFile(path)
@@ -925,47 +987,82 @@ class   Blobs(object):
             for section in buff.sections():
                 the_files = buff.get(section, "files")
                 list_file = the_files.split()
-                for the_file in list_file:
-                  # if the file name contains :, split it and get the id 
-                  # within the set
-                  if ':' in the_file:
-                    pos = the_file.find(':')
-                    file_id  = the_file[:pos]
-                    the_file = the_file[pos+1:]
-                  else:
-                    file_id = list_file.index(the_file)
-                  if the_file and the_file in files:
+                for _file in list_file:
+                  # to associate a blob image representation, use 
+                  # 2 files separated by a comma
+                  has_image_representation = False
+                  # use the in the list position as the input number
+                  file_id = list_file.index(_file)
+                  if ',' in _file:
+                    pos = _file.find(',')
+                    _file_image = _file[pos+1:]
+                    _file       = _file[:pos]
+                    print "file=",_file, "_file_image=",_file_image
+                    has_image_representation = True
+                  if _file and _file in files:
                       title = buff.get(section, 'title')
                       print "processing:",title
                       try:
                         credit = buff.get(section, 'credit')
                       except:
                         credit = ""
-                      src.extract(the_file, path=tmp_directory)
-                      tmp_path = os.path.join(tmp_directory, the_file)
+                      try:
+                        tags = buff.get(section, 'tag')
+                      except:
+                        tags = ""
+                      src.extract(_file, path=tmp_directory)
+                      tmp_path = os.path.join(tmp_directory, _file)
                       _, ext = os.path.splitext(tmp_path)
+                      
 
-                      data = {"demo_id": demo_id, "path": tmp_path, "tag": "",
+                      data = {"demo_id": demo_id, "path": tmp_path,
                               "ext": ext, "blob_set": section, 
                               "blob_id_in_set": file_id, "title": title,
                               "credit": credit}
                       res = use_web_service('/add_blob_ws/', data)
-
+                      
+                      # add the tags
+                      
+                      res = use_web_service('/add_tag_to_blob_ws/', data)
+                      
                       print " return = ", res["return"]
                       the_hash = res["the_hash"]
                       print the_hash
                       if the_hash != -1 and res["return"] == "OK":
-                          file_dest = self.move_to_input_directory(tmp_path,
-                                                                    the_hash,
-                                                                    ext)
-                          self.create_thumbnail(file_dest)
+                        file_dest = self.move_to_input_directory(tmp_path,
+                                                                the_hash,
+                                                                ext)
+                        # in case of blob image representation, process it too
+                        if has_image_representation:
+                            src.extract(_file_image, path=tmp_directory)
+                            tmp_image_path = os.path.join(tmp_directory, _file_image)
+                            _, image_ext = os.path.splitext(tmp_image_path)
+                            # TODO: force image representation to be PNG? , 
+                            # do a conversion if needed?
+
+                            # according to Miguel, don´t add a blob image representation
+                            # as a blob item
+                            data = {"demo_id": demo_id, "path": tmp_image_path, 
+                                    "ext": image_ext, "blob_set": section, 
+                                    "blob_id_in_set": file_id, "title": title,
+                                    "credit": credit}
+                            res = use_web_service('/add_blob_ws/', data)
+                            the_hash = res["the_hash"]
+
+                            file_image_dest = self.move_to_input_directory(
+                                tmp_image_path,
+                                the_hash,
+                                image_ext)
+                            self.create_thumbnail(file_image_dest)
+                        else:
+                            self.create_thumbnail(file_dest)
                       else:
                           os.remove(tmp_path)
                   else:
                       pass
         else:
             print_exception_zip(inspect.currentframe().f_code.co_name,\
-                                the_zip)
+                                the_archive)
     
     #---------------------------------------------------------------------------
     @cherrypy.expose

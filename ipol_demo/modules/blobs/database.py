@@ -335,10 +335,18 @@ class   Database(object):
           blobset_blobs = self.cursor.fetchall()
           blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
           for b in  blobset_blobs:
+            # get blob tags
+            tags = self.get_tags_of_blob( b[0])
+            
+            tag_str = ''
+            print "tags = ",tags
+            for tid in tags:
+                tag_str += ", "+tags[tid]
+
             # now get blobs of each set
             blob_list.append(
                         { "id": b[0], "id_in_set": b[1], "hash" : b[2], "extension": b[3],
-                          "format": b[4], "title":b[5], "credit":b[6] }
+                          "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
                       )
           blobset_list.append(blob_list)
         
@@ -444,6 +452,21 @@ class   Database(object):
             lis[item[0]] = item[1]
         return lis
 
+    def get_tag_name(self, tag_id):
+        """
+        Return tag name associated to tag id
+
+        """
+        try:
+            tagname = self.cursor.execute('''
+            SELECT  tag.name FROM tag
+            WHERE tag.id=?''', \
+            (tag_id,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+
+        return tagname
+
     def demo_is_empty(self, demo_id):
         """
         Check if demo is not associated with a blob
@@ -481,6 +504,7 @@ class   Database(object):
             except self.database.Error:
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
+    #---------------------------------------------------------------------------
     def blob_is_empty(self, blob_id):
         """
         Check if blob named by hash is not associated with a demo
@@ -502,6 +526,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if not something else something
 
+    #---------------------------------------------------------------------------
     def delete_blob(self, blob_id, blob_is_reducible):
         """
         If blob is empty delete row corresponding in blob column
@@ -520,6 +545,7 @@ class   Database(object):
             except self.database.Error:
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
+    #---------------------------------------------------------------------------
     def tag_is_empty(self, tag_id):
         """
         Check if tag is not associated with a blob
@@ -541,6 +567,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if not something else something
 
+    #---------------------------------------------------------------------------
     def delete_tag(self, tag_id, tag_is_reducible):
         """
         If tag is empty, delete row corresponding in tag column
@@ -559,7 +586,9 @@ class   Database(object):
             except self.database.Error:
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-    def delete_blob_from_demo(self, demo_id, blob_id):
+
+    #---------------------------------------------------------------------------
+    def delete_blobset_from_demo(self, demo_id, blobset):
         """
         Delete link between demo and hash blob from demo_blob column in database
         Delete link between blob and tag from blob_tag column in database
@@ -575,7 +604,7 @@ class   Database(object):
         :rtype: bool
         """
         try:
-            something = self.cursor.execute('''
+            result = self.cursor.execute('''
             SELECT blob_id, demo_id FROM demo_blob
             INNER JOIN demo ON demo_blob.demo_id=demo.id
             INNER JOIN blob ON demo_blob.blob_id=blob.id
@@ -585,7 +614,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         value = ()
-        for item in something:
+        for item in result:
             value = (item[0], item[1])
 
         if value:
@@ -598,7 +627,7 @@ class   Database(object):
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
         try:
-            something = self.cursor.execute('''
+            result = self.cursor.execute('''
             SELECT blob_id, tag_id FROM blob_tag
             INNER JOIN blob ON blob_tag.blob_id=blob.id AND blob.id=?''',\
             (blob_id,))
@@ -606,7 +635,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
         value = ()
-        for item in something:
+        for item in result:
             value = (item[0], item[1])
 
         if value:
@@ -623,12 +652,80 @@ class   Database(object):
         self.delete_blob(blob_id, blob_is_reducible)
         return None if not blob_is_reducible[0] else blob_is_reducible[0]
 
+
+    #---------------------------------------------------------------------------
+    def delete_blob_from_demo(self, demo_id, blobset, blob_id):
+        """
+        Delete link between demo and hash blob from demo_blob column in database
+        Delete link between blob and tag from blob_tag column in database
+        Delete demo row named by name demo if demo has no blob
+        Delete tag row associated to blob if tag has no blob
+        Delete blob row named by hash blob if blob has no demo
+
+        :param demo_id: id demo
+        :type demo_id: integer
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: True if blob named by id hasn't demo associated else False
+        :rtype: bool
+        """
+        try:
+            result = self.cursor.execute('''
+            SELECT blob_id, demo_id, blob_set FROM demo_blob
+            INNER JOIN demo ON demo_blob.demo_id=demo.id
+            INNER JOIN blob ON demo_blob.blob_id=blob.id
+            WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=? ''',\
+            (demo_id, blob_id,blobset))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+
+        value = ()
+        for item in result:
+            value = (item[0], item[1], item[2])
+
+        if value:
+            try:
+                self.cursor.execute('''
+                DELETE FROM demo_blob
+                WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
+                (value[0], value[1],value[2]))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+
+        try:
+            result = self.cursor.execute('''
+            SELECT blob_id, tag_id FROM blob_tag
+            INNER JOIN blob ON blob_tag.blob_id=blob.id AND blob.id=?''',\
+            (blob_id,))
+        except self.database.Error:
+            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+
+        value = ()
+        for item in result:
+            value = (item[0], item[1])
+
+        if value:
+            try:
+                self.cursor.execute('''
+                DELETE FROM blob_tag
+                WHERE blob_id=? AND tag_id=?''',\
+                (value[0], value[1],))
+            except self.database.Error:
+                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+
+        self.delete_all_tag(blob_id)
+        blob_is_reducible = self.blob_is_empty(blob_id)
+        self.delete_blob(blob_id, blob_is_reducible)
+        return None if not blob_is_reducible[0] else blob_is_reducible[0]
+
+    #---------------------------------------------------------------------------
     def commit(self):
         """
         Commit instruction(SELECT, DELETE or INSERT INTO) to database
         """
         self.database.commit()
 
+    #---------------------------------------------------------------------------
     def start_transaction(self):
         """
         This instruction allows to start changes on database
@@ -636,6 +733,7 @@ class   Database(object):
         """
         self.cursor.execute("BEGIN")
 
+    #---------------------------------------------------------------------------
     def rollback(self):
         """
         Call rollback functionnality database
@@ -643,6 +741,7 @@ class   Database(object):
         """
         self.database.rollback()
 
+    #---------------------------------------------------------------------------
     def get_list_tags(self):
         """
         Return the list of tag present in database
@@ -656,6 +755,7 @@ class   Database(object):
             lis.append(item[0])
         return lis
 
+    #---------------------------------------------------------------------------
     def init_tag_column(self):
         """
         Inserting tag column defaults tag
@@ -674,6 +774,7 @@ class   Database(object):
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
 
+    #---------------------------------------------------------------------------
     def list_of_demos(self):
         """
         Return the name list of demos
@@ -716,7 +817,7 @@ class   Database(object):
             lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } ) 
         return lis
 
-    def get_name_blob(self, blob_id):
+    def get_blob_name(self, blob_id):
         """
         Return the name of the blob from id
 
