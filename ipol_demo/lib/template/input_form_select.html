@@ -37,21 +37,17 @@
           <div  
                 class="select_input"
                 ng-style="{'margin':'0','padding':'0',
-                        'float':'left',
-                        'width':demo.general.thumbnail_size+'px', 
-                        'height':demo.general.thumbnail_size+'px',
-                        'vertical-align':'middle'}">
+                           'float':'left',
+                           'width':demo.general.thumbnail_size+'px', 
+                           'height':demo.general.thumbnail_size+'px',
+                           'line-height':demo.general.thumbnail_size+'px',
+                           'text-align':'center'}">
             <img
                   ng-style="{'max-width':demo.general.thumbnail_size+'px',
-                          'max-height':demo.general.thumbnail_size+'px',
-                          'width':'auto','height':'auto',
-                          'margin':'0','padding':'0',
-                          'position': 'relative',
-                          'top': '50%',
-                          'transform': 'translateY(-50%)'}"
+                          'max-height':demo.general.thumbnail_size+'px', 'vertical-align':'middle'}"
                   ng-src="{{demoblobs.url_thumb}}/thumbnail_{{blob_set[idx].hash}}{{blob_set[idx].extension}}"
                   alt={{blob_set[idx].title}}
-                  title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+')'}}"
+                  title="{{blob_set[idx].title+' (credits:'+blob_set[idx].credit+ ', tags:' + blob_set[idx].tag + ')'}}"
                   imageonfail="DisableBlobDisplay(blob_set,idx)"
                   />
           </div>
