@@ -1,21 +1,24 @@
-# ignore backups
+# don't rewrite the deployed conf file
+demo.conf
+demo.*.log
+
+# compiled Python code
+*.pyc
+
+# Database
+*.db
+*.sqlite3
+
+# Applications (to be moved to demoDispatcher/demoRunner!)
+app/
+
+# ignore backup files
 *~
 *.bak
 *.backup
 
-# Databases
-/ipol_demo/modules/blobs/blob.db
-
-# server configuration
-demo.conf
-ipol_demo/modules/blobs/blobs_nelson.conf
-ipol_demo/modules/blobs/module changes_with_MIGUEL.py
-
 # Documentation
 doc/ipol.out
-
-# temporary files
-changes*.txt
 
 # generated files
 *.pyc
@@ -24,6 +27,6 @@ changes*.txt
 logs
 *.log
 
-# Database files
-*.db
-*.sqlite3
+# other
+ipol_demo/modules/blobs/blobs_nelson.conf
+changes*.txt
