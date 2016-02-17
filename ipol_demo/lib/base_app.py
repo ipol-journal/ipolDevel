@@ -1106,7 +1106,7 @@ class base_app(empty_app):
             if os.path.exists(file_complete_route):
                blobs[file_complete_route] = desc['files'][filename]
         
-        if 'compressed_files' in desc.keys(): 
+        if 'compressed_files' in desc.keys():
           for filename in desc['compressed_files']:
             file_complete_route = os.path.join(self.work_dir, filename)
             file_complete_route_compressed = file_complete_route + '.gz'
@@ -1124,19 +1124,26 @@ class base_app(empty_app):
           for p in desc['params']:
             if p in self.cfg['param']:
                parameters[p] = self.cfg['param'][p]
-
+        
         # save info
         if 'info' in desc.keys():
           for i in desc['info']:
             if i in self.cfg['info']:
                parameters[desc['info'][i]] = self.cfg['info'][i]
         
+        print "Blobs: " + str(blobs) + "  | Parameters: " + str(parameters) 
         try:
-        	request = '?module=archive&service=add_experiment&demo_id=' + self.id
-                call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+                print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                url_proxy_in_local = "http://127.0.0.1:9003/"
+                request = '?module=archive&service=add_experiment&demo_id=' + self.id
+                #call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+                call_service = urllib.urlopen(url_proxy_in_local + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+                print "JSON in base_app:  " + call_service
         except Exception as ex:
 	       return self.error(errcode='modulefailure',
                              errmsg="The archive module has failed: " + str(ex))
+           
+        
 
 
       return self.tmpl_out("run.html")
@@ -1290,7 +1297,7 @@ class base_app(empty_app):
         ard2 = os.path.commonprefix((ard1, entrydir))
 
         # proceed to delete the entry then continue as always
-        # the bucket directory must exist and must be a subdir of archive
+        ## the bucket directory must exist and must be a subdir of archive
         if ard1 == ard2 and ard1 != entrydir and os.path.isdir(entrydir):
             print "REMOVING ARCHIVE ENTRY: " + entrydir
             # REMOVE THE DIRECTORY
@@ -1305,62 +1312,137 @@ class base_app(empty_app):
         archive.index_rebuild(self.archive_index, self.archive_dir)
 
 
-    @cherrypy.expose
-    def archive(self, page=-1, key=None, deleteThisKey=None, adminmode=False):
+    #@cherrypy.expose
+    #def archive(self, page=-1, id_experiment=None):
         """
         lists the archive content
         """
-        if deleteThisKey and deleteThisKey != '':
-            self.remove_from_archive(deleteThisKey)
-
-        if key:
-            # select one archive
-            buckets = [{'url' : self.archive_url + archive.key2url(key),
-                        'files' : files, 'meta' : meta, 'info' : info}
-                       for (key, (files, meta, info))
-                       in archive.index_read(self.archive_index,
-                                             key=key,
-                                             path=self.archive_dir)]
-
-            # Check if the key is deletable for this user
-            ukm = archive.UserKeysManager()
-            deletable = ukm.key_belongs_to_user(key)
-
-            return self.tmpl_out("archive_details.html",
-                                 bucket=buckets[0],
-                                 deletable=deletable,
-                                 adminmode=adminmode)
-        else:
-            # select a page from the archive index
-            nbtotal = archive.index_count(self.archive_index,
-                                           path=self.archive_dir,
-                                           public=True)
-            if nbtotal:
-                firstdate = archive.index_first_date(self.archive_index,
-                                                     path=self.archive_dir)
-            else:
-                firstdate = 'never'
-            limit = 20
-            nbpage = int(math.ceil(nbtotal / float(limit)))
-            page = int(page)
-            if page == -1:
-                page = nbpage - 1
-            offset = limit * page
-
-            buckets = [{'url' : self.archive_url + archive.key2url(key),
-                        'files' : files, 'meta' : meta, 'info' : info}
-                       for (key, (files, meta, info))
-                       in archive.index_read(self.archive_index,
-                                             limit=limit, offset=offset,
-                                             public=True,
-                                             path=self.archive_dir)]
+        #if deleteThisKey and deleteThisKey != '':
+        #    self.remove_from_archive(deleteThisKey)
+        #
+        #if key:
+        #    # select one archive
+        #    buckets = [{'url' : self.archive_url + archive.key2url(key),
+        #                'files' : files, 'meta' : meta, 'info' : info}
+        #               for (key, (files, meta, info))
+        #               in archive.index_read(self.archive_index,
+        #                                     key=key,
+        #                                     path=self.archive_dir)]
+        #    # Check if the key is deletable for this user
+        #    ukm = archive.UserKeysManager()
+        #    deletable = ukm.key_belongs_to_user(key)
+        #
+        #    return self.tmpl_out("archive_details.html",
+        #                         bucket=buckets[0],
+        #                         deletable=deletable,
+        #                         adminmode=adminmode)
+        #else:
+        #    # select a page from the archive index
+        #    nbtotal = archive.index_count(self.archive_index,
+        #                                   path=self.archive_dir,
+        #                                   public=True)
+        #    if nbtotal:
+        #        firstdate = archive.index_first_date(self.archive_index,
+        #                                             path=self.archive_dir)
+        #    else:
+        #        firstdate = 'never'
+        #    limit = 20
+        #    nbpage = int(math.ceil(nbtotal / float(limit)))
+        #    page = int(page)
+        #    if page == -1:
+        #        page = nbpage - 1
+        #    offset = limit * page
+        #
+        #    buckets = [{'url' : self.archive_url + archive.key2url(key),
+        #                'files' : files, 'meta' : meta, 'info' : info}
+        #               for (key, (files, meta, info))
+        #               in archive.index_read(self.archive_index,
+        #                                     limit=limit, offset=offset,
+        #                                     public=True,
+        #                                     path=self.archive_dir)]
+        #    return self.tmpl_out("archive_index.html",
+        #                          bucket_list=buckets,
+        #                         page=page, nbpage=nbpage,
+        #                         nbtotal=nbtotal,
+        #                         firstdate=firstdate,
+        #                         adminmode=adminmode)
+        # END OF OLD_CODE
+        
+        # NEW CODE
+    @cherrypy.expose
+    def archive(self, page=-1, id_experiment=None):
+        """
+        lists the archive content
+        """
+        url_proxy_in_local = "http://127.0.0.1:9003/"
             
-            return self.tmpl_out("archive_index.html",
-                                 bucket_list=buckets,
-                                 page=page, nbpage=nbpage,
-                                 nbtotal=nbtotal,
-                                 firstdate=firstdate,
-                                 adminmode=adminmode)
+        page = int(page)
+        firstdate='never'
+        
+        if not id_experiment:
+            request = '?module=archive&service=page&demo_id=' + self.id + '&page=1'
+            #json_response = urllib.urlopen(self.proxy_server + request).read()
+            json_response = urllib.urlopen(url_proxy_in_local + request).read()
+            response = json.loads(json_response)
+            status = response['status']
+            
+            if status == "OK":
+                experiments = response['experiments']
+                firstdate = experiments[0]['date']
+            
+                if page == -1:
+                    page = response['nb_pages']
+            else:
+                #Empty list. No experiments in the archive
+                buckets = []
+                return self.tmpl_out("archive_index.html", archive_list=buckets,
+                                    page=0, number_of_experiments=0,
+                                    nbpage=0,firstdate=firstdate)           
+
+        
+        request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
+        #json_response = urllib.urlopen(self.proxy_server + request).read()
+        json_response = urllib.urlopen(url_proxy_in_local + request).read()
+        response = json.loads(json_response)
+            
+        status = response['status']
+        
+        if status == "OK":
+            id_demo     = response['id_demo']
+            nbpage      = response['nb_pages']
+            experiments = response['experiments']
+            
+            buckets = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
+                                for exp in experiments]
+            
+            if id_experiment:
+                
+                for bucket in buckets:
+                    if int(id_experiment) == int(bucket['id_experiment']):
+                        bucket_for_archive_details = bucket
+                        break
+                
+                # select one experiment from the archive
+                return self.tmpl_out("archive_details.html", archive=bucket_for_archive_details)
+            else:
+                
+                if nbpage > 1:
+                
+                    request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(nbpage)
+                    #json_response = urllib.urlopen(self.proxy_server + request).read()
+                    json_response = urllib.urlopen(url_proxy_in_local + request).read()
+                    response = json.loads(json_response)
+                    
+                    experiments_in_last_page = response['experiments']
+                    number_of_experiments  = ((nbpage - 1) * 12) + len(experiments_in_last_page)
+                
+                else:
+                    number_of_experiments = len(experiments)
+                
+                return self.tmpl_out("archive_index.html",
+                                 archive_list=buckets, page=page, number_of_experiments=number_of_experiments,
+                                 nbpage=nbpage,firstdate=firstdate)
+        
 
     #
     # ARCHIVE ADMIN
@@ -1374,6 +1456,5 @@ class base_app(empty_app):
         """
         if deleteThisKey and deleteThisKey != '':
             self.remove_from_archive(deleteThisKey)
-
         # USUAL ARCHIVE BEHAVIOR
         return self.archive(page=page, key=key, adminmode=True)
