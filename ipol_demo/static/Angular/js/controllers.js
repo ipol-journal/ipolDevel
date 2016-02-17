@@ -145,7 +145,12 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
       
     $scope.DisableBlobDisplay = function(blob_set,index)
     {
-        blob_set[index].extension = "disabled";
+        if (blob_set[index].extension != ".png") {
+//             // first try png extension if it is not already the case
+//             blob_set[index].extension = ".png";
+//         } else {
+            blob_set[index].extension = "disabled";
+        }
     }
       
   }
