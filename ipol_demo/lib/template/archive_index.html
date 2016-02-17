@@ -27,11 +27,11 @@ Some archived content may be deleted by the editorial board for size matters, in
         import os
         path, file_extension = os.path.splitext(file)
         
-        if file_extension.endswith((".png", ".jpg", "files['name'].jpeg")):
+        if file_extension.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".jpg2")):
             images[file] = [files['name'],files['url_thumb']] 
         else:
             non_images[file] = files['name']
-            
+        
     endfor
     
 %>

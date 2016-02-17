@@ -16,7 +16,7 @@ Some archived content may be deleted by the editorial board for size matters, in
         import os
         path, file_extension = os.path.splitext(file)
         
-        if file_extension.endswith((".png", ".jpg", "files['name'].jpeg")):
+        if file_extension.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".jpg2")):
             images[file] = files['name']
         else:
             non_images[file] = files['name']
@@ -27,8 +27,12 @@ Some archived content may be deleted by the editorial board for size matters, in
 
 <div class="bucket">
   <table class="info">
-     <tr>  
-      <th>date </th>
+    <tr>  
+      <th>Exp.</th>
+      <td>Experiment ${archive['id_experiment']}</a>
+    </tr>
+    <tr>
+    <th>date </th>
       <td> ${archive['date']}</td>
     </tr>
     </tr>

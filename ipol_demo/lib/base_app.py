@@ -16,6 +16,9 @@ import threading
 import time
 import urllib
 import requests
+
+import gzip
+
 from lib.misc import app_expose, ctime
 
 from mako.exceptions import RichTraceback
@@ -1110,13 +1113,17 @@ class base_app(empty_app):
           for filename in desc['compressed_files']:
             file_complete_route = os.path.join(self.work_dir, filename)
             file_complete_route_compressed = file_complete_route + '.gz'
+            print file_complete_route
+            print file_complete_route_compressed
             if os.path.exists(file_complete_route):
+               #with open(file_complete_route, 'rb') as f_in, gzip.open(file_complete_route_compressed, 'wb') as f_out:
+               #     shutil.copyfileobj(f_in, f_out)
                f_src = open(file_complete_route, 'rb')
                f_dst = gzip.open(file_complete_route_compressed, 'wb')
                f_dst.writelines(f_src)
-               f_dst.close()
                f_src.close()
-               blobs[file_complete_route_compressed] = desc['compressed_files'][filename]  
+               f_dst.close()
+               blobs[file_complete_route_compressed] = desc['compressed_files'][filename] 
             
         # let's add all the parameters
         parameters = {}
@@ -1131,21 +1138,22 @@ class base_app(empty_app):
             if i in self.cfg['info']:
                parameters[desc['info'][i]] = self.cfg['info'][i]
         
-        print "Blobs: " + str(blobs) + "  | Parameters: " + str(parameters) 
         try:
-                print "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                url_proxy_in_local = "http://127.0.0.1:9003/"
-                request = '?module=archive&service=add_experiment&demo_id=' + self.id
-                #call_service = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
-                call_service = urllib.urlopen(url_proxy_in_local + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
-                print "JSON in base_app:  " + call_service
+            url_proxy_in_local = "http://127.0.0.1:9003/"
+            request = '?module=archive&service=add_experiment&demo_id=' + self.id
+            #json_response = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
+            request_a_service = request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)
+            print "\n\n"
+            print request_a_service
+            print "\n\n"
+            json_response = urllib.urlopen(url_proxy_in_local + request_a_service).read()
+            print "json in base_app when adding in the archive " + json_response
+        
         except Exception as ex:
 	       return self.error(errcode='modulefailure',
                              errmsg="The archive module has failed: " + str(ex))
            
         
-
-
       return self.tmpl_out("run.html")
     
 
@@ -1368,16 +1376,14 @@ class base_app(empty_app):
         #                         adminmode=adminmode)
         # END OF OLD_CODE
         
-        # NEW CODE
+    # NEW CODE
     @cherrypy.expose
     def archive(self, page=-1, id_experiment=None):
         """
         lists the archive content
         """
         url_proxy_in_local = "http://127.0.0.1:9003/"
-            
         page = int(page)
-        firstdate='never'
         
         if not id_experiment:
             request = '?module=archive&service=page&demo_id=' + self.id + '&page=1'
@@ -1389,15 +1395,16 @@ class base_app(empty_app):
             if status == "OK":
                 experiments = response['experiments']
                 firstdate = experiments[0]['date']
-            
-                if page == -1:
+                
+                #Get the last page of this demo. 
+                if page == -1: 
                     page = response['nb_pages']
             else:
                 #Empty list. No experiments in the archive
-                buckets = []
-                return self.tmpl_out("archive_index.html", archive_list=buckets,
+                archive_experiments = []
+                return self.tmpl_out("archive_index.html", archive_list=archive_experiments,
                                     page=0, number_of_experiments=0,
-                                    nbpage=0,firstdate=firstdate)           
+                                    nbpage=0,firstdate='never')           
 
         
         request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
@@ -1408,22 +1415,24 @@ class base_app(empty_app):
         status = response['status']
         
         if status == "OK":
+            
             id_demo     = response['id_demo']
             nbpage      = response['nb_pages']
             experiments = response['experiments']
             
-            buckets = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
+            archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
                                 for exp in experiments]
             
             if id_experiment:
                 
-                for bucket in buckets:
-                    if int(id_experiment) == int(bucket['id_experiment']):
-                        bucket_for_archive_details = bucket
+                for experiment in archive_experiments:
+                    if int(id_experiment) == int(experiment['id_experiment']):
+                        experiment_for_archive_details = experiment
                         break
                 
                 # select one experiment from the archive
-                return self.tmpl_out("archive_details.html", archive=bucket_for_archive_details)
+                return self.tmpl_out("archive_details.html", archive=experiment_for_archive_details)
+            
             else:
                 
                 if nbpage > 1:
@@ -1440,7 +1449,7 @@ class base_app(empty_app):
                     number_of_experiments = len(experiments)
                 
                 return self.tmpl_out("archive_index.html",
-                                 archive_list=buckets, page=page, number_of_experiments=number_of_experiments,
+                                 archive_list=archive_experiments, page=page, number_of_experiments=number_of_experiments,
                                  nbpage=nbpage,firstdate=firstdate)
         
 
