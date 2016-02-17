@@ -56,8 +56,6 @@ Many keys are derived from the static variables of the previous 'app' Python cla
                       that will be concatenated and separated with spaces.
                       & yes
                       \\ \hline
- is\_test           & boolean (true/false), if true will be removed from demos 
-if the server is in production mode.& yes  \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
  enable\_crop       & enable or disable cropping for this demo, default is true 
                       (crop enabled). & no   \\ \hline
@@ -826,7 +824,6 @@ algorithm.
     "input_description": "",
     "param_description": "",
     "enable_crop"      : true,
-    "is_test"          : false,
     "xlink_article": "http://www.ipol.im/pub/art/2014/104/"}, 
   "build": [ {
       "build_type"   : "make",
