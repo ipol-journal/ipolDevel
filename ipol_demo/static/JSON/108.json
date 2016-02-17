@@ -3,7 +3,6 @@
     "demo_title"            :  "The Flutter Shutter Code Calculator",
     "input_description"     : "This will perform the demo of the flutter shutter code calculator.",
     "param_description"     : "",
-    "is_test"               : false,
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/108/"
   }, 

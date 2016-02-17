@@ -3,7 +3,6 @@
     "demo_title"            : "LSD: a Line Segment Detector",
     "input_description"     : "",
     "param_description"     : [""],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/gjmr-lsd/"
   }, 
   "build": [

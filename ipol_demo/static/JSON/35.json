@@ -6,7 +6,6 @@
       "Set the parameters and run the algorithm.",
       "<i>Note: rgb images will be converted to grayscale.</i>"
     ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/35/"
   }, 
   "build": [

@@ -3,7 +3,6 @@
     "demo_title"            :  "Midway Image Equalization",
     "input_description"     : "Please select or upload the image pair to register.",
     "param_description"     : "",
-    "is_test"               : false,
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/140/"
   }, 

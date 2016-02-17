@@ -21,7 +21,6 @@
       "</p>"
     ],
     "enable_crop"           : true,
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/70/"
   }, 
   "build": [

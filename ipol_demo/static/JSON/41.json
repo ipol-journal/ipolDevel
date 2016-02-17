@@ -3,7 +3,6 @@
     "demo_title"            :  "Selective Contrast Adjustment by Poisson Equation",
     "input_description"     : "",
     "param_description"     : [""],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/41/"
   }, 
   "build": [

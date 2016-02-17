@@ -8,7 +8,6 @@
             "Choose the percentage of pixels saturated to black (s1) and white (s2).For example, if you choose s1=1% and s2=2% then the 1% darker pixels in each channel will be saturated to black, and the 2% brightest pixels to white.",
         "</p>" 
     ],
-    "is_test"               : false,
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/llmps-scb/"
   }, 

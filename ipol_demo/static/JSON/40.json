@@ -5,7 +5,6 @@
     "param_description"     : "",
     "enable_crop"           : false,
     "inpainting"            : true,
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/40/",
     "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
                                 "badparams",

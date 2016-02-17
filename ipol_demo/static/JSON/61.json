@@ -3,7 +3,6 @@
     "demo_title"            : "Chambolle's Projection Algorithm for Total Variation Denoising",
     "input_description"     : [ "" ],
     "param_description"     : [ "" ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/61/"
   }, 
   "build": [

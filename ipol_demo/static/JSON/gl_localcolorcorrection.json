@@ -9,7 +9,6 @@
       "of the smallest dimension of the image."
     ],
     "enable_crop"           : true,
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/gl_lcc/"
   }, 
   "build": [

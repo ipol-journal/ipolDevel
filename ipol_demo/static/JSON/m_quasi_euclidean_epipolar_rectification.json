@@ -4,7 +4,6 @@
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "You can now run the rectification process.",
     "enable_crop"           : false,
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
     "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
                                 "badparams",

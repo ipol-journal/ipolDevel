@@ -51,7 +51,6 @@
           "</tr>",
         "</table> <div style='clear:both'><br/>"
     ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-dwcs/"
   }, 
   "build": [

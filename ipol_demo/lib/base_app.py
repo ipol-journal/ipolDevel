@@ -302,14 +302,12 @@ class base_app(empty_app):
         # to be modified in subclasses
         self.title = "base demo"
         self.timeout = 60 # subprocess execution timeout
-        self.is_test = True
         self.show_results_on_error = False
         
         #-----
         general_params = self.demo_description["general"]
         self.title            = general_params["demo_title"]
         # switch to False for deployment
-        self.is_test          = general_params["is_test"]
         self.xlink_article    = general_params["xlink_article"]
         if 'show_results_on_error' in general_params:
           self.show_results_on_error = general_params['show_results_on_error']

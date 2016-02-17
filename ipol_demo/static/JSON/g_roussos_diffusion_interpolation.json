@@ -10,7 +10,6 @@
     "param_description"     : "",
     "enable_crop"           : true,
     "crop_maxsize"          : "{{Math.floor(800/demo.params[0].value)*display_ratio}}",
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
   }, 
   "build": [

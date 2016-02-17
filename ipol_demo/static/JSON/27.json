@@ -8,7 +8,6 @@
             "Choose the minimum (smin) and maximum (smax) slope of the affine transformation of image values.",
         "</p>" 
     ],
-    "is_test"               : false,
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/lps-pae/"
   }, 

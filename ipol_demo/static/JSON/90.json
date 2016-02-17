@@ -18,7 +18,6 @@
     "param_description"     : [
             "<p> Percentile Signal-dependent Noise Estimation Algorithm.</p> " 
         ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/90/"
   }, 
   "build": [

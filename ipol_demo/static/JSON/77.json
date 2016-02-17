@@ -19,7 +19,6 @@
       "</p>"
     ],
     "enable_crop"           : false,
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/77/"
   }, 
   "build": [

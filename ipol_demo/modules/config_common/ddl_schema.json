@@ -23,7 +23,6 @@
                             "items": {"type":"string"}
                         }]
                     },
-                "is_test":        { "type" : "boolean" },
                 "xlink_article":  { "type" : "string"  },
                 "enable_crop":    { "type" : "boolean" },
                 "inpainting":     { "type" : "boolean" },
@@ -38,7 +37,7 @@
                                 },
                 "show_results_on_error": { "type":"boolean" }
                 },
-            "required": [ "demo_title", "input_description", "param_description", "is_test", "xlink_article" ]
+            "required": [ "demo_title", "input_description", "param_description", "xlink_article" ]
         },
       "build":   
         { 

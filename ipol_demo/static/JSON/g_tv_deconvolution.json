@@ -31,7 +31,6 @@
           "precision before deconvolution.  Thus there is quantization noise ",
           "even when a noise level of zero is selected.</p>",
       "</div>" ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-tvdc/"
   }, 
   "build": [

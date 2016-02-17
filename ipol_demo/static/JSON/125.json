@@ -15,7 +15,6 @@
           "refered to as '<b>no noise</b>'.</li>",
       "</ul>" ],
     "param_description"     : [""],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/125/"
   }, 
   "build": [

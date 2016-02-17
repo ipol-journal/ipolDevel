@@ -7,7 +7,6 @@
         "<ol>  <li> a Gaussian noise is added to the input image;</li>",
               "<li> the NLmeans algorithm is used to denoise the image.</li>",
         "</ol> </p>"],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcm_nlm/"
   }, 
   "build": [

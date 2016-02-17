@@ -17,7 +17,6 @@
       "</ul>" 
     ],
     "param_description"     : ["Ponomarenko signal-dependent noise estimation algorithm."],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/45/"
   }, 
   "build": [

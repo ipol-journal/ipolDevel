@@ -431,16 +431,6 @@ class ListDemos:
                 cherrypy.log("failed to read JSON demo description")
                 self.demo_dict.pop(demo_id)
 
-    #---------------------------------------------------------------------------
-    def filter_production_demos(self):
-        """
-            filter out test demos
-        """
-        if cherrypy.config['server.environment'] == 'production':
-            for (demo_id, demo_app) in self.demo_dict.items():
-                if 'general' in self.demo_desc[demo_id] and \
-                    self.demo_desc[demo_id]['general']["is_test"]:
-                    self.demo_dict.pop(demo_id)
 
     #---------------------------------------------------------------------------
     def get_values_of_o_arguments(self,argv):
@@ -561,7 +551,6 @@ class ListDemos:
         
         # 3.
         self.check_demos(getstats=False)
-        self.filter_production_demos()
         
         # 4. remount demos 
         for (demo_id, demo_path) in demo_dict_bak.items():
@@ -597,7 +586,6 @@ if __name__ == '__main__':
     dlist = ListDemos()
     dlist.get_demo_list()
     dlist.check_demos(getstats=True)
-    dlist.filter_production_demos()
     dlist.filter_arguments(sys.argv)
 
     # now handle the remaining command-line options

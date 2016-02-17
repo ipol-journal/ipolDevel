@@ -3,7 +3,6 @@
     "demo_title"            :  "A Demosaicking Algorithm with Adaptive Inter-Channel Correlation",
     "input_description"     : "Please select or upload the image pair to register.",
     "param_description"     : "",
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/145/"
   }, 
   "build": [

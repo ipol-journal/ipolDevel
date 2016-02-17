@@ -10,7 +10,6 @@
             "<li>t : the least squares algorithm (ls, ls + thresholding, non-negative ls)</li>",
         "</ul>"
         ],
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/admm-nppsf/",
     "show_results_on_error" : true
   }, 

@@ -3,7 +3,6 @@
     "demo_title"            :  "An Iterative Optimization Algorithm for Lens Distortion Correction Using Two-Parameter Models",
     "input_description"     : "",
     "param_description"     : "",
-    "is_test"               : false,
     "xlink_article"         : "http://www.ipol.im/pub/pre/130/",
     "enable_crop"           : false
   }, 
