@@ -60,7 +60,7 @@
         <td>
       </tr>-->
       <tr style="background-color:#EEEEEE;">
-        <th colspan="{{blob_set[0].size}}">
+        <th colspan="{{blob_set[0].size}}" ng-style="{'max-width':demo.general.thumbnail_size*blob_set[0].size+'px'}">
         <!-- We could use the blob name but in general each image has the same title
              which is a better name <span>{{blob_set[0].set_name}}</span> -->
           {{blob_set[1].title}}
