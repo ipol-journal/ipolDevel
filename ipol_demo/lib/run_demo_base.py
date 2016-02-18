@@ -11,8 +11,8 @@ from .image import image
 import PIL
 
 #-----------------------------------------------------------------------------
-class TimeoutError(Exception):
-  def __init__(self, value):
+class IPOLTimeoutError(Exception):
+  def __init__(self, value=None):
     self.value = value
   def __str__(self):
     return repr(self.value)
@@ -373,7 +373,7 @@ class RunDemoBase:
             # could not stop the process
             # probably self-terminated
             pass
-        raise TimeoutError()
+        raise IPOLTimeoutError(timeout)
       time.sleep(0.1)
           
     if any([0 != p.returncode for p in process_list]):
