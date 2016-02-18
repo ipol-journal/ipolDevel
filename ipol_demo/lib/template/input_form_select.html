@@ -8,7 +8,7 @@
     <p>
       Click on an image to use it as the algorithm input.
     </p>
-    <form name="ThumbnailSizeForm">
+    <form name="ThumbnailSizeForm" >
       <label>Thumbnail size (in pixels)</label>
       <select ng-options="ThumbnailSize for ThumbnailSize in [64, 128, 192, 256]" 
               ng-model="demo.general.thumbnail_size" >
@@ -19,15 +19,12 @@
               ng-model="ShowCredits"  
               ng-init="ShowCredits=false" >
     </form>
-    <div ng-repeat="blob_set in demoblobs.blobs">
-<!--       create first the table with the correct number of inputs -->
+    <div ng-repeat="blob_set in demoblobs.blobs" style="display:inline-block;vertical-align: top; ">
+
+     <!--       create first the table with the correct number of inputs -->
       <table  style=' background-color:#EEEEEE;
-                      margin:5px;float:left;
+                      margin:5px;
                       text-align:center;vertical-align:middle;'>
-<!--                     height:{{demo.general.thumbnail_size}}px;'  -->
-<!--                     width:{{demo.general.thumbnail_size*demo.inputs.length.+10*demo.inputs.length}}px; -->
-<!--      <div  class="select_input"
-            style='margin:5px;float:left;  text-align:center; vertical-align:middle;width:{{demo.general.thumbnail_size*demo.inputs.length+10*demo.inputs.length}}px;height:{{demo.general.thumbnail_size}}px; '>-->
       <tr>
         <td   style=' margin:2px;padding:2px;'
               ng-repeat="idx in range(1,blob_set[0].size+1)" 
@@ -41,7 +38,7 @@
                            'width':demo.general.thumbnail_size+'px', 
                            'height':demo.general.thumbnail_size+'px',
                            'line-height':demo.general.thumbnail_size+'px',
-                           'text-align':'center'}">
+                           'text-align':'center'}" ng-cloak>
             <img
                   ng-style="{'max-width':demo.general.thumbnail_size+'px',
                           'max-height':demo.general.thumbnail_size+'px', 'vertical-align':'middle'}"
@@ -54,25 +51,19 @@
           </a>
         </td>
       </tr>
-<!--      <tr ng-if="ShowCredits">
-        <td ng-repeat="idx in range(1,blob_set[0].size+1)" ng-if="blob_set[idx].extension!='disabled'">
-          <i> {{blob_set[idx].credit}} ** </i>
-        <td>
-      </tr>-->
       <tr style="background-color:#EEEEEE;">
-        <th colspan="{{blob_set[0].size}}" ng-style="{'max-width':demo.general.thumbnail_size*blob_set[0].size+'px'}">
+        <th colspan="{{blob_set[0].size}}" ng-style="{'max-width':demo.general.thumbnail_size*blob_set[0].size+'px' }">
         <!-- We could use the blob name but in general each image has the same title
              which is a better name <span>{{blob_set[0].set_name}}</span> -->
           {{blob_set[1].title}}
           <span ng-if="ShowCredits">
-            <br/> <font size="-2"><i> {{blob_set[1].credit}} </i></font>
+            <br/> <font size="-2"><i> <pre> &copy; {{blob_set[1].credit}} </pre></i></font>
           </span>
         </th>
       </tr>
       </table>
     </div>
     <div style='clear:both'> </div>
-<!-- </div> -->
 <P>
 
 <!-- </form> -->

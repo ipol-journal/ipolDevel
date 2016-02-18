@@ -5,7 +5,8 @@
   IPOLDemosApp.value("proxy_server", "${app.proxy_server}"); 
 </script>
 
-<div ng-controller="DemoInputCtrl">
+ <!-- ng-cloak prevents progressive rendering of the div -->
+<div ng-controller="DemoInputCtrl" ng-cloak>
   <div  ng-bind-html="renderHtml(demo.general.input_description)"></div>  
   <%include file="input_form_select.html" />
   <%include file="input_form_upload.html" />
