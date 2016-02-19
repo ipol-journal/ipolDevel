@@ -256,6 +256,8 @@ class Archive(object):
 		hash_file = self.get_hash_blob(path)
 		format_file = self.file_format(path)
 		route, type_file = os.path.splitext(path)
+		extension = type_file.split('.')
+                type_file = extension[1]
 		type_file.lower()
 		
 		cursor_db = conn.cursor()
