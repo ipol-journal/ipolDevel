@@ -117,7 +117,7 @@
     <!-- gallery -->
     <span ng-if="result.type==='gallery'"> 
       <span bind-html-compile="joinHtml(result.label)"></span><br/>
-      <div   class="gallery2" style="{{result.style|interpolate:current_scope}}">
+      <div   class="gallery2" ng-style="{{result.style|interpolate:current_scope}}">
         <ul class="index">
           <!-- if label contains '?' then interpret it as a condition 
                 and filter labels -->
@@ -130,7 +130,7 @@
               <span ng-if="result.status[$index]!='loaded'"> (loading) </span>
               <!-- if image is a single string, load it from work_url -->
               <div class="galim" ng-if="CheckString(image)" style="left:16em" >
-                  <img  style="{{result.style|interpolate:current_scope}}" 
+                  <img  ng-style="{{result.style|interpolate:current_scope}}" 
                         ng-src="{{work_url+image|interpolate:current_scope}}" 
                         imageonfail="DisableImage(result.status,$index)"
                         imageonload="LoadedImage(result.status,$index)"
@@ -142,7 +142,7 @@
                 <table border="1">
                   <tr>
                     <td ng-repeat="im in image">
-                      <img  style="{{result.style|interpolate:current_scope}}" 
+                      <img  ng-style="{{result.style|interpolate:current_scope}}" 
                             ng-src="{{work_url+im|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
@@ -158,7 +158,7 @@
                 <table border="1">
                   <tr>
                     <td ng-repeat="(l,im) in image" style="text-align:center">
-                      <img  style="{{result.style|interpolate:current_scope}}" 
+                      <img  ng-style="{{result.style|interpolate:current_scope}}" 
                             ng-src="{{work_url+im|interpolate:current_scope}}" 
                             imageonfail="DisableImage(result.status,$parent.$index)"
                             imageonload="LoadedImage(result.status,$parent.$index)"
@@ -182,20 +182,20 @@
     <!-- repeat_gallery -->
     <span ng-if="result.type==='repeat_gallery'"> 
       <span bind-html-compile="result.label"></span><br/>
-      <div class="gallery2" style="{{result.style|interpolate:current_scope}}" >
+      <div class="gallery2" ng-style="{{result.style|interpolate:current_scope}}" >
         <ul class="index">
           <li ng-repeat="idx in range($eval(result.repeat))" >
             <a href="#"> 
               <div bind-html-compile="result.contents[0]" > </div> 
               <span class="galim" ng-if="CheckArray(result.contents[1])===false">
-                <img  style="{{result.style|interpolate:current_scope}}" 
+                <img  ng-style="{{result.style|interpolate:current_scope}}" 
                       ng-src="{{work_url+result.contents[1]|interpolate_loop:current_scope:idx}}"/> 
               </span>
               <span class="galim" ng-if="CheckArray(result.contents[1])">
                 <table border="1">
                   <tr>
                     <td ng-repeat="im in result.contents[1]">
-                      <img  style="{{result.style|interpolate:current_scope}}" 
+                      <img  ng-style="{{result.style|interpolate:current_scope}}" 
                             ng-src="{{work_url+im|interpolate_loop:current_scope:idx}}"/> 
                     </td>
                   </tr>
@@ -237,7 +237,7 @@
     <span ng-if="result.type==='text_file'"> 
       <span bind-html-compile="result.label"></span><br/>
       <iframe src="{{work_url+result.contents}}" 
-              style="{{result.style|interpolate:current_scope}}"/> </iframe>
+              ng-style="{{result.style|interpolate:current_scope}}"/> </iframe>
     </span>
   </span>
 
