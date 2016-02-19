@@ -18,7 +18,7 @@ Main function.
 
 import cherrypy
 import sys
-from module import Archive
+from archive import Archive
 
 if __name__ == '__main__':
     if "--test" in sys.argv:
