@@ -214,7 +214,7 @@ class Proxy(object):
 
 
 	@cherrypy.expose
-	def proxy_service_call(self,  module, service, servicehtmlmethod=None, params=None, jsonparam=None):
+	def proxy_service_call(self, module, service, servicehttpmethod=None, params=None, jsonparam=None):
 		"""
 
 		I need to be able to call proxy in POST, and get it to call the WS depending
@@ -228,11 +228,10 @@ class Proxy(object):
 		"""
 
 		# print ("")
-		# print (" proxy_call")
-
 		error_json = {}
 		error_json["status"] = "KO"
-
+                
+                
 		#validate params and set default params
 		try:
 
@@ -259,8 +258,8 @@ class Proxy(object):
 				return json.dumps(error_json)
 
 
-			if servicehtmlmethod is None:
-				servicehtmlmethod='GET'
+			if servicehttpmethod is None:
+				servicehttpmethod='GET'
 
 			if params:
 				#request call needs a dict for params
@@ -289,27 +288,27 @@ class Proxy(object):
 		# print "--params ",type(params)
 		# print "jsonparam ",jsonparam
 		# print "json type",type(jsonparam)
-		# print "servicehtmlmethod",servicehtmlmethod
-		# print "servicehtmlmethod",type(servicehtmlmethod)
+		# print "servicehttpmethod",servicehttpmethod
+		# print "servicehttpmethod",type(servicehttpmethod)
 
 		# WS call
 		try:
 
-			if servicehtmlmethod == 'GET':
+			if servicehttpmethod == 'GET':
 
-				#print (" servicehtmlmethod GET")
+				#print (" servicehttpmethod GET")
 				response = requests.get(ws_url, params = params)
 
-			elif servicehtmlmethod =='POST':
+			elif servicehttpmethod =='POST':
 
-				#print (" servicehtmlmethod POST")
+				#print (" servicehttpmethod POST")
 				if json is not None:
 					response = requests.post(ws_url, params = params, json = jsonparam)
 				else:
 					response = requests.post(ws_url, params = params)
 			else:
 
-				error_msg = " Invalid servicehtmlmethod, only GET and POST allowed at the present moment"
+				error_msg = " Invalid servicehttpmethod, only GET and POST allowed at the present moment"
 				print error_msg
 				error_json["code"] = -3
 				self.error_log("proxy_service_call", error_msg)

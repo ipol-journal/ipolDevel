@@ -79,15 +79,6 @@ class Archive(object):
 			return True
 
 	@staticmethod
-	def get_extension(path):
-		"""
-		Return the extension of a file using its magic number.
-
-		:rtype: string
-		"""
-		return magic.from_file(path).split(' ', 1)[0].lower()
-
-	@staticmethod
 	def get_hash_blob(path):
 		"""
 		Return sha1 hash of given blob
@@ -108,7 +99,8 @@ class Archive(object):
 		"""
 		mime = magic.Magic(mime=True)
 		fileformat = mime.from_file(the_file)
-		return fileformat[:5]
+		extension = fileformat.split('/')
+		return extension[0]
 
 	def unit_test(self):
 		for i in range(10):
@@ -262,8 +254,10 @@ class Archive(object):
 		path_new_file = str()
 		tmp = tuple()
 		hash_file = self.get_hash_blob(path)
-		type_file = self.get_extension(path)
 		format_file = self.file_format(path)
+		route, type_file = os.path.splitext(path)
+		type_file.lower()
+		
 		cursor_db = conn.cursor()
 		cursor_db.execute('''
 		SELECT * FROM blobs WHERE hash = ?
@@ -274,8 +268,7 @@ class Archive(object):
 			cursor_db.execute('''
 			INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
 			''', (hash_file, type_file, format_file,))
-			path_new_file = os.path.join(self.blobs_dir,
-										 hash_file) + '.' + type_file
+			path_new_file = os.path.join(self.blobs_dir, hash_file) + '.' + type_file
 			shutil.copyfile(path, path_new_file)
 
 			if format_file == "image":
@@ -347,7 +340,8 @@ class Archive(object):
 		:rtype: JSON formatted string.
 		"""
 		status = {"status" : "KO"}
-		try:
+		
+                try:
 			demo_id = int(demo_id)
 			conn = lite.connect(self.database_file)
 			id_experiment = self.update_exp_table(conn, demo_id, parameters)
@@ -431,10 +425,7 @@ class Archive(object):
 		WHERE id_experiment = ?""", (id_exp,)):
 			path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
 			path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
-			list_files.append(self.get_dict_file(path_file,
-												 path_thumb,
-												 row[2],
-												 row[3]))
+			list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
 		dict_exp["id"] = id_exp
 		dict_exp["date"] = date
@@ -459,10 +450,7 @@ class Archive(object):
 		FROM experiments WHERE id_demo = ?
 		ORDER BY timestamp
 		LIMIT ? OFFSET ?""", (id_demo, self.nb_exp_by_pages, starting_index,)):
-			data_exp.append(self.get_data_experiment(conn,
-													 row[0],
-													 row[1],
-													 row[2]))
+			data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2]))
 		return data_exp
 
 	def echo_page(self, id_demo, page):
@@ -475,20 +463,18 @@ class Archive(object):
 		"""
 		data = {}
 		data["status"] = "KO"
-		try:
+                try:
 			conn = lite.connect(self.database_file)
 			dict_pages = self.count_pages(conn, id_demo)
-
-			if page > dict_pages["nb_pages"] or page < 0:
+                        
+                        if page > dict_pages["nb_pages"] or page < 0:
 				raise ValueError("Page requested don't exist.")
 			elif page == 0:
 				page = 1
 
 			data["id_demo"] = id_demo
 			data["nb_pages"] = dict_pages["nb_pages"]
-			data["experiments"] = self.get_experiment_page(conn,
-														   id_demo,
-														   page)
+			data["experiments"] = self.get_experiment_page(conn, id_demo, page)
 			conn.close()
 			data["status"] = "OK"
 		except Exception as ex:
@@ -507,7 +493,7 @@ class Archive(object):
 
 		:rtype: JSON formatted string
 		"""
-		return json.dumps(self.echo_page(int(demo_id), int(page)))
+                return json.dumps(self.echo_page(int(demo_id), int(page)))
 
 #####
 # deleting an experiment

@@ -18,6 +18,7 @@ import urllib
 import requests
 
 import gzip
+import re
 
 from lib.misc import app_expose, ctime
 
@@ -1107,7 +1108,8 @@ class base_app(empty_app):
           for filename in desc['files']:
             file_complete_route = os.path.join(self.work_dir, filename)
             if os.path.exists(file_complete_route):
-               blobs[file_complete_route] = desc['files'][filename]
+               value = re.sub('[!@#$]', '', desc['files'][filename])
+               blobs[file_complete_route] = value
         
         if 'compressed_files' in desc.keys():
           for filename in desc['compressed_files']:
@@ -1116,14 +1118,13 @@ class base_app(empty_app):
             print file_complete_route
             print file_complete_route_compressed
             if os.path.exists(file_complete_route):
-               #with open(file_complete_route, 'rb') as f_in, gzip.open(file_complete_route_compressed, 'wb') as f_out:
-               #     shutil.copyfileobj(f_in, f_out)
                f_src = open(file_complete_route, 'rb')
                f_dst = gzip.open(file_complete_route_compressed, 'wb')
                f_dst.writelines(f_src)
                f_src.close()
                f_dst.close()
-               blobs[file_complete_route_compressed] = desc['compressed_files'][filename] 
+               value = re.sub('[!@#$]', '', desc['compressed_files'][filename])
+               blobs[file_complete_route_compressed] = value 
             
         # let's add all the parameters
         parameters = {}
@@ -1138,17 +1139,16 @@ class base_app(empty_app):
             if i in self.cfg['info']:
                parameters[desc['info'][i]] = self.cfg['info'][i]
         
+            
         try:
-            url_proxy_in_local = "http://127.0.0.1:9003/"
-            request = '?module=archive&service=add_experiment&demo_id=' + self.id
-            #json_response = urllib.urlopen(self.proxy_server + request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)).read()
-            request_a_service = request + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)
-            print "\n\n"
-            print request_a_service
-            print "\n\n"
-            json_response = urllib.urlopen(url_proxy_in_local + request_a_service).read()
-            print "json in base_app when adding in the archive " + json_response
-        
+            
+            url_proxy = self.proxy_server + '?module=archive&service=add_experiment'
+            request_a_service = 'demo_id=' + self.id + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)
+            req = urllib2.Request(url_proxy, request_a_service)
+            response = urllib2.urlopen(req)
+            json_response = response.read()
+            
+            
         except Exception as ex:
 	       return self.error(errcode='modulefailure',
                              errmsg="The archive module has failed: " + str(ex))
@@ -1378,17 +1378,19 @@ class base_app(empty_app):
         
     # NEW CODE
     @cherrypy.expose
+    def exp_details(self, demo_id, id_experiment):
+        pass
+
+    @cherrypy.expose
     def archive(self, page=-1, id_experiment=None):
         """
         lists the archive content
         """
-        url_proxy_in_local = "http://127.0.0.1:9003/"
         page = int(page)
         
         if not id_experiment:
             request = '?module=archive&service=page&demo_id=' + self.id + '&page=1'
-            #json_response = urllib.urlopen(self.proxy_server + request).read()
-            json_response = urllib.urlopen(url_proxy_in_local + request).read()
+            json_response = urllib.urlopen(self.proxy_server + request).read()
             response = json.loads(json_response)
             status = response['status']
             
@@ -1408,8 +1410,7 @@ class base_app(empty_app):
 
         
         request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
-        #json_response = urllib.urlopen(self.proxy_server + request).read()
-        json_response = urllib.urlopen(url_proxy_in_local + request).read()
+        json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
             
         status = response['status']
@@ -1438,8 +1439,7 @@ class base_app(empty_app):
                 if nbpage > 1:
                 
                     request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(nbpage)
-                    #json_response = urllib.urlopen(self.proxy_server + request).read()
-                    json_response = urllib.urlopen(url_proxy_in_local + request).read()
+                    json_response = urllib.urlopen(self.proxy_server + request).read()
                     response = json.loads(json_response)
                     
                     experiments_in_last_page = response['experiments']
