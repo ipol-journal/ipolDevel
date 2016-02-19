@@ -149,7 +149,7 @@ By splitting the monolithic application into smaller modules and decoupling inte
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.5\columnwidth]{architecture/images/architecture.pdf}
+\includegraphics[width=0.8\linewidth]{architecture/images/architecture.pdf}
 \caption{Modular system architecture.} 
 \label{fig:architecture}
 \end{figure}
@@ -232,6 +232,8 @@ Packages to be installed with pip install:
 \item python-magic
 \item simplejson
 \end{itemize}
+
+- \ToDo{} Check that all modules which store a SQLite database file (.db) are able to create the file when they are started and the file does not exist. The best solution is to have a text file with the SQL instructions to drop all  tables and to create them. This way you only need to modify this text file instead of a Python function in the module.
 
 - Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
