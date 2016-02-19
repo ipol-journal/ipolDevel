@@ -7,8 +7,8 @@ demo.*.log
 *.pyc
 
 # Archive data
-archive/blobs/*
-archive/blobs_thumbs/*
+ipol_demo/modules/archive/blobs/*
+ipol_demo/modules/archive/blobs_thumbs/*
 
 
 # Database
