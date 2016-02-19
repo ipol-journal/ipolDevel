@@ -114,7 +114,7 @@
                           "first image"                : "input_0s.png",
                           "second image"               : "input_1.png"
                         },
-      "style"         : "width:{{::imwidth}}px;height:{{::imheight}}px" 
+      "style"         : "{'width':imwidth+'px','height':imheight+'px'}" 
     },
     {
       "type"          : "file_download", 
@@ -125,7 +125,7 @@
       "type"          : "text_file", 
       "label"         : "<h2>Program Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:50em;height:20em"
+      "style"         : "{'width':'50em','height':'20em'}"
     }
   ]
 }

@@ -63,7 +63,7 @@
       "type"          : "gallery",
       "label"         : "<h2>Noisy, denoised, and difference images</h2>",
       "contents"      : { "Original":"input_0.sel.png", "Denoised":"denoised.png", "Difference":"diff.png"},
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     },
     {
       "type"          : "repeat_gallery",
@@ -73,7 +73,7 @@
                           [ "denoised_diff_{{idx}}.png",
                             "denoised_noiseCurves_L_{{idx}}.png",
                             "denoised_noiseCurves_H_{{idx}}.png"] ],
-      "style"         : "width: 400px; height:{{400*sizeY/sizeX}}px"
+      "style"         : "{'width': '400px', 'height':400*sizeY/sizeX+'px'}"
     }
   ],
   "archive":

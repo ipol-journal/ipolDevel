@@ -95,13 +95,13 @@
         "Output"   : "output_corrected_image.png",
         "Input"    : "input_0.sel.png"
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Additional Info<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:50em;height:10em;background-color:#eee"
+      "style"         : "{'width':'50em','height':'10em','background-color':'#eee'}"
     },
     {
       "type"  : "file_download",

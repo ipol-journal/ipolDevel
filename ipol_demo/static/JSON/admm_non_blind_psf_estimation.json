@@ -103,7 +103,7 @@
       "contents"      : { 
         "PSF"    : "psf.png" 
       },
-      "style"         : "height:{{Math.min(sizeY*ZoomFactor,600)}}px"
+      "style"         : "{'height':Math.min(sizeY*ZoomFactor,600)+'px'}"
     },
     {
       "type"          : "gallery",
@@ -112,13 +112,13 @@
         "input"    : "input_0.sel.png" ,
         "detected" : "det_out.png"
       },
-      "style"         : "height:{{Math.min(sizeY*ZoomFactor,800)}}px"
+      "style"         : "{'height':Math.min(sizeY*ZoomFactor,800)+'px'}"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Program Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:50em;height:30em;background-color:#eee"
+      "style"         : "{'width':'50em','height':'30em','background-color':'#eee'}"
     }
   ]
 

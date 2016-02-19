@@ -130,7 +130,7 @@
             "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
             "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
         },
-      "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px" 
+      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}" 
     },
     {
       "type"          : "html_text", 

@@ -126,7 +126,7 @@
           "Diff. input"         : "diff_blurry.png",
           "Diff. deconvolved"   : "diff_tvdeconv.png"
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     },
     {
       "type"      :"html_text",
@@ -151,7 +151,7 @@
       "type"          : "text_file", 
       "label"         : "<h2>Output<h2>",
       "contents"      : "output.txt",
-      "style"         : "width:60em;height:20em"
+      "style"         : "{'width':'60em','height':'20em'}"
     }
   ]
 

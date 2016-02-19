@@ -114,7 +114,7 @@
                           "Marr-Hildreth"     : "out_mh.png",
                           "Marr-Hildreth-log" : "out_mhl.png"
                         },
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     }
   ],
   "archive":

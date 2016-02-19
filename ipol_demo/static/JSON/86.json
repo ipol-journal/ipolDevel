@@ -71,13 +71,13 @@
             "Original"          : "input_0.sel.png",
             "Difference"        : "diff.png"
         },
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     },
     {
       "type"          : "text_file", 
       "label"         : "<p>RMSE and PSNR</p>",
       "contents"      : "measures.txt",
-      "style"         : "width:40em;height:5em;background-color:#eee"
+      "style"         : "{'width':'40em','height':'5em','background-color':'#eee'}"
     }
   ]
 }

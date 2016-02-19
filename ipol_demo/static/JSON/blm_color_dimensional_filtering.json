@@ -74,14 +74,14 @@
         "Original"  : "input_0.sel.png",
         "Filtered"  : "output_2.png"
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     },
     {
       "type"          : "repeat_gallery",
       "repeat"        : "21",
       "label"         : "<h2>RGB views</h2><p> Top: original and filtered. Bottom: density. </p>",
       "contents"      : [ "<small>VIEW {{idx+1}}</small>","view_{{idx+100}}.png"],
-      "style"         : "height:{{Math.max(600,sizeY*ZoomFactor)}}px"
+      "style"         : "{'height':Math.max(600,sizeY*ZoomFactor)+'px'}"
     },
     {
       "type"          : "file_download",
@@ -95,7 +95,7 @@
         "type"      : "text_file",
         "label"     : "<h2>Additional Info<h2>",
         "contents"  : "stdout.txt",
-        "style"     : "width:50em;height:10em;background-color:#eee"
+        "style"     : "{'width':'50em','height':'10em','background-color':'#eee'}"
     }
   ]
 

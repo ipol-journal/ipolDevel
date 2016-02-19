@@ -150,7 +150,7 @@
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Zhang-Wu difference"           : "diffdmzhangwu_zoom.png"
         },
-      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
         "type"    : "html_text",

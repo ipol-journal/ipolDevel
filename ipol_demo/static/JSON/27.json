@@ -134,7 +134,7 @@
                             "Histograms: R, G, B, I":"output_1_HE_hist.png",
                             "Contrast change"       :"pointsHE.png"}
         },
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     }
   ]
 

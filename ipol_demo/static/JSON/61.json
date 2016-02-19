@@ -161,28 +161,28 @@
             "params.runmode==1&&params.has_zoom?Denoised"   : "denoised_zoom.png"
 
         },
-      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
       "type"          : "text_file", 
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference denoised-original:</p>",
       "contents"      : "rmse_denoised.txt",
-      "style"         : "width:40em;height:4em;background-color:#eee"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference noisy-original:</p>",
       "contents"      : "rmse_noisy.txt",
-      "style"         : "width:40em;height:4em;background-color:#eee"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params._lambda==0",
       "label"         : "<p>&lambda; (dynamic computation):</p>",
       "contents"      : "guessed_lambda.txt",
-      "style"         : "width:40em;height:10em;background-color:#eee"
+      "style"         : "{'width':'40em','height':'10em','background-color':'#eee'}"
     }
   ]
 }

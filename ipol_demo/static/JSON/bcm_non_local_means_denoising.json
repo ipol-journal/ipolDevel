@@ -62,13 +62,13 @@
                             "Denoised"   : "output_1.png",
                             "Original"   : "input_0.sel.png",
                             "Difference" : "output_2.png"},
-      "style"         : "height:{{Math.max(200,sizeY)*ZoomFactor}}px" 
+      "style"         : "{'height':Math.max(200,sizeY)*ZoomFactor+'px'}" 
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Additional info: RMSE and PSNR<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:20em;height:4em"
+      "style"         : "{'width':'20em','height':'4em'}"
     }
   ],
   "archive":
