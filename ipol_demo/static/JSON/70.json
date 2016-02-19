@@ -158,13 +158,13 @@
         "Input"     : "input_0.sel.png", 
         "Output"    : "output.png"
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Additional Information<h2> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
       "contents"      : "shell_cmds.txt",
-      "style"         : "width:55em;height:6em;background-color:#eee"
+      "style"         : "{'width':'55em','height':'6em','background-color:#eee'}"
     }
   ]
 

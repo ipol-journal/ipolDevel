@@ -62,7 +62,7 @@
       "contents"      : { "Output":"output.png",
                           "Output inv":"output-inv.png", 
                           "Input":"input_0.sel.png"},
-      "style"         : "height:{{sizeY*ZoomFactor}}px" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
     },
     {
       "type"          : "html_text", 

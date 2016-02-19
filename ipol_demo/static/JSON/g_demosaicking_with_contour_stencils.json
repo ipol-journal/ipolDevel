@@ -221,7 +221,7 @@
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Contour stencils difference"   : "diffdmcswl1_zoom.png"
         },
-      "style"         : "height:{{info.displayheight*ZoomFactor}}px" 
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
         "type"    : "html_text",

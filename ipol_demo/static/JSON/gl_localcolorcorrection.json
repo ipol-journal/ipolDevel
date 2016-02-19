@@ -124,7 +124,7 @@
         "Result 3" : { "image":"output_3.png",    "Histogram:R,G,B,I":"output_3_hist.png" }, 
         "Result 4" : { "image":"output_4.png",    "Histogram:R,G,B,I":"output_4_hist.png" }
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     }
   ]
 

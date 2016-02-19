@@ -102,7 +102,7 @@
             "Inpainted"    : "inpainted.png",
             "Original"     : "input_0.png"
         },
-      "style"         : "height:{{Math.max(sizeY*ZoomFactor,350)}}px" 
+      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}" 
     }
   ]
 }

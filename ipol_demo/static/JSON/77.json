@@ -119,7 +119,7 @@
         "PSF"         :"psf_kernel.png", 
         "inter kernel":"int_kernel.png"
       },
-      "style"         : "height:{{300*ZoomFactor}}px"
+      "style"         : "{'height':300*ZoomFactor+'px'}"
     },
     {
       "type"          : "file_download", 
@@ -141,13 +141,13 @@
         "residue"     : [ "ipol_diff.png", "palette2.png" ],
         "mask"        : [ "ipol_mask.png", "palette1.png" ]
       },
-      "style"         : "height:{{500*ZoomFactor}}px" 
+      "style"         : "{'height':500*ZoomFactor+'px'}" 
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Program Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:50em;height:38em;background-color:#eee"
+      "style"         : "{'width':'50em','height':'38em','background-color':'#eee'}"
     }
   ]
 

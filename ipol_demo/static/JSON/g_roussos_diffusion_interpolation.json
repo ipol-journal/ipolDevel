@@ -197,13 +197,13 @@
         "Fourier Difference"                               : "fdifference_zoom.png",
         "Roussos-Maragos Difference"                       : "difference_zoom.png"
       },
-      "style"         : "height:{{Math.max(200,sizeY*ZoomFactor)}}px"
+      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h2>Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:40em;height:16em;background-color:#eee"
+      "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}"
     }
   ]
 

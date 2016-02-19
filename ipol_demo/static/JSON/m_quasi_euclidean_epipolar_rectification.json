@@ -48,14 +48,14 @@
       "label"         : "<h2>Input Images</h2>",
       "contents"      : {   "first image"  : "input_0.png", 
                             "second image" : "input_1.png" },
-      "style"         : "height:{{sizeY}}px" 
+      "style"         : "{'height':sizeY+'px'}" 
     },
     {
       "type"          : "gallery",
       "label"         : "<h2>Output Rectified Images</h2>",
       "contents"      : {   "first image"  : "output_0_annotated.png", 
                             "second image" : "output_1_annotated.png" },
-      "style"         : "height:{{sizeY}}px" 
+      "style"         : "{'height':sizeY+'px'}" 
     },
     {
       "type"          : "file_download", 
@@ -86,7 +86,7 @@
       "type"          : "text_file", 
       "label"         : "<h2>Program Output<h2>",
       "contents"      : "stdout.txt",
-      "style"         : "width:50em;height:25em"
+      "style"         : "{'width':'50em','height':'25em'}"
     }
   ],
   "run": [

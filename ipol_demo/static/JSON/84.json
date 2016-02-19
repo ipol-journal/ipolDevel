@@ -66,7 +66,7 @@
         "input (simplest)"  : ["inputSimplest.png", "inputSimplest_hist.png" ],
         "output"            : ["output.png",        "output_hist.png"        ]
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     }
   ]
 

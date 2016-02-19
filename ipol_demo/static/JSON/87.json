@@ -167,7 +167,7 @@
           "Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
           "Exact*"                                       : "output-exact.png"
       },
-      "style"         : "height:{{sizeY*ZoomFactor}}px"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
     },
     {
       "type"          : "html_text", 
