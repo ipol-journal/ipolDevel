@@ -1,78 +1,65 @@
 <%include file="header_archive.html" />
 
 <p>
-This archive is not moderated.
-In case of copyright infringement or similar problem, please 
-<a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact
-  us</a> to request the removal of some images.
-Some archived content may be deleted by the editorial board for size
-matters, inadequate content, user requests, or other reasons.
+This archive is not moderated. In case of copyright infringement or similar problem, please 
+<a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images.
+Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.
 </p>
 
-%if deletable:
-
-<div class="action" >
- <form style="float:left" action="${app.base_url}archive/" method="post">
-  In case you uploaded images that you don't want that appear in the archive, you can remove this experiment clicking over this button:
-
-   <input type="hidden" name="deleteThisKey" value="${bucket['meta']['key'] | h}" />
-   <input type="submit" value="delete this entry" />
- </form>
-</div>
-</br>
-%endif
-
-%if adminmode:
-<!-- ADMIN MODE: ENTRY DELETE BUTTON -->
-      <div class="action" >
-         <form style="float:left" action="${app.base_url}archive_admin/" method="post">
-            <input type="hidden" name="deleteThisKey" value="${bucket['meta']['key'] | h}" />
-            <input type="submit" value="delete this entry" />
-         </form>
-      </div>
-      </br>
-%endif
-
 <%
-images = filter(lambda i : i.is_file and i.has_tn, bucket['files'])
-non_images = filter(lambda i : i.is_file and not i.has_tn, bucket['files'])
+    images = {}
+    non_images = {}
+    
+    for files in archive['files']:
+        
+        file = files['url']
+        import os
+        path, file_extension = os.path.splitext(file)
+        
+        if file_extension.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".jpg2")):
+            images[file] = files['name']
+        else:
+            non_images[file] = files['name']
+            
+    endfor
+    
 %>
+
 <div class="bucket">
   <table class="info">
-    <tr>
-      <th>key</th>
-      <td><a href="?key=${bucket['meta']['key'] | h}"
-	     title="permalink">${bucket['meta']['key'] | h}</a></td>
+    <tr>  
+      <th>Exp.</th>
+      <td>Experiment ${archive['id_experiment']}</a>
     </tr>
     <tr>
-      <th>date</th>
-      <td>${bucket['meta']['date'] | h}</td>
+    <th>date </th>
+      <td> ${archive['date']}</td>
     </tr>
-    %for (key, value) in bucket['info'].items():
+    </tr>
+     %for (parameter, value) in archive['parameters'].items():
     <tr>
-      <th>${key | h}</th>
-      <td>${value | h}</td>
+      <th>${parameter | h} </th>
+      <td>${value | h} </td>
     </tr>
-    %endfor
+    %endfor  
     <tr>
       <th>files</th>
       <td>
-	%for item in non_images:
-	<a href="${bucket['url'] + item.name | h}"
-	   title="${item.info | h}">${item.name}</a>
-	%endfor
+       %for (url,name) in non_images.items():
+        <a href="${url}" title="${name | h}">${name}</a>
+      %endfor 
       </td>
     </tr>
     <tr>
       <th>images</th>
       <td>
-	%for item in images:
-	<div><img src="${bucket['url'] + item.name | h}" /><br />
-	  ${item.name + ' ' + item.info | h}</div>
-	%endfor
+        %for (url,name) in images.items():
+        <div><img src="${url}" /><br /> ${name | h}</div>
+        %endfor
       </td>
     </tr>
   </table>
 </div>
+
 
 <%include file="footer.html" />

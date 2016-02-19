@@ -1,3 +1,37 @@
+<%
+    import urllib
+    import json
+    
+    request = '?module=archive&service=page&demo_id=' + app.id + '&page=1'
+    json_response = urllib.urlopen(app.proxy_server + request).read()
+    response = json.loads(json_response)
+    status = response['status']
+    
+    if status == "OK":
+        page = response['nb_pages']
+        request = '?module=archive&service=page&demo_id=' + app.id + '&page=' + str(page)
+        json_response = urllib.urlopen(app.proxy_server + request).read()
+        response = json.loads(json_response)
+        status = response['status']
+        
+        if status == "OK":
+            
+            experiments = response['experiments']
+            archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
+                                for exp in experiments]
+            
+            length_experiments = len(archive_experiments) - 1
+            last_experiment = archive_experiments[length_experiments]
+            id_experiment = last_experiment['id_experiment']
+            
+            page = page
+            id_experiment = id_experiment
+            
+            url_for_archive_details = 'archive?page=' + str(page) + '&id_experiment=' + str(id_experiment) 
+            
+%>
+
+
 %if app.cfg['meta']['original']:
 <div>
   <form action="" method="get">
@@ -5,8 +39,7 @@
       <input type="hidden" name="key" value="${app.key}" />
       %if app.cfg['meta']['public']:
       This archive is public
-      (<a href="${app.base_url + 'archive?key=%s' % app.key | h }"
-	  title="permalink">link</a>)
+      (<a href="${app.base_url + url_for_archive_details | h }" title="permalink">link</a>)
       and will appear in
       <a href="${app.base_url + 'archive' | h }">the archive index</a>.
       <br />
