@@ -600,7 +600,7 @@ the variable 'ZoomFactor' that can be selected by the user.
       "Input"     : "input_0.sel.png", 
       "Output"    : "output.png"
     },
-    "style"         : "height:{{sizeY*ZoomFactor}}px" },
+    "style"         : "{'height':sizeY*ZoomFactor+'px'}" },
 \end{lstlisting}
 The use of '?' in the label "meta.hastruth?Ground truth" will condition the 
 display of "t.ipol.png" image based on the boolean variable meta.hastruth.
@@ -612,7 +612,7 @@ display of "t.ipol.png" image based on the boolean variable meta.hastruth.
         "Optical flow "              : "stuff_phs.ipol.png", 
         "meta.hastruth?Ground truth" : "t.ipol.png",
       },
-    "style": "height:{{Math.max(sizeY*ZoomFactor,350)}}px" },
+    "style": "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}" },
 \end{lstlisting}
 The use of pairs title:filename in the contents will display a HTML table
 for each tab (here "DFT" and "DCT") with images and their associated titles.
@@ -629,7 +629,7 @@ for each tab (here "DFT" and "DCT") with images and their associated titles.
           "N iterations":"dct_iter.png",
           "difference"  :"dct_diff.png" }
     },
-    "style"         : "height:{{sizeY*ZoomFactor}}px" },
+    "style"         : "{'height':sizeY*ZoomFactor+'px'" },
 \end{lstlisting}
 The use of string array in the contents will display HTML table without associated
 titles.
@@ -642,7 +642,7 @@ titles.
       "residue"     : [ "ipol_diff.png", "palette2.png" ],
       "mask"        : [ "ipol_mask.png", "palette1.png" ]
     },
-    "style"         : "height:{{500*ZoomFactor}}px"   },
+    "style"         : "{'height':500*ZoomFactor+'px'}"   },
 \end{lstlisting}
 
 
@@ -738,7 +738,7 @@ Example using 'repeat':
   { "type"          : "text_file", 
     "label"         : "<h2>Output<h2>",
     "contents"      : "stdout.txt",
-    "style"         : "width:40em;height:16em;background-color:#eee" }
+    "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}" }
 \end{lstlisting}
 
 %------ warning  ------
@@ -798,7 +798,7 @@ algorithm.
     "repeat"   : "params.scales",
     "label"    : "<h2> Noise Curves </h2>",
     "contents" : [ "Scale {{idx}}:","curve_{{idx}}.png"],
-    "style"    : "height:600px" },
+    "style"    : "{'height':'600px'}" },
 \end{lstlisting}
 
 \begin{lstlisting}[language=json,firstnumber=1]
@@ -809,7 +809,7 @@ algorithm.
                    [ "denoised_diff_{{idx}}.png",
                      "denoised_noiseCurves_L_{{idx}}.png",
                      "denoised_noiseCurves_H_{{idx}}.png"] ],
-    "style"    : "width:400px;height:{{400*sizeY/sizeX}}px" }
+    "style"    : "{'width':'400px','height':400*sizeY/sizeX+'px'}" }
 \end{lstlisting}
 
 
@@ -873,7 +873,7 @@ algorithm.
       "Robustness Check"                : "ppRobust.png",
       "!(info.isgray)?Skin & Robustness Check":"ppBoth.png"
     },
-    "style"         : "height:{{sizeY*ZoomFactor}}px"
+    "style"         : "{'height':sizeY*ZoomFactor+'px'}"
   } ]
 }
 \end{lstlisting}
