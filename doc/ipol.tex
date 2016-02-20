@@ -253,6 +253,11 @@ NotFound: (404, "The path '/hello' was not found.")
 Powered by CherryPy 3.5.0
 \end{verbatim}
 
+- In general, check that no FK reference is missing at any of the database schemas of the modules, and that they're correct.
+Also, we need to check absolutely that all the CASCADE DELETE are correct!
+
+- FYI: the package \emph{sqlitebrowser} seems to be a very good tool to browse and develop the SQLite schemas.
+
 \ToDo{Keep adding!}
 
 
