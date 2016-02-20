@@ -130,6 +130,9 @@ version on the same system.
 \end{comment}
 
 \subsubsection{Database}
+\ToDo{[Miguel] Check that the database information in this section is correct and up to date}
+
+\ToDo{[Miguel] It seems that we should have a foreign key in the table \emph{demo} for field \emph{template\_id}. Without it, it could be possible to have a demo which uses the blobs of a non-existing demo.}
 
 We use a SQL database to help managing blobs, that can contain images or other 
 type of data needed as inputs for the demos.
@@ -140,11 +143,13 @@ relations.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{blobs/images/images_bdd_vertabelo}
-  \caption{Database schema for the Blobs module. \ToDo{[Miguel] Was this diagram made with an automatic tool? In that case, which tool? It needs to be a vectorial graphic, not raster. In general, using an automatic tool which creates automatically the diagram is a very good idea.}}
+  \caption{Database schema for the Blobs module. \ToDo{[Miguel] This diagram was made with Verbatelo. Is there any free software and automatic tool to use instead? It needs to be a vectorial graphic, not raster. In general, using an automatic tool which creates automatically the diagram is a very good idea. Also: missing \emph{name} inside table \emph{tag}. An automatic tool will avoid that we forget to add fields, since the diagram will be generated automatically.}}
   %\footnotesize
   %\caption*{Realized with MySQL Workbench}
   \label{img:images_bdd}
 \end{figure}
+
+\ToDo{[Miguel] The field \emph{blob\_id\_in\_set} has a bad name. Its name suggests that it is an ID (a PK or FK), but instead it is a position. I propose to change it to \emph{blob\_pos\_in\_set} or similar.}
 
 \subsection{Remarks}
 \subsubsection{Concurrent accesses}
@@ -187,7 +192,7 @@ has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
 
 \subsubsection{Reference of the module services}
 \ToDo{Some of the information here is inconsistent with the actual API implemented in the module. Fix it.}
-\ToDo{Think of a better way to describe the webservice API, rather than a table.}
+\ToDo{Think of a better way to describe the webservice API, rather than a table. We need to have homogeneity in the documentation. The format of the Archive module seems better.}
 
 \begin{flushleft}
 \begin{longtable}
