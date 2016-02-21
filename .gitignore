@@ -30,8 +30,10 @@ doc/ipol.out
 *.pyc
 
 # logs
-logs
+logs/
 *.log
+ipol_demo/modules/archive/logs/error.log
+
 
 # other
 ipol_demo/modules/blobs/blobs_nelson.conf
