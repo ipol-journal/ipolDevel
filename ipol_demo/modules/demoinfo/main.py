@@ -22,14 +22,16 @@ from demoinfo import DemoInfo
 #todo This should not be hardcoded
 CONFIGFILE = "./demoinfo.conf"
 
+def CORS(): 
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+
 if __name__ == '__main__':
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
+    cherrypy.quickstart(DemoInfo(CONFIGFILE), '', config="demoinfo.conf")
 
-	cherrypy.quickstart(DemoInfo(CONFIGFILE), '', config="demoinfo.conf")
-
-
-	# cherrypy.tree.mount(DemoInfo(None), '/', config="demoinfo.conf")
-	# cherrypy.engine.start()
-	# cherrypy.engine.block()
+    # cherrypy.tree.mount(DemoInfo(None), '/', config="demoinfo.conf")
+    # cherrypy.engine.start()
+    # cherrypy.engine.block()
 
 
 
