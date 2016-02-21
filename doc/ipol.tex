@@ -258,6 +258,51 @@ Also, we need to check absolutely that all the CASCADE DELETE are correct!
 
 - FYI: the package \emph{sqlitebrowser} seems to be a very good tool to browse and develop the SQLite schemas.
 
+- The demoInfo module returns \emph{Content-Type: text/html} instead of application/json:
+
+\begin{verbatim}
+curl --head http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359
+HTTP/1.1 200 OK
+Date: Sun, 21 Feb 2016 19:41:29 GMT
+Content-Length: 3545
+Content-Type: text/html;charset=utf-8
+Server: CherryPy/3.5.0
+\end{verbatim}
+\ToDo{Check that all modules return application/json and Content-Type: text/json;charset=utf-8}
+
+Also, this module returns a JSON which contains a lots of backslashes!:
+
+\begin{verbatim}
+curl "http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359"
+
+{"status": "OK", "demo_description": "\"{\\\"archive\\\": {\\\"files\\\": {\\\"diffInputIHS.png\\\":
+\\\"difference input-IHS\\\", \\\"diffInputPanS.png\\\": \\\"difference input-pansharpened\\\",
+\\\"ihs.png\\\": \\\"IHS image\\\", \\\"input_0.sel.png\\\": \\\"input image\\\",
+\\\"lowspectral.png\\\": \\\"lowspectral image\\\", \\\"pan.png\\\": \\\"pan image\\\",
+\\\"pansharpened.png\\\": \\\"pansharpened image\\\"}, \\\"params\\\": [\\\"sfactor\\\"]},
+\\\"build\\\": [{\\\"binaries\\\": [[\\\".\\\", \\\"pansharpening_ipol\\\"],
+\end{verbatim}
+
+This is clearly wrong. Compare with
+\begin{verbatim}
+curl "http://api.flickr.com/services/feeds/photos_public.gne?format=json"
+
+sonFlickrFeed({
+                "title": "Uploads from everyone",
+                "link": "http://www.flickr.com/photos/",
+                "description": "",
+                "modified": "2016-02-21T19:58:40Z",
+                "generator": "http://www.flickr.com/",
+                "items": [
+           {
+                        "title": "P5302235",
+                        "link": "http://www.flickr.com/photos/lievensoete/245457
+53194/",
+...
+\end{verbatim}
+\ToDo{Correct demoInfo so it returns a correct JSON response}
+
+
 \ToDo{Keep adding!}
 
 
