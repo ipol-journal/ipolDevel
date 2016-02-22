@@ -122,11 +122,13 @@ class RunDemoBase:
     """
     
     # convert parameters to variables
-    for _k_ in self.algo_params:
-      exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
+    #for _k_ in self.algo_params:
+      #exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
     # convert meta info to variables
-    for _k_ in self.algo_meta:
-      exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
+    #for _k_ in self.algo_meta:
+      #exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
+    locals().update(self.algo_params)
+    locals().update(self.algo_meta)
     
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
