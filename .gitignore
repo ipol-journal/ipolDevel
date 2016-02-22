@@ -1,9 +1,15 @@
+
 # don't rewrite the deployed conf file
 demo.conf
 demo.*.log
 
 # compiled Python code
 *.pyc
+
+# Archive data
+ipol_demo/modules/archive/blobs/*
+ipol_demo/modules/archive/blobs_thumbs/*
+
 
 # Database
 *.db
@@ -24,9 +30,12 @@ doc/ipol.out
 *.pyc
 
 # logs
-logs
+logs/
 *.log
+ipol_demo/modules/archive/logs/error.log
+
 
 # other
 ipol_demo/modules/blobs/blobs_nelson.conf
 changes*.txt
+ipol_demo/app_new/

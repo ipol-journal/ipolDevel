@@ -1,8 +1,8 @@
 % Instructions to modify this document:
-% * Remember to ALWAYS execute a git pull BEFORE any commit you make
-% * Use the \ToDo{...} command to remark tasks which still need to be done
+% * Remember to ALWAYS execute "git pull" BEFORE any commit you make!
+% * Use the \ToDo{...} command to remark tasks which still need to be done. Add your name in the comment.
 % * Use the \input{file.tex} command to split the document into several parts
-% * Do not change the current LaTeX coding style to yours
+% * Do not change the current LaTeX coding style to yours. The style and format should be homogeneous along sections.
 
 % To convert .dia diagrams into PDF:
 % 1) Create the diagram with dia (or any other tool)
@@ -139,27 +139,11 @@ Nelson Monzón
 \listoffigures
 \newpage
 
-\section{Introduction}
-\ToDo{Incomplete section!}
+% The Archive module
+\input{introduction/introduction.tex}
 
-The system is built as a service-oriented architecture.
-The functionality is decomposed into a set of independent, self-contained microservice modules which communicate with each other via an API.
-
-By splitting the monolithic application into smaller modules and decoupling interdependencies (between apps, dev teams, technologies, environments, and tooling), the system gains in terms of scalability, parallel development, easier debugging, and complexity isolation.
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=0.5\columnwidth]{architecture/images/architecture.pdf}
-\caption{Modular system architecture.} 
-\label{fig:architecture}
-\end{figure}
-
-\section{The Demo System Core}
-Centralized webservice.
-
-The list of datatypes used (images, audio, video, 3D pointclouds, 3D meshes) and how to identify them. The "no type" format for demos which have their own non-standard format.
-
-\ToDo{Document it!}
+% The Core
+\input{core/core.tex}
 
 % The Proxy module
 \input{proxy/proxy.tex}
@@ -193,8 +177,6 @@ It can obtain the system load from {\tt /proc/loadavg}. The first three numbers 
 
 % The Control Panel Module 
 \input{control_panel/control_panel.tex}
-\ToDo{Secure access to Ws, oauth perhaps?}
-\ToDo{Use Postgess not sqlite3?}
 
 \section{Automatic testing}
 Two kind of tests:
@@ -233,6 +215,8 @@ Packages to be installed with pip install:
 \item simplejson
 \end{itemize}
 
+- \ToDo{} Check that all modules which store a SQLite database file (.db) are able to create the file when they are started and the file does not exist. The best solution is to have a text file with the SQL instructions to drop all  tables and to create them. This way you only need to modify this text file instead of a Python function in the module.
+
 - Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
 - Integrate Openseedragon, \url{https://openseadragon.github.io/}
@@ -268,6 +252,56 @@ Traceback (most recent call last):
 NotFound: (404, "The path '/hello' was not found.")
 Powered by CherryPy 3.5.0
 \end{verbatim}
+
+- In general, check that no FK reference is missing at any of the database schemas of the modules, and that they're correct.
+Also, we need to check absolutely that all the CASCADE DELETE are correct!
+
+- FYI: the package \emph{sqlitebrowser} seems to be a very good tool to browse and develop the SQLite schemas.
+
+- The demoInfo module returns \emph{Content-Type: text/html} instead of application/json:
+
+\begin{verbatim}
+curl --head http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359
+HTTP/1.1 200 OK
+Date: Sun, 21 Feb 2016 19:41:29 GMT
+Content-Length: 3545
+Content-Type: text/html;charset=utf-8
+Server: CherryPy/3.5.0
+\end{verbatim}
+\ToDo{Check that all modules return application/json and Content-Type: text/json;charset=utf-8}
+
+Also, this module returns a JSON which contains a lots of backslashes!:
+
+\begin{verbatim}
+curl "http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359"
+
+{"status": "OK", "demo_description": "\"{\\\"archive\\\": {\\\"files\\\": {\\\"diffInputIHS.png\\\":
+\\\"difference input-IHS\\\", \\\"diffInputPanS.png\\\": \\\"difference input-pansharpened\\\",
+\\\"ihs.png\\\": \\\"IHS image\\\", \\\"input_0.sel.png\\\": \\\"input image\\\",
+\\\"lowspectral.png\\\": \\\"lowspectral image\\\", \\\"pan.png\\\": \\\"pan image\\\",
+\\\"pansharpened.png\\\": \\\"pansharpened image\\\"}, \\\"params\\\": [\\\"sfactor\\\"]},
+\\\"build\\\": [{\\\"binaries\\\": [[\\\".\\\", \\\"pansharpening_ipol\\\"],
+\end{verbatim}
+
+This is clearly wrong. Compare with
+\begin{verbatim}
+curl "http://api.flickr.com/services/feeds/photos_public.gne?format=json"
+
+sonFlickrFeed({
+                "title": "Uploads from everyone",
+                "link": "http://www.flickr.com/photos/",
+                "description": "",
+                "modified": "2016-02-21T19:58:40Z",
+                "generator": "http://www.flickr.com/",
+                "items": [
+           {
+                        "title": "P5302235",
+                        "link": "http://www.flickr.com/photos/lievensoete/245457
+53194/",
+...
+\end{verbatim}
+\ToDo{Correct demoInfo so it returns a correct JSON response}
+
 
 \ToDo{Keep adding!}
 

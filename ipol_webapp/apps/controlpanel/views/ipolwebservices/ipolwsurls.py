@@ -36,7 +36,7 @@ proxy_ws_url_stats =  'ping'
 
 #IPOL_SERVICES_MODULE_DEMOINFO ='http://ns3018037.ip-151-80-24.eu:9003/?module=demoinfo&service=%s'
 #IPOL_SERVICES_MODULE_DEMOINFO ='http://ns3018037.ip-151-80-24.eu:9003/proxy_service_call'
-#proxy_service_call(self,  module, service, servicehtmlmethod=None, params=None, json=None):
+#proxy_service_call(self,  module, service, servicehttpmethod=None, params=None, json=None):
 
 
 # demoinfo_ws_url_stats =  'stats'

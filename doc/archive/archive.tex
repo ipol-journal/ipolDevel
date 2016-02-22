@@ -50,6 +50,8 @@ The physical location of a blob is ``blob\_dir as defined in the configuration f
 \ToDo{[Miguel] You can keep the name ``correspondence", but explain in the text that it is a junction table.}
 The correspondence table is defined as such : the id field ; the id of the experiment and the id of the blob that is linked to said experiment, and the name field, which indicates the role of the blob in the experiment (example : ``input'' or ``denoised''). A foreign key constraint allowing cascade delete is put on the field id\_experiment, referencing the id of an entry in the experiment table, for automatic data deletion.
 
+\ToDo{[Miguel] Why don't we have a FK reference in \emph{correspondence} to link correspondence.id\_blob with blobs.id? It seems that it could be possible to add a row in \emph{correspondence} which refers to a non-existing blob.}
+
 \subsection{Services}
 
 \paragraph{Adding an experiment to the archive} \hspace{0pt} \\

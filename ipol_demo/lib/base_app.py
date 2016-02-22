@@ -42,7 +42,7 @@ import build_demo_base
 
 import  run_demo_base
 from    run_demo_base import RunDemoBase
-from    run_demo_base import TimeoutError
+from    run_demo_base import IPOLTimeoutError
 from    timeit import default_timer as timer
 import  glob
 from PIL import Image,ImageDraw
@@ -1030,7 +1030,7 @@ class base_app(empty_app):
         self.cfg['info']['run_time'] = time.time() - run_time
         self.cfg['info']['status']   = 'success'
         self.cfg.save()
-      except TimeoutError:
+      except IPOLTimeoutError:
         return self.error(errcode='timeout') 
       except RuntimeError as e:
         print "self.show_results_on_error =", self.show_results_on_error
