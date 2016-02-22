@@ -913,13 +913,16 @@ class base_app(empty_app):
         # First check if input is OK
         if 'input_condition' in self.demo_description['general'].keys():
           condition = self.demo_description['general']['input_condition']
+          input_size = dict()
           # Get all image sizes
           for i in range(self.nb_inputs):
             if self.demo_description['inputs'][i]['type']=='image':
-              exec("input{0}_size_x = self.cfg['meta']['input{0}_size_x']".format(i) )
-              exec("input{0}_size_y = self.cfg['meta']['input{0}_size_y']".format(i) )
+              input_size[i] = ( self.cfg['meta']['input{0}_size_x'.format(i)],
+                                self.cfg['meta']['input{0}_size_y'.format(i)] )
           try:
-            inputs_ok = eval(condition[0])
+            # limits the possibilities of eval
+            allowed_variables =  {k: v for k, v in locals().items() if k in ('input_size')}
+            inputs_ok = eval(condition[0],{'__builtins__':None},allowed_variables)
             if not(inputs_ok):
               return self.error(condition[1],condition[2])
           except:
