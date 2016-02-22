@@ -64,7 +64,8 @@ Many keys are derived from the static variables of the previous 'app' Python cla
  crop\_maxsize      & limit allowed crop size in both width and height, the string
                       can contain an Angular expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
- input\_condition   & sets a condition on inputs using for example the input sizes,
+ input\_condition   & sets a condition on inputs using for example the input sizes 
+                        (as input\_size[n] for size (python tuple) of input image number n),
                       it is written as an array of 3 string, the condition,
                       the exception sent, and the error message& no \\ \hline
  show\_results\_on\-\_error & show results even if the demo returned a run-time error.
