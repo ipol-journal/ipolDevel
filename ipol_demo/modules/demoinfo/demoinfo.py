@@ -136,6 +136,15 @@ class DemoInfo(object):
 
 	# DEMO
 
+        @cherrypy.expose
+        def default(self, attr):
+            """
+            Default method invoked when asked for non-existing service.
+            """
+            data = {}
+            data["status"] = "KO"
+            data["message"] = "Unknown service '{}'".format(attr)
+            return json.dumps(data)
 
 	#todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
 	@cherrypy.expose
