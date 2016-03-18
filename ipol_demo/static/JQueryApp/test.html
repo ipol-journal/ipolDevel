@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IPOL jquery test</title>
+<!--  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.12.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>-->
+
+  <link rel="stylesheet" href="jquery-ui/themes/smoothness/jquery-ui.css">
+  <script src="jquery/dist/jquery.js"></script>
+  <script src="jquery-ui/ui/jquery-ui.js"></script>
+
+<!--   <link rel="stylesheet" href="/resources/demos/style.css"> -->
+<!--     <link rel="stylesheet" type="text/css" href="test.css">  -->
+    <link rel="stylesheet" href="CSS/style.css" type="text/css" />
+    <link rel="stylesheet" href="CSS/local.css" type="text/css" />
+    <link rel="stylesheet" href="CSS/demo.css"  type="text/css" />
+    <link rel="stylesheet" href="CSS/app.css"  type="text/css" />
+</head>
+
+
+<body>
+
+<script> 
+    $.support.cors = true;
+</script>
+<script src="test.js"></script>
+
+
+
+<div id="divTest1"></div>
+
+
+<div id="tabs">
+    <ul>
+        <li>
+            <a href="#tabs-demos">Demos</a>
+        </li>
+        <li>
+            <a href="#tabs-input">Input</a>
+        </li>
+        <li>
+            <a href="#tabs-params">Params</a>
+        </li>
+        <li>
+            <a href="#tabs-results">Results</a>
+        </li>
+        <li>
+            <a href="#tabs-archive">Archive</a>
+        </li>
+        <li>
+            <a href="#tabs-ddl">DDL</a>
+        </li>
+        <li>
+            <a href="#tabs-blobs">Blobs</a>
+        </li>
+    </ul>
+    <div id="tabs-demos">
+        <span id="demo-select">demos infomation</span>
+        <pre>demos infomation</pre>
+    </div>
+    <div id="tabs-input">
+
+        <h3>Select Data</h3> 
+        <p>
+            Click on an image to use it as the algorithm input.
+        </p>
+        <form name="ThumbnailSizeForm" >
+            <label>Thumbnail size (in pixels)</label>
+            <select id="ThumbnailSize" >
+                <option>64</option>
+                <option selected="selected">128</option>
+                <option>192</option>
+                <option>256</option>
+            </select>
+
+            <label>Show Credits</label>
+            <input  id="ShowCreditsCheckbox" type="checkbox"  >
+        </form>
+        <div id="displayblobs"></div>
+        <div style='clear:both'> </div>
+    </div>
+    <div id="tabs-params">  
+        <span id="ParamDescription"> </span>
+        <br>
+        <form action="${app.base_url + 'rectangle'}" method="get">
+        <div class="action" 
+                style="align:left;margin-bottom=20px;margin-top=20px" >
+            <span id="DisplayParams"> </span>
+        </div>
+        </form>
+    </div>
+    <div id="tabs-results">
+        <p>Content for results</p>
+    </div>
+    <div id="tabs-archive">
+        <p>Content for archive</p>
+    </div>
+    <div id="tabs-ddl">
+        <pre style="width: 92%;">Content for Tab 4</pre>
+    </div>
+    <div id="tabs-blobs">
+        <pre>Content for Tab 5</pre>
+    </div>
+</div>
+<div id="tabid"></div>
+
+
+
+</body>

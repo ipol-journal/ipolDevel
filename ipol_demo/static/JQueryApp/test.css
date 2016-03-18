@@ -1,0 +1,61 @@
+body {
+padding: 20px;
+font-family: Arial, Helvetica, sans-serif;
+line-height: 1.5;
+font-size: 14px;        
+}
+
+h1,h2,h3,h4,h5{
+  font-family:Verdana,_Verdana,Arial,Helvetica,Tahoma,sans-serif;
+  font-weight:normal;
+  color:#484848
+}
+
+h1{
+  font-size:140%;border:#adadad solid;border-width:0 0 1px 0}
+
+h2{font-size:120%}
+
+h3{font-size:110%}
+
+h4,h5{font-size:100%}
+
+#tabs {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+}
+
+
+pre {
+    background: ghostwhite;
+    margin:0px;padding:0px;
+    white-space: pre;           /* CSS 2.0 */
+    white-space: pre-wrap;      /* CSS 2.1 */
+    white-space: pre-line;      /* CSS 3.0 */
+    white-space: -pre-wrap;     /* Opera 4-6 */
+    white-space: -o-pre-wrap;   /* Opera 7 */
+    white-space: -moz-pre-wrap; /* Mozilla */
+    white-space: -hp-pre-wrap;  /* HP Printers */
+    word-wrap: break-word;      /* IE 5+ */
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    -ms-hyphens: auto;
+    -o-hyphens: auto;
+    hyphens: auto;   
+}
+
+
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+
+.select_input input[type="image"]{width:3cm;height:3cm;background:white;border:1px solid #ddd}
+form fieldset{border:#ccf 1px solid}
+form label{cursor:pointer}
+form input[type="submit"]{background:url(bullet_go.png) no-repeat 0 center;background-color:#eee;color:black;padding-left:16px}#content 
+
+    
