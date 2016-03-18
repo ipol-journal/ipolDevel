@@ -524,6 +524,7 @@ function InputController(demo_id,internal_demoid) {
 
 }
     
+//------------------------------------------------------------------------------
 function AddLabel(param) {
     var html = "";
     html += '<td style="border:0px;max-width:34em">';
@@ -532,6 +533,7 @@ function AddLabel(param) {
     return html;
 }
     
+//------------------------------------------------------------------------------
 function AddComments(param) {
     var html = "";
     if (param.comments!=undefined) {
@@ -742,10 +744,45 @@ function CreateLabel(param) {
 
 //------------------------------------------------------------------------------
 function CreateCheckBox(param) {
+
+    var html = "";
+    html += AddLabel(param);
+    html +=
+        '<td style="border:0px;"  colspan="2" align="left"> ' +
+        '<input  type="checkbox"' +
+            'name="'+param.id+'"' +
+//         '<input  type="text" '+
+//             'name="'+param.id+'_checked" ' +
+//             'value="{{demo.params[pos].value==true}}" hidden />' +
+        '</td>';
+    html += AddComments(param);
+    return html;
+    
 }    
 
 //------------------------------------------------------------------------------
 function CreateCheckBoxes(param) {
+
+    var html = "";
+    html += AddLabel(param);
+    html += '<td style="border:0"  colspan="2" align="left"> ';
+    
+    for (var n=0;n< param.values.length; n++) {
+        var group = param.values[n];
+        html += "<div>";
+        for (var id in group) {
+            html += '<input  type="checkbox" ' +
+                    'name="'+param.id+'_'+id+'" id="'+id+'"'+ ' />';
+            html += '<label for="'+id+'">'+ group[id] +'</label> &nbsp;&nbsp;';
+        }
+        html += "<br/></div>";
+    }
+          
+    html += '</td>';
+    html += AddComments(param);
+    return html;
+    
+    
 }    
     
 //------------------------------------------------------------------------------
