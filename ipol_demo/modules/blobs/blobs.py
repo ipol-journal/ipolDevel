@@ -68,6 +68,16 @@ class   Blobs(object):
                                   cherrypy.config['server.socket_port'])
 
     @cherrypy.expose
+    def default(self, attr):
+        """
+        Default method invoked when asked for non-existing service.
+        """
+        data = {}
+        data["status"] = "KO"
+        data["message"] = "Unknown service '{}'".format(attr)
+        return json.dumps(data)
+
+    @cherrypy.expose
     def index(self):
         """
         Function exposed corresponding to '/' in url adress

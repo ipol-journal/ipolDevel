@@ -106,7 +106,7 @@
 
 \end{titlepage}
 
-This documents contains technical documentation for the IPOL Demo System 2.0. Specifically, the architecture of the service-oriented platform, its modules, and the real-time template generation of demos from their textual description.
+This document contains technical documentation for the IPOL Demo System 2.0. Specifically, the architecture of the service-oriented platform, its modules, and the real-time template generation of demos from their textual description.
 \vspace*{0.6in}
 
 \textbf{Project direction and team coordination}
@@ -154,9 +154,6 @@ Nelson Monzón
 % The Archive module
 \input{archive/archive.tex}
 
-% The Demo Description Language and automatic demo generation
-\input{ddl/ddl.tex}
-
 % The Demo Info module
 \input{demo_info/demo_info.tex}
 \ToDo{Secure access to Ws, oauth perhaps?}
@@ -185,6 +182,8 @@ Two kind of tests:
   \item To ensure good compilation of the algorithm source codes
 \end{itemize}
 
+We need to use PyUnit for the unit tests.
+
 \section{General notes}
 In this section we add general comments on the projects, parts which still neeed to be written or coded. In general, information which needs to be documented but has not still found its place in the document. It works as a reminder not to forget.
 
@@ -200,18 +199,18 @@ In this section we add general comments on the projects, parts which still neeed
 \item python2.7
 \item wget: to download files
 \item cmake: to create a multiplatform Makefile easily
-\item libtiff5-dev, libjpeg-dev, libpng-dev: open and write TIFF, JPEG, PNG files.
+\item libtiff5-dev, libjpeg-dev, libpng-dev: open and write TIFF, JPEG, PNG files
 \item libfftw3-dev: fast DFT operations
 \item libgsl0-dev, libeigen3-dev, liblapack-dev, libblas-dev: linear algebra
-\item python, python-cherrypy3, python-mako, python-imaging: Python language, webserver, web templating, 
-      Python imaging, python-jsonschema
+\item python, python-cherrypy3, python-mako, python-jsonschema: Python language, webserver, web templating, JSON
 \item gnuplot, gnuplot-nox: to draw figures
-\item python-pip: to install python packages. 
+\item python-pip: to install python packages
 \item python-yaml: for parsing
 \end{itemize}
 Packages to be installed with pip install:
 \begin{itemize}
 \item python-magic
+\item Pillow
 \item simplejson
 \end{itemize}
 
@@ -302,6 +301,7 @@ sonFlickrFeed({
 \end{verbatim}
 \ToDo{Correct demoInfo so it returns a correct JSON response}
 
+- A way to get images from the browser in a smartphone with HTML5: \url{http://don.github.io/html-cam/}
 
 \ToDo{Keep adding!}
 
