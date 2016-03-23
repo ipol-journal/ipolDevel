@@ -1,3 +1,7 @@
+
+// using strict mode: better compatibility
+"use strict";
+
 //------------------------------------------------------------------------------
 // This function creates syntax highlight for pretty display of json files
 //
@@ -92,7 +96,7 @@ function PreprocessDemo(demo) {
     console.info("PreprocessDemo")
     console.info(demo)
     if (demo != undefined) {
-        for (input in demo.inputs) {
+        for (var input in demo.inputs) {
             // do some pre-processing
             if ($.type(input.max_pixels) === "string") {
                 input.max_pixels = scope.$eval(input.max_pixels)
@@ -236,15 +240,15 @@ function initParams(  demo, params) {
 //------------------------------------------------------------------------------
 function OnDemoList(demolist)
 {
-    if (demolist.status == "OK") {
-        var str = JSON.stringify(demolist.demo_list, undefined, 4);
+    var dl = demolist;
+    if (dl.status == "OK") {
+        var str = JSON.stringify(dl.demo_list, undefined, 4);
         $("#tabs-demos pre").html(syntaxHighlight(str))
-        dl = demolist;
         console.info(dl);
     }
 
     // create a demo selection
-    html_selection = "<select>";
+    var html_selection = "<select>";
     for (var i=0; i<dl.demo_list.length; i++) {
         html_selection += '<option value = "'+i+'">'
         html_selection += dl.demo_list[i].editorsdemoid + 
@@ -498,7 +502,7 @@ function OnDemoBlobs(ddl_json) {
             return;
         }
         
-        bc = new BlobsContainer(demoblobs, ddl_json);
+        var bc = new BlobsContainer(demoblobs, ddl_json);
         
         // Check for template
         if (demoblobs.use_template.hasOwnProperty('name')) {
