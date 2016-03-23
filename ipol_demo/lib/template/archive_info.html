@@ -1,4 +1,4 @@
-<%
+<%      
     import urllib
     import json
     
@@ -7,28 +7,36 @@
     response = json.loads(json_response)
     status = response['status']
     
+    url_for_archive_details = ' '
+    
     if status == "OK":
-        page = response['nb_pages']
-        request = '?module=archive&service=page&demo_id=' + app.id + '&page=' + str(page)
-        json_response = urllib.urlopen(app.proxy_server + request).read()
-        response = json.loads(json_response)
-        status = response['status']
+        number_of_experiments = response["number_of_experiments"]
         
-        if status == "OK":
+        if number_of_experiments > 0:
             
-            experiments = response['experiments']
-            archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
-                                for exp in experiments]
+            page = response['nb_pages']
+            request = '?module=archive&service=page&demo_id=' + app.id + '&page=' + str(page)
+            json_response = urllib.urlopen(app.proxy_server + request).read()
+            response = json.loads(json_response)
+            status = response['status']
             
-            length_experiments = len(archive_experiments) - 1
-            last_experiment = archive_experiments[length_experiments]
-            id_experiment = last_experiment['id_experiment']
-            
-            page = page
-            id_experiment = id_experiment
-            
-            url_for_archive_details = 'exp_details?demo_id=' + app.id + '&id_experiment=' + str(id_experiment) + '&page=' + str(page)
-
+            if status == "OK":
+                
+                number_of_experiments = response["number_of_experiments"]
+        
+                if number_of_experiments > 0:
+                
+                    experiments = response['experiments']
+                    archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
+                                        for exp in experiments]
+                    
+                    length_experiments = len(archive_experiments) - 1
+                    last_experiment = archive_experiments[length_experiments]
+                    id_experiment = last_experiment['id_experiment']
+                    
+                    page = page
+                    id_experiment = id_experiment
+                    url_for_archive_details = 'exp_details?demo_id=' + app.id + '&id_experiment=' + str(id_experiment) + '&page=' + str(page)
             
 %>
 
@@ -59,6 +67,6 @@
       %endif
       This setting will be remembered until you close your browser.
     </p>
-  </form>
-</div>
+  </form>>
+</div> -->
 %endif
