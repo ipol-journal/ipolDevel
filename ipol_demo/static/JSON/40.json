@@ -6,7 +6,7 @@
     "enable_crop"           : false,
     "inpainting"            : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/40/",
-    "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+    "input_condition"       : [ "input_size[0]==input_size[1]",
                                 "badparams",
                                 "The images must have the same size" ]
   },

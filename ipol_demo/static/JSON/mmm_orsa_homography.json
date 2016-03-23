@@ -114,7 +114,7 @@
                           "first image"                : "input_0s.png",
                           "second image"               : "input_1.png"
                         },
-      "style"         : "{'width':imwidth+'px','height':imheight+'px'}" 
+      "style"         : "{'width':imwidth*ZoomFactor+'px','height':imheight*ZoomFactor+'px'}" 
     },
     {
       "type"          : "file_download", 

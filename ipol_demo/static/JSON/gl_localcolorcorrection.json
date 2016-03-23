@@ -51,6 +51,12 @@
                       ")/2-1",
                     ")",
         "}}"
+      ],
+      "value_expr_new" : [ 
+        "Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
+                                        "Math.min(imwidth,imheight)",
+                      ")/2-1",
+                    ")"
       ]
     },
     {
@@ -66,6 +72,14 @@
                       ")*demo.params[0].value/100",
                     ")",
         "}}"
+      ],
+      "value_expr_new"    : [ 
+          "demo.params[3].value=='global'?",
+            "Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:Math.min(imwidth,imheight))/2-1)",
+          ":Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
+                                        "Math.min(imwidth,imheight)",
+                      ")*demo.params[0].value/100",
+                    ")"
       ]
     },
     {
