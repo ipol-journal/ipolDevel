@@ -1125,35 +1125,37 @@ var DrawInputs = function(ddl_json) {
         if (inputs.length>1) {
             var images = new Array(inputs.length);
             for(var idx=0;idx<inputs.length;idx++) {
-                var idx_str = blobs_url_params[idx+1].split(':')[0];
-                var blob    = blobs_url_params[idx+1].split(':')[1];
-                images[idx] = new Image();
-                images[idx].onload = (function(draw_info,idx_str) { 
-                    return function () {
-                        if (draw_info.display_ratio==-1) {
-                            // compute display ratio
-                            draw_info.display_ratio=(this.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/this.naturalWidth;
-                            //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
-                            console.info("width ", this.naturalWidth ," display_ratio ", draw_info.display_ratio);
-                            $('.gallery2').attr("style", "height:"+(this.naturalHeight*draw_info.display_ratio+10+15)+'px;');
-                        }
-                        $('#inputimage_'+idx_str).attr("src", this.src);
-                        $('#inputimage_'+idx_str).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
-                        $('#state_'+idx_str).html("");
-    //                     $('#inputimage_'+idx).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
-                    };
-                })(this.draw_info,idx_str);
-                // if non image type, seach for a png in the file list
-                if (blob.indexOf(',')>-1) {
-                    var blobs = blob.split(',');
-                    for(var n=0;n<blobs.length;n++) {
-                        if (blobs[n].toLowerCase().endsWith(".png")) {
-                            blob = blobs[n];
+                if (idx+1<blobs_url_params.length) {
+                    var idx_str = blobs_url_params[idx+1].split(':')[0];
+                    var blob    = blobs_url_params[idx+1].split(':')[1];
+                    images[idx] = new Image();
+                    images[idx].onload = (function(draw_info,idx_str) { 
+                        return function () {
+                            if (draw_info.display_ratio==-1) {
+                                // compute display ratio
+                                draw_info.display_ratio=(this.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/this.naturalWidth;
+                                //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
+                                console.info("width ", this.naturalWidth ," display_ratio ", draw_info.display_ratio);
+                                $('.gallery2').attr("style", "height:"+(this.naturalHeight*draw_info.display_ratio+10+15)+'px;');
+                            }
+                            $('#inputimage_'+idx_str).attr("src", this.src);
+                            $('#inputimage_'+idx_str).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                            $('#state_'+idx_str).html("");
+        //                     $('#inputimage_'+idx).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                        };
+                    })(this.draw_info,idx_str);
+                    // if non image type, seach for a png in the file list
+                    if (blob.indexOf(',')>-1) {
+                        var blobs = blob.split(',');
+                        for(var n=0;n<blobs.length;n++) {
+                            if (blobs[n].toLowerCase().endsWith(".png")) {
+                                blob = blobs[n];
+                            }
                         }
                     }
+                    console.info(" blob link is ", blobs_url+blob);
+                    images[idx].src = blobs_url+blob;
                 }
-                console.info(" blob link is ", blobs_url+blob);
-                images[idx].src = blobs_url+blob;
             }
         } else {
             var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
