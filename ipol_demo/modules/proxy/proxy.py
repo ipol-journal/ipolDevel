@@ -86,10 +86,8 @@ class Proxy(object):
 		"""
 		logger = logging.getLogger("archive_log")
 		logger.setLevel(logging.ERROR)
-		handler = logging.FileHandler(os.path.join(self.logs_dir,
-												   'error.log'))
-		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
-									  datefmt='%Y-%m-%d %H:%M:%S')
+		handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 		return logger
@@ -108,6 +106,18 @@ class Proxy(object):
 		self.mkdir_p(self.logs_dir)
 		self.logger = self.init_logging()
 		self.dict_modules = self.get_dict_modules()
+	
+	
+        @cherrypy.expose
+        def default(self, attr):
+            """
+            Default method invoked when asked for non-existing service.
+            """
+            data = {}
+            data["status"] = "KO"
+            data["message"] = "Unknown service '{}'".format(attr)
+            return json.dumps(data)
+
 
 #####
 # web utilities
@@ -199,7 +209,7 @@ class Proxy(object):
 		# Request module for service
 		try:
 			call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
-		except Exception as ex:
+                except Exception as ex:
 			error["code"] = -5
 			self.error_log("index", "Module '" + module + "' communication error; " + str(ex))
 			return json.dumps(error)
@@ -228,9 +238,18 @@ class Proxy(object):
 		"""
 
 		# print ("")
-		error_json = {}
+		#print "\n\n\n\nproxy_call\n\n\n\n"
+                error_json = {}
 		error_json["status"] = "KO"
                 
+                
+                #error_json["status"] = "OKIDOKY!!"
+                #error_json["module"] = module
+                #error_json["service"] = service
+                #error_json["http"] = servicehttpmethod
+                #error_json["params"] = params
+                #error_json["jsonparam"] = jsonparam
+                #return json.dumps(error_json)
                 
 		#validate params and set default params
 		try:

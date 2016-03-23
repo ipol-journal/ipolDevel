@@ -29,10 +29,7 @@ import os.path
 import magic
 import shutil
 #JAK import Image
-try:
-	import Image
-except Exception, e:
-	from PIL import Image
+from PIL import Image
 
 
 from mako.template import Template
@@ -42,12 +39,10 @@ class Archive(object):
 	This class implement an archive system for experiments and
 	calculations done with the IPOL demo image system.
 	"""
-
 #####
 # initialization and static methods.
 #####
-
-	@staticmethod
+        @staticmethod
 	def mkdir_p(path):
 		"""
 		Implement the UNIX shell command "mkdir -p"
@@ -89,18 +84,17 @@ class Archive(object):
 		with open(path, 'rb') as the_file:
 			return hashlib.sha1(the_file.read()).hexdigest()
 
-	@staticmethod
-	def file_format(the_file):
-		"""
-		Return format of the file
-
-		:return: format of file (audio, image or video)
-		:rtype: string
-		"""
-		mime = magic.Magic(mime=True)
-		fileformat = mime.from_file(the_file)
-		extension = fileformat.split('/')
-		return extension[0]
+        @staticmethod
+        def file_format(the_file):
+            """
+            Return format of the file
+            :return: format of file (audio, image or video)
+            :rtype: string
+            """
+            mime = magic.Magic(mime=True)
+            fileformat = mime.from_file(the_file)
+            extension = fileformat.split('/')
+            return extension[0]
 
 	def unit_test(self):
 		for i in range(10):
@@ -118,9 +112,9 @@ class Archive(object):
 		cherrypy.config.update("./archive.conf")
 		self.status = self.check_config()
 		if not self.status:
-			sys.exit(1)
+                    sys.exit(1)
 
-		self.blobs_dir = cherrypy.config.get("blobs_dir")
+                self.blobs_dir = cherrypy.config.get("blobs_dir")
 		self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
 
 		if option == "test":
@@ -140,6 +134,7 @@ class Archive(object):
 			self.nb_exp_by_pages = int(cherrypy.config.get("nb_exp_by_pages"))
 		except Exception:
 			self.nb_exp_by_pages = 12
+		
 		self.thumbs_size = (thumbs_s, thumbs_s)
 
 		self.mkdir_p(self.logs_dir)
@@ -232,30 +227,51 @@ class Archive(object):
 #####
 # adding an experiment to the archive database
 #####
+        def add_to_blob_table(self, conn, blob_dict):
+                """
+                This function check if an blob exist in the table. If it exist,
+                the id is returned. If not, the blob is added, then the id is returned.
 
-	def make_thumbnail(self, path, name):
-		"""
-		This function make a thumbnail of path.
-		"""
-		img = Image.open(path)
-		img.thumbnail(self.thumbs_size, Image.ANTIALIAS)
-		img.save(os.path.join(self.blobs_thumbs_dir, name) + ".jpeg", "JPEG")
+                :return: id of the blob in the database.
+                :rtype: integer.
+                """
+                
+                # len = 1 --> Non-image
+                # len = 2 --> Image and thumbnail
+                
+                if len(blob_dict) == 1:
+                    for key, value in blob_dict.items():
+                        blob_name = key
+                        blob_path = value
+                
+                    copy_thumbnail = False
 
-	def add_to_blob_table(self, conn, path):
-		"""
-		This function check if an blob exist in the table. If it exist,
-			the id is returned. If not, the blob is added, then the id
-			is returned.
-
-		:return: id of the blob in the database.
-		:rtype: integer.
-		"""
-		id_blob = int()
+                else:
+                    blob, blob_thumbnail = blob_dict.items()
+                    blob_name = blob[0]
+                    blob_path = blob[1]
+                    blob_thumbnail_name = blob_thumbnail[0]
+                    blob_thumbnail_path = blob_thumbnail[1]
+                    copy_thumbnail = True
+                    
+                    #The dictionary can be unordered. We need to ensure that the thumbnail is the second value. 
+                    #If not, we must order it correctly
+                    if blob_thumbnail_name.find('_thumbnail') == -1: 
+                        # We correct the routes and the names.
+                        blob_name = blob_thumbnail_name     
+                        blob_path_aux = blob_thumbnail_path 
+                        blob_thumbnail_path = blob_path
+                        blob_path = blob_path_aux
+                        
+                
+                id_blob = int()
 		path_new_file = str()
 		tmp = tuple()
-		hash_file = self.get_hash_blob(path)
-		format_file = self.file_format(path)
-		route, type_file = os.path.splitext(path)
+		
+		hash_file = self.get_hash_blob(blob_path)
+		format_file = self.file_format(blob_path)
+		
+		route, type_file = os.path.splitext(blob_path)
 		extension = type_file.split('.')
                 type_file = extension[1]
 		type_file.lower()
@@ -265,24 +281,26 @@ class Archive(object):
 		SELECT * FROM blobs WHERE hash = ?
 		''', (hash_file,))
 		tmp = cursor_db.fetchone()
-
-		if not tmp:
+                
+                if not tmp:
 			cursor_db.execute('''
 			INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
 			''', (hash_file, type_file, format_file,))
-			path_new_file = os.path.join(self.blobs_dir, hash_file) + '.' + type_file
-			shutil.copyfile(path, path_new_file)
-
-			if format_file == "image":
-				self.make_thumbnail(path_new_file, hash_file)
-
-			cursor_db.execute('''
+                        
+                        path_new_file = os.path.join(self.blobs_dir, hash_file) + '.' + type_file
+			shutil.copyfile(blob_path, path_new_file)
+                        
+                        if copy_thumbnail:
+                            new_path_thumbnail = os.path.join(self.blobs_thumbs_dir, hash_file) + ".jpeg"
+                            shutil.copyfile(blob_thumbnail_path, new_path_thumbnail)
+                        
+                        cursor_db.execute('''
 			SELECT * FROM blobs WHERE hash = ?
 			''', (hash_file,))
 			tmp = cursor_db.fetchone()
 
 		id_blob = int(tmp[0])
-		return id_blob
+		return id_blob, blob_name
 
 	def update_exp_table(self, conn, demo_id, parameters):
 		"""
@@ -312,11 +330,11 @@ class Archive(object):
 		id_blob = int()
 		dict_blobs = json.loads(blobs)
 		dict_corresp = {}
-
-		for keys, values in dict_blobs.items():
-			id_blob = self.add_to_blob_table(conn, keys)
-			dict_corresp[id_blob] = values
-
+                
+                for blob_element in dict_blobs:
+                    id_blob, blob_name = self.add_to_blob_table(conn, blob_element)
+                    dict_corresp[id_blob] = blob_name
+		
 		return dict_corresp
 
 	def update_correspondence_table(self, conn, id_experiment, dict_corresp):
@@ -342,8 +360,7 @@ class Archive(object):
 		:rtype: JSON formatted string.
 		"""
 		status = {"status" : "KO"}
-		
-                try:
+		try:
 			demo_id = int(demo_id)
 			conn = lite.connect(self.database_file)
 			id_experiment = self.update_exp_table(conn, demo_id, parameters)
@@ -366,6 +383,15 @@ class Archive(object):
 #####
 # displaying a page of archive
 #####
+        def count_number_of_experiments(self, conn, id_demo):
+            """
+            This function return the number of archive pages to be displayed
+            for a given demo, and the number of experiments done with this
+            demo.
+            :return: a dict with the number and pages and the number of experiments
+            :rtype: dict
+            """
+            pass
 
 	def count_pages(self, conn, id_demo):
 		"""
@@ -467,20 +493,25 @@ class Archive(object):
 		data["status"] = "KO"
                 try:
 			conn = lite.connect(self.database_file)
+			
 			dict_pages = self.count_pages(conn, id_demo)
                         
-                        if page > dict_pages["nb_pages"] or page < 0:
-				raise ValueError("Page requested don't exist.")
-			elif page == 0:
-				page = 1
+                        data["number_of_experiments"] = dict_pages["nb_exp"]
+                        data["id_demo"] = id_demo
+                        data["nb_pages"] = dict_pages["nb_pages"]
 
-			data["id_demo"] = id_demo
-			data["nb_pages"] = dict_pages["nb_pages"]
-			data["experiments"] = self.get_experiment_page(conn, id_demo, page)
-			conn.close()
-			data["status"] = "OK"
+                        if page > dict_pages["nb_pages"] or page < 0:
+                            data["number_of_experiments"] = '0'
+                        elif page == 0:
+                            page = 1
+                        
+                        data["experiments"] = self.get_experiment_page(conn, id_demo, page)
+                        conn.close()
+                        data["status"] = "OK"
+		
 		except Exception as ex:
-			self.error_log("echo_page", str(ex))
+		
+                        self.error_log("echo_page", str(ex))
 			try:
 				conn.close()
 			except Exception:
@@ -728,10 +759,23 @@ class Archive(object):
 
 	@cherrypy.expose
 	def index(self):
-		"""
-		Small index for the archive.
-		"""
-		return ("Welcome to IPOL archive !")
+            """
+            Small index for the archive.
+            """
+            return ("Welcome to IPOL archive !")
+        
+        @cherrypy.expose
+        def default(self, attr):
+            """
+            Default method invoked when asked for non-existing service.
+            """
+            data = {}
+            data["status"] = "KO"
+            data["message"] = "Unknown service '{}'".format(attr)
+            return json.dumps(data)
+
+        
+        
 #####
 # test
 #####
@@ -879,3 +923,5 @@ class Archive(object):
 		return json.dumps(status)
 
   
+
+        

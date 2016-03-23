@@ -10,7 +10,8 @@
     if status == "OK":
         page = response['nb_pages']
         request = '?module=archive&service=page&demo_id=' + app.id + '&page=' + str(page)
-        json_response = urllib.urlopen(app.proxy_server + request).read()
+        #json_response = urllib.urlopen(app.proxy_server + request).read()
+        json_response = urllib.urlopen(url_proxy + request).read()
         response = json.loads(json_response)
         status = response['status']
         
@@ -41,12 +42,12 @@
       This archive is public
       (<a href="${app.base_url + url_for_archive_details | h }" title="permalink">link</a>)
       and will appear in
-      <a href="${app.base_url + 'archive' | h }">the archive index</a>.
+      <a href="${app.base_url + 'archive' | h }">the archive index</a>
       <br />
       <!-- TODO: use radio controls -->
       You can switch to private mode:
       <input type="hidden" name="set_public_archive" value="0" />
-      <input type="submit" value="private" />.
+      <input type="submit" value="private" />
       %else:
       This archive is not public and will not appear in
       <a href="${app.base_url + 'archive' | h }">the archive index</a>.
