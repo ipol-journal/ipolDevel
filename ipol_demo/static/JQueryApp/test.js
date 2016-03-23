@@ -234,7 +234,7 @@ function initParams(  demo, params) {
         //console.info(param.cb_values);
         }
     );
-}
+};
 
 
 //------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ function OnDemoList(demolist)
             InputController(dl.demo_list[pos].editorsdemoid,dl.demo_list[pos].id);
         });
 
-}
+};
 
 //------------------------------------------------------------------------------
 // List all demos and select one
@@ -281,30 +281,29 @@ function ListDemosController() {
     );
     
     
-}
+};
 
 
 
 //------------------------------------------------------------------------------
-class BlobsContainer {
+var BlobsContainer = function(demoblobs, ddl_json)
+{
 
+    console.info("constructor : ", demoblobs);
+    this.demoblobs = demoblobs;
+    this.ddl_json  = ddl_json;
+    console.info("this.demoblobs : ", this.demoblobs);
+
+        
     //--------------------------------------------------------------------------
-    constructor(demoblobs, ddl_json) {
-        console.info("constructor : ", demoblobs);
-        this.demoblobs = demoblobs;
-        this.ddl_json  = ddl_json;
-        console.info("this.demoblobs : ", this.demoblobs);
-    }
-    
-    //--------------------------------------------------------------------------
-    append_blobs(db) {
+    this.append_blobs = function(db) {
         console.info("append_blobs ", this.demoblobs, " -- ", db);
         this.demoblobs.blobs = this.demoblobs.blobs.concat(db.blobs);
         this.UpdateDemoBlobs();
     }
 
     //--------------------------------------------------------------------------
-    UpdateDemoBlobs() {
+    this.UpdateDemoBlobs = function() {
 
         console.info("demoblobs.blobs.length=",this.demoblobs.blobs.length);
         
@@ -320,7 +319,7 @@ class BlobsContainer {
     }
         
     //--------------------------------------------------------------------------
-    PreprocessDemo() {
+    this.PreprocessDemo = function() {
         
         var blobs = this.demoblobs.blobs;
         
@@ -358,13 +357,13 @@ class BlobsContainer {
     }
 
     //--------------------------------------------------------------------------
-    DrawDemoBlobs() {
+    this.DrawDemoBlobs = function() {
         $("#displayblobs").html(this.CreateBlobSetDisplay());
         this.DemoBlobsEvents();
     }
     
     //--------------------------------------------------------------------------
-    CreateBlobSetDisplay()
+    this.CreateBlobSetDisplay = function()
     {
         var blobsets_html = "";
         
@@ -443,7 +442,7 @@ class BlobsContainer {
 
     
     //--------------------------------------------------------------------------
-    DemoBlobsEvents() {
+    this.DemoBlobsEvents = function() {
         var blobs = this.demoblobs.blobs;
         // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
@@ -488,7 +487,7 @@ class BlobsContainer {
         }
         
     }
-}
+};
 
 //------------------------------------------------------------------------------
 function OnDemoBlobs(ddl_json) {
@@ -1027,22 +1026,19 @@ function UpdateParams(ddl_json) {
 // 
 // }
 
-class DrawInputs {
+var DrawInputs = function(ddl_json) {
     
-    //--------------------------------------------------------------------------
-    constructor(ddl_json) {
-        this.ddl_json  = ddl_json;
-        this.draw_info = { maxdim:768,  display_ratio:-1};
-    }
+    this.ddl_json  = ddl_json;
+    this.draw_info = { maxdim:768,  display_ratio:-1};
 
     //--------------------------------------------------------------------------
-    SetBlobSet(blobset) {
+    this.SetBlobSet = function(blobset) {
         this.blobset = blobset;
     }
     
     
     //--------------------------------------------------------------------------
-    BlobHasImage( blob_idx) {
+    this.BlobHasImage = function( blob_idx) {
         var image_found = false;
         var blobset = this.blobset;
         var inputs = this.ddl_json.inputs;
@@ -1060,10 +1056,10 @@ class DrawInputs {
             }
         }
         return image_found;
-    }
+    };
     
     //--------------------------------------------------------------------------
-    CreateHTML() {
+    this.CreateHTML = function() {
         
         var html = "";
         var inputs = this.ddl_json.inputs;
@@ -1112,11 +1108,11 @@ class DrawInputs {
                     '<div style="clear:both"> </div><br/>'
         }
         $("#DrawInputsNoCrop").html(html);
-    }
+    };
 
     
     //--------------------------------------------------------------------------
-    LoadDataFromBlobSet() {
+    this.LoadDataFromBlobSet = function() {
 
         var inputs  = this.ddl_json.inputs;
         var blobset = this.blobset;
@@ -1174,10 +1170,10 @@ class DrawInputs {
             })(this.draw_info);
             image.src = blobs_url+blob;
         }
-    }
+    };
     
     //--------------------------------------------------------------------------
-    LoadDataFromLocalFiles() {
+    this.LoadDataFromLocalFiles = function() {
         var inputs  = this.ddl_json.inputs;
         var blobset = this.blobset;
         if (inputs.length>1) {
@@ -1204,9 +1200,9 @@ class DrawInputs {
             $('#inputimage').attr("src", image.src);
             $('#inputimage').attr("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
         }
-    }
+    };
     
-}
+};
 
 
 
