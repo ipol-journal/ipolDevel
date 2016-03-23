@@ -66,19 +66,22 @@
     {
       "id"            : "tmin",
       "type"          : "range",
-      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;Minimal threshold value <font color=blue><i>tmin</i></font>",
+      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;<font color=blue><i>tmin</i></font>",
+      "comments"      : "Minimal threshold value",
       "values"        : { "min":0, "max":255, "step":1, "default": 0 }
     },
     {
       "id"            : "tmax",
       "type"          : "range",
-      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;Maximal threshold value <font color=blue><i>tmax</i></font>",
+      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;<font color=blue><i>tmax</i></font>",
+      "comments"      : "Maximal threshold value",
       "values"        : { "min":0, "max":255, "step":1, "default": 128 }
     },
     {
       "id"            : "min_c",
       "type"          : "range",
-      "label"         :  "Minimal contour size <font color=blue> <i> m</i> </font>",
+      "label"         :  "<font color=blue> <i> m</i> </font>",
+      "comments"      : "Minimal contour size",
       "values"        : { "min":0, "max":10000, "step":1, "default": 128 }
     },
     {
@@ -88,7 +91,8 @@
     {
       "id"            : "e",
       "type"          : "range",
-      "label"         :  "Maximal error <font color=red> <i>e </i></font>",
+      "label"         :  "<font color=red> <i>e </i></font>",
+      "comments"      : "Maximal error",
       "values"        : { "min":0, "max":100, "step":0.5, "default": 1 }
     },
     {

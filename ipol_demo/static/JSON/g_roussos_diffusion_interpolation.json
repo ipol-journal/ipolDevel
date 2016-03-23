@@ -46,11 +46,12 @@
       "values"        : { "min":2, "max":6, "step":1, "default": 4 }
     },
     {
-      "id"            : "maxdim",
-      "type"          : "readonly", 
-      "label"         : [ "<b>Maximal allowed input dimension</b>",
+      "id"             : "maxdim",
+      "type"           : "readonly", 
+      "label"          : [ "<b>Maximal allowed input dimension</b>",
               " input image is constrained in both width and height to limit computation time, so that maximal scaled image is 800&times;800." ], 
-      "value_expr"    : [ "{{Math.floor(800/demo.params[0].value)}}" ]
+      "value_expr"     : [ "{{Math.floor(800/demo.params[0].value)}}" ],
+      "value_expr_new" : [ "Math.floor(800/$('#range_scalefactor').val())" ]
     },
     {
       "id"            : "psfsigma",
