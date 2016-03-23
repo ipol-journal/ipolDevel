@@ -1045,7 +1045,7 @@ class DrawInputs {
         if (inputs[blob_idx].type!='image') {
             var blob_links = blobset[0].html_params.split('&');
             console.info("blob_links = ", blob_links);
-            for(bid=1;bid<blob_links.length;bid++) {
+            for(var bid=1;bid<blob_links.length;bid++) {
                 console.info(" blob_idx = ", blob_idx, " ",parseInt(blob_links[bid].split(':')[0]));
                 if ((parseInt(blob_links[bid].split(':')[0])===blob_idx) &&
                     (blob_links[bid].split(':')[1].toLowerCase().indexOf(".png")>-1) ) {
