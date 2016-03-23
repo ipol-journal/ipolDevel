@@ -279,222 +279,249 @@ function ListDemosController() {
     
 }
 
-//------------------------------------------------------------------------------
-function CreateBlobSetDisplay(demoblobs)
-{
-    var blobsets_html = "";
-    
-    var thumbnail_size   = $("#ThumbnailSize option:selected").text();
-    var display_credits = $("#ShowCreditsCheckbox").is(':checked');
-    
-    console.info("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
-    
-    // loop over blobsets
-    for(var i=0;i<demoblobs.blobs.length;i++)
-    {
-        var blobset = demoblobs.blobs[i];
-        // represent the blob set within a HTML table
-        var blobset_html = "";
-        blobset_html += '<div  ';
-        // set div id for click selection
-        blobset_html += ' id="blobset_'+i+'"';
-        blobset_html += ' style="display:inline-block;vertical-align: top;">';
-        blobset_html += "<table  style='background-color:#EEEEEE;margin:5px;text-align:center;'>";
-        blobset_html += "<tr>";
-        for(var idx=1;idx<blobset[0].size+1;idx++)
-        {
-            // blob display could be disabled ...
-            blobset_html += "<td style='margin:2px;padding:2px;'>"
-            // apply the selection ???
-//         <a  style=' margin:0;padding:0;' 
-//             ng-href="/{{demo_id}}/input_select_angular?{{blob_set[0].html_params}}">
-
-            blobset_html += '<div';
-            blobset_html += '  class="select_input"';
-            blobset_html += '  style="margin:4px 0;padding:0;float:left;';
-//             blobset_html += '         width:'       +thumbnail_size+'px;';
-            blobset_html += '         height:'      +thumbnail_size+'px;';
-            blobset_html += '         line-height:' +thumbnail_size+'px;';
-            blobset_html += '         text-align:center" > ';
-            // needed to add at least one character (here &nbsp;) to get it vertically centered on chrome ... !!!
-            blobset_html += '&nbsp;<img';
-            blobset_html += '   style=" max-width:'  +thumbnail_size+'px;';
-            blobset_html += '           max-height:' +thumbnail_size+'px;';
-            blobset_html += '           vertical-align:middle;"';
-            blobset_html += '   src="'+demoblobs.url_thumb+
-                                '/thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" ';
-            blobset_html += '   alt='   +blobset[idx].title;
-            blobset_html += '   title="'+blobset[idx].title+
-                                ' (credits: '+blobset[idx].credit+
-                                ', tags:'+blobset[idx].tag+')" >&nbsp;';
-            blobset_html += "</div> ";
-            blobset_html += "</td>";
-        }
-        blobset_html += "</tr>";
-        blobset_html += '<tr style="background-color:#EEEEEE;">';
-        blobset_html += '<th colspan="'+blobset[0].size+'" ';
-        blobset_html +=   'style="max-width:'+(blobset[0].size*thumbnail_size)+'px" >';
-        //          We could use the blob name but in general each image has the same title
-        //             which is a better name <span>{{blob_set[0].set_name}}</span>
-        blobset_html += blobset[1].title;
-        if (display_credits) {
-          blobset_html += '<br/> <font size="-2"><i> <pre> &copy; '+blobset[1].credit+' </pre></i></font>'
-        }
-        blobset_html += "</th>";
-        blobset_html += "</tr>";
-        blobset_html += "</table>";
-        blobset_html += '</div>';
-        blobsets_html += blobset_html;
-    }
-    
-//     console.info(blobsets_html);
-    return blobsets_html;
-//     </tr>
-//     <tr style="background-color:#EEEEEE;">
-//         <th colspan="{{blob_set[0].size}}" ng-style="{'max-width':demo.general.thumbnail_size*blob_set[0].size+'px' }">
-//         {{blob_set[1].title}}
-//         <span ng-if="ShowCredits">
-//             <br/> <font size="-2"><i> <pre> &copy; {{blob_set[1].credit}} </pre></i></font>
-//         </span>
-//         </th>
-//     </tr>
-//     </table>
-}
 
 
 //------------------------------------------------------------------------------
 class BlobsContainer {
-    constructor(demoblobs) {
+
+    //--------------------------------------------------------------------------
+    constructor(demoblobs, ddl_json) {
         console.info("constructor : ", demoblobs);
         this.demoblobs = demoblobs;
+        this.ddl_json  = ddl_json;
         console.info("this.demoblobs : ", this.demoblobs);
     }
     
+    //--------------------------------------------------------------------------
     append_blobs(db) {
         console.info("append_blobs ", this.demoblobs, " -- ", db);
         this.demoblobs.blobs = this.demoblobs.blobs.concat(db.blobs);
-        UpdateDemoBlobs(this.demoblobs);
+        this.UpdateDemoBlobs();
     }
-}
 
-//------------------------------------------------------------------------------
-function OnDemoBlobs(demoblobs) {
-    
-    console.info("*** demoblobs");
-    console.info(demoblobs)
-    
-    if (demoblobs.status=="KO") {
-        return;
+    //--------------------------------------------------------------------------
+    UpdateDemoBlobs() {
+
+        console.info("demoblobs.blobs.length=",this.demoblobs.blobs.length);
+        
+        var str = JSON.stringify(this.demoblobs, undefined, 4);
+        $("#tabs-blobs pre").html(syntaxHighlight(str));
+
+        this.PreprocessDemo();
+        this.DrawDemoBlobs();
+        
+        $("#ThumbnailSize")      .change( function() { this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowCreditsCheckbox").change( function() { this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowTitlesCheckbox") .change( function() { this.DrawDemoBlobs(); }.bind(this));
     }
-    
-    
-    
-    bc = new BlobsContainer(demoblobs);
-    
-    // Check for template
-    if (demoblobs.use_template.hasOwnProperty('name')) {
-        // get template blobs
-        var template_name = demoblobs.use_template.name;
-        console.info("getting template ***")
-        ModuleService(
-            "blobs",
-            "get_blobs_from_template_ws",
-            "template="+template_name,
-            function(db){bc.append_blobs(db)}
-        );
-    } else {
-        UpdateDemoBlobs(demoblobs);
-    }
-    
-    
-}
-
-
-//------------------------------------------------------------------------------
-function UpdateDemoBlobs(demoblobs) {
-
-    console.info("demoblobs.blobs.length=",demoblobs.blobs.length);
-    
-    // preprocess HTML parameters string
-    // for each blob set, in the form
-    // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
-    for(var i=0;i<demoblobs.blobs.length;i++)
-    {
-        var blobset = demoblobs.blobs[i];
-        blobset[0].html_params = "url=" + demoblobs.url + "&"
-            // extract only contents of interest
-        var blobset_contents = blobset.slice(1);
-        blobset_contents.sort(function(a, b) {
-            return (a.id_in_set < b.id_in_set ? -1 : (a.id_in_set > b.id_in_set ? 1 : 0));
-        });
-        var current_id = ""
-        for (var idx = 0; idx < blobset_contents.length; idx++) {
-            if (idx == 0) {
-                blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
-            } else {
-                // if same id, separate by comma ...
-                if (blobset_contents[idx].id_in_set == current_id) {
-                    blobset[0].html_params += ",";
+        
+    //--------------------------------------------------------------------------
+    PreprocessDemo() {
+        
+        var blobs = this.demoblobs.blobs;
+        
+        // preprocess HTML parameters string
+        // for each blob set, in the form
+        // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
+        for(var i=0;i<blobs.length;i++)
+        {
+            var blobset = blobs[i];
+            blobset[0].html_params = "url=" + this.demoblobs.url + "&"
+                // extract only contents of interest
+            var blobset_contents = blobset.slice(1);
+            blobset_contents.sort(function(a, b) {
+                return (a.id_in_set < b.id_in_set ? -1 : (a.id_in_set > b.id_in_set ? 1 : 0));
+            });
+            var current_id = ""
+            for (var idx = 0; idx < blobset_contents.length; idx++) {
+                if (idx == 0) {
+                    blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
                 } else {
-                    // else separate arguments
-                    blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+                    // if same id, separate by comma ...
+                    if (blobset_contents[idx].id_in_set == current_id) {
+                        blobset[0].html_params += ",";
+                    } else {
+                        // else separate arguments
+                        blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+                    }
                 }
+                current_id = blobset_contents[idx].id_in_set;
+                blobset[0].html_params += blobset_contents[idx].hash +
+                    blobset_contents[idx].extension;
             }
-            current_id = blobset_contents[idx].id_in_set;
-            blobset[0].html_params += blobset_contents[idx].hash +
-                blobset_contents[idx].extension;
         }
+        
+    }
+
+    //--------------------------------------------------------------------------
+    DrawDemoBlobs() {
+        $("#displayblobs").html(this.CreateBlobSetDisplay());
+        this.DemoBlobsEvents();
     }
     
-    var str = JSON.stringify(demoblobs, undefined, 4);
-    $("#tabs-blobs pre").html(syntaxHighlight(str))
+    //--------------------------------------------------------------------------
+    CreateBlobSetDisplay()
+    {
+        var blobsets_html = "";
+        
+        var thumbnail_size   = $("#ThumbnailSize option:selected").text();
+        var display_credits  = $("#ShowCreditsCheckbox").is(':checked');
+        var display_titles   = $("#ShowTitlesCheckbox").is(':checked');
+        
+        console.info("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
+        
+        // loop over blobsets
+        for(var i=0;i<this.demoblobs.blobs.length;i++)
+        {
+            var blobset = this.demoblobs.blobs[i];
+            // represent the blob set within a HTML table
+            var blobset_html = "";
+            blobset_html += '<div  ';
+            // set div id for click selection
+            blobset_html += ' id="blobset_'+i+'"'
+                         +  ' style="display:inline-block;vertical-align: top;">'
+                         +  "<table  "+'id="table_blobset_'+i+'"'
+                         +  "style='background-color:#EEEEEE;margin:3px;text-align:center;border=1px'>"
+                         +  "<tr>";
+            for(var idx=1;idx<blobset[0].size+1;idx++)
+            {
+                // blob display could be disabled ...
+                blobset_html += "<td style='margin:0px;padding:0px;' id='blob_"+i+"_"+idx+"'>"
+                // apply the selection ???
+
+                blobset_html += '<div'
+                           //  +  '  class="select_input"'
+                             +  '  style="margin:0px;padding:0;float:left;'
+    //                          +  '         width:'       +thumbnail_size+'px;'
+                             +  '         height:'      +thumbnail_size+'px;'
+                             +  '         line-height:' +thumbnail_size+'px;'
+                             +  '         text-align:center" > '
+                // needed to add at least one character (here &nbsp;) to get it vertically centered on chrome ... !!!
+                             +  '&nbsp;<img'
+                             +  '   style=" max-width:'  +(thumbnail_size-6)+'px;'
+                             +  '           max-height:' +(thumbnail_size-6)+'px;'
+                             +  '           vertical-align:middle; margin:3px"'
+                             +  '   src="'+this.demoblobs.url_thumb+
+                                    '/thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
+                             +  '   alt='   +blobset[idx].title
+                             +  '   title="'+blobset[idx].title+
+                                    ' (credits: '+blobset[idx].credit+
+                                    ', tags:'+blobset[idx].tag+')" >&nbsp;'
+                             +  "</div> "
+                             +  "</td>";
+            }
+            blobset_html += "</tr>";
+            if (display_titles||display_credits) {
+                blobset_html += '<tr  style="background-color:#EEEEEE;">';
+                blobset_html += '<th colspan="'+blobset[0].size+'" ';
+                blobset_html +=   'style="max-width:'+(blobset[0].size*thumbnail_size)+'px;font-weight:normal;" >';
+                //          We could use the blob name but in general each image has the same title
+                //             which is a better name <span>{{blob_set[0].set_name}}</span>
+                if (display_titles) {
+                    blobset_html += blobset[1].title;
+                }
+                if (display_credits) {
+                    if (display_titles) {
+                        blobset_html += '<br/>';
+                    }
+                    blobset_html += '<font size="-2"><i> <pre> &copy; '+blobset[1].credit+' </pre></i></font>';
+                }
+                blobset_html += "</th>";
+                blobset_html += "</tr>";
+            }
+            blobset_html += "</table>";
+            blobset_html += '</div>';
+            blobsets_html += blobset_html;
+        }
+        
+        return blobsets_html;
+    }
 
     
-    $("#ThumbnailSize" ).change( function() {
-        $("#displayblobs").html(CreateBlobSetDisplay(demoblobs));
+    //--------------------------------------------------------------------------
+    DemoBlobsEvents() {
+        var blobs = this.demoblobs.blobs;
         // set click events on blobsets
-        for(var i=0;i<demoblobs.blobs.length;i++) {
+        for(var i=0;i<blobs.length;i++) {
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
-                console.info("blobset "+event.data.blobset_id+" clicked");
-            }
-            )
-        }
-    }
-    );
-    
-    $("#ShowCreditsCheckbox" ).change( function() {
-        $("#displayblobs").html(CreateBlobSetDisplay(demoblobs));
-        // set click events on blobsets
-        for(var i=0;i<demoblobs.blobs.length;i++) {
-            $("#blobset_"+i).click( {blobset_id: i}, function(event) {
-                console.info("blobset "+event.data.blobset_id+" clicked");
-            }
-            )
-        }
-    }
-    );
-    
-    
-    $("#displayblobs"  ).html(CreateBlobSetDisplay(demoblobs));
-    //$("#displayblobs2").html(CreateBlobSetDisplay(demoblobs)).css('float','left');
+                var di = new DrawInputs(this.ddl_json);
+                di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
+                di.CreateHTML();
+                di.LoadDataFromBlobSet();
+                //console.info("blobset "+event.data.blobset_id+" clicked ");
+            }.bind(this)
+            );
 
-    // set click events on blobsets
-    for(var i=0;i<demoblobs.blobs.length;i++) {
-        $("#blobset_"+i).click( {blobset_id: i}, function(event) {
-            console.info("blobset "+event.data.blobset_id+" clicked");
+            
+            $("#table_blobset_"+i).hover(
+                (function(id) {
+                    return function() {
+                       //$(this).children().animate({'border': '5px', 'background-color':'#EE5555'}, "fast");
+                       $("#table_blobset_"+id+" tr div").css('background-color','#CD5555');
+                    };
+                })(i),
+                (function(id) {
+                    return function() {
+                        //$(this).children().animate({'border': '1px', 'background-color':'#EE5555'}, "fast");
+                        $("#table_blobset_"+id+" tr div").css('background-color','#EEEEEE');
+                    };
+                })(i)
+            );
+
+            var blobset = this.demoblobs.blobs[i];
+            for(var idx=1;idx<blobset[0].size+1;idx++)
+            {
+                // check if thumbnail load works, if not, hide the corresponding
+                // image
+                var tester=new Image();
+                tester.onerror=(function(i,idx) { return function() {
+                    $("#blob_"+i+"_"+idx).html("");
+                }; })(i,idx);
+                tester.src=this.demoblobs.url_thumb+'/thumbnail_'+blobset[idx].hash+blobset[idx].extension;
+            }
+
+            
         }
-        )
+        
     }
-    
-    
 }
-    
+
+//------------------------------------------------------------------------------
+function OnDemoBlobs(ddl_json) {
+    return function (demoblobs) {
+        
+        console.info("*** demoblobs");
+        console.info("demoblobs=",demoblobs);
+        console.info("ddl_json=",ddl_json);
+        
+        if (demoblobs.status=="KO") {
+            return;
+        }
+        
+        bc = new BlobsContainer(demoblobs, ddl_json);
+        
+        // Check for template
+        if (demoblobs.use_template.hasOwnProperty('name')) {
+            // get template blobs
+            var template_name = demoblobs.use_template.name;
+            console.info("getting template ***")
+            ModuleService(
+                "blobs",
+                "get_blobs_from_template_ws",
+                "template="+template_name,
+                function(db){bc.append_blobs(db)}
+            );
+        } else {
+            bc.UpdateDemoBlobs();
+        }
+        
+    }
+}
+
 //------------------------------------------------------------------------------
 // Starts everything needed for demo input tab
 //
 function InputController(demo_id,internal_demoid) {
-
-
 
     console.info("internal demo id = ", internal_demoid);
     if (internal_demoid > 0) {
@@ -510,18 +537,88 @@ function InputController(demo_id,internal_demoid) {
                     $("#tabs-ddl pre").html(syntaxHighlight(str));
                 }
                 PreprocessDemo(ddl_json);
+
+                // Create local data selection to upload 
+                CreateLocalData(ddl_json);
+
                 // Create Parameters tab
                 CreateParams(ddl_json);
+
+                // Get demo blobs
+                ModuleService(
+                    "blobs",
+                    "get_blobs_of_demo_by_name_ws",
+                    "demo_name=" + demo_id,
+                    OnDemoBlobs(ddl_json));
             });
+
+
     }
     
-    // Get demo blobs
-    ModuleService(
-        "blobs",
-        "get_blobs_of_demo_by_name_ws",
-        "demo_name=" + demo_id,
-        OnDemoBlobs);
 
+}
+    
+    
+//------------------------------------------------------------------------------
+function CreateLocalData(ddl_json) {
+    var html="";
+    html += '<table style="margin-right:auto;margin-left:0px">';
+    for(var i=0;i<ddl_json.inputs.length;i++) {
+        html += '<tr>';
+        html += '<td>';
+          html += '<label for="file_'+i+'">'+ddl_json.inputs[i].description+'</label>';
+        html += '</td>';
+        html += '<td>';
+          html += '<input type="file" name="file_'+i+'" id="file_'+i+'" size="40"';
+          html += 'accept="'+ddl_json.inputs[i].ext+',image/*,media_type"';
+          html += ' />';
+        html += '</td>';
+        html += '<td > <img id="localdata_preview_'+i+'" style="max-height:128px"></td>';
+        html += '<td>';
+        html += '<font size="-1"><i>';
+          if (ddl_json.inputs[i].max_pixels!=undefined) {
+            html += '<span>  &le;'+ddl_json.inputs[i].max_pixels+' pixels </span>';
+          }
+          if (ddl_json.inputs[i].max_weight!=undefined) {
+            html += '<span> &le;'+ddl_json.inputs[i].max_weight/(1024*1024)+' Mb </span>';
+          }
+          if (ddl_json.inputs[i].required!=undefined && !ddl_json.inputs[i].required) {
+            html += '<span> (optional) </span>';
+          }
+        html += '</i></font>';
+        html += '</td>';
+        html += '</tr>';
+    }
+    html += '</table>';
+//     html += '<input type="submit" value="select" />';
+    $("#local_data").html(html);
+    
+    // deal with events
+    $( "#apply_localdata" ).click( (function(ddl_json) { return function(){
+            // code to be executed on click
+            var di = new DrawInputs(ddl_json);
+            //di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
+            di.CreateHTML();
+            di.LoadDataFromLocalFiles();
+        }
+    })(ddl_json));
+    
+    for(var i=0;i<ddl_json.inputs.length;i++) {
+        $("#file_"+i).change( 
+            (function(i) { return function() {
+
+                console.info("files=",this.files);
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = (function(i) { return function (e) {
+                        console.info("onload ", i, ":",e.target);
+                        $('#localdata_preview_'+i).attr("src", e.target.result);
+                    } })(i);
+                    reader.readAsDataURL(this.files[0]);
+                }
+            } }) (i)
+        );
+    }
 }
     
 //------------------------------------------------------------------------------
@@ -926,6 +1023,189 @@ function UpdateParams(ddl_json) {
 // 
 // }
 
+class DrawInputs {
+    
+    //--------------------------------------------------------------------------
+    constructor(ddl_json) {
+        this.ddl_json  = ddl_json;
+        this.draw_info = { maxdim:768,  display_ratio:-1};
+    }
+
+    //--------------------------------------------------------------------------
+    SetBlobSet(blobset) {
+        this.blobset = blobset;
+    }
+    
+    
+    //--------------------------------------------------------------------------
+    BlobHasImage( blob_idx) {
+        var image_found = false;
+        var blobset = this.blobset;
+        var inputs = this.ddl_json.inputs;
+        if (inputs[blob_idx].type!='image') {
+            var blob_links = blobset[0].html_params.split('&');
+            console.info("blob_links = ", blob_links);
+            for(bid=1;bid<blob_links.length;bid++) {
+                console.info(" blob_idx = ", blob_idx, " ",parseInt(blob_links[bid].split(':')[0]));
+                if ((parseInt(blob_links[bid].split(':')[0])===blob_idx) &&
+                    (blob_links[bid].split(':')[1].toLowerCase().indexOf(".png")>-1) ) {
+                    image_found = true;
+                    console.info("image found");
+                    break;
+                }
+            }
+        }
+        return image_found;
+    }
+    
+    //--------------------------------------------------------------------------
+    CreateHTML() {
+        
+        var html = "";
+        var inputs = this.ddl_json.inputs;
+        
+        // use gallery only if several images 
+        if (inputs.length>1) {
+            html += '<div class="gallery2" > ' +
+                    '<ul class="index1"> ';
+            for(var idx=0;idx<inputs.length;idx++) {
+                // search image with png extension at position idx+1
+                var image_found = this.BlobHasImage(idx);
+                // for the moment accept image type or .png files only
+                if ((inputs[idx].type==='image')|| image_found) {
+                    html +=
+                        '<li><a href="#">' +
+                        '<span>'+inputs[idx].description+
+                                '<span id="state_'+idx+'"> (loading) </span>'+
+                        '</span>'+
+                        //'<span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>'+
+                        '<div class="galim">'+
+                        '    <img  id="inputimage_'+idx+'"'+
+                        '        crossOrigin="Anonymous"'+
+                        '        style=padding:5px,'+
+                        '              max-width:' +this.draw_info.maxdim+'px,'+
+                        '              max-height:'+this.draw_info.maxdim+'px,'+
+                        '              width:auto,height:auto"'+
+    //                     '        styleParent'+
+    //                     '        imageonfail="DisableImage(demo.inputs[idx])"'+
+    //                     '        imageonload="LoadedImage (demo.inputs[idx])"'+
+                        '        />'+
+                        '</div>'+
+                        '</a></li>';
+                } else {
+                }
+            }
+            html += '</ul>' +
+                    '</div>';
+            
+        } else {
+            // simple image output
+            html += '<img  id="inputimage" crossOrigin="Anonymous"'+
+                            'style="padding:5px;'+
+                            'max-width:'+this.draw_info.maxdim+'px;max-height:'+this.draw_info.maxdim+'px;'+
+                            'width:auto;height:auto;float:left"' +
+                    '>' +
+                    '<div style="clear:both"> </div><br/>'
+        }
+        $("#DrawInputsNoCrop").html(html);
+    }
+
+    
+    //--------------------------------------------------------------------------
+    LoadDataFromBlobSet() {
+
+        var inputs  = this.ddl_json.inputs;
+        var blobset = this.blobset;
+
+        // load input image ...
+        var blobs_url_params = blobset[0].html_params.split('&');
+        console.info("blobs_url_params=",blobs_url_params);
+        var blobs_url = blobs_url_params[0].split('=')[1];
+        
+        if (inputs.length>1) {
+            var images = new Array(inputs.length);
+            for(var idx=0;idx<inputs.length;idx++) {
+                var idx_str = blobs_url_params[idx+1].split(':')[0];
+                var blob    = blobs_url_params[idx+1].split(':')[1];
+                images[idx] = new Image();
+                images[idx].onload = (function(draw_info,idx_str) { 
+                    return function () {
+                        if (draw_info.display_ratio==-1) {
+                            // compute display ratio
+                            draw_info.display_ratio=(this.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/this.naturalWidth;
+                            //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
+                            console.info("width ", this.naturalWidth ," display_ratio ", draw_info.display_ratio);
+                            $('.gallery2').attr("style", "height:"+(this.naturalHeight*draw_info.display_ratio+10+15)+'px;');
+                        }
+                        $('#inputimage_'+idx_str).attr("src", this.src);
+                        $('#inputimage_'+idx_str).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                        $('#state_'+idx_str).html("");
+    //                     $('#inputimage_'+idx).attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                    };
+                })(this.draw_info,idx_str);
+                // if non image type, seach for a png in the file list
+                if (blob.indexOf(',')>-1) {
+                    var blobs = blob.split(',');
+                    for(var n=0;n<blobs.length;n++) {
+                        if (blobs[n].toLowerCase().endsWith(".png")) {
+                            blob = blobs[n];
+                        }
+                    }
+                }
+                console.info(" blob link is ", blobs_url+blob);
+                images[idx].src = blobs_url+blob;
+            }
+        } else {
+            var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
+            var image = new Image();
+            image.onload = (function(draw_info) { 
+                return function () {
+                    // compute display ratio
+                    draw_info.display_ratio=(this.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/this.naturalWidth;
+                    //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
+                    console.info("width ", this.naturalWidth ," display_ratio ", draw_info.display_ratio);
+                    $('#inputimage').attr("src", this.src);
+                    $('#inputimage').attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                };
+            })(this.draw_info);
+            image.src = blobs_url+blob;
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    LoadDataFromLocalFiles() {
+        var inputs  = this.ddl_json.inputs;
+        var blobset = this.blobset;
+        if (inputs.length>1) {
+            var images = new Array(inputs.length);
+            for(var idx=0;idx<inputs.length;idx++) {
+                var image = new Image();
+                image.src =  $('#localdata_preview_'+idx).attr("src");
+                if (this.draw_info.display_ratio==-1) {
+                    // compute display ratio
+                    this.draw_info.display_ratio=(image.naturalWidth < this.draw_info.maxdim)?1: this.draw_info.maxdim/image.naturalWidth;
+                    //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
+                    console.info("width ", image.naturalWidth ," display_ratio ", this.draw_info.display_ratio);
+                    $('.gallery2').attr("style", "height:"+(image.naturalHeight*this.draw_info.display_ratio+10+15)+'px;');
+                }
+                $('#inputimage_'+idx).attr("src",image.src);
+                $('#inputimage_'+idx).attr("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+                $('#state_'+idx).html("");
+            }
+        } else {
+            var image = new Image();
+            image.src =  $('#localdata_preview_0').attr("src");
+            // compute display ratio
+            this.draw_info.display_ratio=(image.naturalWidth < this.draw_info.maxdim)?1: this.draw_info.maxdim/image.naturalWidth;
+            $('#inputimage').attr("src", image.src);
+            $('#inputimage').attr("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+        }
+    }
+    
+}
+
+
+
 function DocumentReady() {
 
     $("#tabs").tabs({
@@ -935,6 +1215,19 @@ function DocumentReady() {
         }
 
     );
+    
+    
+    // Set cursor to pointer and add click function
+    $("legend").css("cursor","pointer").click(function(){
+        var legend = $(this);
+        var value = $(this).children("span").html();
+        if(value=="[-]")
+            value="[+]";
+        else
+            value="[-]";
+       $(this).siblings().slideToggle("slow", function() { legend.children("span").html(value); } );
+    });
+    
     
 //     $.ajax({
 //         crossOrigin: true,
