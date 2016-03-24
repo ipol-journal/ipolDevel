@@ -187,13 +187,11 @@ var BlobsContainer = function(demoblobs, ddl_json)
             $("#table_blobset_"+i).hover(
                 (function(id) {
                     return function() {
-                       //$(this).children().animate({'border': '5px', 'background-color':'#EE5555'}, "fast");
                        $("#table_blobset_"+id+" tr div").css('background-color','#CD5555');
                     };
                 })(i),
                 (function(id) {
                     return function() {
-                        //$(this).children().animate({'border': '1px', 'background-color':'#EE5555'}, "fast");
                         $("#table_blobset_"+id+" tr div").css('background-color','#EEEEEE');
                     };
                 })(i)
