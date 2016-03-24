@@ -450,6 +450,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 var di = new DrawInputs(this.ddl_json);
                 di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
                 di.CreateHTML();
+//                 di.CreateCropper();
                 di.LoadDataFromBlobSet();
                 //console.info("blobset "+event.data.blobset_id+" clicked ");
             }.bind(this)
@@ -539,6 +540,12 @@ function InputController(demo_id,internal_demoid) {
                     var str = JSON.stringify(ddl_json, undefined, 4);
                     $("#tabs-ddl pre").html(syntaxHighlight(str));
                 }
+                
+                // hide crop
+                $("#div_cropinput" ).hide();
+                // empty inputs
+                $("#DrawInputs").empty();
+                
                 PreprocessDemo(ddl_json);
 
                 // Create local data selection to upload 
@@ -600,8 +607,10 @@ function CreateLocalData(ddl_json) {
     $( "#apply_localdata" ).click( (function(ddl_json) { return function(){
             // code to be executed on click
             var di = new DrawInputs(ddl_json);
+            console.info("apply_local_data ", ddl_json);
             //di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
             di.CreateHTML();
+//             di.CreateCropper();
             di.LoadDataFromLocalFiles();
         }
     })(ddl_json));
@@ -1100,14 +1109,34 @@ var DrawInputs = function(ddl_json) {
             
         } else {
             // simple image output
-            html += '<img  id="inputimage" crossOrigin="Anonymous"'+
-                            'style="padding:5px;'+
-                            'max-width:'+this.draw_info.maxdim+'px;max-height:'+this.draw_info.maxdim+'px;'+
-                            'width:auto;height:auto;float:left"' +
-                    '>' +
-                    '<div style="clear:both"> </div><br/>'
+            html += '<div style="clear:both"> </div>'+
+                    '<table id="inputimage_table">'+
+                    '<tr>'+
+                        '<td><div id="inputimage_div" style="float:left;margin:5px;">'+
+                            '<img  id="inputimage" crossOrigin="Anonymous"'+
+                                //'style="padding:5px;'+
+                                'max-width:' +this.draw_info.maxdim+'px;'+
+                                'max-height:'+this.draw_info.maxdim+'px;'+
+                                'width:auto;height:auto;float:left"' +
+                            '>'+
+                        '</div></td>'+
+                        '<td class="table_crop">'+
+                            '<div id="previewimage" style="height:500px;float:left;margin:5px">'+
+                                '<div class="preview"></div>'+
+                            '</div>'+
+                        '</td>'+
+                    '</tr>'+
+                    '<tr>'+
+                        '<td id="image_info" style="text-align:center;"></td>'+
+                        '<td class="table_crop" id="crop_info" style="text-align:center;">'+
+                            'crop info'+
+                        '</td>'+
+                    '</tr>'+
+                    '</table>'+
+                    '<div style="clear:both"> </div> <br/>';
         }
-        $("#DrawInputsNoCrop").html(html);
+        $("#DrawInputs").html(html);
+        $('.table_crop').hide();
     };
 
     
@@ -1157,19 +1186,28 @@ var DrawInputs = function(ddl_json) {
                     images[idx].src = blobs_url+blob;
                 }
             }
+            // we don't deal with crop with multiple inputs for the moment
+//             this.CreateCropper();
         } else {
             var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
             var image = new Image();
-            image.onload = (function(draw_info) { 
+            image.onload = (function(draw_info,setcrop) { 
                 return function () {
                     // compute display ratio
                     draw_info.display_ratio=(this.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/this.naturalWidth;
                     //$(".gallery2").attr("height",(this.naturalHeight*draw_info.display_ratio+5)+'px');
                     console.info("width ", this.naturalWidth ," display_ratio ", draw_info.display_ratio);
                     $('#inputimage').attr("src", this.src);
-                    $('#inputimage').attr("height",(this.naturalHeight*draw_info.display_ratio)+'px');
+                    $('#inputimage_div').css ("height", (this.naturalHeight*draw_info.display_ratio)+'px');
+                    $('#inputimage_div').css ("width",  (this.naturalWidth *draw_info.display_ratio)+'px');
+                    $('#previewimage')  .css ("height", (this.naturalHeight*draw_info.display_ratio)+'px');
+                    $('#inputimage')    .attr("height", (this.naturalHeight*draw_info.display_ratio)+'px');
+                    $('#image_info').html(  Math.round(this.naturalWidth)+"x"+
+                                            Math.round(this.naturalHeight)+
+                                            " (x"+(draw_info.display_ratio).toFixed(2)+")");
+                    setcrop();
                 };
-            })(this.draw_info);
+            })(this.draw_info,this.SetCrop.bind(this));
             image.src = blobs_url+blob;
         }
     };
@@ -1200,9 +1238,103 @@ var DrawInputs = function(ddl_json) {
             // compute display ratio
             this.draw_info.display_ratio=(image.naturalWidth < this.draw_info.maxdim)?1: this.draw_info.maxdim/image.naturalWidth;
             $('#inputimage').attr("src", image.src);
-            $('#inputimage').attr("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+            $('#inputimage_div').css ("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+            $('#inputimage_div').css ("width", (image.naturalWidth *this.draw_info.display_ratio)+'px');
+            $('#previewimage')  .css ("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+            $('#inputimage')    .attr("height",(image.naturalHeight*this.draw_info.display_ratio)+'px');
+            $('#image_info').html(  Math.round(image.naturalWidth)+"x"+
+                                    Math.round(image.naturalHeight)+
+                                    " (x"+(this.draw_info.display_ratio).toFixed(2)+")");
+            this.SetCrop();
         }
     };
+    
+
+    //--------------------------------------------------------------------------
+    this.CreateCropper = function() {
+        var inputs  = this.ddl_json.inputs;
+        if (inputs.length===1) {
+            var crop_enabled = $("#id_cropinput").is(':checked');
+            if (crop_enabled) {
+                $("#inputimage").cropper({
+                    viewMode: 0,
+                    zoomOnWheel: false,
+                    // adapted preview code from example customize-preview.html
+                    build: function (e) {
+                        var $clone = $(this).clone();
+
+                        $clone.css({
+                        display: 'block',
+                        width: '100%',
+                        minWidth: 0,
+                        minHeight: 0,
+                        maxWidth: 'none',
+                        maxHeight: 'none'
+                        });
+
+                        var $previews = $('.preview');
+                        $previews.css({
+                        height: '100%',
+                        overflow: 'hidden'
+                        }).html($clone);
+                    },
+
+                    crop: function (e) {
+                        var imageData = $(this).cropper('getImageData');
+                        var previewAspectRatio = e.width / e.height;
+
+                        var $previews = $('.preview');
+                        $previews.each(function () {
+                            var $preview = $(this);
+
+                            var previewHeight = $preview.height();
+                            var previewWidth  = previewHeight * previewAspectRatio;
+                            var imageScaledRatio = e.width / previewWidth;
+
+                            $("#crop_info").html(Math.round(e.width)+"x"+Math.round(e.height)+" (x"+(1/imageScaledRatio).toFixed(2)+")");
+                            
+                            $preview.width(previewWidth).find('img').css({
+                                width: imageData.naturalWidth / imageScaledRatio,
+                                height: imageData.naturalHeight / imageScaledRatio,
+                                marginLeft: -e.x / imageScaledRatio,
+                                marginTop: -e.y / imageScaledRatio
+                            });
+                        });
+                    }
+                });
+            }
+//             $('#inputimage_table td:nth-child(2)').show();
+            $('.table_crop').show();
+            
+        } else {
+            $("#div_cropinput" ).hide();
+//             $('#inputimage_table td:nth-child(2)').hide();
+            $('.table_crop').hide();
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    this.DestroyCropper = function() {
+        $("#inputimage").cropper('destroy');
+//         $('#inputimage_table td:nth-child(2)').hide();
+        $('.table_crop').hide();
+    }
+    
+    //--------------------------------------------------------------------------
+    this.SetCrop = function() {
+        var inputs  = this.ddl_json.inputs;
+        if (inputs.length===1) {
+            $("#div_cropinput" ).show();
+            $("#id_cropinput").change( function() { this.SetCrop(); }.bind(this));
+            var crop_enabled = $("#id_cropinput").is(':checked');
+            //console.info("SetCrop ",  crop_enabled);
+            if (crop_enabled) {
+                this.CreateCropper();
+            } else {
+                this.DestroyCropper();
+            }
+        }
+    }
     
 };
 
@@ -1218,7 +1350,17 @@ function DocumentReady() {
 
     );
     
+    // get url parameters (found on http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/21152762#21152762)
+    var url_params = {};
+    location.search.substr(1).split("&").forEach(function(item) {
+        var s = item.split("="),
+            k = s[0],
+            v = s[1] && decodeURIComponent(s[1]);
+        (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
+    })
     
+    console.info("url parameters = ",url_params);
+
     // Set cursor to pointer and add click function
     $("legend").css("cursor","pointer").click(function(){
         var legend = $(this);
