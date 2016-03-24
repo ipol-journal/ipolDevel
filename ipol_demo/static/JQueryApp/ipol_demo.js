@@ -112,7 +112,7 @@ function OnDemoList(demolist)
                         dl.demo_list[demo_pos].id);
     }
 
-    $("#demo-selection").change(
+    $("#demo-select").change(
         function() {
             var pos =$( "#demo-select option:selected" ).val();
             InputController(dl.demo_list[pos].editorsdemoid,
