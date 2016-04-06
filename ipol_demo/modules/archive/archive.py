@@ -131,9 +131,9 @@ class Archive(object):
 			thumbs_s = 256
 
 		try:
-			self.nb_exp_by_pages = int(cherrypy.config.get("nb_exp_by_pages"))
+			self.number_of_experiments_by_pages = int(cherrypy.config.get("number_of_experiments_by_pages"))
 		except Exception:
-			self.nb_exp_by_pages = 12
+			self.number_of_experiments_by_pages = 12
 		
 		self.thumbs_size = (thumbs_s, thumbs_s)
 
@@ -159,10 +159,8 @@ class Archive(object):
 		"""
 		logger = logging.getLogger("archive_log")
 		logger.setLevel(logging.ERROR)
-		handler = logging.FileHandler(os.path.join(self.logs_dir,
-												   'error.log'))
-		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
-									  datefmt='%Y-%m-%d %H:%M:%S')
+		handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 		return logger
@@ -359,64 +357,115 @@ class Archive(object):
 		:return: status of the operation
 		:rtype: JSON formatted string.
 		"""
-		status = {"status" : "KO"}
+		data = {}
+                data["status"] = "OK"
+		
 		try:
 			demo_id = int(demo_id)
 			conn = lite.connect(self.database_file)
 			id_experiment = self.update_exp_table(conn, demo_id, parameters)
-			dict_corresp = self.update_blob_table(conn, blobs)
-			self.update_correspondence_table(conn, id_experiment, dict_corresp)
-			conn.commit()
-			conn.close()
-			status["status"] = "OK"
-		except Exception as ex:
+                        dict_corresp = self.update_blob_table(conn, blobs)
+                        self.update_correspondence_table(conn, id_experiment, dict_corresp)
+                        conn.commit()
+                        conn.close()
+                        data["id_experiment"] = id_experiment
+                
+                except Exception as ex:
 			self.error_log("add_experiment", str(ex))
 			status = False
+		        data["status"] = "KO"
+                
 			try:
 				conn.rollback()
 				conn.close()
 			except Exception as ex:
 				pass
-		return json.dumps(status)
+		return json.dumps(data)
 
-	
+#####
+# displaying a single experiment of archive
+#####
+
+        @cherrypy.expose
+        def get_experiment(self, demo_id, id_experiment):
+            
+            id_demo = int(demo_id)
+            id_experiment = int(id_experiment)
+            
+            data = {}
+            data["status"] = "OK"
+            try:
+                conn = lite.connect(self.database_file)
+            
+                cursor_db = conn.cursor()
+                
+                for row in cursor_db.execute("""
+                    SELECT params, timestamp
+                    FROM experiments WHERE id_demo = ? and id = ? """, (id_demo, id_experiment)):
+                            data['experiment'] = self.get_data_experiment(conn, id_experiment, row[0], row[1])
+                
+                conn.close()
+            
+            except Exception as ex:
+                        
+                data["status"] = "KO"
+                self.error_log("get_experiment", str(ex))
+                
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            
+            
+            return json.dumps(data)
+
 #####
 # displaying a page of archive
 #####
-        def count_number_of_experiments(self, conn, id_demo):
-            """
-            This function return the number of archive pages to be displayed
-            for a given demo, and the number of experiments done with this
-            demo.
-            :return: a dict with the number and pages and the number of experiments
-            :rtype: dict
-            """
-            pass
+        def get_meta_info(self, conn, id_demo):
+                """
+                    This function return the number of archive pages to be displayed
+                    for a given demo, and the number of experiments done with this demo.
 
-	def count_pages(self, conn, id_demo):
-		"""
-		This function return the number of archive pages to be displayed
-			for a given demo, and the number of experiments done with this
-			demo.
-
-		:return: a dict with the number and pages and the number of experiments
-		:rtype: dict
-		"""
-		dict_pages = {}
+                :return: a dict with the meta info: total number of exp, number of exp in every page, number of pages 
+                    and first_date_of_an_experiment
+                :rtype: dict
+                 """
+		meta_info = {}
+		
+		meta_info["number_of_experiments_in_a_page"] = self.number_of_experiments_by_pages
+                
 		cursor_db = conn.cursor()
+		
 		cursor_db.execute("""
 		SELECT COUNT(*) FROM experiments WHERE id_demo = ?""", (id_demo,))
-		nb_exp = cursor_db.fetchone()[0]
-		dict_pages["nb_exp"] = nb_exp
+		
+		number_of_experiments = cursor_db.fetchone()[0]
+		meta_info["number_of_experiments"] = number_of_experiments
+		
+		if number_of_experiments == 0:
+                    meta_info["first_date_of_an_experiment"] = 'never'
+                    meta_info["number_of_pages"] = 0
+                    return meta_info
+		
+		cursor_db.execute("""
+                SELECT timestamp
+                FROM experiments WHERE id_demo = ?
+                ORDER BY timestamp """, (id_demo,))
+                
+                first_date_of_an_experiment = cursor_db.fetchone()[0]
+                
+                if number_of_experiments % self.number_of_experiments_by_pages != 0:
+                    pages_to_add = 1
+                else:
+                    pages_to_add = 0
 
-		if nb_exp % self.nb_exp_by_pages != 0:
-			pages_to_add = 1
-		else:
-			pages_to_add = 0
-
-		nb_pages = (nb_exp / self.nb_exp_by_pages) + pages_to_add
-		dict_pages["nb_pages"] = nb_pages
-		return dict_pages
+                number_of_pages = (number_of_experiments / self.number_of_experiments_by_pages) + pages_to_add
+                
+                meta_info["first_date_of_an_experiment"] = first_date_of_an_experiment
+                meta_info["number_of_pages"] = number_of_pages
+                
+                return meta_info
 
 	def get_dict_file(self, path_file, path_thumb, name, id_blob):
 		"""
@@ -455,10 +504,13 @@ class Archive(object):
 			path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
 			list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
+		
+		
 		dict_exp["id"] = id_exp
 		dict_exp["date"] = date
 		dict_exp["parameters"] = json.loads(parameters)
 		dict_exp["files"] = list_files
+		
 		return dict_exp
 
 	def get_experiment_page(self, conn, id_demo, page):
@@ -471,17 +523,20 @@ class Archive(object):
 		"""
 		data_exp = []
 		cursor_db = conn.cursor()
-		starting_index = ((page - 1) * self.nb_exp_by_pages)
+		starting_index = ((page - 1) * self.number_of_experiments_by_pages)
+            
 
 		for row in cursor_db.execute("""
 		SELECT id, params, timestamp
 		FROM experiments WHERE id_demo = ?
 		ORDER BY timestamp
-		LIMIT ? OFFSET ?""", (id_demo, self.nb_exp_by_pages, starting_index,)):
+		LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,)):
 			data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2]))
+		
 		return data_exp
 
-	def echo_page(self, id_demo, page):
+        @cherrypy.expose
+	def get_page(self, demo_id, page='1'):
 		"""
 		This function return a JSON string with all the informations needed
 			to build the given page for the given demo.
@@ -489,44 +544,47 @@ class Archive(object):
 		:return: JSON string
 		:rtype: string
 		"""
+		id_demo = int(demo_id)
+		page = int(page)
 		data = {}
-		data["status"] = "KO"
+		data["status"] = "OK"
                 try:
 			conn = lite.connect(self.database_file)
 			
-			dict_pages = self.count_pages(conn, id_demo)
+			meta_info = self.get_meta_info(conn, id_demo)
+			
+                        meta_info["id_demo"] = id_demo
                         
-                        data["number_of_experiments"] = dict_pages["nb_exp"]
-                        data["id_demo"] = id_demo
-                        data["nb_pages"] = dict_pages["nb_pages"]
-
-                        if page > dict_pages["nb_pages"] or page < 0:
-                            data["number_of_experiments"] = '0'
-                        elif page == 0:
-                            page = 1
+                        if meta_info["number_of_experiments"] == 0:
+                            data["meta"] = meta_info
+                            data["experiments"] = {}
+                            data["status"] = "OK"
+                            return json.dumps(data)
                         
-                        data["experiments"] = self.get_experiment_page(conn, id_demo, page)
+                        if page > meta_info["number_of_pages"] or page < 0:
+                            page = meta_info["number_of_pages"]
+                            experiments = self.get_experiment_page(conn, id_demo, page)
+                        
+                        else:
+                            experiments = self.get_experiment_page(conn, id_demo, page)
+                        
+                        data["meta"] = meta_info
+                        data["experiments"] = experiments 
+                        
                         conn.close()
-                        data["status"] = "OK"
+                        
 		
 		except Exception as ex:
-		
-                        self.error_log("echo_page", str(ex))
+                        
+                        data["status"] = "KO"
+                        self.error_log("get_page", str(ex))
 			try:
 				conn.close()
 			except Exception:
 				pass
-		return data
+		
+		return json.dumps(data)
 
-	@cherrypy.expose
-	def page(self, demo_id, page='1'):
-		"""
-		Return a JSON string with all the infos on a given pave of archive
-			for a given id.
-
-		:rtype: JSON formatted string
-		"""
-                return json.dumps(self.echo_page(int(demo_id), int(page)))
 
 #####
 # deleting an experiment
