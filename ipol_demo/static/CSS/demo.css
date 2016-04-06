@@ -30,6 +30,14 @@ p.center{text-align:center}
 .gallery2 .index1 a:hover{border:1px solid #888}
 .gallery2 .index1 a:hover .galim{left:9em;z-index:100}
 
+.gallery2 .index{padding:0;margin:0;width:11em;list-style:none}
+.gallery2 .index li{margin:0;padding:0}
+.gallery2 .index a{display:block;background-color:#eee;border:1px solid #fff;text-decoration:none;width:9em;padding:5px}
+.gallery2 .index a .galim{display:block;position:absolute;left:-9999px;top:0;padding-left:2em}
+.gallery2 .index li:first-child a .galim{left:9em;z-index:99}
+.gallery2 .index a:hover{border:1px solid #888}
+.gallery2 .index a:hover .galim{left:9em;z-index:100}
+
 .archive_index{font-size:85%}
 .bucket{margin:.5em 0;padding:.5em 0;border-top:#ddd 1px solid}
 .bucket dl{margin:0 0 .5em 0;padding:0} 
