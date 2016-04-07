@@ -122,13 +122,16 @@ class RunDemoBase:
     """
     
     # convert parameters to variables
-    #for _k_ in self.algo_params:
-      #exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
-    # convert meta info to variables
-    #for _k_ in self.algo_meta:
-      #exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
-    locals().update(self.algo_params)
-    locals().update(self.algo_meta)
+    for _k_ in self.algo_params:
+      exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
+    #convert meta info to variables
+    for _k_ in self.algo_meta:
+      exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
+      
+    ## there is a problem in Python, seems that locals() should not be modified
+    ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
+    #locals().update(self.algo_params)
+    #locals().update(self.algo_meta)
     
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
