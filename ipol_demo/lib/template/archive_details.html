@@ -6,37 +6,19 @@ This archive is not moderated. In case of copyright infringement or similar prob
 Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.
 </p>
 
-<%
-    images = {}
-    non_images = {}
-    
-    for files in archive['files']:
-        
-        file = files['url']
-        import os
-        path, file_extension = os.path.splitext(file)
-        
-        if file_extension.endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".jpg2")):
-            images[file] = files['name']
-        else:
-            non_images[file] = files['name']
-            
-    endfor
-    
-%>
 
 <div class="bucket">
   <table class="info">
     <tr>  
       <th>Exp.</th>
-      <td>Experiment ${archive['id_experiment']}</a>
+      <td>Experiment ${id_experiment}</a>
     </tr>
     <tr>
     <th>date </th>
-      <td> ${archive['date']}</td>
+      <td> ${date}</td>
     </tr>
     </tr>
-     %for (parameter, value) in archive['parameters'].items():
+     %for (parameter, value) in parameters.items():
     <tr>
       <th>${parameter | h} </th>
       <td>${value | h} </td>

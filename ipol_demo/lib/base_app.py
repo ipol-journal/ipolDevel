@@ -48,6 +48,8 @@ import  glob
 import magic
 from PIL import Image,ImageDraw
 
+import mimetypes
+
 class AppPool(object):
     """
     App object pool used by the init_func decorator to
@@ -1013,7 +1015,7 @@ class base_app(empty_app):
 
     #---------------------------------------------------------------------------
     #
-    #   CODE!!!
+    #  NEW CODE!!!
     #
     ######################
     @staticmethod
@@ -1151,6 +1153,7 @@ class base_app(empty_app):
                f_dst.close()
                corrected_filename = re.sub('[!@#$]', '', desc['compressed_files'][filename])
                value = {corrected_filename : file_complete_route_compressed}
+               #value = {desc['compressed_files'][filename] : file_complete_route_compressed}
                blobs_item.append(value)
         
         blobs = blobs_item
@@ -1175,6 +1178,8 @@ class base_app(empty_app):
             req = urllib2.Request(url_proxy, request_a_service)
             response = urllib2.urlopen(req)
             json_response = response.read()
+            print json_response
+            
             
         except Exception as ex:
             return self.error(  errcode='modulefailure',
@@ -1183,153 +1188,6 @@ class base_app(empty_app):
         
       return self.tmpl_out("run.html")
     
-    #@cherrypy.expose
-    #@init_app
-    #def run(self, **kwargs):
-    #  """
-    #  algo execution and redirection to result
-    #  """
-    #  
-    #  self.check_build()
-    #  
-    #  # run the algorithm
-    #  try:
-    #    run_time = time.time()
-    #    self.cfg.save()
-    #    self.run_algo()
-    #    self.cfg.Reload()
-    #    # re-read the config in case it changed during the execution
-    #    self.cfg['info']['run_time'] = time.time() - run_time
-    #    self.cfg['info']['status']   = 'success'
-    #    self.cfg.save()
-    #  except IPOLTimeoutError:
-    #    return self.error(errcode='timeout') 
-    #  except RuntimeError as e:
-    #    print "self.show_results_on_error =", self.show_results_on_error
-    #    if not(self.show_results_on_error):
-    #      return self.error(errcode='runtime',errmsg=str(e))
-    #    else:
-    #      self.cfg['info']['run_time'] = time.time() - run_time
-    #      self.cfg['info']['status']   = 'failure'
-    #      self.cfg['info']['error']    = str(e)
-    #      self.cfg.save()
-    #      pass
-    #
-    #  http.redir_303(self.base_url + 'result?key=%s' % self.key)
-    #
-    #  # check if new config fields
-    #  if 'config' in self.demo_description.keys():
-    #    desc = self.demo_description['config']
-    #    info_changed = False
-    #    if 'info_from_file' in desc.keys():
-    #      print desc['info_from_file']
-    #      for info in desc['info_from_file']:
-    #        print "*** ",info
-    #        filename = desc['info_from_file'][info]
-    #        try:
-    #          f = open( os.path.join(self.work_dir,filename))
-    #          file_lines = f.read().splitlines()
-    #          # remove empty lines and replace new lines with ' | '
-    #          new_string = " | ".join([ll.rstrip() for ll in file_lines if ll.strip()])
-    #          self.cfg['info'][info] = new_string
-    #          print "Added info ", info, " with value ", self.cfg['info'][info]
-    #          info_changed = True
-    #          f.close()
-    #        except:
-    #          print "failed to get info ",  info, " from file ", filename
-    #    if info_changed:
-    #      self.cfg.save()
-    #
-    #  # archive (OLD CODE)
-    #  #if self.nb_inputs==0:
-    #  #    self.cfg['meta']['original'] = True
-    #  #    self.cfg.save()
-    #  #    
-    #  #if (self.nb_inputs==0) or (self.cfg['meta']['original']):
-    #  #  desc = self.demo_description['archive']
-    #  #  ar = self.make_archive()
-    #  #  if 'files' in desc.keys():
-    #  #    for filename in desc['files']:
-    #  #      ar.add_file(filename, info=desc['files'][filename])
-    #  #  if 'compressed_files' in desc.keys():
-    #  #    for filename in desc['compressed_files']:
-    #  #      ar.add_file(filename, info=desc['compressed_files'][filename], 
-    #  #                  compress=True)
-    #  #    
-    #  #  # let's add all the parameters
-    #  #  if 'params' in desc.keys():
-    #  #    for p in desc['params']:
-    #  #      if p in self.cfg['param']:
-    #  #        ar.add_info({ p: self.cfg['param'][p]})
-    #  #    
-    #  #  if 'info' in desc.keys():
-    #  #    # save info
-    #  #    for i in desc['info']:
-    #  #      if i in self.cfg['info']:
-    #      #        ar.add_info({ desc['info'][i] : self.cfg['info'][i]})
-    #      #  ar.save()
-    #      #return self.tmpl_out("run.html")
-    #      # End archive (OLD CODE)
-    #      
-    #       #Files must be stored by the archive module
-    #      if (self.nb_inputs==0) or (self.cfg['meta']['original']):
-    #        
-    #        desc = self.demo_description['archive']
-    #        
-    #        blobs = {}
-    #        if 'files' in desc.keys():
-    #          for filename in desc['files']:
-    #            file_complete_route = os.path.join(self.work_dir, filename)
-    #            if os.path.exists(file_complete_route):
-    #               value = re.sub('[!@#$]', '', desc['files'][filename])
-    #               blobs[file_complete_route] = value
-    #        
-    #        if 'compressed_files' in desc.keys():
-    #          for filename in desc['compressed_files']:
-    #            file_complete_route = os.path.join(self.work_dir, filename)
-    #            file_complete_route_compressed = file_complete_route + '.gz'
-    #            print file_complete_route
-    #            print file_complete_route_compressed
-    #            if os.path.exists(file_complete_route):
-    #               f_src = open(file_complete_route, 'rb')
-    #               f_dst = gzip.open(file_complete_route_compressed, 'wb')
-    #               f_dst.writelines(f_src)
-    #               f_src.close()
-    #               f_dst.close()
-    #               value = re.sub('[!@#$]', '', desc['compressed_files'][filename])
-    #               blobs[file_complete_route_compressed] = value 
-    #            
-    #        # let's add all the parameters
-    #        parameters = {}
-    #        if 'params' in desc.keys():
-    #          for p in desc['params']:
-    #            if p in self.cfg['param']:
-    #               parameters[p] = self.cfg['param'][p]
-    #        
-    #        # save info
-    #        if 'info' in desc.keys():
-    #          for i in desc['info']:
-    #            if i in self.cfg['info']:
-    #               parameters[desc['info'][i]] = self.cfg['info'][i]
-    #        
-    #            
-    #        try:
-    #            
-    #            url_proxy = self.proxy_server + '?module=archive&service=add_experiment'
-    #            request_a_service = 'demo_id=' + self.id + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)
-    #            req = urllib2.Request(url_proxy, request_a_service)
-    #            response = urllib2.urlopen(req)
-    #            json_response = response.read()
-    #            
-    #            
-    #        except Exception as ex:
-    #            return self.error(  errcode='modulefailure',
-    #                                errmsg="The archive module has failed: " + str(ex))
-    #           
-    #        
-    #      return self.tmpl_out("run.html")
-    
-
     #---------------------------------------------------------------------------
     # Core algorithm runner
     #---------------------------------------------------------------------------
@@ -1492,62 +1350,6 @@ class base_app(empty_app):
         # ATTEND TO REBUILD-INDEX COMMAND
         archive.index_rebuild(self.archive_index, self.archive_dir)
 
-
-    #@cherrypy.expose
-    #def archive(self, page=-1, id_experiment=None):
-        """
-        lists the archive content
-        """
-        #if deleteThisKey and deleteThisKey != '':
-        #    self.remove_from_archive(deleteThisKey)
-        #
-        #if key:
-        #    # select one archive
-        #    buckets = [{'url' : self.archive_url + archive.key2url(key),
-        #                'files' : files, 'meta' : meta, 'info' : info}
-        #               for (key, (files, meta, info))
-        #               in archive.index_read(self.archive_index,
-        #                                     key=key,
-        #                                     path=self.archive_dir)]
-        #    # Check if the key is deletable for this user
-        #    ukm = archive.UserKeysManager()
-        #    deletable = ukm.key_belongs_to_user(key)
-        #
-        #    return self.tmpl_out("archive_details.html",
-        #                         bucket=buckets[0],
-        #                         deletable=deletable,
-        #                         adminmode=adminmode)
-        #else:
-        #    # select a page from the archive index
-        #    nbtotal = archive.index_count(self.archive_index,
-        #                                   path=self.archive_dir,
-        #                                   public=True)
-        #    if nbtotal:
-        #        firstdate = archive.index_first_date(self.archive_index,
-        #                                             path=self.archive_dir)
-        #    else:
-        #        firstdate = 'never'
-        #    limit = 20
-        #    nbpage = int(math.ceil(nbtotal / float(limit)))
-        #    page = int(page)
-        #    if page == -1:
-        #        page = nbpage - 1
-        #    offset = limit * page
-        #
-        #    buckets = [{'url' : self.archive_url + archive.key2url(key),
-        #                'files' : files, 'meta' : meta, 'info' : info}
-        #               for (key, (files, meta, info))
-        #               in archive.index_read(self.archive_index,
-        #                                     limit=limit, offset=offset,
-        #                                     public=True,
-        #                                     path=self.archive_dir)]
-        #    return self.tmpl_out("archive_index.html",
-        #                          bucket_list=buckets,
-        #                         page=page, nbpage=nbpage,
-        #                         nbtotal=nbtotal,
-        #                         firstdate=firstdate,
-        #                         adminmode=adminmode)
-        # END OF OLD_CODE
         
     #NEW CODE REFACTORING
     @cherrypy.expose
@@ -1557,70 +1359,72 @@ class base_app(empty_app):
         """
         page = int(page)
         
-        request = '?module=archive&service=page&demo_id=' + demo_id + '&page=1'
+        request = '?module=archive&service=get_page&demo_id=' + demo_id + '&page=' + str(page)
         json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
         status = response['status']
         
         if status == "OK":
-            number_of_experiments = response["number_of_experiments"]
             
-            if number_of_experiments == '0':
+            meta_info =  response["meta"]
+            
+            number_of_experiments = meta_info["number_of_experiments"]
+            
+            if number_of_experiments == '0': 
                 #Empty list. No experiments in the archive
                 archive_experiments = []
-                return self.tmpl_out("archive_index.html", archive_list=archive_experiments,
-                                    page=0, number_of_experiments=0,
-                                    nbpage=0,firstdate='never')           
+                return self.tmpl_out("archive_index.html", archive_list=archive_experiments, page=0, 
+                                     number_of_experiments=0, nbpage=0,first_date='never')           
+            
             else:
+                
+                first_date = meta_info["first_date_of_an_experiment"]
+                number_of_pages = meta_info["number_of_pages"]
+                number_of_experiments_in_the_page = meta_info["number_of_experiments_in_a_page"]
+            
                 experiments = response['experiments']
-                firstdate = experiments[0]['date']
                 
                 if page == -1: 
-                    page = response['nb_pages']
+                    page = number_of_pages #We want to show the last page.
                 
-                request = '?module=archive&service=page&demo_id=' + demo_id + '&page=' + str(page)
-                json_response = urllib.urlopen(self.proxy_server + request).read()
-                response = json.loads(json_response)
+                archive_experiments = []
+                for exp in experiments:
                     
-                status = response['status']
+                    images = {}
+                    non_images = {}
                 
-                if status == "OK":
+                    for files in exp['files']: 
+                        
+                        file_url = files['url']
+                        mimetype, encoding = mimetypes.guess_type(file_url)
+                            
+                        if mimetype:
+                            ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
+                            route, file_extension = os.path.splitext(file_url)
+                            if file_extension != '.tiff':
+                                images[file_url] = [files['name'],files['url_thumb']] 
+                            else:
+                                non_images[file_url] = files['name']    
+                                
+                        else:
+                            non_images[file_url] = files['name']
                     
-                    id_demo     = response['id_demo'] # I FACT... IT IS NOT NEEDED 
-                    nbpage      = response['nb_pages']
-                    experiments = response['experiments']
-                    
-                    archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
-                                        for exp in experiments]
-                    
-                    if nbpage > 1:
+                        
+                    archive_experiments.append({'id_experiment' : exp['id'], 'images' : images, 'non_images' : non_images,
+                                                'date': exp['date'], 'parameters' : exp['parameters']})
                 
-                        request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(nbpage)
-                        json_response = urllib.urlopen(self.proxy_server + request).read()
-                        response = json.loads(json_response)
-                    
-                        experiments_in_last_page = response['experiments']
-                        number_of_experiments_in_the_page  = ((nbpage - 1) * 12) + len(experiments_in_last_page)
-                    
-                    else:
-                        number_of_experiments_in_the_page = len(experiments)
-                    
-                    return self.tmpl_out("archive_index.html",
-                            archive_list=archive_experiments, page=page, number_of_experiments=number_of_experiments_in_the_page,
-                            nbpage=nbpage,firstdate=firstdate)
-                else:
-                    raise ValueError("Archive module response --> KO")
+                return self.tmpl_out("archive_index.html", demo_id=demo_id, archive_list=archive_experiments, 
+                                     page=page, number_of_experiments=number_of_experiments, nbpage=number_of_pages,first_date=first_date)
         else:
-            raise ValueError("Archive module response --> KO")
+            print status
+            raise ValueError("JSON response --> KO")
     
     @cherrypy.expose
-    def exp_details(self, demo_id, id_experiment, page):
+    def exp_details(self, demo_id, id_experiment):
         """
         lists the information for an unique experiment selected by the user
         """
-        page = int(page)
-        
-        request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
+        request = '?module=archive&service=get_experiment&demo_id=' + str(demo_id) + '&id_experiment=' + str(id_experiment)
         
         json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
@@ -1629,178 +1433,35 @@ class base_app(empty_app):
         
         if status == "OK":
             
-            id_demo     = response['id_demo']
-            nbpage      = response['nb_pages']
-            experiments = response['experiments']
+            experiment = response['experiment']
             
-            archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
-                                for exp in experiments]
+            images = {}
+            non_images = {}
             
-            for experiment in archive_experiments:
-                if int(id_experiment) == int(experiment['id_experiment']):
-                    experiment_for_archive_details = experiment
-                    break
-                
+            for files in experiment['files']: 
+                        
+                file_url = files['url']
+                mimetype, encoding = mimetypes.guess_type(file_url)
+                            
+                if mimetype:
+                    ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
+                    route, file_extension = os.path.splitext(file_url)
+                    if file_extension != '.tiff':
+                        images[file_url] = files['name'] 
+                    else:
+                        non_images[file_url] = files['name']    
+                                
+                else:
+                    non_images[file_url] = files['name']
+            
+            
+            #return json.dumps(response)
             # select one experiment from the archive
-            return self.tmpl_out("archive_details.html", archive=experiment_for_archive_details)
+            return self.tmpl_out("archive_details.html", images=images, non_images=non_images, date=experiment['date'], 
+                                 id_experiment=experiment['id'], parameters=experiment['parameters'])
         else:
             raise ValueError("JSON response --> KO")
     
-    ### OLD function --> At thes moment Nelson keeps it for references of how the old system worked. It will be erased once the refactoring will be completed.
-    @cherrypy.expose
-    def archive(self, page=-1, id_experiment=None):
-        """
-        lists the archive content
-        """
-        page = int(page)
-        url_proxy = 'http://127.0.0.1:9003/'
-        
-        if not id_experiment:
-            request = '?module=archive&service=page&demo_id=' + self.id + '&page=1'
-            #json_response = urllib.urlopen(self.proxy_server + request).read()
-            json_response = urllib.urlopen(url_proxy + request).read()
-            response = json.loads(json_response)
-            status = response['status']
-            
-            if status == "OK":
-                experiments = response['experiments']
-                firstdate = experiments[0]['date']
-                
-                #Get the last page of this demo. 
-                if page == -1: 
-                    page = response['nb_pages']
-            else:
-                #Empty list. No experiments in the archive
-                archive_experiments = []
-                return self.tmpl_out("archive_index.html", archive_list=archive_experiments,
-                                    page=0, number_of_experiments=0,
-                                    nbpage=0,firstdate='never')           
-
-        
-        request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
-        #json_response = urllib.urlopen(self.proxy_server + request).read()
-        json_response = urllib.urlopen(url_proxy + request).read()
-        response = json.loads(json_response)
-            
-        status = response['status']
-        
-        if status == "OK":
-            
-            id_demo     = response['id_demo']
-            nbpage      = response['nb_pages']
-            experiments = response['experiments']
-            
-            archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
-                                for exp in experiments]
-            
-            if id_experiment:
-                
-                for experiment in archive_experiments:
-                    if int(id_experiment) == int(experiment['id_experiment']):
-                        experiment_for_archive_details = experiment
-                        break
-                
-                # select one experiment from the archive
-                return self.tmpl_out("archive_details.html", archive=experiment_for_archive_details)
-            
-            else:
-                
-                if nbpage > 1:
-                
-                    request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(nbpage)
-                    #json_response = urllib.urlopen(self.proxy_server + request).read()
-                    json_response = urllib.urlopen(url_proxy + request).read()
-                    response = json.loads(json_response)
-                    
-                    experiments_in_last_page = response['experiments']
-                    number_of_experiments  = ((nbpage - 1) * 12) + len(experiments_in_last_page)
-                
-                else:
-                    number_of_experiments = len(experiments)
-                
-                return self.tmpl_out("archive_index.html",
-                                 archive_list=archive_experiments, page=page, number_of_experiments=number_of_experiments,
-                                 nbpage=nbpage,firstdate=firstdate)
-    
-    
-    
-    # NEW CODE
-    #@cherrypy.expose
-    #def exp_details(self, demo_id, id_experiment):
-        #pass
-
-    #@cherrypy.expose
-    #def archive(self, page=-1, id_experiment=None):
-        #"""
-        #lists the archive content
-        #"""
-        #page = int(page)
-        
-        #if not id_experiment:
-            #request = '?module=archive&service=page&demo_id=' + self.id + '&page=1'
-            #json_response = urllib.urlopen(self.proxy_server + request).read()
-            #response = json.loads(json_response)
-            #status = response['status']
-            
-            #if status == "OK":
-                #experiments = response['experiments']
-                #firstdate = experiments[0]['date']
-                
-                ##Get the last page of this demo. 
-                #if page == -1: 
-                    #page = response['nb_pages']
-            #else:
-                ##Empty list. No experiments in the archive
-                #archive_experiments = []
-                #return self.tmpl_out("archive_index.html", archive_list=archive_experiments,
-                                    #page=0, number_of_experiments=0,
-                                    #nbpage=0,firstdate='never')           
-
-        
-        #request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(page)
-        #json_response = urllib.urlopen(self.proxy_server + request).read()
-        #response = json.loads(json_response)
-            
-        #status = response['status']
-        
-        #if status == "OK":
-            
-            #id_demo     = response['id_demo']
-            #nbpage      = response['nb_pages']
-            #experiments = response['experiments']
-            
-            #archive_experiments = [{'id_experiment' : exp['id'], 'files' : exp['files'], 'date': exp['date'], 'parameters' : exp['parameters']}
-                                #for exp in experiments]
-            
-            #if id_experiment:
-                
-                #for experiment in archive_experiments:
-                    #if int(id_experiment) == int(experiment['id_experiment']):
-                        #experiment_for_archive_details = experiment
-                        #break
-                
-                ## select one experiment from the archive
-                #return self.tmpl_out("archive_details.html", archive=experiment_for_archive_details)
-            
-            #else:
-                
-                #if nbpage > 1:
-                
-                    #request = '?module=archive&service=page&demo_id=' + self.id + '&page=' + str(nbpage)
-                    #json_response = urllib.urlopen(self.proxy_server + request).read()
-                    #response = json.loads(json_response)
-                    
-    #                experiments_in_last_page = response['experiments']
-    #                number_of_experiments  = ((nbpage - 1) * 12) + len(experiments_in_last_page)
-    #            
-    #            else:
-    #                number_of_experiments = len(experiments)
-    #            
-    #            return self.tmpl_out("archive_index.html",
-    #                             archive_list=archive_experiments, page=page, number_of_experiments=number_of_experiments,
-    #                             nbpage=nbpage,firstdate=firstdate)
-        
-
     #
     # ARCHIVE ADMIN
     #

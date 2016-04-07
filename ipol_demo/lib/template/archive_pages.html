@@ -4,16 +4,16 @@
 pages:
 
 %if page > 1:
-<a href="exp_index?demo_id=${app.id}&page=1" title="first">&lt;&lt;</a>
-<a href="exp_index?demo_id=${app.id}&page=${page - 1}" title="previous">&lt;</a>
+<a href="exp_index?demo_id=${demo_id}&page=1" title="first">&lt;&lt;</a>
+<a href="exp_index?demo_id=${demo_id}&page=${page - 1}" title="previous">&lt;</a>
 %else:
 &lt;&lt;
 &lt;
 %endif
 
 %if page < nbpage:
-<a href="exp_index?demo_id=${app.id}&page=${page + 1}" title="next">&gt;</a>
-<a href="exp_index?demo_id=${app.id}&page=${nbpage}" title="last">&gt;&gt;</a>
+<a href="exp_index?demo_id=${demo_id}&page=${page + 1}" title="next">&gt;</a>
+<a href="exp_index?demo_id=${demo_id}&page=${nbpage}" title="last">&gt;&gt;</a>
 %else:
 &gt;
 &gt;&gt;
@@ -24,7 +24,7 @@ pages:
 %if p == page:
 [${p}]
 %else:
-<a href="exp_index?demo_id=${app.id}&page=${p}">${p}</a>
+<a href="exp_index?demo_id=${demo_id}&page=${p}">${p}</a>
 %endif
 %endif
 %endfor
