@@ -44,41 +44,42 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
         console.info("PreprocessDemo")
         console.info(demo)
         if (demo!=undefined) {
-        angular.forEach(demo.inputs, 
-            function(input) {
-            // do some pre-processing
-            if (angular.isString(input.max_pixels)) {
-                input.max_pixels = scope.$eval(input.max_pixels)
+            angular.forEach(demo.inputs, 
+                function(input) {
+                    // do some pre-processing
+                    if (angular.isString(input.max_pixels)) {
+                        input.max_pixels = scope.$eval(input.max_pixels)
+                    }
+                    if (angular.isString(input.max_weight)) {
+                        input.max_weight = scope.$eval(input.max_weight)
+                    }
+                }
+            )
+            //
+            
+            if (demo.general.crop_maxsize==undefined) {
+                // setting the crop_maxsize string to a non integer value with 
+                // disable its behavior, so no limit by default
+                demo.general.crop_maxsize = "NaN";
             }
-            if (angular.isString(input.max_weight)) {
-                input.max_weight = scope.$eval(input.max_weight)
-            }
-            }
-        )
-        //
-        
-        if (demo.general.crop_maxsize==undefined) {
-            // setting the crop_maxsize string to a non integer value with 
-            // disable its behavior, so no limit by default
-            demo.general.crop_maxsize = "NaN";
-        }
 
-        if (demo.general.thumbnail_size==undefined) {
-            demo.general.thumbnail_size = 128;
-        }
-        
-        if (angular.isString(demo.general.input_description)) {
-            demo.general.input_description = [ demo.general.input_description ];
-        }
-        if (angular.isString(demo.general.param_description)) {
-            demo.general.param_description = [ demo.general.param_description ];
-        }
-        
-        // create default params_layout property if it is not defined
-        if (demo.params&&(demo.params_layout==undefined)) {
-            demo.params_layout= [ [ "Parameters:", scope.range(demo.params.length) ] ];
-        } else {
-            demo.params_layout= [];
+            if (demo.general.thumbnail_size==undefined) {
+                demo.general.thumbnail_size = 128;
+            }
+            
+            if (angular.isString(demo.general.input_description)) {
+                demo.general.input_description = [ demo.general.input_description ];
+            }
+            if (angular.isString(demo.general.param_description)) {
+                demo.general.param_description = [ demo.general.param_description ];
+            }
+            
+            // create default params_layout property if it is not defined
+            if (demo.params&&(demo.params_layout==undefined)) {
+                demo.params_layout= [ [ "Parameters:", scope.range(demo.params.length) ] ];
+            } else {
+                demo.params_layout= [];
+            }
         }
     };
   
