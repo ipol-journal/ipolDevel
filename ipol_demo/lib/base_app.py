@@ -1026,9 +1026,11 @@ class base_app(empty_app):
         :return: format of file (audio, image or video)
         :rtype: string
         """
-        mime = magic.Magic(mime=True)
-        fileformat = mime.from_file(the_file)
-        extension = fileformat.split('/')
+        mimetype, encoding = mimetypes.guess_type(the_file)
+        extension =  mimetype.split('/')
+        #mime = magic.Magic(mime=True)
+        #fileformat = mime.from_file(the_file)
+        #extension = fileformat.split('/')
         return extension[0]
     
     def make_thumbnail(self, path):
@@ -1396,9 +1398,10 @@ class base_app(empty_app):
                     for files in exp['files']: 
                         
                         file_url = files['url']
-                        mimetype, encoding = mimetypes.guess_type(file_url)
+                        format_file = self.file_format(file_url)
+            
+                        if format_file == 'image':
                             
-                        if mimetype:
                             ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                             route, file_extension = os.path.splitext(file_url)
                             if file_extension != '.tiff':
@@ -1424,6 +1427,7 @@ class base_app(empty_app):
         """
         lists the information for an unique experiment selected by the user
         """
+        
         request = '?module=archive&service=get_experiment&demo_id=' + str(demo_id) + '&id_experiment=' + str(id_experiment)
         
         json_response = urllib.urlopen(self.proxy_server + request).read()
@@ -1441,9 +1445,9 @@ class base_app(empty_app):
             for files in experiment['files']: 
                         
                 file_url = files['url']
-                mimetype, encoding = mimetypes.guess_type(file_url)
-                            
-                if mimetype:
+                format_file = self.file_format(file_url)
+            
+                if format_file == 'image':
                     ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                     route, file_extension = os.path.splitext(file_url)
                     if file_extension != '.tiff':
@@ -1455,7 +1459,6 @@ class base_app(empty_app):
                     non_images[file_url] = files['name']
             
             
-            #return json.dumps(response)
             # select one experiment from the archive
             return self.tmpl_out("archive_details.html", images=images, non_images=non_images, date=experiment['date'], 
                                  id_experiment=experiment['id'], parameters=experiment['parameters'])
