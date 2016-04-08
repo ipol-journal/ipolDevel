@@ -75,9 +75,10 @@ IPOLDemosApp.run(['$rootScope', function($rootScope) {
         }
         
         // create default params_layout property if it is not defined
-        if (demo.params_layout==undefined) {
+        if (demo.params&&(demo.params_layout==undefined)) {
             demo.params_layout= [ [ "Parameters:", scope.range(demo.params.length) ] ];
-        }
+        } else {
+            demo.params_layout= [];
         }
     };
   
