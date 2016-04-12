@@ -54,10 +54,7 @@ function DeserializeJSON(json_str)
 //
 function ModuleService(module,service,params,func)
 {
-    var proxy_server = 
-//     "http://127.0.0.1:9003/";
-                        "http://ns3018037.ip-151-80-24.eu:9003/";
-    var link =  proxy_server + 
+    var link =  servers.proxy + 
                 '/?module='+ module +
                 '&service='+ service +
                 '&'+params;
@@ -67,6 +64,17 @@ function ModuleService(module,service,params,func)
     $.getJSON(link).done(func);
 }
 
+//------------------------------------------------------------------------------
+// temporary call to demo runner module, until it is set in the proxy server
+//
+function DemoRunnerService(service,params,func)
+{
+    var link =  servers.demorunner + 
+                service + '?' + params;
+    console.info("getting demorunner service:"+link);
+    // deal with failure ...
+    return $.getJSON(link).done(func);
+}
 
 
 //------------------------------------------------------------------------------
@@ -88,3 +96,35 @@ function range(min, max, step) {
     // returning the generated array
     return output;
 };
+
+
+//------------------------------------------------------------------------------
+// adds .naturalWidth() and .naturalHeight() methods to jQuery
+// for retreaving a normalized naturalWidth and naturalHeight.
+(function($){
+var
+props = ['Width', 'Height'],
+prop;
+
+while (prop = props.pop()) {
+(function (natural, prop) {
+    $.fn[natural] = (natural in new Image()) ? 
+    function () {
+    return this[0][natural];
+    } : 
+    function () {
+    var 
+    node = this[0],
+    img,
+    value;
+
+    if (node.tagName.toLowerCase() === 'img') {
+    img = new Image();
+    img.src = node.src,
+    value = img[prop];
+    }
+    return value;
+    };
+}('natural' + prop, prop.toLowerCase()));
+}
+}(jQuery));

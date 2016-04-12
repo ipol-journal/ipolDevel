@@ -30,10 +30,11 @@
 <script> 
     $.support.cors = true;
 </script>
-<script src="ipol_demo_utils.js"></script>
-<script src="ipol_demo_blobs.js"></script>
-<script src="ipol_demo_params.js"></script>
-<script src="ipol_demo_inputs.js"></script>
+<script src="ipol_demo_utils.js">   </script>
+<script src="ipol_demo_blobs.js">   </script>
+<script src="ipol_demo_params.js">  </script>
+<script src="ipol_demo_results.js"> </script>
+<script src="ipol_demo_inputs.js">  </script>
 <script src="ipol_demo.js"></script>
 
 
@@ -43,14 +44,14 @@
 <div id="tabs">
     <ul>
         <li>
-            <a href="#tabs-input">Input</a>
+            <a href="#tabs-run">Run</a>
         </li>
 <!--        <li>
             <a href="#tabs-params">Params</a>
         </li>-->
-        <li>
+<!--        <li>
             <a href="#tabs-results">Results</a>
-        </li>
+        </li>-->
         <li>
             <a href="#tabs-archive">Archive</a>
         </li>
@@ -64,12 +65,12 @@
             <a href="#tabs-blobs">Blobs</a>
         </li>
     </ul>
-    <div id="tabs-input">
+    <div id="tabs-run">
 
         <span id="demo-select">demos infomation</span>
 
         <!-- Input Data Selection -->
-        <fieldset>
+        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
         <legend> Input Data from selection <span>[-]</span> </legend> 
         <form name="ThumbnailSizeForm" >
             <label>Thumbnail size (in pixels)</label>
@@ -80,17 +81,15 @@
                 <option>256</option>
             </select>
 
-            <label>Credits</label>
-            <input  id="ShowCreditsCheckbox" type="checkbox"  >
-            <label>Titles</label>
-            <input  id="ShowTitlesCheckbox" type="checkbox"  >
+            &nbsp;<input  id="ShowCreditsCheckbox" type="checkbox"  >credits
+            &nbsp;<input  id="ShowTitlesCheckbox" type="checkbox"  >titles
         </form>
         <div id="displayblobs"></div>
         <div style='clear:both'> </div>
         </fieldset>
 
         <!-- User data to upload -->
-        <fieldset>
+        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
         <legend>Local input data <span>[-]</span> </legend> 
             <div class="upload_input" id="local_data">
             </div>
@@ -112,42 +111,57 @@
         </fieldset>
 
         <!-- Parameter Selection -->
-        <fieldset>
+        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
         <legend> Algorithm <span>[-]</span> </legend> 
 
-        <span id="ParamDescription"> </span>
-        <form action="${app.base_url + 'rectangle'}" method="get">
-        <div class="action" 
-                style="align:left;margin-bottom=20px;margin-top=20px" >
-            <span id="DisplayParams"> </span>
-            <span>
-                <input type="hidden" name="x0" value="0">              
-                <input type="hidden" name="y0" value="0">
-                <input type="hidden" name="x"  value="512">
-                <input type="hidden" name="y"  value="512">
-            </span>
-
+            <!-- Draw inputs (includes dealing with crop) -->
+            <div id="DrawInputs"></div>
             <div style="clear:both"> </div>
-            <div style="text-align:left;float:left">
-                    <input type="submit" name="action" value="Run" /> <br/> <br/>
+
+            <span id="ParamDescription"> </span>
+            <div    class="action" 
+                    style="align:left;margin-bottom=20px;margin-top=20px" >
+                <span id="DisplayParams"> </span>
+
             </div>
-        </div>
-        </form>
+            <div style="clear:both"> </div>
 
-        <div style="clear:both"> </div>
-        <div id="div_cropinput" style="text-align:left;float:left">
-            <label> Crop </label>
-            <input  id="id_cropinput" type="checkbox" >
-        </div>
-        <div style="clear:both"> </div>
-
-        <!-- Draw inputs (includes dealing with crop) -->
-        <div id="DrawInputs"></div>
         </fieldset>
+
+        <!-- Run -->
+        <div style="clear:both"> </div>
+<!--        <div style="text-align:left;float:left">
+                <button id="run_button">Run</button> <br/> <br/>
+        </div>
+        <div style="clear:both"> </div>-->
+
+        <!-- Progress bar -->
+        <style>
+            .ui-progressbar {
+                position: relative;
+            }
+            .progress-label {
+                position: absolute;
+                left: 50%;
+                top: 4px;
+                font-weight: bold;
+                text-shadow: 1px 1px 0 #fff;
+            }
+        </style>
+        <div id="progressbar">
+            <div class="progress-label" > </div>
+        </div>
+
+        <!-- Results -->
+        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
+        <legend> Results <span>[-]</span> </legend> 
+            <span id="ResultsDisplay"> </span>
+        </fieldset>
+
     </div>
-    <div id="tabs-results">
+<!--    <div id="tabs-results">
         <p>Content for results</p>
-    </div>
+    </div>-->
     <div id="tabs-archive">
         <p>Content for archive</p>
     </div>

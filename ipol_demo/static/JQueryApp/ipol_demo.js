@@ -52,10 +52,12 @@ function PreprocessDemo(demo) {
     }
 
     // create default params_layout property if it is not defined
-    if (demo.params_layout == undefined) {
-        demo.params_layout = [
-            ["Parameters:", range(demo.params.length)]
-        ];
+    if (demo.params&&(demo.params_layout == undefined)) {
+        if (demo.params!=undefined) {
+            demo.params_layout = [
+                ["Parameters:", range(demo.params.length)]
+            ];
+        }
     }
 };
 
@@ -162,10 +164,18 @@ function InputController(demo_id,internal_demoid) {
                     $("#tabs-ddl pre").html(syntaxHighlight(str));
                 }
                 
-                // hide crop
-                $("#div_cropinput" ).hide();
+                // disable run
+                $( "#progressbar" ).unbind("click");
+                $(".progress-label").text( "Waiting for input selection" );
+                
                 // empty inputs
                 $("#DrawInputs").empty();
+                
+                // empty results
+                $("#ResultsDisplay").empty();
+                
+                // for convenience, add demo_id field to the json DDL 
+                ddl_json['demo_id'] = demo_id
                 
                 PreprocessDemo(ddl_json);
 
@@ -223,7 +233,7 @@ function CreateLocalData(ddl_json) {
         html += '</tr>';
     }
     html += '</table>';
-//     html += '<input type="submit" value="select" />';
+    //html += '<input type="submit" value="select" />';
     $("#local_data").html(html);
     
     // deal with events
@@ -231,10 +241,11 @@ function CreateLocalData(ddl_json) {
             // code to be executed on click
             var di = new DrawInputs(ddl_json);
             console.info("apply_local_data ", ddl_json);
-            //di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
+            di.SetBlobSet(null);
             di.CreateHTML();
-//             di.CreateCropper();
+            //di.CreateCropper();
             di.LoadDataFromLocalFiles();
+            di.SetRunEvent();
         }
     })(ddl_json));
     
@@ -257,8 +268,34 @@ function CreateLocalData(ddl_json) {
 }
     
 
+//------------------------------------------------------------------------------
+// allow folding/unfolding of legends
+//
+function SetLegendFolding( selector) {
+    // Set cursor to pointer and add click function
+    $(selector).css("cursor","pointer").click(function(){
+        var legend = $(this);
+        var value = $(this).children("span").html();
+        if(value=="[-]")
+            value="[+]";
+        else
+            value="[-]";
+       $(this).siblings().slideToggle("slow", function() { legend.children("span").html(value); } );
+    });
+}    
+    
+//------------------------------------------------------------------------------
+// Starts processing when document is ready
+//
 
-
+// will use only the proxy in the future
+// global variable
+var servers = {
+    proxy : 
+                    //     "http://127.0.0.1:9003/",
+                    "http://ns3018037.ip-151-80-24.eu:9003/",
+    demorunner : "http://127.0.0.1:9004/"
+};
 
 function DocumentReady() {
 
@@ -269,33 +306,13 @@ function DocumentReady() {
         }
 
     );
-    
-    // Set cursor to pointer and add click function
-    $("legend").css("cursor","pointer").click(function(){
-        var legend = $(this);
-        var value = $(this).children("span").html();
-        if(value=="[-]")
-            value="[+]";
-        else
-            value="[-]";
-       $(this).siblings().slideToggle("slow", function() { legend.children("span").html(value); } );
-    });
-    
-    
-//     $.ajax({
-//         crossOrigin: true,
-//         url: "http://localhost:8000/test_input.html",
-//         success: function(data) {
-//             console.log(data);
-//         }
-//     });
-        
-//     $("#tabs-input").load("http://localhost:8000/test_input.html");
-//     $("#tabs-params").load("http://localhost:8000/test_params.html");
+
+    $(".progress-label").text( "Waiting for input selection" );
+
+    SetLegendFolding("legend");
 
     ListDemosController();
-    var demo_id = 20;
-    
+    var demorunner_server = "http://127.0.0.1:9004/";
 
 }
 $(document).ready(DocumentReady);

@@ -120,8 +120,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 // apply the selection ???
 
                 blobset_html += '<div'
-                           //  +  '  class="select_input"'
-                             +  '  style="margin:0px;padding:0;float:left;'
+                             +  '  class="select_input"'
+                             +  '  style="margin:0px;padding:2px;float:left;'
     //                          +  '         width:'       +thumbnail_size+'px;'
                              +  '         height:'      +thumbnail_size+'px;'
                              +  '         line-height:' +thumbnail_size+'px;'
@@ -180,6 +180,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
 //                 di.CreateCropper();
                 di.LoadDataFromBlobSet();
                 //console.info("blobset "+event.data.blobset_id+" clicked ");
+                di.SetRunEvent();
             }.bind(this)
             );
 
@@ -198,6 +199,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
             );
 
             var blobset = this.demoblobs.blobs[i];
+            this.max_ratio = 0.5; 
             for(var idx=1;idx<blobset[0].size+1;idx++)
             {
                 // check if thumbnail load works, if not, hide the corresponding
@@ -207,7 +209,19 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     $("#blob_"+i+"_"+idx).html("");
                 }; })(i,idx);
                 tester.src=this.demoblobs.url_thumb+'/thumbnail_'+blobset[idx].hash+blobset[idx].extension;
-            }
+                tester.onload = function(obj) { return function() {
+                    // Run onload code.
+                    // set lowest possible height for all thumbnails
+                    var prev_ratio = obj.max_ratio;
+                    obj.max_ratio = Math.min(Math.max(obj.max_ratio,this.height/this.width),1);
+                    if (prev_ratio!=obj.max_ratio) {
+                        var thumbnail_size   = $("#ThumbnailSize option:selected").text();
+                        var new_height = thumbnail_size*obj.max_ratio;
+                        $(".select_input").css({'height'      :new_height+'px',               
+                                                'line-height' :new_height+'px'});
+                    }
+                }; }(this);
+            } 
 
             
         }

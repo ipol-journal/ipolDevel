@@ -316,14 +316,6 @@ function CreateReadOnly(param) {
     return html;
 }    
 
-//------------------------------------------------------------------------------
-function UpdateReadOnly(param) {
-    try {
-        $("input[name='"+param.id+"']").val(eval(param.value_expr_new.join('')));
-    } catch(err) {
-        console.info("UpdateReadOnly ", param, " error:",err.message);
-    }
-}
 
 //------------------------------------------------------------------------------
 function CreateLabel(param) {
@@ -382,14 +374,19 @@ function CreateParams(ddl_json) {
     $("#ParamDescription").html(ddl_json.general.param_description.join(' '));
     
     var params_html = "";
-    if (ddl_json.params.length>0) {
+    if ((ddl_json.params)&&(ddl_json.params.length>0)) {
         // for each param group
         for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
             var param_group = ddl_json.params_layout[pg];
-            params_html += '<fieldset style="display: inline-block;">';
-            params_html += '<legend>'+param_group[0]+'</legend>';
+            params_html += '<fieldset style="display:inline-block;'+
+                                'margin:3px;' +
+                                'border:1px solid darkgrey;'+
+                                '-moz-border-radius:4px;'+
+                                '-webkit-border-radius:4px;'+
+                                'border-radius:4px;">';
+            params_html += '<legend class="param_legend">'+param_group[0]+' <span>[-]</span> </legend>';
             
-            params_html += '<table  style="float:left;border:0px;">';
+            params_html += '<table  style="float:left;border:1px;">';
             for(var n=0;n<param_group[1].length;n++) {
                 params_html += '<tr style="border:0px;">';
                 var pos=param_group[1][n]; 
@@ -431,73 +428,111 @@ function CreateParams(ddl_json) {
     
     $("#DisplayParams").html(params_html);
 
-    // add events
-    for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
-        var param_group = ddl_json.params_layout[pg];
-        for(var n=0;n<param_group[1].length;n++) {
-            var pos=param_group[1][n]; 
-            var param = ddl_json.params[pos];
-            
-            if (param.visible_new===undefined||eval(param.visible_new)) {
-                switch(param.type) {
-                    case "selection_collapsed":
-                        break;
-                    case "selection_radio":
-                        break;
-                    case "range":
-                        CreateSelectionRangeEvents(param,ddl_json);
-                        break;
-                    case "range_scientific":
-                        CreateSelectionRangeScientificEvents(param,ddl_json);
-                        break;
-                    case "readonly":
-                        break;
-                    case "label":
-                        break;
-                    case "checkbox":
-                        break;
-                    case "checkboxes":
-                        break;
-                } // end switch
-            } // end if param.visible
-        } // end for param_group
-    } // end for params_layout
+    if ((ddl_json.params)&&(ddl_json.params.length>0)) {
+        // add events
+        for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
+            var param_group = ddl_json.params_layout[pg];
+            for(var n=0;n<param_group[1].length;n++) {
+                var pos=param_group[1][n]; 
+                var param = ddl_json.params[pos];
+                
+                if (param.visible_new===undefined||eval(param.visible_new)) {
+                    switch(param.type) {
+                        case "selection_collapsed":
+                            break;
+                        case "selection_radio":
+                            break;
+                        case "range":
+                            CreateSelectionRangeEvents(param,ddl_json);
+                            break;
+                        case "range_scientific":
+                            CreateSelectionRangeScientificEvents(param,ddl_json);
+                            break;
+                        case "readonly":
+                            break;
+                        case "label":
+                            break;
+                        case "checkbox":
+                            break;
+                        case "checkboxes":
+                            break;
+                    } // end switch
+                } // end if param.visible
+            } // end for param_group
+        } // end for params_layout
+    }
 
+    SetLegendFolding(".param_legend");
+    
     UpdateParams(ddl_json);
     
 }
 
 //------------------------------------------------------------------------------
 function UpdateParams(ddl_json) {
+
+    var imwidth  = 512;
+    var imheight = 512;
+    
+    //--------------------------------------------------------------------------
+    function CheckImageDimensions() {
+//         console.info("CheckImageDimensions() ");
+        if ($("#inputimage").get(0)) {
+            imwidth  = $("#inputimage").get(0).naturalWidth;
+            imheight = $("#inputimage").get(0).naturalWidth;
+            if ($("#id_cropinput")&&($("#id_cropinput").is(':checked'))) {
+                var CropBox = $("#inputimage").cropper('getCropBoxData');
+                imwidth  = CropBox.width;
+                imheight = CropBox.height;
+            }
+        }
+//         console.info(imwidth+"x"+imheight);
+    }
+    
+    
+    CheckImageDimensions();
+    
+    //--------------------------------------------------------------------------
+    function UpdateReadOnly(param) {
+        try {
+            $("input[name='"+param.id+"']").val(eval(param.value_expr_new.join('')));
+        } catch(err) {
+            console.info("UpdateReadOnly ", param.value_expr_new.join(''), ':', param, " error:",err.message);
+        }
+    }
+
+
     // add events
-    for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
-        var param_group = ddl_json.params_layout[pg];
-        for(var n=0;n<param_group[1].length;n++) {
-            var pos=param_group[1][n]; 
-            var param = ddl_json.params[pos];
-            
-            if (param.visible_new===undefined||eval(param.visible_new)) {
-                switch(param.type) {
-                    case "selection_collapsed":
-                        break;
-                    case "selection_radio":
-                        break;
-                    case "range":
-                        break;
-                    case "range_scientific":
-                        break;
-                    case "readonly":
-                        UpdateReadOnly(param);
-                        break;
-                    case "label":
-                        break;
-                    case "checkbox":
-                        break;
-                    case "checkboxes":
-                        break;
-                } // end switch
-            } // end if param.visible
-        } // end for param_group
-    } // end for params_layout
+    if ((ddl_json.params)&&(ddl_json.params.length>0)) {
+        for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
+            var param_group = ddl_json.params_layout[pg];
+            for(var n=0;n<param_group[1].length;n++) {
+                var pos=param_group[1][n]; 
+                var param = ddl_json.params[pos];
+                
+                if (param.visible_new===undefined||eval(param.visible_new)) {
+                    switch(param.type) {
+                        case "selection_collapsed":
+                            break;
+                        case "selection_radio":
+                            break;
+                        case "range":
+                            break;
+                        case "range_scientific":
+                            break;
+                        case "readonly":
+                            UpdateReadOnly(param);
+                            break;
+                        case "label":
+                            break;
+                        case "checkbox":
+                            break;
+                        case "checkboxes":
+                            break;
+                    } // end switch
+                } // end if param.visible
+            } // end for param_group
+        } // end for params_layout
+    }
 }
 
