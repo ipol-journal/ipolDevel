@@ -259,7 +259,8 @@ class image(object):
                        '3x8i' : 'RGB'}[mode]
         except KeyError:
             raise KeyError('mode must be "1x8i" or "3x8i"')
-        self.im = self.im.convert(mode_kw)
+        if self.im.mode != mode_kw:
+            self.im = self.im.convert(mode_kw)
         return self
 
     def split(self, nb, margin=0, fname=None):

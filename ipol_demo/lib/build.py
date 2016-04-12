@@ -27,7 +27,7 @@ def download(url, fname):
 
     # create the folder if needed
     if not os.path.isdir(os.path.dirname(fname)):
-        os.mkdir(os.path.dirname(fname))
+        os.makedirs(os.path.dirname(fname))
 
     # open the url
     url_handle = urllib2.urlopen(url)

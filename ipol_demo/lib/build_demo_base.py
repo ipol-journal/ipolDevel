@@ -13,6 +13,7 @@ import urlparse
 from os import path
 from lib import build
 import tempfile
+import time 
 
 #-------------------------------------------------------------------------------
 class BuildDemoBase:
@@ -37,7 +38,9 @@ class BuildDemoBase:
     """
     program build/update
     """
-    
+    print "make begin"
+    total_start = time.time()
+    make_info = ""
     programs = self.params['binaries']
     
     #print "make(clean_previous={0})".format(clean_previous)
@@ -47,6 +50,8 @@ class BuildDemoBase:
 
     # store common file path in variables
     tgz_file  = path.join( self.dl_dir,   zip_filename  )
+    
+    print "make download archive"
     # get the latest source archive
     build.download(self.params['url'], tgz_file)
 
@@ -54,6 +59,7 @@ class BuildDemoBase:
 
     # test if the dest file is missing, or too old, for each program to build
     for program in programs:
+        print "build ", program
         # use first binary name to check time
         prog_filename = program[1]
         prog_file = path.join( self.bin_dir,  os.path.basename(prog_filename) )
@@ -73,11 +79,14 @@ class BuildDemoBase:
 
     #--- build
     if not(rebuild_needed):
-      print "no rebuild needed ",
+        make_info += "no rebuild needed "
+        print "no rebuild needed ",
     else:
       print "extracting archive"
       # extract the archive
+      start = time.time()
       build.extract(tgz_file, self.src_dir)
+      make_info += "extracting archive: {0} sec.; ".format(time.time()-start)
 
       print "creating bin_dir"
       # delete and create bin dir
@@ -99,6 +108,8 @@ class BuildDemoBase:
           #os.mkdir(self.scripts_dir)
             
       #----- CMAKE build
+      start = time.time()
+      print "creating bin_dir"
       if  ('build_type' in self.params.keys()) and \
           (self.params['build_type'].upper()=='cmake'.upper()):
         print "using CMAKE"
@@ -200,8 +211,12 @@ class BuildDemoBase:
           
       # cleanup the source dir
       shutil.rmtree(self.src_dir)
+      make_info += "build: {0} sec.; ".format(time.time()-start)
+
+    make_info += "total elapsed time: {0} sec.".format(time.time()-total_start)
+    print "make end"
       
-    return 
+    return make_info
 
   
   #-----------------------------------------------------------------------------

@@ -7,7 +7,7 @@ import re
 import six
 import math
 # importing image for python commands in DDL scripts
-from .image import image
+from image import image
 import PIL
 
 #-----------------------------------------------------------------------------
@@ -37,7 +37,8 @@ class RunDemoBase:
   def __init__(self,base_dir, work_dir):
     self.base_dir    = base_dir
     self.work_dir    = work_dir
-    self.pytools_dir = os.path.join(self.base_dir,'../../PythonTools/')
+    
+    self.pytools_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),'../PythonTools/')
     self.bin_dir     = os.path.join(self.base_dir,'bin/')
     self.scripts_dir = os.path.join(self.base_dir,'scripts/')
     self.python_dir  = os.path.join(self.base_dir,'python/')
