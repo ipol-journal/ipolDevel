@@ -10,6 +10,7 @@
     "param_description"     : "",
     "enable_crop"           : true,
     "crop_maxsize"          : "{{Math.floor(800/demo.params[0].value)*display_ratio}}",
+    "crop_maxsize_new"      : "Math.floor(800/$('#range_scalefactor').val())",
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
   }, 
   "build": [
@@ -176,7 +177,7 @@
   "results": [
     {
       "type"          : "file_download", 
-      "label"         : "<h2>Download<h2>",
+      "label"         : "<h3>Download<h3>",
       "contents"      : { "input"                       : "input_0.sel.png", 
                           "coarsened"                   : "coarsened.png",
                           "Fourier"                     : "fourier.png",
@@ -188,7 +189,7 @@
     },
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
+      "label"         : "<h3>Resulting images</h3>",
       "contents"      : { 
         "Input"                                            : "input_0_zoom.png", 
         "Coarsened"                                        : "coarsened_zoom.png",
@@ -198,11 +199,21 @@
         "Fourier Difference"                               : "fdifference_zoom.png",
         "Roussos-Maragos Difference"                       : "difference_zoom.png"
       },
-      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}"
+      "contents_new"      : { 
+        "params.run_mode=='Interpolate'?Input"                                            : "input_0_zoom.png", 
+        "params.run_mode=='Coarsen_interpolate_compare'?Coarsened"                                        : "coarsened_zoom.png",
+        "Fourier "         : "fourier_zoom.png",
+        "Roussos-Maragos " : "interpolated_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Exact"                                            : "input_0.sel_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Fourier Difference"                               : "fdifference_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Roussos-Maragos Difference"                       : "difference_zoom.png"
+      },
+      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}",
+      "style_new"         : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h2>Output<h2>",
+      "label"         : "<h3>Output<h3>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}"
     }

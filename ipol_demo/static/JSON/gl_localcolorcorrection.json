@@ -52,12 +52,7 @@
                     ")",
         "}}"
       ],
-      "value_expr_new" : [ 
-        "Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
-                                        "Math.min(imwidth,imheight)",
-                      ")/2-1",
-                    ")"
-      ]
+      "value_expr_new" : [  "Math.floor(Math.min(imwidth,imheight)/2-1)" ]
     },
     {
       "id"            : "r",
@@ -74,12 +69,9 @@
         "}}"
       ],
       "value_expr_new"    : [ 
-          "demo.params[3].value=='global'?",
-            "Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:Math.min(imwidth,imheight))/2-1)",
-          ":Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
-                                        "Math.min(imwidth,imheight)",
-                      ")*demo.params[0].value/100",
-                    ")"
+          "$('select[name=run_mode]').val()=='global'?",
+            "Math.floor(Math.min(imwidth,imheight)/2-1)",
+           ":Math.floor(Math.min(imwidth,imheight)*$('input[name=r_perc]').val()/100)"
       ]
     },
     {
@@ -138,7 +130,8 @@
         "Result 3" : { "image":"output_3.png",    "Histogram:R,G,B,I":"output_3_hist.png" }, 
         "Result 4" : { "image":"output_4.png",    "Histogram:R,G,B,I":"output_4_hist.png" }
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 
