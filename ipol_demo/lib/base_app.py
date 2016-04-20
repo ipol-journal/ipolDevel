@@ -1028,16 +1028,15 @@ class base_app(empty_app):
         """
         mimetype, encoding = mimetypes.guess_type(the_file)
         extension =  mimetype.split('/')
-        #mime = magic.Magic(mime=True)
-        #fileformat = mime.from_file(the_file)
-        #extension = fileformat.split('/')
         return extension[0]
     
     def make_thumbnail(self, path):
         """
         This function make a thumbnail of path.
         """
-        thumbs_size = '256' ### For the moment we are "hardcoring" this value.
+        
+        ### For the moment we are "hardcoring" this value.This will change with the CONVERSION module.
+        thumbs_size = '256'
         
         route, file_extension = os.path.splitext(path)
         name = route.split('/')
@@ -1046,10 +1045,12 @@ class base_app(empty_app):
         name_for_the_thumbnail = name + '_thumbnail'
         name_and_extension_for_the_thumbnail = name_for_the_thumbnail + '.jpeg'
         
+        #img = Image.open(path).convert('RGB')
         img = Image.open(path)
         img.thumbnail(thumbs_size, Image.ANTIALIAS)
         
         thumbnail_path = os.path.join(self.work_dir, name_and_extension_for_the_thumbnail)
+        
         img.save(thumbnail_path, "JPEG")
         
         return thumbnail_path, name_for_the_thumbnail
@@ -1122,40 +1123,35 @@ class base_app(empty_app):
         if 'files' in desc.keys():
           for filename in desc['files']:
             file_complete_route = os.path.join(self.work_dir, filename)
-            
             if os.path.exists(file_complete_route):
                 
-                corrected_filename = re.sub('[!@#$]', '', desc['files'][filename])
                 format_file = self.file_format(file_complete_route)
             
                 if format_file == 'image':
                     ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                     route, file_extension = os.path.splitext(file_complete_route)
                     if file_extension == '.tiff':
-                        value = {corrected_filename : file_complete_route}
+                        value = {desc['files'][filename] : file_complete_route}
                     else:
                         thumbnail = self.make_thumbnail(file_complete_route)
-                        value = {corrected_filename : file_complete_route, thumbnail[1] : thumbnail[0]}
+                        value = {desc['files'][filename] : file_complete_route, thumbnail[1] : thumbnail[0]}
                 else:
-                    value = {corrected_filename : file_complete_route}
+                    value = {desc['files'][filename] : file_complete_route}
                 
                 blobs_item.append(value)
         
         if 'compressed_files' in desc.keys():
           for filename in desc['compressed_files']:
+            
             file_complete_route = os.path.join(self.work_dir, filename)
             file_complete_route_compressed = file_complete_route + '.gz'
-            print file_complete_route
-            print file_complete_route_compressed
             if os.path.exists(file_complete_route):
                f_src = open(file_complete_route, 'rb')
                f_dst = gzip.open(file_complete_route_compressed, 'wb')
                f_dst.writelines(f_src)
                f_src.close()
                f_dst.close()
-               corrected_filename = re.sub('[!@#$]', '', desc['compressed_files'][filename])
-               value = {corrected_filename : file_complete_route_compressed}
-               #value = {desc['compressed_files'][filename] : file_complete_route_compressed}
+               value = {desc['compressed_files'][filename] : file_complete_route_compressed}
                blobs_item.append(value)
         
         blobs = blobs_item
@@ -1166,7 +1162,7 @@ class base_app(empty_app):
           for p in desc['params']:
             if p in self.cfg['param']:
                parameters[p] = self.cfg['param'][p]
-        
+                
         # save info
         if 'info' in desc.keys():
           for i in desc['info']:
@@ -1176,12 +1172,12 @@ class base_app(empty_app):
         try:
             
             url_proxy = self.proxy_server + '?module=archive&service=add_experiment'
+            headers = {'Content-type': 'application/x-www-form-urlencoded'}
             request_a_service = 'demo_id=' + self.id + "&blobs=" + json.dumps(blobs) + "&parameters=" + json.dumps(parameters)
-            req = urllib2.Request(url_proxy, request_a_service)
+            req = urllib2.Request(url_proxy, request_a_service, headers)
             response = urllib2.urlopen(req)
             json_response = response.read()
             print json_response
-            
             
         except Exception as ex:
             return self.error(  errcode='modulefailure',
@@ -1352,8 +1348,34 @@ class base_app(empty_app):
         # ATTEND TO REBUILD-INDEX COMMAND
         archive.index_rebuild(self.archive_index, self.archive_dir)
 
-        
     #NEW CODE REFACTORING
+    def separate_images_and_non_images(self, experiments, images, non_images, mode = "0"):
+        
+        for files in experiments: 
+                        
+                file_url = files['url']
+                format_file = self.file_format(file_url)
+            
+                if format_file == 'image':
+                    
+                    if mode == "0":
+                        final_file = [files['name'],files['url_thumb']]
+                    else:
+                        final_file = files['name']
+                    
+                    ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
+                    route, file_extension = os.path.splitext(file_url)
+                    if file_extension != '.tiff':
+                        images[file_url] = final_file
+                    else:
+                        non_images[file_url] = files['name']    
+                                
+                else:
+                    non_images[file_url] = files['name']
+        
+        return
+    
+    
     @cherrypy.expose
     def exp_index(self, demo_id, page=-1):
         """
@@ -1394,32 +1416,14 @@ class base_app(empty_app):
                     
                     images = {}
                     non_images = {}
-                
-                    for files in exp['files']: 
-                        
-                        file_url = files['url']
-                        format_file = self.file_format(file_url)
-            
-                        if format_file == 'image':
-                            
-                            ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
-                            route, file_extension = os.path.splitext(file_url)
-                            if file_extension != '.tiff':
-                                images[file_url] = [files['name'],files['url_thumb']] 
-                            else:
-                                non_images[file_url] = files['name']    
-                                
-                        else:
-                            non_images[file_url] = files['name']
+                    self.separate_images_and_non_images( exp['files'], images, non_images)
                     
-                        
                     archive_experiments.append({'id_experiment' : exp['id'], 'images' : images, 'non_images' : non_images,
                                                 'date': exp['date'], 'parameters' : exp['parameters']})
                 
                 return self.tmpl_out("archive_index.html", demo_id=demo_id, archive_list=archive_experiments, 
                                      page=page, number_of_experiments=number_of_experiments, nbpage=number_of_pages,first_date=first_date)
         else:
-            print status
             raise ValueError("JSON response --> KO")
     
     @cherrypy.expose
@@ -1441,23 +1445,9 @@ class base_app(empty_app):
             
             images = {}
             non_images = {}
+            mode = "1"
             
-            for files in experiment['files']: 
-                        
-                file_url = files['url']
-                format_file = self.file_format(file_url)
-            
-                if format_file == 'image':
-                    ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
-                    route, file_extension = os.path.splitext(file_url)
-                    if file_extension != '.tiff':
-                        images[file_url] = files['name'] 
-                    else:
-                        non_images[file_url] = files['name']    
-                                
-                else:
-                    non_images[file_url] = files['name']
-            
+            self.separate_images_and_non_images(experiment['files'], images, non_images, mode)
             
             # select one experiment from the archive
             return self.tmpl_out("archive_details.html", images=images, non_images=non_images, date=experiment['date'], 

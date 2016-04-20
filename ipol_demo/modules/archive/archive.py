@@ -359,7 +359,6 @@ class Archive(object):
 		"""
 		data = {}
                 data["status"] = "OK"
-		
 		try:
 			demo_id = int(demo_id)
 			conn = lite.connect(self.database_file)
@@ -399,10 +398,11 @@ class Archive(object):
             
                 cursor_db = conn.cursor()
                 
-                for row in cursor_db.execute("""
-                    SELECT params, timestamp
-                    FROM experiments WHERE id_demo = ? and id = ? """, (id_demo, id_experiment)):
-                            data['experiment'] = self.get_data_experiment(conn, id_experiment, row[0], row[1])
+                cursor_db.execute('''SELECT params, timestamp
+                    FROM experiments WHERE id_demo = ? and id = ?''', (id_demo, id_experiment))
+                
+                row = cursor_db.fetchone()
+                data['experiment'] = self.get_data_experiment(conn, id_experiment, row[0], row[1])
                 
                 conn.close()
             
@@ -495,16 +495,19 @@ class Archive(object):
 		path_thumb = str()
 		cursor_db = conn.cursor()
 
-		for row in cursor_db.execute("""
-		SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
-		INNER JOIN correspondence cor ON blb.id=cor.id_blob
-		INNER JOIN experiments exp ON cor.id_experiment=exp.id
-		WHERE id_experiment = ?""", (id_exp,)):
-			path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
-			path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
-			list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
+                cursor_db.execute("""
+                    SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
+                    INNER JOIN correspondence cor ON blb.id=cor.id_blob
+                    INNER JOIN experiments exp ON cor.id_experiment=exp.id
+                    WHERE id_experiment = ?""", (id_exp,))
+                
+                all_rows = cursor_db.fetchall()
+                
+                for row in all_rows:
+                    path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
+                    path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
+                    list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
-		
 		
 		dict_exp["id"] = id_exp
 		dict_exp["date"] = date
@@ -526,12 +529,17 @@ class Archive(object):
 		starting_index = ((page - 1) * self.number_of_experiments_by_pages)
             
 
-		for row in cursor_db.execute("""
-		SELECT id, params, timestamp
-		FROM experiments WHERE id_demo = ?
-		ORDER BY timestamp
-		LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,)):
-			data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2]))
+		
+		cursor_db.execute("""
+                SELECT id, params, timestamp
+                FROM experiments WHERE id_demo = ?
+                ORDER BY timestamp
+                LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,))
+		
+		all_rows = cursor_db.fetchall()
+                
+                for row in all_rows:
+                    data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2]))
 		
 		return data_exp
 
@@ -722,18 +730,21 @@ class Archive(object):
 		Implement the administrator interface for removing blobs.
 		"""
 		try:
-			demo_id = int(demo_id)
-			page = int(page)
-			test_json = self.echo_page(demo_id, page)
-			template = Template(filename='archive_admin_tmp.html')
-			return template.render(demo=demo_id,
-								   test=test_json,
-								   num_page=page,
-								   url=self.url,
-								   func_name="archive_admin")
-		except Exception:
-			template = Template(filename='error.html')
-			return template.render()
+                    demo_id = int(demo_id)
+                    page = int(page)
+                    test_json = self.echo_page(demo_id, page)
+                    template = Template(filename='archive_admin_tmp.html')
+                    
+                    return template.render(demo=demo_id,
+                                                test=test_json,
+                                                num_page=page,
+                                                url=self.url,
+                                                func_name="archive_admin")
+
+                except Exception:
+                        
+                        template = Template(filename='error.html')
+                        return template.render()
 
 	@cherrypy.expose
 	def delete_blob_w_deps_web(self, id_blob, demo_id):
@@ -799,14 +810,19 @@ class Archive(object):
 		try:
 			conn = lite.connect(self.database_file)
 			cursor_db = conn.cursor()
-			cursor_db.execute("""
-			SELECT COUNT(*) FROM experiments""")
-			data["nb_experiments"] = cursor_db.fetchone()[0]
-			cursor_db.execute("""
-			SELECT COUNT(*) FROM blobs""")
-			data["nb_blobs"] = cursor_db.fetchone()[0]
-			conn.close()
+			
+                        cursor_db.execute("""
+                            SELECT 
+                            (SELECT COUNT(*) FROM experiments),
+                            (SELECT COUNT(*) FROM blobs)
+                         """)
+			results = cursor_db.fetchall()
+                        data["nb_experiments"] = results[0][0]
+                        data["nb_blobs"] = results[0][1]
+                        
+                        conn.close()
 			data["status"] = "OK"
+			
 		except Exception as ex:
 			self.error_log("stats", str(ex))
 			try:
