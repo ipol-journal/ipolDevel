@@ -164,7 +164,7 @@ class image(object):
         else:
             return object.__getattribute__(self, attr)
 
-    def save(self, fname):
+    def save(self, fname, compresslevel=-1):
         """
         save the image file
 
@@ -172,7 +172,10 @@ class image(object):
         """
         # TODO handle optional arguments
         # TODO handle external TIFF compression
-        self.im.save(fname)
+        if compresslevel>0:
+            self.im.save(fname,compress_level=compresslevel)
+        else:
+            self.im.save(fname)
         return fname
 
     def crop(self, box):
