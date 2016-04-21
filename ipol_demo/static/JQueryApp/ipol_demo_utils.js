@@ -12,6 +12,7 @@
 //
 
 
+"use strict";
 
 
 //------------------------------------------------------------------------------
@@ -67,14 +68,13 @@ function ModuleService(module,service,params,func)
 //------------------------------------------------------------------------------
 // temporary call to demo runner module, until it is set in the proxy server
 //
-function DemoRunnerService(service,params,func)
-{
+function DemoRunnerService(service,params,func) {
     var link =  servers.demorunner + 
                 service + '?' + params;
     console.info("getting demorunner service:"+link);
     // deal with failure ...
     return $.getJSON(link).done(func);
-}
+};
 
 
 //------------------------------------------------------------------------------
