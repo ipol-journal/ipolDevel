@@ -11,6 +11,7 @@
 // associated with ipol_demo.html and ipol_demo.js
 //
 
+"use strict";
 
 //------------------------------------------------------------------------------
 var BlobsContainer = function(demoblobs, ddl_json)
