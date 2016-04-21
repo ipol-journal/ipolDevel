@@ -11,6 +11,8 @@
 // associated with ipol_demo.html and ipol_demo.js
 //
 
+"use strict";
+
 //------------------------------------------------------------------------------
 // initialization of the parameters obtained from the DDL json file
 // this function is not used for the moment
@@ -165,7 +167,12 @@ function CreateSelectionRadio(param) {
 
         html += '<label>';
         html += '<input type="radio"';
-        html += ' name="'+param.id+'">';
+        html += ' name="'+param.id+'"';
+        html += ' value="'+value+'"';
+        if (value===param.default_value) {
+            html += ' checked';
+        }
+        html += '>';
         html += '<span>'+key+'</span>';
         html += '</label> &nbsp';
         if (param.vertical!==undefined &&  param.vertical) {
@@ -333,11 +340,14 @@ function CreateCheckBox(param) {
     html +=
         '<td style="border:0px;"  colspan="2" align="left"> ' +
         '<input  type="checkbox"' +
-            'name="'+param.id+'"' +
+            'name="'+param.id+'"';            
 //         '<input  type="text" '+
 //             'name="'+param.id+'_checked" ' +
 //             'value="{{demo.params[pos].value==true}}" hidden />' +
-        '</td>';
+    if (param.default_value) {
+        html += ' checked';
+    }
+    html += ' > </td>';
     html += AddComments(param);
     return html;
     
@@ -355,7 +365,11 @@ function CreateCheckBoxes(param) {
         html += "<div>";
         for (var id in group) {
             html += '<input  type="checkbox" ' +
-                    'name="'+param.id+'_'+id+'" id="'+id+'"'+ ' />';
+                    'name="'+param.id+'_'+id+'" id="'+id+'"';
+            if ($.inArray(id,param.default)>-1) {
+                html += ' checked ';
+            }
+            html += ' />';
             html += '<label for="'+id+'">'+ group[id] +'</label> &nbsp;&nbsp;';
         }
         html += "<br/></div>";
@@ -375,16 +389,21 @@ function CreateParams(ddl_json) {
     
     var params_html = "";
     if ((ddl_json.params)&&(ddl_json.params.length>0)) {
+        var one_group = ddl_json.params_layout.length===1;
         // for each param group
         for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
             var param_group = ddl_json.params_layout[pg];
-            params_html += '<fieldset style="display:inline-block;'+
-                                'margin:3px;' +
-                                'border:1px solid darkgrey;'+
-                                '-moz-border-radius:4px;'+
-                                '-webkit-border-radius:4px;'+
-                                'border-radius:4px;">';
-            params_html += '<legend class="param_legend">'+param_group[0]+' <span>[-]</span> </legend>';
+            if (!one_group) {
+                params_html += '<fieldset style="display:inline-block;'+
+                                    'margin:3px;' +
+                                    'border:1px solid darkgrey;'+
+                                    '-moz-border-radius:4px;'+
+                                    '-webkit-border-radius:4px;'+
+                                    'border-radius:4px;">';
+                params_html += '<legend class="param_legend">'+param_group[0]+
+    //                 ' <span>[-]</span> </legend>';
+                    ' </legend>';
+            }
             
             params_html += '<table  style="float:left;border:1px;">';
             for(var n=0;n<param_group[1].length;n++) {
@@ -422,7 +441,9 @@ function CreateParams(ddl_json) {
                 params_html += '</tr>';
             }
             params_html += '</table>';
-            params_html += '</fieldset>';
+            if (!one_group) {
+                params_html += '</fieldset>';
+            }
         }
     }
     
@@ -462,7 +483,7 @@ function CreateParams(ddl_json) {
         } // end for params_layout
     }
 
-    SetLegendFolding(".param_legend");
+//     SetLegendFolding(".param_legend");
     
     UpdateParams(ddl_json);
     
