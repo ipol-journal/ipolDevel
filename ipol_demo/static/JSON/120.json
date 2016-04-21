@@ -82,9 +82,26 @@
     },
   "results": [
     {
+      "type"          : "gallery",
+      "contents"      : 
+        {
+            "info.has_zoom?Noisy"              : "input_1_zoom.png",
+            "info.has_zoom?Denoised"           : "output_1_zoom.png",
+            "info.has_zoom?Original"           : "input_0.sel_zoom.png",
+            "info.has_zoom?Difference"         : "output_2_zoom.png",
+            "!info.has_zoom?Noisy"             : "input_1.png",
+            "!info.has_zoom?Denoised"          : "output_1.png",
+            "!info.has_zoom?Original"          : "input_0.sel.png",
+            "!info.has_zoom?Difference"        : "output_2.png"
+        },
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
+    },
+    {
         "type"      : "html_text",
         "visible"   : "info.has_zoom",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ],
+        "contents_new"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
     },
     {
         "type"      : "file_download",
@@ -97,26 +114,11 @@
             }
     },
     {
-      "type"          : "gallery",
-      "label"         : [ "<h2>Images</h2>" ],
-      "contents"      : 
-        {
-            "info.has_zoom?Noisy"              : "input_1_zoom.png",
-            "info.has_zoom?Denoised"           : "output_1_zoom.png",
-            "info.has_zoom?Original"           : "input_0.sel_zoom.png",
-            "info.has_zoom?Difference"         : "output_2_zoom.png",
-            "!info.has_zoom?Noisy"             : "input_1.png",
-            "!info.has_zoom?Denoised"          : "output_1.png",
-            "!info.has_zoom?Original"          : "input_0.sel.png",
-            "!info.has_zoom?Difference"        : "output_2.png"
-        },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
-    },
-    {
       "type"          : "text_file", 
       "label"         : "<p>RMSE and PSNR</p>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
+      "style_new"     : "'width:40em;height:4em;background-color:#eee'"
     }
   ]
 }

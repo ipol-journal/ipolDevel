@@ -2,7 +2,7 @@
   "general": { 
     "demo_title"            :  "Automatic Homographic Registration of a Pair of Images, with A Contrario Elimination of Outliers",
     "input_description"     : "Please select or upload the image pair to register.",
-    "param_description"     : "Choose the precision (in pixels) and run the registration process.",
+    "param_description"     : "",
     "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2012/mmm-oh/",
     "show_results_on_error" : true
@@ -104,7 +104,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting Images</h2>",
+      "label"         : "",
       "contents"      : {
                           "Panorama"                   : "panorama.png", 
                           "Reg. image 1"               : "registered_0.png",
@@ -114,18 +114,29 @@
                           "first image"                : "input_0s.png",
                           "second image"               : "input_1.png"
                         },
-      "style"         : "{'width':imwidth*ZoomFactor+'px','height':imheight*ZoomFactor+'px'}" 
+      "contents_new"      : {
+                          "Panorama"                   : "panorama.png", 
+                          "Reg. image 1"               : "registered_0.png",
+                          "Reg. image 2"               : "registered_1.png",
+                          "'inliers  '+info.inliers"  : "inliers.png",
+                          "'outliers '+(info.matches-info.inliers)" : "outliers.png",
+                          "first image"                : "input_0s.png",
+                          "second image"               : "input_1.png"
+                        },
+      "style"         : "{'width':imwidth*ZoomFactor+'px','height':imheight*ZoomFactor+'px'}",
+      "style_new"     : "'width:'+(imwidth*ZoomFactor)+'px;height:'+(imheight*ZoomFactor)+'px'" 
     },
     {
       "type"          : "file_download", 
-      "label"         : "<h2>Downloads</h2>",
+      "label"         : "<b>Downloads:</b>",
       "contents"      : { "Correspondences":"match.txt", "inliers":"matchOrsa.txt" }
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h2>Program Output<h2>",
+      "label"         : "<b>Program Output:</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'20em'}"
+      "style"         : "{'width':'50em','height':'20em'}",
+      "style_new"     : "'width:50em;height:20em;background:#eee'"
     }
   ]
 }

@@ -106,6 +106,18 @@
   ,
   "results": [
     {
+      "type"          : "gallery",
+      "contents"      : { 
+        "Original" : { "image":"input_0.sel.png", "Histogram:R,G,B,I":"input_0.sel_hist.png" }, 
+        "Result 1" : { "image":"output_1.png",    "Histogram:R,G,B,I":"output_1_hist.png" }, 
+        "Result 2" : { "image":"output_2.png",    "Histogram:R,G,B,I":"output_2_hist.png" }, 
+        "Result 3" : { "image":"output_3.png",    "Histogram:R,G,B,I":"output_3_hist.png" }, 
+        "Result 4" : { "image":"output_4.png",    "Histogram:R,G,B,I":"output_4_hist.png" }
+      },
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+    },
+    {
       "type"          : "html_text",
       "contents"      : [
           "<p>",
@@ -119,19 +131,6 @@
             "Dark colors indicate overflows and truncated bins.",
           "</p>"
         ]
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
-      "contents"      : { 
-        "Original" : { "image":"input_0.sel.png", "Histogram:R,G,B,I":"input_0.sel_hist.png" }, 
-        "Result 1" : { "image":"output_1.png",    "Histogram:R,G,B,I":"output_1_hist.png" }, 
-        "Result 2" : { "image":"output_2.png",    "Histogram:R,G,B,I":"output_2_hist.png" }, 
-        "Result 3" : { "image":"output_3.png",    "Histogram:R,G,B,I":"output_3_hist.png" }, 
-        "Result 4" : { "image":"output_4.png",    "Histogram:R,G,B,I":"output_4_hist.png" }
-      },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

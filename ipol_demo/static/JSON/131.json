@@ -98,12 +98,13 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
+      "label"         : "",
       "contents"      : { 
         "Output" :"output.png", 
         "Input"  :"input_0.sel.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

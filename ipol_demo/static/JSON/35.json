@@ -105,7 +105,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "Images",
+      "label"         : "",
       "contents"      : { "Input"             : "input_0.sel.png", 
                           "Robert"            : "out_roberts.png",
                           "Prewitt"           : "out_prewitt.png",
@@ -114,7 +114,8 @@
                           "Marr-Hildreth"     : "out_mh.png",
                           "Marr-Hildreth-log" : "out_mhl.png"
                         },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+(sizeY*ZoomFactor)+'px'"
     }
   ],
   "archive":

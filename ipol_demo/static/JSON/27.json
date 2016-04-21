@@ -80,8 +80,7 @@
     {
       "type"          : "gallery",
       "label"         : [
-        "<h2>Results (smin={{params.s1}}, smax={{params.s2}})</h2>",
-        "<p>",
+        "<b>Results:</b>",
             "Histogram scale is set to the histogram size of the input image.",
             "Black bars in the histograms indicate overflows and truncated bins.",
             "The contrast change between the original and processed images is",
@@ -90,12 +89,11 @@
                 " identity transform (red),", "algorithm transform (blue),  ",
             "'empirical' transform (transform that better approximates the ",
                 "cumulative histograms of both images, green). ",
-            "See the paper for a detailed explanation. ",
-        "</p>"
+            "See the paper for a detailed explanation. "
         ],
       "contents"      : 
-        {   "Original " : { "Image"                 :"input_0.png", 
-                            "Histograms: R, G, B, I":"input_0_hist.png",
+        {   "Original " : { "Image"                 :"input_0.sel.png", 
+                            "Histograms: R, G, B, I":"input_0.sel_hist.png",
                             "Contrast change"       :"identity.png"}, 
             "N=2 (RGB)" : { "Image"                 :"output_2_N2.png", 
                             "Histograms: R, G, B, I":"output_2_N2_hist.png",
@@ -134,7 +132,8 @@
                             "Histograms: R, G, B, I":"output_1_HE_hist.png",
                             "Contrast change"       :"pointsHE.png"}
         },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+Math.max(500,(sizeY*ZoomFactor))+'px'" 
     }
   ]
 

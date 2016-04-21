@@ -184,30 +184,15 @@
   ,
   "results": [
     {
-        "type"      : "file_download",
-        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
-        "contents"  : {
-                "mosaick"                       : "mosaicked.png",
-                "bilinear demosaicked"          : "bilinear.png",
-                "contour stencils demosaicked"  : "dmcswl1.png",
-                "original"                      : "input_0.sel.png"
-            }
-    },
-    {
-        "type"      : "file_download",
-        "visible"   : "info.showcontours",
-        "label"     : "Contours estimated from the mosaicked image",
-        "contents"  : "contours.pdf"
-    },
-    {
         "type"      : "html_text",
         "visible"   : "!info.showcontours",
-        "contents"  : [ "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>" ]
+        "contents"  : [ "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>" ],
+        "contents_new"  : [ "'<p>To see the estimated contours, please select a subimage with no more than '+info.showcontours_max_pixels+' pixels.</p>'" ]
     },
     {
       "type"          : "gallery",
       "label"         : [
-        "<h2>Images</h2>",
+        "<h3>Images</h3>",
         "<p>",
             "Notice that if the image dimensions exceeded 800&times;800, then the image has been cropped.",
         "</p>"
@@ -221,7 +206,24 @@
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Contour stencils difference"   : "diffdmcswl1_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" ,
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
+    },
+    {
+        "type"      : "file_download",
+        "label"     : "<b>Results at native resolution can be downloaded here:</b>",
+        "contents"  : {
+                "mosaick"                       : "mosaicked.png",
+                "bilinear demosaicked"          : "bilinear.png",
+                "contour stencils demosaicked"  : "dmcswl1.png",
+                "original"                      : "input_0.sel.png"
+            }
+    },
+    {
+        "type"      : "file_download",
+        "visible"   : "info.showcontours",
+        "label"     : "Contours estimated from the mosaicked image",
+        "contents"  : "contours.pdf"
     },
     {
         "type"    : "html_text",
@@ -243,6 +245,25 @@
             "<td>{{info.cpu_dmcswl1}}</td>",
           "</tr>",
        "</table>"
+      ],
+      "contents_new"      : [
+        "'<table border=0 cellspacing=0 cellpadding=2px style=\"background:none; margin:0; padding:0; margin-top:20px; margin-bottom:20px; border-top:1px solid black; border-bottom:1px solid black\">",
+          "<tr>",
+            "<td style=\"border-bottom:1px solid black\">Method</td>",
+            "<td style=\"border-bottom:1px solid black\">Mean squared error&nbsp;&nbsp;&nbsp;</td>",
+            "<td style=\"border-bottom:1px solid black\">CPU time</td>",
+          "</tr>",
+          "<tr>",
+            "<td>Bilinear demosaicking</td>",
+            "<td>'+info.mse_bilinear+'</td>",
+            "<td>'+info.cpu_bilinear+'</td>",
+          "</tr>",
+          "<tr>",
+            "<td>Contour stencils demosaicking&nbsp;&nbsp;&nbsp;</td>",
+            "<td>'+info.mse_dmcswl1+'</td>",
+            "<td>'+info.cpu_dmcswl1+'</td>",
+          "</tr>",
+       "</table>'"
       ]
     },
     {

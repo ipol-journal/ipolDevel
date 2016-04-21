@@ -3,7 +3,7 @@
     "demo_title"            :  "Simplest Color Balance",
     "input_description"     : "",
     "param_description"     : [
-        "<h2>Algorithm Parameters</h2>",
+        "<h3>Algorithm Parameters</h3>",
         "<p>",
             "Choose the percentage of pixels saturated to black (s1) and white (s2).For example, if you choose s1=1% and s2=2% then the 1% darker pixels in each channel will be saturated to black, and the 2% brightest pixels to white.",
         "</p>" 
@@ -65,10 +65,7 @@
     {
       "type"          : "gallery",
       "label"         : [
-        "<h2>Results (s1={{params.s1}}, s2={{params.s2}})</h2>",
-        "<p>",
-            "Histogram scale is set to the histogram size of the input image. Dark colors indicate overflows and truncated bins.",
-        "</p>"
+            "<p>Histogram scale is set to the histogram size of the input image. Dark colors indicate overflows and truncated bins.</p>"
         ],
       "contents"      : 
         {   "input "  : [   "input_0.sel.png",  
@@ -78,7 +75,8 @@
             "IRGB"     : [  "output_irgb.png",
                             "output_irgb_hist.png" ]
         },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

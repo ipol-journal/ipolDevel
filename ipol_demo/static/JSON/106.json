@@ -61,16 +61,17 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
+      "label"         : "",
       "contents"      : {   "Canny" : "output_canny.png", 
                             "Hough" : "output_hough.png",
                             "Output": "output_corrected_image.png",
                             "Input" : "input_0.png"},
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'" 
     },
     {
       "type"          : "file_download", 
-      "label"         : "<h2>Download results<h2>",
+      "label"         : "<b>Download results:</b>",
       "contents"      : { "Canny"           : "output_canny.png", 
                           "Hough"           : "output_hough.png",
                           "Corrected image" : "output_corrected_image.png",
@@ -79,9 +80,10 @@
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h2>Additional info<h2>",
+      "label"         : "<b>Additional info:</b><br/>",
       "contents"      : "output.txt",
-      "style"         : "{'width':sizeX+'px','height':'14em'}"
+      "style"         : "{'width':sizeX+'px','height':'14em'}",
+      "style_new"     : "'width:'+sizeX+'px;height:14em;background:#eee'"
     }
   ],
   "archive":

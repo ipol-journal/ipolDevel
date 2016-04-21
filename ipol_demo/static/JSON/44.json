@@ -2,7 +2,7 @@
   "general": { 
     "demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-    "param_description"     : ["You can now run the rectification process."],
+    "param_description"     : "",
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
@@ -90,7 +90,8 @@
       "view_clg.sh ipoln  1",
       "view_clg.sh ipol   1",
       "view_clg.sh mid    1",
-      "view_clg.sh arrows 1"
+      "view_clg.sh arrows 1",
+      "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
   ]
   ,
   "archive":
@@ -128,11 +129,40 @@
           "</td>",
         "</tr>",
         "<table>"
+      ],
+      "contents_new"      : [ 
+        "'<table style=\"margin-left:0px;margin-right:auto\">",
+        "<tr>",
+          "<td>",
+            "<label> Vectors: </label>",
+            "<select name=\"colorcoding\" >",
+              "<option selected=selected value=ipoln> IPOL colors (scaled, no level lines) </option>",
+              "<option value=ipol   > IPOL colors (unscaled, with level lines)             </option>",
+              "<option value=mid    > Middlebury colors                                    </option>",
+              "<option value=arrows > Arrows                                               </option>",
+            "</select><br/>",
+          "</td>",
+          "<td>",
+            "<img id=\"zoomfactor_im\" style=\"height:64px\" src=\"'+ work_url+ '/cw.ipoln.1.png'+'\" />",
+          "</td>",
+        "</tr>",
+        "<table>",
+        "<script>",
+            "$(\"select[name=colorcoding]\").change( ",
+                "function() { ",
+                    "var coding=$(\"select[name=colorcoding]\").val();",
+                    "$(\"#zoomfactor_im\").attr(\"src\",\"'+work_url+ '/cw.\"             +coding+\".1.png\");",
+                    "$(\"#result_2 #img_1\") .attr(\"src\",\"'+work_url+'stuff_clg.\"     +coding+\".1.png\");",
+                    "$(\"#result_2 #img_2\") .attr(\"src\",\"'+work_url+'t.\"             +coding+\".1.png\");",
+                    "$(\"#result_2 #img_11\").attr(\"src\",\"'+work_url+'stuff_clg_fmt.\" +coding+\".1.png\");",
+                "}",
+            ")",
+        "</script>",
+        "'"
       ]
     },
     {
       "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
       "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png", 
                             "Ground truth"        : "t.{{display.param1}}.1.png" ,
                             "|flow|"              : "stuff_clg_abs.png" ,
@@ -146,7 +176,22 @@
                             "Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
                             "Angular error"       : "stuff_clg_aerr.png"
                         },
-      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}" 
+      "contents_new"      : 
+                        {   "Optical flow "                 : "stuff_clg.ipoln.1.png", 
+                            "meta.hastruth?Ground truth"    : "t.ipoln.1.png",
+                            "|flow|"                        : "stuff_clg_abs.png" ,
+                            "I<sub>0</sub>"                 : "input_0.png" ,
+                            "I<sub>1</sub>"                 : "input_1.png" ,
+                            "div(flow)"                     : "stuff_clg_div.png",
+                            "grad(flow)"                    : "stuff_clg_grad.png",
+                            "Warped I<sub>1</sub>"          : "stuff_clg_inv.png",
+                            "Warped difference"             : "stuff_clg_aminv.png" ,
+                            "Warped average"                : "stuff_clg_apinv.png" ,
+                            "meta.hastruth?Endpoint error"  : "stuff_clg_fmt.ipoln.1.png",
+                            "meta.hastruth?Angular error"   : "stuff_clg_aerr.png"
+                        },
+      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}",
+      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor,450)+'px'" 
     },
     {
       "type"          : "html_text", 
@@ -170,11 +215,38 @@
           "</tr>",
           "</table>",
           "</div>"
-        ]
+        ],
+      "contents_new"      : [ 
+          "'<b>Summary</b><br/>",
+          "<div>",
+          "<table border=1 cellpadding=6 cellspacing=0 style=\"margin-left:0px;margin-right:auto\">",
+          "<tr bgcolor=#cccccc>",
+            "<td ></td>",
+            "<th >Running time</th>",
+            "<th >Average Backprojection Error</th>",
+            "'+ (meta.hastruth?'",
+                "<th>Average Endpoint Error</th>",
+                "<th>Average Angular Error</th>",
+            "':'')",
+            "+'",
+          "</tr>",
+          "<tr>",
+            "<th bgcolor=#cccccc>phs</th>",
+            "<td align=center>'+ info.run_time.toFixed(2)+' s</td>",
+            "<td align=center>'+ info.sixerrors.split(\" \")[0]+'",
+                            "<i style=\"font-size:x-small\">gray levels</i></td>",
+            "'+ (meta.hastruth?'",
+                "<td  align=center>'+info.sixerrors.split(\" \")[2]+' <i style=\"font-size:x-small\">pixels</i></td>",
+                "<td  align=center>'+info.sixerrors.split(\" \")[4]+'&nbsp;º</td>",
+            "':'')",
+            "+'",
+          "</tr>",
+          "</table>",
+          "</div>'"        ]
     },
     {
       "type"          : "file_download", 
-      "label"         : "<h3>Download inputs:</h3>",
+      "label"         : "<b>Download inputs:</b>",
       "contents"      : { "first image I1"  : "input_0.png", 
                           "second image I2" : "input_1.png",
                           "ground truth"    : "input_2.tiff"
@@ -182,7 +254,7 @@
     },
     {
       "type"          : "file_download", 
-      "label"         : "<h3>Download computed optical flow:</h3>",
+      "label"         : "<b>Download computed optical flow:</b>",
       "contents"      : { "tiff": "stuff_tvl1.tiff", 
                           "flo" : "stuff_tvl1.flo",
                           "uv"  : "stuff_tvl1.uv" }

@@ -28,7 +28,7 @@
       {
           "type"            : "image", 
           "description"     : "input",
-          "max_pixels"      : 1048576,
+          "max_pixels"      : 160000,
           "max_weight"      : "3 * 1024 * 1024",
           "dtype"           : "3x8i",
           "ext"             : ".png"
@@ -176,20 +176,7 @@
   ,
   "results": [
     {
-      "type"          : "file_download", 
-      "label"         : "<h3>Download<h3>",
-      "contents"      : { "input"                       : "input_0.sel.png", 
-                          "coarsened"                   : "coarsened.png",
-                          "Fourier"                     : "fourier.png",
-                          "Roussos-Maragos"             : "interpolated.png",
-                          "exact"                       : "input_0.sel.png",
-                          "Fourier difference"          : "fdifference.png",
-                          "Roussos-Maragos difference"  : "difference.png"
-                        }
-    },
-    {
       "type"          : "gallery",
-      "label"         : "<h3>Resulting images</h3>",
       "contents"      : { 
         "Input"                                            : "input_0_zoom.png", 
         "Coarsened"                                        : "coarsened_zoom.png",
@@ -212,10 +199,23 @@
       "style_new"         : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
     },
     {
+      "type"          : "file_download", 
+      "label"         : "<b>Download:</b>",
+      "contents"      : { "input"                       : "input_0.sel.png", 
+                          "coarsened"                   : "coarsened.png",
+                          "Fourier"                     : "fourier.png",
+                          "Roussos-Maragos"             : "interpolated.png",
+                          "exact"                       : "input_0.sel.png",
+                          "Fourier difference"          : "fdifference.png",
+                          "Roussos-Maragos difference"  : "difference.png"
+                        }
+    },
+    {
       "type"          : "text_file", 
-      "label"         : "<h3>Output<h3>",
+      "label"         : "<b>Output</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}",
+      "style_new"     : "'width:20em;height:11em;background-color:#eee'"
     }
   ]
 

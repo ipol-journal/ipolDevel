@@ -76,7 +76,13 @@
       "default"       : [ "fir", "dct"]
     }
   ],
-  "run": [ "run_algorithms.py"  ]
+  "run": [ 
+        "python:import json",
+        "python:fp =  open(self.work_dir + 'params.json', 'w')",
+        "python:json.dump(self.algo_params, fp)",
+        "python:fp.close()",
+        "run_algorithms.py"  
+  ]
   ,
   "archive":
     {
@@ -145,29 +151,30 @@
       "label"         : "Images:",
       "contents"      : { 
           "Input"                                 : "input_0.sel.png",
-          "FIR, <i>tol</i>=10<sup>&minus;2</sup>" : "output-fir.png",
-          "DCT"                                   : "output-dct.png",
-          "Box, <i>K</i>=3"                       : "output-box_3.png", 
-          "Box, <i>K</i>=4"                       : "output-box_4.png", 
-          "Box, <i>K</i>=5"                       : "output-box_5.png",
-          "Extended box, <i>K</i>=3"              : "output-ebox_3.png", 
-          "Extended box, <i>K</i>=4"              : "output-ebox_4.png", 
-          "Extended box, <i>K</i>=5"              : "output-ebox_5.png",
-          "SII, <i>K</i>=3"                       : "output-sii_3.png", 
-          "SII, <i>K</i>=4"                       : "output-sii_4.png", 
-          "SII, <i>K</i>=5"                       : "output-sii_5.png",
-          "Alvarez&ndash;Mazorra, <i>K</i>=3"     : "output-am_3.png", 
-          "Alvarez&ndash;Mazorra, <i>K</i>=4"     : "output-am_4.png", 
-          "Alvarez&ndash;Mazorra, <i>K</i>=5"     : "output-am_5.png",
-          "Deriche, <i>K</i>=2"                   : "output-deriche_2.png", 
-          "Deriche, <i>K</i>=3"                   : "output-deriche_3.png", 
-          "Deriche, <i>K</i>=4"                   : "output-deriche_4.png",
-          "Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3" : "output-vyv_3.png",
-          "Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=4" : "output-vyv_4.png",
-          "Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
+          "params.algo_fir?FIR, <i>tol</i>=10<sup>&minus;2</sup>" : "output-fir.png",
+          "params.algo_dct?DCT"                                   : "output-dct.png",
+          "params.algo_box_3?Box, <i>K</i>=3"                       : "output-box_3.png", 
+          "params.algo_box_4?Box, <i>K</i>=4"                       : "output-box_4.png", 
+          "params.algo_box_5?Box, <i>K</i>=5"                       : "output-box_5.png",
+          "params.algo_ebox_3?Extended box, <i>K</i>=3"              : "output-ebox_3.png", 
+          "params.algo_ebox_4?Extended box, <i>K</i>=4"              : "output-ebox_4.png", 
+          "params.algo_ebox_5?Extended box, <i>K</i>=5"              : "output-ebox_5.png",
+          "params.algo_sii_3?SII, <i>K</i>=3"                       : "output-sii_3.png", 
+          "params.algo_sii_4?SII, <i>K</i>=4"                       : "output-sii_4.png", 
+          "params.algo_sii_5?SII, <i>K</i>=5"                       : "output-sii_5.png",
+          "params.algo_am_3?Alvarez&ndash;Mazorra, <i>K</i>=3"     : "output-am_3.png", 
+          "params.algo_am_4?Alvarez&ndash;Mazorra, <i>K</i>=4"     : "output-am_4.png", 
+          "params.algo_am_5?Alvarez&ndash;Mazorra, <i>K</i>=5"     : "output-am_5.png",
+          "params.algo_deriche_2?Deriche, <i>K</i>=2"                   : "output-deriche_2.png", 
+          "params.algo_deriche_3?Deriche, <i>K</i>=3"                   : "output-deriche_3.png", 
+          "params.algo_deriche_4?Deriche, <i>K</i>=4"                   : "output-deriche_4.png",
+          "params.algo_vyv_3?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3" : "output-vyv_3.png",
+          "params.algo_vyv_4?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=4" : "output-vyv_4.png",
+          "params.algo_vyv_5?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
           "Exact*"                                       : "output-exact.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "html_text", 
@@ -176,6 +183,12 @@
           "<i>tol</i>=10<sup>&minus;15</sup>, for &sigma;&nbsp;&le;&nbsp;2 and ",
           "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
           "(using {{params.sigma<=2?'FIR':'DCT'}} for this experiment).</p>"
+        ],
+      "contents_new"      : [
+          "'<p style=\"font-size:85%\">* &ldquo;Exact&rdquo; is computed with FIR, ",
+          "<i>tol</i>=10<sup>&minus;15</sup>, for &sigma;&nbsp;&le;&nbsp;2 and ",
+          "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
+          "(using '+(params.sigma<=2?'FIR':'DCT')+' for this experiment).</p>'"
         ]
     },
     {
@@ -202,6 +215,42 @@
             "<td> {{v.split('|')[2].split(':')[1]}} </td>",
           "</tr>",
         "</table>"
+      ],
+      "contents_new"      : [
+        "'';",
+        "var alg={ 'fir':'FIR, <i>tol</i>=10<sup>&minus;2</sup>',",
+                "'dct':'DCT',",
+                "'box':'Box',",
+                "'ebox':'Extended box',",
+                "'sii':'SII',",
+                "'deriche':'Deriche' ,",
+                "'vyv':'Vliet&ndash;Young&ndash;Verbeek', ",
+                "'am':'Alvarez&ndash;Mazorra' };",
+        "var res='<b>Accuracy</b>: <br/>",
+            "<table style=\"margin:0px;margin-top:10px;text-align:center\">",
+            "<tr>",
+                "<th>Method</th>",
+                "<th>&nbsp;Max Diff&nbsp;</th>",
+                "<th>&nbsp;RMSE&nbsp;</th>",
+                "<th>&nbsp;PSNR&nbsp;</th>",
+            "</tr>';",
+          "$.each(info, function(k,v) {",
+            "if (k.indexOf('metrics_')>-1) {",
+                "res+='<tr>';",
+                "res+='<td>';",
+                "res += alg[k.substr(8).split('_')[0]];",
+                "if (k.substr(8).split('_').length>1) {", 
+                    " res+= ', <i>K</i>= '+ k.substr(8).split('_')[1];",
+                "}",
+                "res+='</td>';",
+                "var format = function(n,d) { return Number(Number(n).toFixed(d)); };",
+                "res+='<td>'+ format(v.split('|')[0].split(':')[1],2) + '</td>';",
+                "res+='<td>'+ format(v.split('|')[1].split(':')[1],4) + '</td>';",
+                "res+='<td>'+ format(v.split('|')[2].split(':')[1],2) + '</td>';",
+                "res+= '</tr>';",
+            "}",
+          "});",
+        "res += '</table>';"
       ]
     }
   ]

@@ -97,7 +97,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
+      "label"         : "",
       "contents"      : { 
         "Original"  : { "Image":"input_0.sel.png","Histograms:R,G,B,I":"input_0.sel_hist.png"},
         "!info.isgray?MS Retinex on each color"  :
@@ -105,7 +105,8 @@
         "MS Retinex on intensity"  :
                       { "Image":"output_I.png",   "Histograms:R,G,B,I":"output_I_hist.png"}
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

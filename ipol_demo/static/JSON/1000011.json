@@ -1,7 +1,7 @@
 { 
   "general": { 
-    "demo_title"            :  "Gunturk-Altunbasak-Mersereau Alternating Projections Image Demosaicking",
-    "input_description"     : "<p>The color demosaicking method of Gunturk, Altunbasak, and Russell using wavelets and projections onto convex sets.</p>",
+    "demo_title"            :  "Zhang-Wu Directional LMMSE Image Demosaicking",
+    "input_description"     : "<p>A demosaicking method performing a directional linear minimum mean square error estimation strategy in the green channel.</p>",
     "param_description"     : [
         "<p> The algorithm runs in 2 steps:",
         "<ol>",
@@ -51,19 +51,17 @@
           "</tr>",
         "</table> <div style='clear:both'><br/>"
     ],
-    "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_gapd/"
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_zwld/"
   }, 
   "build": [
     {
       "build_type"    : "make",
-      "url"           : "http://www.ipol.im/pub/art/2011/g_gapd/src.tar.gz", 
-      "srcdir"        : "dmgunturk-src",
-      "binaries"      : [   [".","dmgunturk"],
-                            [".","dmha"],
+      "url"           : "http://www.ipol.im/pub/art/2011/g_zwld/src.tar.gz", 
+      "srcdir"        : "src",
+      "binaries"      : [   [".","dmzhangwu"],
                             [".","dmbilinear"],
                             [".","mosaic"],
                             [".","imdiff"]],
-      "prepare_make"  : "sed -i -e 's/CPNG=-DLIBPNG_SUPPORT/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DLIBPNG_SUPPORT/g' -e 's/lpng/lpng12/g' makefile.gcc",
       "flags"         : " --makefile=makefile.gcc -j4"
     } ]
   ,
@@ -90,34 +88,34 @@
     "#--- Mosaic image",
     "mosaic     -p $pattern input_0.sel.png mosaiced.png >stdout.txt 2>&1",
     "#--- Demosaic image",
-    "dmha       -p $pattern mosaiced.png ha.png   >stdout.txt 2>&1",
-    "dmgunturk  -p $pattern ha.png gunturk.png    >stdout.txt 2>&1",
+    "dmzhangwu  -p $pattern mosaiced.png dmzhangwu.png   >stdout.txt 2>&1",
+    "dmbilinear -p $pattern mosaiced.png bilinear.png    >stdout.txt 2>&1",
     "#--- Compute image differences",
-    "imdiff input_0.sel.png gunturk.png diffgunturk.png",
-    "imdiff input_0.sel.png ha.png      diffha.png",
+    "imdiff input_0.sel.png dmzhangwu.png diffdmzhangwu.png",
+    "imdiff input_0.sel.png bilinear.png  diffbilinear.png",
     "#--- Resize for visualization (new size of the smallest dimension = 200)",
     "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
     "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
     "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
     "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
     "convert -filter point -resize ${sizeX}x${sizeY} mosaiced.png       mosaiced_zoom.png",
-    "convert -filter point -resize ${sizeX}x${sizeY} gunturk.png        gunturk_zoom.png",
-    "convert -filter point -resize ${sizeX}x${sizeY} ha.png             ha_zoom.png",
-    "convert -filter point -resize ${sizeX}x${sizeY} diffgunturk.png    diffgunturk_zoom.png",
-    "convert -filter point -resize ${sizeX}x${sizeY} diffha.png         diffha_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} dmzhangwu.png      dmzhangwu_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} bilinear.png       bilinear_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffdmzhangwu.png  diffdmzhangwu_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffbilinear.png   diffbilinear_zoom.png",
     "#--- save algorithm information",
-    "python:self.algo_info['displayheight']           = sizeY",
-    "python:self.algo_info['zoomfactor']              = zoomfactor"
+    "python:self.algo_info['displayheight'] = sizeY",
+    "python:self.algo_info['zoomfactor']    = zoomfactor"
   ],
   "archive":
     {
       "files" : { 
                   "input_0.sel.png"   : "selected subimage",
                   "mosaiced.png"      : "mosaiced image",
-                  "gunturk.png"       : "Gunturk demosaiced image",
-                  "diffgunturk.png"   : "difference image for Gunturk",
-                  "ha.png"            : "Hamilton-Adams demosaiced image",
-                  "diffha.png"        : "difference image for Hamilton-Adams"
+                  "dmzhangwu.png"     : "Zhang-Wu demosaiced image",
+                  "diffdmzhangwu.png" : "difference image for Zhang-Wu",
+                  "bilinear.png"      : "bilinear demosaiced image",
+                  "diffbilinear.png"  : "difference image for bilinear"
                 },
       "params" :  [ "pattern" ]
     }
@@ -126,33 +124,34 @@
     {
         "type"      : "html_text",
         "visible"   : "info.zoom_factor>1",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ],
+        "contents_new"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
+    },
+    {
+      "type"          : "gallery",
+      "contents"      : 
+        {
+            "Mosaick"                       : "mosaiced_zoom.png",
+            "Bilinear demosaiced"           : "bilinear_zoom.png",
+            "Zhang-Wu demosaiced"           : "dmzhangwu_zoom.png",
+            "Original"                      : "input_0.sel_zoom.png",
+            "Bilinear difference"           : "diffbilinear_zoom.png",
+            "Zhang-Wu difference"           : "diffdmzhangwu_zoom.png"
+        },
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
     },
     {
         "type"      : "file_download",
         "label"     : "<p>Results at native resolution can be downloaded here:</p>",
         "contents"  : {
-                "mosaic"                        : "mosaiced.png",
-                "Hamilton-Adams demosaic"       : "ha.png",
-                "Gunturk demosaic"              : "gunturk.png",
-                "original"                      : "input_0.sel.png",
-                "Hamilton-Admas difference"     : "diffha.png",
-                "Gunturk difference"            : "diffgunturk.png"
+                "mosaic"                  : "mosaiced.png",
+                "bilinear demosaic"       : "bilinear.png",
+                "Zhang-Wu demosaic"       : "dmzhangwu.png",
+                "original"                : "input_0.sel.png",
+                "bilinear difference"     : "diffbilinear.png",
+                "Zhang-Wu difference"     : "diffdmzhangwu.png"
             }
-    },
-    {
-      "type"          : "gallery",
-      "label"         : [ "<h2>Images</h2>" ],
-      "contents"      : 
-        {
-            "Mosaick"                       : "mosaiced_zoom.png",
-            "Hamilton-Adams demosaiced"     : "ha_zoom.png",
-            "Gunturk demosaiced"            : "gunturk_zoom.png",
-            "Original"                      : "input_0.sel_zoom.png",
-            "Hamilton-Adams  difference"    : "diffha_zoom.png",
-            "Gunturk difference"            : "diffgunturk_zoom.png"
-        },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
         "type"    : "html_text",

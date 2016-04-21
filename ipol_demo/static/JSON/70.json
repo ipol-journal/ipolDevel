@@ -146,8 +146,18 @@
   ,
   "results": [
     {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : { 
+        "Input"     : "input_0.sel.png", 
+        "Output"    : "output.png"
+      },
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+    },
+    {
       "type"          : "file_download", 
-      "label"         : "<br/><br/><h2>Download images</h2>",
+      "label"         : "<b>Download images</b>",
       "contents"      : 
         { 
           "input polygons (text)"    : "inputPolygon1.txt", 
@@ -156,19 +166,11 @@
         }
     },
     {
-      "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
-      "contents"      : { 
-        "Input"     : "input_0.sel.png", 
-        "Output"    : "output.png"
-      },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
-    },
-    {
       "type"          : "text_file", 
-      "label"         : "<h2>Additional Information<h2> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
+      "label"         : "<b>Additional Information:</b> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
       "contents"      : "shell_cmds.txt",
-      "style"         : "{'width':'55em','height':'6em','background-color:#eee'}"
+      "style"         : "{'width':'55em','height':'6em','background-color:#eee'}",
+      "style_new"     : "'width:55em;height:6em;background-color:#eee'"
     }
   ]
 

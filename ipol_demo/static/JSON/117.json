@@ -8,13 +8,13 @@
         "</p>"
       ],
     "param_description"     : "",
-    "xlink_article"         : "http://www.ipol.im/pub/pre/117/"
+    "xlink_article"         : "http://www.ipol.im/pub/art/2016/117/"
   }, 
   "build": [
     {
       "build_type"    : "make",
-      "url"           : "http://www.ipol.im/pub/pre/117/gaussconv_20140515.zip", 
-      "srcdir"        : "gaussconv_20140515",
+      "url"           : "http://www.ipol.im/pub/art/2016/117/gaussconv_20160131.zip", 
+      "srcdir"        : "gaussconv_20160131",
       "prepare_make"  : "sed -i -e 's/-Werror//g' Makefile",
       "binaries"      : [ [".","bin/demo_gaussconv_dct"],
                           [".","bin/demo_gaussconv_dft"],
@@ -95,7 +95,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Gaussian filter results</h2>",
+      "label"         : "",
       "contents"      : { 
         "DFT":
           { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"dft_direct.png", 
@@ -114,11 +114,12 @@
             "N iterations of parameter &sigma;":"lindeberg_iter.png",
             "difference":"lindeberg_diff.png" }
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}" ,
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'" 
     },
     {
       "type"          : "file_download", 
-      "label"         : "<br/><br/><h2>Download images</h2>",
+      "label"         : "<br/><br/><b>Download images:</b>",
       "contents"      : 
         { 
           "input"          : "input_0.sel.png", 

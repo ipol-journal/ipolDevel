@@ -3,10 +3,10 @@
     "demo_title"            :  "Non-Local Means Denoising",
     "input_description"     : "To use correctly this demo, it is advised to upload good quality noiseless images.  The algorithm will add to the image a white noise with the standard deviation you will select. The denoising algorithm uses only the knowledge of the standard deviation of the noise.",
     "param_description"     : [
-        "<p> The algorithm is run in 2 steps:",
-        "<ol>  <li> a Gaussian noise is added to the input image;</li>",
-              "<li> the NLmeans algorithm is used to denoise the image.</li>",
-        "</ol> </p>"],
+        "The algorithm is run in 2 steps:",
+        "step 1: a Gaussian noise is added to the input image;",
+        "step 2: the NLmeans algorithm is used to denoise the image."
+        ],
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/bcm_nlm/"
   }, 
   "build": [
@@ -48,27 +48,29 @@
   ,
   "results": [
     {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : {   "Noisy"      : "input_1.png", 
+                            "Denoised"   : "output_1.png",
+                            "Original"   : "input_0.sel.png",
+                            "Difference" : "output_2.png"},
+      "style"         : "{'height':Math.max(200,sizeY)*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+Math.max(200,sizeY)*ZoomFactor+'px'"
+    },
+    {
       "type"          : "file_download", 
-      "label"         : "<h2>Download images</h2>",
+      "label"         : "<b>Download images:</b>",
       "contents"      : { "Noisy"     : "input_1.png",
                           "Denoised"  : "output_1.png",
                           "Original"  : "input_0.sel.png",
                           "Difference": "output_2.png" }
     },
     {
-      "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      : {   "Noisy"      : "input_1.png", 
-                            "Denoised"   : "output_1.png",
-                            "Original"   : "input_0.sel.png",
-                            "Difference" : "output_2.png"},
-      "style"         : "{'height':Math.max(200,sizeY)*ZoomFactor+'px'}" 
-    },
-    {
       "type"          : "text_file", 
-      "label"         : "<h2>Additional info: RMSE and PSNR<h2>",
+      "label"         : "<b>Additional info: RMSE and PSNR</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'20em','height':'4em'}"
+      "style"         : "{'width':'20em','height':'4em'}",
+      "style_new"     : "'width:20em;height:4em;background:#eee'"
     }
   ],
   "archive":

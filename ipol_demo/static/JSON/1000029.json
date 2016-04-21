@@ -48,17 +48,12 @@
   "results": [
     {
       "type"          : "html_text", 
-      "contents"      : [ "{{info.num_detections}} Line Segments were detected.<br/>" ]
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "<h2>Download the result<h2> in EPS format",
-      "contents"      : { "EPS":"output.eps", "SVG":"output.svg",
-                          "ASCII (see description below)": "output.txt" }
+      "contents"      : [ "{{info.num_detections}} Line Segments were detected.<br/>" ],
+      "contents_new"  : [ "'<br/>'+info.num_detections+' Line Segments were detected.<br/>'" ]
     },
     {
       "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
+      "label"         : "",
       "contents"      : { "Output":"output.png",
                           "Output inv":"output-inv.png", 
                           "Input":"input_0.sel.png"},
@@ -66,10 +61,15 @@
       "style_new"     : "'height:'+(sizeY*ZoomFactor)+'px'"
     },
     {
+      "type"          : "file_download", 
+      "label"         : "<b>Download the results:</b>",
+      "contents"      : { "EPS":"output.eps", "SVG":"output.svg",
+                          "ASCII (see description below)": "output.txt" }
+    },
+    {
       "type"          : "html_text", 
       "contents"      : [ 
-          "<h2>ASCII file description</h2>",
-          "<p style='width:50em'>",
+          "<fieldset style='border:2px solid black;background:#eee'><legend>ASCII file description</legend>",
             "Each line is composed of seven numbers separated by spaces, that ",
             "are x1, y1, x2, y2, width, p, -log_nfa. For example, the line: ",
             "</p><pre style='width:50em'>  159.232890 134.369601 160.325338 ",
@@ -83,7 +83,7 @@
             "detection was -log_10(NFA)=17.212465, so the NFA value was ",
             "10^(-17.2124656), roughly 6e-18. The length unit is the pixel and ",
             "the origin of coordinates is the center of the top-left pixel (0,0). ",
-          "</p>" 
+          "</fieldset>" 
         ]
     }
   ],

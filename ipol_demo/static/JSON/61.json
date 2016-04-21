@@ -63,13 +63,13 @@
         "python:_lambda=0"
     ],
     "python:option=0",
-    [ "runmode==0", 
+    [ "str(runmode)=='0'", 
         "python:option=1 if guesslambda_checked else 2" ],
-    [ "runmode==1", 
+    [ "str(runmode)=='1'", 
         "python:option=3 if guesslambda_checked else 4" ],
     "python:print 'option = ', option",
     "chambolle_ipol $option input_0.sel.png $sigma $_lambda noisy.png denoised.png >guessed_lambda.txt 2>&1",
-    [ "runmode==0",
+    [ "str(runmode)=='0'",
         "imdiff_ipol input_0.sel.png noisy.png    diff.png $sigma >rmse_noisy.txt    2>&1",
         "imdiff_ipol input_0.sel.png denoised.png diff.png $sigma >rmse_denoised.txt 2>&1",
         "# Read the rmse_*.txt files",
@@ -80,7 +80,7 @@
         "python:self.algo_info['rmse_denoised'] = '%.2f' % float(f.readline().split(':',1)[1])",
         "python:f.close()"
     ],
-    [ "runmode==1",
+    [ "str(runmode)=='1'",
         "imdiff_ipol input_0.sel.png denoised.png diff.png $sigma" ],
     "# Resize for visualization (always zoom by at least 2x)",
     "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
@@ -92,7 +92,7 @@
         "convert -filter point -resize ${sizeX}x${sizeY} denoised.png     denoised_zoom.png",
         "convert -filter point -resize ${sizeX}x${sizeY} diff.png         diff_zoom.png"
     ],
-    [ "has_zoom and runmode==0",
+    [ "has_zoom and str(runmode)=='0'",
         "convert -filter point -resize ${sizeX}x${sizeY} noisy.png noisy_zoom.png"
     ],
     "#--- save algorithm information",
@@ -116,6 +116,36 @@
         "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
     },
     {
+      "type"          : "gallery",
+      "label"         : [ "<b>Images:</b>",
+            "<p>",
+                "Noise standard deviation ",
+                "<span ng-if='params.runmode==0'>(guessed)",
+                "</span> <span ng-if='params.runmode==1'>(added)</span>:",
+                " &sigma;  = {{params.sigma}}",
+            "</p>"
+            ],
+      "contents"      : 
+        {
+            "params.runmode==0&&!info.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy.png",
+            "params.runmode==0&&!info.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised.png",
+            "params.runmode==0&&!info.has_zoom?Original"                                 : "input_0.sel.png",
+
+            "params.runmode==0&&info.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy_zoom.png",
+            "params.runmode==0&&info.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised_zoom.png",
+            "params.runmode==0&&info.has_zoom?Original"                                 : "input_0.sel_zoom.png",
+
+            "params.runmode==1&&!info.has_zoom?Input"     : "input_0.sel.png",
+            "params.runmode==1&&!info.has_zoom?Denoised"  : "denoised.png",
+
+            "params.runmode==1&&info.has_zoom?Input"      : "input_0.sel_zoom.png",
+            "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png"
+
+        },
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
+    },
+    {
         "type"      : "file_download",
         "visible"   : "params.runmode==1",
         "label"     : "<p>Results at native resolution can be downloaded here:</p>",
@@ -133,35 +163,6 @@
                 "denoised"       : "denoised.png",
                 "exact"          : "input_0.sel.png"
             }
-    },
-    {
-      "type"          : "gallery",
-      "label"         : [ "<h2>Images</h2>",
-            "<p>",
-                "Noise standard deviation ",
-                "<span ng-if='params.runmode==0'>(guessed)",
-                "</span> <span ng-if='params.runmode==1'>(added)</span>:",
-                " &sigma;  = {{params.sigma}}",
-            "</p>"
-            ],
-      "contents"      : 
-        {
-            "params.runmode==0&&!params.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy.png",
-            "params.runmode==0&&!params.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised.png",
-            "params.runmode==0&&!params.has_zoom?Original"                                 : "input_0.sel.png",
-
-            "params.runmode==0&&params.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy_zoom.png",
-            "params.runmode==0&&params.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised_zoom.png",
-            "params.runmode==0&&params.has_zoom?Original"                                 : "input_0.sel_zoom.png",
-
-            "params.runmode==1&&!params.has_zoom?Input"     : "input_0.sel.png",
-            "params.runmode==1&&!params.has_zoom?Denoised"  : "denoised.png",
-
-            "params.runmode==1&&params.has_zoom?Input"      : "input_0.sel_zoom.png",
-            "params.runmode==1&&params.has_zoom?Denoised"   : "denoised_zoom.png"
-
-        },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
       "type"          : "text_file", 

@@ -72,7 +72,8 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Results (T={{params.t}}, a={{params.a}}, alpha={{params.alpha}})</h2>",
+      "label_old"     : "<h2>Results (T={{params.t}}, a={{params.a}}, alpha={{params.alpha}})</h2>",
+      "label"         : "",
       "contents"      : { 
           "Original"                            : { "Image":"input_0.sel.png",    "Histogram:R,G,B,I":"input_0.sel_hist.png" },
           "!info.isgray?Normalized (RGB)"       : { "Image":"output_normRGB.png", "Histogram:R,G,B,I":"output_normRGB_hist.png" },
@@ -82,7 +83,8 @@
           "Enhanced dark (I)"                   : { "Image":"output_darkI.png",   "Histogram:R,G,B,I":"output_darkI_hist.png" },
           "Enhanced global (I)"                 : { "Image":"output_powerI.png",  "Histogram:R,G,B,I":"output_powerI_hist.png" }
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

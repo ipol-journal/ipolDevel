@@ -61,19 +61,25 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Noisy, denoised, and difference images</h2>",
-      "contents"      : { "Original":"input_0.sel.png", "Denoised":"denoised.png", "Difference":"diff.png"},
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" 
+      "label"         : "<h3>Noisy, denoised, and difference images</h3>",
+      "contents"      : { 
+                "Original":"input_0.sel.png", 
+                "Denoised":"denoised.png", 
+                "Difference":"diff.png"},
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "repeat_gallery",
-      "label"         : "<h2>Difference image (left), mean noise curve for the low frequencies (middle), and for the high frequencies (right) at each scale</h2>",
+      "label"         : "<h3>Difference image (left), mean noise curve for the low frequencies (middle), and for the high frequencies (right) at each scale</h3>",
       "repeat"        : "params.nbscales",
-      "contents"      : ["Scale{{idx}}",
-                          [ "denoised_diff_{{idx}}.png",
-                            "denoised_noiseCurves_L_{{idx}}.png",
-                            "denoised_noiseCurves_H_{{idx}}.png"] ],
-      "style"         : "{'width': '400px', 'height':400*sizeY/sizeX+'px'}"
+      "contents"      : [
+                    "'Scale'+idx",
+                          [ "'denoised_diff_'+idx+'.png'",
+                            "'denoised_noiseCurves_L_'+idx+'.png'",
+                            "'denoised_noiseCurves_H_'+idx+'.png'"] ],
+      "style"         : "{'width': '400px', 'height':400*sizeY/sizeX+'px'}",
+      "style_new"     : "'width:400px;height:'+400*sizeY/sizeX+'px'"
     }
   ],
   "archive":

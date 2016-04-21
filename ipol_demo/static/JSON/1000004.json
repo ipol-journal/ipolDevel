@@ -96,19 +96,21 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
+      "label"         : "",
       "contents"      : {
-        "Input"                            : "input_0.sel.png",
-        "ACE (&alpha; = {{params.alpha}})" : "ace.png", 
-        "Histogram Equalization"           : "he.png"
+        "Input"                     : "input_0.sel.png",
+        "ACE"                       : "ace.png", 
+        "Histogram Equalization"    : "he.png"
       },
-      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}"
+      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}",
+      "style_new"     : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h3>Program output<h3>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'6em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'6em','background-color':'#eee'}",
+      "style_new"     : "'width:40em;height:6em;background-color:#eee'"
     }
   ]
 

@@ -60,13 +60,14 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Results (&lambda;={{params.l}}, s={{params.s}})</h2>",
+      "label"         : "",
       "contents"      : {
         "input"             : ["input_0.sel.png",   "input_0.sel_hist.png" ],
         "input (simplest)"  : ["inputSimplest.png", "inputSimplest_hist.png" ],
         "output"            : ["output.png",        "output_hist.png"        ]
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

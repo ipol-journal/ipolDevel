@@ -104,6 +104,16 @@
   ,
   "results": [
     {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : { 
+        "PSF"         :"psf_kernel.png", 
+        "inter kernel":"int_kernel.png"
+      },
+      "style"         : "{'height':300*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+300*ZoomFactor+'px'"
+    },
+    {
       "type"          : "file_download", 
       "label"         : "<p>You can download the results in plain-text:</p>",
       "contents"      : 
@@ -113,17 +123,8 @@
         }
     },
     {
-      "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
-      "contents"      : { 
-        "PSF"         :"psf_kernel.png", 
-        "inter kernel":"int_kernel.png"
-      },
-      "style"         : "{'height':300*ZoomFactor+'px'}"
-    },
-    {
       "type"          : "file_download", 
-      "label"         : "<h2>Intermediate Images</h2> <p>You can download the intermediate images with their original pixel values (no-rescaling, no-resizing) in plain-text: </p>",
+      "label"         : "<b>Intermediate Images:</b> <p>You can download the intermediate images with their original pixel values (no-rescaling, no-resizing) in plain-text: </p>",
       "contents"      : 
         { 
           "zoomed-out"  : "ipol_imgW.txt", 
@@ -134,20 +135,22 @@
     },
     {
       "type"          : "gallery",
-      "label"         : "<p>The following images were resized (by the browser) for correct visualization. Image height is set to 500px.<p>",
+      "label"         : "<b>The following images were resized (by the browser) for correct visualization. Image height is set to 500px.</b><br/>",
       "contents"      : { 
         "zoomed-out"  : [ "ipol_imgW.png", "palette1.png" ],
         "zoomed-in"   : [ "ipol_imgC.png", "palette1.png" ],
         "residue"     : [ "ipol_diff.png", "palette2.png" ],
         "mask"        : [ "ipol_mask.png", "palette1.png" ]
       },
-      "style"         : "{'height':500*ZoomFactor+'px'}" 
+      "style"         : "{'height':500*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+500*ZoomFactor+'px'"
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h2>Program Output<h2>",
+      "label"         : "<b>Program Output</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'38em','background-color':'#eee'}"
+      "style"         : "{'width':'50em','height':'38em','background-color':'#eee'}",
+      "style_new"     : "'width:50em;height:32em;background-color:#eee'"
     }
   ]
 

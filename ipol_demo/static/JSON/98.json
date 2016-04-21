@@ -39,6 +39,7 @@
     "python:# first crop input so that its dimensions are multiples of the sampling factor",
     "python:im = image(self.work_dir + 'input_0.sel.png')",
     "python:(sizeX, sizeY) = im.size",
+    "python:sfactor = int(sfactor) # be sure to have an integer value",
     "python:rX = sizeX % sfactor",
     "python:rY = sizeY % sfactor",
     "python:im.crop((0, 0, sizeX-rX, sizeY-rY))",
@@ -71,7 +72,6 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Resulting images</h2>",
       "contents"      : {
         "Input"                         : "input_0.sel.png",
         "Pan"                           : "pan.png", 
@@ -81,19 +81,22 @@
         "Difference Input-PanSharpened" : "diffInputPanS.png",
         "Difference Input-IHS"          : "diffInputIHS.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
+      "style_new"     : "{'height:'+sizeY*ZoomFactor+'px'}"
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h3>Difference pansharpened-original<h3>",
+      "label"         : "<br/><b>Difference pansharpened-original:</b><br/>",
       "contents"      : "rmse_PanS.txt",
-      "style"         : "{'width':sizeX+'px','height':'3em'}"
+      "style"         : "{'width':sizeX+'px','height':'3em'}",
+      "style_new"     : "'width:'+sizeX+'px;height:3em;background:#eee'"
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h3>Difference IHS-original<h3>",
+      "label"         : "<br/><b>Difference IHS-original:</b><br/>",
       "contents"      : "rmse_IHS.txt",
-      "style"         : "{'width':sizeX+'px','height':'3em'}"
+      "style"         : "{'width':sizeX+'px','height':'3em'}",
+      "style_new"     : "'width:'+sizeX+'px;height:3em;background:#eee'"
     }
   ]
 

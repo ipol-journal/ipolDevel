@@ -2,7 +2,7 @@
   "general": { 
     "demo_title"            :  "Quasi-Euclidean Epipolar Rectification",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-    "param_description"     : "You can now run the rectification process.",
+    "param_description"     : "",
     "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
@@ -14,7 +14,7 @@
       "build_type"    : "cmake",
       "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
       "srcdir"        : "MissStereo/src",
-      "prepare_cmake" : "sed -i 's/-Werror//g' libIO/CMakeLists.txt",
+      "prepare_cmake" : "sed -i 's/-Werror//g' */CMakeLists.txt",
       "binaries"      : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],
                           ["bin","sift"],["bin","size"],["bin","showRect"] ],
       "flags"         : "-j4",
@@ -25,7 +25,7 @@
   "inputs": [ 
       {
           "type"            : "image", 
-          "description"     : "input",
+          "description"     : "first input",
           "max_pixels"      : "1024 * 1024",
           "max_weight"      : 5242880,
           "dtype"           : "3x8i",
@@ -33,7 +33,7 @@
       },
       {
           "type"            : "image", 
-          "description"     : "input",
+          "description"     : "second input",
           "max_pixels"      : "1024 * 1024",
           "max_weight"      : 5242880,
           "dtype"           : "3x8i",
@@ -42,51 +42,42 @@
     ]
   ,
   "params": [  ],
+  "results_bak": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h3>Input Images</h3>",
+      "contents"      : {   "first image"  : "input_0.png", 
+                            "second image" : "input_1.png" },
+      "style"         : "{'height':sizeY+'px'}",
+      "style_new"     : "'height:'+(sizeY*ZoomFactor)+'px'"
+    }
+    ],
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Input Images</h2>",
-      "contents"      : {   "first image"  : "input_0.png", 
-                            "second image" : "input_1.png" },
-      "style"         : "{'height':sizeY+'px'}" 
-    },
-    {
-      "type"          : "gallery",
-      "label"         : "<h2>Output Rectified Images</h2>",
+      "label"         : "<b>Rectified Images:</b>",
       "contents"      : {   "first image"  : "output_0_annotated.png", 
                             "second image" : "output_1_annotated.png" },
-      "style"         : "{'height':sizeY+'px'}" 
+      "style"         : "{'height':sizeY+'px'}",
+      "style_new"     : "'height:'+(sizeY*ZoomFactor)+'px'" 
     },
     {
       "type"          : "file_download", 
-      "label"         : "Correspondences",
-      "contents"      : "orsa.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Homography 1st image",
-      "contents"      : "output_0.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Homography 2nd image",
-      "contents"      : "output_1.txt"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Rectified images (without annotations) 1st image",
-      "contents"      : "output_0.png"
-    },
-    {
-      "type"          : "file_download", 
-      "label"         : "Rectified images (without annotations) 2nd image",
-      "contents"      : "output_1.png"
+      "label"         : "<b>Download files:</b>",
+      "contents": {
+        "Correspondences": "orsa.txt",
+        "Homography 1st image": "output_0.txt",
+        "Homography 2nd image": "output_1.txt",
+        "Rectified images (without annotations) 1st image": "output_0.png",
+        "Rectified images (without annotations) 2nd image": "output_1.png"
+      }
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h2>Program Output<h2>",
+      "label"         : "<b>Program Output<b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'25em'}"
+      "style"         : "{'width':'50em','height':'25em'}",
+      "style_new"     : "'width:50em;height:25em;background-color:#eee'"
     }
   ],
   "run": [
