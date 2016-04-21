@@ -21,7 +21,11 @@
 
     <!-- cropper -->
     <link  href="./cropper_dist/cropper.css" rel="stylesheet">
-    <script src="./cropper_dist/cropper.js"></script>
+    <script src="./cropper_dist/cropper.js">              </script>
+    <!-- canvas-to-blob for uploads -->
+    <script src="./canvas-to-blob/canvas-to-blob.min.js"> </script>
+    <script src="./blob-util/blob-util.min.js"> </script>
+
 </head>
 
 
@@ -71,29 +75,38 @@
 
         <!-- Input Data Selection -->
         <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
-        <legend> Input Data from selection <span>[-]</span> </legend> 
-        <form name="ThumbnailSizeForm" >
-            <label>Thumbnail size (in pixels)</label>
+        <legend> Select input(s) <span>[-]</span> </legend> 
+
+            <button id="upload-data">Upload data</button> &nbsp;
+            <label>Thumbnail size</label>
             <select id="ThumbnailSize" >
                 <option>64</option>
+                <option>96</option>
                 <option selected="selected">128</option>
                 <option>192</option>
                 <option>256</option>
-            </select>
+            </select> px
 
             &nbsp;<input  id="ShowCreditsCheckbox" type="checkbox"  >credits
             &nbsp;<input  id="ShowTitlesCheckbox" type="checkbox"  >titles
-        </form>
-        <div id="displayblobs"></div>
-        <div style='clear:both'> </div>
+
+            <div id="displayblobs"></div>
+            <div style='clear:both'> </div>
+
+            <!-- Draw inputs (includes dealing with crop) -->
+            <div id="DrawInputs"></div>
+            <div style="clear:both"> </div>
+
         </fieldset>
 
-        <!-- User data to upload -->
-        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
-        <legend>Local input data <span>[-]</span> </legend> 
+        <!-- Upload in modal dialog -->
+        <div id="upload-dialog" title="Upload data">
+            <!-- User data to upload -->
+            <!--        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
+                    <legend>Local input data <span>[-]</span> </legend> -->
             <div class="upload_input" id="local_data">
             </div>
-            <button id="apply_localdata">Set</button>
+<!--             <button id="apply_localdata">Set</button> -->
             <p class="note">
                 Upload size is limited to  10MB for the whole upload set.
             <br />
@@ -108,15 +121,13 @@
             See <a href="https://tools.ipol.im/wiki/ref/demo_input/">the copyright
             and legal conditions</a> for details.
             </p>
-        </fieldset>
+            <!--         </fieldset> -->
+        </div>
 
         <!-- Parameter Selection -->
-        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
-        <legend> Algorithm <span>[-]</span> </legend> 
+        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;" id="parameters_fieldset" >
+        <legend> Select parameters <span>[-]</span> </legend> 
 
-            <!-- Draw inputs (includes dealing with crop) -->
-            <div id="DrawInputs"></div>
-            <div style="clear:both"> </div>
 
             <span id="ParamDescription"> </span>
             <div    class="action" 
@@ -149,7 +160,7 @@
             }
         </style>
         <div id="progressbar">
-            <div class="progress-label" > </div>
+            <div class="progress-label" > Select demo and input </div>
         </div>
 
         <!-- Results -->
