@@ -33,6 +33,7 @@ import  run_demo_base
 from    run_demo_base import RunDemoBase
 from    run_demo_base import IPOLTimeoutError
 
+import traceback
 
 class DemoRunner(object):
     """
@@ -47,6 +48,7 @@ class DemoRunner(object):
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
+        self.png_compresslevel=1
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -86,7 +88,6 @@ class DemoRunner(object):
                                  demo_id)
         
         # parse stringified json
-        print "ddl_build = ", ddl_build
         ddl_build = json.loads(ddl_build)
         print "ddl_build = ", ddl_build
 
@@ -184,8 +185,12 @@ class DemoRunner(object):
         '''
         Save image object given full path
         '''
-        im.save(fullpath)
-
+        self.stack_depth+=1
+        start = timer()
+        im.save(fullpath, compresslevel=self.png_compresslevel)
+        end=timer()
+        self.output( "save_image {0} took {1} sec".format(fullpath,end-start))
+        self.stack_depth-=1
 
     #---------------------------------------------------------------------------
     def need_convert_or_resize(self, im, input_info):
@@ -206,27 +211,33 @@ class DemoRunner(object):
         '''
         Convert and resize an image object
         '''
+        self.stack_depth+=1
+        start = timer()
         im.convert(input_info['dtype'])
-        print "im.im.mode = ",im.im.mode
+        self.output( "im.im.mode = {0}".format(im.im.mode))
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
         if resize:
             cherrypy.log("input resize")
             im.resize(max_pixels)
+        end=timer()
+        self.output( "convert_and_resize took {0} sec".format(end-start))
+        self.stack_depth-=1
 
     #---------------------------------------------------------------------------
-    def process_inputs(self, demo_id, key, inputs_desc,crop_info, res_data):
+    def process_inputs(self, demo_id, key, inputs_desc, crop_info, res_data):
         """
         pre-process the input data
         we suppose that config has been initialized, and save the dimensions
         of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
-        print "#### process_inputs ####"
+        self.stack_depth += 1
+        self.output("#### process_inputs ####")
         start = timer()
         msg = None
-        ##self.max_width = 0
-        ##self.max_height = 0
+        max_width = 0
+        max_height = 0
         nb_inputs = len(inputs_desc)
         work_dir = self.WorkDir(demo_id,key)
         
@@ -238,7 +249,7 @@ class DemoRunner(object):
           
           if input_desc['type']=='image':
             # we deal with an image, go on ...
-            print "Processing input ",i
+            self.output( "Processing input {0}".format(i))
             if len(input_files)!=1:
               # problem here
               raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
@@ -247,7 +258,7 @@ class DemoRunner(object):
               try:
                   im = image(input_files[0])
               except IOError:
-                print "failed to read image " + input_files[0]
+                self.output( "failed to read image " + input_files[0])
                 raise cherrypy.HTTPError(400, # Bad Request
                                          "Bad input file")
 
@@ -262,6 +273,7 @@ class DemoRunner(object):
                 im.size[0] > 20000 or im.size[1] > 20000 or \
                 len(im.im.getbands()) > 4:
               # Save as PNG (slow)
+              self.output( "calling self.save_image()")
               self.save_image(im, os.path.join(work_dir,'input_%i.orig.png' % i))
               # delete the original
               os.remove(input_files[0])
@@ -275,11 +287,15 @@ class DemoRunner(object):
             # convert to the expected input format: TODO: do it if needed ...
             
             # crop first if available
-            crop_res = self.crop_input(i, demo_id, key, inputs_desc, crop_info)
-            res_data['info'] += crop_res['info']
-            if crop_res['status']=="OK":
-                im_converted = image(crop_res['filename'])
-                im_converted_filename = 'input_%i.crop.png' % i
+            if crop_info!=None:
+                crop_res = self.crop_input(i, demo_id, key, inputs_desc, crop_info)
+                res_data['info'] += crop_res['info']
+                if crop_res['status']=="OK":
+                    im_converted = image(crop_res['filename'])
+                    im_converted_filename = 'input_%i.crop.png' % i
+                else:
+                    im_converted = im.clone()
+                    im_converted_filename = 'input_%i.orig.png' % i
             else:
                 im_converted = im.clone()
                 im_converted_filename = 'input_%i.orig.png' % i
@@ -288,7 +304,8 @@ class DemoRunner(object):
                 print "need convertion or resize, input description: ", input_desc
                 self.convert_and_resize(im_converted,input_desc)
                 # save a web viewable copy
-                im_converted.save(os.path.join(work_dir,'input_%i.png' % i))
+                im_converted.save(os.path.join(work_dir,'input_%i.png' % i),
+                                  compresslevel=self.png_compresslevel)
             else:
                 # just create a symbolic link  
                 os.symlink(im_converted_filename,\
@@ -309,8 +326,9 @@ class DemoRunner(object):
             if im.size != im_converted.size:
                 msg = "The image has been resized for a reduced computation time."
                 print msg,": ", im.size, "-->", im_converted.size
-            #self.max_width  = max(self.max_width,im_converted.size[0])
-            #self.max_height = max(self.max_height,im_converted.size[1])
+            # update maximal dimensions information
+            max_width  = max(max_width,im_converted.size[0])
+            max_height = max(max_height,im_converted.size[1])
             #self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
             #self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
           # end if type is image
@@ -330,8 +348,12 @@ class DemoRunner(object):
         os.symlink('input_0.png', os.path.join(work_dir,'input_0.sel.png'))
         
         end=timer()
+        self.output( " process_inputs() took: {0} sec.;".format(end-start))
         res_data["info"] += " process_inputs() took: {0} sec.;".format(end-start)
+        res_data["max_width"]  = max_width
+        res_data["max_height"] = max_height
         
+        self.stack_depth -= 1
         return msg
 
 
@@ -346,11 +368,17 @@ class DemoRunner(object):
         """
         
         print "#### input_upload ####"
+        print "args:", kwargs
+        res_data = {}
+        res_data['info'] = ''
         # we need a unique key for the execution
         demo_id = kwargs['demo_id']
+        print "demo_id=",demo_id
         key = self.get_new_key(demo_id)
+        res_data["key"]     = key
         work_dir = self.WorkDir(demo_id,key)
-        inputs_desc = json.loads(kwargs['ddl_input'])
+        print "ddl_inputs = ",kwargs['ddl_inputs']
+        inputs_desc = json.loads(kwargs['ddl_inputs'])
         nb_inputs = len(inputs_desc)
         
         for i in range(nb_inputs):
@@ -384,6 +412,10 @@ class DemoRunner(object):
                                           "resize or use better compression")
             file_save.write(data)
           file_save.close()
+
+        crop_info=None
+        msg = self.process_inputs(demo_id, key, inputs_desc, crop_info, res_data)
+        
         #msg = self.process_inputs()
         #self.log("input uploaded")
         #self.cfg['meta']['original'] = True
@@ -391,8 +423,9 @@ class DemoRunner(object):
         #self.cfg['meta']['max_height'] = self.max_height;
         #self.cfg.save()
 
-        return 
-
+        res_data['status'] = "OK"
+        print "upload res_data=",res_data
+        return json.dumps(res_data)
 
 
     #---------------------------------------------------------------------------
@@ -406,20 +439,21 @@ class DemoRunner(object):
             crop_info
         """
 
-        print "#### crop_input ####"
+        self.stack_depth += 1
+        self.output("#### crop_input ####")
         start = timer()
         res_data = {}
         res_data['info'] = ""
         # for the moment, we can only crop the first image
         if idx!=0:
-            res_data[status] = "KO"
+            res_data["status"] = "KO"
             return res_data
             
         work_dir = self.WorkDir(demo_id,key)
         initial_filename = os.path.join(work_dir,'input_{0}.orig.png'.format(idx))
         cropped_filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
         res_data['filename'] = cropped_filename
-        print "crop_info = ",crop_info
+        self.output( "crop_info = {0}".format(crop_info))
         
         if crop_info["enabled"]:
             # define x0,y0,x1,y1
@@ -434,6 +468,9 @@ class DemoRunner(object):
                 #
                 # draw selected rectangle on the image
                 imgS        = image(initial_filename)
+                self.output("imgS mode = {0}".format(imgS.im.mode))
+                # need to convert image to RGB mode before drawing ...
+                imgS.convert('3x8i')
                 # TODO: get rid of eval()
                 max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
                 imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
@@ -452,23 +489,32 @@ class DemoRunner(object):
                 # save result
                 img.save(cropped_filename)
 
-            except ValueError:
+            except ValueError as e:
+                self.output("crop failed with exception : {0}".format(e))
+                traceback.print_exc()
                 res_data["status"] = "KO"
                 res_data['info'] += " cropping failed with exception;"
                 # TODO deal with errors in a clean way
                 raise cherrypy.HTTPError(400, # Bad Request
                                             "Incorrect parameters, " +
                                             "image cropping failed.")
+                self.stack_depth -= 1
+                return res_data
         else:
             res_data["status"]  = "KO"
             res_data['info'] += " no cropping area selected;"
+            self.stack_depth -= 1
             return res_data
 
         res_data["status"]  = "OK"
         end=timer()
         res_data["info"]    += " crop_input took: {0} seconds;".format(end-start)
+        self.stack_depth -= 1
         return res_data
 
+
+    def output(self, mess):
+        print "  "*self.stack_depth+mess
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -483,7 +529,9 @@ class DemoRunner(object):
         returns:
             { key, status, message }
         """
-        print "#### input_select ####"
+        self.stack_depth=0
+        self.output("#### input_select_and_crop ####")
+        self.stack_depth+=1
         res_data = {}
         res_data['info'] = ''
         # we need a unique key for the execution
@@ -500,14 +548,14 @@ class DemoRunner(object):
         nb_inputs = len(inputs_desc)
 
         blob_url = kwargs.pop('url',None)
-        print "blob_url", blob_url
-        print "kwargs",kwargs
+        self.output("blob_url: {0}".format(blob_url))
+        self.output("kwargs: {0}".format(kwargs))
         
-        print "\n-----\ninput_select :", kwargs.keys()
+        self.output("\n-----\ninput_select : {0}".format(kwargs.keys()))
         # copy to work_dir
         blobfile = urllib.URLopener()
         for inputinfo in kwargs.keys():
-          print "\n**\n"
+          self.output("\n**\n")
           # 1. retreive index
           posstart=inputinfo.index(':')
           idx = int(inputinfo[:posstart])
@@ -519,15 +567,15 @@ class DemoRunner(object):
           else:
             inputfiles = [ inputinfo ]
           # extract input files to work dir as input_%i.ext
-          print "inputfiles:",inputfiles
+          self.output("inputfiles: {0}".format(inputfiles))
           for inputfile in inputfiles:
-            print "---- inputfile: '{0}'".format(inputfile)
-            print type(inputfile)
+            self.output( "---- inputfile: '{0}'".format(inputfile))
+            self.output( "{0}".format(type(inputfile)))
             basename  = inputfile[:inputfile.index('.')]
             ext       = inputfile[inputfile.index('.'):]
-            print "basename :", basename
+            self.output( "basename : {0}".format(basename))
             blob_link =  blob_url +'/'+ basename + ext
-            print "blob_link = ", blob_link
+            self.output("blob_link = {0}".format(blob_link))
             blobfile.retrieve(blob_link, 
                               os.path.join(work_dir,'input_{0}{1}'.format(idx,ext)))
         
@@ -552,7 +600,7 @@ class DemoRunner(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def run_demo(self, demo_id, key, ddl_run, params):
+    def run_demo(self, demo_id, key, ddl_run, params, meta, ddl_config=None):
         
         res_data = {}
         res_data["key"] = key
@@ -565,15 +613,17 @@ class DemoRunner(object):
         print "params = ",params
         res_data["work_url"] = self.WorkUrl(demo_id,key)
         res_data['params']   = params
+        res_data['algo_info'] = {}
+        res_data['algo_meta'] = json.loads(meta)
         
         # run the algorithm
         try:
             run_time = time.time()
             #self.cfg.save()
-            self.run_algo(demo_id,key,ddl_run, params)
+            self.run_algo(demo_id,key,ddl_run, params, res_data)
             #self.cfg.Reload()
             ## re-read the config in case it changed during the execution
-            res_data['run_time'] = time.time()-run_time
+            res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
@@ -588,16 +638,40 @@ class DemoRunner(object):
                 #self.cfg['info']['error']    = str(e)
                 #self.cfg.save()
                 #pass
-            res_data['run_time'] = time.time() - run_time
+            res_data['algo_info']['status']   = 'failure'
+            res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
             res_data['error']    = str(e)
+            
+        # check if new config fields
+        if ddl_config:
+            ddl_config = json.loads(ddl_config)
+            if 'info_from_file' in ddl_config.keys():
+                for info in ddl_config['info_from_file']:
+                    print "*** ",info
+                    filename = ddl_config['info_from_file'][info]
+                    try:
+                        work_dir = self.WorkDir(demo_id,key)
+                        f = open( os.path.join(work_dir,filename))
+                        print "open ok"
+                        file_lines = f.read().splitlines()
+                        print file_lines
+                        # remove empty lines and replace new lines with ' | '
+                        new_string = " | ".join([ll.rstrip() for ll in file_lines if ll.strip()])
+                        print new_string
+                        res_data['algo_info'][info] = new_string
+                        f.close()
+                    except Exception as e:
+                        print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
+                        print "Exception ",e
+
         return json.dumps(res_data)
         
         
     #---------------------------------------------------------------------------
     # Core algorithm runner
     #---------------------------------------------------------------------------
-    def run_algo(self,demo_id,key,ddl_run,params):
+    def run_algo(self,demo_id,key,ddl_run,params, res_data):
         """
         the core algo runner
         """
@@ -611,17 +685,15 @@ class DemoRunner(object):
         #if 'demo.extra_path' in cherrypy.config:
             #rd.set_extra_path(cherrypy.config['demo.extra_path'])
         rd.set_algo_params(params)
-        rd.set_algo_info  ({})
-        rd.set_algo_meta  ({})
-        #rd.set_algo_info  (self.cfg['info'])
-        #rd.set_algo_meta  (self.cfg['meta'])
+        rd.set_algo_info  (res_data['algo_info'])
+        rd.set_algo_meta  (res_data['algo_meta'])
         #rd.set_MATLAB_path(self.get_MATLAB_path())
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
         rd.run_algo()
         ## take into account possible changes in parameters
         #self.cfg['param'] = rd.get_algo_params()
-        #self.cfg['info']  = rd.get_algo_info()
-        #self.cfg['meta']  = rd.get_algo_meta()
+        res_data['algo_info'] = rd.get_algo_info()
+        res_data['algo_meta'] = rd.get_algo_meta()
         #print "self.cgf['param']=",self.cfg['param']
         return
