@@ -222,9 +222,33 @@ class Archive(object):
 				status = False
 		return status
 
+
+        
 #####
 # adding an experiment to the archive database
 #####
+
+        def get_new_path(self,filename, depth=4):
+            """
+            This method creates a new fullpath for a given file path,
+            where new directories are created for each 'depth' first letters
+            of the filename, for example:
+            input  is /tmp/abvddff.png
+            output is /tmp/a/b/v/d/d/abvddff.png
+            where the full path /tmp/a/b/v/d/d has been created
+            """
+            bname = os.path.basename(filename) 
+            dname = os.path.dirname(filename)  
+            fname = bname.split(".")[0] 
+            l = min(len(fname),depth)
+            subdirs = '/'.join(list(fname[:l])) 
+            new_dname = dname + '/' + subdirs + '/'
+            os.makedirs(new_dname)
+                
+            return new_dname + bname
+
+
+
         def add_to_blob_table(self, conn, blob_dict):
                 """
                 This function check if an blob exist in the table. If it exist,
@@ -278,26 +302,22 @@ class Archive(object):
 		cursor_db.execute('''
 		SELECT * FROM blobs WHERE hash = ?
 		''', (hash_file,))
-		tmp = cursor_db.fetchone()
-                
+		
                 if not tmp:
 			cursor_db.execute('''
 			INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
 			''', (hash_file, type_file, format_file,))
                         
                         path_new_file = os.path.join(self.blobs_dir, hash_file) + '.' + type_file
+			
+			#### AQUI METEMOS LO DE LAS CARPETAS!!!
 			shutil.copyfile(blob_path, path_new_file)
                         
                         if copy_thumbnail:
                             new_path_thumbnail = os.path.join(self.blobs_thumbs_dir, hash_file) + ".jpeg"
                             shutil.copyfile(blob_thumbnail_path, new_path_thumbnail)
-                        
-                        cursor_db.execute('''
-			SELECT * FROM blobs WHERE hash = ?
-			''', (hash_file,))
-			tmp = cursor_db.fetchone()
 
-		id_blob = int(tmp[0])
+		id_blob = int(cursor_db.lastrowid)
 		return id_blob, blob_name
 
 	def update_exp_table(self, conn, demo_id, parameters):
@@ -312,10 +332,9 @@ class Archive(object):
 		INSERT INTO
 		experiments (id_demo, params)
 		VALUES (?, ?)''', (demo_id, parameters))
-		cursor_db.execute("SELECT MAX(id) FROM experiments")
-		id_experiment = int(cursor_db.fetchone()[0])
-		return id_experiment
-
+		
+		return int(cursor_db.lastrowid)
+	
 	def update_blob_table(self, conn, blobs):
 		"""
 		This function update the blob table.
