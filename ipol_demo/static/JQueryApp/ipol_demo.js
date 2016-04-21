@@ -164,9 +164,26 @@ function InputController(demo_id,internal_demoid) {
                     $("#tabs-ddl pre").html(syntaxHighlight(str));
                 }
                 
-                // disable run
-                $( "#progressbar" ).unbind("click");
-                $(".progress-label").text( "Waiting for input selection" );
+                if ((ddl_json.inputs!==undefined)&&
+                    (ddl_json.inputs.length>0)) {
+                    // disable run
+                    $( "#progressbar" ).unbind("click");
+                    $(".progress-label").text( "Waiting for input selection" );
+                }
+                
+                if (ddl_json.general.thumbnail_size!==undefined) {
+                    $("#ThumbnailSize").val(ddl_json.general.thumbnail_size);
+                } else {
+                    $("#ThumbnailSize").val(128);
+                }
+                
+                // hide parameters if none
+                if ((ddl_json.params===undefined)||
+                    (!(ddl_json.params.length>0))) {
+                    $("#parameters_fieldset").hide();
+                } else {
+                    $("#parameters_fieldset").show();
+                }
                 
                 // empty inputs
                 $("#DrawInputs").empty();
@@ -236,18 +253,38 @@ function CreateLocalData(ddl_json) {
     //html += '<input type="submit" value="select" />';
     $("#local_data").html(html);
     
-    // deal with events
-    $( "#apply_localdata" ).click( (function(ddl_json) { return function(){
-            // code to be executed on click
-            var di = new DrawInputs(ddl_json);
-            console.info("apply_local_data ", ddl_json);
-            di.SetBlobSet(null);
-            di.CreateHTML();
-            //di.CreateCropper();
-            di.LoadDataFromLocalFiles();
-            di.SetRunEvent();
+//     // deal with events
+//     $( "#apply_localdata" ).click( (function(ddl_json) { return function(){
+//             // code to be executed on click
+//             var di = new DrawInputs(ddl_json);
+//             console.info("apply_local_data ", ddl_json);
+//             di.SetBlobSet(null);
+//             di.CreateHTML();
+//             //di.CreateCropper();
+//             di.LoadDataFromLocalFiles();
+//             di.SetRunEvent();
+//         }
+//     })(ddl_json));
+    
+    $("#upload-dialog").dialog("option","buttons",{
+        Apply: (function(ddl_json) { 
+            return function(){
+                // code to be executed on click
+                var di = new DrawInputs(ddl_json);
+                console.info("apply_local_data ", ddl_json);
+                di.SetBlobSet(null);
+                di.CreateHTML();
+                //di.CreateCropper();
+                di.LoadDataFromLocalFiles();
+                di.SetRunEvent();
+                $(this).dialog( "close" );
+            }
+        })(ddl_json),
+        Cancel: function() {
+          $(this).dialog( "close" );
         }
-    })(ddl_json));
+      });
+    
     
     for(var i=0;i<ddl_json.inputs.length;i++) {
         $("#file_"+i).change( 
@@ -298,6 +335,13 @@ var servers = {
 };
 
 function DocumentReady() {
+    
+    // be sure to have string function endsWith
+    if (typeof String.prototype.endsWith !== 'function') {
+        String.prototype.endsWith = function(suffix) {
+            return this.indexOf(suffix, this.length - suffix.length) !== -1;
+        };
+    }
 
     $("#tabs").tabs({
             activate: function(event, ui) {
@@ -307,12 +351,33 @@ function DocumentReady() {
 
     );
 
+    $( "#progressbar" ).progressbar({ value:100 });
     $(".progress-label").text( "Waiting for input selection" );
 
     SetLegendFolding("legend");
+    
+    // upload modal dialog
+    var dialog;
+    dialog = $("#upload-dialog").dialog({
+      autoOpen: false,
+      height: 500,
+      width: 800,
+      modal: true,
+      buttons: {
+//         "Create an account": addUser,
+        Cancel: function() {
+          dialog.dialog( "close" );
+        }
+      },
+    });
+    
+    $("#upload-data").button().on("click", 
+        function() 
+        { 
+            dialog.dialog("open");
+        });
 
     ListDemosController();
-    var demorunner_server = "http://127.0.0.1:9004/";
 
 }
 $(document).ready(DocumentReady);
