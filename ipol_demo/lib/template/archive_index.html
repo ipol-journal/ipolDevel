@@ -39,7 +39,7 @@ Some archived content may be deleted by the editorial board for size matters, in
     <tr>
       <th>files</th>
       <td>
-       %for (url,name) in archive['non_images'].items():
+       %for (url,name) in archive['experiments_without_visual_representation'].items():
         <a href="${url}" title="${name | h}">${name}</a>
       %endfor 
       </td>
@@ -51,9 +51,9 @@ Some archived content may be deleted by the editorial board for size matters, in
     </tr>
     <tr>
       <td>
-        %for (url,image) in archive['images'].items():
+        %for (url,file) in archive['experiments_with_visual_representation'].items():
         <a href="${url}">
-          <img class="thumbnail" src="${image[1]}" title="${image[0] | h}" alt="${image[0] | h}"/></a>
+          <img class="thumbnail" src="${file[1]}" title="${file[0] | h}" alt="${file[0] | h}"/></a>
         %endfor
       </td>
     </tr>

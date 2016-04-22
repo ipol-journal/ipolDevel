@@ -27,7 +27,7 @@ Some archived content may be deleted by the editorial board for size matters, in
     <tr>
       <th>files</th>
       <td>
-       %for (url,name) in non_images.items():
+       %for (url,name) in experiments_without_visual_representation.items():
         <a href="${url}" title="${name | h}">${name}</a>
       %endfor 
       </td>
@@ -35,7 +35,7 @@ Some archived content may be deleted by the editorial board for size matters, in
     <tr>
       <th>images</th>
       <td>
-        %for (url,name) in images.items():
+        %for (url,name) in experiments_with_visual_representation.items():
         <div><img src="${url}" /><br /> ${name | h}</div>
         %endfor
       </td>

@@ -1349,7 +1349,7 @@ class base_app(empty_app):
         archive.index_rebuild(self.archive_index, self.archive_dir)
 
     #NEW CODE REFACTORING
-    def separate_images_and_non_images(self, experiments, images, non_images, mode = "0"):
+    def separate_experiments_with_visual_representation_from_experiments_without_visual_representation(self, experiments, images, non_images, mode = "0"):
         
         for files in experiments: 
                         
@@ -1382,7 +1382,6 @@ class base_app(empty_app):
         lists the experiments stored in the archive for a given demo.
         """
         page = int(page)
-        
         request = '?module=archive&service=get_page&demo_id=' + demo_id + '&page=' + str(page)
         json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
@@ -1414,11 +1413,14 @@ class base_app(empty_app):
                 archive_experiments = []
                 for exp in experiments:
                     
-                    images = {}
-                    non_images = {}
-                    self.separate_images_and_non_images( exp['files'], images, non_images)
+                    experiments_with_visual_representation = {}
+                    experiments_without_visual_representation = {}
+                    self.separate_experiments_with_visual_representation_from_experiments_without_visual_representation(exp['files'], 
+                                                                                                                        experiments_with_visual_representation, 
+                                                                                                                        experiments_without_visual_representation)
                     
-                    archive_experiments.append({'id_experiment' : exp['id'], 'images' : images, 'non_images' : non_images,
+                    archive_experiments.append({'id_experiment' : exp['id'], 'experiments_with_visual_representation' : experiments_with_visual_representation, 
+                                                'experiments_without_visual_representation' : experiments_without_visual_representation,
                                                 'date': exp['date'], 'parameters' : exp['parameters']})
                 
                 return self.tmpl_out("archive_index.html", demo_id=demo_id, archive_list=archive_experiments, 
@@ -1431,9 +1433,7 @@ class base_app(empty_app):
         """
         lists the information for an unique experiment selected by the user
         """
-        
         request = '?module=archive&service=get_experiment&demo_id=' + str(demo_id) + '&id_experiment=' + str(id_experiment)
-        
         json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
             
@@ -1443,14 +1443,18 @@ class base_app(empty_app):
             
             experiment = response['experiment']
             
-            images = {}
-            non_images = {}
+            experiments_with_visual_representation = {}
+            experiments_without_visual_representation = {}
             mode = "1"
             
-            self.separate_images_and_non_images(experiment['files'], images, non_images, mode)
+            self.separate_experiments_with_visual_representation_from_experiments_without_visual_representation(experiment['files'], 
+                                                                                                                experiments_with_visual_representation,
+                                                                                                                experiments_without_visual_representation,
+                                                                                                                mode)
             
             # select one experiment from the archive
-            return self.tmpl_out("archive_details.html", images=images, non_images=non_images, date=experiment['date'], 
+            return self.tmpl_out("archive_details.html", experiments_with_visual_representation=experiments_with_visual_representation, 
+                                 experiments_without_visual_representation=experiments_without_visual_representation, date=experiment['date'], 
                                  id_experiment=experiment['id'], parameters=experiment['parameters'])
         else:
             raise ValueError("JSON response --> KO")
