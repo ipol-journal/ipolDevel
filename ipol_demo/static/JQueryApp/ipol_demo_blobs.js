@@ -177,6 +177,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
                 var di = new DrawInputs(this.ddl_json);
                 di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
+                di.input_origin = "blobset";
                 di.CreateHTML();
 //                 di.CreateCropper();
                 di.LoadDataFromBlobSet();
