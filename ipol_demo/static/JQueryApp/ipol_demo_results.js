@@ -241,7 +241,10 @@ var DrawResults = function( //demo_id,key,
     
     
     //--------------------------------------------------------------------------
-    this.EvalInContext = function( expr, idx=0 ) {
+    this.EvalInContext = function( expr, idx ) {
+        if (idx===undefined) {
+            idx=0;
+        }
         // need sizeX, sizeY, ZoomFactor
         var ZoomFactor = this.ZoomFactor;
         var sizeX = this.params.x1-this.params.x0;
