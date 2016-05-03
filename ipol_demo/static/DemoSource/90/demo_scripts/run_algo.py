@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-
+import json
 import os, sys
 # include ../.. in path to be able to import lib
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
