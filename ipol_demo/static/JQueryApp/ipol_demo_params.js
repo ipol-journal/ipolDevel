@@ -116,12 +116,22 @@ function initParams(  demo, params) {
 //     );
 };
 
+//--------------------------------------------------------------------------
+function joinHtml(html_code)
+{
+    if ($.isArray(html_code)) {
+        return html_code.join(' ');
+    } else {
+        return html_code;
+    }
+};
+    
 
 //------------------------------------------------------------------------------
 function AddLabel(param) {
     var html = "";
     html += '<td style="border:0px;max-width:34em">';
-    html += '<label>'+param.label+'</label>';
+    html += '<label>'+joinHtml(param.label)+'</label>';
     html += '</td>';
     return html;
 }
@@ -131,7 +141,7 @@ function AddComments(param) {
     var html = "";
     if (param.comments!=undefined) {
         html += '<td   style="border:0px;max-width:34em">';
-        html += '<label>'+param.comments+'</label>';
+        html += '<label>'+joinHtml(param.comments)+'</label>';
         html += '</td>';
     }
     return html;
