@@ -35,6 +35,8 @@ from    run_demo_base import IPOLTimeoutError
 
 import traceback
 
+from sendarchive import SendArchive
+
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
@@ -49,6 +51,7 @@ class DemoRunner(object):
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
         self.png_compresslevel=1
+        self.stack_depth = 0
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -354,6 +357,7 @@ class DemoRunner(object):
         res_data["max_height"] = max_height
         
         self.stack_depth -= 1
+        self.output("#### process_inputs end ####")
         return msg
 
 
@@ -530,7 +534,7 @@ class DemoRunner(object):
             { key, status, message }
         """
         self.stack_depth=0
-        self.output("#### input_select_and_crop ####")
+        self.output("#### input_select_and_crop begin ####")
         self.stack_depth+=1
         res_data = {}
         res_data['info'] = ''
@@ -595,19 +599,22 @@ class DemoRunner(object):
         
         res_data["status"]  = "OK"
         res_data["message"] = "input files copied to the local path"
+        self.stack_depth-=1
+        self.output("#### input_select_and_crop end ####")
         return json.dumps(res_data)
 
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def run_demo(self, demo_id, key, ddl_run, params, meta, ddl_config=None):
+    def run_demo(self, demo_id, key, ddl_json, params, meta):
         
         res_data = {}
         res_data["key"] = key
         print "#### run demo ####"
         print "demo_id = ",demo_id
         print "key = ",key
-        ddl_run = json.loads(ddl_run)
+        ddl_json = json.loads(ddl_json)
+        ddl_run = ddl_json['run']
         print "ddl_run = ",ddl_run
         params  = json.loads(params)
         print "params = ",params
@@ -644,8 +651,8 @@ class DemoRunner(object):
             res_data['error']    = str(e)
             
         # check if new config fields
-        if ddl_config:
-            ddl_config = json.loads(ddl_config)
+        if 'config' in ddl_json.keys():
+            ddl_config = ddl_json['config']
             if 'info_from_file' in ddl_config.keys():
                 for info in ddl_config['info_from_file']:
                     print "*** ",info
@@ -665,6 +672,15 @@ class DemoRunner(object):
                         print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
                         print "Exception ",e
 
+        # Files must be stored by the archive module
+        if (len(ddl_json['inputs'])==0) or \
+            res_data['algo_meta']['original']:
+            work_dir = self.WorkDir(demo_id,key)
+            SendArchive.prepare_archive(work_dir,ddl_json['archive'],res_data)
+            res_data["send_archive"]=True
+        else:
+            res_data["send_archive"]=False
+
         return json.dumps(res_data)
         
         
@@ -677,7 +693,7 @@ class DemoRunner(object):
         """
         
         # refresh demo description ??
-      
+        print "----- run_algo begin -----"
         work_dir = self.WorkDir(demo_id,key)
         base_dir = self.BaseDir(demo_id,key)
         rd = run_demo_base.RunDemoBase(base_dir, work_dir)
@@ -690,10 +706,13 @@ class DemoRunner(object):
         #rd.set_MATLAB_path(self.get_MATLAB_path())
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
+        print "--"
         rd.run_algo()
+        print "--"
         ## take into account possible changes in parameters
         #self.cfg['param'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
         res_data['algo_meta'] = rd.get_algo_meta()
         #print "self.cgf['param']=",self.cfg['param']
+        print "----- run_algo end -----"
         return
