@@ -190,7 +190,7 @@
       "label"         : "<b>Output</b><br/>",
       "contents"      : "output.txt",
       "style"         : "{'width':'60em','height':'20em'}",
-      "style_new"     : "'width:30em;height:18em;background:#eee'"
+      "style_new"     : "''"
     }
   ]
 

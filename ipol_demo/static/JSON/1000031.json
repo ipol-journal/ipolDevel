@@ -55,7 +55,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<b>Rectified Images:</b>",
+      "label"         : "<h3>Rectified Images</h3>",
       "contents"      : {   "first image"  : "output_0_annotated.png", 
                             "second image" : "output_1_annotated.png" },
       "style"         : "{'height':sizeY+'px'}",
@@ -76,8 +76,8 @@
       "type"          : "text_file", 
       "label"         : "<b>Program Output<b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'25em'}",
-      "style_new"     : "'width:50em;height:25em;background-color:#eee'"
+      "style"         : "{'width':'auto','height':'auto'}",
+      "style_new"     : "''"
     }
   ],
   "run": [

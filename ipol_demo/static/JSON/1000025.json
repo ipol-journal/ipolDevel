@@ -136,7 +136,7 @@
       "label"         : "<b>Program Output:</b><br/>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'50em','height':'20em'}",
-      "style_new"     : "'width:50em;height:20em;background:#eee'"
+      "style_new"     : "''"
     }
   ]
 }

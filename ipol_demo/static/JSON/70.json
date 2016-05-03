@@ -170,7 +170,7 @@
       "label"         : "<b>Additional Information:</b> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
       "contents"      : "shell_cmds.txt",
       "style"         : "{'width':'55em','height':'6em','background-color:#eee'}",
-      "style_new"     : "'width:55em;height:6em;background-color:#eee'"
+      "style_new"     : "''"
     }
   ]
 

@@ -128,7 +128,20 @@
     {
         "type"      : "html_text",
         "visible"   : "info.zoom_factor>1",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+        "contents"  : [ "'<p>For visualization, the images are displayed with &times;'+info.zoomfactor+' pixel duplication.</p>'" ]
+    },
+    {
+      "type"          : "gallery",
+      "label"         : [ "<h3>Images</h3>" ],
+      "contents"      : 
+        {
+            "Mosaic"             : "input_1_zoom.png",
+            "Demosaic"           : "output_1_zoom.png",
+            "Original"           : "input_0.sel_zoom.png",
+            "Difference"         : "output_2_zoom.png"
+        },
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
     },
     {
         "type"      : "file_download",
@@ -139,18 +152,6 @@
                 "original"       : "input_0.sel.png",
                 "difference"     : "output_2.png"
             }
-    },
-    {
-      "type"          : "gallery",
-      "label"         : [ "<h2>Images</h2>" ],
-      "contents"      : 
-        {
-            "Mosaic"             : "input_1_zoom.png",
-            "Demosaic"           : "output_1_zoom.png",
-            "Original"           : "input_0.sel_zoom.png",
-            "Difference"         : "output_2_zoom.png"
-        },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
     },
     {
         "type"    : "html_text",
@@ -168,9 +169,10 @@
     },
     {
       "type"          : "text_file", 
-      "label"         : "<h3>Program output<h3>",
+      "label"         : "<h3>Program output</h3>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
+      "style_new"     : "''"
     }
   ]
 

@@ -215,7 +215,7 @@
       "label"         : "<b>Output</b><br/>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}",
-      "style_new"     : "'width:20em;height:11em;background-color:#eee'"
+      "style_new"     : "''"
     }
   ]
 

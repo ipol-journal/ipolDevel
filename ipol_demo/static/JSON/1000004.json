@@ -110,7 +110,7 @@
       "label"         : "<h3>Program output<h3>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'40em','height':'6em','background-color':'#eee'}",
-      "style_new"     : "'width:40em;height:6em;background-color:#eee'"
+      "style_new"     : "''"
     }
   ]
 

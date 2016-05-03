@@ -118,7 +118,7 @@
       "label"         : "<p>RMSE and PSNR</p>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
-      "style_new"     : "'width:40em;height:4em;background-color:#eee'"
+      "style_new"     : "''"
     }
   ]
 }

@@ -103,7 +103,7 @@
       "label"         : "<b>Additional Info</b><br>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'50em','height':'10em','background-color':'#eee'}",
-      "style_new"     : "'width:50em;height:10em;background-color:#eee'"
+      "style_new"     : "''"
     },
     {
       "type"  : "file_download",

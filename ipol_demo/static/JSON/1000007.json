@@ -69,7 +69,7 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h3>Original/Filtered</h3>",
+      "label"         : "<br/>",
       "contents"      : {
         "Original"  : "input_0.sel.png",
         "Filtered"  : "output_2.png"
@@ -88,7 +88,7 @@
     },
     {
       "type"          : "file_download",
-      "label"         : "<br/><br/><h3>RGB cubes in VRML 2.0 format (compressed):</h3>",
+      "label"         : "<h3>RGB cubes in VRML 2.0 format (compressed)</h3>",
       "contents"      : { "Original" : "input_1_RGB.wrl.gz", 
                           "Filtered" : "output_1_RGB.wrl.gz",
                           "Density"  : "output_1_RGBd.wrl.gz"
@@ -99,7 +99,7 @@
         "label"     : "<h3>Additional Info</h3>",
         "contents"  : "stdout.txt",
         "style"     : "{'width':'50em','height':'10em','background-color':'#eee'}",
-        "style_new" : "'width:50em;height:10em;background-color:#eee'"
+        "style_new" : "''"
     }
   ]
 

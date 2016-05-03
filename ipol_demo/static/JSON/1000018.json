@@ -70,7 +70,7 @@
       "label"         : "<b>Additional info: RMSE and PSNR</b><br/>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'20em','height':'4em'}",
-      "style_new"     : "'width:20em;height:4em;background:#eee'"
+      "style_new"     : "''"
     }
   ],
   "archive":

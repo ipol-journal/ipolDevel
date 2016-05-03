@@ -135,21 +135,21 @@
       "label"         : "<p>Optimal snapshot</p>",
       "contents"      : "stdout.txt",
       "style"         : "{'width':'60em','height':'3em','background-color':'#eee'}",
-      "style_new"     : "'width:60em;height:3em;background-color:#eee'"
+      "style_new"     : "''"
     },
     {
       "type"          : "text_file", 
       "label"         : "<p>Average gain and standard deviation</p>",
       "contents"      : "mean_std.txt",
       "style"         : "{'width':'40em','height':'5em','background-color':'#eee'}",
-      "style_new"     : "'width:40em;height:5em;background-color:#eee'"
+      "style_new"     : "''"
     },
     {
       "type"          : "text_file", 
       "label"         : "<p>Flutter Shutter code</p>",
       "contents"      : "code.txt",
       "style"         : "{'width':'40em','height':'20em','background-color':'#eee'}",
-      "style_new"     : "'width:40em;height:20em;background-color:#eee'"
+      "style_new"     : "''"
     }
   ]
 

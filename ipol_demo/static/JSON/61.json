@@ -113,17 +113,17 @@
     {
         "type"      : "html_text",
         "visible"   : "info.has_zoom",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ]
+        "contents"  : [ "'<p>For visualization, the images are displayed with &times;'+info.zoomfactor+' pixel duplication.</p>'" ]
     },
     {
       "type"          : "gallery",
-      "label"         : [ "<b>Images:</b>",
+      "label"         : [ "'<b>Images:</b>",
             "<p>",
                 "Noise standard deviation ",
-                "<span ng-if='params.runmode==0'>(guessed)",
-                "</span> <span ng-if='params.runmode==1'>(added)</span>:",
-                " &sigma;  = {{params.sigma}}",
-            "</p>"
+                "'+(params.runmode==0?'(added)':'')+",
+                "(params.runmode==1?'(guessed)':'')+ ':",
+                " &sigma;  = '+params.sigma+'",
+            "</p>'"
             ],
       "contents"      : 
         {
@@ -133,6 +133,23 @@
 
             "params.runmode==0&&info.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy_zoom.png",
             "params.runmode==0&&info.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised_zoom.png",
+            "params.runmode==0&&info.has_zoom?Original"                                 : "input_0.sel_zoom.png",
+
+            "params.runmode==1&&!info.has_zoom?Input"     : "input_0.sel.png",
+            "params.runmode==1&&!info.has_zoom?Denoised"  : "denoised.png",
+
+            "params.runmode==1&&info.has_zoom?Input"      : "input_0.sel_zoom.png",
+            "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png"
+
+        },
+      "contents_new"      : 
+        {
+            "params.runmode==0&&!info.has_zoom?'Input<br/>RMSE '+info.rmse_noisy"       : "noisy.png",
+            "params.runmode==0&&!info.has_zoom?'Denoised<br/>RMSE '+info.rmse_denoised" : "denoised.png",
+            "params.runmode==0&&!info.has_zoom?Original"                                 : "input_0.sel.png",
+
+            "params.runmode==0&&info.has_zoom?'Input<br/>RMSE '+info.rmse_noisy"       : "noisy_zoom.png",
+            "params.runmode==0&&info.has_zoom?'Denoised<br/>RMSE '+info.rmse_denoised" : "denoised_zoom.png",
             "params.runmode==0&&info.has_zoom?Original"                                 : "input_0.sel_zoom.png",
 
             "params.runmode==1&&!info.has_zoom?Input"     : "input_0.sel.png",
@@ -169,21 +186,24 @@
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference denoised-original:</p>",
       "contents"      : "rmse_denoised.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
+      "style_new"     : "''"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference noisy-original:</p>",
       "contents"      : "rmse_noisy.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
+      "style_new"     : "''"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params._lambda==0",
       "label"         : "<p>&lambda; (dynamic computation):</p>",
       "contents"      : "guessed_lambda.txt",
-      "style"         : "{'width':'40em','height':'10em','background-color':'#eee'}"
+      "style"         : "{'width':'40em','height':'10em','background-color':'#eee'}",
+      "style_new"     : "''"
     }
   ]
 }
