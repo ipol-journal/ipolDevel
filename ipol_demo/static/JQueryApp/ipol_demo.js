@@ -208,6 +208,10 @@ function InputController(demo_id,internal_demoid) {
                     "get_blobs_of_demo_by_name_ws",
                     "demo_name=" + demo_id,
                     OnDemoBlobs(ddl_json));
+                
+                // Display archive information
+                var ar = new ArchiveDisplay();
+                ar.get_archive(demo_id);
             });
 
 
@@ -324,16 +328,6 @@ function SetLegendFolding( selector) {
 //------------------------------------------------------------------------------
 // Starts processing when document is ready
 //
-
-// will use only the proxy in the future
-// global variable
-var servers = {
-    proxy : 
-                    //     "http://127.0.0.1:9003/",
-                    "http://ns3018037.ip-151-80-24.eu:9003/",
-    // TODO: allow post with the proxy for uploads
-    demorunner : "http://ns3018037.ip-151-80-24.eu:9004/"
-};
 
 function DocumentReady() {
     
