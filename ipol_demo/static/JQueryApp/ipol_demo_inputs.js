@@ -64,39 +64,7 @@ var DrawInputs = function(ddl_json) {
         
         // use gallery only if several images 
         if (inputs.length>1) {
-            html += '<div class="gallery2" id="input_gallery"> ' +
-                    '<ul class="index"> ';
-            for(var idx=0;idx<inputs.length;idx++) {
-                // search image with png extension at position idx+1
-                var image_found = this.BlobHasImage(idx);
-                // for the moment accept image type or .png files only
-                if ((inputs[idx].type==='image')|| image_found) {
-                    html +=
-                        '<li><a href="#">' +
-                        '<span>'+inputs[idx].description+
-                                '<span id="state_'+idx+'"> (loading) </span>'+
-                        '</span>'+
-                        //'<span ng-if="demo.inputs[idx].status!='loaded'"> (loading) </span>'+
-                        '<div class="galim">'+
-                        '    <img  id="inputimage_'+idx+'"'+
-                        '        crossOrigin="Anonymous"'+
-                        '        style=padding:5px,'+
-                        '              max-width:' +this.draw_info.maxdim+'px,'+
-                        '              max-height:'+this.draw_info.maxdim+'px,'+
-                        '              width:auto,height:auto"'+
-    //                     '        styleParent'+
-    //                     '        imageonfail="DisableImage(demo.inputs[idx])"'+
-    //                     '        imageonload="LoadedImage (demo.inputs[idx])"'+
-                        '        />'+
-                        '<br/><span id="inputinfo_'+idx+'"> image info </span>'+
-                        '</div>'+
-                        '</a></li>';
-                } else {
-                }
-            }
-            html += '</ul>' +
-                    '</div>';
-            
+            html += '<div id="input_gallery"> </div>';
         } else {
             // simple image output
             html += '<div style="clear:both"> </div>'+
@@ -104,7 +72,6 @@ var DrawInputs = function(ddl_json) {
                     '<tr>'+
                         '<td><div id="inputimage_div" style="float:left;margin:0px;">'+
                             '<img  id="inputimage" crossOrigin="Anonymous"'+
-                                //'style="padding:5px;'+
                                 'max-width:' +this.draw_info.maxdim+'px;'+
                                 'max-height:'+this.draw_info.maxdim+'px;'+
                                 'width:auto;height:auto;float:left"' +
@@ -135,6 +102,7 @@ var DrawInputs = function(ddl_json) {
         }
         $("#DrawInputs").html(html);
         $('.table_crop').hide();
+        
     };
 
     
@@ -158,47 +126,7 @@ var DrawInputs = function(ddl_json) {
         // No other way of checking: assume it’s ok.
         return true;
     }
-        
 
-    //--------------------------------------------------------------------------
-    // on load one of multiple input images
-    //   - idx_str input index as a string
-    //   - array of images being loaded
-    //   - current loaded image
-    this.OnLoadImageFromMultiple = function(idx_str,images,image) { 
-        var draw_info = this.draw_info;
-        var crop_info = this.crop_info;
-        var current_ratio = this.draw_info.maxdim/image.naturalWidth;
-        if ((draw_info.display_ratio==-1)||
-            (current_ratio<this.draw_info.display_ratio)) {
-            // compute display ratio
-            draw_info.display_ratio=(image.naturalWidth < draw_info.maxdim)?1: draw_info.maxdim/image.naturalWidth;
-            console.info("width ", image.naturalWidth ," display_ratio ", draw_info.display_ratio);
-            $('#input_gallery').attr("style", "height:"+(image.naturalHeight*draw_info.display_ratio+10+15)+'px;');
-        }
-        $('#inputimage_'+idx_str).attr("src", image.src);
-        $('#state_'+idx_str).html("");
-        // set height for all images
-        for(var idx=0;idx<this.ddl_json.inputs.length;idx++) {
-            if (this.IsImageOk(images[idx])) {
-                console.info(idx_str," setting input_image ",idx," height ",(images[idx].naturalHeight*draw_info.display_ratio));
-                $('#inputimage_'+idx).css("height",(images[idx].naturalHeight*draw_info.display_ratio)+'px');
-                $('#inputinfo_'+idx).html(
-                    Math.round(images[idx].naturalWidth)+"x"+
-                    Math.round(images[idx].naturalHeight)+
-                    " (x"+(draw_info.display_ratio).toFixed(2)+")");
-            }
-        }
-        // several images, take crop info from first image
-        if (idx_str=='0') {
-            crop_info.x = 0;
-            crop_info.y = 0;
-            crop_info.w = image.naturalWidth;
-            crop_info.h = image.naturalHeight;
-        }
-    };
- 
-        
     //--------------------------------------------------------------------------
     // on load a single input image
     this.OnLoadSingleImage = function(image) { 
@@ -225,11 +153,49 @@ var DrawInputs = function(ddl_json) {
         console.info("onload function end");
     }
     
+    //--------------------------------------------------------------------------
+    this.CreateGallery = function(inputs_info,imstyle) {
+
+        var ig = new ImageGallery("inputs");
+        ig.Append(inputs_info);
+        ig.SetStyle(imstyle);
+        var html = ig.CreateHtml();
+        $("#input_gallery").html(html);
+        //-----------------------------------
+        ig.SetOnLoad( function(index,image) {
+            console.info("OnLoad callback for image ",index);
+            // several images, take crop info from first image
+            if (index==0) {
+                this.crop_info.x = 0;
+                this.crop_info.y = 0;
+                this.crop_info.w = image.naturalWidth;
+                this.crop_info.h = image.naturalHeight;
+            }
+        }.bind(this) );
+        //-----------------------------------
+        ig.SetOnDisplay( function(index) {
+            var im = ig.GetImage(index)[0];
+            var ratio = Math.round($("#img_"+index+"_0").width())/im.naturalWidth;
+            var image_info = Math.round(im.naturalWidth)+"x"+
+                                Math.round(im.naturalHeight)+
+                                " (x"+(ratio).toFixed(3)+")";
+            $('#input_gallery #inputinfo_'+index).html(image_info);
+        }.bind(this));
+        //-----------------------------------
+        ig.SetOnLoadAll( function() {
+            console.info("All images are loaded ... running callback ");
+            ig.UpdateSelection();
+        }.bind(this));
+        
+        ig.CreateEvents();
+        $("#input_gallery").data("image_gallery",ig);
+        // we don't deal with crop with multiple inputs for the moment
+        //             this.CreateCropper();
+    }
     
     //--------------------------------------------------------------------------
     this.LoadDataFromBlobSet = function() {
 
-        
         var inputs  = this.ddl_json.inputs;
         var blobset = this.blobset;
         this.input_origin = "blobset";
@@ -240,18 +206,15 @@ var DrawInputs = function(ddl_json) {
         var blobs_url = blobs_url_params[0].split('=')[1];
         
         if (inputs.length>1) {
-            var images = new Array(inputs.length);
+            // Create Gallery object
+            var inputs_info = {};
+            var imstyle = 'max-width:' +this.draw_info.maxdim+'px;'+
+                        '  max-height:'+this.draw_info.maxdim+'px;'+
+                        '  width:auto;height:auto;';
             for(var idx=0;idx<inputs.length;idx++) {
                 if (idx+1<blobs_url_params.length) {
                     var idx_str = blobs_url_params[idx+1].split(':')[0];
                     var blob    = blobs_url_params[idx+1].split(':')[1];
-                    images[idx] = new Image();
-                    images[idx].onload = (function(drawinputs,idx_str,images) { 
-                        return function () {
-                            drawinputs.OnLoadImageFromMultiple(idx_str,images,this);
-                        };
-                    })(this,idx_str,images);
-                    // if non image type, seach for a png in the file list
                     if (blob.indexOf(',')>-1) {
                         var blobs = blob.split(',');
                         for(var n=0;n<blobs.length;n++) {
@@ -260,12 +223,14 @@ var DrawInputs = function(ddl_json) {
                             }
                         }
                     }
-                    console.info(" blob link is ", blobs_url+blob);
-                    images[idx].src = blobs_url+blob;
+                    var label = inputs[idx].description;
+                    // set object input to have information text below the image
+                    var obj = {};
+                    obj['<span id="inputinfo_'+idx+'">img info</span>'] = blobs_url+blob;
+                    inputs_info[label]= obj;
                 }
             }
-            // we don't deal with crop with multiple inputs for the moment
-//             this.CreateCropper();
+            this.CreateGallery(inputs_info,imstyle);
         } else {
             var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
             var image = new Image();
@@ -290,10 +255,23 @@ var DrawInputs = function(ddl_json) {
             for(var idx=0;idx<inputs.length;idx++) {
                 images[idx] = new Image();
                 images[idx].src =  $('#localdata_preview_'+idx).attr("src");
-                this.OnLoadImageFromMultiple(idx.toString(),images,images[idx]);
+                //this.OnLoadImageFromMultiple(idx.toString(),images,images[idx]);
 
             }
-            console.info("crop_info = ", this.crop_info);
+
+            // Create Gallery object
+            var inputs_info = {};
+            var imstyle = 'max-width:' +this.draw_info.maxdim+'px;'+
+                        '  max-height:'+this.draw_info.maxdim+'px;'+
+                        '  width:auto;height:auto;';
+            for(var idx=0;idx<inputs.length;idx++) {
+                var label = inputs[idx].description;
+                // set object input to have information text below the image
+                var obj = {};
+                obj['<span id="inputinfo_'+idx+'">img info</span>'] = images[idx].src;
+                inputs_info[label]= obj;
+            }
+            this.CreateGallery(inputs_info,imstyle);
         } else {
             var image = new Image();
             image.src =  $('#localdata_preview_0').attr("src");
@@ -454,8 +432,8 @@ var DrawInputs = function(ddl_json) {
             // reset crop info as full image
             this.crop_info.x = 0;
             this.crop_info.y = 0;
-            this.crop_info.w = $('#inputimage_0').naturalWidth();
-            this.crop_info.h = $('#inputimage_0').naturalHeight();
+            this.crop_info.w = $('#img_0_0').naturalWidth();
+            this.crop_info.h = $('#img_0_0').naturalHeight();
         }
 //         console.info("SetCrop end");
         console.info("cropinfo = ",this.crop_info);
@@ -637,17 +615,25 @@ var DrawInputs = function(ddl_json) {
         var meta={};
         meta["max_width"]  = res["max_width"];
         meta["max_height"] = res["max_height"];
+        meta["original"]   = (this.input_origin==="localfiles")
         
         this.progress_info = "run_demo";
+        
+        // run_demo needs inputs, config and run from ddl_json
+        var ddl_json_parts = {};
+        ddl_json_parts['inputs']  = this.ddl_json.inputs;
+        ddl_json_parts['config']  = this.ddl_json.config;
+        ddl_json_parts['run']     = this.ddl_json.run;
+        ddl_json_parts['archive'] = this.ddl_json.archive;
+        // sending the result section seems problematic some some demos 
+        // (like optical flow demos for example)
+        
         // run demo
         var url_params = "demo_id="+this.ddl_json.demo_id+
                     "&key="+res.key+
-                    "&ddl_run="+this.json2uri(this.ddl_json.run)+
+                    "&ddl_json="+this.json2uri(ddl_json_parts)+
                     "&params=" +this.json2uri(params)+
                     "&meta=" +this.json2uri(meta);
-        if (this.ddl_json['config']) {
-            url_params += "&ddl_config="+this.json2uri(this.ddl_json.config)
-        }
         DemoRunnerService("run_demo",url_params,
             function(res) {
                 if (res.status==="KO") {
@@ -663,8 +649,19 @@ var DrawInputs = function(ddl_json) {
                     this.progress(100);
                 }
                 console.info("run_demo res=", res);
+                // draw the results
                 var dr = new DrawResults( res, this.ddl_json.results );
                 dr.Create();
+                // send to archive
+                if (res.send_archive) {
+                    var url_params =    'demo_id='    + this.ddl_json.demo_id + 
+                                        "&blobs="     + this.json2uri(res.archive_blobs) + 
+                                        "&parameters="+ this.json2uri(res.archive_params);
+                    ModuleService("archive","add_experiment",url_params,
+                                  function(res) {
+                                      console.info("archive add_experiment res=",res);
+                                  });
+                }
             }.bind(this)
         ).fail  ( function() {                             
                     this.progress_info = "failure";
@@ -743,7 +740,8 @@ var DrawInputs = function(ddl_json) {
                             for(var idx=0;idx<inputs.length;idx++) {
                                 // TODO: deal with non-image data
                                 // TODO: deal with optional data
-                                var image_src = $("#inputimage_"+idx).attr('src');
+                                var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
+                                                    $('#localdata_preview_'+idx).attr("src");
                                 blobUtil.imgSrcToBlob(image_src).then(
                                     function(idx,obj) { return function(blob) {
                                         console.info('idx=',idx);
