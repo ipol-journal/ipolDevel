@@ -60,6 +60,12 @@ var DrawResults = function( //demo_id,key,
         
         $("#ResultsDisplay").html(results_html);
 //         $("#ResultsDisplay").change(
+
+        for(var id=0;id<this.ddl_results.length;id++) {
+            this.CreateResultEvents(this.ddl_results[id],id);
+        }
+
+
         $("#zoomfactor").change(
             function() {
                 this.ZoomFactor = $("#zoomfactor option:selected").val();
@@ -79,19 +85,7 @@ var DrawResults = function( //demo_id,key,
             visible_expr = res_desc.visible;
         }
         if (visible_expr!==undefined) {
-            // need sizeX, sizeY, ZoomFactor
-            var ZoomFactor = this.ZoomFactor;
-            var sizeX = this.params.x1-this.params.x0;
-            var sizeY = this.params.y1-this.params.y0;
-            // need imwidth and imheight
-            var info     = this.res.algo_info;
-            var meta     = this.res.algo_meta;
-            var imwidth  = meta.max_width;
-            var imheight = meta.max_height;
-            var params   = this.params;
-            
-            
-            display = eval(visible_expr);
+            display = this.EvalInContext(visible_expr);
             console.info("evaluating ", visible_expr);
             console.info('display result = ',display);
         }
@@ -99,14 +93,43 @@ var DrawResults = function( //demo_id,key,
             switch(res_desc.type) {
                 case "html_text":       return this.HtmlText      (res_desc);
                 case "file_download":   return this.FileDownload  (res_desc);
-                case "gallery":         return this.Gallery       (res_desc,id);
-                case "repeat_gallery":  return this.RepeatGallery (res_desc);
-                case "text_file":       return this.TextFile      (res_desc);
+                case "gallery":         return this.Gallery_new   (res_desc,id);;
+                case "repeat_gallery":  return this.Gallery_new   (res_desc,id);
+                case "text_file":       return this.TextFile      (res_desc,id);
                 case "warning":         return this.Warning       (res_desc);
                 default: console.info(" result type "+ res_desc.type + " not available");
             }
         } else {
             return "";
+        }
+    };
+    
+    //--------------------------------------------------------------------------
+    this.CreateResultEvents = function(res_desc,id) {
+        var display = true;
+        var visible_expr = undefined;
+        if (res_desc.visible_new!==undefined) {
+            visible_expr = res_desc.visible_new;
+        } else {
+            visible_expr = res_desc.visible;
+        }
+        if (visible_expr!==undefined) {
+            display = this.EvalInContext(visible_expr);
+            console.info("evaluating ", visible_expr);
+            console.info('display result = ',display);
+        }
+        if (display) {
+            switch(res_desc.type) {
+                case "gallery":
+                    this.Gallery_new_events(res_desc,id);
+                    break;
+                case "repeat_gallery":
+                    this.RepeatGallery_new_events(res_desc,id);
+                    break;
+                case "text_file":
+                    this.TextFile_events(res_desc,id);
+                    break;
+            }
         }
     };
     
@@ -132,20 +155,9 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.CheckLabelCondition = function(label)
     {
-        // need sizeX, sizeY, ZoomFactor
-        var ZoomFactor = this.ZoomFactor;
-        var sizeX = this.params.x1-this.params.x0;
-        var sizeY = this.params.y1-this.params.y0;
-        // need imwidth and imheight
-        var info     = this.res.algo_info;
-        var meta     = this.res.algo_meta;
-        var imwidth  = meta.max_width;
-        var imheight = meta.max_height;
-        var params   = this.params;
-        
         if(label.indexOf('?') === -1) return true;
         var c = label.split('?')[0];
-        var value = eval(c)
+        var value = this.EvalInContext(c)
         return value;
     }
 
@@ -156,18 +168,7 @@ var DrawResults = function( //demo_id,key,
             contents = this.joinHtml(res_desc.contents_new);
         } 
         if (contents[0]==="'") {
-            // need sizeX, sizeY, ZoomFactor
-            var ZoomFactor = this.ZoomFactor;
-            var sizeX = this.params.x1-this.params.x0;
-            var sizeY = this.params.y1-this.params.y0;
-            // need imwidth and imheight
-            var info     = this.res.algo_info;
-            var meta     = this.res.algo_meta;
-            var imwidth  = meta.max_width;
-            var imheight = meta.max_height;
-            var params   = this.params;
-            var work_url = this.work_url;
-            return "<div>"+eval(contents)+"</div><br/>";
+            return "<div>"+this.EvalInContext(contents)+"</div><br/>";
         } else {
             console.info("contents=",contents);
             return "<div>"+contents+"</div><br/>";
@@ -187,29 +188,28 @@ var DrawResults = function( //demo_id,key,
     }
         
     //--------------------------------------------------------------------------
-    this.TextFile = function(res_desc) {
+    this.TextFile = function(res_desc,id) {
 
-        // need sizeX, sizeY, ZoomFactor
-        var ZoomFactor = this.ZoomFactor;
-        var sizeX = this.params.x1-this.params.x0;
-        var sizeY = this.params.y1-this.params.y0;
-        // need imwidth and imheight
-        var info     = this.res.algo_info;
-        var meta     = this.res.algo_meta;
-        var imwidth  = meta.max_width;
-        var imheight = meta.max_height;
-        var params   = this.params;
-
+        var default_style=  "width:auto;height:auto;background-color:#eee;overflow:auto;max-height:30em;"+
+                            "white-space:pre;margin:1em 0;font-weight:normal;";
         var html = '';
         html += res_desc.label;
-        html += '<iframe src="'+this.work_url+res_desc.contents+'" ';
+//        html += '<iframe src="'+this.work_url+res_desc.contents+'" ';
+        html += '<pre id=result_' + id+ ' ';
         if (res_desc.style_new) {
-            html += 'style="'+eval(res_desc.style_new)+'" >';
+            html += 'style="'+default_style + this.EvalInContext(res_desc.style_new) + '" >';
         } else {
-            html += 'style="'+res_desc.style+'" >';
+            html += 'style="'+default_style + res_desc.style+'" >';
         }
-        html += '</iframe>';
+        html += '</pre>';
+//        html += '</iframe>';
         return html;
+    };
+    
+    //--------------------------------------------------------------------------
+    this.TextFile_events = function(res_desc,id) {
+
+        $('#result_' + id).load(this.work_url+res_desc.contents);
     };
     
     //--------------------------------------------------------------------------
@@ -239,13 +239,9 @@ var DrawResults = function( //demo_id,key,
         return html;
     };
     
+    
     //--------------------------------------------------------------------------
-    this.Gallery = function(res_desc,id) {
-        var res="";
-        if (res_desc.label!=undefined) {
-            res += '<span>'+ this.joinHtml(res_desc.label)+'</span><br/>';
-        }
-        
+    this.EvalInContext = function( expr, idx=0 ) {
         // need sizeX, sizeY, ZoomFactor
         var ZoomFactor = this.ZoomFactor;
         var sizeX = this.params.x1-this.params.x0;
@@ -256,184 +252,203 @@ var DrawResults = function( //demo_id,key,
         var params   = this.params;
         var imwidth  = meta.max_width;
         var imheight = meta.max_height;
+        var work_url = this.work_url;
+        return eval(expr);
+
+    }
+    
+    //--------------------------------------------------------------------------
+    this.Gallery_new = function(res_desc,id) {
+        var res="";
+        if (res_desc.label!=undefined) {
+            var label = this.joinHtml(res_desc.label);
+            if (label[0]=="'") {
+                label = this.EvalInContext(label);
+            }
+            res += label;
+        }
+        
         var index = 0;
         
         // compute style
         // TODO: improve security risks with eval()
-        var style = eval(res_desc.style_new);
+        var style = this.EvalInContext(res_desc.style_new);
         
         // TODO: check what variable needs the style and remove its angular code
-        res += '<div   class="gallery2" id=result_' + (id+1) + ' style="'+style+'">';
-        
+        res += '<div id=result_' + id + ' style="height:auto">';
+        res += '</div><br/>';
+        return res;
+
+    } // end Gallery_new
+    
+    //--------------------------------------------------------------------------
+    this.Gallery_new_events = function(res_desc,id) {
+        var index = 0;
+        // compute style
+        // TODO: improve security risks with eval()
+        var style = this.EvalInContext(res_desc.style_new);
         if (res_desc.contents_new) {
             var contents = res_desc.contents_new;
         } else {
             var contents = res_desc.contents;
         }
-            
-        // compute longest text length
-        // not so easy ... should be done once the text is in place ...
-        this.maxlength = 0;
-        // Measure the string 
-        jQuery.each( contents, function( label, image ) {
-            // Return width
-            var l = this.GetLabel(label);
-            this.maxlength = Math.max(this.maxlength,l.length);
-        }.bind(this));
-        console.info("maxlength=",this.maxlength);
-        // reduce since em measures the height and the with is usually smaller
-        this.maxlength *= 0.7;
-        // set maximal length
-        this.maxlength = Math.min(this.maxlength,14);
-  
-        res += '<ul class="index">';
+        var new_contents = {};
         jQuery.each( contents, function( label, image ) {
             index++;
             // check label condition
             var label_condition=this.CheckLabelCondition(label);
             if (label_condition) {
-                res += '<li>';
-                res += '<a href="#" style="width:'+this.maxlength+'em">';
                 // label
                 var label = this.GetLabel(label);
                 if (label[0]==="'") {
-                    label = eval(label);
+                    label = this.EvalInContext(label);
                 }
-                res += '<span>'+label+'</span>'
-                // TODO: add loading text here
                 // string case
-                if ($.type(image)==="string") {
-                    res += '<div class="galim" style="left:'+this.maxlength+'em">';
-                    res += '<img  style="'+style+'"';
-                    res += ' id=img_'+index+' ';
-                    if (image==="'") {
-                        image = eval(image);
-                    }
-                    res +=        'src="'+this.work_url+image+'"';
-                    res += '/>';
-                    res += '</div>';
-                } else {
-                    if ($.type(image)==="object") {
-                        res += '<div class="galim" style="left:'+this.maxlength+'em">';
-                        res += '<table border="1">';
-                        res += '<tr>';
-                        jQuery.each( image, function(l,im) {
-                            res += '<td style="text-align:center">';
-                            res += '<img  style="'+style+'"';
-                            res += ' id=img_'+index+' ';
-                            if (im[0]==="'") {
-                                im = eval(im);
-                            }
-                            res +=        'src="'+this.work_url+im+'"';
-                            res += '/>';
-                            res += '</td>';
-                        }.bind(this));
-                        res += '</tr>';
-                        res += '<tr>';
-                        jQuery.each( image, function(l,im) {
-                            res += '<td style="text-align:center">';
-                            res += '<span>'+l+'</span>';
-                            res += '</td>';
-                        }.bind(this));
-                        res += '</tr>';
-                        res += '</table>';
-                        res += '</div>';
-                    } else {
-                        if ($.type(image)==="array") {
-                            res += '<div class="galim" style="left:'+this.maxlength+'em">';
-                            res += '<table border="1">';
-                            res += '<tr>';
-                            jQuery.each( image, function(index, im) {
-                                res += '<td style="text-align:center">';
-                                res += '<img  style="'+style+'"';
-                                res += ' id=img_'+index+' ';
-                                res +=        'src="'+this.work_url+im+'"';
-                                res += '/>';
-                                res += '</td>';
-                            }.bind(this));
-                            res += '</tr>';
-                            res += '</table>';
-                            res += '</div>';
+                switch ($.type(image)) {
+                    case "string":
+                        if (image==="'") {
+                            image = this.EvalInContext(image);
                         }
-                    }
-                }
-                res += '</a>';
-                res += '</li>';
-            }
+                        new_contents[label]=this.work_url+image;
+                        break;
+                    case "object":
+                        // avoid modifying original contents, using
+                        // jquery extend with deep copy
+                        var val={};
+                        val[label]=image;
+                        $.extend(true,new_contents,val);
+                        jQuery.each( image, function(l,im) {
+                            if (im==="'") {
+                                im = this.EvalInContext(im);
+                            }
+                            new_contents[label][l]=this.work_url+im;
+                        }.bind(this));
+                        break;
+                    case "array":
+                        // avoid modifying original contents
+                        var val={};
+                        val[label]=image;
+                        $.extend(true,new_contents,val);
+                        jQuery.each( image, function(index, im) {
+                            if (im==="'") {
+                                im = this.EvalInContext(im);
+                            }
+                            new_contents[label][index]=this.work_url+im;
+                        }.bind(this));
+                        break;
+                } // end switch
+            } // if label condition
         }.bind(this));
-        res += '</ul>';
-        res += '</div><br/><br/>';
-        return res;
-    }
-
-                                
-    //--------------------------------------------------------------------------
-    this.RepeatGallery = function(res_desc) {
-        var res="";
-        if (res_desc.label!=undefined) {
-            res += '<span>'+ this.joinHtml(res_desc.label)+'</span><br/>';
-        }
-
-        // need sizeX, sizeY, ZoomFactor
-        var ZoomFactor = this.ZoomFactor;
-        var sizeX = this.params.x1-this.params.x0;
-        var sizeY = this.params.y1-this.params.y0;
-        // need imwidth and imheight
-        var info     = this.res.algo_info;
-        var meta     = this.res.algo_meta;
-        var params   = this.params;
-        var imwidth  = meta.max_width;
-        var imheight = meta.max_height;
         
+        var ig = new ImageGallery(id);
+        ig.Append(new_contents);
+        ig.SetStyle(style);
+        var html = ig.CreateHtml();
+        $("#result_"+id).html(html);
+        ig.CreateEvents();
+        $("#result_"+id).data("image_gallery",ig);
+
+    } // end Gallery_new_events
+    
+
+//     //--------------------------------------------------------------------------
+//     this.RepeatGallery = function(res_desc) {
+//         var res="";
+//         if (res_desc.label!=undefined) {
+//             res += '<span>'+ this.joinHtml(res_desc.label)+'</span><br/>';
+//         }
+// 
+//         
+//         // compute style
+//         // TODO: improve security risks with eval()
+//         var style = this.EvalInContext(res_desc.style_new);
+//         
+//         // TODO: check what variable needs the style and remove its angular code
+//         res += '<div   class="gallery2" style="'+style+'">';
+//         
+//         if (res_desc.contents_new) {
+//             var contents = res_desc.contents_new;
+//         } else {
+//             var contents = res_desc.contents;
+//         }
+//         
+//         res += '<ul class="index">';
+//         for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
+//             res += '<li>';
+//             res += '<a href="#" >';
+//             // label
+//             console.info(contents[0]);
+//             console.info(contents[1]);
+//             res += '<div>'+this.EvalInContext(contents[0],idx)+'</div>'
+//             
+//             if ($.type(contents[1])!=="array") {
+//                 res += '<span class="galim" >';
+//                 res += '<img  style="'+style+'"';
+//                 res +=        'src="'+this.work_url+this.EvalInContext(contents[1],idx)+'"';
+//                 res += '/>';
+//                 res += '</span>';
+//             } else {
+//                 res += '<span class="galim" >';
+//                 res += '<table border="1">';
+//                 res += '<tr>';
+//                 jQuery.each( contents[1], function(index, im) {
+//                     res += '<td style="text-align:center">';
+//                     res += '<img  style="'+style+'"';
+//                     res +=        'src="'+this.work_url+this.EvalInContext(im,idx)+'"';
+//                     res += '/>';
+//                     res += '</td>';
+//                 }.bind(this));
+//                 res += '</tr>';
+//                 res += '</table>';
+//                 res += '</span>';
+//             }
+//             res += '</a>';
+//             res += '</li>';
+//         }
+//         res += '</ul>';
+//         res += '</div><br/><br/>';
+//         return res;
+//     }
+//                                 
+
+    //--------------------------------------------------------------------------
+    this.RepeatGallery_new_events = function(res_desc, id ) {
+        var index = 0;
         // compute style
         // TODO: improve security risks with eval()
-        var style = eval(res_desc.style_new);
-        
-        // TODO: check what variable needs the style and remove its angular code
-        res += '<div   class="gallery2" style="'+style+'">';
-        
+        var style = this.EvalInContext(res_desc.style_new);
         if (res_desc.contents_new) {
             var contents = res_desc.contents_new;
         } else {
             var contents = res_desc.contents;
         }
-        
-        res += '<ul class="index">';
-        for(var idx=0;idx<eval(res_desc.repeat);idx++) {
-            res += '<li>';
-            res += '<a href="#" >';
-            // label
-            console.info(contents[0]);
-            console.info(contents[1]);
-            res += '<div>'+eval(contents[0])+'</div>'
+        var new_contents = {};
+
+        for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
+            
+            var label = this.EvalInContext(contents[0],idx);
             
             if ($.type(contents[1])!=="array") {
-                res += '<span class="galim" >';
-                res += '<img  style="'+style+'"';
-                res +=        'src="'+this.work_url+eval(contents[1])+'"';
-                res += '/>';
-                res += '</span>';
+                new_contents[label]=this.work_url+this.EvalInContext(contents[1],idx);
             } else {
-                res += '<span class="galim" >';
-                res += '<table border="1">';
-                res += '<tr>';
+                // avoid modifying original contents
+                var val={};
+                val[label]=contents[1];
+                $.extend(true,new_contents,val);
                 jQuery.each( contents[1], function(index, im) {
-                    res += '<td style="text-align:center">';
-                    res += '<img  style="'+style+'"';
-                    res +=        'src="'+this.work_url+eval(im)+'"';
-                    res += '/>';
-                    res += '</td>';
+                    new_contents[label][index]=this.work_url+this.EvalInContext(im,idx);
                 }.bind(this));
-                res += '</tr>';
-                res += '</table>';
-                res += '</span>';
             }
-            res += '</a>';
-            res += '</li>';
         }
-        res += '</ul>';
-        res += '</div><br/><br/>';
-        return res;
+        
+        var ig = new ImageGallery(id);
+        ig.Append(new_contents);
+        ig.SetStyle(style);
+        var html = ig.CreateHtml();
+        $("#result_"+id).html(html);
+        ig.CreateEvents();
+        $("#result_"+id).data("image_gallery",ig);
+        
     }
-                                
+
 }
