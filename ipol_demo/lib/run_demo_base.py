@@ -270,8 +270,11 @@ class RunDemoBase:
       
     # convert back variables to parameters 
     for _k_ in self.algo_params:
-      cmd = "self.algo_params['{0}'] = {0}".format(_k_)
-      exec(cmd)
+      try:
+        cmd = "self.algo_params['{0}'] = {0}".format(_k_)
+        exec(cmd)
+      except:
+        print "failed to get back parameter ",_k_
       
     shell_cmds.close()
         
