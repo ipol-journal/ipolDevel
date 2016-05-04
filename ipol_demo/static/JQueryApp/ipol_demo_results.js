@@ -77,6 +77,7 @@ var DrawResults = function( //demo_id,key,
     
     //--------------------------------------------------------------------------
     this.CreateResult = function(res_desc,id) {
+        console.info("CreateResult ",id," type ",res_desc.type);
         var display = true;
         var visible_expr = undefined;
         if (res_desc.visible_new!==undefined) {
@@ -168,9 +169,10 @@ var DrawResults = function( //demo_id,key,
             contents = this.joinHtml(res_desc.contents_new);
         } 
         if (contents[0]==="'") {
+            //console.info("HtmlText evaluating ", contents);
             return "<div>"+this.EvalInContext(contents)+"</div><br/>";
         } else {
-            console.info("contents=",contents);
+            //console.info("contents=",contents);
             return "<div>"+contents+"</div><br/>";
         }
     };
@@ -215,15 +217,22 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.FileDownload = function(res_desc) {
         var html = "";
+        
         if (res_desc.repeat!=undefined) {
-//         <span ng-repeat="idx in range($eval(result.repeat))">
-//           <a href="{{work_url+result.contents|interpolate_loop:current_scope:idx}}">
-//             <div bind-html-compile="result.label"></div> <br/>
-//           </a>
-//         </span>
+            for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
+                var file=this.EvalInContext(res_desc.contents,idx);
+                var label=this.EvalInContext(res_desc.label,idx);
+                html += '&nbsp;[&nbsp;<a href="'+this.work_url+file+'" target="_blank">';
+                html += label;
+                html += "</a>&nbsp;]<br/>"
+            }
         } else {
+            var label = this.joinHtml(res_desc.label);
+            if (label[0]=="'") {
+                label = this.EvalInContext(label);
+            }
+            html += label;
             if ($.type(res_desc.contents)==="object") {
-              html += res_desc.label;
               jQuery.each(res_desc.contents, function(label,file) {
                 html += '&nbsp;[&nbsp;<a href="'+this.work_url+file+'" target="_blank">';
                 html += label;
@@ -234,8 +243,8 @@ var DrawResults = function( //demo_id,key,
                 html += res_desc.label;
                 html += '</a>';
             }
-            html += '<br/><br/>';
         }
+        html += '<br/><br/>';
         return html;
     };
     
