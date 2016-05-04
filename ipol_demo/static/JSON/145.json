@@ -88,17 +88,13 @@
   ,
   "results": [
     {
-        "visible"   : "info.zoomfactor>1",
-        "type"      : "file_download",
-        "label"     : "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication. Images at native resolution can be downloaded here:</p>",
-        "contents"  : {
-                "input"             : "input_0.sel.png",
-                "demosaicked"       : "demosaicked.png"
-            }
-    },
-    {
       "type"          : "gallery",
-      "label"         : "<p> Images obtained with parameter &beta; = {{params.beta}} <span ng-if='params.guessbeta'> computed dynamically </span><p>",
+      "label"         : [ "'<h3>Results</h3> ",
+            "<p>Images obtained with parameter &beta; = '+ params.beta + ",
+            "(params.guessbeta?' computed dynamically':'') +",
+            "(info.zoomfactor>1?'.<br/>For visualization, the images are ",
+            "displayed with &times;'+info.zoomfactor+' pixel duplication. ':'')+",
+            "'</p>'"],
       "contents"      : 
         {   
         "info.zoomfactor<=1?Input"         : "input_0.sel.png", 
@@ -107,10 +103,20 @@
         "info.zoomfactor>1?Demosaicked"    : "demosaicked_zoom.png", 
         "info.zoomfactor<=1?Mosaicked"     : "mosaicked.png", 
         "info.zoomfactor>1?Mosaicked"      : "mosaicked_zoom.png", 
-        "info.zoomfactor<=1?Difference Input-Demosaicked <br/> RMSE {{info.rmse}}" : "diff.png",
-        "info.zoomfactor>1?Difference Input-Demosaicked <br/> RMSE {{info.rmse}}"  : "diff_zoom.png"
+        "info.zoomfactor<=1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse" : "diff.png",
+        "info.zoomfactor>1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse"  : "diff_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" 
+      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
+    },
+    {
+        "visible"   : "info.zoomfactor>1",
+        "type"      : "file_download",
+        "label"     : "<h3>Images at native resolution</h3>",
+        "contents"  : {
+                "input"             : "input_0.sel.png",
+                "demosaicked"       : "demosaicked.png"
+            }
     }
   ]
 

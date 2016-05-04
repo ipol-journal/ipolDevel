@@ -131,9 +131,24 @@
   ],
   
   "run": [
-     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
-     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
-     "run_algo.py"
+    "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
+    "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
+    "# we need to convert some parameters to numbers",
+    "python:self.algo_params['percentile']  = float(self.algo_params['percentile'])",
+    "python:self.algo_params['operator']    = int(self.algo_params['operator'])",
+    "python:self.algo_params['block']       = int(self.algo_params['block'])",
+    "python:self.algo_params['curvefilter'] = int(self.algo_params['curvefilter'])",
+    "python:self.algo_params['correction']  = int(self.algo_params['correction'])",
+    "# save parameters to json file",
+    "python:import json",
+    "python:fp =  open(self.work_dir + 'params.json', 'w')",
+    "python:json.dump(self.algo_params, fp)",
+    "python:fp.close()",
+    "run_algo.py",
+    "# get back parameters",
+    "python:fp = open(self.work_dir + 'params.json')",
+    "python:self.algo_params = json.load(fp)",
+    "python:fp.close()"
   ],
   "archive":
     {
@@ -155,44 +170,54 @@
       "type"          : "gallery",
       "label"         : "Input image:",
       "contents"      : { "Input" : "scale_s0.png" },
-      "style"         : "{'height':600*ZoomFactor+'px'}"
+      "style"         : "{'height':600*ZoomFactor+'px'}",
+      "style_new"     : "'height:'+600*ZoomFactor+'px'"
     },
     {
       "type"          : "html_text", 
       "contents"      : [
-          "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>",
-          "\nNote that here the image may be showed with a size different from ",
-          "the original to help looking at the results.<br/>"
+          "'Additional noise of variance = '+params.anoise+' + '+params.bnoise+'u.<br/>",
+          "Note that here the image may be showed with a size different from ",
+          "the original to help looking at the results.<br/>'"
         ]
     },
     {
       "type"          : "repeat_gallery",
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
-      "contents"      : [ "Scale S{{idx}}:", "curve_s{{idx}}.png"],
-      "style"         : "{'height':600*ZoomFactor+'px'}" 
+      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
+      "style"         : "{'height':600*ZoomFactor+'px'}", 
+      "style_new"     : "'height:'+600*ZoomFactor+'px'"
     },
     {
         "type"          : "html_text", 
         "visible"       : "params.rmses!=''",
+
+
         "contents"      : [
-            "<table border='1' style='margin:0px;margin-top:10px;text-align:center'>",
+            "'';",
+            "var res='",
+                "<table border=\"1\" style=\"margin:0px;margin-top:10px;text-align:center\">",
                 "<tr>",
-                    "<td>Scale</td>",
-                    "<td>RMSE</td>",
-                "</tr>",
-                "<tr ng-repeat='rmse in params.rmses.split(\",\")'>",
-                    "<td ng-if=\"rmse!=''\" >S{{$index}}</td>",
-                    "<td ng-if=\"rmse!=''\" >{{rmse}}</td>",
-                "</tr>",
-            "</table>"
+                    "<th>Scale</th>",
+                    "<th>RMSE</th>",
+                "</tr>';",
+            "$.each(params.rmses.split(\",\"), function(index,rmse) {",
+                "if (rmse!=='') {",
+                    "res+='<tr>';",
+                    "res+='<td>'+index+'</td>';",
+                    "res+='<td>'+rmse+'</td>';",
+                    "res+='</tr>';",
+                "}",
+            "});",
+            "res += '</table>';"
         ]
     },
     {
       "repeat"        : "params.scales",
       "type"          : "file_download", 
-      "label"         : "Download the estimations obtained at scale {{idx}} (gnuplot compatible format)",
-      "contents"      : "estimation_s{{idx}}.txt"
+      "label"         : "'Estimations at scale '+idx+' (gnuplot compatible)'",
+      "contents"      : "'estimation_s'+idx+'.txt'"
     }
   ]
 }
