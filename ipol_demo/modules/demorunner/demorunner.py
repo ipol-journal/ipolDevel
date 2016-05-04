@@ -710,9 +710,9 @@ class DemoRunner(object):
         rd.run_algo()
         print "--"
         ## take into account possible changes in parameters
-        #self.cfg['param'] = rd.get_algo_params()
-        res_data['algo_info'] = rd.get_algo_info()
-        res_data['algo_meta'] = rd.get_algo_meta()
+        res_data['params']      = rd.get_algo_params()
+        res_data['algo_info']   = rd.get_algo_info()
+        res_data['algo_meta']   = rd.get_algo_meta()
         #print "self.cgf['param']=",self.cfg['param']
         print "----- run_algo end -----"
         return
