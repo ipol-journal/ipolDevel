@@ -318,7 +318,7 @@ var DrawInputs = function(ddl_json) {
                     cropend: function(ddl_json) {
                         return function (e) {
                             // update parameters in case they depend on the crop
-                            UpdateParams(ddl_json);
+                            UpdateParams(ddl_json.params);
                         }
                     } (this.ddl_json),
                                          
@@ -493,50 +493,6 @@ var DrawInputs = function(ddl_json) {
         }
     }
 
-    //--------------------------------------------------------------------------
-    this.GetParamValue = function(index) {
-
-        var param = this.ddl_json.params[index];
-        var name  = param.id;
-        
-        switch(param.type) {
-            case "selection_collapsed":
-                var value = $("select[name="+name+"]").val();
-                return value;
-            case "selection_radio":
-                var value = $("input[name="+name+"]:checked").val();
-                return value;
-                break;
-            case "range":
-                var value = $("input[name="+name+"]").val();
-                return parseFloat(value);
-            case "range_scientific":
-                var value = $("input[name="+name+"]").val();
-                return parseFloat(value);
-            case "readonly":
-                var value = $("input[name="+name+"]").val();
-                return value;
-            case "label":
-                break;
-            case "checkbox":
-                var value = $("input[name="+name+"]").is(':checked');
-                return value;
-            case "checkboxes":
-                var values = [];
-                for (var n=0;n< param.values.length; n++) {
-                    var group = param.values[n];
-                    for (var id in group) {
-                        if ($("input[name="+param.id+'_'+id+"]").is(':checked')) {
-                            values.push(id);
-                        }
-                    }
-                }
-                console.info("values",values);
-                return values;
-        }
-        return undefined;
-    }
-    
 
     //--------------------------------------------------------------------------
     // Uploads the form that contains the input blobs and runs the demo 
@@ -582,28 +538,10 @@ var DrawInputs = function(ddl_json) {
             //this.progress(0);
         }
         // create parameters
-        var params={};
         if (this.ddl_json.params) {
-            for(var p=0;p<this.ddl_json.params.length;p++) {
-                var name = this.ddl_json.params[p].id;
-                var value = this.GetParamValue(p);
-                if (this.ddl_json.params[p].type==="checkbox") {
-                    // set both ...
-                    params[name+"_checked"] = value;
-                    params[name] = value;
-                } else {
-                    if (this.ddl_json.params[p].type==="checkboxes") {
-                        $.each( value, 
-                                    function(index,param) {
-                                        params[name+'_'+param]=true;
-                                    }
-                                );
-                    } else {
-                        params[name] = value;
-                    }
-                }
-                console.info("param ",p," ",name, ":", value);
-            }
+            var params = GetParamValues(this.ddl_json.params);
+        } else {
+            var params = {};
         }
         // add crop info as parameters (would only need image size...)
         params['x0']=Math.round(this.crop_info.x);
@@ -649,9 +587,22 @@ var DrawInputs = function(ddl_json) {
                     this.progress(100);
                 }
                 console.info("run_demo res=", res);
+
                 // draw the results
                 var dr = new DrawResults( res, this.ddl_json.results );
                 dr.Create();
+                
+                // Set url state for browser history
+                try {
+                    // change url hash
+                    History.pushState(
+                        {id:this.ddl_json.demo_id,state:2,res:res,ddl_res:this.ddl_json.results},
+                        "IPOLDemos "+this.ddl_json.demo_id+" results",
+                        "?id="+this.ddl_json.demo_id+"&res="+this.json2uri(res));
+                } catch(err) {
+                    console.error("error:", err.message);
+                }
+                
                 // send to archive
                 if (res.send_archive) {
                     var url_params =    'demo_id='    + this.ddl_json.demo_id + 
