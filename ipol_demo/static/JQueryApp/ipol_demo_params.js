@@ -289,12 +289,12 @@ function CreateSelectionRangeEvents(param, ddl_json) {
     var range_id  = 'range_' +param.id;
     $('#'+range_id).on('input', function(){
         $('#'+number_id).val($('#'+range_id).val());
-        UpdateParams(ddl_json);
+        UpdateParams(ddl_json.params);
     });
 
     $('#'+number_id).on('input', function(){
         $('#'+range_id).val($('#'+number_id).val());
-        UpdateParams(ddl_json);
+        UpdateParams(ddl_json.params);
     });
     
 }
@@ -309,7 +309,7 @@ function CreateSelectionRangeScientificEvents(param,ddl_json) {
         $('#'+number_id).val(
                 sci2str(value_slider,param.values.digits)
             );
-        UpdateParams(ddl_json);
+        UpdateParams(ddl_json.params);
     }.bind(this));
 
 }
@@ -458,6 +458,7 @@ function CreateParams(ddl_json) {
     }
     
     $("#DisplayParams").html(params_html);
+    $("#DisplayParams").data("ddl_params",ddl_json.params);
 
     if ((ddl_json.params)&&(ddl_json.params.length>0)) {
         // add events
@@ -495,12 +496,12 @@ function CreateParams(ddl_json) {
 
 //     SetLegendFolding(".param_legend");
     
-    UpdateParams(ddl_json);
+    UpdateParams(ddl_json.params);
     
 }
 
 //------------------------------------------------------------------------------
-function UpdateParams(ddl_json) {
+function UpdateParams(ddl_params) {
 
     var imwidth  = 512;
     var imheight = 512;
@@ -534,36 +535,216 @@ function UpdateParams(ddl_json) {
 
 
     // add events
-    if ((ddl_json.params)&&(ddl_json.params.length>0)) {
-        for(var pg=0;pg<ddl_json.params_layout.length;pg++) {
-            var param_group = ddl_json.params_layout[pg];
-            for(var n=0;n<param_group[1].length;n++) {
-                var pos=param_group[1][n]; 
-                var param = ddl_json.params[pos];
-                
-                if (param.visible_new===undefined||eval(param.visible_new)) {
-                    switch(param.type) {
-                        case "selection_collapsed":
-                            break;
-                        case "selection_radio":
-                            break;
-                        case "range":
-                            break;
-                        case "range_scientific":
-                            break;
-                        case "readonly":
-                            UpdateReadOnly(param);
-                            break;
-                        case "label":
-                            break;
-                        case "checkbox":
-                            break;
-                        case "checkboxes":
-                            break;
-                    } // end switch
-                } // end if param.visible
-            } // end for param_group
-        } // end for params_layout
+    if ((ddl_params)&&(ddl_params.length>0)) {
+        for(var n=0;n<ddl_params.length;n++) {
+            var param = ddl_params[n];
+            
+            if (param.visible_new===undefined||eval(param.visible_new)) {
+                switch(param.type) {
+                    case "selection_collapsed":
+                        break;
+                    case "selection_radio":
+                        break;
+                    case "range":
+                        break;
+                    case "range_scientific":
+                        break;
+                    case "readonly":
+                        UpdateReadOnly(param);
+                        break;
+                    case "label":
+                        break;
+                    case "checkbox":
+                        break;
+                    case "checkboxes":
+                        break;
+                } // end switch
+            } // end if param.visible
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+function GetParamValue(params_ddl,index) {
+
+    var param = params_ddl[index];
+    var name  = param.id;
+    
+    switch(param.type) {
+        case "selection_collapsed":
+            var value = $("select[name="+name+"]").val();
+            return value;
+        case "selection_radio":
+            var value = $("input[name="+name+"]:checked").val();
+            return value;
+            break;
+        case "range":
+            var value = $("input[name="+name+"]").val();
+            return parseFloat(value);
+        case "range_scientific":
+            var value = $("input[name="+name+"]").val();
+            return parseFloat(value);
+        case "readonly":
+            var value = $("input[name="+name+"]").val();
+            return value;
+        case "label":
+            break;
+        case "checkbox":
+            var value = $("input[name="+name+"]").is(':checked');
+            return value;
+        case "checkboxes":
+            var values = [];
+            for (var n=0;n< param.values.length; n++) {
+                var group = param.values[n];
+                for (var id in group) {
+                    if ($("input[name="+param.id+'_'+id+"]").is(':checked')) {
+                        values.push(id);
+                    }
+                }
+            }
+            console.info("values",values);
+            return values;
+    }
+    return undefined;
+}
+    
+function GetParamValues(params_ddl) {
+    // create parameters
+    var params={};
+    if (params_ddl) {
+        for(var p=0;p<params_ddl.length;p++) {
+            var name = params_ddl[p].id;
+            var value = GetParamValue(params_ddl,p);
+            if (params_ddl[p].type==="checkbox") {
+                // set both ...
+                params[name+"_checked"] = value;
+                params[name] = value;
+            } else {
+                if (params_ddl[p].type==="checkboxes") {
+                    $.each( value, 
+                                function(index,param) {
+                                    params[name+'_'+param]=true;
+                                }
+                            );
+                } else {
+                    params[name] = value;
+                }
+            }
+            console.info("param ",p," ",name, ":", value);
+        }
+    }
+    return params;
+}
+
+//------------------------------------------------------------------------------
+// reset parameters to default values
+//
+function ResetParamValues() {
+    
+    var ddl_params = $("#DisplayParams").data("ddl_params");
+    if (ddl_params===undefined) {
+        return;
+    }
+
+    // create parameters
+    if (ddl_params) {
+        for(var p=0;p<ddl_params.length;p++) {
+            var param = ddl_params[p];
+            var name = param.id;
+            
+            switch(param.type) {
+                case "selection_collapsed":
+                    $("select[name="+name+"]").val(param.default_value);
+                    $("select[name="+name+"]").trigger("input");
+                    break;
+                case "selection_radio":
+                    $("input[name="+name+"]").filter('[value="'+param.default_value+'"]').click();
+                    break;
+                case "range":
+                    $("input[name="+name+"]").val(param.values.default);
+                    $("input[name="+name+"]").trigger("input");
+                    break;
+                case "range_scientific":
+                    param.value = param.values.default;
+                    param.value_slider = num2sci(param.value,param.values.digits);
+                    $("input[name="+name+"]").val(param.value_slider);
+                    $("input[name="+name+"]").trigger("input");
+                    break;
+                case "checkbox":
+                    $("input[name="+name+"]").prop('checked',param.default_value);
+                    break;
+                case "checkboxes":
+                    for (var n=0;n< param.values.length; n++) {
+                        var group = param.values[n];
+                        for (var id in group) {
+                            $("input[name="+param.id+'_'+id+"]").prop(
+                                'checked',
+                                ($.inArray(id,param.default)>-1));
+                        }
+                    }
+                    break;
+            } // end switch
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+// Set parameters to given values
+//
+function SetParamValues(param_values) {
+    
+    var ddl_params = $("#DisplayParams").data("ddl_params");
+    if (ddl_params===undefined) {
+        return;
+    }
+
+    if (ddl_params) {
+        for(var p=0;p<ddl_params.length;p++) {
+            var param = ddl_params[p];
+            var name = param.id;
+            
+            var pval=param_values[name];
+            if ((pval!==undefined)||(param.type=="checkboxes")) {
+            
+                switch(param.type) {
+                    case "selection_collapsed":
+                        $("select[name="+name+"]").val(pval);
+                        $("select[name="+name+"]").trigger("input");
+                        break;
+                    case "selection_radio":
+                        $("input[name="+name+"]").filter('[value="'+pval+'"]').click();
+                        break;
+                    case "range":
+                        $("input[name="+name+"]").val(pval);
+                        $("input[name="+name+"]").trigger("input");
+                        break;
+                    case "range_scientific":
+                        param.value = pval;
+                        param.value_slider = num2sci(param.value,param.values.digits);
+                        $("input[name="+name+"]").val(param.value_slider);
+                        $("input[name="+name+"]").trigger("input");
+                        break;
+                    case "checkbox":
+                        $("input[name="+name+"]").prop('checked',pval);
+                        break;
+                    case "checkboxes":
+                        for (var n=0;n< param.values.length; n++) {
+                            var group = param.values[n];
+                            for (var id in group) {
+                                console.info("checking ",param.id+'_'+id+" :",
+                                    $.inArray(param.id+'_'+id,Object.keys(param_values))
+                                );
+                                $("input[name="+param.id+'_'+id+"]").prop(
+                                    'checked',
+                                    ($.inArray(param.id+'_'+id,Object.keys(param_values))>-1)&&
+                                    (param_values[param.id+'_'+id])
+                                );
+                            }
+                        }
+                        break;
+                } // end switch
+            }
+        }
     }
 }
 
