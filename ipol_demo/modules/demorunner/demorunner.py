@@ -19,6 +19,7 @@ import urllib
 from   timeit   import default_timer as timer
 from   image    import thumbnail, image
 from   misc     import prod
+import PIL.ImageDraw
 
 import threading
 import cherrypy
@@ -291,7 +292,7 @@ class DemoRunner(object):
             
             # crop first if available
             if crop_info!=None:
-                crop_res = self.crop_input(i, demo_id, key, inputs_desc, crop_info)
+                crop_res = self.crop_input(im, i, demo_id, key, inputs_desc, crop_info)
                 res_data['info'] += crop_res['info']
                 if crop_res['status']=="OK":
                     im_converted = image(crop_res['filename'])
@@ -433,9 +434,10 @@ class DemoRunner(object):
 
 
     #---------------------------------------------------------------------------
-    def crop_input(self, idx, demo_id, key, inputs_desc, crop_info):
+    def crop_input(self, img, idx, demo_id, key, inputs_desc, crop_info):
         """
         Crop input if selected
+            img: input image to crop
             idx: input position
             demo_id
             key
@@ -454,7 +456,7 @@ class DemoRunner(object):
             return res_data
             
         work_dir = self.WorkDir(demo_id,key)
-        initial_filename = os.path.join(work_dir,'input_{0}.orig.png'.format(idx))
+        #initial_filename = os.path.join(work_dir,'input_{0}.orig.png'.format(idx))
         cropped_filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
         res_data['filename'] = cropped_filename
         self.output( "crop_info = {0}".format(crop_info))
@@ -467,27 +469,37 @@ class DemoRunner(object):
             y1 = int(round(crop_info['y']+crop_info['h']))
             #save parameters
             try:
-                #
-                # cut subimage from original image
-                #
-                # draw selected rectangle on the image
-                imgS        = image(initial_filename)
-                self.output("imgS mode = {0}".format(imgS.im.mode))
-                # need to convert image to RGB mode before drawing ...
-                imgS.convert('3x8i')
-                # TODO: get rid of eval()
+                ## TODO: get rid of eval()
                 max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
-                imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
-                                color="red")
-                imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
-                                (x0+1, y1-1), (x0+1, y0+1)], color="white")
-                start=timer()
-                self.save_image(imgS,os.path.join(work_dir,'input_{0}s.png'.format(idx)))
-                self.output(" imgS.save took: {0} seconds;".format(timer()-start))
+                # ----- this code is not used anymore since
+                #       uploaded images are sent after crop
+                #       we will also save the crop information in archive
+                #       to be able to reload the experiment from archive in the 
+                #       future
+                ##
+                ## cut subimage from original image
+                ##
+                ## draw selected rectangle on the image
+                #imgS        = image(initial_filename)
+                #self.output("imgS mode = {0}".format(imgS.im.mode))
+                ## need to convert image to RGB mode before drawing ...
+                #start=timer()
+                #imgS.convert('3x8i')
+                #self.output(" imgS.convert('3x8i') took: {0} seconds;".format(timer()-start))
+                #start=timer()
+                ##imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
+                                ##color="red")
+                ##imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
+                                ##(x0+1, y1-1), (x0+1, y0+1)], color="white")
+                #self.output(" draw_lines took: {0} seconds;".format(timer()-start))
+                #self.save_image(imgS,os.path.join(work_dir,'input_{0}s.png'.format(idx)))
                 
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
-                img = image(initial_filename)
+
+                #start=timer()
+                #img = image(initial_filename)
+                #self.output(" read image took: {0} seconds;".format(timer()-start))
                 start=timer()
                 img.crop((x0, y0, x1, y1))
                 self.output(" img.crop took: {0} seconds;".format(timer()-start))
@@ -497,9 +509,7 @@ class DemoRunner(object):
                     img.resize(max_pixels, method="antialias")
                     self.output(" img.resize took: {0} seconds;".format(timer()-start))
                 # save result
-                start=timer()
                 self.save_image(img,cropped_filename)
-                self.output(" img.save took: {0} seconds;".format(timer()-start))
 
             except ValueError as e:
                 self.output("crop failed with exception : {0}".format(e))
@@ -542,6 +552,7 @@ class DemoRunner(object):
         returns:
             { key, status, message }
         """
+        start = timer()
         self.stack_depth=0
         self.output("#### input_select_and_crop begin ####")
         self.stack_depth+=1
@@ -612,7 +623,7 @@ class DemoRunner(object):
         res_data["status"]  = "OK"
         res_data["message"] = "input files copied to the local path"
         self.stack_depth-=1
-        self.output("#### input_select_and_crop end ####")
+        self.output("#### input_select_and_crop:{0} sec.".format(timer()-start))
         return json.dumps(res_data)
 
 
