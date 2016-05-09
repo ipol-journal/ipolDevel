@@ -79,6 +79,7 @@ function OnDemoList(demolist)
 
     // get url parameters (found on http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/21152762#21152762)
     var url_params = {};
+    console.info("location.search=",location.search);
     location.search.substr(1).split("&").forEach(function(item) {
         var s = item.split("="),
             k = s[0],
@@ -111,14 +112,18 @@ function OnDemoList(demolist)
     if (demo_pos!=-1) {
         $("#demo_selection").val(demo_pos);
         InputController(dl.demo_list[demo_pos].editorsdemoid,
-                        dl.demo_list[demo_pos].id);
+                        dl.demo_list[demo_pos].id,
+                        true
+                       );
     }
 
     $("#demo-select").change(
         function() {
             var pos =$( "#demo-select option:selected" ).val();
             InputController(dl.demo_list[pos].editorsdemoid,
-                            dl.demo_list[pos].id);
+                            dl.demo_list[pos].id,
+                            false
+                           );
         });
     
 
@@ -143,12 +148,14 @@ function ListDemosController() {
 };
 
 
-
-
 //------------------------------------------------------------------------------
 // Starts everything needed for demo input tab
 //
-function InputController(demo_id,internal_demoid) {
+function InputController(demo_id,internal_demoid,from_url) {
+    
+    if (from_url===undefined) {
+        from_url=false;
+    }
 
     console.info("internal demo id = ", internal_demoid);
     if (internal_demoid > 0) {
@@ -158,6 +165,13 @@ function InputController(demo_id,internal_demoid) {
             'demo_id=' + internal_demoid + '&returnjsons=True',
             function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
+
+                // empty inputs
+                $("#DrawInputs").empty();
+                
+                // empty results
+                $("#ResultsDisplay").empty();
+                
                 if (demo_ddl.status == "OK") {
                     var ddl_json = DeserializeJSON(demo_ddl.last_demodescription.json);
                     var str = JSON.stringify(ddl_json, undefined, 4);
@@ -185,11 +199,15 @@ function InputController(demo_id,internal_demoid) {
                     $("#parameters_fieldset").show();
                 }
                 
-                // empty inputs
-                $("#DrawInputs").empty();
-                
-                // empty results
-                $("#ResultsDisplay").empty();
+                console.info("pd = ",ddl_json.general.param_description);
+                if ((ddl_json.general.param_description != undefined) &&
+                    (ddl_json.general.param_description != "")&&
+                    (ddl_json.general.param_description != [""]))
+                {
+                    $("#description_params").show();
+                } else {
+                    $("#description_params").hide();
+                }
                 
                 // for convenience, add demo_id field to the json DDL 
                 ddl_json['demo_id'] = demo_id
@@ -212,6 +230,37 @@ function InputController(demo_id,internal_demoid) {
                 // Display archive information
                 var ar = new ArchiveDisplay();
                 ar.get_archive(demo_id);
+
+                if (demo_ddl.status == "OK") {
+                    if (!from_url) {
+                        try {
+                            // change url hash
+                            History.pushState({id:demo_id,state:1}, "IPOLDemos "+demo_id+" inputs", "?id="+demo_id+"&state=1");
+                        } catch(err) {
+                            console.error("error:", err.message);
+                        }
+                    } else {
+                        // check if result to display
+                        var url_params = {};
+                        location.search.substr(1).split("&").forEach(function(item) {
+                            var s = item.split("="),
+                                k = s[0],
+                                v = s[1] && decodeURIComponent(s[1]);
+                            (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
+                        });
+                        if (url_params["res"]!==undefined) {
+                            var res = JSON.parse(url_params["res"]);
+                            console.info("***** res=",res);
+                            // Set parameter values
+                            SetParamValues(res.params);
+                            // Draw results
+                            var dr = new DrawResults( res, ddl_json.results );
+                            dr.Create();
+                            //$("#progressbar").get(0).scrollIntoView();
+                        }
+                    }
+                }
+                
             });
 
 
@@ -313,6 +362,7 @@ function CreateLocalData(ddl_json) {
 // allow folding/unfolding of legends
 //
 function SetLegendFolding( selector) {
+    
     // Set cursor to pointer and add click function
     $(selector).css("cursor","pointer").click(function(){
         var legend = $(this);
@@ -350,7 +400,28 @@ function DocumentReady() {
     $(".progress-label").text( "Waiting for input selection" );
 
     SetLegendFolding("legend");
+    $("#reset_params").unbind();
+    $("#reset_params").click( function() {
+        console.info("reset params clicked");
+        ResetParamValues();
+    }
+    );
     
+    // parameters description dialog
+    var param_desc_dialog;
+    param_desc_dialog = $("#ParamDescription").dialog({
+      autoOpen: false,
+//       height: 500,
+      width: 800,
+      modal: true,
+    });
+    
+    $("#description_params").button().on("click", 
+        function() 
+        { 
+            param_desc_dialog.dialog("open");
+        });
+
     // upload modal dialog
     var dialog;
     dialog = $("#upload-dialog").dialog({
@@ -373,6 +444,27 @@ function DocumentReady() {
         });
 
     ListDemosController();
+
+    var History = window.History;
+    // Bind to State Change
+    History.Adapter.bind(window,'statechange',
+        function(){ // Note: We are using statechange instead of popstate
+            // Log the State
+            var State = History.getState(); // Note: We are using History.getState() instead of event.state
+            History.log('statechange:', State.data);
+            switch (State.data.state) {
+                case 2:
+                    // update parameters
+                    // test if demo has changed, if so, redraw inputs, parameters
+                    SetParamValues(State.data.res.params);
+                    
+                    // draw results
+                    var dr = new DrawResults( State.data.res, State.data.ddl_res );
+                    dr.Create();
+                    //$("#progressbar").get(0).scrollIntoView();
+                    break;
+            }
+        });
 
 }
 $(document).ready(DocumentReady);
