@@ -26,6 +26,8 @@
     <script src="./canvas-to-blob/canvas-to-blob.min.js"> </script>
     <script src="./blob-util/blob-util.min.js"> </script>
 
+    <!-- history.js module -->
+    <script src="./history.js/scripts/bundled/html4+html5/jquery.history.js"> </script>
 </head>
 
 
@@ -93,11 +95,11 @@
             &nbsp;<input  id="ShowCreditsCheckbox" type="checkbox"  >credits
             &nbsp;<input  id="ShowTitlesCheckbox" type="checkbox"  >titles
 
-            <div id="displayblobs"></div>
-            <div style='clear:both'> </div>
+            <div id="displayblobs" style="max-height:280px;overflow-y:auto"></div>
+            <div style='clear:both'> </div><br/>
 
             <!-- Draw inputs (includes dealing with crop) -->
-            <div id="DrawInputs"></div>
+            <div id="DrawInputs" ></div>
             <div style="clear:both"> </div>
 
         </fieldset>
@@ -130,9 +132,9 @@
         <!-- Parameter Selection -->
         <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;" id="parameters_fieldset" >
         <legend> Select parameters <span>[-]</span> </legend> 
-
-
-            <span id="ParamDescription"> </span>
+            <button id="reset_params">default</button>
+            <button id="description_params">description</button>
+            <div id="ParamDescription"  title="Parameters description"> </div>
             <div    class="action" 
                     style="align:left;margin-bottom=20px;margin-top=20px" >
                 <span id="DisplayParams"> </span>
