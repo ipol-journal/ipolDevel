@@ -1,0 +1,7 @@
+
+\section{DemoRunner module}
+\label{sec:DemoRunner}
+The DemoRunner module has two main tasks. The first is to inform the DemoDispatcher about the load of the machine where it is running. The second task is to execute an algorithm given the parameters and store the results in a temporary directory. It is a requirement that the temporal results can be accessed by different users using the URL (for example, it may contain a key which identifies a specific experiment).
+
+It can obtain the system load from {\tt /proc/loadavg}. The first three numbers are the load averages for the past 1, 5, and 15 minutes. Load averages are not normalized for the number of CPUs in a system, so a load  average  of 1 means a single CPU system is loaded all the time while on a 4 CPU system it means it was idle 75\% of the time.
+\ToDo{Document it!}

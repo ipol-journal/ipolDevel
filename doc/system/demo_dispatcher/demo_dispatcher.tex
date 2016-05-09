@@ -1,0 +1,20 @@
+\section{DemoDispatcher module}
+\label{sec:DemoDispatcher}
+In order to distribute the load in several machines, this module checks the work load of each known DemoRunner modules and starts an algorithm demo execution on the less loaded machine. The process is done transparently and from the outside this is the only visible module, since the actual DemoRunners are not directly accesible.
+
+It use a FIFO, that is a method of queuing process, for dispatching the different experiments. A machine for the demo runner sne
+
+% \begin{algorithm}[!htbp]
+% \caption{Dispatcher}
+% \label{al:pyramidal_structure}
+% \While{q not empty}
+%     \State $ e_{i} \leftarrow q.extract()$
+%     \State $ Dr = find\_dr()$
+%     \State $ h = get\_id\_e(e_{i})$
+%     \State $ notify_dequeue(h) $
+%     \State $ Dr\_exec(e_{i}) $
+%     \State $ Notify\_execution(h) $ 
+% \EndWhile
+% \end{algorithm}
+
+\ToDo{Document it!}
