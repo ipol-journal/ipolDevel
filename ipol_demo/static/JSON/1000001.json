@@ -79,8 +79,8 @@
       "id"            : "run_mode",
       "type"          : "selection_collapsed", 
       "label"         : "select mode",
-      "values"        : {"Deconvolve":0, "Convolve, add noise, then deconvolve":1},
-      "default_value" : 0
+      "values"        : {"Deconvolve":"0", "Convolve, add noise, then deconvolve":"1"},
+      "default_value" : "0"
     }
   ]
   ,
