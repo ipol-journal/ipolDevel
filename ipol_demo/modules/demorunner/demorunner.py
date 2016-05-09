@@ -445,7 +445,7 @@ class DemoRunner(object):
 
         self.stack_depth += 1
         self.output("#### crop_input ####")
-        start = timer()
+        crop_start = timer()
         res_data = {}
         res_data['info'] = ""
         # for the moment, we can only crop the first image
@@ -481,17 +481,25 @@ class DemoRunner(object):
                                 color="red")
                 imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
                                 (x0+1, y1-1), (x0+1, y0+1)], color="white")
-                imgS.save(os.path.join(work_dir,'input_{0}s.png'.format(idx)))
+                start=timer()
+                self.save_image(imgS,os.path.join(work_dir,'input_{0}s.png'.format(idx)))
+                self.output(" imgS.save took: {0} seconds;".format(timer()-start))
                 
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
                 img = image(initial_filename)
+                start=timer()
                 img.crop((x0, y0, x1, y1))
+                self.output(" img.crop took: {0} seconds;".format(timer()-start))
                 # resize if cropped image is too big
                 if max_pixels and prod(img.size) > max_pixels:
+                    start=timer()
                     img.resize(max_pixels, method="antialias")
+                    self.output(" img.resize took: {0} seconds;".format(timer()-start))
                 # save result
-                img.save(cropped_filename)
+                start=timer()
+                self.save_image(img,cropped_filename)
+                self.output(" img.save took: {0} seconds;".format(timer()-start))
 
             except ValueError as e:
                 self.output("crop failed with exception : {0}".format(e))
@@ -512,7 +520,8 @@ class DemoRunner(object):
 
         res_data["status"]  = "OK"
         end=timer()
-        res_data["info"]    += " crop_input took: {0} seconds;".format(end-start)
+        res_data["info"]    += " crop_input took: {0} seconds;".format(end-crop_start)
+        self.output(" crop_input took: {0} seconds;".format(end-crop_start))
         self.stack_depth -= 1
         return res_data
 
@@ -573,6 +582,7 @@ class DemoRunner(object):
           # extract input files to work dir as input_%i.ext
           self.output("inputfiles: {0}".format(inputfiles))
           for inputfile in inputfiles:
+            start=timer()
             self.output( "---- inputfile: '{0}'".format(inputfile))
             self.output( "{0}".format(type(inputfile)))
             basename  = inputfile[:inputfile.index('.')]
@@ -582,6 +592,8 @@ class DemoRunner(object):
             self.output("blob_link = {0}".format(blob_link))
             blobfile.retrieve(blob_link, 
                               os.path.join(work_dir,'input_{0}{1}'.format(idx,ext)))
+            end=timer()
+            self.output("---- retrieving file took {0} seconds".format(end-start))
         
         msg = self.process_inputs(demo_id, key, inputs_desc,crop_info, res_data)
         ##self2.log("input selected : %s" % kwargs.keys()[0])
