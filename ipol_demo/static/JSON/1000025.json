@@ -111,7 +111,7 @@
                           "Reg. image 2"               : "registered_1.png",
                           "inliers  {{info.inliers}}"  : "inliers.png",
                           "outliers {{info.matches-info.inliers}}" : "outliers.png",
-                          "first image"                : "input_0s.png",
+                          "first image"                : "input_0.png",
                           "second image"               : "input_1.png"
                         },
       "contents_new"      : {
@@ -120,7 +120,7 @@
                           "Reg. image 2"               : "registered_1.png",
                           "'inliers  '+info.inliers"  : "inliers.png",
                           "'outliers '+(info.matches-info.inliers)" : "outliers.png",
-                          "first image"                : "input_0s.png",
+                          "first image"                : "input_0.png",
                           "second image"               : "input_1.png"
                         },
       "style"         : "{'width':imwidth*ZoomFactor+'px','height':imheight*ZoomFactor+'px'}",

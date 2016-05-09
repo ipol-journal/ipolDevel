@@ -96,8 +96,7 @@
     {
       "files" : { 
                   "input_0.orig.png":"uploaded image",
-                  "input_0s.png"    :"sub-image selection",
-                  "input_0.sel.png" : "processed image",
+                  "input_0.sel.png" : "selected image",
                   "output_1.png"    : "result image 1 (RGB)",
                   "output_2.png"    : "result image 2 (I)"
                 },

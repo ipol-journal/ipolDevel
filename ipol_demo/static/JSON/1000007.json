@@ -59,8 +59,6 @@
       "files" : { 
                   "input_0.orig.png"     : "uploaded image",
                   "input_0.png"          : "full-size",
-                  "input_0s.png"         : "sub-image selection",
-                  "input_0s.png"         : "sub-image selection",
                   "input_0.sel.png"      : "input image",
                   "output_2.png"         : "output image"
                 }
