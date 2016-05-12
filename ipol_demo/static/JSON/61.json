@@ -146,17 +146,21 @@
         {
             "params.runmode==0&&!info.has_zoom?'Input<br/>RMSE '+info.rmse_noisy"       : "noisy.png",
             "params.runmode==0&&!info.has_zoom?'Denoised<br/>RMSE '+info.rmse_denoised" : "denoised.png",
-            "params.runmode==0&&!info.has_zoom?Original"                                 : "input_0.sel.png",
+            "params.runmode==0&&!info.has_zoom?Original"                                : "input_0.sel.png",
+            "params.runmode==0&&!info.has_zoom?Difference"                              : "diff.png",
 
             "params.runmode==0&&info.has_zoom?'Input<br/>RMSE '+info.rmse_noisy"       : "noisy_zoom.png",
             "params.runmode==0&&info.has_zoom?'Denoised<br/>RMSE '+info.rmse_denoised" : "denoised_zoom.png",
-            "params.runmode==0&&info.has_zoom?Original"                                 : "input_0.sel_zoom.png",
+            "params.runmode==0&&info.has_zoom?Original"                                : "input_0.sel_zoom.png",
+            "params.runmode==0&&info.has_zoom?Difference"                              : "diff_zoom.png",
 
             "params.runmode==1&&!info.has_zoom?Input"     : "input_0.sel.png",
             "params.runmode==1&&!info.has_zoom?Denoised"  : "denoised.png",
+            "params.runmode==1&&!info.has_zoom?Difference": "diff.png",
 
             "params.runmode==1&&info.has_zoom?Input"      : "input_0.sel_zoom.png",
-            "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png"
+            "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png",
+            "params.runmode==1&&info.has_zoom?Difference" : "diff_zoom.png"
 
         },
       "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
