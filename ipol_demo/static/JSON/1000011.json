@@ -123,7 +123,7 @@
   "results": [
     {
         "type"      : "html_text",
-        "visible"   : "info.zoom_factor>1",
+        "visible"   : "info.zoomfactor>1",
         "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ],
         "contents_new"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
     },
