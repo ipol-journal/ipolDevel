@@ -100,7 +100,7 @@
       "visible"       : "info.status!='failure'",
       "visible_new"   : "info.status!='failure'",
       "type"          : "gallery",
-      "label"         : "<h2>PSF</h2> This image has been resized from its original size {{params.k}} x {{params.k}} pixels for better visualization.",
+      "label"         : "'<h2>PSF</h2> This image has been resized from its original size '+params.k+' x '+params.k+' pixels for better visualization.'",
       "contents"      : { 
         "PSF"    : "psf.png" 
       },
