@@ -478,8 +478,8 @@ function DocumentReady() {
                 var prevState = History.getStateByIndex(History.getCurrentIndex()-1);
                 if (prevState.data.demo_id!=undefined) {
                     var prev_id = prevState.data.demo_id;
-                    if (prev_id!=State.data.id) {
-                        console.info("!!! demo id has changed !!! ", prev_id, "-->", State.data.demo_id);
+                    if (prev_id!==State.data.demo_id) {
+                        console.info("!!! demo id has changed !!! ", prev_id, ",", typeof(prev_id), "-->", State.data.demo_id, ",", typeof(State.data.demo_id));
                         // find position of demo id
                         var demo_list = $("#demo-select").data("demo_list");
                         for(var i=0;i<demo_list.length;i++) {
