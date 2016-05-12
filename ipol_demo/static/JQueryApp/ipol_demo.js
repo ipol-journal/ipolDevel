@@ -381,6 +381,10 @@ function SetLegendFolding( selector) {
 
 function DocumentReady() {
     
+//     console.info($(window).width());
+//     console.info($(document).width()); 
+//     console.info(window.screen.width);
+    
     // be sure to have string function endsWith
     if (typeof String.prototype.endsWith !== 'function') {
         String.prototype.endsWith = function(suffix) {
@@ -436,6 +440,18 @@ function DocumentReady() {
         }
       },
     });
+    
+    // adjusting width of display blobs div
+    var displayblobs_parent = $("#displayblobs").parent();
+    var to_deduce = displayblobs_parent.outerWidth(true)-displayblobs_parent.width();
+    $("#displayblobs").width($("#tabs-run").width()-to_deduce);
+    
+    $( window ).resize(function() {
+        var displayblobs_parent = $("#displayblobs").parent();
+        var to_deduce = displayblobs_parent.outerWidth(true)-displayblobs_parent.width();
+        $("#displayblobs").width($("#tabs-run").width()-to_deduce);
+    }
+    );
     
     $("#upload-data").button().on("click", 
         function() 
