@@ -495,6 +495,8 @@ function DocumentReady() {
             History.log('statechange:', State.data);
             switch (State.data.state) {
                 case 2:
+                    // empty draw inputs since we don't redraw them for the moment
+                    $("#DrawInputs").empty();
                     // update parameters
                     // test if demo has changed, if so, redraw inputs, parameters
                     SetParamValues(State.data.res.params);
@@ -505,9 +507,16 @@ function DocumentReady() {
                     //$("#progressbar").get(0).scrollIntoView();
                     break;
                 case 1:
+                    // empty draw inputs since we don't redraw them for the moment
+                    $("#DrawInputs").empty();
                     // empty result area
                     $("#ResultsDisplay").empty();
                     break;
+                default:
+                    // empty draw inputs since we don't redraw them for the moment
+                    $("#DrawInputs").empty();
+                    // empty result area
+                    $("#ResultsDisplay").empty();
             }
         });
 
