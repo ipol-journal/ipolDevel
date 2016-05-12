@@ -48,10 +48,16 @@ var DrawResults = function( //demo_id,key,
         var displayed_status = { "OK":"success", "KO":"failure" };
         
         // display result status
-        if (res.status==="KO") {
+        if (this.res.status==="KO") {
             results_html += '  <p class="error"> '+res.error+' </p>';
         }
         
+        if (this.res.algo_meta["process_inputs_msg"]!=undefined) {
+            results_html +=
+                "<p style='border:1px solid;margin:3px 0px;padding:5px;color:#9F6000;'>"+
+                "<b>"+this.res.algo_meta["process_inputs_msg"]+"</b>"+
+                "</p>";
+        }
 //         results_html += this.CreateZoomSelection();
 
         for(var id=0;id<this.ddl_results.length;id++) {

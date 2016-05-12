@@ -561,6 +561,10 @@ var DrawInputs = function(ddl_json) {
         console.info("params = ",params);
         // create meta information
         var meta={};
+        if (res["process_inputs_msg"]!=undefined) {
+            console.info("adding message to meta data ");
+            meta["process_inputs_msg"] = res["process_inputs_msg"];
+        }
         meta["max_width"]  = res["max_width"];
         meta["max_height"] = res["max_height"];
         meta["original"]   = (this.input_origin==="localfiles")
