@@ -486,6 +486,11 @@ var ImageGallery = function(galleryid)  {
                     width: $(window).width()*0.95,
                     height: $(window).height()*0.95,
                     modal: true,
+                    buttons: {
+                        Close: function() {
+                            $(this).dialog( "close" );
+                        }
+                    },
                     close: function(event, ui) {
                         $(this).empty().dialog('destroy');
                     }
@@ -494,7 +499,7 @@ var ImageGallery = function(galleryid)  {
                 console.info("popup_all click length=",this.html_contents.length);
                 var html = "<div >";
                 for(var i=0;i<this.html_contents.length;i++) {
-                    html += '<div style="display:inline-block;vertical-align: top;">';
+                    html += '<div style="display:inline-block;vertical-align:top;margin:2px">';
                     html += "<table>";
                     html +=   "<tr><td>";
                     html +=   this.html_contents[i];
