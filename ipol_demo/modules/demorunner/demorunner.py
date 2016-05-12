@@ -197,17 +197,23 @@ class DemoRunner(object):
         self.stack_depth-=1
 
     #---------------------------------------------------------------------------
+    def need_convert(self, im, input_info):
+        '''
+        check if input image needs convertion
+        '''
+        mode_kw = {'1x8i' : 'L',
+                    '3x8i' : 'RGB'}
+        # check max size
+        return  im.im.mode != mode_kw[input_info['dtype']]
+            
+    #---------------------------------------------------------------------------
     def need_convert_or_resize(self, im, input_info):
         '''
         Convert and resize an image object
         '''
-        
-        mode_kw = {'1x8i' : 'L',
-                    '3x8i' : 'RGB'}
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
-
-        return  im.im.mode != mode_kw[input_info['dtype']] or \
+        return  self.need_convert(im,input_info) or \
                 prod(im.size) > max_pixels
 
     #---------------------------------------------------------------------------
@@ -215,9 +221,12 @@ class DemoRunner(object):
         '''
         Convert and resize an image object
         '''
+        msg=""
         self.stack_depth+=1
         start = timer()
-        im.convert(input_info['dtype'])
+        if self.need_convert(im,input_info):
+            im.convert(input_info['dtype'])
+            msg += " converted to '{0}' ".format(input_info['dtype'])
         self.output( "im.im.mode = {0}".format(im.im.mode))
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
@@ -225,9 +234,13 @@ class DemoRunner(object):
         if resize:
             cherrypy.log("input resize")
             im.resize(max_pixels)
+            if msg!= "":
+                msg += "&"
+            msg += " resized to {0}px ".format(max_pixels)
         end=timer()
         self.output( "convert_and_resize took {0} sec".format(end-start))
         self.stack_depth-=1
+        return msg
 
     #---------------------------------------------------------------------------
     def process_inputs(self, demo_id, key, inputs_desc, crop_info, res_data):
@@ -239,13 +252,14 @@ class DemoRunner(object):
         self.stack_depth += 1
         self.output("#### process_inputs ####")
         start = timer()
-        msg = None
+        msg = ""
         max_width = 0
         max_height = 0
         nb_inputs = len(inputs_desc)
         work_dir = self.WorkDir(demo_id,key)
         
         for i in range(nb_inputs):
+          input_msg = ""
           # check the input type
           input_desc = inputs_desc[i]
           # find files starting with input_%i
@@ -306,7 +320,8 @@ class DemoRunner(object):
             
             if self.need_convert_or_resize(im_converted,input_desc):
                 print "need convertion or resize, input description: ", input_desc
-                self.convert_and_resize(im_converted,input_desc)
+                output_msg = self.convert_and_resize(im_converted,input_desc)
+                input_msg += " Input {0}:".format(i)+output_msg+" "
                 # save a web viewable copy
                 im_converted.save(os.path.join(work_dir,'input_%i.png' % i),
                                   compresslevel=self.png_compresslevel)
@@ -328,14 +343,18 @@ class DemoRunner(object):
 
 
             if im.size != im_converted.size:
-                msg = "The image has been resized for a reduced computation time."
-                print msg,": ", im.size, "-->", im_converted.size
+                input_msg += " {0} --> {1} ".format(im.size,im_converted.size)
+                print "The image has been resized for a reduced computation time ",
+                print  "({0} --> {1})".format(im.size,im_converted.size)
             # update maximal dimensions information
             max_width  = max(max_width,im_converted.size[0])
             max_height = max(max_height,im_converted.size[1])
             #self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
             #self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
-          # end if type is image
+            if input_msg!="":
+                # next line in html
+                msg += input_msg+"<br/>\n"
+            # end if type is image
           else:
             # check if we have a representing image to display
             if len(input_files)>1:
@@ -429,6 +448,8 @@ class DemoRunner(object):
         #self.cfg.save()
 
         res_data['status'] = "OK"
+        if msg!="":
+            res_data['process_inputs_msg'] = msg
         print "upload res_data=",res_data
         return json.dumps(res_data)
 
@@ -622,6 +643,8 @@ class DemoRunner(object):
         
         res_data["status"]  = "OK"
         res_data["message"] = "input files copied to the local path"
+        if msg!="":
+            res_data['process_inputs_msg'] = msg
         self.stack_depth-=1
         self.output("#### input_select_and_crop:{0} sec.".format(timer()-start))
         return json.dumps(res_data)
