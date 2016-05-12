@@ -117,6 +117,8 @@ function OnDemoList(demolist)
                        );
     }
 
+    
+    $("#demo-select").data("demo_list",dl.demo_list);
     $("#demo-select").change(
         function() {
             var pos =$( "#demo-select option:selected" ).val();
@@ -414,10 +416,13 @@ function DocumentReady() {
     // parameters description dialog
     var param_desc_dialog;
     param_desc_dialog = $("#ParamDescription").dialog({
-      autoOpen: false,
-//       height: 500,
-      width: 800,
-      modal: true,
+        autoOpen: false,
+        // height: 500,
+        width: 800,
+        modal: true,
+//         close: function(event, ui) {
+//             $(this).empty().dialog('destroy');
+//         }
     });
     
     $("#description_params").button().on("click", 
@@ -429,16 +434,18 @@ function DocumentReady() {
     // upload modal dialog
     var dialog;
     dialog = $("#upload-dialog").dialog({
-      autoOpen: false,
-      height: 500,
-      width: 800,
-      modal: true,
-      buttons: {
-//         "Create an account": addUser,
-        Cancel: function() {
-          dialog.dialog( "close" );
-        }
-      },
+        autoOpen: false,
+        height: 500,
+        width: 800,
+        modal: true,
+        buttons: {
+            Cancel: function() {
+            dialog.dialog( "close" );
+            }
+        },
+//         close: function(event, ui) {
+//             $(this).empty().dialog('destroy');
+//         }
     });
     
     // adjusting width of display blobs div
@@ -467,6 +474,21 @@ function DocumentReady() {
         function(){ // Note: We are using statechange instead of popstate
             // Log the State
             var State = History.getState(); // Note: We are using History.getState() instead of event.state
+            if (History.getCurrentIndex()>0) {
+                var prev_id = History.getStateByIndex(History.getCurrentIndex()-1).data.id;
+                if (prev_id!=State.data.id) {
+                    console.info("!!! demo id has changed !!!");
+                    // find position of demo id
+                    var demo_list = $("#demo-select").data("demo_list");
+                    for(var i=0;i<demo_list.length;i++) {
+                        if (demo_list[i].editorsdemoid==State.data.id) {
+                            $("#demo_selection").val(i);
+                            $("#demo_selection").trigger("change");
+                            break;
+                        }
+                    }
+                }
+            }
             History.log('statechange:', State.data);
             switch (State.data.state) {
                 case 2:
@@ -478,6 +500,10 @@ function DocumentReady() {
                     var dr = new DrawResults( State.data.res, State.data.ddl_res );
                     dr.Create();
                     //$("#progressbar").get(0).scrollIntoView();
+                    break;
+                case 1:
+                    // empty result area
+                    $("#ResultsDisplay").empty();
                     break;
             }
         });
