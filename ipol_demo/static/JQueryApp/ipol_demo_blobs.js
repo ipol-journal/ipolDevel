@@ -41,9 +41,9 @@ var BlobsContainer = function(demoblobs, ddl_json)
         this.PreprocessDemo();
         this.DrawDemoBlobs();
         
-        $("#ThumbnailSize")      .change( function() { this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowCreditsCheckbox").change( function() { this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowTitlesCheckbox") .change( function() { this.DrawDemoBlobs(); }.bind(this));
+        $("#ThumbnailSize")      .unbind().change( function() { console.info("ThumbnailSize changed");this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowCreditsCheckbox").unbind().change( function() { console.info("ShowCreditsCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowTitlesCheckbox") .unbind().change( function() { console.info("ShowTitlesCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
     }
         
     //--------------------------------------------------------------------------
@@ -86,6 +86,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
 
     //--------------------------------------------------------------------------
     this.DrawDemoBlobs = function() {
+        console.info("DrawDemoBlobs");
         $("#displayblobs").html(this.CreateBlobSetDisplay());
         this.DemoBlobsEvents();
     }
@@ -145,11 +146,11 @@ var BlobsContainer = function(demoblobs, ddl_json)
             if (display_titles||display_credits) {
                 blobset_html += '<tr  style="background-color:#EEEEEE;">';
                 blobset_html += '<th colspan="'+blobset[0].size+'" ';
-                blobset_html +=   'style="max-width:'+(blobset[0].size*thumbnail_size)+'px;font-weight:normal;" >';
+                blobset_html +=   'style="max-width:'+(blobset[0].size*thumbnail_size)+'px;font-weight:normal;text-overflow:ellipsis;" >';
                 //          We could use the blob name but in general each image has the same title
                 //             which is a better name <span>{{blob_set[0].set_name}}</span>
                 if (display_titles) {
-                    blobset_html += blobset[1].title;
+                    blobset_html += '<font size="-1">'+blobset[1].title+'</font>';
                 }
                 if (display_credits) {
                     if (display_titles) {
@@ -172,6 +173,13 @@ var BlobsContainer = function(demoblobs, ddl_json)
     //--------------------------------------------------------------------------
     this.DemoBlobsEvents = function() {
         var blobs = this.demoblobs.blobs;
+        
+        var images_to_process = 0;
+        for(var i=0;i<blobs.length;i++) {
+            images_to_process += this.demoblobs.blobs[i][0].size;
+        }
+        console.info("images_to_process =", images_to_process);
+        
         // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
@@ -202,6 +210,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
 
             var blobset = this.demoblobs.blobs[i];
             this.max_ratio = 0.5; 
+            var processed_images = 0;
             for(var idx=1;idx<blobset[0].size+1;idx++)
             {
                 // check if thumbnail load works, if not, hide the corresponding
@@ -212,11 +221,28 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 }; })(i,idx);
                 tester.src=this.demoblobs.url_thumb+'/thumbnail_'+blobset[idx].hash+blobset[idx].extension;
                 tester.onload = function(obj) { return function() {
+//                     console.info("start ",i);
                     // Run onload code.
                     // set lowest possible height for all thumbnails
-                    var prev_ratio = obj.max_ratio;
+//                     var prev_ratio = obj.max_ratio;
                     obj.max_ratio = Math.min(Math.max(obj.max_ratio,this.height/this.width),1);
-                    if (prev_ratio!=obj.max_ratio) {
+                    processed_images++;
+//                     if (prev_ratio!=obj.max_ratio) {
+                    if (processed_images==images_to_process) {
+                        console.info("processed_images=",processed_images," / ",images_to_process);
+                        console.info("setting ratio to ",obj.max_ratio, " for blob ", i);
+                        var thumbnail_size   = $("#ThumbnailSize option:selected").text();
+                        var new_height = thumbnail_size*obj.max_ratio;
+                        $(".select_input").css({'height'      :new_height+'px',               
+                                                'line-height' :new_height+'px'});
+                    }
+//                     console.info("end ",i);
+                }; }(this);
+                tester.onerror = function(obj) { return function() {
+                    console.info("failed to load blob image ",i," index ",idx);
+                    processed_images++;
+                    if (processed_images==images_to_process) {
+                        console.info("setting ratio to ",obj.max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
                         var new_height = thumbnail_size*obj.max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
