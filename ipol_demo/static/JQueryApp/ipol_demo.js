@@ -471,27 +471,31 @@ function DocumentReady() {
     var History = window.History;
     // Bind to State Change
     History.Adapter.bind(window,'statechange',
-        function(){ // Note: We are using statechange instead of popstate
+        function(p){ // Note: We are using statechange instead of popstate
+            console.info(" statechange param:",p);
             // Log the State
             var State = History.getState(); // Note: We are using History.getState() instead of event.state
-            if (History.getCurrentIndex()>0) {
-                var prevState = History.getStateByIndex(History.getCurrentIndex()-1);
-                if (prevState.data.demo_id!=undefined) {
-                    var prev_id = prevState.data.demo_id;
-                    if (prev_id!==State.data.demo_id) {
-                        console.info("!!! demo id has changed !!! ", prev_id, ",", typeof(prev_id), "-->", State.data.demo_id, ",", typeof(State.data.demo_id));
-                        // find position of demo id
-                        var demo_list = $("#demo-select").data("demo_list");
-                        for(var i=0;i<demo_list.length;i++) {
-                            if (demo_list[i].editorsdemoid==State.data.id) {
-                                $("#demo_selection").val(i);
-                                $("#demo_selection").trigger("change");
-                                break;
-                            }
-                        }
+            // find position of demo id
+            var demo_list = $("#demo-select").data("demo_list");
+            if (State.data.demo_id!=undefined) {
+                var demo_position = -1;
+                for(var i=0;i<demo_list.length;i++) {
+                    if (demo_list[i].editorsdemoid==State.data.demo_id) {
+                        demo_position = i;
+                        break;
                     }
                 }
+                
+                if ((demo_position!=-1)&&(demo_position!=$("#demo_selection").val())) {
+                    console.info("!!! demo id has changed !!! trigger change ", 
+                                demo_list[$("#demo_selection").val()].editorsdemoid, ",", 
+                                "-->", 
+                                State.data.demo_id);
+                    $("#demo_selection").val(demo_position);
+                    $("#demo_selection").trigger("change");
+                }
             }
+            
             History.log('statechange:', State.data);
             switch (State.data.state) {
                 case 2:
