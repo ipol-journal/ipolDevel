@@ -611,7 +611,7 @@ var DrawInputs = function(ddl_json) {
                 try {
                     // change url hash
                     History.pushState(
-                        {id:this.ddl_json.demo_id,state:2,res:res,ddl_res:this.ddl_json.results},
+                        {demo_id:this.ddl_json.demo_id,state:2,res:res,ddl_res:this.ddl_json.results},
                         "IPOLDemos "+this.ddl_json.demo_id+" results",
                         "?id="+this.ddl_json.demo_id+"&res="+this.json2uri(res));
                 } catch(err) {
