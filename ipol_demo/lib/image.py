@@ -12,6 +12,9 @@ import PIL.ImageOps
 import PIL.ImageDraw
 from PIL import ImageChops
 
+from   timeit   import default_timer as timer
+
+
 import subprocess
 
 def _deinterlace_png(path):
@@ -19,11 +22,14 @@ def _deinterlace_png(path):
     PIL 1.6 can't handle interlaced PNG
     temporary workaround, fixed in PIL 1.7
     """
+    start = timer()
     im = PIL.Image.open(path)
+    #print "_deinterlace_png {0} open image took: {1} sec".format(path,timer()-start)
     if im.format == 'PNG':
         try:
             im.getpixel((0, 0))
         except IOError:
+            print "_deinterlace_png exception on getpixel(0,0) calling convert ..."
             # check the file exists
             assert os.path.isfile(path)
             # convert it to non-interlaced
@@ -32,6 +38,7 @@ def _deinterlace_png(path):
             im = PIL.Image.open(path)
             # try once again, in case there is another problem
             im.getpixel((0, 0))
+    print "_deinterlace_png {0} took {1} sec".format(path,timer()-start)
     return
 
 # This function is kept here for information but not used; we prefer
