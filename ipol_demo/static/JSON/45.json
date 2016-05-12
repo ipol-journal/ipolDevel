@@ -110,9 +110,24 @@
     }
   ],
   "run": [
-     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
-     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
-     "run_algo.py"
+    "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
+    "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
+    "# we need to convert some parameters to numbers",
+    "python:self.algo_params['percentile']  = float(self.algo_params['percentile'])",
+    "python:self.algo_params['block']       = int(self.algo_params['block'])",
+    "python:self.algo_params['curvefilter'] = int(self.algo_params['curvefilter'])",
+    "python:self.algo_params['removeequals']= int(self.algo_params['removeequals'])",
+    "python:self.algo_params['mean_type']   = int(self.algo_params['mean_type'])",
+    "# save parameters to json file",
+    "python:import json",
+    "python:fp =  open(self.work_dir + 'params.json', 'w')",
+    "python:json.dump(self.algo_params, fp)",
+    "python:fp.close()",
+    "run_algo.py",
+    "# get back parameters",
+    "python:fp = open(self.work_dir + 'params.json')",
+    "python:self.algo_params = json.load(fp)",
+    "python:fp.close()"
   ],
   "archive":
     {
