@@ -23,24 +23,24 @@ var DrawResults = function( //demo_id,key,
     this.ZoomFactor   = 1;
     console.info("DrawResults");
 
-    //--------------------------------------------------------------------------
-    this.CreateZoomSelection = function() {
-        var scales=[0.125,0.25,0.5,0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-        var res='';
-        res += '<label> Zoom factor for images </label>'+
-               '<select id="zoomfactor">';
-            for(var id=0;id<scales.length;id++) {
-                if (scales[id]==this.ZoomFactor) {
-                    res += "<option selected='selected'>";
-                } else {
-                    res += "<option>";
-                }
-                res += scales[id]+"</option>";
-            }
-        res += "</select><br/>";
-        return res;
-    }
-    
+//     //--------------------------------------------------------------------------
+//     this.CreateZoomSelection = function() {
+//         var scales=[0.125,0.25,0.5,0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+//         var res='';
+//         res += '<label> Zoom factor for images </label>'+
+//                '<select id="zoomfactor">';
+//             for(var id=0;id<scales.length;id++) {
+//                 if (scales[id]==this.ZoomFactor) {
+//                     res += "<option selected='selected'>";
+//                 } else {
+//                     res += "<option>";
+//                 }
+//                 res += scales[id]+"</option>";
+//             }
+//         res += "</select><br/>";
+//         return res;
+//     }
+//     
     //--------------------------------------------------------------------------
     this.Create = function() {
 
@@ -52,7 +52,7 @@ var DrawResults = function( //demo_id,key,
             results_html += '  <p class="error"> '+res.error+' </p>';
         }
         
-        results_html += this.CreateZoomSelection();
+//         results_html += this.CreateZoomSelection();
 
         for(var id=0;id<this.ddl_results.length;id++) {
             results_html+=this.CreateResult(this.ddl_results[id],id);
@@ -66,13 +66,13 @@ var DrawResults = function( //demo_id,key,
         }
 
 
-        $("#zoomfactor").change(
-            function() {
-                this.ZoomFactor = $("#zoomfactor option:selected").val();
-                console.info(" ZoomFactor = ", this.ZoomFactor);
-                this.Create();
-            }.bind(this)
-        );
+//         $("#zoomfactor").change(
+//             function() {
+//                 this.ZoomFactor = $("#zoomfactor option:selected").val();
+//                 console.info(" ZoomFactor = ", this.ZoomFactor);
+//                 this.Create();
+//             }.bind(this)
+//         );
     };
     
     //--------------------------------------------------------------------------
@@ -296,9 +296,6 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.Gallery_new_events = function(res_desc,id) {
         var index = 0;
-        // compute style
-        // TODO: improve security risks with eval()
-        var style = this.EvalInContext(res_desc.style_new);
         if (res_desc.contents_new) {
             var contents = res_desc.contents_new;
         } else {
@@ -354,7 +351,6 @@ var DrawResults = function( //demo_id,key,
         
         var ig = new ImageGallery(id);
         ig.Append(new_contents);
-        ig.SetStyle(style);
         var html = ig.CreateHtml();
         $("#result_"+id).html(html);
         ig.CreateEvents();
@@ -426,9 +422,6 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.RepeatGallery_new_events = function(res_desc, id ) {
         var index = 0;
-        // compute style
-        // TODO: improve security risks with eval()
-        var style = this.EvalInContext(res_desc.style_new);
         if (res_desc.contents_new) {
             var contents = res_desc.contents_new;
         } else {
@@ -455,7 +448,6 @@ var DrawResults = function( //demo_id,key,
         
         var ig = new ImageGallery(id);
         ig.Append(new_contents);
-        ig.SetStyle(style);
         var html = ig.CreateHtml();
         $("#result_"+id).html(html);
         ig.CreateEvents();
