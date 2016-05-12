@@ -237,7 +237,7 @@ function InputController(demo_id,internal_demoid,from_url) {
                     if (!from_url) {
                         try {
                             // change url hash
-                            History.pushState({id:demo_id,state:1}, "IPOLDemos "+demo_id+" inputs", "?id="+demo_id+"&state=1");
+                            History.pushState({demo_id:demo_id,state:1}, "IPOLDemos "+demo_id+" inputs", "?id="+demo_id+"&state=1");
                         } catch(err) {
                             console.error("error:", err.message);
                         }
@@ -475,16 +475,19 @@ function DocumentReady() {
             // Log the State
             var State = History.getState(); // Note: We are using History.getState() instead of event.state
             if (History.getCurrentIndex()>0) {
-                var prev_id = History.getStateByIndex(History.getCurrentIndex()-1).data.id;
-                if (prev_id!=State.data.id) {
-                    console.info("!!! demo id has changed !!!");
-                    // find position of demo id
-                    var demo_list = $("#demo-select").data("demo_list");
-                    for(var i=0;i<demo_list.length;i++) {
-                        if (demo_list[i].editorsdemoid==State.data.id) {
-                            $("#demo_selection").val(i);
-                            $("#demo_selection").trigger("change");
-                            break;
+                var prevState = History.getStateByIndex(History.getCurrentIndex()-1);
+                if (prevState.data.demo_id!=undefined) {
+                    var prev_id = prevState.data.demo_id;
+                    if (prev_id!=State.data.id) {
+                        console.info("!!! demo id has changed !!! ", prev_id, "-->", State.data.demo_id);
+                        // find position of demo id
+                        var demo_list = $("#demo-select").data("demo_list");
+                        for(var i=0;i<demo_list.length;i++) {
+                            if (demo_list[i].editorsdemoid==State.data.id) {
+                                $("#demo_selection").val(i);
+                                $("#demo_selection").trigger("change");
+                                break;
+                            }
                         }
                     }
                 }
