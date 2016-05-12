@@ -88,8 +88,11 @@ var DrawInputs = function(ddl_json) {
                             // split cell using inside table
                             '<table style="width:100%;border:0;margin:0;padding:0;"><tr>'+
                             '<td style="border:0;margin:0;padding:0;" id="image_info"></td>'+
-                            '<td style="border:0;width:5em;margin:0;padding:0;">'+
+                            '<td style="border:0;width:4em;margin:0;padding:0;">'+
                                 '<input id="id_cropinput" type="checkbox" >crop'+
+                            '</td>'+
+                            '<td style="border:0;width:4em;margin:0;padding:0;">'+
+                                '<input id="id_cropview" type="checkbox" >view'+
                             '</td>'+
                             '</tr></table>'+
                         '</td>'+
@@ -102,7 +105,7 @@ var DrawInputs = function(ddl_json) {
         }
         $("#DrawInputs").html(html);
         $('.table_crop').hide();
-        
+        $("#id_cropview").prop('disabled',false);
     };
 
     
@@ -154,13 +157,15 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
-    this.CreateGallery = function(inputs_info,imstyle) {
+    this.CreateGallery = function(inputs_info) {
 
         var ig = new ImageGallery("inputs");
         ig.Append(inputs_info);
-        ig.SetStyle(imstyle);
         var html = ig.CreateHtml();
         $("#input_gallery").html(html);
+        ig.CreateEvents();
+        $("#input_gallery").data("image_gallery",ig);
+        
         //-----------------------------------
         ig.SetOnLoad( function(index,image) {
             console.info("OnLoad callback for image ",index);
@@ -175,20 +180,18 @@ var DrawInputs = function(ddl_json) {
         //-----------------------------------
         ig.SetOnDisplay( function(index) {
             var im = ig.GetImage(index)[0];
-            var ratio = Math.round($("#img_"+index+"_0").width())/im.naturalWidth;
+            var ratio = Math.round($("#input_gallery #img_"+index+"_0").width())/im.naturalWidth;
             var image_info = Math.round(im.naturalWidth)+"x"+
                                 Math.round(im.naturalHeight)+
                                 " (x"+(ratio).toFixed(3)+")";
             $('#input_gallery #inputinfo_'+index).html(image_info);
-        }.bind(this));
-        //-----------------------------------
-        ig.SetOnLoadAll( function() {
-            console.info("All images are loaded ... running callback ");
-            ig.UpdateSelection();
+            ratio = Math.round($("#gallery_inputs_all #img_"+index+"_0").width())/im.naturalWidth;
+            image_info = Math.round(im.naturalWidth)+"x"+
+                                Math.round(im.naturalHeight)+
+                                " (x"+(ratio).toFixed(3)+")";
+            $('#gallery_inputs_all #inputinfo_'+index).html(image_info);
         }.bind(this));
         
-        ig.CreateEvents();
-        $("#input_gallery").data("image_gallery",ig);
         // we don't deal with crop with multiple inputs for the moment
         //             this.CreateCropper();
     }
@@ -208,9 +211,6 @@ var DrawInputs = function(ddl_json) {
         if (inputs.length>1) {
             // Create Gallery object
             var inputs_info = {};
-            var imstyle = 'max-width:' +this.draw_info.maxdim+'px;'+
-                        '  max-height:'+this.draw_info.maxdim+'px;'+
-                        '  width:auto;height:auto;';
             for(var idx=0;idx<inputs.length;idx++) {
                 if (idx+1<blobs_url_params.length) {
                     var idx_str = blobs_url_params[idx+1].split(':')[0];
@@ -230,7 +230,7 @@ var DrawInputs = function(ddl_json) {
                     inputs_info[label]= obj;
                 }
             }
-            this.CreateGallery(inputs_info,imstyle);
+            this.CreateGallery(inputs_info);
         } else {
             var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
             var image = new Image();
@@ -261,9 +261,6 @@ var DrawInputs = function(ddl_json) {
 
             // Create Gallery object
             var inputs_info = {};
-            var imstyle = 'max-width:' +this.draw_info.maxdim+'px;'+
-                        '  max-height:'+this.draw_info.maxdim+'px;'+
-                        '  width:auto;height:auto;';
             for(var idx=0;idx<inputs.length;idx++) {
                 var label = inputs[idx].description;
                 // set object input to have information text below the image
@@ -271,7 +268,7 @@ var DrawInputs = function(ddl_json) {
                 obj['<span id="inputinfo_'+idx+'">img info</span>'] = images[idx].src;
                 inputs_info[label]= obj;
             }
-            this.CreateGallery(inputs_info,imstyle);
+            this.CreateGallery(inputs_info);
         } else {
             var image = new Image();
             image.src =  $('#localdata_preview_0').attr("src");
@@ -367,15 +364,16 @@ var DrawInputs = function(ddl_json) {
                                 var previewHeight = $preview.height();
                                 var previewWidth  = previewHeight * previewAspectRatio;
                                 var imageScaledRatio = e.width / previewWidth;
-
-                                $("#crop_info").html(Math.round(e.width)+"x"+Math.round(e.height)+" (x"+(1/imageScaledRatio).toFixed(2)+")");
                                 
-                                $preview.width(previewWidth).find('img').css({
-                                    width: imageData.naturalWidth / imageScaledRatio,
-                                    height: imageData.naturalHeight / imageScaledRatio,
-                                    marginLeft: -e.x / imageScaledRatio,
-                                    marginTop: -e.y / imageScaledRatio
-                                });
+                                if ($("#id_cropview").is(':checked')) {
+                                    $("#crop_info").html(Math.round(e.width)+"x"+Math.round(e.height)+" (x"+(1/imageScaledRatio).toFixed(2)+")");
+                                    $preview.width(previewWidth).find('img').css({
+                                        width: imageData.naturalWidth / imageScaledRatio,
+                                        height: imageData.naturalHeight / imageScaledRatio,
+                                        marginLeft: -e.x / imageScaledRatio,
+                                        marginTop: -e.y / imageScaledRatio
+                                    });
+                                }
                                 crop_info.x = e.x;
                                 crop_info.y = e.y;
                                 crop_info.w = e.width;
@@ -391,11 +389,14 @@ var DrawInputs = function(ddl_json) {
                 
             }
 //             $('#inputimage_table td:nth-child(2)').show();
-            $('.table_crop').show();
-            
+            if ($("#id_cropview").is(':checked')) {
+                $('.table_crop').show();
+            }
+            $("#id_cropview").prop('disabled',false);
         } else {
 //             $('#inputimage_table td:nth-child(2)').hide();
             $('.table_crop').hide();
+            $("#id_cropview").prop('disabled',true);
         }
     }
     
@@ -404,6 +405,7 @@ var DrawInputs = function(ddl_json) {
         $("#inputimage").cropper('destroy');
 //         $('#inputimage_table td:nth-child(2)').hide();
         $('.table_crop').hide();
+        $("#id_cropview").prop('disabled',true);
     }
     
     //--------------------------------------------------------------------------
@@ -412,6 +414,14 @@ var DrawInputs = function(ddl_json) {
         var inputs  = this.ddl_json.inputs;
         if (inputs.length===1) {
             $("#id_cropinput").change( function() { this.SetCrop(); }.bind(this));
+            $("#id_cropview").change( function() {  
+                if ($("#id_cropview").is(':checked')) { 
+                    $('.table_crop').show();
+                    $("#inputimage").cropper('move',0,0);
+                } else {
+                    $('.table_crop').hide();
+                }
+            }.bind(this));
             var crop_enabled = $("#id_cropinput").is(':checked');
             //console.info("SetCrop ",  crop_enabled);
             if (crop_enabled) {
@@ -588,9 +598,10 @@ var DrawInputs = function(ddl_json) {
                 }
                 console.info("run_demo res=", res);
 
-                // draw the results
-                var dr = new DrawResults( res, this.ddl_json.results );
-                dr.Create();
+                // push state will trigger result drawing ...
+//                 // draw the results
+//                 var dr = new DrawResults( res, this.ddl_json.results );
+//                 dr.Create();
                 
                 // Set url state for browser history
                 try {
