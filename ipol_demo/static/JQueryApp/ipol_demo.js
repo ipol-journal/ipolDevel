@@ -19,8 +19,8 @@
 // 
 function PreprocessDemo(demo) {
     //
-    console.info("PreprocessDemo")
-    console.info(demo)
+//     console.info("PreprocessDemo")
+//     console.info(demo)
     if (demo != undefined) {
         for (var input in demo.inputs) {
             // do some pre-processing
@@ -69,27 +69,38 @@ function PreprocessDemo(demo) {
 //------------------------------------------------------------------------------
 function OnDemoList(demolist)
 {
+    
+    //--------------------------------------------------------------------------
+    this.InfoMessage = function( ) {
+        if (this.verbose) {
+            var args = [].slice.call( arguments ); //Convert to array
+            args.unshift("---- OnDemoList ----");
+            console.info.apply(console,args);
+        }
+    }
+    this.verbose=false;
+    
     var dl = demolist;
     if (dl.status == "OK") {
         var str = JSON.stringify(dl.demo_list, undefined, 4);
         $("#tabs-demos pre").html(syntaxHighlight(str))
-        console.info(dl);
+        this.InfoMessage("demo list is ",dl);
     }
 
 
     // get url parameters (found on http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/21152762#21152762)
     var url_params = {};
-    console.info("location.search=",location.search);
+    this.InfoMessage("*** OnDemoList location.search=",location.search);
     location.search.substr(1).split("&").forEach(function(item) {
         var s = item.split("="),
             k = s[0],
             v = s[1] && decodeURIComponent(s[1]);
         (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
     })
-    console.info("url parameters = ",url_params);
+    this.InfoMessage("url parameters = ",url_params);
     if (url_params["id"]!=undefined) {
         var demo_id = url_params["id"][0];
-        console.info("demo_id = ", demo_id);
+        this.InfoMessage("demo_id = ", demo_id);
     }
     
     // create a demo selection
@@ -97,7 +108,7 @@ function OnDemoList(demolist)
     var demo_pos = -1;
     for (var i=0; i<dl.demo_list.length; i++) {
         if (dl.demo_list[i].editorsdemoid==demo_id) {
-            console.info("found demo id at position ", i);
+            this.InfoMessage("found demo id at position ", i);
             demo_pos=i;
         }
         html_selection += '<option value = "'+i+'">'
@@ -136,7 +147,7 @@ function OnDemoList(demolist)
 //
 function ListDemosController() {
     
-    console.info("get demo list from server");
+//     console.info("get demo list from server");
     var dl;
 
     ModuleService(
@@ -159,14 +170,14 @@ function InputController(demo_id,internal_demoid,from_url) {
         from_url=false;
     }
 
-    console.info("internal demo id = ", internal_demoid);
+//     console.info("internal demo id = ", internal_demoid);
     if (internal_demoid > 0) {
         ModuleService(
             'demoinfo',
             'read_last_demodescription_from_demo',
             'demo_id=' + internal_demoid + '&returnjsons=True',
             function(demo_ddl) {
-                console.info("read demo ddl status = ", demo_ddl.status);
+                //console.info("read demo ddl status = ", demo_ddl.status);
 
                 // empty inputs
                 $("#DrawInputs").empty();
@@ -178,6 +189,8 @@ function InputController(demo_id,internal_demoid,from_url) {
                     var ddl_json = DeserializeJSON(demo_ddl.last_demodescription.json);
                     var str = JSON.stringify(ddl_json, undefined, 4);
                     $("#tabs-ddl pre").html(syntaxHighlight(str));
+                } else {
+                    console.error(" --- failed to read DDL");
                 }
                 
                 if ((ddl_json.inputs!==undefined)&&
@@ -201,7 +214,7 @@ function InputController(demo_id,internal_demoid,from_url) {
                     $("#parameters_fieldset").show();
                 }
                 
-                console.info("pd = ",ddl_json.general.param_description);
+                //console.info("pd = ",ddl_json.general.param_description);
                 if ((ddl_json.general.param_description != undefined) &&
                     (ddl_json.general.param_description != "")&&
                     (ddl_json.general.param_description != [""]))
@@ -211,6 +224,16 @@ function InputController(demo_id,internal_demoid,from_url) {
                     $("#description_params").hide();
                 }
                 
+                if ((ddl_json.general.input_description != undefined) &&
+                    (ddl_json.general.input_description != "")&&
+                    (ddl_json.general.input_description != [""]))
+                {
+                    $("#InputDescription").html(joinHtml(ddl_json.general.input_description));
+                    $("#description_input").show();
+                } else {
+                    $("#description_input").hide();
+                }
+
                 // for convenience, add demo_id field to the json DDL 
                 ddl_json['demo_id'] = demo_id
                 
@@ -219,6 +242,7 @@ function InputController(demo_id,internal_demoid,from_url) {
                 // Create local data selection to upload 
                 CreateLocalData(ddl_json);
 
+    
                 // Create Parameters tab
                 CreateParams(ddl_json);
 
@@ -235,6 +259,7 @@ function InputController(demo_id,internal_demoid,from_url) {
 
                 if (demo_ddl.status == "OK") {
                     if (!from_url) {
+                        // !from_url mean the event is from changing the demo id
                         try {
                             // change url hash
                             History.pushState({demo_id:demo_id,state:1}, "IPOLDemos "+demo_id+" inputs", "?id="+demo_id+"&state=1");
@@ -252,7 +277,7 @@ function InputController(demo_id,internal_demoid,from_url) {
                         });
                         if (url_params["res"]!==undefined) {
                             var res = JSON.parse(url_params["res"]);
-                            console.info("***** res=",res);
+                            console.info("***** demo results obtained from url parameters");
                             // Set parameter values
                             SetParamValues(res.params);
                             // Draw results
@@ -420,15 +445,27 @@ function DocumentReady() {
         // height: 500,
         width: 800,
         modal: true,
-//         close: function(event, ui) {
-//             $(this).empty().dialog('destroy');
-//         }
     });
     
     $("#description_params").button().on("click", 
         function() 
         { 
             param_desc_dialog.dialog("open");
+        });
+
+    // input description dialog
+    var input_desc_dialog;
+    input_desc_dialog = $("#InputDescription").dialog({
+        autoOpen: false,
+        // height: 500,
+        width: 800,
+        modal: true,
+    });
+    
+    $("#description_input").button().on("click", 
+        function() 
+        { 
+            input_desc_dialog.dialog("open");
         });
 
     // upload modal dialog
@@ -492,7 +529,14 @@ function DocumentReady() {
                                 "-->", 
                                 State.data.demo_id);
                     $("#demo_selection").val(demo_position);
-                    $("#demo_selection").trigger("change");
+                    // don't trigger change since it will push a new history state,
+                    // instead, execute the change has if the url was loaded
+                    // which means we draw parameters and results too
+                    // $("#demo_selection").trigger("change");
+                    InputController(demo_list[demo_position].editorsdemoid,
+                                    demo_list[demo_position].id,
+                                    true
+                                );
                 }
             }
             
@@ -500,13 +544,41 @@ function DocumentReady() {
             switch (State.data.state) {
                 case 2:
                     // empty draw inputs since we don't redraw them for the moment
-                    $("#DrawInputs").empty();
+                    // tricky: we cannot empty the input just after 'run' ...
+                    if (State.data.blobset) {
+                        // if from blobset, we can redraw ...
+                        var di = new DrawInputs(State.data.ddl_json);
+                        di.SetBlobSet(State.data.blobset);
+                        di.input_origin = "blobset";
+                        di.CreateHTML();
+                        di.OnCropBuilt( function() {
+                            console.info("OnLoadImages callback");
+                            if (State.data.crop_checked) {
+//                                 $("#id_cropinput").prop('checked',true);
+//                                 $("#id_cropinput").trigger('change');
+                                var crop_area = {   
+                                    x:      State.data.res.params.x0, 
+                                    y:      State.data.res.params.y0, 
+                                    width:  State.data.res.params.x1-State.data.res.params.x0,
+                                    height: State.data.res.params.y1-State.data.res.params.y0
+                                };
+                                // does not work yet
+                                console.info("crop_area is ", crop_area);
+                                di.SetCrop(crop_area);
+                            }
+                        });
+                        di.LoadDataFromBlobSet();
+                        if (State.data.crop_checked) {
+                            $("#id_cropinput").prop('checked',true);
+                            $("#id_cropinput").trigger('change');
+                        }
+                        di.SetRunEvent();
+                    }
                     // update parameters
-                    // test if demo has changed, if so, redraw inputs, parameters
                     SetParamValues(State.data.res.params);
                     
                     // draw results
-                    var dr = new DrawResults( State.data.res, State.data.ddl_res );
+                    var dr = new DrawResults( State.data.res, State.data.ddl_json.results );
                     dr.Create();
                     //$("#progressbar").get(0).scrollIntoView();
                     break;
