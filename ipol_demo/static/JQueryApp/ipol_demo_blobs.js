@@ -17,15 +17,26 @@
 var BlobsContainer = function(demoblobs, ddl_json)
 {
 
-    console.info("constructor : ", demoblobs);
+    //--------------------------------------------------------------------------
+    this.InfoMessage = function( ) {
+        if (this.verbose) {
+            var args = [].slice.call( arguments ); //Convert to array
+            args.unshift("---- BlobsContainer ----");
+            console.info.apply(console,args);
+        }
+    }
+    
+    this.verbose=true;
+    this.InfoMessage(" BlobsContainer started ");
+    this.verbose=false;
     this.demoblobs = demoblobs;
     this.ddl_json  = ddl_json;
-    console.info("this.demoblobs : ", this.demoblobs);
+    this.InfoMessage("this.demoblobs : ", this.demoblobs);
 
         
     //--------------------------------------------------------------------------
     this.append_blobs = function(db) {
-        console.info("append_blobs ", this.demoblobs, " -- ", db);
+        this.InfoMessage("append_blobs ", this.demoblobs, " -- ", db);
         this.demoblobs.blobs = this.demoblobs.blobs.concat(db.blobs);
         this.UpdateDemoBlobs();
     }
@@ -33,7 +44,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
     //--------------------------------------------------------------------------
     this.UpdateDemoBlobs = function() {
 
-        console.info("demoblobs.blobs.length=",this.demoblobs.blobs.length);
+        this.InfoMessage("demoblobs.blobs.length=",this.demoblobs.blobs.length);
         
         var str = JSON.stringify(this.demoblobs, undefined, 4);
         $("#tabs-blobs pre").html(syntaxHighlight(str));
@@ -41,9 +52,9 @@ var BlobsContainer = function(demoblobs, ddl_json)
         this.PreprocessDemo();
         this.DrawDemoBlobs();
         
-        $("#ThumbnailSize")      .unbind().change( function() { console.info("ThumbnailSize changed");this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowCreditsCheckbox").unbind().change( function() { console.info("ShowCreditsCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowTitlesCheckbox") .unbind().change( function() { console.info("ShowTitlesCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
+        $("#ThumbnailSize")      .unbind().change( function() { this.InfoMessage("ThumbnailSize changed");this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowCreditsCheckbox").unbind().change( function() { this.InfoMessage("ShowCreditsCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
+        $("#ShowTitlesCheckbox") .unbind().change( function() { this.InfoMessage("ShowTitlesCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
     }
         
     //--------------------------------------------------------------------------
@@ -86,7 +97,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
 
     //--------------------------------------------------------------------------
     this.DrawDemoBlobs = function() {
-        console.info("DrawDemoBlobs");
+        this.InfoMessage("DrawDemoBlobs");
         $("#displayblobs").html(this.CreateBlobSetDisplay());
         this.DemoBlobsEvents();
     }
@@ -100,7 +111,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
         var display_credits  = $("#ShowCreditsCheckbox").is(':checked');
         var display_titles   = $("#ShowTitlesCheckbox").is(':checked');
         
-        console.info("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
+        this.InfoMessage("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
         
         // loop over blobsets
         for(var i=0;i<this.demoblobs.blobs.length;i++)
@@ -178,7 +189,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
         for(var i=0;i<blobs.length;i++) {
             images_to_process += this.demoblobs.blobs[i][0].size;
         }
-        console.info("images_to_process =", images_to_process);
+        this.InfoMessage("images_to_process =", images_to_process);
         
         // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
@@ -189,7 +200,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 di.CreateHTML();
 //                 di.CreateCropper();
                 di.LoadDataFromBlobSet();
-                //console.info("blobset "+event.data.blobset_id+" clicked ");
+                //this.InfoMessage("blobset "+event.data.blobset_id+" clicked ");
                 di.SetRunEvent();
             }.bind(this)
             );
@@ -221,7 +232,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 }; })(i,idx);
                 tester.src=this.demoblobs.url_thumb+'/thumbnail_'+blobset[idx].hash+blobset[idx].extension;
                 tester.onload = function(obj) { return function() {
-//                     console.info("start ",i);
+//                     obj.InfoMessage("start ",i);
                     // Run onload code.
                     // set lowest possible height for all thumbnails
 //                     var prev_ratio = obj.max_ratio;
@@ -229,20 +240,20 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     processed_images++;
 //                     if (prev_ratio!=obj.max_ratio) {
                     if (processed_images==images_to_process) {
-                        console.info("processed_images=",processed_images," / ",images_to_process);
-                        console.info("setting ratio to ",obj.max_ratio, " for blob ", i);
+                        obj.InfoMessage("processed_images=",processed_images," / ",images_to_process);
+                        obj.InfoMessage("setting ratio to ",obj.max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
                         var new_height = thumbnail_size*obj.max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                     }
-//                     console.info("end ",i);
+//                     obj.InfoMessage("end ",i);
                 }; }(this);
                 tester.onerror = function(obj) { return function() {
-                    console.info("failed to load blob image ",i," index ",idx);
+                    obj.InfoMessage("failed to load blob image ",i," index ",idx);
                     processed_images++;
                     if (processed_images==images_to_process) {
-                        console.info("setting ratio to ",obj.max_ratio, " for blob ", i);
+                        obj.InfoMessage("setting ratio to ",obj.max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
                         var new_height = thumbnail_size*obj.max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
@@ -262,9 +273,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
 function OnDemoBlobs(ddl_json) {
     return function (demoblobs) {
         
-        console.info("*** demoblobs");
-        console.info("demoblobs=",demoblobs);
-        console.info("ddl_json=",ddl_json);
+//        console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
+//         console.info("ddl_json=",ddl_json);
         
         if (demoblobs.status=="KO") {
             return;
@@ -276,7 +286,7 @@ function OnDemoBlobs(ddl_json) {
         if (demoblobs.use_template.hasOwnProperty('name')) {
             // get template blobs
             var template_name = demoblobs.use_template.name;
-            console.info("getting template ***")
+            console.info("*** getting template")
             ModuleService(
                 "blobs",
                 "get_blobs_from_template_ws",
