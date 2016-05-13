@@ -5,6 +5,16 @@
 // designed to replace the CSS based image gallery for IPOL
 var ImageGallery = function(galleryid)  {
     
+    //--------------------------------------------------------------------------
+    this.InfoMessage = function( ) {
+        if (this.verbose) {
+            var args = [].slice.call( arguments ); //Convert to array
+            args.unshift("---- ImageGallery ----");
+            console.info.apply(console,args);
+        }
+    }
+    
+
     // contents is an object of type 'title':'image contents'
     // where image contents can be:
     //   - a single location of an image
@@ -24,7 +34,8 @@ var ImageGallery = function(galleryid)  {
     // set maximum display dimensions
     this.display_maxwidth  = $(window).width()*0.80;
     this.display_maxheight = $(window).height()*0.80;
-    console.info("max dimensions = ",this.display_maxwidth, "x",this.display_maxheight);
+    this.verbose=false;
+    this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
     this.display_minwidth  = 400;
     this.display_minheight = 300;
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
@@ -145,7 +156,7 @@ var ImageGallery = function(galleryid)  {
         // need style ...
         
         var image = this.contents[title];
-        console.info("CreateContents ", title, ": ", image);
+        this.InfoMessage("CreateContents "+ title+ ": "+ image);
         var res="";
 
         var img_style = "";
@@ -159,7 +170,7 @@ var ImageGallery = function(galleryid)  {
                 res += ' class='+this.img_class+' ';
                 res +=        'src="'+image+'"';
                 res += '/>';
-                console.info("returning ",res);
+                this.InfoMessage("returning ",res);
                 return res;
             case "object":
                 res += '<table style="border:0px">';
@@ -206,7 +217,7 @@ var ImageGallery = function(galleryid)  {
     //--------------------------------------------------------------------------
     this.CheckLoadAllImages = function(index) {
         if (this.total_loaded_images===this.total_images) {
-            console.info("All images are loaded ... running callback ");
+            this.InfoMessage("All images are loaded ... running callback ");
             if (this.onloadall_callback!=undefined) {
                 this.onloadall_callback();
             }
@@ -214,7 +225,7 @@ var ImageGallery = function(galleryid)  {
             var ratio = 1;
             ratio = Math.min(ratio,this.display_maxheight/this.max_height);
             ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
-            console.info("ratio = ",ratio);
+            this.InfoMessage("ratio = ",ratio);
             if (ratio<1) {
                 // find scale to select
                 var idx=0;
@@ -224,7 +235,7 @@ var ImageGallery = function(galleryid)  {
                 if (idx>0) {
                     idx--;
                 }
-                console.info("scale ",idx," = ",this.scales[idx]);
+                this.InfoMessage("scale ",idx," = ",this.scales[idx]);
                 $("#"+this.zoom_id).val(this.scales[idx]);
                 $("#"+this.zoom_id).trigger("change");
             } else {
@@ -233,7 +244,7 @@ var ImageGallery = function(galleryid)  {
                 var ratio = 1;
                 ratio = Math.max(ratio,this.display_minheight/this.max_height);
                 ratio = Math.max(ratio,this.display_minwidth/this.max_width);
-                console.info("ratio = ",ratio);
+                this.InfoMessage("ratio = ",ratio);
                 if (ratio>1) {
                     var idx=this.scales.length-1;
                     while (this.scales[idx]>ratio) {
@@ -243,7 +254,7 @@ var ImageGallery = function(galleryid)  {
                         idx++;
                     }
                     // TODO: check max constraint is still OK
-                    console.info("scale ",idx," = ",this.scales[idx]);
+                    this.InfoMessage("scale ",idx," = ",this.scales[idx]);
                     $("#"+this.zoom_id).val(this.scales[idx]);
                     $("#"+this.zoom_id).trigger("change");
                 }
@@ -258,7 +269,7 @@ var ImageGallery = function(galleryid)  {
         // need style ...
         var titles = Object.keys(this.contents);
         var image = this.contents[titles[index]];
-        console.info("*** CreateImages ", titles[index], ": ", image);
+        this.InfoMessage("*** CreateImages ", titles[index], ": ", image);
         
         var res=[];
         
@@ -273,7 +284,7 @@ var ImageGallery = function(galleryid)  {
         // string case
         switch ($.type(image)){
             case "string": 
-                console.info("string image");
+                this.InfoMessage("string image");
                 var im = new Image();
                 this.total_images++;
                 res.push(im);
@@ -281,9 +292,9 @@ var ImageGallery = function(galleryid)  {
                 im.onload = function() { 
                     this.max_height = Math.max(this.max_height,im.height);
                     this.max_width  = Math.max(this.max_width, im.width);
-                    console.info(" max :", this.max_width, "x" , this.max_height);
+                    this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
                     $(this.Elt(index)).css(normal_font);
-                    console.info("image for ",titles[index], " loaded");
+                    this.InfoMessage("image for ",titles[index], " loaded");
                     if (this.onload_callback!=undefined) {
                         this.onload_callback(index,im);
                     }
@@ -301,13 +312,13 @@ var ImageGallery = function(galleryid)  {
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
-                        console.info(" max :", this.max_width, "x" , this.max_height);
+                        this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
                         //$(this.Elt(index)).css('font-style','normal');
-                        console.info("[",l,"] for ",titles[index], " loaded");
+                        this.InfoMessage("[",l,"] for ",titles[index], " loaded");
                         this.nb_loaded_images[index]++;
                         // check if all images are loaded
                         if (this.nb_loaded_images[index]==Object.keys(image).length) {
-                            console.info("all images loaded for ",titles[index]);
+                            this.InfoMessage("all images loaded for ",titles[index]);
                             this.max_width  = Math.max(this.max_width, this.total_width[index]);
                             $(this.Elt(index)).css(normal_font);
                         }
@@ -329,13 +340,13 @@ var ImageGallery = function(galleryid)  {
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
-                        console.info(" max :", this.max_width, "x" , this.max_height);
+                        this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
                         //$(this.Elt(index)).css('font-style','normal');
-                        console.info("image ",idx," for ",titles[index], " loaded");
+                        this.InfoMessage("image ",idx," for ",titles[index], " loaded");
                         this.nb_loaded_images[index]++;
                         // check if all images are loaded
                         if (this.nb_loaded_images[index]==image.length) {
-                            console.info("all images loaded for ",titles[index]);
+                            this.InfoMessage("all images loaded for ",titles[index]);
                             this.max_width  = Math.max(this.max_width, this.total_width[index]);
                             $(this.Elt(index)).css(normal_font);
                         }
@@ -430,7 +441,7 @@ var ImageGallery = function(galleryid)  {
 
         // deal with this.maxlength for text part
         
-        console.info("ImageGallery::CreateEvents() contents= ", this.contents);
+        this.InfoMessage("ImageGallery::CreateEvents() contents= ", this.contents);
         var titles = Object.keys(this.contents);
 
         this.BuildContents();
@@ -438,10 +449,10 @@ var ImageGallery = function(galleryid)  {
         // Set ref index to 0
         this.SetSelection(0);
         
-        console.info("CreateEvents");
+        this.InfoMessage("CreateEvents");
         // create events
         $.each(titles, function(index,title) {
-            console.info("index =",index);
+            this.InfoMessage("index =",index);
             $(this.Elt(index)).hover( 
                 function() {
                     this.SetContents(index);
@@ -465,7 +476,7 @@ var ImageGallery = function(galleryid)  {
         $("#"+this.zoom_id).change( 
             function() {
                 this.ZoomFactor = $("#"+this.zoom_id+" option:selected").val();
-                console.info(this.zoom_id+ " changed ", this.ZoomFactor);
+                this.InfoMessage(this.zoom_id+ " changed ", this.ZoomFactor);
                 this.UpdateSelection();
             }.bind(this)
         );
@@ -496,7 +507,7 @@ var ImageGallery = function(galleryid)  {
                     }
                 });
         
-                console.info("popup_all click length=",this.html_contents.length);
+                this.InfoMessage("popup_all click length=",this.html_contents.length);
                 var html = "<div >";
                 for(var i=0;i<this.html_contents.length;i++) {
                     html += '<div style="display:inline-block;vertical-align:top;margin:2px">';
@@ -511,7 +522,7 @@ var ImageGallery = function(galleryid)  {
                     html += "</div>";
                 }
                 html += "</div>";
-                console.info("setting ","#gallery_"+this.galleryid+"_all", " to ", html);
+                this.InfoMessage("setting ","#gallery_"+this.galleryid+"_all", " to ", html);
                 this.gallery_dialog.dialog("open");
                 $("#gallery_"+this.galleryid+"_all").html(html);
                 $("."+this.img_class).css("height",(this.ZoomFactor*this.max_height)+"px");
