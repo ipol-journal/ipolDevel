@@ -16,6 +16,16 @@
 var ArchiveDisplay = function()
 {
     
+    this.verbose=false;
+    //--------------------------------------------------------------------------
+    this.InfoMessage = function( ) {
+        if (this.verbose) {
+            var args = [].slice.call( arguments ); //Convert to array
+            args.unshift("---- ArchiveDisplay ----");
+            console.info.apply(console,args);
+        }
+    }
+
     //--------------------------------------------------------------------------
     this.ArchivePages = function(res) {
         var html = "";
@@ -38,9 +48,9 @@ var ArchiveDisplay = function()
         var HasVisualRepresentation = function(file) {
             // for the moment, just check if the file ends with png
             // later use url_thumb property to decide
-            console.info("file.url = ", file.url, " png?",file.url.endsWith('.png'));
+            this.InfoMessage("file.url = ", file.url, " png?",file.url.endsWith('.png'));
             return file.url.endsWith('.png');
-        };
+        }.bind(this);
         
         $.each(exp.files,
             function(index,file) {
@@ -169,7 +179,7 @@ var ArchiveDisplay = function()
         var url_params =    'demo_id='    + demo_id;
         ModuleService("archive","get_page",url_params,
             function(res) {
-                console.info("archive result : ",res);
+                this.InfoMessage("archive result : ",res);
                 if (res['status']==='OK') {
                     var html = this.CreateMainPage(res);
                     $("#tabs-archive").html(html);
