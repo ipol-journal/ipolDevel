@@ -16,12 +16,23 @@
 var DrawResults = function( //demo_id,key,
                             res,ddl_results) {
     
+    //--------------------------------------------------------------------------
+    this.InfoMessage = function( ) {
+        if (this.verbose) {
+            var args = [].slice.call( arguments ); //Convert to array
+            args.unshift("---- DrawResults ----");
+            console.info.apply(console,args);
+        }
+    }
+    
+    this.verbose=true;
+    this.InfoMessage("DrawResults started");
+    this.verbose = false;
     this.ddl_results  = ddl_results;
     this.res          = res;
     this.params       = res.params;
     this.work_url     = res.work_url;
     this.ZoomFactor   = 1;
-    console.info("DrawResults");
 
 //     //--------------------------------------------------------------------------
 //     this.CreateZoomSelection = function() {
@@ -75,7 +86,7 @@ var DrawResults = function( //demo_id,key,
 //         $("#zoomfactor").change(
 //             function() {
 //                 this.ZoomFactor = $("#zoomfactor option:selected").val();
-//                 console.info(" ZoomFactor = ", this.ZoomFactor);
+//                 this.InfoMessage(" ZoomFactor = ", this.ZoomFactor);
 //                 this.Create();
 //             }.bind(this)
 //         );
@@ -83,7 +94,7 @@ var DrawResults = function( //demo_id,key,
     
     //--------------------------------------------------------------------------
     this.CreateResult = function(res_desc,id) {
-        console.info("CreateResult ",id," type ",res_desc.type);
+        this.InfoMessage("CreateResult ",id," type ",res_desc.type);
         var display = true;
         var visible_expr = undefined;
         if (res_desc.visible_new!==undefined) {
@@ -93,8 +104,8 @@ var DrawResults = function( //demo_id,key,
         }
         if (visible_expr!==undefined) {
             display = this.EvalInContext(visible_expr);
-            console.info("evaluating ", visible_expr);
-            console.info('display result = ',display);
+            this.InfoMessage("evaluating ", visible_expr);
+            this.InfoMessage('display result = ',display);
         }
         if (display) {
             switch(res_desc.type) {
@@ -104,7 +115,7 @@ var DrawResults = function( //demo_id,key,
                 case "repeat_gallery":  return this.Gallery_new   (res_desc,id);
                 case "text_file":       return this.TextFile      (res_desc,id);
                 case "warning":         return this.Warning       (res_desc);
-                default: console.info(" result type "+ res_desc.type + " not available");
+                default: this.InfoMessage(" result type "+ res_desc.type + " not available");
             }
         } else {
             return "";
@@ -122,8 +133,8 @@ var DrawResults = function( //demo_id,key,
         }
         if (visible_expr!==undefined) {
             display = this.EvalInContext(visible_expr);
-            console.info("evaluating ", visible_expr);
-            console.info('display result = ',display);
+            this.InfoMessage("evaluating ", visible_expr);
+            this.InfoMessage('display result = ',display);
         }
         if (display) {
             switch(res_desc.type) {
@@ -175,23 +186,23 @@ var DrawResults = function( //demo_id,key,
             contents = this.joinHtml(res_desc.contents_new);
         } 
         if (contents[0]==="'") {
-            //console.info("HtmlText evaluating ", contents);
+            //this.InfoMessage("HtmlText evaluating ", contents);
             return "<div>"+this.EvalInContext(contents)+"</div><br/>";
         } else {
-            //console.info("contents=",contents);
+            //this.InfoMessage("contents=",contents);
             return "<div>"+contents+"</div><br/>";
         }
     };
     
     //--------------------------------------------------------------------------
     this.Warning = function(res_desc) {
-        console.info("display Warning ",res_desc);
+        this.InfoMessage("display Warning ",res_desc);
         var html=  
         "<p style='border:1px solid;margin:10px 0px;padding:15px 10px 15px 50px;color:#9F6000;'>"+
           "<b><u>WARNING</u></b><br/><br/>"+
           "<span>"+res_desc.contents+"</span> <br/><br/>"+
         "</p>";
-        console.info(html);
+        this.InfoMessage(html);
         return html;
     }
         
@@ -391,8 +402,8 @@ var DrawResults = function( //demo_id,key,
 //             res += '<li>';
 //             res += '<a href="#" >';
 //             // label
-//             console.info(contents[0]);
-//             console.info(contents[1]);
+//             this.InfoMessage(contents[0]);
+//             this.InfoMessage(contents[1]);
 //             res += '<div>'+this.EvalInContext(contents[0],idx)+'</div>'
 //             
 //             if ($.type(contents[1])!=="array") {
