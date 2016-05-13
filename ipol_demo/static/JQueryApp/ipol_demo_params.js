@@ -116,15 +116,6 @@ function initParams(  demo, params) {
 //     );
 };
 
-//--------------------------------------------------------------------------
-function joinHtml(html_code)
-{
-    if ($.isArray(html_code)) {
-        return html_code.join(' ');
-    } else {
-        return html_code;
-    }
-};
     
 
 //------------------------------------------------------------------------------
@@ -395,7 +386,7 @@ function CreateCheckBoxes(param) {
 //------------------------------------------------------------------------------
 function CreateParams(ddl_json) {
     
-    $("#ParamDescription").html(ddl_json.general.param_description.join(' '));
+    $("#ParamDescription").html(joinHtml(ddl_json.general.param_description));
     
     var params_html = "";
     if ((ddl_json.params)&&(ddl_json.params.length>0)) {
