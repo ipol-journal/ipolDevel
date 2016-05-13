@@ -146,34 +146,34 @@
     {
       "type"          : "warning", 
       "visible"       : "sizeX * sizeY < 20000",
-      "contents"      : "Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with {{sizeX * sizeY}} pixels<br/>"
+      "contents"      : "'Image too small: at least 20000 pixels are need to be able to estimate the noise. No estimation is given with '+(sizeX * sizeY)+' pixels<br/>'"
     },
     {
       "type"          : "gallery",
       "label"         : "Input image:",
       "contents"      : { "Input" : "scale_s0.png" },
-      "style"         : "{'width':600*ZoomFactor+'px'}"
+      "style_new"     : "'width:'+(600*ZoomFactor)+'px'"
     },
     {
       "type"          : "html_text", 
-      "contents"      : [
-          "Additional noise of variance = {{params.anoise}} + {{params.bnoise}}u.<br/>",
-          "\nNote that here the image may be showed with a size different from ",
-          "the original to help looking at the results.<br/>"
+      "contents_new"  : [
+          "'Additional noise of variance = '+params.anoise+' + '+params.bnoise+'u.<br/>",
+          "Note that here the image may be showed with a size different from ",
+          "the original to help looking at the results.<br/>'"
         ]
     },
     {
       "type"          : "repeat_gallery",
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
-      "contents"      : [ "Scale S{{idx}}:", "curve_s{{idx}}.png"],
-      "style"         : "{'height':600*ZoomFactor+'px'}" 
+      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
+      "style_new"     : "'height:'+(600*ZoomFactor)+'px'" 
     },
     {
       "repeat"        : "params.scales",
       "type"          : "file_download", 
-      "label"         : "Download the estimations obtained at scale {{idx}} (gnuplot compatible format)",
-      "contents"      : "estimation_s{{idx}}.txt"
+      "label"         : "'Download the estimations obtained at scale '+idx+' (gnuplot compatible format)'",
+      "contents"      : "'estimation_s'+idx+'.txt'"
     }
   ]
 }
