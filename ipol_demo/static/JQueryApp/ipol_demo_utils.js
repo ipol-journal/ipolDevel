@@ -59,21 +59,24 @@ function ModuleService(module,service,params,func)
                 '/?module='+ module +
                 '&service='+ service +
                 '&'+params;
-    console.info("getting service:"+link);
+    var params_str = ""+params;
+                
+    console.info("--- ModuleService() --- "+ module + " -- "+ service+ " -- "+ 
+                     params_str.slice(0,40) +(params_str.length>40?"...":""));
 
     return $.getJSON(link).done(func);
 }
 
-//------------------------------------------------------------------------------
-//
-function DemoRunnerService(service,params,func) {
-    var link =  servers.proxy + 
-                '/?module=demorunner'+ 
-                '&service='+ service +
-                '&'+params;
-    console.info("getting demorunner service:"+link);
-    return $.getJSON(link).done(func);
-};
+// //------------------------------------------------------------------------------
+// //
+// function DemoRunnerService(service,params,func) {
+//     var link =  servers.proxy + 
+//                 '/?module=demorunner'+ 
+//                 '&service='+ service +
+//                 '&'+params;
+//     console.info("---- DemoRunnerService() ---- "+link.slice(0,80)+(link.length>80?"...":""));
+//     return $.getJSON(link).done(func);
+// };
 
 
 //------------------------------------------------------------------------------
@@ -94,6 +97,17 @@ function range(min, max, step) {
     }
     // returning the generated array
     return output;
+};
+
+
+//------------------------------------------------------------------------------
+function joinHtml(html_code)
+{
+    if ($.isArray(html_code)) {
+        return html_code.join(' ');
+    } else {
+        return html_code;
+    }
 };
 
 
