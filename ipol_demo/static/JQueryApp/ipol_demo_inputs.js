@@ -33,20 +33,36 @@ var DrawInputs = function(ddl_json) {
         console.info.apply(console,args);
     }
     
-    this.verbose=false;
+    //--------------------------------------------------------------------------
+    // Initialize members
+    //--------------------------------------------------------------------------
+    this.verbose=true;
     this.PriorityMessage(" DrawInput started ");
-    
     this.ddl_json      = ddl_json;
     this.draw_info     = { maxdim:768,  display_ratio:-1};
     this.input_origin  = "";
     this.crop_info     = { enabled:false, x:0,y:0,w:1,h:1};
     this.progressbar   = $("#progressbar");
     this.progresslabel = $(".progress-label");
-    this.oncropbuilt_cb = undefined;
+    this.oncropbuilt_cb  = undefined;
+    this.onloadimages_cb = undefined;
+    
+    //--------------------------------------------------------------------------
+    this.UnsetBlobSet = function() {
+        this.blobset = undefined;
+    }
     
     //--------------------------------------------------------------------------
     this.SetBlobSet = function(blobset) {
         this.blobset = blobset;
+        if (blobset) {
+            this.UnsetUploadPageState();
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    this.GetBlobSet = function() {
+        return this.blobset;
     }
     
 //     //--------------------------------------------------------------------------
@@ -57,6 +73,11 @@ var DrawInputs = function(ddl_json) {
     //--------------------------------------------------------------------------
     this.OnCropBuilt = function(callback) {
         this.oncropbuilt_cb = callback;
+    }
+    
+    //--------------------------------------------------------------------------
+    this.OnLoadImages = function(callback) {
+        this.onloadimages_cb = callback;
     }
     
     //--------------------------------------------------------------------------
@@ -163,6 +184,7 @@ var DrawInputs = function(ddl_json) {
     //--------------------------------------------------------------------------
     // on load a single input image
     this.OnLoadSingleImage = function(image) { 
+        this.InfoMessage("OnLoadSingleImage begin");
         var draw_info = this.draw_info;
         var crop_info = this.crop_info;
         // compute display ratio
@@ -183,8 +205,10 @@ var DrawInputs = function(ddl_json) {
         crop_info.w = image.naturalWidth;
         crop_info.h = image.naturalHeight;
         this.InfoMessage("crop_info = ", crop_info);
-        this.InfoMessage("onload function end");
-        
+        this.InfoMessage("OnLoadSingleImage end");
+        if (this.onloadimages_cb!=undefined) {
+            this.onloadimages_cb();
+        }
     }
     
     //--------------------------------------------------------------------------
@@ -307,15 +331,67 @@ var DrawInputs = function(ddl_json) {
         }
     };
     
+    
+    //--------------------------------------------------------------------------
+    this.GetUploadPageState = function() {
+        var upload_state = {};
+        var inputs  = this.ddl_json.inputs;
+        for(var idx=0;idx<inputs.length;idx++) {
+            upload_state[idx] =  $('#localdata_preview_'+idx).data("src_pos");
+        }
+        return upload_state;
+    }
+    
+    //--------------------------------------------------------------------------
+    this.UnsetUploadPageState = function() {
+        var inputs  = this.ddl_json.inputs;
+        for(var idx=0;idx<inputs.length;idx++) {
+            $('#localdata_preview_'+idx).removeData();
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    // return state:
+    //  0: worked with changes
+    //  1: failed since previous data is not available anymore
+    //  2: no change
+    this.SetUploadPageState = function(upload_state) {
+        this.UnsetBlobSet();
+        var inputs  = this.ddl_json.inputs;
+        var ok=true;
+        var anychange=false;
+        for(var idx=0;idx<inputs.length;idx++) {
+            if (upload_state[idx]&&last_uploaded_files[upload_state[idx]]) {
+                var prev_data = $('#localdata_preview_'+idx).data("src_pos");
+                if (prev_data!=upload_state[idx]) {
+                    anychange=true;
+                    $('#localdata_preview_'+idx).attr("src", last_uploaded_files[upload_state[idx]]);
+                    $('#localdata_preview_'+idx).data("src_pos",upload_state[idx]);
+                }
+            } else {
+                ok=false;
+            }
+        }
+        if (!ok) {
+            return 1;
+        } else {
+            if (anychange) {
+                return 0;
+            } else {
+                return 2;
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     this.CreateCropper = function() {
-        this.InfoMessage("CreateCropper ");
+        this.InfoMessage("CreateCropper begin");
         var inputs  = this.ddl_json.inputs;
         if (inputs.length===1) {
             var crop_enabled = $("#id_cropinput").is(':checked');
             if (crop_enabled) {
                 
+                this.InfoMessage("CreateCropper crop enabled");
                 $("#inputimage").cropper({
                     viewMode: 0,
                     zoomOnWheel: false,
@@ -348,6 +424,7 @@ var DrawInputs = function(ddl_json) {
                     
                     built: function(cb) { return function(e) {
                         if (cb) {
+                            console.info(" cropper built callback");
                             cb();
                         }
                     }}(this.oncropbuilt_cb),
@@ -439,6 +516,7 @@ var DrawInputs = function(ddl_json) {
             $('.table_crop').hide();
             $("#id_cropview").prop('disabled',true);
         }
+        this.InfoMessage("CreateCropper end");
     }
     
     //--------------------------------------------------------------------------
@@ -452,28 +530,32 @@ var DrawInputs = function(ddl_json) {
     
     //--------------------------------------------------------------------------
     this.SetCrop = function(crop_area) {
-        this.InfoMessage('SetCrop ',crop_area);
+        this.InfoMessage('SetCrop begin ',crop_area);
         var imageData  = $("#inputimage").cropper('getImageData');
         var canvasData = $("#inputimage").cropper('getCanvasData');
         var ratio = imageData.width / imageData.naturalWidth;
-        this.InfoMessage('ratio = ',ratio);
+        this.InfoMessage('ratio = ',ratio, ' imageData is ', imageData);
         this.InfoMessage('canvasData = ',canvasData);
-        ratio=1;
-        var box = {   left:   crop_area.x     *ratio , //+ canvasData.left,
-                            top:    crop_area.y     *ratio , //+ canvasData.top,
-                            width:  crop_area.width *ratio,
-                            height: crop_area.height*ratio};
+        var box = {     left:   (crop_area.x      *ratio), //+ canvasData.left,
+                        top:    (crop_area.y      *ratio), //+ canvasData.top,
+                        width:  (crop_area.width  *ratio),
+                        height: (crop_area.height *ratio)};
         this.InfoMessage("box=",box);
         $("#inputimage").cropper('setCropBoxData',box);
+        this.InfoMessage('SetCrop end');
     }
 
     //--------------------------------------------------------------------------
     this.UpdateCrop = function() {
-//         console.info("SetCrop begin");
+        this.InfoMessage("UpdateCrop begin");
         var inputs  = this.ddl_json.inputs;
         if (inputs.length===1) {
-            $("#id_cropinput").change( function() { this.UpdateCrop(); }.bind(this));
-            $("#id_cropview").change( function() {  
+            $("#id_cropinput").unbind().change( function()   { 
+                this.InfoMessage("id_cropinput change event begin");
+                this.UpdateCrop(); 
+                this.InfoMessage("id_cropinput change event end");
+            }.bind(this));
+            $("#id_cropview").unbind().change( function() {  
                 if ($("#id_cropview").is(':checked')) { 
                     $('.table_crop').show();
                     $("#inputimage").cropper('move',0,0);
@@ -504,7 +586,7 @@ var DrawInputs = function(ddl_json) {
             this.crop_info.w = $('#img_0_0').naturalWidth();
             this.crop_info.h = $('#img_0_0').naturalHeight();
         }
-//         console.info("SetCrop end");
+        this.InfoMessage("UpdateCrop end");
         this.InfoMessage("cropinfo = ",this.crop_info);
     }
     
@@ -595,6 +677,20 @@ var DrawInputs = function(ddl_json) {
     }
         
     //--------------------------------------------------------------------------
+    this.ResultProgress = function(run_demo_res) {
+        if (run_demo_res.status==="KO") {
+            this.PriorityMessage(" Failure demo run run_demo_res:",run_demo_res);
+            this.progress_info = "run_demo:failure";
+            this.progress(100);
+        } else {
+            // stop progress
+            this.progress_info = "success (ran in "+ run_demo_res.algo_info.run_time.toPrecision(2)+" s)";
+            this.progress(100);
+        }
+        //this.progressbar.progressbar( "complete" );
+    }
+    
+    //--------------------------------------------------------------------------
     // runs the demo once the input(s) are selected (and cropped) or uploaded
     this.RunDemo = function(res) {
         
@@ -648,56 +744,53 @@ var DrawInputs = function(ddl_json) {
                     "&params=" +this.json2uri(params)+
                     "&meta=" +this.json2uri(meta);
         ModuleService("demorunner","run_demo",url_params,
-            function(res) {
-                if (res.status==="KO") {
-                    this.PriorityMessage("demo run res:",res);
-                    this.progress_info = "run_demo:failure";
-                    this.progress(100);
-                    if (!this.ddl_json.general['show_results_on_error']) {
+            function(run_demo_res) {
+                this.ResultProgress(run_demo_res);
+                if ((run_demo_res.status==="KO")&&
+                    (!this.ddl_json.general['show_results_on_error'])) {
                         return;
-                    }
-                } else {
-                    // stop progress
-                    this.progress_info = "success (ran in "+ res.algo_info.run_time.toPrecision(2)+" s)";
-                    this.progress(100);
                 }
-                this.PriorityMessage("run_demo res=", res);
+                this.PriorityMessage("run_demo run_demo_res=", run_demo_res);
 
                 // push state will trigger result drawing ...
 //                 // draw the results
-//                 var dr = new DrawResults( res, this.ddl_json.results );
+//                 var dr = new DrawResults( run_demo_res, this.ddl_json.results );
 //                 dr.Create();
                 
                 // Set url state for browser history
+                var new_state={
+                    demo_id       : this.ddl_json.demo_id,
+                    state         : 2,
+                    res           : run_demo_res,
+                    ddl_json      : this.ddl_json,
+                    scrolltop     : $(window).scrollTop(),
+                    crop_checked  : $("#id_cropinput").is(':checked')
+                };
+                // add blobset info if input if from the proposed blobsets
+                if (this.blobset) {
+                    new_state["blobset"]      = this.blobset;
+                } else {
+                    new_state["upload_state"] = this.GetUploadPageState();
+                }
+                
                 try {
-                    var new_state={
-                        demo_id:this.ddl_json.demo_id,
-                        state:2,
-                        res:res,
-                        ddl_json:this.ddl_json
-                    };
-                    // add blobset info if input if from the proposed blobsets
-                    if (this.blobset) {
-                        new_state["blobset"]      = this.blobset;
-                        new_state["crop_checked"] = $("#id_cropinput").is(':checked');
-                    }
                     // change url hash
                     History.pushState(
                         new_state,
                         "IPOLDemos "+this.ddl_json.demo_id+" results",
-                        "?id="+this.ddl_json.demo_id+"&res="+this.json2uri(res));
+                        "?id="+this.ddl_json.demo_id+"&res="+this.json2uri(run_demo_res));
                 } catch(err) {
                     console.error("error:", err.message);
                 }
                 
                 // send to archive
-                if (res.send_archive) {
+                if (run_demo_res.send_archive) {
                     var url_params =    'demo_id='    + this.ddl_json.demo_id + 
-                                        "&blobs="     + this.json2uri(res.archive_blobs) + 
-                                        "&parameters="+ this.json2uri(res.archive_params);
+                                        "&blobs="     + this.json2uri(run_demo_res.archive_blobs) + 
+                                        "&parameters="+ this.json2uri(run_demo_res.archive_params);
                     ModuleService("archive","add_experiment",url_params,
-                                  function(res) {
-                                      console.info("archive add_experiment res=",res);
+                                  function(archive_res) {
+                                      console.info("archive add_experiment archive_res=",archive_res);
                                   });
                 }
             }.bind(this)

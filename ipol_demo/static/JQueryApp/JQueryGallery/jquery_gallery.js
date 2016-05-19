@@ -217,10 +217,6 @@ var ImageGallery = function(galleryid)  {
     //--------------------------------------------------------------------------
     this.CheckLoadAllImages = function(index) {
         if (this.total_loaded_images===this.total_images) {
-            this.InfoMessage("All images are loaded ... running callback ");
-            if (this.onloadall_callback!=undefined) {
-                this.onloadall_callback();
-            }
             // adapt zoom factor based on maximum display allowed
             var ratio = 1;
             ratio = Math.min(ratio,this.display_maxheight/this.max_height);
@@ -260,6 +256,10 @@ var ImageGallery = function(galleryid)  {
                 }
             }
             this.UpdateSelection();
+            this.InfoMessage("All images are loaded ... running callback ");
+            if (this.onloadall_callback!=undefined) {
+                this.onloadall_callback();
+            }
         }
     }
     
@@ -482,6 +482,8 @@ var ImageGallery = function(galleryid)  {
         );
         
         
+//         $("#gallery_"+this.galleryid).unbind().on("resize",function() { console.info("gallery resized"); } ); 
+                                                                         
         $("#gallery_"+this.galleryid+" #popup_all").button().unbind().on("click", 
             function() 
             { 

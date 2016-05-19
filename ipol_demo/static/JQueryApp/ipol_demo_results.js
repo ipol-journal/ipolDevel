@@ -76,7 +76,6 @@ var DrawResults = function( //demo_id,key,
         }
         
         $("#ResultsDisplay").html(results_html);
-//         $("#ResultsDisplay").change(
 
         for(var id=0;id<this.ddl_results.length;id++) {
             this.CreateResultEvents(this.ddl_results[id],id);
@@ -372,6 +371,10 @@ var DrawResults = function( //demo_id,key,
         $("#result_"+id).html(html);
         ig.CreateEvents();
         $("#result_"+id).data("image_gallery",ig);
+        
+        if (this.onloadall_callback) {
+            ig.SetOnLoadAll( this.onloadall_callback.bind(this) );
+        }
 
     } // end Gallery_new_events
     
