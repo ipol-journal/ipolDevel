@@ -31,6 +31,35 @@ print_exception_thumbnail, print_exception_zip
 from collections import defaultdict
 from mako.lookup import TemplateLookup
 
+
+def get_new_path( filename, create_dir=True, depth=1):
+    """
+    This method creates a new fullpath for a given file path,
+    where new directories are created for each 'depth' first letters
+    of the filename, for example:
+      input  is /tmp/abvddff.png
+      output is /tmp/a/b/v/d/abvddff.png
+      where the full path /tmp/a/b/v/d has been created
+      
+      if the filename name starts with thumbnail_, use the name without
+      'thumbnail_' to define its new path
+      for example:
+      /tmp/thumbnail_abvddff.png will be /tmpl/a/b/v/d/thumbnail_abvddff.png
+      
+    """
+    prefix=""
+    bname = os.path.basename(filename)
+    if bname.startswith("thumbnail_"):
+        prefix="thumbnail_"
+        bname = bname[len(prefix):]
+    dname = os.path.dirname(filename)  
+    fname = bname.split(".")[0] 
+    l = min(len(fname),depth)
+    subdirs = '/'.join(list(fname[:l])) 
+    new_dname = dname + '/' + subdirs + '/'
+    if create_dir and not(os.path.isdir(new_dname)): os.makedirs(new_dname)
+    return new_dname + prefix + bname
+
 class MyFieldStorage(cherrypy._cpreqbody.Part):
     """
     This class allows to get uploaded blob creating temporary file in /tmp/
@@ -594,10 +623,12 @@ class   Blobs(object):
                                      res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir,
                                       ("thumbnail_" + res["delete"]))
-            if os.path.isfile(path_file):
-                os.remove(path_file)
-            if os.path.isfile(path_thumb):
-                os.remove(path_thumb)
+            # process paths
+            path_file  = get_new_path(path_file)
+            path_thumb = get_new_path(path_thumb)
+            #
+            if os.path.isfile(path_file):     os.remove(path_file)
+            if os.path.isfile(path_thumb):    os.remove(path_thumb)
 
         return self.get_blobs_of_demo(demo_id)
 
@@ -619,6 +650,10 @@ class   Blobs(object):
         if (res["return"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
+            # process paths
+            path_file  = get_new_path(path_file)
+            path_thumb = get_new_path(path_thumb)
+            # remove blob
             if os.path.isfile(path_file) :  os.remove(path_file)
             if os.path.isfile(path_thumb):  os.remove(path_thumb)
 
@@ -674,6 +709,9 @@ class   Blobs(object):
             dic["url_thumb"]         = self.server_address+"/thumbnail/"
             dic["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir)
+            ## process blobs paths
+            #for idx in range(len(dic["blobs"])):
+                #dic["blobs"][idx] = get_new_path(dic["blobs"][idx],False)
             dic["return"]            = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from demo")
@@ -699,14 +737,10 @@ class   Blobs(object):
         dic  = {}
         data = instance_database()
         try:
-          print "*"
           dic = data.get_demo_name_from_id(demo)
-          print "*"
           dic["use_template"] = data.demo_use_template(demo)
-          print "*"
-          dic["blobs"] = data.get_blobs_of_demo(demo)
-          print "*"
-          dic["return"] = "OK"
+          dic["blobs"]        = data.get_blobs_of_demo(demo)
+          dic["return"]       = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot access to blob from demo")
             dic["return"] = "KO"
@@ -738,33 +772,29 @@ class   Blobs(object):
             for blob_set in template_blobs:
               blob_size = blob_set[0]['size']
               for idx in range(1,blob_size+1):
-                blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
-                                                      self.final_dir,
-                                                      (blob_set[idx]["hash"] + \
-                                                        blob_set[idx]["extension"]))
-                blob_set[idx]["url"] = self.server_address+"/blob_directory/" \
-                                          + blob_set[idx]["hash"] \
-                                          + blob_set[idx]["extension"]
-                blob_set[idx]["url_thumb"] = self.server_address+"/thumbnail/" + \
-                                                "thumbnail_" + \
-                                                blob_set[idx]["hash"] + \
-                                                blob_set[idx]["extension"]
+                b = blob_set[idx]
+                b_name = b["hash"]+b["extension"]
+                b["physical_location"]  = os.path.join( self.current_directory, self.final_dir, b_name)
+                b["url"]                = self.server_address+"/blob_directory/" + b_name
+                b["url_thumb"]          = self.server_address+"/thumbnail/" + b_name
+                # process paths
+                b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
+                b["url"]                = get_new_path(blob_set[idx]["url"],False)
+                b["url_thumb"]          = get_new_path(blob_set[idx]["url_thumb"],False)
 
 
         for blob_set in demo_blobs["blobs"]:
           blob_size = blob_set[0]['size']
           for idx in range(1,blob_size+1):
-            blob_set[idx]["physical_location"] = os.path.join(self.current_directory,
-                                                  self.final_dir,
-                                                  (blob_set[idx]["hash"] + \
-                                                    blob_set[idx]["extension"]))
-            blob_set[idx]["url"] = self.server_address+"/blob_directory/" \
-                                      + blob_set[idx]["hash"] \
-                                      + blob_set[idx]["extension"]
-            blob_set[idx]["url_thumb"] = self.server_address+"/thumbnail/" + \
-                                            "thumbnail_" + \
-                                            blob_set[idx]["hash"] + \
-                                            blob_set[idx]["extension"]
+            b = blob_set[idx]
+            b_name = b["hash"]+b["extension"]
+            b["physical_location"]  = os.path.join(self.current_directory,self.final_dir,b_name)
+            b["url"]                = self.server_address+"/blob_directory/" +b_name
+            b["url_thumb"]          = self.server_address+"/thumbnail/" + b_name
+            # process paths
+            b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
+            b["url"]                = get_new_path(blob_set[idx]["url"],False)
+            b["url_thumb"]          = get_new_path(blob_set[idx]["url_thumb"],False)
 
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
@@ -791,15 +821,17 @@ class   Blobs(object):
 
         print "return = ", res["return"]
         if res["return"] == "OK":
+            b_name = res["hash"] + res["extension"]
             res["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir,
-                                                    (res["hash"] + res["extension"]))
-            res["url"] = self.server_address+"/blob_directory/" + res["hash"] \
-                         + res["extension"]
-            res["url_thumb"] = self.server_address+"/thumbnail/" + \
-                               "thumbnail_" + res["hash"] + res["extension"]
-
-            res["tags"] = use_web_service('/get_tags_ws', data)
+                                                    b_name)
+            res["url"]        = self.server_address+"/blob_directory/" + b_name
+            res["url_thumb"]  = self.server_address+"/thumbnail/" + b_name
+            res["tags"]       = use_web_service('/get_tags_ws', data)
+            # process paths
+            res["physical_location"]  = get_new_path(res["physical_location"],False)
+            res["url"]                = get_new_path(res["url"],False)
+            res["url_thumb"]          = get_new_path(res["url_thumb"],False)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(blob_info=res,
@@ -933,6 +965,7 @@ class   Blobs(object):
         if not os.path.exists(file_directory):
             os.makedirs(file_directory)
         file_dest = os.path.join(file_directory, (the_hash + extension))
+        file_dest = get_new_path(file_dest)
         shutil.move(path, file_dest)
         return file_dest
 

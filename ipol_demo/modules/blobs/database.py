@@ -349,8 +349,7 @@ class   Database(object):
                           "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
                       )
           blobset_list.append(blob_list)
-        
-        #print blobset_list
+
         return blobset_list
 
     def get_demo_name_from_id(self, demo_id):
