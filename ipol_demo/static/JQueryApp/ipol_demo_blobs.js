@@ -88,8 +88,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     }
                 }
                 current_id = blobset_contents[idx].id_in_set;
-                blobset[0].html_params += blobset_contents[idx].hash +
-                    blobset_contents[idx].extension;
+                blobset[0].html_params += blobhash_subdir(blobset_contents[idx].hash) + 
+                    blobset_contents[idx].hash + blobset_contents[idx].extension;
             }
         }
         
@@ -144,8 +144,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                              +  '   style=" max-width:'  +(thumbnail_size-6)+'px;'
                              +  '           max-height:' +(thumbnail_size-6)+'px;'
                              +  '           vertical-align:middle; margin:3px"'
-                             +  '   src="'+this.demoblobs.url_thumb+
-                                    '/thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
+                             +  '   src="'+this.demoblobs.url_thumb+'/'+blobhash_subdir(blobset[idx].hash)+
+                                    'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
                              +  '   alt='   +blobset[idx].title
                              +  '   title="'+blobset[idx].title+
                                     ' (credits: '+blobset[idx].credit+
@@ -230,7 +230,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 tester.onerror=(function(i,idx) { return function() {
                     $("#blob_"+i+"_"+idx).html("");
                 }; })(i,idx);
-                tester.src=this.demoblobs.url_thumb+'/thumbnail_'+blobset[idx].hash+blobset[idx].extension;
+                tester.src=this.demoblobs.url_thumb+'/'+blobhash_subdir(blobset[idx].hash)+
+                            'thumbnail_'+blobset[idx].hash+blobset[idx].extension;
                 tester.onload = function(obj) { return function() {
 //                     obj.InfoMessage("start ",i);
                     // Run onload code.

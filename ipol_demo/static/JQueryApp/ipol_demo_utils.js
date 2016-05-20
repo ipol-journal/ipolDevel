@@ -14,6 +14,13 @@
 
 "use strict";
 
+//------------------------------------------------------------------------------
+function blobhash_subdir( blob_hash, depth) {
+    if (depth===undefined) {
+        depth=2;
+    }
+    return blob_hash.substring(0,depth).split('').join("/")+'/';
+}
 
 //------------------------------------------------------------------------------
 // This function creates syntax highlight for pretty display of json files
