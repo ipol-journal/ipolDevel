@@ -647,6 +647,7 @@ class   Blobs(object):
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data)
 
+        print "op_remove_blob_from_demo res=",res
         if (res["return"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
@@ -983,6 +984,7 @@ class   Blobs(object):
             os.makedirs(file_directory)
         name = os.path.basename(src)
         file_dest = os.path.join(file_directory, ('thumbnail_' + name))
+        file_dest = get_new_path(file_dest)
         name = "thumbnail_" + name
         fil_format = file_format(src)
         print "creating ",file_dest
