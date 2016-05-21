@@ -32,7 +32,7 @@ from collections import defaultdict
 from mako.lookup import TemplateLookup
 
 
-def get_new_path( filename, create_dir=True, depth=1):
+def get_new_path( filename, create_dir=True, depth=2):
     """
     This method creates a new fullpath for a given file path,
     where new directories are created for each 'depth' first letters
@@ -776,7 +776,7 @@ class   Blobs(object):
                 b_name = b["hash"]+b["extension"]
                 b["physical_location"]  = os.path.join( self.current_directory, self.final_dir, b_name)
                 b["url"]                = self.server_address+"/blob_directory/" + b_name
-                b["url_thumb"]          = self.server_address+"/thumbnail/" + b_name
+                b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b_name
                 # process paths
                 b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
                 b["url"]                = get_new_path(blob_set[idx]["url"],False)
@@ -790,7 +790,7 @@ class   Blobs(object):
             b_name = b["hash"]+b["extension"]
             b["physical_location"]  = os.path.join(self.current_directory,self.final_dir,b_name)
             b["url"]                = self.server_address+"/blob_directory/" +b_name
-            b["url_thumb"]          = self.server_address+"/thumbnail/" + b_name
+            b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b_name
             # process paths
             b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
             b["url"]                = get_new_path(blob_set[idx]["url"],False)
@@ -826,7 +826,7 @@ class   Blobs(object):
                                                     self.final_dir,
                                                     b_name)
             res["url"]        = self.server_address+"/blob_directory/" + b_name
-            res["url_thumb"]  = self.server_address+"/thumbnail/" + b_name
+            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + b_name
             res["tags"]       = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"]  = get_new_path(res["physical_location"],False)
