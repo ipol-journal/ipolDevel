@@ -100,14 +100,14 @@ class Archive(object):
                 with open(os.path.join(self.database_dir, "test"), "w+") as the_file:
                         self.echo_database(the_file)
 
-        def __init__(self, option):
+        def __init__(self, option,conf_file):
                 """
                 Initialize Archive class.
                 Attribute status should be checked after each initialisation.
                 It is false if something went wrong.
                 """
                 thumbs_s = None
-                cherrypy.config.update("./archive.conf")
+                cherrypy.config.update(conf_file)
                 self.status = self.check_config()
                 if not self.status:
                     sys.exit(1)
