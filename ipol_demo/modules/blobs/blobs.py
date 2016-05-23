@@ -442,39 +442,39 @@ class   Blobs(object):
 
         return self.get_blobs_of_demo(demo_id)
 
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def delete_blobset_ws(self, demo_id, blobset):
-        """
-        This functions implements web service associated to '/delete_blob'
-        Delete blob from demo name and hash blob in database
+    #@cherrypy.expose
+    #@cherrypy.tools.accept(media="application/json")
+    #def delete_blobset_ws(self, demo_id, blobset):
+        #"""
+        #This functions implements web service associated to '/delete_blob'
+        #Delete blob from demo name and hash blob in database
 
-        :param demo_id: id demo
-        :type demo_id: integer
-        :param blobset: id blob
-        :type blobset: string
-        return: name of the blob if it is not associated to demo and
-        "OK" if not error else "KO"
-        :rtype: dictionnary
-        """
-        data = instance_database()
-        dic = {}
-        dic["delete"] = ""
-        try:
-            blob_name = data.get_blob_name(blob_id)
-            value_return = data.delete_blobset_from_demo(demo_id, blobset)
-            data.commit()
+        #:param demo_id: id demo
+        #:type demo_id: integer
+        #:param blobset: id blob
+        #:type blobset: string
+        #return: name of the blob if it is not associated to demo and
+        #"OK" if not error else "KO"
+        #:rtype: dictionnary
+        #"""
+        #data = instance_database()
+        #dic = {}
+        #dic["delete"] = ""
+        #try:
+            #blob_name = data.get_blob_filename(blob_id)
+            #value_return = data.delete_blobset_from_demo(demo_id, blobset)
+            #data.commit()
 
-            if not value_return:
-                dic["delete"] = blob_name
-            dic["return"] = "OK"
+            #if not value_return:
+                #dic["delete"] = blob_name
+            #dic["return"] = "OK"
 
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot delete item in database")
-            data.rollback()
-            dic["return"] = "KO"
+        #except DatabaseError as error:
+            #print_exception_function(error, "Cannot delete item in database")
+            #data.rollback()
+            #dic["return"] = "KO"
 
-        return json.dumps(dic)
+        #return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -495,11 +495,11 @@ class   Blobs(object):
         dic = {}
         dic["delete"] = ""
         try:
-            blob_name     = data.get_blob_name(blob_id)
-            value_return  = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
+            blob_name     = data.get_blob_filename(blob_id)
+            has_no_demo   = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
             data.commit()
 
-            if not value_return:
+            if has_no_demo:
                 dic["delete"] = blob_name
             dic["return"] = "OK"
 
@@ -603,34 +603,34 @@ class   Blobs(object):
         res = use_web_service("/remove_tag_from_blob_ws", data)
         return self.edit_blob(blob_id, demo_id)
 
-    @cherrypy.expose
-    def op_remove_blobset_from_demo(self, demo_id, blobset):
-        """
-        Delete one blobset from demo
+    #@cherrypy.expose
+    #def op_remove_blobset_from_demo(self, demo_id, blobset):
+        #"""
+        #Delete one blobset from demo
 
-        :param demo_id    : demo id
-        :type demo_id     : integer
-        :param blobset : blobset
-        :type blobset  : string
-        :return           : mako templated html page (refer to edit_demo_blobs.html)
-        :rtype            : mako.lookup.TemplatedLookup
-        """
-        data = {"demo_id": demo_id, "blobset": blobset}
-        res = use_web_service('/delete_blobset_ws', data)
+        #:param demo_id    : demo id
+        #:type demo_id     : integer
+        #:param blobset : blobset
+        #:type blobset  : string
+        #:return           : mako templated html page (refer to edit_demo_blobs.html)
+        #:rtype            : mako.lookup.TemplatedLookup
+        #"""
+        #data = {"demo_id": demo_id, "blobset": blobset}
+        #res = use_web_service('/delete_blobset_ws', data)
 
-        if (res["return"] == "OK" and res["delete"]):
-            path_file = os.path.join(self.current_directory, self.final_dir,
-                                     res["delete"])
-            path_thumb = os.path.join(self.current_directory, self.thumb_dir,
-                                      ("thumbnail_" + res["delete"]))
-            # process paths
-            path_file  = get_new_path(path_file)
-            path_thumb = get_new_path(path_thumb)
-            #
-            if os.path.isfile(path_file):     os.remove(path_file)
-            if os.path.isfile(path_thumb):    os.remove(path_thumb)
+        #if (res["return"] == "OK" and res["delete"]):
+            #path_file = os.path.join(self.current_directory, self.final_dir,
+                                     #res["delete"])
+            #path_thumb = os.path.join(self.current_directory, self.thumb_dir,
+                                      #("thumbnail_" + res["delete"]))
+            ## process paths
+            #path_file  = get_new_path(path_file)
+            #path_thumb = get_new_path(path_thumb)
+            ##
+            #if os.path.isfile(path_file):     os.remove(path_file)
+            #if os.path.isfile(path_thumb):    os.remove(path_thumb)
 
-        return self.get_blobs_of_demo(demo_id)
+        #return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
     def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
@@ -916,12 +916,30 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
+        print "op_remove_demo_ws({0})".format(demo_id)
         data = instance_database()
         dic = {}
         try:
-            data.remove_demo(demo_id)
+            blobfilenames_to_delete = data.remove_demo(demo_id)
             data.commit()
             dic["return"] = "OK"
+            
+            # remove from disk unused blobs
+            for blobfilename in blobfilenames_to_delete:
+                print "blobfilename to delete =",blobfilename
+                path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
+                path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
+                # process paths
+                path_file  = get_new_path(path_file)
+                path_thumb = get_new_path(path_thumb)
+                # remove blob
+                if os.path.isfile(path_file) :  
+                    print "removing ",path_file
+                    os.remove(path_file)
+                if os.path.isfile(path_thumb): 
+                    print "removing ",path_thumb
+                    os.remove(path_thumb)
+            
         except DatabaseError as error:
             print_exception_function(error, "Cannot delete demo")
             data.rollback()
