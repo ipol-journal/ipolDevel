@@ -141,7 +141,13 @@ class Archive(object):
                 self.mkdir_p(self.blobs_thumbs_dir)
 
                 self.logger = self.init_logging()
-                self.database_file = os.path.join(self.database_dir, "archive.db")
+                
+                try:
+                    self.database_name = cherrypy.config.get("database_name")
+                except Exception:
+                    self.database_name = "archive.db"
+                
+                self.database_file = os.path.join(self.database_dir, self.database_name)
                 self.status = self.init_database()
                 if not self.status:
                         sys.exit("Initialisation of database failed. Check the logs.")
@@ -177,46 +183,65 @@ class Archive(object):
                 :rtype: bool
                 """
                 status = True
-                if not os.path.isfile(self.database_file):
+                
+                if os.path.isfile(self.database_file):
+                    
+                    file_info = os.stat(self.database_file)
+                    
+                    if file_info.st_size == 0:
+                        print str(self.database_file) + ' is empty. Removing the file...'
                         try:
-                                conn = lite.connect(self.database_file)
-                                cursor_db = conn.cursor()
-                                cursor_db.execute("""
-                                PRAGMA foreign_keys=ON""")
-                                cursor_db.execute("""
-                                CREATE TABLE IF NOT EXISTS experiments(
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                id_demo INTEGER NULL,
-                                params TEXT NULL,
-                                timestamp TIMESTAMP
-                                DEFAULT CURRENT_TIMESTAMP)
-                                """)
-                                cursor_db.execute("""
-                                CREATE TABLE IF NOT EXISTS blobs(
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                hash TEXT NULL,
-                                type TEXT NULL,
-                                format TEXT NULL)
-                                """)
-                                cursor_db.execute("""
-                                CREATE TABLE IF NOT EXISTS correspondence(
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                id_experiment INTEGER NULL,
-                                id_blob INTEGER NULL,
-                                name TEXT NULL,
-                                FOREIGN KEY(id_experiment) REFERENCES experiments(id)
-                                ON DELETE CASCADE)
-                                """)
-                                conn.commit()
-                                conn.close()
+                            self.error_log("init_database", 'Database file was empty')
+                            os.remove(self.database_file)
                         except Exception as ex:
-                                self.error_log("init_database", (str(ex)))
-                                if os.path.isfile(self.database_file):
-                                        try:
-                                                os.remove(self.database_file)
-                                        except Exception as ex:
-                                                self.error_log("init_database", str(ex))
+                            self.error_log("init_database", str(ex))
+                            status = False
+                            return status
+                        
+                        print "Creating a correct new database"
+                    
+                if not os.path.isfile(self.database_file):
+                    
+                    try:
+                        conn = lite.connect(self.database_file)
+                        cursor_db = conn.cursor()
+                        cursor_db.execute("""
+                             PRAGMA foreign_keys=ON""")
+                        cursor_db.execute("""
+                            CREATE TABLE IF NOT EXISTS experiments(
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id_demo INTEGER NULL,
+                            params TEXT NULL,
+                            timestamp TIMESTAMP
+                            DEFAULT CURRENT_TIMESTAMP)
+                        """)
+                        cursor_db.execute("""
+                            CREATE TABLE IF NOT EXISTS blobs(
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            hash TEXT NULL,
+                            type TEXT NULL,
+                            format TEXT NULL)
+                        """)
+                        cursor_db.execute("""
+                            CREATE TABLE IF NOT EXISTS correspondence(
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            id_experiment INTEGER NULL,
+                            id_blob INTEGER NULL,
+                            name TEXT NULL,
+                            FOREIGN KEY(id_experiment) REFERENCES experiments(id)
+                            ON DELETE CASCADE)
+                        """)
+                        conn.commit()
+                        conn.close()
+                    except Exception as ex:
+                        self.error_log("init_database", (str(ex)))
+                        if os.path.isfile(self.database_file):
+                            try:
+                                os.remove(self.database_file)
+                            except Exception as ex:
+                                self.error_log("init_database", str(ex))
                                 status = False
+                
                 return status
 
 
@@ -572,7 +597,6 @@ class Archive(object):
                         conn = lite.connect(self.database_file)
                         
                         meta_info = self.get_meta_info(conn, id_demo)
-                        
                         meta_info["id_demo"] = id_demo
                         
                         if meta_info["number_of_experiments"] == 0:
