@@ -825,69 +825,80 @@ var DrawInputs = function(ddl_json) {
                     }
                     // select input from blobset or upload from local files
                     console.info("input_origin = ", this.input_origin);
-                    if (this.input_origin==="blobset") {
-                        // Set inputs using blobset
-                        // crop at the same time
-                        this.progress_info = "input selection and crop";
-                        url_params= "demo_id="+this.ddl_json.demo_id+
-                                 "&ddl_inputs="+this.json2uri(this.ddl_json.inputs)+
-                                 "&"+this.blobset[0].html_params+
-                                 "&crop_info="+this.json2uri(this.crop_info)
-                        ModuleService("demorunner","input_select_and_crop",url_params,
-                                            this.RunDemo.bind(this)
-                        ); // end input_select_and_crop
-                    } else { // end if blobset
-                        // upload files and run the demo
-                        this.progress_info = "input upload";
+                    switch (this.input_origin) {
+                        case "blobset":
+                            // Set inputs using blobset
+                            // crop at the same time
+                            this.progress_info = "input selection and crop";
+                            url_params= "demo_id="+this.ddl_json.demo_id+
+                                    "&ddl_inputs="+this.json2uri(this.ddl_json.inputs)+
+                                    "&"+this.blobset[0].html_params+
+                                    "&crop_info="+this.json2uri(this.crop_info)
+                            ModuleService("demorunner","input_select_and_crop",url_params,
+                                                this.RunDemo.bind(this)
+                            ); // end input_select_and_crop
+                            break;
+                        case "localfiles":
+                            // upload files and run the demo
+                            this.progress_info = "input upload";
 
-                        // fill form data to upload
-                        delete this.formData
-                        this.formData = new FormData();
-                        this.formData.append('demo_id',    this.ddl_json.demo_id);
-                        this.formData.append('ddl_inputs', JSON.stringify(this.ddl_json.inputs));
-                        var inputs  = this.ddl_json.inputs;
-                        if (inputs.length===1) {
-                            // Upload cropped image to server if the browser supports `HTMLCanvasElement.toBlob`
-                            var crop_enabled = $("#id_cropinput").is(':checked');
-                            if (crop_enabled) {
-                                var cropped_canvas = $("#inputimage").cropper('getCroppedCanvas');
-                                cropped_canvas.toBlob( 
-                                    function(blob) {
-                                        console.info('adding blob (cropped) : ', blob);
-                                        this.formData.append('file_0', blob);
-                                        this.UploadForm();
-                                    }.bind(this), 'image/png' );
+                            // fill form data to upload
+                            delete this.formData
+                            this.formData = new FormData();
+                            this.formData.append('demo_id',    this.ddl_json.demo_id);
+                            this.formData.append('ddl_inputs', JSON.stringify(this.ddl_json.inputs));
+                            var inputs  = this.ddl_json.inputs;
+                            if (inputs.length===1) {
+                                // Upload cropped image to server if the browser supports `HTMLCanvasElement.toBlob`
+                                var crop_enabled = $("#id_cropinput").is(':checked');
+                                if (crop_enabled) {
+                                    var cropped_canvas = $("#inputimage").cropper('getCroppedCanvas');
+                                    cropped_canvas.toBlob( 
+                                        function(blob) {
+                                            console.info('adding blob (cropped) : ', blob);
+                                            this.formData.append('file_0', blob);
+                                            this.UploadForm();
+                                        }.bind(this), 'image/png' );
+                                } else {
+                                    var image_src = $("#inputimage").attr('src');
+                                    blobUtil.imgSrcToBlob(image_src).then(
+                                        function(blob) {
+                                            this.formData.append('file_0', blob);
+                                            this.UploadForm();
+                                        }.bind(this), 'image/png' );
+                                }
                             } else {
-                                var image_src = $("#inputimage").attr('src');
-                                blobUtil.imgSrcToBlob(image_src).then(
-                                    function(blob) {
-                                        this.formData.append('file_0', blob);
-                                        this.UploadForm();
-                                    }.bind(this), 'image/png' );
-                            }
-                        } else {
-                            // if several input image, TODO: deal with crop of first image
-                            var blobs_in_form=0;
-                            for(var idx=0;idx<inputs.length;idx++) {
-                                // TODO: deal with non-image data
-                                // TODO: deal with optional data
-                                var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
-                                                    $('#localdata_preview_'+idx).attr("src");
-                                blobUtil.imgSrcToBlob(image_src).then(
-                                    function(idx,obj) { return function(blob) {
-                                        console.info('idx=',idx);
-                                        obj.formData.append('file_'+idx, blob);
-                                        blobs_in_form++;
-                                        console.info('blobs_in_form=',blobs_in_form);
-                                        if(blobs_in_form==obj.ddl_json.inputs.length) {
-                                            obj.UploadForm();
+                                // if several input image, TODO: deal with crop of first image
+                                var blobs_in_form=0;
+                                for(var idx=0;idx<inputs.length;idx++) {
+                                    // TODO: deal with non-image data
+                                    // TODO: deal with optional data
+                                    var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
+                                                        $('#localdata_preview_'+idx).attr("src");
+                                    blobUtil.imgSrcToBlob(image_src).then(
+                                        function(idx,obj) { return function(blob) {
+                                            console.info('idx=',idx);
+                                            obj.formData.append('file_'+idx, blob);
+                                            blobs_in_form++;
+                                            console.info('blobs_in_form=',blobs_in_form);
+                                            if(blobs_in_form==obj.ddl_json.inputs.length) {
+                                                obj.UploadForm();
+                                            }
                                         }
-                                    }
-                                    }(idx,this), 'image/png' );
+                                        }(idx,this), 'image/png' );
+                                }
                             }
-                        }
-
-                    }
+                            break;
+                        case "noinputs":
+                            // Set inputs using blobset
+                            // crop at the same time
+                            this.progress_info = "initialize with no inputs";
+                            url_params= "demo_id="+this.ddl_json.demo_id
+                            ModuleService("demorunner","init_noinputs",url_params,
+                                                this.RunDemo.bind(this)
+                            ); // end input_select_and_crop
+                            break;
+                    } // end switch input_origin
                 }.bind(this)
                 ); // end init_demo
             } // end if 
