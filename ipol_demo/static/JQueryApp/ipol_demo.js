@@ -199,18 +199,9 @@ function InputController(demo_id,internal_demoid,origin,func) {
                     console.error(" --- failed to read DDL");
                 }
                 
-                if ((ddl_json.inputs!==undefined)&&
-                    (ddl_json.inputs.length>0)) {
-                    // disable run
-                    $( "#progressbar" ).unbind("click");
-                    $(".progress-label").text( "Waiting for input selection" );
-                }
-                
-                if (ddl_json.general.thumbnail_size!==undefined) {
-                    $("#ThumbnailSize").val(ddl_json.general.thumbnail_size);
-                } else {
-                    $("#ThumbnailSize").val(128);
-                }
+                // for convenience, add demo_id field to the json DDL 
+                ddl_json['demo_id'] = demo_id
+                PreprocessDemo(ddl_json);
                 
                 // hide parameters if none
                 if ((ddl_json.params===undefined)||
@@ -219,7 +210,6 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 } else {
                     $("#parameters_fieldset").show();
                 }
-                
                 //console.info("pd = ",ddl_json.general.param_description);
                 if ((ddl_json.general.param_description != undefined) &&
                     (ddl_json.general.param_description != "")&&
@@ -229,26 +219,44 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 } else {
                     $("#description_params").hide();
                 }
-                
-                if ((ddl_json.general.input_description != undefined) &&
-                    (ddl_json.general.input_description != "")&&
-                    (ddl_json.general.input_description != [""]))
-                {
-                    $("#InputDescription").html(joinHtml(ddl_json.general.input_description));
-                    $("#description_input").show();
+
+                var has_inputs = (ddl_json.inputs!==undefined)&&(ddl_json.inputs.length>0);
+                if (has_inputs) {
+                    // ensure inputs fieldsets are shown 
+                    $("#selectinputs_fieldset").show();
+                    $("#inputs_fieldset"      ).show();
+                    
+                    // disable run
+                    $( "#progressbar" ).unbind("click");
+                    $(".progress-label").text( "Waiting for input selection" );
+                    if (ddl_json.general.thumbnail_size!==undefined) {
+                        $("#ThumbnailSize").val(ddl_json.general.thumbnail_size);
+                    } else {
+                        $("#ThumbnailSize").val(128);
+                    }
+                    if ((ddl_json.general.input_description != undefined) &&
+                        (ddl_json.general.input_description != "")&&
+                        (ddl_json.general.input_description != [""]))
+                    {
+                        $("#InputDescription").html(joinHtml(ddl_json.general.input_description));
+                        $("#description_input").show();
+                    } else {
+                        $("#description_input").hide();
+                    }
+                    // Create local data selection to upload 
+                    CreateLocalData(ddl_json);
+
                 } else {
-                    $("#description_input").hide();
+                    $( "#progressbar" ).unbind("click");
+                    $(".progress-label").text( "Run" );
+                    $("#selectinputs_fieldset").hide();
+                    $("#inputs_fieldset"      ).hide();
+
+                    var di = new DrawInputs(ddl_json);
+                    di.input_origin = "noinputs";
+                    di.SetRunEvent();
                 }
-
-                // for convenience, add demo_id field to the json DDL 
-                ddl_json['demo_id'] = demo_id
                 
-                PreprocessDemo(ddl_json);
-
-                // Create local data selection to upload 
-                CreateLocalData(ddl_json);
-
-    
                 // Create Parameters tab
                 CreateParams(ddl_json);
 
