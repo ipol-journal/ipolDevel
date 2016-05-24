@@ -40,7 +40,8 @@ ipol_demo/modules/archive/logs/error.log
 *.bbl
 *.blg
 *.log
-ipol.pdf
+doc/system/ipol.pdf
+doc/control_panel/control_panel.pdf
 ddl.pdf
 *.lof
 *.toc
