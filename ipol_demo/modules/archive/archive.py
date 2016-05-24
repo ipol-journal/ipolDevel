@@ -148,6 +148,7 @@ class Archive(object):
                     self.database_name = "archive.db"
                 
                 self.database_file = os.path.join(self.database_dir, self.database_name)
+                
                 self.status = self.init_database()
                 if not self.status:
                         sys.exit("Initialisation of database failed. Check the logs.")
@@ -176,75 +177,64 @@ class Archive(object):
                 error_string = function_name + ": " + error
                 self.logger.error(error_string)
 
+       
         def init_database(self):
-                """
-                Initialize the database used by the module if it doesn't exist.
-                :return: False if there was an error. True otherwise.
-                :rtype: bool
-                """
-                status = True
-                
-                if os.path.isfile(self.database_file):
+            """
+            Initialize the database used by the module if it doesn't exist. 
+            If the file is empty, the system delete it and create a new one.
+            :return: False if there was an error. True otherwise.
+            :rtype: bool
+            """
+            status = True
+            
+            if os.path.isfile(self.database_file):
                     
-                    file_info = os.stat(self.database_file)
+                file_info = os.stat(self.database_file)
                     
-                    if file_info.st_size == 0:
-                        print str(self.database_file) + ' is empty. Removing the file...'
+                if file_info.st_size == 0:
+                    print str(self.database_file) + ' is empty. Removing the file...'
+                    try:
+                        self.error_log("init_database", 'Database file was empty')
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.error_log("init_database", str(ex))
+                        status = False
+                        return status
+                        
+                    print "Creating a correct new database"
+            
+            if not os.path.isfile(self.database_file):
+                    
+                try:
+                    conn = lite.connect(self.database_file)
+                    cursor_db = conn.cursor()
+            
+                    sql_buffer = ""
+                    
+                    with open('drop_create_db_schema.sql', 'r') as sql_file:
+                        for line in sql_file:
+                                
+                            sql_buffer += line
+                            if lite.complete_statement(sql_buffer):         
+                                sql_buffer = sql_buffer.strip()
+                                cursor_db.execute(sql_buffer)
+                                sql_buffer = ""
+                                
+                    conn.commit()
+                    conn.close()  
+                    
+                except Exception as ex:
+                    self.error_log("init_database", (str(ex)))
+                        
+                    if os.path.isfile(self.database_file):
                         try:
-                            self.error_log("init_database", 'Database file was empty')
                             os.remove(self.database_file)
                         except Exception as ex:
                             self.error_log("init_database", str(ex))
                             status = False
-                            return status
-                        
-                        print "Creating a correct new database"
-                    
-                if not os.path.isfile(self.database_file):
-                    
-                    try:
-                        conn = lite.connect(self.database_file)
-                        cursor_db = conn.cursor()
-                        cursor_db.execute("""
-                             PRAGMA foreign_keys=ON""")
-                        cursor_db.execute("""
-                            CREATE TABLE IF NOT EXISTS experiments(
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            id_demo INTEGER NULL,
-                            params TEXT NULL,
-                            timestamp TIMESTAMP
-                            DEFAULT CURRENT_TIMESTAMP)
-                        """)
-                        cursor_db.execute("""
-                            CREATE TABLE IF NOT EXISTS blobs(
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            hash TEXT NULL,
-                            type TEXT NULL,
-                            format TEXT NULL)
-                        """)
-                        cursor_db.execute("""
-                            CREATE TABLE IF NOT EXISTS correspondence(
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            id_experiment INTEGER NULL,
-                            id_blob INTEGER NULL,
-                            name TEXT NULL,
-                            FOREIGN KEY(id_experiment) REFERENCES experiments(id)
-                            ON DELETE CASCADE)
-                        """)
-                        conn.commit()
-                        conn.close()
-                    except Exception as ex:
-                        self.error_log("init_database", (str(ex)))
-                        if os.path.isfile(self.database_file):
-                            try:
-                                os.remove(self.database_file)
-                            except Exception as ex:
-                                self.error_log("init_database", str(ex))
-                                status = False
                 
-                return status
-
-
+            return status    
+         
         
 #####
 # adding an experiment to the archive database
