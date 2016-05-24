@@ -44,7 +44,7 @@ class SendArchive:
         img = Image.open(path)
         img.thumbnail(thumbs_size, Image.ANTIALIAS)
         thumbnail_path = os.path.join(work_dir, name_and_extension_for_the_thumbnail)
-        img.save(thumbnail_path, "JPEG")
+        img.convert('RGB').save(thumbnail_path, "JPEG")
         return thumbnail_path, name_for_the_thumbnail
 
     #---------------------------------------------------------------------------

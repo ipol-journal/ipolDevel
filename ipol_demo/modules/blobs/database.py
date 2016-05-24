@@ -85,6 +85,7 @@ class   Database(object):
         :param blobid: if blobid is omitted (= -1), then add blob
         (hash and format) to database else do not add, integer
         """
+        print "add_blob_in_database"
         if blobid == -1:
             try:
                 self.cursor.execute('''
@@ -165,6 +166,7 @@ class   Database(object):
                 except self.database.Error:
                     raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
+    #---------------------------------------------------------------------------
     def demo_is_in_database(self, demo):
         """
         Check if demo is in database,in column demo
@@ -181,6 +183,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
+    #---------------------------------------------------------------------------
     def blob_is_in_database(self, hash_blob):
         """
         Check if hash blob isin database,in column blob
@@ -199,6 +202,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
+    #---------------------------------------------------------------------------
     def tag_is_in_database(self, tag):
         """
         Check if tag isin database,in column tag
@@ -216,6 +220,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return something is not None
 
+    #---------------------------------------------------------------------------
     def format_is_good(self, fileformat):
         """
         Check format file comparing the fileformat returned by python-magic
@@ -229,6 +234,7 @@ class   Database(object):
         """
         return any(fileformat in s for s in self.formats)
 
+    #---------------------------------------------------------------------------
     def blob_id(self, hash_blob):
         """
         Get id blob from hash blob
@@ -266,6 +272,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
+    #---------------------------------------------------------------------------
     def tag_id(self, tag):
         """
         Get id tag from name tag
@@ -282,18 +289,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
         return None if something is None else something[0]
 
-    def delete_demo_existed(self, demoid):
-        """
-        Delete row (name, id, is_template, template_id) corresponding to id demo
-
-        :param demoid: id demo
-        :type demoid:integer (primary key autoincrement)
-        """
-        try:
-            self.cursor.execute("DELETE FROM demo WHERE id=?", (demoid,))
-        except self.database.Error:
-            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
-
+    #---------------------------------------------------------------------------
     def get_blobs_of_demo(self, demo_id):
         """
         Return list of hash blob associated with demo
@@ -466,7 +462,8 @@ class   Database(object):
 
         return tagname
 
-    def demo_is_empty(self, demo_id):
+    #---------------------------------------------------------------------------
+    def blobcount(self, demo_id):
         """
         Check if demo is not associated with a blob
 
@@ -475,67 +472,81 @@ class   Database(object):
         :return: number of demo present in database
         :rtype: tuple of integer or None
         """
-        something = None
+        count = 0
         try:
             self.cursor.execute('''
             SELECT COUNT(*) FROM demo_blob
             INNER JOIN demo ON demo_id=demo.id
             WHERE demo.id=?''', \
             (demo_id,))
-            something = self.cursor.fetchone()
+            count = self.cursor.fetchone()
+            if count==None:
+                return 0
+            else:
+                return count[0]
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
-        return None if not something else something
 
+        return count
 
-    def delete_demo(self, demo_id, demo_is_reducible):
+    #---------------------------------------------------------------------------
+    def remove_demo_from_database(self, demo_id):
         """
         If demo is empty, delete row corresponding in demo column
 
         :param demo_id: id demo
         :type demo_id: integer
-        :param demo_is_reducible: tuple of integer
-        :type demo_is_reducible: tuple or None
+        :param demo_blobcount: tuple of integer
+        :type demo_blobcount: tuple or None
         """
-        if demo_is_reducible[0] == 0:
-            try:
-                self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        print "database.py remove_demo_from_database({0})".format(demo_id)
+        try:
+            self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
+        except self.database.Error:
+            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
     #---------------------------------------------------------------------------
-    def blob_is_empty(self, blob_id):
+    def blob_democount(self, blob_id):
         """
-        Check if blob named by hash is not associated with a demo
+        Count the number of demos that use the given blob
 
         :param blob_id: id blob
         :type blob_id: string
         :return: number of blob present in database
         :rtype: tuple of integer
         """
-        something = None
+        print "database.py blob_democount({0})".format(blob_id)
+        democount = None
         try:
             self.cursor.execute('''
             SELECT COUNT(*) FROM demo_blob
             INNER JOIN blob ON blob_id=blob.id
             WHERE blob.id=?''', \
             (blob_id,))
-            something = self.cursor.fetchone()
+            democount = self.cursor.fetchone()
+            if democount==None:
+                democount=0
+            else:
+                democount = democount[0]
+            print "count blobid is", democount
         except self.database.Error:
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
-        return None if not something else something
+        if democount==None:
+            democount=0
+        return democount
 
     #---------------------------------------------------------------------------
-    def delete_blob(self, blob_id, blob_is_reducible):
+    def delete_blob(self, blob_id, blob_demo_count):
         """
         If blob is empty delete row corresponding in blob column
 
         :param blob_id: id blob
         :type blob_id: integer
-        :param blob_is_reducible: tuple of integer
-        :type blob_is_reducible: tuple or None
+        :param blob_demo_count: tuple of integer
+        :type blob_demo_count: tuple or None
         """
-        if blob_is_reducible[0] == 0:
+        print "database.py delete_blob({0},{1})".format(blob_id,blob_demo_count)
+        if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
                 DELETE FROM blob
@@ -586,70 +597,49 @@ class   Database(object):
                 raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
 
-    #---------------------------------------------------------------------------
-    def delete_blobset_from_demo(self, demo_id, blobset):
-        """
-        Delete link between demo and hash blob from demo_blob column in database
-        Delete link between blob and tag from blob_tag column in database
-        Delete demo row named by name demo if demo has no blob
-        Delete tag row associated to blob if tag has no blob
-        Delete blob row named by hash blob if blob has no demo
+    ##---------------------------------------------------------------------------
+    #def delete_blobset_from_demo(self, demo_id, blobset):
+        #"""
+        #Delete link between demo and hash blob from demo_blob column in database
+        #Delete link between blob and tag from blob_tag column in database
+        #Delete demo row named by name demo if demo has no blob
+        #Delete tag row associated to blob if tag has no blob
+        #Delete blob row named by hash blob if blob has no demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: True if blob named by id hasn't demo associated else False
-        :rtype: bool
-        """
-        try:
-            result = self.cursor.execute('''
-            SELECT blob_id, demo_id FROM demo_blob
-            INNER JOIN demo ON demo_blob.demo_id=demo.id
-            INNER JOIN blob ON demo_blob.blob_id=blob.id
-            WHERE demo.id=? AND blob.id=?''',\
-            (demo_id, blob_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        #:param demo_id: id demo
+        #:type demo_id: integer
+        #:param blob_id: id blob
+        #:type blob_id: integer
+        #:return: true if and only if the blob is not used anymore
+        #:rtype: boolean
+        #"""
+        #print "database.py delete_blobset_from_demo({0},{1})".format(demo_id,blobset)
+        #try:
+            #result = self.cursor.execute('''
+            #SELECT blob_id, demo_id, blob_set  FROM demo_blob
+            #INNER JOIN demo ON demo_blob.demo_id=demo.id
+            #INNER JOIN blob ON demo_blob.blob_id=blob.id
+            #WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=?''',\
+            #(demo_id, blob_id,blobset))
+        #except self.database.Error:
+            #raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
-        value = ()
-        for item in result:
-            value = (item[0], item[1])
+        #value = ()
+        #for item in result:
+            #value = (item[0], item[1])
+            #if value:
+                #try:
+                    #self.cursor.execute('''
+                    #DELETE FROM demo_blob
+                    #WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
+                    #(value[0], value[1],value[2]))
+                #except self.database.Error:
+                    #raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-        if value:
-            try:
-                self.cursor.execute('''
-                DELETE FROM demo_blob
-                WHERE blob_id=? AND demo_id=?''',\
-                (value[0], value[1],))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
-
-        try:
-            result = self.cursor.execute('''
-            SELECT blob_id, tag_id FROM blob_tag
-            INNER JOIN blob ON blob_tag.blob_id=blob.id AND blob.id=?''',\
-            (blob_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
-
-        value = ()
-        for item in result:
-            value = (item[0], item[1])
-
-        if value:
-            try:
-                self.cursor.execute('''
-                DELETE FROM blob_tag
-                WHERE blob_id=? AND tag_id=?''',\
-                (value[0], value[1],))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
-
-        self.delete_all_tag(blob_id)
-        blob_is_reducible = self.blob_is_empty(blob_id)
-        self.delete_blob(blob_id, blob_is_reducible)
-        return None if not blob_is_reducible[0] else blob_is_reducible[0]
+        #self.delete_all_tag(blob_id)
+        #blob_demo_count = self.blob_democount(blob_id)
+        #self.delete_blob(blob_id, blob_demo_count)
+        #return blob_demo_count==0
 
 
     #---------------------------------------------------------------------------
@@ -660,14 +650,16 @@ class   Database(object):
         Delete demo row named by name demo if demo has no blob
         Delete tag row associated to blob if tag has no blob
         Delete blob row named by hash blob if blob has no demo
-
+        
         :param demo_id: id demo
         :type demo_id: integer
         :param blob_id: id blob
         :type blob_id: integer
-        :return: True if blob named by id hasn't demo associated else False
-        :rtype: bool
+        :return: true if and only if the blob is not used anymore
+        :rtype: boolean
         """
+        
+        print "delete_blob_from_demo({0},{1},{2})".format(demo_id,blobset,blob_id)
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob
@@ -681,41 +673,21 @@ class   Database(object):
         value = ()
         for item in result:
             value = (item[0], item[1], item[2])
+            if value:
+                print "deleting from database: {0}".format(value) 
+                try:
+                    self.cursor.execute('''
+                    DELETE FROM demo_blob
+                    WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
+                    (value[0], value[1],value[2]))
+                except self.database.Error:
+                    raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-        if value:
-            try:
-                self.cursor.execute('''
-                DELETE FROM demo_blob
-                WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
-                (value[0], value[1],value[2]))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
-
-        try:
-            result = self.cursor.execute('''
-            SELECT blob_id, tag_id FROM blob_tag
-            INNER JOIN blob ON blob_tag.blob_id=blob.id AND blob.id=?''',\
-            (blob_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
-
-        value = ()
-        for item in result:
-            value = (item[0], item[1])
-
-        if value:
-            try:
-                self.cursor.execute('''
-                DELETE FROM blob_tag
-                WHERE blob_id=? AND tag_id=?''',\
-                (value[0], value[1],))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
-
+        #---- here
         self.delete_all_tag(blob_id)
-        blob_is_reducible = self.blob_is_empty(blob_id)
-        self.delete_blob(blob_id, blob_is_reducible)
-        return None if not blob_is_reducible[0] else blob_is_reducible[0]
+        blob_demo_count = self.blob_democount(blob_id)
+        self.delete_blob(blob_id, blob_demo_count)
+        return blob_demo_count==0
 
     #---------------------------------------------------------------------------
     def commit(self):
@@ -809,14 +781,15 @@ class   Database(object):
                 raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
             #blobsets_list = self.cursor.fetchall()
-            print item[0]
+            #print item[0]
             #print blobsets_list
             length= len(blob_sets.fetchall())
             
             lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } ) 
         return lis
 
-    def get_blob_name(self, blob_id):
+    #---------------------------------------------------------------------------
+    def get_blob_filename(self, blob_id):
         """
         Return the name of the blob from id
 
@@ -839,6 +812,7 @@ class   Database(object):
 
         return value[0] + value[1] if value else value
 
+    #---------------------------------------------------------------------------
     def get_blob(self, blob_id):
         """
         Return the infos blob from id blob
@@ -862,6 +836,7 @@ class   Database(object):
 
         return dic
 
+    #---------------------------------------------------------------------------
     def delete_tag_from_blob(self, tag_id, blob_id):
         """
         Delete link between tag and blob
@@ -880,10 +855,11 @@ class   Database(object):
         except self.database.Error:
             raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
 
-        demo_is_reducible = self.tag_is_empty(tag_id)
-        self.delete_tag(tag_id, demo_is_reducible)
+        tag_is_reducible = self.tag_is_empty(tag_id)
+        self.delete_tag(tag_id, tag_is_reducible)
 
 
+    #---------------------------------------------------------------------------
     def delete_all_tag(self, blob_id):
         """
         Delete all tags from the blob because blob is delete
@@ -908,6 +884,7 @@ class   Database(object):
             raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
 
 
+    #---------------------------------------------------------------------------
     def list_of_template(self):
         """
         Return the list templated demo
@@ -929,6 +906,7 @@ class   Database(object):
         return lis
 
 
+    #---------------------------------------------------------------------------
     def remove_demo(self, demo_id):
         """
         Remove demo of the database, and blob and tag associated
@@ -936,26 +914,29 @@ class   Database(object):
         :param demo_id: id demo
         :type demo_id: integer
         """
+        print "database remove_demo({0})".format(demo_id)
         try:
-            self.list_templated_demo_using_from_demo(demo_id)
-            something = self.cursor.execute('''
-            SELECT blob.id FROM blob
-            INNER JOIN demo_blob ON blob.id=demo_blob.blob_id
-            INNER JOIN demo ON demo_blob.demo_id=demo.id
-            WHERE demo.id=?''', \
-            (demo_id,))
-            lis = []
-            for item in something:
-                lis.append(item[0])
-
-            for item in lis:
-                self.delete_blob_from_demo(demo_id, item)
-            demo_is_reducible = self.demo_is_empty(demo_id)
-            self.delete_demo(demo_id, demo_is_reducible)
+            # use get_blobs_of_demo() to simplify the code
+            demo_blobsets = self.get_blobs_of_demo(demo_id)
+            print "demo_blobsets=",demo_blobsets
+            blobfilenames_to_delete = []
+            for blobs in demo_blobsets:
+                blobset_id = blobs[0]["set_name"]
+                print "removing blobset '{0}'".format(blobset_id)
+                for i in range(blobs[0]["size"]):
+                    can_delete = self.delete_blob_from_demo(demo_id, blobset_id,blobs[i+1]["id"])
+                    if can_delete: 
+                        blobfilenames_to_delete.append(blobs[i+1]["hash"]+blobs[i+1]["extension"])
+            demo_blobcount = self.blobcount(demo_id)
+            print "demo blobcount = ", demo_blobcount
+            if demo_blobcount==0:
+                self.remove_demo_from_database(demo_id)
         except self.database.Error, DatabaseSelectError:
             raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        return blobfilenames_to_delete
+        
 
-
+    #---------------------------------------------------------------------------
     def demo_use_template(self, demo_id):
         """
         Return the name of the templated demo used by another demo
@@ -981,6 +962,7 @@ class   Database(object):
         return dic
 
 
+    #---------------------------------------------------------------------------
     def update_template(self, demo_id, template_id):
         """
         Update the template used by another demo
@@ -998,6 +980,7 @@ class   Database(object):
         except DatabaseError:
             raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)
 
+    #---------------------------------------------------------------------------
     def list_templated_demo_using_from_demo(self, demo_id):
         """
         Update id template of demo using templated demo defined by id

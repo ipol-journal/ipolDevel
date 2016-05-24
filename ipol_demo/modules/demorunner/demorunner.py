@@ -652,6 +652,29 @@ class DemoRunner(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
+    def init_noinputs(self, **kwargs):
+        """
+        use the selected available input images
+        input parameters:
+            demo_id
+        returns:
+            { key, status, message }
+        """
+        start = timer()
+        self.stack_depth=0
+        res_data = {}
+        res_data['info'] = ''
+        # we need a unique key for the execution
+        demo_id = kwargs.pop('demo_id',None)
+        key = self.get_new_key(demo_id)
+        res_data["key"]     = key
+        work_dir = self.WorkDir(demo_id,key)
+        res_data["status"]  = "OK"
+        return json.dumps(res_data)
+
+
+    #---------------------------------------------------------------------------
+    @cherrypy.expose
     def run_demo(self, demo_id, key, ddl_json, params, meta):
         
         res_data = {}

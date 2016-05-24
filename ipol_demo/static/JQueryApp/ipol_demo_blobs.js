@@ -227,9 +227,6 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 // check if thumbnail load works, if not, hide the corresponding
                 // image
                 var tester=new Image();
-                tester.onerror=(function(i,idx) { return function() {
-                    $("#blob_"+i+"_"+idx).html("");
-                }; })(i,idx);
                 tester.src=this.demoblobs.url_thumb+'/'+blobhash_subdir(blobset[idx].hash)+
                             'thumbnail_'+blobset[idx].hash+blobset[idx].extension;
                 tester.onload = function(obj) { return function() {
@@ -250,7 +247,9 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     }
 //                     obj.InfoMessage("end ",i);
                 }; }(this);
-                tester.onerror = function(obj) { return function() {
+                tester.onerror = function(obj,i,idx) { return function() {
+                    console.info("tester.onerror blobset:",i," blob index:",idx);
+                    $("#blob_"+i+"_"+idx).hide();
                     obj.InfoMessage("failed to load blob image ",i," index ",idx);
                     processed_images++;
                     if (processed_images==images_to_process) {
@@ -260,7 +259,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                     }
-                }; }(this);
+                }; }(this,i,idx);
             } 
 
             

@@ -16,11 +16,20 @@
 Main function.
 """
 
+import os
 import cherrypy
 import sys
 from archive import Archive
 
 if __name__ == '__main__':
+    
+    if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
+        VALUE = sys.argv[1]
+    else:
+        VALUE="archive.conf"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    CONF_FILE = os.path.join(BASE_DIR, VALUE)
+    
     if "--test" in sys.argv:
-        cherrypy.quickstart(Archive('test'), config="archive.conf")
-    cherrypy.quickstart(Archive(None), config="archive.conf")
+        cherrypy.quickstart(Archive('test',CONF_FILE), config=CONF_FILE)
+    cherrypy.quickstart(Archive(None,CONF_FILE), config=CONF_FILE)
