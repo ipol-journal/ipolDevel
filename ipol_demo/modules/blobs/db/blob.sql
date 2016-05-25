@@ -30,7 +30,7 @@ CREATE TABLE "demo_blob" (
 	`demo_id`	INTEGER,
 	`blob_set`	VARCHAR(70) DEFAULT NULL,
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-	`blob_id_in_set`	INTEGER,
+	`blob_pos_in_set`	INTEGER,
 	FOREIGN KEY(`blob_id`) REFERENCES "blob" ( `id` ) ON DELETE CASCADE ON UPDATE RESTRICT,
 	FOREIGN KEY(`demo_id`) REFERENCES "demo" ( `id` ) ON DELETE CASCADE ON UPDATE RESTRICT
 );

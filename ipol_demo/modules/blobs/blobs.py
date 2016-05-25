@@ -149,7 +149,7 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, blob_id_in_set,
+    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, blob_pos_in_set,
                     title, credit):
         """
         This function implements get request (from '/add_blob_ws')
@@ -161,7 +161,7 @@ class   Blobs(object):
         :param tag:             name tag string
         :param ext:             extension of blob string
         :param blob_set:        string
-        :param blob_id_in_set:  number, id of the blob within its blob_set
+        :param blob_pos_in_set:  number, id of the blob within its blob_set
         :param title:           title blob string
         :param credit:          credit blob string
         :return:                hash of current blob (dictionnary) json format
@@ -187,7 +187,7 @@ class   Blobs(object):
               print "in database"
               blobid = data.blob_id(blob_hash)
             data.add_blob_in_database(demo_id, blob_hash, fileformat,
-                                      ext, tag, blob_set, blob_id_in_set,
+                                      ext, tag, blob_set, blob_pos_in_set,
                                       title, credit, blobid)
 
             data.commit()
@@ -235,7 +235,7 @@ class   Blobs(object):
 
         path = create_tmp_file(blob, tmp_directory)
         data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, 
-                "blob_set": blob_set, "blob_id_in_set":0,
+                "blob_set": blob_set, "blob_pos_in_set":0,
                 "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
 
@@ -1080,7 +1080,7 @@ class   Blobs(object):
 
                       data = {"demo_id": demo_id, "path": tmp_path,
                               "ext": ext, "blob_set": section, 
-                              "blob_id_in_set": file_id, "title": title,
+                              "blob_pos_in_set": file_id, "title": title,
                               "credit": credit}
                       res = use_web_service('/add_blob_ws/', data)
                       
@@ -1107,7 +1107,7 @@ class   Blobs(object):
                             # as a blob item
                             data = {"demo_id": demo_id, "path": tmp_image_path, 
                                     "ext": image_ext, "blob_set": section, 
-                                    "blob_id_in_set": file_id, "title": title,
+                                    "blob_pos_in_set": file_id, "title": title,
                                     "credit": credit}
                             res = use_web_service('/add_blob_ws/', data)
                             the_hash = res["the_hash"]

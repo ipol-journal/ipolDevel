@@ -65,7 +65,7 @@ class   Database(object):
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
 
     def add_blob_in_database(self, demoid, hash_blob, fileformat,
-                             ext, tag, blob_set, blob_id_in_set,
+                             ext, tag, blob_set, blob_pos_in_set,
                              title, credit, blobid=-1):
         """
         Add hash blob content and format blob in blob column in database
@@ -79,7 +79,7 @@ class   Database(object):
         :param ext: extension of blob string
         :param tag: name tag string
         :param blob_set: set  blob string
-        :param blob_id_in_set: set  blob id in its set
+        :param blob_pos_in_set: set  blob id in its set
         :param title: title blob string
         :param credit: credit blob string
         :param blobid: if blobid is omitted (= -1), then add blob
@@ -99,9 +99,9 @@ class   Database(object):
         try:
             self.cursor.execute(
                 '''INSERT OR REPLACE INTO
-                demo_blob(blob_id, demo_id, blob_set,blob_id_in_set)
+                demo_blob(blob_id, demo_id, blob_set,blob_pos_in_set)
                 VALUES(?, ?, ?, ?)''', \
-                (blobid, demoid, blob_set,blob_id_in_set,))
+                (blobid, demoid, blob_set,blob_pos_in_set,))
 
         except self.database.Error:
             raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
@@ -318,7 +318,7 @@ class   Database(object):
         for blobset in blobsets_list:
           try:
             self.cursor.execute('''
-              SELECT  blob.id, demo_blob.blob_id_in_set,
+              SELECT  blob.id, demo_blob.blob_pos_in_set,
                       blob.hash, blob.extension, blob.format, 
                       blob.title, blob.credit FROM demo_blob
               INNER JOIN demo ON demo_blob.demo_id=demo.id
