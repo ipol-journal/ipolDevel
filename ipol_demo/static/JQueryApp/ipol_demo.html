@@ -149,12 +149,15 @@
                 text-shadow: 1px 1px 0 #fff;
             }
         </style>
-        <div id="progressbar" >
-            <!-- style="width:30em;display:inline-block;vertical-align:top;text-align:center;"> -->
-            <div class="progress-label" > Select demo and input </div>
-        </div>
 
-        <!-- Parameter Selection -->
+        <!-- ******** inputs_fieldset ****** -->
+        <fieldset id="inputs_fieldset" style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;">
+        <legend> Input(s) <span>[-]</span> </legend> 
+            <!-- Draw inputs (includes dealing with crop) -->
+            <div id="DrawInputs" ></div>
+        </fieldset>
+
+        <!-- ******** parameters_fieldset ******** -->
         <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;" id="parameters_fieldset" >
         <legend> Param <span>[-]</span> </legend> 
             <span>
@@ -169,14 +172,11 @@
             </div>
         </fieldset>
 
-
-        <fieldset id="inputs_fieldset" style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;">
-        <legend> Input(s) <span>[-]</span> </legend> 
-            <!-- Draw inputs (includes dealing with crop) -->
-            <div id="DrawInputs" ></div>
-        </fieldset>
-
-
+        <!-- ******** progress bar ****** -->
+        <div id="progressbar" >
+            <!-- style="width:30em;display:inline-block;vertical-align:top;text-align:center;"> -->
+            <div class="progress-label" > Select demo and input </div>
+        </div>
 
         <!-- Results -->
         <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;">
