@@ -21,7 +21,8 @@ var ImageGallery = function(galleryid)  {
     //   - an array of image location
     //   - an object containing image and titles
     this.contents = {};
-    this.ref_index = 0;
+    this.ref_index      = 0;
+    this.compare_index  = 1;
     this.galleryid = galleryid;
     this.img_class = 'gallery_'+this.galleryid+'_img';
     this.style="height:200px;";
@@ -34,11 +35,12 @@ var ImageGallery = function(galleryid)  {
     // set maximum display dimensions
     this.display_maxwidth  = $(window).width()*0.80;
     this.display_maxheight = $(window).height()*0.80;
-    this.verbose=false;
+    this.verbose=true;
     this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
     this.display_minwidth  = 400;
     this.display_minheight = 300;
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    this.current_contents = "#contents1";
     
     //--------------------------------------------------------------------------
     this.Append = function(content) {
@@ -105,12 +107,21 @@ var ImageGallery = function(galleryid)  {
                 html +=   "<td id='t"+index+"' style='white-space:nowrap;border:0;height:1.25em;' >";
                 html +=   title;
                 html +=   "</td>";
+                html +=   "<td class='compare_class' id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
+                html +=   "&nbsp;&nbsp;";
+                html +=   "</td>";
                 html += "</tr>";
             }.bind(this)
             );
             html += "<tr style='"+title_style+"'>";
-            html +=   "<td style='border:0;height:2em' >";
+            html +=   "<td style='border:0;height:2em;white-space:nowrap' >";
             html +=   this.CreateZoomSelection();
+            html +=   "</td>";
+            html += "</tr>";
+            html += "<tr style='"+title_style+"'>";
+            html +=   "<td style='border:0;height:2em;white-space:nowrap' >";
+            html +=        "<input  type='checkbox' id='id_compare'>";
+            html +=        "<label>compare</label>";
             html +=   "</td>";
             html += "</tr>";
             html += "<tr style='"+title_style+"'>";
@@ -118,11 +129,15 @@ var ImageGallery = function(galleryid)  {
             html +=   "<button id='popup_all'>all</button>"
             html +=   "</td>";
             html += "</tr>";
+            
             html += "</table>";
 
         html +=   "</td>";
-        html +=   "<td id='contents' "+style+">";
-        html +=     "contents";
+        html +=   "<td id='contents1' "+style+">";
+        html +=     "contents1";
+        html +=   "</td>";
+        html +=   "<td class='compare_class' id='contents2' "+style+">";
+        html +=     "contents2";
         html +=   "</td>";
         html += "</tr>";
             
@@ -215,19 +230,31 @@ var ImageGallery = function(galleryid)  {
     
     
     //--------------------------------------------------------------------------
-    this.CheckLoadAllImages = function(index) {
+    this.CheckLoadAllImages = function() {
+        // update window size
+        var used_width = $("#t0").parent().outerWidth();
+        this.display_maxwidth  = $(window).width()-used_width-100;
+        this.display_maxheight = $(window).height()*0.80;
+        
         if (this.total_loaded_images===this.total_images) {
             // adapt zoom factor based on maximum display allowed
             var ratio = 1;
             ratio = Math.min(ratio,this.display_maxheight/this.max_height);
-            ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
+            var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
+            var compare_checked = $(compare_sel).is(':checked');
+            if (compare_checked) {
+                ratio = Math.min(ratio,this.display_maxwidth/(2*this.max_width));
+            } else {
+                ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
+            }
             this.InfoMessage("ratio = ",ratio);
             if (ratio<1) {
                 // find scale to select
                 var idx=0;
-                while (this.scales[idx]<ratio) {
+                while (this.scales[idx]<=ratio) {
                     idx++
                 }
+                // be sure to fit in the window
                 if (idx>0) {
                     idx--;
                 }
@@ -241,13 +268,10 @@ var ImageGallery = function(galleryid)  {
                 ratio = Math.max(ratio,this.display_minheight/this.max_height);
                 ratio = Math.max(ratio,this.display_minwidth/this.max_width);
                 this.InfoMessage("ratio = ",ratio);
-                if (ratio>1) {
+                if (ratio>=1) {
                     var idx=this.scales.length-1;
                     while (this.scales[idx]>ratio) {
                         idx--
-                    }
-                    if (idx<this.scales.length-1) {
-                        idx++;
                     }
                     // TODO: check max constraint is still OK
                     this.InfoMessage("scale ",idx," = ",this.scales[idx]);
@@ -256,6 +280,7 @@ var ImageGallery = function(galleryid)  {
                 }
             }
             this.UpdateSelection();
+            this.UpdateCompareSelection();
             this.InfoMessage("All images are loaded ... running callback ");
             if (this.onloadall_callback!=undefined) {
                 this.onloadall_callback();
@@ -366,29 +391,45 @@ var ImageGallery = function(galleryid)  {
     }
     
     //--------------------------------------------------------------------------
-    this.RefElt = function(index) {
+    this.CompareElt = function(index) {
+        return "#gallery_"+this.galleryid+" #compare_"+index;
+    }
+    
+    //--------------------------------------------------------------------------
+    this.RefElt = function() {
         return "#gallery_"+this.galleryid+" #t"+this.ref_index;
     }
     
     //--------------------------------------------------------------------------
-    this.SelContents = function() {
-        return "#gallery_"+this.galleryid+" #contents";
+    this.CompareRefElt = function() {
+        return "#gallery_"+this.galleryid+" #compare_"+this.compare_index;
     }
     
     //--------------------------------------------------------------------------
-    this.SetContents = function(index) {
-        $(this.SelContents()).html(this.html_contents[index]);
+    this.SelContents = function(pos) {
+        return "#gallery_"+this.galleryid+" "+"#contents"+pos;
+//         this.current_contents;
+    }
+    
+    //--------------------------------------------------------------------------
+    this.SetContents = function(pos,index) {
+        $(this.SelContents(pos)).html(this.html_contents[index]);
         $("."+this.img_class).css("height",(this.ZoomFactor*this.max_height)+"px");
         if (this.ondisplay_callback!=undefined) {
             this.ondisplay_callback(index);
         }
     }
-    
+        
     //--------------------------------------------------------------------------
     this.UpdateSelection = function() {
-        var titles = Object.keys(this.contents);
         $(this.RefElt()).css('background-color',this.ref_bgcolor);
-        this.SetContents(this.ref_index);
+        this.SetContents(1,this.ref_index);
+    }
+    
+    //--------------------------------------------------------------------------
+    this.UpdateCompareSelection = function() {
+        $(this.CompareRefElt()).css('background-color',this.ref_bgcolor);
+        this.SetContents(2,this.compare_index);
     }
     
     //--------------------------------------------------------------------------
@@ -398,7 +439,13 @@ var ImageGallery = function(galleryid)  {
         this.UpdateSelection();
     }
 
-    
+    //--------------------------------------------------------------------------
+    this.SetCompareSelection = function(index) {
+        $(this.CompareRefElt()).css('background-color','');
+        this.compare_index = index;
+        this.UpdateCompareSelection();
+    }
+
     //--------------------------------------------------------------------------
     this.GetImage = function(index) {
         return this.images_contents[index];
@@ -446,8 +493,26 @@ var ImageGallery = function(galleryid)  {
 
         this.BuildContents();
         
+//         $("#gallery_"+this.galleryid+" #contents1").unbind().click(
+//             function() {
+//                 this.current_contents="#contents1";
+//                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"wheat"});
+//                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"white"});
+//             }.bind(this)
+//         );
+//         
+//         $("#gallery_"+this.galleryid+" #contents2").unbind().click(
+//             function() {
+//                 this.current_contents="#contents2";
+//                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"wheat"});
+//                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"white"});
+//             }.bind(this)
+//         );
+        
         // Set ref index to 0
         this.SetSelection(0);
+        // Set compare index to 1
+        this.SetCompareSelection(1);
         
         this.InfoMessage("CreateEvents");
         // create events
@@ -455,12 +520,12 @@ var ImageGallery = function(galleryid)  {
             this.InfoMessage("index =",index);
             $(this.Elt(index)).hover( 
                 function() {
-                    this.SetContents(index);
+                    this.SetContents(1,index);
                     $(this.Elt(index)).css('background-color',this.hover_bgcolor);
                 }.bind(this),
                 function() {
                     if (index!=this.ref_index) {
-                        this.SetContents(this.ref_index);
+                        this.SetContents(1,this.ref_index);
                         $(this.Elt(index)).css('background-color','');
                     } else {
                         $(this.Elt(index)).css('background-color',this.ref_bgcolor);
@@ -471,9 +536,27 @@ var ImageGallery = function(galleryid)  {
                 function() { 
                     this.SetSelection(index);
                 }.bind(this) ); 
+            $(this.CompareElt(index)).hover( 
+                function() {
+                    this.SetContents(2,index);
+                    $(this.CompareElt(index)).css('background-color',this.hover_bgcolor);
+                }.bind(this),
+                function() {
+                    if (index!=this.compare_index) {
+                        this.SetContents(2,this.compare_index);
+                        $(this.CompareElt(index)).css('background-color','');
+                    } else {
+                        $(this.CompareElt(index)).css('background-color',this.ref_bgcolor);
+                    }
+                }.bind(this)
+            );
+            $(this.CompareElt(index)).click( 
+                function() { 
+                    this.SetCompareSelection(index);
+                }.bind(this) ); 
         }.bind(this));
         
-        $("#"+this.zoom_id).change( 
+        $("#"+this.zoom_id).unbind().change( 
             function() {
                 this.ZoomFactor = $("#"+this.zoom_id+" option:selected").val();
                 this.InfoMessage(this.zoom_id+ " changed ", this.ZoomFactor);
@@ -481,6 +564,20 @@ var ImageGallery = function(galleryid)  {
             }.bind(this)
         );
         
+        var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
+        var compare_class_sel = '#gallery_'+this.galleryid+' .compare_class';
+        $(compare_sel).unbind().change( function()   { 
+            var compare_checked = $(compare_sel).is(':checked');
+            if (compare_checked) {
+                $(compare_class_sel).show();
+                this.CheckLoadAllImages();
+            } else {
+                $(compare_class_sel).hide();
+                this.CheckLoadAllImages();
+            }
+        }.bind(this));
+        
+        $(compare_class_sel).hide();
         
 //         $("#gallery_"+this.galleryid).unbind().on("resize",function() { console.info("gallery resized"); } ); 
                                                                          
