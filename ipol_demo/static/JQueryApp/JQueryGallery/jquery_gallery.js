@@ -107,9 +107,9 @@ var ImageGallery = function(galleryid)  {
                 html +=   "<td id='t"+index+"' style='white-space:nowrap;border:0;height:1.25em;' >";
                 html +=   title;
                 html +=   "</td>";
-                html +=   "<td class='compare_class' id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
-                html +=   "&nbsp;&nbsp;";
-                html +=   "</td>";
+//                 html +=   "<td class='compare_class' id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
+//                 html +=   "&nbsp;&nbsp;";
+//                 html +=   "</td>";
                 html += "</tr>";
             }.bind(this)
             );
@@ -138,6 +138,25 @@ var ImageGallery = function(galleryid)  {
         html +=   "</td>";
         html +=   "<td class='compare_class' id='contents2' "+style+">";
         html +=     "contents2";
+        html +=   "</td>";
+        
+        html +=   "<td class='compare_class' style='vertical-align:top;"+title_style+"'>";
+
+            html += "<table style='"+title_style+"'>";
+            $.each(titles, function(index,title) {
+                html += "<tr style='"+title_style+"'>";
+                html +=   "<td  id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
+                if(title.length>15) {
+                    html +=   title.substring(0,12)+"...";
+                } else {
+                    html +=   title;
+                }
+                html +=   "</td>";
+                html += "</tr>";
+            }.bind(this)
+            );
+            html += "</table>";
+
         html +=   "</td>";
         html += "</tr>";
             
@@ -230,55 +249,66 @@ var ImageGallery = function(galleryid)  {
     
     
     //--------------------------------------------------------------------------
-    this.CheckLoadAllImages = function() {
+    // automatically computes image scales based on the window available width
+    //
+    this.CheckDimensions = function() {
         // update window size
+        var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
+        var compare_checked = $(compare_sel).is(':checked');
         var used_width = $("#t0").parent().outerWidth();
+        if (compare_checked) {
+            used_width += $("#compare_0").parent().outerWidth();
+        }
         this.display_maxwidth  = $(window).width()-used_width-100;
         this.display_maxheight = $(window).height()*0.80;
-        
-        if (this.total_loaded_images===this.total_images) {
-            // adapt zoom factor based on maximum display allowed
-            var ratio = 1;
-            ratio = Math.min(ratio,this.display_maxheight/this.max_height);
-            var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
-            var compare_checked = $(compare_sel).is(':checked');
-            if (compare_checked) {
-                ratio = Math.min(ratio,this.display_maxwidth/(2*this.max_width));
-            } else {
-                ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
+        // adapt zoom factor based on maximum display allowed
+//         var ratio = 1;
+//         ratio = Math.min(ratio,this.display_maxheight/this.max_height);
+        ratio = this.display_maxheight/this.max_height;
+        if (compare_checked) {
+            ratio = Math.min(ratio,this.display_maxwidth/(2*this.max_width));
+        } else {
+            ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
+        }
+        this.InfoMessage("ratio = ",ratio);
+        if (ratio<1) {
+            // find scale to select
+            var idx=0;
+            while (this.scales[idx]<=ratio) {
+                idx++
             }
+            // be sure to fit in the window
+            if (idx>0) {
+                idx--;
+            }
+            this.InfoMessage("scale ",idx," = ",this.scales[idx]);
+            $("#"+this.zoom_id).val(this.scales[idx]);
+            $("#"+this.zoom_id).trigger("change");
+        } else {
+            // check min display constraint
+            // also risk of incompatibilities between min and max constraints
+            //var ratio = 1;
+            ratio = Math.max(ratio,this.display_minheight/this.max_height);
+            ratio = Math.max(ratio,this.display_minwidth/this.max_width);
             this.InfoMessage("ratio = ",ratio);
-            if (ratio<1) {
-                // find scale to select
-                var idx=0;
-                while (this.scales[idx]<=ratio) {
-                    idx++
+            if (ratio>=1) {
+                var idx=this.scales.length-1;
+                while (this.scales[idx]>ratio) {
+                    idx--
                 }
-                // be sure to fit in the window
-                if (idx>0) {
-                    idx--;
-                }
+                // TODO: check max constraint is still OK
                 this.InfoMessage("scale ",idx," = ",this.scales[idx]);
                 $("#"+this.zoom_id).val(this.scales[idx]);
                 $("#"+this.zoom_id).trigger("change");
-            } else {
-                // check min display constraint
-                // also risk of incompatibilities between min and max constraints
-                var ratio = 1;
-                ratio = Math.max(ratio,this.display_minheight/this.max_height);
-                ratio = Math.max(ratio,this.display_minwidth/this.max_width);
-                this.InfoMessage("ratio = ",ratio);
-                if (ratio>=1) {
-                    var idx=this.scales.length-1;
-                    while (this.scales[idx]>ratio) {
-                        idx--
-                    }
-                    // TODO: check max constraint is still OK
-                    this.InfoMessage("scale ",idx," = ",this.scales[idx]);
-                    $("#"+this.zoom_id).val(this.scales[idx]);
-                    $("#"+this.zoom_id).trigger("change");
-                }
             }
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    this.CheckLoadAllImages = function() {
+        
+        if (this.total_loaded_images===this.total_images) {
+            this.CheckDimensions()
             this.UpdateSelection();
             this.UpdateCompareSelection();
             this.InfoMessage("All images are loaded ... running callback ");
@@ -570,10 +600,10 @@ var ImageGallery = function(galleryid)  {
             var compare_checked = $(compare_sel).is(':checked');
             if (compare_checked) {
                 $(compare_class_sel).show();
-                this.CheckLoadAllImages();
+                this.CheckDimensions();
             } else {
                 $(compare_class_sel).hide();
-                this.CheckLoadAllImages();
+                this.CheckDimensions();
             }
         }.bind(this));
         
