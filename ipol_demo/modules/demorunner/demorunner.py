@@ -647,6 +647,7 @@ class DemoRunner(object):
             res_data['process_inputs_msg'] = msg
         self.stack_depth-=1
         self.output("#### input_select_and_crop:{0} sec.".format(timer()-start))
+        
         return json.dumps(res_data)
 
 
@@ -744,12 +745,22 @@ class DemoRunner(object):
         # Files must be stored by the archive module
         if (len(ddl_json['inputs'])==0) or \
             res_data['algo_meta']['original']:
-            work_dir = self.WorkDir(demo_id,key)
-            SendArchive.prepare_archive(work_dir,ddl_json['archive'],res_data)
             res_data["send_archive"]=True
         else:
             res_data["send_archive"]=False
 
+        work_dir = self.WorkDir(demo_id,key)
+        # save res_data as a results.json file
+        try:
+            with open(os.path.join(work_dir,"results.json"),"w") as resfile:
+                json.dump(res_data,resfile)
+        except Exception:
+            print "Failed to save results.json file"
+            raise
+        
+        if res_data["send_archive"]:
+            SendArchive.prepare_archive(work_dir,ddl_json['archive'],res_data)
+            
         return json.dumps(res_data)
         
         

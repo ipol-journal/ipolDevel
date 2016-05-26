@@ -61,10 +61,15 @@ class SendArchive:
         blobs_item = []
         blobs = {}
         if 'files' in desc.keys():
+            
+          # append results.json file
+          desc['files']["results.json"]="results from experiment"
+          
           for filename in desc['files']:
             file_complete_route = os.path.join(work_dir, filename)
+            print "file route=",file_complete_route
             if os.path.exists(file_complete_route):
-                
+                print "ok"
                 format_file = SendArchive.file_format(file_complete_route)
                 
                 file_description = desc['files'][filename]
