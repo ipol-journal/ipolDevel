@@ -269,7 +269,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 
                 // Display archive information
                 var ar = new ArchiveDisplay();
-                ar.get_archive(demo_id);
+                ar.get_archive(demo_id,1);
 
                 if (demo_ddl.status == "OK") {
                     switch(origin) {
@@ -628,6 +628,9 @@ function SetPageState( page_state) {
             $("#ResultsDisplay").parent().css("height","")
             $(window).scrollTop(page_state.scrolltop);
             console.info("onloadall_callback scrolltop=",scrolltop);
+            // disable it 
+            console.info("dr=",dr);
+//             dr.onloadall_callback=undefined;
         }
         dr.Create();
         //$("#progressbar").get(0).scrollIntoView();
