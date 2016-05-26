@@ -35,7 +35,7 @@ p.center{text-align:center}
 #content .bucket dl{margin:0 0 .5em 0;padding:0} 
 #content .bucket -table{text-align:left;margin:0;background:0;border-spacing:0}
 #content .bucket table.info{float:left;width:32%} 
-#content .bucket table.thumbnails{float:right;width:65%} 
+#content .bucket table.thumbnails{vertical-align:top;width:auto} 
 #content .bucket table.images{float:left;clear:left;width:100%} 
 #content .bucket table th{font-style:normal;font-weight:bold;background:0;vertical-align:top;text-align:left;margin:0;padding:0} 
 #content .bucket table.thumbnails img{width:3cm;height:3cm;margin:0;position:relative;z-index:1;background:white;border:1px solid #ddd} 
