@@ -34,6 +34,7 @@ from PIL import Image
 
 from mako.template import Template
 
+
 class Archive(object):
         """
         This class implement an archive system for experiments and
@@ -518,6 +519,7 @@ class Archive(object):
                 :return: dictionnary with infos on the given experiment.
                 :rtype: dict
                 """
+                
                 dict_exp = {}
                 list_files = []
                 path_file = str()
@@ -533,9 +535,17 @@ class Archive(object):
                 all_rows = cursor_db.fetchall()
                 
                 for row in all_rows:
-                    path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
-                    path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
-                    list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
+                    if row[2]=="results from experiment":
+                        path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
+                        print "found results json file ",path_file
+                        # load the json file
+                        with open(path_file) as data_file:
+                            results_json = json.load(data_file)
+                        dict_exp["results"]=results_json
+                    else:
+                        path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
+                        path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
+                        list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
                 
                 dict_exp["id"] = id_exp
