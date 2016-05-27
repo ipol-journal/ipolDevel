@@ -194,6 +194,10 @@ var BlobsContainer = function(demoblobs, ddl_json)
         // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
+                // empty results
+                $("#ResultsDisplay").empty();
+                $("#ResultsDisplay").removeData();
+                
                 var di = new DrawInputs(this.ddl_json);
                 di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
                 di.input_origin = "blobset";
@@ -277,6 +281,10 @@ function OnDemoBlobs(ddl_json) {
 //         console.info("ddl_json=",ddl_json);
         
         if (demoblobs.status=="KO") {
+            $("#displayblobs").html("Failed to read demo blobs");
+            // empty results
+            $("#ResultsDisplay").empty();
+            $("#ResultsDisplay").removeData();
             return;
         }
         
