@@ -128,7 +128,7 @@ var DrawInputs = function(ddl_json) {
                             '>'+
                         '</div></td>'+
                         '<td class="table_crop">'+
-                            '<div id="previewimage" style="height:500px;float:left;margin:0px">'+
+                            '<div id="previewimage" style="height:500px;float:left;margin:0px;image-rendering:pixelated;-ms-interpolation-mode:nearest-neighbor;">'+
                                 '<div class="preview"></div>'+
                             '</div>'+
                         '</td>'+
