@@ -384,6 +384,9 @@ function CreateLocalData(ddl_json) {
     $("#upload-dialog").dialog("option","buttons",{
         Apply: (function(ddl_json) { 
             return function(){
+                // empty results
+                $("#ResultsDisplay").empty();
+                $("#ResultsDisplay").removeData();
                 // code to be executed on click
                 var di = new DrawInputs(ddl_json);
                 console.info("apply_local_data ", ddl_json);
