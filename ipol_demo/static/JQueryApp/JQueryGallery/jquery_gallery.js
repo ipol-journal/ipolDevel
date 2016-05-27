@@ -133,11 +133,16 @@ var ImageGallery = function(galleryid)  {
             html += "</table>";
 
         html +=   "</td>";
-        html +=   "<td id='contents1' "+style+">";
+//         html +=   "<td id='contents1' "+style+">";
+        html +=   "<td "+style+">";
+        html +=   "<div id='contents1' "+"style='border:1px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents1";
+        html +=   "</div>";
         html +=   "</td>";
-        html +=   "<td class='compare_class' id='contents2' "+style+">";
+        html +=   "<td class='compare_class' "+style+">";
+        html +=   "<div id='contents2' "+"style='border:1px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents2";
+        html +=   "</div>";
         html +=   "</td>";
         
         html +=   "<td class='compare_class' style='vertical-align:top;"+title_style+"'>";
@@ -193,7 +198,9 @@ var ImageGallery = function(galleryid)  {
         this.InfoMessage("CreateContents "+ title+ ": "+ image);
         var res="";
 
-        var img_style = "";
+        // try to have nearest neighbor interpolation 
+        // (see https://developer.mozilla.org/fr/docs/Web/CSS/Image-rendering)
+        var img_style = "image-rendering:pixelated;-ms-interpolation-mode:nearest-neighbor;";
         //this.style;
         
         // string case
@@ -261,6 +268,18 @@ var ImageGallery = function(galleryid)  {
         }
         this.display_maxwidth  = $(window).width()-used_width-100;
         this.display_maxheight = $(window).height()*0.80;
+        
+        // set max width/height:
+        if (compare_checked) {
+            $("#contents1").css({ "max-width":  this.display_maxwidth/2+"px",
+                                "max-height": this.display_maxheight+"px"});
+            $("#contents2").css({ "max-width":  this.display_maxwidth/2+"px",
+                                "max-height": this.display_maxheight+"px"});
+        } else {
+            $("#contents1").css({ "max-width":  this.display_maxwidth+"px",
+                                "max-height": this.display_maxheight+"px"});
+        }
+        
         // adapt zoom factor based on maximum display allowed
 //         var ratio = 1;
 //         ratio = Math.min(ratio,this.display_maxheight/this.max_height);
@@ -287,7 +306,8 @@ var ImageGallery = function(galleryid)  {
         } else {
             // check min display constraint
             // also risk of incompatibilities between min and max constraints
-            //var ratio = 1;
+            // don´t zoom by default
+            var ratio = 1;
             ratio = Math.max(ratio,this.display_minheight/this.max_height);
             ratio = Math.max(ratio,this.display_minwidth/this.max_width);
             this.InfoMessage("ratio = ",ratio);
@@ -523,21 +543,21 @@ var ImageGallery = function(galleryid)  {
 
         this.BuildContents();
         
-//         $("#gallery_"+this.galleryid+" #contents1").unbind().click(
-//             function() {
-//                 this.current_contents="#contents1";
-//                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"wheat"});
-//                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"white"});
-//             }.bind(this)
-//         );
-//         
-//         $("#gallery_"+this.galleryid+" #contents2").unbind().click(
-//             function() {
-//                 this.current_contents="#contents2";
-//                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"wheat"});
-//                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"white"});
-//             }.bind(this)
-//         );
+        //         $("#gallery_"+this.galleryid+" #contents1").unbind().click(
+        //             function() {
+        //                 this.current_contents="#contents1";
+        //                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"wheat"});
+        //                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"white"});
+        //             }.bind(this)
+        //         );
+        //         
+        //         $("#gallery_"+this.galleryid+" #contents2").unbind().click(
+        //             function() {
+        //                 this.current_contents="#contents2";
+        //                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"wheat"});
+        //                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"white"});
+        //             }.bind(this)
+        //         );
         
         // Set ref index to 0
         this.SetSelection(0);
@@ -586,12 +606,31 @@ var ImageGallery = function(galleryid)  {
                 }.bind(this) ); 
         }.bind(this));
         
+        // zoom factor selection events
         $("#"+this.zoom_id).unbind().change( 
             function() {
                 this.ZoomFactor = $("#"+this.zoom_id+" option:selected").val();
                 this.InfoMessage(this.zoom_id+ " changed ", this.ZoomFactor);
                 this.UpdateSelection();
             }.bind(this)
+        );
+        
+        // scroll events
+        var contents1_sel = "#gallery_"+this.galleryid+" #contents1";
+        var contents2_sel = "#gallery_"+this.galleryid+" #contents2";
+        $(contents1_sel).unbind().scroll(
+            function() {
+                // set scroll position to contents2
+                $(contents2_sel).scrollTop ($(contents1_sel).scrollTop());
+                $(contents2_sel).scrollLeft($(contents1_sel).scrollLeft());
+            }
+        );
+        $(contents2_sel).unbind().scroll(
+            function() {
+                // set scroll position to contents2
+                $(contents1_sel).scrollTop ($(contents2_sel).scrollTop());
+                $(contents1_sel).scrollLeft($(contents2_sel).scrollLeft());
+            }
         );
         
         var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
@@ -633,7 +672,13 @@ var ImageGallery = function(galleryid)  {
                     },
                     close: function(event, ui) {
                         $(this).empty().dialog('destroy');
-                    }
+                    },
+                    // close on outside click ...
+                    open: function(){
+                        $('.ui-widget-overlay').bind('click',function(){
+                            $("#gallery_"+this.galleryid+"_all").dialog('close');
+                        }.bind(this))
+                    }.bind(this)
                 });
         
                 this.InfoMessage("popup_all click length=",this.html_contents.length);
