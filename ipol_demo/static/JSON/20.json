@@ -114,7 +114,7 @@
         "<table>"
       ],
       "contents_new"      : [ 
-        "'<table style=\"margin-left:0px;margin-right:auto\">",
+        "'<table style=\"margin-left:0px;margin-right:auto;position:fixed;border:1px solid lightgray;padding:10px;top:0px;right:0px;z-index:102;\">",
         "<tr>",
           "<td>",
             "<label> Vectors: </label>",
@@ -126,7 +126,7 @@
             "</select><br/>",
           "</td>",
           "<td>",
-            "<img id=\"zoomfactor_im\" style=\"height:64px\" src=\"'+ work_url+ '/cw.ipoln.1.png'+'\" />",
+            "<img id=\"colorcoding_im\" style=\"height:64px\" src=\"'+ work_url+ '/cw.ipoln.1.png'+'\" />",
           "</td>",
         "</tr>",
         "</table>",
@@ -134,7 +134,7 @@
             "$(\"select[name=colorcoding]\").change( ",
                 "function() { ",
                     "var coding=$(\"select[name=colorcoding]\").val();",
-                    "$(\"#zoomfactor_im\").attr(\"src\",\"'+work_url+ '/cw.\"+coding+\".1.png\");",
+                    "$(\"#colorcoding_im\").attr(\"src\",\"'+work_url+ '/cw.\"+coding+\".1.png\");",
                     "var c = $(\"#result_1\").data(\"image_gallery\").contents;",
                     "c[\"Optical flow\"]  =\"'+work_url+'stuff_phs.\"     +coding+\".1.png\";",
                     "c[\"Ground truth\"]  =\"'+work_url+'t.\"             +coding+\".1.png\";",
@@ -178,7 +178,7 @@
             "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
         },
       "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}",
-      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor,450)+'px'" 
+      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
     },
     {
       "type"          : "html_text", 
