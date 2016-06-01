@@ -131,7 +131,7 @@
         "<table>"
       ],
       "contents_new"      : [ 
-        "'<table style=\"margin-left:0px;margin-right:auto\">",
+        "'<table style=\"margin-left:0px;margin-right:auto;position:fixed;border:1px solid lightgray;padding:10px;top:0px;right:0px;z-index:102;\">",
         "<tr>",
           "<td>",
             "<label> Vectors: </label>",
