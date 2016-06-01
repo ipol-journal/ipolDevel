@@ -39,7 +39,7 @@ var ImageGallery = function(galleryid)  {
     this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
     this.display_minwidth  = 400;
     this.display_minheight = 300;
-    this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     this.current_contents = "#contents1";
     
     //--------------------------------------------------------------------------
@@ -134,7 +134,7 @@ var ImageGallery = function(galleryid)  {
 
         html +=   "</td>";
 //         html +=   "<td id='contents1' "+style+">";
-        html +=   "<td "+style+">";
+        html +=   "<td class='image_class' "+style+">";
         html +=   "<div id='contents1' "+"style='border:1px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents1";
         html +=   "</div>";
@@ -200,8 +200,25 @@ var ImageGallery = function(galleryid)  {
 
         // try to have nearest neighbor interpolation 
         // (see https://developer.mozilla.org/fr/docs/Web/CSS/Image-rendering)
-        var img_style = "image-rendering:pixelated;-ms-interpolation-mode:nearest-neighbor;";
+        var img_style = "image-rendering:pixelated;"+
+                        "-ms-interpolation-mode:nearest-neighbor;"+
+                        "image-rendering:optimizeSpeed;"+
+                        "image-rendering:-moz-crisp-edges;"+
+                        "image-rendering:-o-crisp-edges;"+
+//                         "image-rendering:-webkit-optimize-contrast;"+
+                        "image-rendering:optimize-contrast;"+
+                        "image-rendering:crisp-edges;";
         //this.style;
+//         .pixelated {
+//             image-rendering:optimizeSpeed;             /* Legal fallback */
+//             image-rendering:-moz-crisp-edges;          /* Firefox        */
+//             image-rendering:-o-crisp-edges;            /* Opera          */
+//             image-rendering:-webkit-optimize-contrast; /* Safari         */
+//             image-rendering:optimize-contrast;         /* CSS3 Proposed  */
+//             image-rendering:crisp-edges;               /* CSS4 Proposed  */
+//             image-rendering:pixelated;                 /* CSS4 Proposed  */
+//             -ms-interpolation-mode:nearest-neighbor;   /* IE8+           */
+//         }
         
         // string case
         switch ($.type(image)){
@@ -266,7 +283,7 @@ var ImageGallery = function(galleryid)  {
         if (compare_checked) {
             used_width += $("#compare_0").parent().outerWidth();
         }
-        this.display_maxwidth  = $(window).width()-used_width-100;
+        this.display_maxwidth  = $(window).width()-used_width-120;
         this.display_maxheight = $(window).height()*0.80;
         
         // set max width/height:
@@ -615,9 +632,78 @@ var ImageGallery = function(galleryid)  {
             }.bind(this)
         );
         
-        // scroll events
+//         // for the moment the wheel event to change scale is commented
+//         $("#gallery_"+this.galleryid).unbind("wheel").bind("wheel",
+//             function(e) {
+//                 e.preventDefault();
+//                 var deltaY = 0;
+//                 var oe = e.originalEvent;
+//                 if (oe.deltaY) { // FireFox 17+ (IE9+, Chrome 31+?)
+//                         deltaY = oe.deltaY;
+//                 } else {
+//                     if (oe.wheelDelta) {
+//                         deltaY = -oe.wheelDelta;
+//                     }
+//                 }
+//                 var ZoomFactor = $("#"+this.zoom_id+" option:selected").val();
+//                 //console.info(" deltaY=",deltaY);
+//                 // find next or previous zoom factor
+//                 for(var i=0;i<this.scales.length;i++) {
+//                     if (ZoomFactor==this.scales[i]) {
+//                         if ((deltaY>0)&&(i<this.scales.length-1)) {
+//                             ZoomFactor = this.scales[i+1];
+//                             $("#"+this.zoom_id).val(ZoomFactor);
+//                             $("#"+this.zoom_id).trigger("change");
+//                         }
+//                         if ((deltaY<0)&&(i>0)) {
+//                             ZoomFactor = this.scales[i-1];
+//                             $("#"+this.zoom_id).val(ZoomFactor);
+//                             $("#"+this.zoom_id).trigger("change");
+//                         }
+//                         break;
+//                     }
+//                 }
+//             }.bind(this)
+//         );
+        
         var contents1_sel = "#gallery_"+this.galleryid+" #contents1";
         var contents2_sel = "#gallery_"+this.galleryid+" #contents2";
+        
+        // move image with the mouse
+        function gal_mousemove(e) {
+            var info=$(contents1_sel).data(info);
+            if (info.moving) {
+                $(contents1_sel).scrollLeft(info.sl-(e.pageX-info.x));
+                $(contents1_sel).scrollTop( info.sr-(e.pageY-info.y));
+            }
+        };
+
+        function gal_mouseup() {
+            var info={ moving:false };
+            //console.info("end move ", info.sl);
+            $(contents1_sel).data(info);
+            $(document).unbind("mousemove",gal_mousemove);
+            $(document).unbind("mouseup",gal_mouseup);
+        };
+
+        $("#gallery_"+this.galleryid+ " .compare_class, #gallery_"+this.galleryid+ " .image_class").
+        unbind("mousedown").mousedown(
+            function(e) {
+                //console.info("start move ");
+                e.preventDefault();
+                var info={  
+                    sl:$(contents1_sel).scrollLeft(), 
+                    sr:$(contents1_sel).scrollTop(), 
+                    x:e.pageX, 
+                    y:e.pageY, 
+                    moving:true };
+                $(contents1_sel).data(info);
+                $(document).mousemove(gal_mousemove);
+                $(document).mouseup(gal_mouseup);
+            }
+        );
+        
+        // bind scroll events between compare views
         $(contents1_sel).unbind().scroll(
             function() {
                 // set scroll position to contents2
