@@ -227,7 +227,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                     $("#inputs_fieldset"      ).show();
                     
                     // disable run
-                    $( "#progressbar" ).unbind("click");
+                    $( "#run_button" ).unbind("click").prop("disabled",true);
                     $(".progress-label").text( "Waiting for input selection" );
                     if (ddl_json.general.thumbnail_size!==undefined) {
                         $("#ThumbnailSize").val(ddl_json.general.thumbnail_size);
@@ -247,7 +247,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                     CreateLocalData(ddl_json);
 
                 } else {
-                    $( "#progressbar" ).unbind("click");
+                    $( "#run_button" ).unbind("click").prop("disabled",true);
                     $(".progress-label").text( "Run" );
                     $("#selectinputs_fieldset").hide();
                     $("#inputs_fieldset"      ).hide();
