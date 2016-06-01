@@ -112,6 +112,17 @@ var DrawInputs = function(ddl_json) {
         var html = "";
         var inputs = this.ddl_json.inputs;
         
+        // try to have nearest neighbor interpolation 
+        // (see https://developer.mozilla.org/fr/docs/Web/CSS/Image-rendering)
+        var img_style = "image-rendering:pixelated;"+
+                        "-ms-interpolation-mode:nearest-neighbor;"+
+                        "image-rendering:optimizeSpeed;"+
+                        "image-rendering:-moz-crisp-edges;"+
+                        "image-rendering:-o-crisp-edges;";
+//                         "image-rendering:-webkit-optimize-contrast;"+
+                        "image-rendering:optimize-contrast;"+
+                        "image-rendering:crisp-edges;";
+
         // use gallery only if several images 
         if (inputs.length>1) {
             html += '<div id="input_gallery"> </div>';
@@ -128,7 +139,7 @@ var DrawInputs = function(ddl_json) {
                             '>'+
                         '</div></td>'+
                         '<td class="table_crop">'+
-                            '<div id="previewimage" style="height:500px;float:left;margin:0px;image-rendering:pixelated;-ms-interpolation-mode:nearest-neighbor;">'+
+                            '<div id="previewimage" style="height:500px;float:left;margin:0px;'+img_style+'">'+
                                 '<div class="preview"></div>'+
                             '</div>'+
                         '</td>'+
@@ -595,7 +606,7 @@ var DrawInputs = function(ddl_json) {
     this.InitProgress = function() {
 
         this.InfoMessage("InitProgress");
-        this.progressbar.unbind("click");
+        $( "#run_button" ).unbind("click").prop("disabled",true);
         this.starttime = 0;
         this.progress_info = "";
  
@@ -613,12 +624,12 @@ var DrawInputs = function(ddl_json) {
                 }
             }.bind(this),
             complete: function() {
-                this.progresslabel.text( this.progress_info + " " + "Rerun" );
+                this.progresslabel.text( this.progress_info );
             }.bind(this)
         });
         
         this.InfoMessage("progresslabel= ", this.progresslabel);
-        this.progresslabel.text("Run");
+        this.progresslabel.text("");
     }
     
     //--------------------------------------------------------------------------
@@ -804,104 +815,103 @@ var DrawInputs = function(ddl_json) {
     //--------------------------------------------------------------------------
     this.SetRunEvent = function() {
         this.InitProgress();
-        this.progressbar.click( 
+        $( "#run_button" ).unbind("click").prop("disabled",false);
+        $( "#run_button" ).click( 
         function(){
             var ptext=this.progresslabel.text();
-            if (ptext.endsWith("Rerun")||ptext.endsWith("Run"  )) {
-                // disable future clicks until run is finished
-                this.progresslabel.text( "" );
-                this.progress(0);
-                this.progress_info = "initialization (check/build source code)";
-                var url_params =   "demo_id="+this.ddl_json.demo_id+
-                                "&ddl_build="+this.json2uri(this.ddl_json.build);
-                // code to be executed on click
-                ModuleService("demorunner","init_demo", url_params,
-                function(res) {
-                    console.info("init_demo res=", res);
-                    if (res.status==="KO") {
-                        this.progress_info = "init_demo:failure";
-                        this.progress(100);
-                        return;
-                    }
-                    // select input from blobset or upload from local files
-                    console.info("input_origin = ", this.input_origin);
-                    switch (this.input_origin) {
-                        case "blobset":
-                            // Set inputs using blobset
-                            // crop at the same time
-                            this.progress_info = "input selection and crop";
-                            url_params= "demo_id="+this.ddl_json.demo_id+
-                                    "&ddl_inputs="+this.json2uri(this.ddl_json.inputs)+
-                                    "&"+this.blobset[0].html_params+
-                                    "&crop_info="+this.json2uri(this.crop_info)
-                            ModuleService("demorunner","input_select_and_crop",url_params,
-                                                this.RunDemo.bind(this)
-                            ); // end input_select_and_crop
-                            break;
-                        case "localfiles":
-                            // upload files and run the demo
-                            this.progress_info = "input upload";
+            // disable future clicks until run is finished
+            this.progresslabel.text( "" );
+            this.progress(0);
+            this.progress_info = "initialization (check/build source code)";
+            var url_params =   "demo_id="+this.ddl_json.demo_id+
+                            "&ddl_build="+this.json2uri(this.ddl_json.build);
+            // code to be executed on click
+            ModuleService("demorunner","init_demo", url_params,
+            function(res) {
+                console.info("init_demo res=", res);
+                if (res.status==="KO") {
+                    this.progress_info = "init_demo:failure";
+                    this.progress(100);
+                    return;
+                }
+                // select input from blobset or upload from local files
+                console.info("input_origin = ", this.input_origin);
+                switch (this.input_origin) {
+                    case "blobset":
+                        // Set inputs using blobset
+                        // crop at the same time
+                        this.progress_info = "input selection and crop";
+                        url_params= "demo_id="+this.ddl_json.demo_id+
+                                "&ddl_inputs="+this.json2uri(this.ddl_json.inputs)+
+                                "&"+this.blobset[0].html_params+
+                                "&crop_info="+this.json2uri(this.crop_info)
+                        ModuleService("demorunner","input_select_and_crop",url_params,
+                                            this.RunDemo.bind(this)
+                        ); // end input_select_and_crop
+                        break;
+                    case "localfiles":
+                        // upload files and run the demo
+                        this.progress_info = "input upload";
 
-                            // fill form data to upload
-                            delete this.formData
-                            this.formData = new FormData();
-                            this.formData.append('demo_id',    this.ddl_json.demo_id);
-                            this.formData.append('ddl_inputs', JSON.stringify(this.ddl_json.inputs));
-                            var inputs  = this.ddl_json.inputs;
-                            if (inputs.length===1) {
-                                // Upload cropped image to server if the browser supports `HTMLCanvasElement.toBlob`
-                                var crop_enabled = $("#id_cropinput").is(':checked');
-                                if (crop_enabled) {
-                                    var cropped_canvas = $("#inputimage").cropper('getCroppedCanvas');
-                                    cropped_canvas.toBlob( 
-                                        function(blob) {
-                                            console.info('adding blob (cropped) : ', blob);
-                                            this.formData.append('file_0', blob);
-                                            this.UploadForm();
-                                        }.bind(this), 'image/png' );
-                                } else {
-                                    var image_src = $("#inputimage").attr('src');
-                                    blobUtil.imgSrcToBlob(image_src).then(
-                                        function(blob) {
-                                            this.formData.append('file_0', blob);
-                                            this.UploadForm();
-                                        }.bind(this), 'image/png' );
-                                }
+                        // fill form data to upload
+                        delete this.formData
+                        this.formData = new FormData();
+                        this.formData.append('demo_id',    this.ddl_json.demo_id);
+                        this.formData.append('ddl_inputs', JSON.stringify(this.ddl_json.inputs));
+                        var inputs  = this.ddl_json.inputs;
+                        if (inputs.length===1) {
+                            // Upload cropped image to server if the browser supports `HTMLCanvasElement.toBlob`
+                            var crop_enabled = $("#id_cropinput").is(':checked');
+                            if (crop_enabled) {
+                                var cropped_canvas = $("#inputimage").cropper('getCroppedCanvas');
+                                cropped_canvas.toBlob( 
+                                    function(blob) {
+                                        console.info('adding blob (cropped) : ', blob);
+                                        this.formData.append('file_0', blob);
+                                        this.UploadForm();
+                                    }.bind(this), 'image/png' );
                             } else {
-                                // if several input image, TODO: deal with crop of first image
-                                var blobs_in_form=0;
-                                for(var idx=0;idx<inputs.length;idx++) {
-                                    // TODO: deal with non-image data
-                                    // TODO: deal with optional data
-                                    var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
-                                                        $('#localdata_preview_'+idx).attr("src");
-                                    blobUtil.imgSrcToBlob(image_src).then(
-                                        function(idx,obj) { return function(blob) {
-                                            console.info('idx=',idx);
-                                            obj.formData.append('file_'+idx, blob);
-                                            blobs_in_form++;
-                                            console.info('blobs_in_form=',blobs_in_form);
-                                            if(blobs_in_form==obj.ddl_json.inputs.length) {
-                                                obj.UploadForm();
-                                            }
-                                        }
-                                        }(idx,this), 'image/png' );
-                                }
+                                var image_src = $("#inputimage").attr('src');
+                                blobUtil.imgSrcToBlob(image_src).then(
+                                    function(blob) {
+                                        this.formData.append('file_0', blob);
+                                        this.UploadForm();
+                                    }.bind(this), 'image/png' );
                             }
-                            break;
-                        case "noinputs":
-                            // Set inputs using blobset
-                            // crop at the same time
-                            this.progress_info = "initialize with no inputs";
-                            url_params= "demo_id="+this.ddl_json.demo_id
-                            ModuleService("demorunner","init_noinputs",url_params,
-                                                this.RunDemo.bind(this)
-                            ); // end input_select_and_crop
-                            break;
-                    } // end switch input_origin
-                }.bind(this)
-                ); // end init_demo
-            } // end if 
+                        } else {
+                            // if several input image, TODO: deal with crop of first image
+                            var blobs_in_form=0;
+                            for(var idx=0;idx<inputs.length;idx++) {
+                                // TODO: deal with non-image data
+                                // TODO: deal with optional data
+                                var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
+                                                    $('#localdata_preview_'+idx).attr("src");
+                                blobUtil.imgSrcToBlob(image_src).then(
+                                    function(idx,obj) { return function(blob) {
+                                        console.info('idx=',idx);
+                                        obj.formData.append('file_'+idx, blob);
+                                        blobs_in_form++;
+                                        console.info('blobs_in_form=',blobs_in_form);
+                                        if(blobs_in_form==obj.ddl_json.inputs.length) {
+                                            obj.UploadForm();
+                                        }
+                                    }
+                                    }(idx,this), 'image/png' );
+                            }
+                        }
+                        break;
+                    case "noinputs":
+                        // Set inputs using blobset
+                        // crop at the same time
+                        this.progress_info = "initialize with no inputs";
+                        url_params= "demo_id="+this.ddl_json.demo_id
+                        ModuleService("demorunner","init_noinputs",url_params,
+                                            this.RunDemo.bind(this)
+                        ); // end input_select_and_crop
+                        break;
+                } // end switch input_origin
+            }.bind(this)
+            ); // end init_demo
         }.bind(this)
         );
     }
