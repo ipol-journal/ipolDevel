@@ -81,7 +81,7 @@
         <!-- Upload in modal dialog -->
         <div id="upload-dialog" title="Upload data">
             <!-- User data to upload -->
-            <!--        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
+            <!--        <fieldset style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
                     <legend>Local input data <span>[-]</span> </legend> -->
             <div class="upload_input" id="local_data">
             </div>
@@ -104,7 +104,7 @@
         </div>
 
         <!-- Input Data Selection -->
-        <fieldset id="selectinputs_fieldset"  style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
+        <fieldset id="selectinputs_fieldset"  style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
         <legend> Select input(s) <span>[-]</span> </legend> 
 
             <button id="description_input" title="Demo description">description</button>
@@ -138,14 +138,14 @@
 
 
         <!-- ******** inputs_fieldset ****** -->
-        <fieldset id="inputs_fieldset" style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;">
+        <fieldset id="inputs_fieldset" style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;">
         <legend> Input(s) <span>[-]</span> </legend> 
             <!-- Draw inputs (includes dealing with crop) -->
             <div id="DrawInputs" ></div>
         </fieldset>
 
         <!-- ******** parameters_fieldset ******** -->
-        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;" id="parameters_fieldset" >
+        <fieldset style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;vertical-align:top;" id="parameters_fieldset" >
         <legend> Param <span>[-]</span> </legend> 
             <span>
             <button id="description_params" title="Parameters description and help">description</button>
@@ -167,25 +167,33 @@
             }
             .progress-label {
                 position: absolute;
-                left: 10%;
-                top: 4px;
+                text-align: center;
+                left:40%;
+                top: 6px;
                 font-weight: bold;
                 text-shadow: 1px 1px 0 #fff;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
             }
+            .string { color: green; }
+            .number { color: darkorange; }
+            .boolean { color: blue; }
+            .null { color: magenta; }
+            .key { color: red; }
         </style>
 
-<!--        <br>
-        <div style="display:inline-block;vertical-align:top;">
-        <button id="run_button" >Run</button>-->
-        <div id="progressbar" >
-            <!-- style="width:30em;display:inline-block;vertical-align:top;text-align:center;"> -->
+        <br>
+<!--         <div style="display:inline-block;vertical-align:top;"> -->
+        <button id="run_button" style="float:left;vertical-align:middle;height:2em;margin:3px">Run</button>
+        <div id="progressbar" style="width:auto;vertical-align:middle;height:2em;margin:3px;">
             <div class="progress-label" > Select demo and input </div>
         </div>
 <!--        </div>
         <br>-->
 
         <!-- Results -->
-        <fieldset style="border:2px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;">
+        <fieldset style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;width:auto;display:inline-block;">
         <legend> Results <span>[-]</span> </legend> 
             <span id="ResultsDisplay"> </span>
         </fieldset>
@@ -198,13 +206,13 @@
         <p>Content for archive</p>
     </div>
     <div id="tabs-ddl">
-        <pre style="width: 92%;">Content for Tab 4</pre>
+        <pre style="width:92%;white-space:pre;">Content for Tab 4</pre>
     </div>
     <div id="tabs-demos">
-        <pre>demos infomation</pre>
+        <pre style="width:92%;white-space:pre;"> demos infomation</pre>
     </div>
     <div id="tabs-blobs">
-        <pre>Content for Tab 5</pre>
+        <pre style="width:92%;white-space:pre;"> Content for Tab 5</pre>
     </div>
 </div>
 <div id="tabid"></div>
