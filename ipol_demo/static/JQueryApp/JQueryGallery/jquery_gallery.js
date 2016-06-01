@@ -41,6 +41,7 @@ var ImageGallery = function(galleryid)  {
     this.display_minheight = 300;
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     this.current_contents = "#contents1";
+    this.keep_dimensions_onload = false;
     
     //--------------------------------------------------------------------------
     this.Append = function(content) {
@@ -345,7 +346,7 @@ var ImageGallery = function(galleryid)  {
     this.CheckLoadAllImages = function() {
         
         if (this.total_loaded_images===this.total_images) {
-            this.CheckDimensions()
+            if (!this.keep_dimensions_onload) { this.CheckDimensions(); }
             this.UpdateSelection();
             this.UpdateCompareSelection();
             this.InfoMessage("All images are loaded ... running callback ");
