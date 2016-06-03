@@ -224,7 +224,7 @@ var ImageGallery = function(galleryid)  {
         // string case
         switch ($.type(image)){
             case "string": 
-                res += '<img  style="'+img_style+'"';
+                res += '<img  crossorigin="anonymous"  style="'+img_style+'"';
                 res += ' id=img_'+index+' ';
                 res += ' class='+this.img_class+' ';
                 res +=        'src="'+image+'"';
@@ -237,7 +237,7 @@ var ImageGallery = function(galleryid)  {
                 var idx=0;
                 jQuery.each( image, function(l,im) {
                     res += '<td style="text-align:center">';
-                    res += '<img  style="'+img_style+'"';
+                    res += '<img  crossorigin="anonymous"  style="'+img_style+'"';
                     res += ' class='+this.img_class+' ';
                     res += ' id=img_'+index+'_'+idx+' ';
                     res +=        'src="'+im+'"';
@@ -261,7 +261,7 @@ var ImageGallery = function(galleryid)  {
                 res += '<tr>';
                 jQuery.each( image, function(idx, im) {
                     res += '<td style="text-align:center">';
-                    res += '<img  style="'+img_style+'"';
+                    res += '<img  crossorigin="anonymous"  style="'+img_style+'"';
                     res += '      class='+this.img_class+' ';
                     res += '      id=img_'+index+'_'+idx+' src="'+im+'"/>';
                     res += '</td>';
@@ -382,6 +382,7 @@ var ImageGallery = function(galleryid)  {
                 this.total_images++;
                 res.push(im);
                 $(this.Elt(index)).css(loading_font);
+                im.crossOrigin = "Anonymous";
                 im.onload = function() { 
                     this.max_height = Math.max(this.max_height,im.height);
                     this.max_width  = Math.max(this.max_width, im.width);
@@ -402,6 +403,7 @@ var ImageGallery = function(galleryid)  {
                     var _im = new Image();
                     this.total_images++;
                     res.push(_im);
+                    _im.crossOrigin = "Anonymous";
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
@@ -430,6 +432,7 @@ var ImageGallery = function(galleryid)  {
                     var _im = new Image();
                     this.total_images++;
                     res.push(_im);
+                    _im.crossOrigin = "Anonymous";
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
