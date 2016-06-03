@@ -86,7 +86,7 @@
     {
       "id"            : "alpha",
       "type"          : "range", 
-      "label"         : "Chroma weight:",
+      "label"         : "Chroma weight",
       "values"        : { "min":1.0, "max":3.0, "step":0.1, "default":1.8 }
     }
   ],

@@ -36,7 +36,7 @@
       "id"            : "r_perc",
       "type"          : "range",
       "label"         :  [
-          "Radius parameter <it>r</it> in % of the smallest dimension ",
+          "Radius <it>r</it> in % of the smallest dimension ",
           "of the selected image."
       ],
       "values"        : { "min":0, "max":49, "step":1, "default": 10 }
@@ -44,7 +44,7 @@
     {
       "id"            : "rmax",
       "type"          : "readonly",
-      "label"         : "Maximal radius parameter <it>rmax</it> in pixels",
+      "label"         : "Maximal radius <it>rmax</it> in pixels",
       "value_expr"    : [ 
         "{{Math.floor((CropInfo.enabled?Math.min(CropInfo.coord.w,CropInfo.coord.h)/display_ratio:",
                                         "Math.min(imwidth,imheight)",
@@ -57,7 +57,7 @@
     {
       "id"            : "r",
       "type"          : "readonly",
-      "label"         : "Radius parameter <it>r</it> in pixels (readonly: computed from %)",
+      "label"         : "Radius <it>r</it> in pixels (readonly: computed from %)",
       "value_expr"    : [ 
         "{{",
           "demo.params[3].value=='global'?",

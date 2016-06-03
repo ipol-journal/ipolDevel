@@ -30,7 +30,16 @@
           "max_weight"      : "10*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png"
-      } 
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Mask",
+          "max_pixels"      : "500*500",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      }
     ],
   "params": 
     [
@@ -50,11 +59,11 @@
   "run": [
     "python:# Open image and inpainting domain mask",
     "python:img = PIL.Image.open(self.work_dir + 'input_0.png').convert('RGB')",
-    "python:mask = PIL.Image.open(self.work_dir + 'mask.png')",
+    "python:mask = PIL.Image.open(self.work_dir + 'input_1.png')",
     
     "python:# Extract alpha: alpha is already used as param so use _alpha",
     "python:_alpha = mask.copy()",
-    "python:_alpha.putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:_alpha.convert('L').putpalette([0, 0, 0] * 255 + [255, 255, 255])",
     "python:_alpha = _alpha.convert('L')",
     
     "python:# Extract mask palette for display",
@@ -63,7 +72,7 @@
     "python:lut = lut.convert('RGB').getdata()",
     
     "python:# Save binary PNG version of the mask",
-    "python:mask.putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:mask.convert('L').putpalette([0, 0, 0] * 255 + [255, 255, 255])",
     "python:mask.save(self.work_dir + 'mask.png')",
     
     "python:# Save image + mask composited version for display",

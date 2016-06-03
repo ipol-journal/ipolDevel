@@ -38,20 +38,20 @@
     {
       "id"            : "s",
       "type"          : "selection_radio", 
-      "label"         : "<i>s</i>:",
+      "label"         : "<i>s</i>",
       "values"        : {"1x":"1", "2x":"2", "3x":"3", "4x":"4"},
       "default_value" : "4"
     },
     {
       "id"            : "k",
       "type"          : "range", 
-      "label"         : "<i>k</i>:",
+      "label"         : "<i>k</i>",
       "values"        : { "min":0, "max":100, "step":0.1, "default":17 }
     },
     {
       "id"            : "t",
       "type"          : "selection_radio", 
-      "label"         : "<i>t</i>:",
+      "label"         : "<i>t</i>",
       "values"        : { "LS":"0", "LS+TH":"1", "NNLS":"2" },
       "default_value" : "1"
     }

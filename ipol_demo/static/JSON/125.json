@@ -51,11 +51,8 @@
       "id"            : "stdfactor",
       "type"          : "range", 
       "label"         : "Sigma coefficient",
-      "values"        : { "min":0.5, "max":2, "step":0.1, "default": 1 }
-    },
-    {
-      "type"          : "label", 
-      "label"         : " <label><small>If you find that the noise is under (resp. over) evaluated, you can adjust it by putting this coefficient greater than 1.0 (resp. smaller than 1.0). This coefficient will be multiplied to the estimated STD of noise.</small></label>"
+      "values"        : { "min":0.5, "max":2, "step":0.1, "default": 1 },
+      "comments"      : "If you find that the noise is under (resp. over) evaluated, you can adjust it by putting this coefficient greater than 1.0 (resp. smaller than 1.0). This coefficient will be multiplied to the estimated STD of noise."
     }
   ],
   "results": [
