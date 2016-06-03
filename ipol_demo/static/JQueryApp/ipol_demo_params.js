@@ -121,7 +121,7 @@ function initParams(  demo, params) {
 //------------------------------------------------------------------------------
 function AddLabel(param) {
     var html = "";
-    html += '<td style="border:0px;max-width:34em">';
+    html += '<td style="border:0px;max-width:25em">';
     html += '<label>'+joinHtml(param.label)+'</label>';
     html += '</td>';
     return html;
@@ -131,7 +131,7 @@ function AddLabel(param) {
 function AddComments(param) {
     var html = "";
     if (param.comments!=undefined) {
-        html += '<td   style="border:0px;max-width:34em">';
+        html += '<td   style="border:0px;max-width:25em">';
         html += '<label>'+joinHtml(param.comments)+'</label>';
         html += '</td>';
     }
@@ -204,7 +204,7 @@ function CreateSelectionRange(param) {
     html += ' id="'+number_id+'"';
     html += ' name="'+param.id+'" '+limits + ' >';
     html += '</td>';
-    html += '<td style="border:0px;width:24em">';
+    html += '<td style="border:0px;width:20em">';
     html += '<input  style="width:100%"  type="range"';
     html += ' id="'+range_id+'"';
     html += ' name="'+param.id+'" '+limits + ' >';
@@ -263,7 +263,7 @@ function CreateSelectionRangeScientific(param) {
          + ' id="'+number_id+'"'
          + ' name="'+param.id+'" '+limits + ' readonly >'
          + '</td>'
-         + '<td style="border:0px;width:24em">'
+         + '<td style="border:0px;width:20em">'
          + '<input  style="width:100%"  type="range"'
          + ' id="'+range_id+'"'
          + ' name="'+param.id+'" '+limits + ' >'
@@ -310,7 +310,7 @@ function CreateReadOnly(param) {
 
     var html = "";
     html = 
-        "<td style='border:0;max-width:34em'>" +
+        "<td style='border:0;max-width:25em'>" +
         '<label> ' + param.label + ' </label>'+
         '</td>'+
         '<td style="border:0px;"  colspan="2"  >'+
