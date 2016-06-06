@@ -277,6 +277,7 @@ var Inpainting = function() {
         if (mask) {
             var sketch = $("#colors_sketch").data().sketch;
             sketch.initial_mask = mask;
+            sketch.redraw();
             this.UpdateMask();
         }
 
