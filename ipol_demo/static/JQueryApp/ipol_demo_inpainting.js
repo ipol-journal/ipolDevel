@@ -87,57 +87,163 @@ var Inpainting = function() {
 
     //--------------------------------------------------------------------------
     this.CreateHTML = function( ) {
+        var html = '';
         // add inpainting interface
+
+        // zoom
+        var limits= '';
+        limits += ' min  ="' + 0.1  + '"'; 
+        limits += ' max  ="' + 5 + '"';
+        limits += ' step ="' + 0.1  + '"';
+        limits += ' value="' + 1  + '"';
+        var zoom_html =
+                '<div>Zoom <input  style="width:3em"  type="number" id="zoom_number"'+
+                    limits + ' >'+
+                '<input  style="width:8em" type="range" id="zoom_range"'+
+                    limits + ' >'+
+                    '</div>';
+                
         // pensize limits
         var limits= '';
-        var html = '';
         limits += ' min  ="' + 1  + '"'; 
-        limits += ' max  ="' + 30 + '"';
+        limits += ' max  ="' + 50 + '"';
         limits += ' step ="' + 1  + '"';
         limits += ' value="' + 10  + '"';
         var pensize_html =
-                'Pen size <input  style="width:3em"  type="number" id="pensize_number"'+
+                '<div>Size <input  style="width:3em"  type="number" id="pensize_number"'+
                     limits + ' >'+
-                '<input  style="width:10em" type="range" id="pensize_range"'+
-                    limits + ' >';
-        html += '<table id="inpaint_table">'+
-                '<tr>'+
-                    '<td >'+
-                    pensize_html+
-                    '<div class="inpaint_color" style="padding:2px"> </div>'+
-                    '<div class="inpaint_actions" style="padding:2px"> '+
-                    '<button id="inpaint_marker" style="margin:2px;">Marker</button>'+
-                    '<button id="inpaint_eraser" style="margin:2px;">Eraser</button>'+
-                    '<button id="inpaint_undo"   style="margin:2px;">Undo</button>'+
-                    '<button id="inpaint_clear"  style="margin:2px;">Clear</button>'+
-//                     '<button id="inpaint_update_mask"  style="margin:2px;">Update</button>'+
-                    '</div>'+
-                    '<div class="inpaint_random" style="padding:2px"> '+
-                    '<button id="inpaint_random_text" style="margin:2px;">Random text</button>'+
-                    '</div>'+
-                    '<div id="canvas_div" style="float:left;padding:2px;">'+
-                    '</div>'+
-                    '<img  id="maskimage_id" crossOrigin="Anonymous">'
-                    '</td>'+
-                '</tr>'+
-                '</table>'+
-                '<div style="clear:both"> </div> <br/>';
+                '<input  style="width:8em" type="range" id="pensize_range"'+
+                    limits + ' >'+
+                "<canvas id=pensize_display style='margin:2px;border:1px solid lightgrey;display:inline-block;'"+
+                        " width=50px height=50px ></canvas> "+
+                    '</div>';
+                    
+        // mask opacity
+        var limits= '';
+        limits += ' min  ="' + 0.01 + '"'; 
+        limits += ' max  ="' + 1    + '"';
+        limits += ' step ="' + 0.01 + '"';
+        limits += ' value="' + 0.8  + '"';
+        var opacity_html =
+                '<div>Opacity <input  style="width:3em"  type="number" id="opacity_number"'+
+                    limits + ' >'+
+                '<input  style="width:10em" type="range" id="opacity_range"'+
+                    limits + ' ></div>';
+                    
+        html += '<table id="inpaint_table" ">'+
+                    '<tr>'+
+                    //'</tr>'+
+                    //'<tr>'+
+                        '<td style="vertical-align:top">'+
+                            "<label> <b>Zoom</b></label>"+
+                            zoom_html+
+                            "<hr><label> <b>Draw mask</b></label>"+
+                            pensize_html+
+                            opacity_html+
+                            '<div class="inpaint_color" style="padding:2px"> </div>'+
+                            '<div  style="padding:2px"> '+
+                                '<button id="inpaint_marker" class="inpaint_tools" style="margin:2px;">Marker</button>'+
+                                '<button id="inpaint_eraser" class="inpaint_tools" style="margin:2px;">Eraser</button>'+
+                            '</div>'+
+                            '<div class="inpaint_actions" style="padding:2px"> '+
+                                '<button id="inpaint_undo"   style="margin:2px;">Undo</button>'+
+                                '<button id="inpaint_clear"  style="margin:2px;">Clear</button>'+
+                                // '<button id="inpaint_update_mask"  style="margin:2px;">Update</button>'+
+                            '</div>'+
+                            "<hr><label> <b>Generate mask</b></label>"+
+                            '<div class="inpaint_random" style="padding:2px"> '+
+                                '<button id="inpaint_random_text" style="margin:2px;">Random text</button>'+
+                            '</div>'+
+                        '</td>'+
+                        '<td>'+
+                            '<div id="canvas_div" style="float:left;padding:2px;">'+
+                            '</div>'+
+                            '<img  id="maskimage_id" crossOrigin="Anonymous"></img>'+
+                        '</td>'+
+                    '</tr>'+
+                '</table>';
+        //+
+        //        '<div style="clear:both"> </div> <br/>';
         return html;
     }
         
     //--------------------------------------------------------------------------
+    this.UpdatePenDisplay = function(image) {
+        // draw pen as a circle
+        var sketch   = $("#colors_sketch").data().sketch;
+        var color    = sketch.color;
+        var diameter = sketch.size*sketch.scale_factor;
+        var radius   = diameter/2;
+        var center =25*sketch.scale_factor;
+        $("#pensize_display")[0].width  = 50*sketch.scale_factor;
+        $("#pensize_display")[0].height = 50*sketch.scale_factor;
+        var ctx = $("#pensize_display")[0].getContext("2d");
+        ctx.clearRect(0,0,50,50);
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.arc(center,center,
+                radius,0,2*Math.PI,false);
+        //ctx.strokeStyle=color;
+        
+        if (color[0]=="#") {
+          var c = hexToRgb(color);
+          color = 'rgba('+c.r+','+c.g+','+c.b+','+sketch.opacity+')';
+          console.info("color=",color);
+        }
+            
+        ctx.strokeStyle="#000";
+        ctx.fillStyle=color;
+        if (sketch.tool=="eraser") {
+            ctx.stroke();
+        } else {
+            ctx.fill();
+        }
+        ctx.closePath();
+        
+        var r1 = Math.round(radius); // get radius as integer, round so 0.5-->1
+        var d1 = 2*r1; // new related diameter
+        var imgData=ctx.getImageData(center-r1,center-r1,d1,d1);
+        var newCanvas = $("<canvas>").attr("width", d1).attr("height", d1)[0];
+        newCanvas.getContext("2d").putImageData(imgData, 0, 0);
+
+        //var cursor_url = $("#pensize_display")[0].toDataURL();
+        //$("#canvas_div").css('cursor','url('+cursor_url+') '+
+        //        center + ' '+
+        //        center + ',auto');
+        
+        var cursor_url = newCanvas.toDataURL();
+        $("#canvas_div").css('cursor','url('+cursor_url+') '+r1+' '+r1+',auto');
+    }
+    
+    //--------------------------------------------------------------------------
     this.UpdateInpaint = function(image) {
         // 1. set background image and image size
         //             var image_src = $("#inputimage").attr('src');
-        var image_src = $("#input_gallery #img_0_0").prop("src");
+//         var image_src = $("#input_gallery #img_0_0").prop("src");
+        var image_src = image.src;
         $('.inpaint_color').empty();
         $('.inpaint_color').append("Color");
+        var color_index=0;
         $.each(['#f00', '#ff0', '#0f0', '#0ff', '#00f', '#f0f', '#000', '#fff'], function() {
+            color_index++;
             $('.inpaint_color').append(
-                "<a href='#colors_sketch' data-color='" + this + 
+                "<div' class='set_color' id=set_color_"+color_index+" data-color='" + this + 
                 "' style='margin:4px 0px 0px 4px;display:inline-block;"+
-                "width:15px;height:15px; background: " + this + ";'></a> ");
+                "width:15px;height:15px; background: " + this + ";'></div> ");
         });
+        
+        var update_pen = this.UpdatePenDisplay.bind(this);
+        
+        $(".set_color").click(function() {
+            var color = $(this).attr("data-color");
+            $(".set_color").css("border","");
+            $(this).css("border","2px solid grey");
+            //console.info("set_color click ", color);
+            $("#colors_sketch").data().sketch.color = color;
+            $("#colors_sketch").data().sketch.redraw();
+            update_pen();
+        }
+        );
         
         $("#canvas_div").empty();
         $('<canvas>').attr({
@@ -156,31 +262,89 @@ var Inpainting = function() {
             crossOrigin : "Anonymous"
         }).appendTo('#canvas_div');
         
+        // for the moment, hide the mask canvas
+        $("#mask_canvas").hide();
+        
         $("#colors_sketch").css("background-image", "url(" + image_src + ")");
+        $("#colors_sketch").css("background-size", "cover");
         $('#colors_sketch').sketch();
         //
         $("#inpaint_table").show();
         
-        $('#colors_sketch').data().sketch.redraw_callback = this.UpdateMask;
+        //$('#colors_sketch').data().sketch.redraw_callback = this.UpdateMask;
+        $('#colors_sketch').data().sketch.stoppainting_callback = this.UpdateMask;
         this.UpdateMask();
 
         // update sketch settings
-        $('#pensize_range').trigger('input');
+        $('#pensize_range') .trigger('input');
+        $("#set_color_5")   .trigger('click');  // set blue pen
+        $("#inpaint_marker").trigger('click');  // set marker
         
     }
     
     //--------------------------------------------------------------------------
     this.CreateHTMLEvents = function( ) {
         
+        var update_pen = this.UpdatePenDisplay.bind(this);
+        
         // add inpainting events
+        $('#zoom_range').on('input', function(){
+            var size= $('#zoom_range').val();
+            $('#zoom_number').val(size);
+        });
+        
+        $('#zoom_range').on('change', function(){
+            var sketch = $("#colors_sketch").data().sketch;
+            var size= $('#zoom_range').val();
+            $('#zoom_number').val(size);
+            $("#colors_sketch").data().sketch.resize(size);
+            $("#colors_sketch").data().sketch.redraw();
+            update_pen();
+        });
+
+        $('#zoom_number').on('input', function(){
+            var size= $('#zoom_number').val();
+            $('#zoom_range').val(size);
+        });
+        
+        $('#zoom_number').on('change', function(){
+            var sketch = $("#colors_sketch").data().sketch;
+            var size= $('#zoom_number').val();
+            $('#zoom_range').val(size);
+            $("#colors_sketch").data().sketch.resize(size);
+            $("#colors_sketch").data().sketch.redraw();
+            update_pen();
+        });
+
         $('#pensize_range').on('input', function(){
-            $("#colors_sketch").data().sketch.size=$('#pensize_range').val();
-            $('#pensize_number').val($('#pensize_range').val());
+            var sketch = $("#colors_sketch").data().sketch;
+            var size= $('#pensize_range').val();
+            $("#colors_sketch").data().sketch.size=size;
+            $('#pensize_number').val(size);
+            update_pen();
         });
 
         $('#pensize_number').on('input', function(){
-            $("#colors_sketch").data().sketch.size=$('#pensize_number').val();
-            $('#pensize_range').val($('#pensize_number').val());
+            var sketch = $("#colors_sketch").data().sketch;
+            var size= $('#pensize_number').val();
+            sketch.size=size;
+            $('#pensize_range').val(size);
+            update_pen();
+        });
+        
+        // add inpainting events
+        $('#opacity_range').on('input', function(){
+            $("#colors_sketch").data().sketch.opacity=$('#opacity_range').val();
+            $('#opacity_number').val($('#opacity_range').val());
+            update_pen();
+            $("#colors_sketch").data().sketch.redraw();
+        });
+
+        $('#opacity_number').on('input', function(){
+            $("#colors_sketch").data().sketch.opacity=$('#opacity_number').val();
+            $('#opacity_range').val($('#opacity_number').val());
+            update_pen();
+            $("#colors_sketch").data().sketch.redraw();
         });
         
         $('#inpaint_undo').click( function() {
@@ -189,15 +353,27 @@ var Inpainting = function() {
         });
         
         $('#inpaint_clear').click( function() {
-            $("#colors_sketch").data().sketch.actions=[];
-            $("#colors_sketch").data().sketch.redraw();
-        });
+            var sketch = $("#colors_sketch").data().sketch;
+            var ctx0 = sketch.context;
+            ctx0.clearRect(0, 0, $("#colors_sketch")[0].width, $("#colors_sketch")[0].height);
+            sketch.actions=[];
+            sketch.redraw();
+            this.UpdateMask();
+        }.bind(this));
         
         $('#inpaint_marker').click( function() {
-            $("#colors_sketch").data().sketch.tool="marker";});
+            $(".inpaint_tools").css("border","");
+            $(this).css("border","2px solid black");
+            $("#colors_sketch").data().sketch.tool="marker";
+            update_pen();
+        });
         
         $('#inpaint_eraser').click( function() {
-            $("#colors_sketch").data().sketch.tool="eraser";});
+            $(".inpaint_tools").css("border","");
+            $(this).css("border","2px solid black");
+            $("#colors_sketch").data().sketch.tool="eraser";
+            update_pen();
+        });
         
         $('#inpaint_random_text').click( function() {
             $("#colors_sketch").data().sketch.actions=[];
@@ -218,25 +394,39 @@ var Inpainting = function() {
         var sketch = $("#colors_sketch").data().sketch;
         var ctx0 = sketch.context;
         var ctx1 = $("#mask_canvas")[0].getContext("2d");
-        var imgData=ctx0.getImageData(0,0,$("#colors_sketch").width(),$("#colors_sketch").height());
-
+        var width  = $("#colors_sketch").width();
+        var height = $("#colors_sketch").height();
+        
+        var imgData=ctx0.getImageData(0,0,width,height);
+        
         // copy
-        var i;
-        for (i = 0; i < imgData.data.length; i += 4) {
-            var alpha = imgData.data[i+3];
-            if (alpha>127) {
-                imgData.data[i]   = 255;
-                imgData.data[i+1] = 255;
-                imgData.data[i+2] = 255;
-                imgData.data[i+3] = 255;
-            } else {
-                imgData.data[i]   = 0;
-                imgData.data[i+1] = 0;
-                imgData.data[i+2] = 0;
-                imgData.data[i+3] = 0;
+        var i=0;
+        for(var y=0;y<height;y++) {
+            for(var x=0;x<width;x++) {
+                var alpha = imgData.data[i+3];
+                if (alpha>0) {
+                    imgData.data[i]   = 255;
+                    imgData.data[i+1] = 255;
+                    imgData.data[i+2] = 255;
+                    imgData.data[i+3] = 255;
+                } else {
+                    imgData.data[i]   = 0;
+                    imgData.data[i+1] = 0;
+                    imgData.data[i+2] = 0;
+                    imgData.data[i+3] = 0;
+                }
+                i+=4;
             }
         }
-        ctx1.putImageData(imgData, 0, 0);
+        
+        var newCanvas = $("<canvas>").attr("width", width).attr("height", height)[0];
+        newCanvas.getContext("2d").putImageData(imgData, 0, 0);
+
+        ctx1.setTransform(1, 0, 0, 1, 0, 0);
+        ctx1.clearRect(0, 0, $("#mask_canvas")[0].width, $("#mask_canvas")[0].height);
+        ctx1.scale(1/sketch.scale_factor,1/sketch.scale_factor);
+        ctx1.drawImage(newCanvas,0,0);
+        //ctx1.putImageData(imgData, 0, 0);
         
         // update the mask in the input image gallery ...
         var ig = $("#input_gallery").data("image_gallery");
@@ -257,6 +447,8 @@ var Inpainting = function() {
         // disable onload callback, since it was creating the inpainting interface
         ig.SetOnLoad(undefined);
         ig.keep_dimensions_onload=true;
+        var bg_im = ig.GetImage(0)[0].src;
+        ig.user_image_style="background:url("+bg_im+");background-size:cover;";
         ig.BuildContents();
     }
     
