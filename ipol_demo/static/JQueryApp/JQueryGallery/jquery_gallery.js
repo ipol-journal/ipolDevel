@@ -42,6 +42,7 @@ var ImageGallery = function(galleryid)  {
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     this.current_contents = "#contents1";
     this.keep_dimensions_onload = false;
+    this.user_image_style = "";
     
     //--------------------------------------------------------------------------
     this.Append = function(content) {
@@ -201,7 +202,8 @@ var ImageGallery = function(galleryid)  {
 
         // try to have nearest neighbor interpolation 
         // (see https://developer.mozilla.org/fr/docs/Web/CSS/Image-rendering)
-        var img_style = "image-rendering:pixelated;"+
+        var img_style = this.user_image_style+
+                        "image-rendering:pixelated;"+
                         "-ms-interpolation-mode:nearest-neighbor;"+
                         "image-rendering:optimizeSpeed;"+
                         "image-rendering:-moz-crisp-edges;"+
