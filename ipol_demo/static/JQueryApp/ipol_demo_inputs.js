@@ -132,6 +132,9 @@ var DrawInputs = function(ddl_json) {
                         "image-rendering:optimize-contrast;"+
                         "image-rendering:crisp-edges;";
 
+        // add inpainting interface
+        if (this.inpaint) { html += this.inpaint.CreateHTML(); }
+        
         // use gallery only if several images 
         if (inputs.length>1) {
             html += '<div id="input_gallery"> </div>';
@@ -175,15 +178,16 @@ var DrawInputs = function(ddl_json) {
         }
 
         
-        // add inpainting interface
-        if (this.inpaint) { html += this.inpaint.CreateHTML(); }
         
         $("#DrawInputs").html(html);
         $('.table_crop').hide();
         $("#id_cropview").prop('disabled',false);
         $("#DrawInputs").data("draw_inputs",this);
 
-        if (this.inpaint) { html += this.inpaint.CreateHTMLEvents(); }
+        if (this.inpaint) { 
+            html += this.inpaint.CreateHTMLEvents(); 
+            $("#input_gallery").hide();
+        }
     };
 
     
@@ -263,6 +267,18 @@ var DrawInputs = function(ddl_json) {
                 // set inpainting
                 if (this.inpaint) {
                     this.inpaint.UpdateInpaint(image);
+                    // set inpainting
+                    //if ((this.inpaint)&&(index!=0)) {
+                    //    console.info("index=",index);
+                    //    // set nice background for transparency
+                    //    var bg_im = ig.GetImage(0)[0].src;
+                    //    // console.info("bg_im=",bg_im);
+                    //    // "background_transparency.png"
+                    //    $("#input_gallery #img_"+index+"_0").css(
+                    //        {   "background"      :"url("+bg_im+")",
+                    //            "background-size" :"cover"} );
+                    //    //$("."+ig.img_class).css("background-color","grey");
+                    //}
                 }
             }
         }.bind(this) );
@@ -280,12 +296,6 @@ var DrawInputs = function(ddl_json) {
                                 Math.round(im.naturalHeight)+
                                 " (x"+(ratio).toFixed(3)+")";
             $('#gallery_inputs_all #inputinfo_'+index).html(image_info);
-            // set inpainting
-            if (this.inpaint) {
-                // set nice background for transparency
-                $("."+ig.img_class).css("background","url(background_transparency.png)");
-                //$("."+ig.img_class).css("background-color","grey");
-            }
         }.bind(this));
         
         // we don't deal with crop with multiple inputs for the moment
