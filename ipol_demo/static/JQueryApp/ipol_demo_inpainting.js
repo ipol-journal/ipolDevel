@@ -216,7 +216,7 @@ var Inpainting = function() {
     }
     
     //--------------------------------------------------------------------------
-    this.UpdateInpaint = function(image) {
+    this.UpdateInpaint = function(image,mask) {
         // 1. set background image and image size
         //             var image_src = $("#inputimage").attr('src');
 //         var image_src = $("#input_gallery #img_0_0").prop("src");
@@ -273,7 +273,12 @@ var Inpainting = function() {
         
         //$('#colors_sketch').data().sketch.redraw_callback = this.UpdateMask;
         $('#colors_sketch').data().sketch.stoppainting_callback = this.UpdateMask;
-        this.UpdateMask();
+//        $("#colors_sketch").data().sketch.redraw();
+        if (mask) {
+            var sketch = $("#colors_sketch").data().sketch;
+            sketch.initial_mask = mask;
+            this.UpdateMask();
+        }
 
         // update sketch settings
         $('#pensize_range') .trigger('input');
@@ -383,11 +388,8 @@ var Inpainting = function() {
             this.random_letters();
             this.UpdateMask();
         }.bind(this));
-
-        
     }
 
-    
     //--------------------------------------------------------------------------
     this.UpdateMask = function( ddl_json, upload_callback ) {
         
@@ -446,6 +448,7 @@ var Inpainting = function() {
         ig.Append({ "Mask":  obj} );
         // disable onload callback, since it was creating the inpainting interface
         ig.SetOnLoad(undefined);
+        ig.SetOnLoadAll(undefined);
         ig.keep_dimensions_onload=true;
         var bg_im = ig.GetImage(0)[0].src;
         ig.user_image_style="background:url("+bg_im+");background-size:cover;";
@@ -467,7 +470,8 @@ var Inpainting = function() {
         // if several input image, TODO: deal with crop of first image
         var blobs_in_form=0;
         // TODO: change this line to avoid depending on the html code
-        var image_src = $("#input_gallery #img_0_0").prop("src");
+        var ig = $("#input_gallery").data("image_gallery");
+        var image_src = ig.GetImage(0)[0].src;
         // upload input image
         blobUtil.imgSrcToBlob(image_src,"image/png","Anonymous").then(
             function(blob) { 

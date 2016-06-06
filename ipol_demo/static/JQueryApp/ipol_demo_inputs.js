@@ -247,7 +247,7 @@ var DrawInputs = function(ddl_json) {
 
         var ig = new ImageGallery("inputs");
         ig.Append(inputs_info);
-        if (this.inpaint) {
+        if ((this.inpaint)&&(!inputs_info.Mask)) {
             ig.Append({ "Mask":"background_transparency.png"});
         }
         var html = ig.CreateHtml();
@@ -265,20 +265,27 @@ var DrawInputs = function(ddl_json) {
                 this.crop_info.w = image.naturalWidth;
                 this.crop_info.h = image.naturalHeight;
                 // set inpainting
-                if (this.inpaint) {
-                    this.inpaint.UpdateInpaint(image);
-                    // set inpainting
-                    //if ((this.inpaint)&&(index!=0)) {
-                    //    console.info("index=",index);
-                    //    // set nice background for transparency
-                    //    var bg_im = ig.GetImage(0)[0].src;
-                    //    // console.info("bg_im=",bg_im);
-                    //    // "background_transparency.png"
-                    //    $("#input_gallery #img_"+index+"_0").css(
-                    //        {   "background"      :"url("+bg_im+")",
-                    //            "background-size" :"cover"} );
-                    //    //$("."+ig.img_class).css("background-color","grey");
-                    //}
+//                 if (this.inpaint) {
+//                     this.inpaint.UpdateInpaint(image);
+//                 }
+            }
+//             if ((Object.keys(inputs_info)[index]=="Mask")&&
+//                 (inputs_info.Mask!=="background_transparency.png")) {
+//                 // add initial input mask
+//                 this.inpaint.AddInitialMask(image);
+//             }
+        }.bind(this) );
+        
+        //-----------------------------------
+        ig.SetOnLoadAll( function() {
+            // set inpainting
+            if (this.inpaint) {
+                // we assume that the first image is the input
+                // we assume that the second image is the mask
+                if (inputs_info.Mask) {
+                    this.inpaint.UpdateInpaint(ig.GetImage(0)[0],ig.GetImage(1)[0]);
+                } else {
+                    this.inpaint.UpdateInpaint(ig.GetImage(0)[0]);
                 }
             }
         }.bind(this) );
@@ -634,8 +641,9 @@ var DrawInputs = function(ddl_json) {
             // reset crop info as full image
             this.crop_info.x = 0;
             this.crop_info.y = 0;
-            this.crop_info.w = $('#img_0_0').naturalWidth();
-            this.crop_info.h = $('#img_0_0').naturalHeight();
+            var ig = $("#input_gallery").data("image_gallery");
+            this.crop_info.w = ig.GetImage(0)[0].naturalWidth;
+            this.crop_info.h = ig.GetImage(0)[0].naturalHeight;
         }
         this.InfoMessage("UpdateCrop end");
         this.InfoMessage("cropinfo = ",this.crop_info);

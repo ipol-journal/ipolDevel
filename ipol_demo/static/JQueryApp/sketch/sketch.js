@@ -78,7 +78,7 @@ var __slice = Array.prototype.slice;
       this.scale_factor=1;
       this.initial_width=this.el.width;
       this.initial_height=this.el.height;
-      
+      this.initial_mask = undefined;
       
       this.canvas.bind('click mousedown touchstart', this.onEvent);
       
@@ -170,6 +170,34 @@ var __slice = Array.prototype.slice;
       var sketch;
       this.el.width = this.canvas.width();
       this.context = this.el.getContext('2d');
+      if (this.initial_mask) {
+        // process initial initial mask 
+        var w = this.initial_mask.naturalWidth;
+        var h = this.initial_mask.naturalHeight;
+        var canvas = $("<canvas>").attr("width", w).attr("height", h)[0];
+        var context = canvas.getContext('2d');
+        context.drawImage(this.initial_mask, 0, 0 );
+        var imgData = context.getImageData(0, 0, w, h);
+        var c = hexToRgb(this.color);
+        for (var i=0;i<imgData.data.length;i+=4)
+        {
+            // mask image is supposed to be black or white
+            if (imgData.data[i]>0) {
+                imgData.data[i]  =c.r;
+                imgData.data[i+1]=c.g;
+                imgData.data[i+2]=c.b;
+                imgData.data[i+3]=Math.round(255*this.opacity);
+            } else {
+                imgData.data[i+3]=0;
+            }
+        }
+        context.putImageData(imgData, 0, 0);
+
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+        this.context.scale(this.scale_factor,this.scale_factor);
+        this.context.drawImage(canvas,0,0);
+        this.context.setTransform(1, 0, 0, 1, 0, 0);
+      }
       this.context.lineJoin = "round";
       this.context.lineCap = "round";
       sketch = this;
