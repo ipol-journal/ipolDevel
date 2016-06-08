@@ -52,6 +52,15 @@ var DrawResults = function( //demo_id,key,
 //         return res;
 //     }
 //     
+
+    //--------------------------------------------------------------------------
+    // specify the archive experiment from which we are drawing the results
+    this.SetExperiment = function(exp,ddl_archive) {
+        this.experiment = exp;
+        this.ddl_archive = ddl_archive; // archive part of the DDL
+    }
+
+
     //--------------------------------------------------------------------------
     this.Create = function() {
 
@@ -225,10 +234,27 @@ var DrawResults = function( //demo_id,key,
     };
     
     //--------------------------------------------------------------------------
+    // search filename url, if the results are from an experiment, try
+    // to use archive url, otherwise use work_url path
+    this.FindUrl = function(filename) {
+        var url=undefined;
+        if (this.experiment) {
+            url = ArchiveDisplay.find_archive_url(filename,
+                                                  this.ddl_archive.files,
+                                                  this.experiment.files);
+        }
+        if (!url) {
+            url = this.work_url+filename;
+        }
+        return url;
+    }
+    
+    //--------------------------------------------------------------------------
     this.TextFile_events = function(res_desc,id) {
 
-        $('#result_' + id).load(this.work_url+res_desc.contents);
+        $('#result_' + id).load(this.FindUrl(res_desc.contents));
     };
+    
     
     //--------------------------------------------------------------------------
     this.FileDownload = function(res_desc) {
@@ -238,7 +264,7 @@ var DrawResults = function( //demo_id,key,
             for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
                 var file=this.EvalInContext(res_desc.contents,idx);
                 var label=this.EvalInContext(res_desc.label,idx);
-                html += '&nbsp;[&nbsp;<a href="'+this.work_url+file+'" target="_blank">';
+                html += '&nbsp;[&nbsp;<a href="'+this.FindUrl(file)+'" target="_blank">';
                 html += label;
                 html += "</a>&nbsp;]<br/>"
             }
@@ -250,12 +276,12 @@ var DrawResults = function( //demo_id,key,
             html += label;
             if ($.type(res_desc.contents)==="object") {
               jQuery.each(res_desc.contents, function(label,file) {
-                html += '&nbsp;[&nbsp;<a href="'+this.work_url+file+'" target="_blank">';
+                html += '&nbsp;[&nbsp;<a href="'+this.FindUrl(file)+'" target="_blank">';
                 html += label;
                 html += "</a>&nbsp;]&nbsp;"
               }.bind(this));
             } else {
-                html += '<a href="'+this.work_url+res_desc.contents+'" target="_blank">';
+                html += '<a href="'+this.FindUrl(res_desc.contents)+'" target="_blank">';
                 html += res_desc.label;
                 html += '</a>';
             }
@@ -334,7 +360,7 @@ var DrawResults = function( //demo_id,key,
                         if (image==="'") {
                             image = this.EvalInContext(image);
                         }
-                        new_contents[label]=this.work_url+image;
+                        new_contents[label]=this.FindUrl(image);
                         break;
                     case "object":
                         // avoid modifying original contents, using
@@ -346,7 +372,7 @@ var DrawResults = function( //demo_id,key,
                             if (im==="'") {
                                 im = this.EvalInContext(im);
                             }
-                            new_contents[label][l]=this.work_url+im;
+                            new_contents[label][l]=this.FindUrl(im);
                         }.bind(this));
                         break;
                     case "array":
@@ -358,7 +384,7 @@ var DrawResults = function( //demo_id,key,
                             if (im==="'") {
                                 im = this.EvalInContext(im);
                             }
-                            new_contents[label][index]=this.work_url+im;
+                            new_contents[label][index]=this.FindUrl(im);
                         }.bind(this));
                         break;
                 } // end switch
@@ -379,66 +405,6 @@ var DrawResults = function( //demo_id,key,
     } // end Gallery_new_events
     
 
-//     //--------------------------------------------------------------------------
-//     this.RepeatGallery = function(res_desc) {
-//         var res="";
-//         if (res_desc.label!=undefined) {
-//             res += '<span>'+ this.joinHtml(res_desc.label)+'</span><br/>';
-//         }
-// 
-//         
-//         // compute style
-//         // TODO: improve security risks with eval()
-//         var style = this.EvalInContext(res_desc.style_new);
-//         
-//         // TODO: check what variable needs the style and remove its angular code
-//         res += '<div   class="gallery2" style="'+style+'">';
-//         
-//         if (res_desc.contents_new) {
-//             var contents = res_desc.contents_new;
-//         } else {
-//             var contents = res_desc.contents;
-//         }
-//         
-//         res += '<ul class="index">';
-//         for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
-//             res += '<li>';
-//             res += '<a href="#" >';
-//             // label
-//             this.InfoMessage(contents[0]);
-//             this.InfoMessage(contents[1]);
-//             res += '<div>'+this.EvalInContext(contents[0],idx)+'</div>'
-//             
-//             if ($.type(contents[1])!=="array") {
-//                 res += '<span class="galim" >';
-//                 res += '<img  style="'+style+'"';
-//                 res +=        'src="'+this.work_url+this.EvalInContext(contents[1],idx)+'"';
-//                 res += '/>';
-//                 res += '</span>';
-//             } else {
-//                 res += '<span class="galim" >';
-//                 res += '<table border="1">';
-//                 res += '<tr>';
-//                 jQuery.each( contents[1], function(index, im) {
-//                     res += '<td style="text-align:center">';
-//                     res += '<img  style="'+style+'"';
-//                     res +=        'src="'+this.work_url+this.EvalInContext(im,idx)+'"';
-//                     res += '/>';
-//                     res += '</td>';
-//                 }.bind(this));
-//                 res += '</tr>';
-//                 res += '</table>';
-//                 res += '</span>';
-//             }
-//             res += '</a>';
-//             res += '</li>';
-//         }
-//         res += '</ul>';
-//         res += '</div><br/><br/>';
-//         return res;
-//     }
-//                                 
-
     //--------------------------------------------------------------------------
     this.RepeatGallery_new_events = function(res_desc, id ) {
         var index = 0;
@@ -454,14 +420,14 @@ var DrawResults = function( //demo_id,key,
             var label = this.EvalInContext(contents[0],idx);
             
             if ($.type(contents[1])!=="array") {
-                new_contents[label]=this.work_url+this.EvalInContext(contents[1],idx);
+                new_contents[label]=this.FindUrl(this.EvalInContext(contents[1],idx));
             } else {
                 // avoid modifying original contents
                 var val={};
                 val[label]=contents[1];
                 $.extend(true,new_contents,val);
                 jQuery.each( contents[1], function(index, im) {
-                    new_contents[label][index]=this.work_url+this.EvalInContext(im,idx);
+                    new_contents[label][index]=this.FindUrl(this.EvalInContext(im,idx));
                 }.bind(this));
             }
         }

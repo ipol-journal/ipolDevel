@@ -12,6 +12,10 @@
 
 "use strict";
 
+
+    
+
+
 //------------------------------------------------------------------------------
 var ArchiveDisplay = function()
 {
@@ -247,4 +251,28 @@ var ArchiveDisplay = function()
     }
 
   
+}
+
+
+//------------------------------------------------------------------------------
+// static method of ArchiveDisplay class
+// search and returns the url in archive of a given result filename
+// if not found returns undefined
+//
+// parameters:
+//    filename string:              the filename to search for
+//    ddl_archive_files object: the ddl part of the archive
+//    experiement_files object: the archive experiment file section
+//
+ArchiveDisplay.find_archive_url = function(filename,ddl_archive_files,experiment_files) {
+    var archive_input_description = ddl_archive_files[filename];
+    if (archive_input_description) {
+        // find file url in archive
+        for(var i=0; i<experiment_files.length;i++) {
+            if (experiment_files[i].name === archive_input_description) {
+                return experiment_files[i].url;
+            }
+        }
+    }
+    return undefined;
 }

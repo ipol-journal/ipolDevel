@@ -23,6 +23,7 @@ if (!last_uploaded_files_pos) {
     window.localStorage.setItem("last_uploaded_files_pos", last_uploaded_files_pos);
 }
     
+    
 //------------------------------------------------------------------------------
 // deals with the user blobs to upload
 //

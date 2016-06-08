@@ -178,44 +178,52 @@ function SetArchiveExperiment(ddl_json, experiment) {
     var archive_input_url         = [];
     var found_inputs=0;
     var nb_inputs = ddl_json.inputs.length;
+    
     for(var i=0;i<nb_inputs;i++) {
         // check filename to look for in archive description
         var filename = "input_"+i+ddl_json.inputs[i].ext;
-        // search for the file in archive description
-        archive_input_description[i] = ddl_json.archive.files[filename];
-        if (archive_input_description[i]) {
+        archive_input_url[i] = ArchiveDisplay.find_archive_url(
+            filename, ddl_json.archive.files, experiment.files);
+        if (archive_input_url[i]||(ddl_json.inputs[i].required===false)) {
+            // count it as found this it is not required
             found_inputs++;
-            // find file url in archive
-            for(var j=0; i<experiment.files.length;j++) {
-                if (experiment.files[j].name === archive_input_description[i]) {
-                    archive_input_url[i] = experiment.files[j].url;
-                    break;
-                }
-            }
         }
     }
+    
+    // on everything loaded, set the inputs
+    function SetInputs() {
+        var di = new DrawInputs(ddl_json);
+        console.info("apply_local_data ", ddl_json);
+        di.SetBlobSet(null);
+        di.CreateHTML();
+        //di.CreateCropper();
+        di.LoadDataFromLocalFiles();
+        di.SetRunEvent();
+    }
+    
     
     if (found_inputs==nb_inputs) {
         var total_loaded_images = 0;
         // set uploaded files
         for(var i=0;i<nb_inputs;i++) {
-            var im = new Image();
-            im.crossOrigin = "Anonymous";
-            im.onload = function() { 
+            if (archive_input_url[i]) {
+                var im = new Image();
+                im.crossOrigin = "Anonymous";
+                im.onload = function() { 
+                    total_loaded_images++;
+                    if (total_loaded_images==nb_inputs) {
+                        SetInputs();
+                    }
+                };
+                im.src = archive_input_url[i];
+                $('#localdata_preview_'+i).attr("src", im.src);
+            } else {
+                // optional inputs, counted as loaded
                 total_loaded_images++;
                 if (total_loaded_images==nb_inputs) {
-                    // on everything loaded, set the inputs
-                    var di = new DrawInputs(ddl_json);
-                    console.info("apply_local_data ", ddl_json);
-                    di.SetBlobSet(null);
-                    di.CreateHTML();
-                    //di.CreateCropper();
-                    di.LoadDataFromLocalFiles();
-                    di.SetRunEvent();
+                    SetInputs();
                 }
-            };
-            im.src = archive_input_url[i];
-            $('#localdata_preview_'+i).attr("src", im.src);
+            }
         }
     }
         
@@ -227,6 +235,9 @@ function SetArchiveExperiment(ddl_json, experiment) {
     //    $("#DrawInputs").data("draw_inputs").ResultProgress(res);
     //}
     var dr = new DrawResults( experiment.results, ddl_json.results );
+    // Telling the DrawResults object that we are drawing results from 
+    // an experiment so it can search the urls from archive
+    dr.SetExperiment(experiment,ddl_json.archive);
     dr.Create();
 }
 
