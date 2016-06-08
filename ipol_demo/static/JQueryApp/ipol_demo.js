@@ -98,6 +98,8 @@ function OnDemoList(demolist)
         (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
     })
     this.InfoMessage("url parameters = ",url_params);
+    
+    
     if (url_params["id"]!=undefined) {
         var demo_id = url_params["id"][0];
         this.InfoMessage("demo_id = ", demo_id);
@@ -163,6 +165,70 @@ function ListDemosController() {
 
 
 var demo_origin =  {  select_widget:0, url:1, browser_history:2};
+
+
+//------------------------------------------------------------------------------
+// set the demo page based on the archive experiment information
+function SetArchiveExperiment(ddl_json, experiment) {
+    
+    // do as if data is being uploaded
+    // fill upload areas with image sources
+    // look for input files 
+    var archive_input_description = [];
+    var archive_input_url         = [];
+    var found_inputs=0;
+    var nb_inputs = ddl_json.inputs.length;
+    for(var i=0;i<nb_inputs;i++) {
+        // check filename to look for in archive description
+        var filename = "input_"+i+ddl_json.inputs[i].ext;
+        // search for the file in archive description
+        archive_input_description[i] = ddl_json.archive.files[filename];
+        if (archive_input_description[i]) {
+            found_inputs++;
+            // find file url in archive
+            for(var j=0; i<experiment.files.length;j++) {
+                if (experiment.files[j].name === archive_input_description[i]) {
+                    archive_input_url[i] = experiment.files[j].url;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (found_inputs==nb_inputs) {
+        var total_loaded_images = 0;
+        // set uploaded files
+        for(var i=0;i<nb_inputs;i++) {
+            var im = new Image();
+            im.crossOrigin = "Anonymous";
+            im.onload = function() { 
+                total_loaded_images++;
+                if (total_loaded_images==nb_inputs) {
+                    // on everything loaded, set the inputs
+                    var di = new DrawInputs(ddl_json);
+                    console.info("apply_local_data ", ddl_json);
+                    di.SetBlobSet(null);
+                    di.CreateHTML();
+                    //di.CreateCropper();
+                    di.LoadDataFromLocalFiles();
+                    di.SetRunEvent();
+                }
+            };
+            im.src = archive_input_url[i];
+            $('#localdata_preview_'+i).attr("src", im.src);
+        }
+    }
+        
+    // Set parameter values
+    SetParamValues(experiment.results.params);
+    
+    // Draw results
+    //if ($("#DrawInputs").data("draw_inputs")) {
+    //    $("#DrawInputs").data("draw_inputs").ResultProgress(res);
+    //}
+    var dr = new DrawResults( experiment.results, ddl_json.results );
+    dr.Create();
+}
 
 //------------------------------------------------------------------------------
 // Starts everything needed for demo input tab
@@ -291,6 +357,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                                     v = s[1] && decodeURIComponent(s[1]);
                                 (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
                             });
+                            // set results as url parameters
                             if (url_params["res"]!==undefined) {
                                 var res = JSON.parse(url_params["res"]);
                                 console.info("***** demo results obtained from url parameters");
@@ -304,6 +371,21 @@ function InputController(demo_id,internal_demoid,origin,func) {
                                 dr.Create();
                                 //$("#progressbar").get(0).scrollIntoView();
                             }
+                            // set experiment id as url parameter
+                            if (url_params["exp"]!=undefined) {
+                                var exp_id = url_params["exp"][0];
+                                console.info("demo experiment = ", exp_id);
+                                // ask archive about this experiment
+                                var url_params =    'demo_id='    + demo_id + '&id_experiment='+exp_id;
+                                ModuleService("archive","get_experiment",url_params,
+                                    function(res) {
+                                        console.info("archive get_experiment result : ",res);
+                                        if (res['status']==='OK') {
+                                            SetArchiveExperiment(ddl_json, res.experiment);
+                                        }
+                                    }.bind(this));
+                            }
+                            
                             break;
                         case demo_origin.browser_history:
                             if (func!=undefined) {
@@ -322,128 +404,6 @@ function InputController(demo_id,internal_demoid,origin,func) {
 }
     
     
-// for browser history features, save last uploaded files locally
-var last_uploaded_files = [];
-// use windows.localStorage to avoid displaying a wrong input 
-// (position will be unique for each upload, even after page refresh)
-var last_uploaded_files_pos = window.localStorage.getItem("last_uploaded_files_pos");
-if (!last_uploaded_files_pos) {
-    last_uploaded_files_pos = 0;
-    window.localStorage.setItem("last_uploaded_files_pos", last_uploaded_files_pos);
-}
-    
-//------------------------------------------------------------------------------
-// deals with the user blobs to upload
-//
-function CreateLocalData(ddl_json) {
-    var html="";
-    html += '<table style="margin-right:auto;margin-left:0px">';
-    for(var i=0;i<ddl_json.inputs.length;i++) {
-        html += '<tr>';
-        html += '<td>';
-          html += '<label for="file_'+i+'">'+ddl_json.inputs[i].description+'</label>';
-        html += '</td>';
-        html += '<td>';
-          html += '<input type="file" name="file_'+i+'" id="file_'+i+'" size="40"';
-          html += 'accept="'+ddl_json.inputs[i].ext+',image/*,media_type"';
-          html += ' />';
-        html += '</td>';
-        html += '<td > <img id="localdata_preview_'+i+'" style="max-height:128px"></td>';
-        html += '<td>';
-        html += '<font size="-1"><i>';
-          if (ddl_json.inputs[i].max_pixels!=undefined) {
-            html += '<span>  &le;'+ddl_json.inputs[i].max_pixels+' pixels </span>';
-          }
-          if (ddl_json.inputs[i].max_weight!=undefined) {
-            html += '<span> &le;'+ddl_json.inputs[i].max_weight/(1024*1024)+' Mb </span>';
-          }
-          if (ddl_json.inputs[i].required!=undefined && !ddl_json.inputs[i].required) {
-            html += '<span> (optional) </span>';
-          }
-        html += '</i></font>';
-        html += '</td>';
-        html += '</tr>';
-    }
-    html += '</table>';
-    //html += '<input type="submit" value="select" />';
-    $("#local_data").html(html);
-    
-//     // deal with events
-//     $( "#apply_localdata" ).click( (function(ddl_json) { return function(){
-//             // code to be executed on click
-//             var di = new DrawInputs(ddl_json);
-//             console.info("apply_local_data ", ddl_json);
-//             di.SetBlobSet(null);
-//             di.CreateHTML();
-//             //di.CreateCropper();
-//             di.LoadDataFromLocalFiles();
-//             di.SetRunEvent();
-//         }
-//     })(ddl_json));
-    
-    $("#upload-dialog").dialog("option","buttons",{
-        Apply: (function(ddl_json) { 
-            return function(){
-                // empty results
-                $("#ResultsDisplay").empty();
-                $("#ResultsDisplay").removeData();
-                // code to be executed on click
-                var di = new DrawInputs(ddl_json);
-                console.info("apply_local_data ", ddl_json);
-                di.SetBlobSet(null);
-                di.CreateHTML();
-                //di.CreateCropper();
-                di.LoadDataFromLocalFiles();
-                di.SetRunEvent();
-                $(this).dialog( "close" );
-            }
-        })(ddl_json),
-        Cancel: function() {
-          $(this).dialog( "close" );
-        }
-      });
-    
-    
-    for(var i=0;i<ddl_json.inputs.length;i++) {
-        $("#file_"+i).change( 
-            (function(i) { return function() {
-
-                console.info("files=",this.files);
-                var size_ok = this.files[0].size<eval(ddl_json.inputs[i].max_weight);
-                var Mb=1024*1024;
-                var file_size     = this.files[0].size/Mb;
-                var allowed_size  = eval(ddl_json.inputs[i].max_weight)/Mb;
-                console.info(" size ok = ", file_size.toPrecision(5), "<", 
-                             allowed_size.toPrecision(5));
-                if (!size_ok) {
-                    alert("The selected file exceeds the maximal allowed size: "+ 
-                            file_size.toPrecision(4)+" Mb >"+
-                            allowed_size.toPrecision(4)+" Mb");
-                    return;
-                }
-                if (this.files && this.files[0]) {
-                    var reader = new FileReader();
-                    reader.onload = (function(i) { return function (e) {
-                        console.info("onload ", i, ":",e.target);
-                        $('#localdata_preview_'+i).attr("src", e.target.result);
-                        console.info("size of uploaded file :", e.target.result.length/1024/1024, " Mb" );
-                        last_uploaded_files[last_uploaded_files_pos] = e.target.result;
-                        $('#localdata_preview_'+i).data("src_pos",last_uploaded_files_pos);
-                        last_uploaded_files_pos++;
-                        window.localStorage.setItem("last_uploaded_files_pos", last_uploaded_files_pos);
-                        // avoid filling the memory by release old files
-                        if (last_uploaded_files_pos>=10) {
-                            last_uploaded_files[last_uploaded_files_pos-10]=undefined;
-                        }
-                        
-                    } })(i);
-                    reader.readAsDataURL(this.files[0]);
-                }
-            } }) (i)
-        );
-    }
-}
-    
 
 //------------------------------------------------------------------------------
 // allow folding/unfolding of legends
@@ -461,227 +421,6 @@ function SetLegendFolding( selector) {
        $(this).siblings().slideToggle("slow", function() { legend.children("span").html(value); } );
     });
 }    
-    
-//------------------------------------------------------------------------------
-// SetPageState
-//
-function SetPageState( page_state) {
-
-    //--------------------------------------------------------------------------
-    function SetPageDemo(demo_id, onpage_func) {
-        if (demo_id===undefined) {
-            return;
-        }
-        var demo_list = $("#demo-select").data("demo_list");
-        var demo_position = -1;
-        for(var i=0;i<demo_list.length;i++) {
-            if (demo_list[i].editorsdemoid==demo_id) {
-                demo_position = i;
-                break;
-            }
-        }
-        
-        if ((demo_position!=-1)&&(demo_position!=$("#demo_selection").val())) {
-            console.info("!!! demo id has changed !!! trigger change ", 
-                        demo_list[$("#demo_selection").val()].editorsdemoid, ",", 
-                        "-->", demo_id);
-            $("#demo_selection").val(demo_position);
-            // don't trigger change since it will push a new history state,
-            // instead, execute the change as if the url was loaded
-            // which means we draw parameters and results too
-            InputController(demo_list[demo_position].editorsdemoid,
-                            demo_list[demo_position].id,
-                            demo_origin.browser_history,
-                            onpage_func
-                        );
-        } else {
-            onpage_func();
-        }
-    }
-    
-    //--------------------------------------------------------------------------
-    function SetInputsState(blobset,upload_state, ddl_json,params,crop_checked) {
-        var di = $("#DrawInputs").data("draw_inputs");
-        var crop_area = {   
-            x:      params.x0, 
-            y:      params.y0, 
-            width:  params.x1-params.x0,
-            height: params.y1-params.y0
-        };
-        console.info("1 di=",di);
-        // recreate only if it has changed:
-        if ((!di)||(!objectEquals(ddl_json,di.ddl_json))) {
-            if (di) { console.info("2", ddl_json, " != ",di.ddl_json); }
-            di = new DrawInputs(ddl_json);
-            // just in case, be sure nothing is on upload page
-            di.UnsetUploadPageState();
-        }
-        if (blobset) {
-            console.info("3");
-            if (!objectEquals(blobset,di.GetBlobSet())) {
-                console.info("4 ",blobset,' != ', di.GetBlobSet());
-                di.SetBlobSet(blobset);
-                di.input_origin = "blobset";
-                di.UnsetUploadPageState();
-                di.CreateHTML();
-                $("#id_cropinput").prop('checked',crop_checked);
-                di.OnCropBuilt( function() {
-                    console.info("OnCropBuilt callback");
-                    di.OnCropBuilt( undefined);
-                    if (crop_checked) {
-                        // does not work yet
-                        console.info("crop_area is ", crop_area);
-                        di.SetCrop(crop_area);
-                    }
-                });
-                di.OnLoadImages( function() {
-                    console.info("OnLoadImages callback");
-                });
-                di.LoadDataFromBlobSet();
-            } else {
-                console.info("5");
-                // blobset is already loaded, set crop
-                if (crop_checked!=$("#id_cropinput").prop('checked')) {
-                    if (crop_checked) {
-                        // change from crop disabled to crop unabled, start crop
-                        di.OnCropBuilt( function() { 
-                            di.SetCrop(crop_area); 
-                            di.OnCropBuilt(undefined); 
-                        });
-                    }
-                    $("#id_cropinput").prop('checked',crop_checked);
-                    console.info('trigger croinput change');
-                    $("#id_cropinput").trigger('change'); 
-                } else {
-                    if (crop_checked) {
-                        // does not work yet
-                        console.info("crop_area is ", crop_area);
-                        di.SetCrop(crop_area);
-                    }
-                }
-            }
-            di.SetRunEvent();
-        }
-        if (upload_state) {
-            console.info("10");
-            var upload_res = di.SetUploadPageState(upload_state);
-            if (upload_res!=1) {
-                di.UnsetBlobSet();
-                di.input_origin = "localfiles";
-                if (upload_res==0) {
-                    di.CreateHTML();
-                    $("#id_cropinput").prop('checked',crop_checked);
-                    di.OnCropBuilt( function() {
-                        console.info("OnCropBuilt callback");
-                        di.OnCropBuilt( undefined);
-                        if (crop_checked) {
-                            console.info("crop_area is ", crop_area);
-                            di.SetCrop(crop_area);
-                        }
-                    });
-                    di.OnLoadImages( function() {
-                        console.info("OnLoadImages callback");
-                    });
-                    di.LoadDataFromLocalFiles();
-                } else {
-                    // data alread loaded, setting crop
-                    if (crop_checked!=$("#id_cropinput").prop('checked')) {
-                        if (crop_checked) {
-                            // change from crop disabled to crop unabled, start crop
-                            di.OnCropBuilt( function() { 
-                                di.SetCrop(crop_area); 
-                                di.OnCropBuilt(undefined); 
-                            });
-                        }
-                        $("#id_cropinput").prop('checked',crop_checked);
-                        console.info('trigger croinput change');
-                        $("#id_cropinput").trigger('change'); 
-                    } else {
-                        if (crop_checked) {
-                            console.info("crop_area is ", crop_area);
-                            di.SetCrop(crop_area);
-                        }
-                    }
-                }
-                di.SetRunEvent();
-            } else {
-                $("#DrawInputs").empty();
-                $("#DrawInputs").removeData();
-            }
-        }
-    }
-    
-    //--------------------------------------------------------------------------
-    function SetParamsState(params) {
-        // update parameters
-        SetParamValues(params);
-    }
-    
-    //--------------------------------------------------------------------------
-    function SetResultsState(res,ddl_results,scrolltop) {
-        // draw results
-        // trick to avoid flickering, set big height to
-        // keep the scrolling position
-        $("#ResultsDisplay").parent().css("height",$(window).height()+"px")
-        
-        var dr = new DrawResults( res, ddl_results );
-        
-        dr.onloadall_callback = function() {
-            // reset result display height to empty so it is automatic
-            $("#ResultsDisplay").parent().css("height","")
-            $(window).scrollTop(page_state.scrolltop);
-            console.info("onloadall_callback scrolltop=",scrolltop);
-            // disable it 
-            console.info("dr=",dr);
-//             dr.onloadall_callback=undefined;
-        }
-        dr.Create();
-        //$("#progressbar").get(0).scrollIntoView();
-    }
-    
-    //--------------------------------------------------------------------------
-    // find position of demo id
-    SetPageDemo(page_state.demo_id,
-        function() {
-            History.log('statechange:', page_state);
-            switch (page_state.state) {
-                // state 2: after run execution
-                case 2:
-                    
-                    SetInputsState( page_state.blobset,
-                                    page_state.upload_state,
-                                    page_state.ddl_json,
-                                    page_state.res.params,
-                                    page_state.crop_checked
-                                );
-                    
-                    // update parameters
-                    SetParamsState(page_state.res.params);
-                    
-                    var di = $("#DrawInputs").data("draw_inputs");
-                    if (di) {
-                        di.ResultProgress(page_state.res);
-                    }
-                    
-                    SetResultsState(page_state.res,
-                                    page_state.ddl_json.results,
-                                    page_state.scrolltop);
-                    break;
-                // state 1: after demo selection
-                case 1:
-                default:
-                    // empty draw inputs since we don't redraw them for the moment
-                    $("#DrawInputs").empty();
-                    $("#DrawInputs").removeData();
-                    // empty result area
-                    $("#ResultsDisplay").empty();
-            }
-        }
-    );
-    
-    
-    
-}
     
 
     

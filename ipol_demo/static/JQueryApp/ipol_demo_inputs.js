@@ -385,7 +385,9 @@ var DrawInputs = function(ddl_json) {
         } else {
             var image = new Image();
             image.src =  $('#localdata_preview_0').attr("src");
-            this.OnLoadSingleImage(image);
+            image.onload = function () {
+               this.OnLoadSingleImage(image);
+            }.bind(this);
         }
     };
     
@@ -941,7 +943,7 @@ var DrawInputs = function(ddl_json) {
                                     blobUtil.imgSrcToBlob(image_src).then(
                                         function(idx,obj) { return function(blob) {
                                             console.info('idx=',idx);
-                                            obj.formData.append('file_'+idx, blob);
+                                            formData.append('file_'+idx, blob);
                                             blobs_in_form++;
                                             console.info('blobs_in_form=',blobs_in_form);
                                             if(blobs_in_form==obj.ddl_json.inputs.length) {

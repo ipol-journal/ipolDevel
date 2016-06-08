@@ -92,7 +92,7 @@ var ArchiveDisplay = function()
             html += '<tr>';
             html += '<th style="text-align:center;vertical-align:middle;">Experiment</th>';
             // todo link to experiment details ...
-            html += '<td><a href="ipol_demo.html?id='+demo_id+'&res='+this.json2uri(exp.results)+'"  target="_blank">Experiment '+exp.id+'</a>';
+            html += '<td><a href="ipol_demo.html?id='+demo_id+'&exp='+exp.id+'"  target="_blank">Experiment '+exp.id+'</a>';
             html += '</td>';
             html += '</tr>';
             html += '<tr>';
