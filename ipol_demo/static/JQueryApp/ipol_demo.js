@@ -180,10 +180,26 @@ function SetArchiveExperiment(ddl_json, experiment) {
     var nb_inputs = ddl_json.inputs.length;
     
     for(var i=0;i<nb_inputs;i++) {
+        // check input_XX.ext
         // check filename to look for in archive description
         var filename = "input_"+i+ddl_json.inputs[i].ext;
         archive_input_url[i] = ArchiveDisplay.find_archive_url(
             filename, ddl_json.archive.files, experiment.files);
+        // check input_XX.orig.ext
+        if (!archive_input_url[i]) {
+            // check filename to look for in archive description
+            var filename = "input_"+i+'.orig.png';
+            archive_input_url[i] = ArchiveDisplay.find_archive_url(
+                filename, ddl_json.archive.files, experiment.files);
+        }
+        // check input_XX.sel.ext
+        // TODO: if we choose .sel then the possible crop is already applied ...
+        if (!archive_input_url[i]) {
+            // check filename to look for in archive description
+            var filename = "input_"+i+'.sel.png';
+            archive_input_url[i] = ArchiveDisplay.find_archive_url(
+                filename, ddl_json.archive.files, experiment.files);
+        }
         if (archive_input_url[i]||(ddl_json.inputs[i].required===false)) {
             // count it as found this it is not required
             found_inputs++;
