@@ -70,8 +70,7 @@
         "first output image"  : "output_0.png", 
         "second output image" : "output_1.png"
         },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

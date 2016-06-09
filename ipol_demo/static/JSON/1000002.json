@@ -98,14 +98,12 @@
     },
     {
       "visible"       : "info.status!='failure'",
-      "visible_new"   : "info.status!='failure'",
       "type"          : "gallery",
       "label"         : "'<h2>PSF</h2> This image has been resized from its original size '+params.k+' x '+params.k+' pixels for better visualization.'",
       "contents"      : { 
         "PSF"    : "psf.png" 
       },
-      "style"         : "{'height':Math.min(sizeY*ZoomFactor,600)+'px'}",
-      "style_new"     : "'height:'+Math.min(sizeY*ZoomFactor,600)+'px'"
+      "style"         : "'height:'+Math.min(sizeY*ZoomFactor,600)+'px'"
     },
     {
       "type"          : "gallery",
@@ -114,15 +112,13 @@
         "input"    : "input_0.sel.png" ,
         "detected" : "det_out.png"
       },
-      "style"         : "{'height':Math.min(sizeY*ZoomFactor,800)+'px'}",
-      "style_new"     : "'height:'+Math.min(sizeY*ZoomFactor,800)+'px'"
+      "style"         : "'height:'+Math.min(sizeY*ZoomFactor,800)+'px'"
     },
     {
       "type"          : "text_file", 
       "label"         : "<b>Program Output</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'30em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

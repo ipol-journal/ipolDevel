@@ -125,24 +125,7 @@
                 " &sigma;  = '+params.sigma+'",
             "</p>'"
             ],
-      "contents"      : 
-        {
-            "params.runmode==0&&!info.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy.png",
-            "params.runmode==0&&!info.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised.png",
-            "params.runmode==0&&!info.has_zoom?Original"                                 : "input_0.sel.png",
-
-            "params.runmode==0&&info.has_zoom?Input<br/>RMSE {{info.rmse_noisy}}"       : "noisy_zoom.png",
-            "params.runmode==0&&info.has_zoom?Denoised<br/>RMSE {{info.rmse_denoised}}" : "denoised_zoom.png",
-            "params.runmode==0&&info.has_zoom?Original"                                 : "input_0.sel_zoom.png",
-
-            "params.runmode==1&&!info.has_zoom?Input"     : "input_0.sel.png",
-            "params.runmode==1&&!info.has_zoom?Denoised"  : "denoised.png",
-
-            "params.runmode==1&&info.has_zoom?Input"      : "input_0.sel_zoom.png",
-            "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png"
-
-        },
-      "contents_new"      : 
+      "contents"          : 
         {
             "params.runmode==0&&!info.has_zoom?'Input<br/>RMSE '+info.rmse_noisy"       : "noisy.png",
             "params.runmode==0&&!info.has_zoom?'Denoised<br/>RMSE '+info.rmse_denoised" : "denoised.png",
@@ -163,8 +146,7 @@
             "params.runmode==1&&info.has_zoom?Difference" : "diff_zoom.png"
 
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
+      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'"
     },
     {
         "type"      : "file_download",
@@ -190,24 +172,21 @@
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference denoised-original:</p>",
       "contents"      : "rmse_denoised.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params.runmode==0",
       "label"         : "<p>Difference noisy-original:</p>",
       "contents"      : "rmse_noisy.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     },
     {
       "type"          : "text_file", 
       "visible"       : "params._lambda==0",
       "label"         : "<p>&lambda; (dynamic computation):</p>",
       "contents"      : "guessed_lambda.txt",
-      "style"         : "{'width':'40em','height':'10em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 }

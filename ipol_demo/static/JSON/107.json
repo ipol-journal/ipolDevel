@@ -105,8 +105,7 @@
         "MS Retinex on intensity"  :
                       { "Image":"output_I.png",   "Histograms:R,G,B,I":"output_I_hist.png"}
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

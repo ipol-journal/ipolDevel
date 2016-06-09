@@ -173,18 +173,11 @@
           "params.algo_vyv_5?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
           "Exact*"                                       : "output-exact.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "html_text", 
       "contents"      : [
-          "<p style='font-size:85%'>* &ldquo;Exact&rdquo; is computed with FIR, ",
-          "<i>tol</i>=10<sup>&minus;15</sup>, for &sigma;&nbsp;&le;&nbsp;2 and ",
-          "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
-          "(using {{params.sigma<=2?'FIR':'DCT'}} for this experiment).</p>"
-        ],
-      "contents_new"      : [
           "'<p style=\"font-size:85%\">* &ldquo;Exact&rdquo; is computed with FIR, ",
           "<i>tol</i>=10<sup>&minus;15</sup>, for &sigma;&nbsp;&le;&nbsp;2 and ",
           "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
@@ -194,29 +187,6 @@
     {
       "type"          : "html_text", 
       "contents"      : [
-        "<h2>Accuracy</h2>",
-        "<table style='margin:0px;margin-top:10px;text-align:center'>",
-          "<tr>",
-            "<th>Method</th>",
-            "<th>&nbsp;Max Diff&nbsp;</th>",
-            "<th>&nbsp;RMSE&nbsp;</th>",
-            "<th>&nbsp;PSNR&nbsp;</th>",
-          "</tr>",
-          "<tr ng-repeat='(k,v) in info' ng-if='k.indexOf(\"metrics_\")>-1'",
-              "ng-init='alg={ \"fir\":\"FIR, <i>tol</i>=10<sup>&minus;2</sup>\", \"dct\":\"DCT\", \"box\":\"Box\", \"ebox\":\"Extended box\", \"sii\":\"SII\", \"deriche\":\"Deriche\" , \"vyv\":\"Vliet&ndash;Young&ndash;Verbeek\", \"am\":\"Alvarez&ndash;Mazorra\" }'>",
-            "<td>",
-                "<span ng-bind-html=\"alg[k.substr(8).split('_')[0]]\"> </span>",
-                "<span ng-if=\"k.substr(8).split('_').length>1\">", 
-                      ", <i>K</i>= {{k.substr(8).split('_')[1]}}",
-                "</span>",
-            "</td>",
-            "<td> {{v.split('|')[0].split(':')[1]}} </td>",
-            "<td> {{v.split('|')[1].split(':')[1]}} </td>",
-            "<td> {{v.split('|')[2].split(':')[1]}} </td>",
-          "</tr>",
-        "</table>"
-      ],
-      "contents_new"      : [
         "'';",
         "var alg={ 'fir':'FIR, <i>tol</i>=10<sup>&minus;2</sup>',",
                 "'dct':'DCT',",

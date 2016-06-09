@@ -145,15 +145,11 @@
           "params.run_mode=='1'?Diff. input"        : "diff_blurry.png",
           "params.run_mode=='1'?Diff. deconvolved"  : "diff_tvdeconv.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"     : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"      :"html_text",
       "contents"  : [
-        "<p>Computed lambda value is <i>&lambda;</i>&nbsp;= {{info.lambda}}</p>"
-      ],
-      "contents_new"  : [
         "'<p>Computed lambda value is <i>&lambda;</i>&nbsp;= '+info.lambda.toPrecision(5)+'",
         "<p>'"
       ]
@@ -162,12 +158,6 @@
       "type"      :"html_text",
       "visible"   : "params.run_mode!=0",
       "contents"  : [
-        "<div ng-if='params.run_mode!=0' style='width:80em'>",
-          " <p> The error range [&minus;40,40] is linearly transformed to [0,255] ",
-            "for visualization. Errors outside this range are saturated to 0 ",
-            "and 255 respectively.</p>",
-        "</div>"],
-      "contents_new"  : [
         "<div style='width:80em'>",
           " The error range [&minus;40,40] is linearly transformed to [0,255] ",
             "for visualization. <br>",
@@ -189,8 +179,7 @@
       "type"          : "text_file", 
       "label"         : "<b>Output</b><br/>",
       "contents"      : "output.txt",
-      "style"         : "{'width':'60em','height':'20em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

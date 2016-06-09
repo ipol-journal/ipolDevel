@@ -73,8 +73,7 @@
         "!(info.isgray)?Skin and Robustness Check"  : "ppBoth.png",
         "info.isgray?Robustness Check"                : "ppRobust.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

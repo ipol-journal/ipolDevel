@@ -88,9 +88,11 @@
   ,
   "archive":
     {
-      "files" : { "input_0.png"             : "original image",
-                  "composite.png"           : "input",
-                  "inpainted.png"           : "inpainting result"
+      "files" : { 
+                    "input_0.png"             : "original image",
+                    "input_1.png"             : "mask image",
+                    "composite.png"           : "input",
+                    "inpainted.png"           : "inpainting result"
                 },
       "params" :  [ "alpha", "beta" ]
     },

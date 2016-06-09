@@ -81,22 +81,19 @@
         "Difference Input-PanSharpened" : "diffInputPanS.png",
         "Difference Input-IHS"          : "diffInputIHS.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "text_file", 
       "label"         : "<br/><b>Difference pansharpened-original:</b><br/>",
       "contents"      : "rmse_PanS.txt",
-      "style"         : "{'width':sizeX+'px','height':'3em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     },
     {
       "type"          : "text_file", 
       "label"         : "<br/><b>Difference IHS-original:</b><br/>",
       "contents"      : "rmse_IHS.txt",
-      "style"         : "{'width':sizeX+'px','height':'3em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

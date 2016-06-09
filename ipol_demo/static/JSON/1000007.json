@@ -72,17 +72,14 @@
         "Original"  : "input_0.sel.png",
         "Filtered"  : "output_2.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "repeat_gallery",
       "repeat"        : "21",
       "label"         : "<h3>RGB views</h3><p> Top: original and filtered. Bottom: density. </p>",
-      "contents"      : [ "<small>VIEW {{idx+1}}</small>","view_{{idx+100}}.png"],
-      "contents_new"  : [ "'<small>VIEW '+(idx+1)+'</small>'","'view_'+(idx+100)+'.png'"],
-      "style"         : "{'height':Math.max(600,sizeY*ZoomFactor)+'px'}",
-      "style_new"     : "'height:'+Math.max(600,sizeY*ZoomFactor)+'px'"
+      "contents"      : [ "'<small>VIEW '+(idx+1)+'</small>'","'view_'+(idx+100)+'.png'"],
+      "style"         : "'height:'+Math.max(600,sizeY*ZoomFactor)+'px'"
     },
     {
       "type"          : "file_download",
@@ -96,8 +93,7 @@
         "type"      : "text_file",
         "label"     : "<h3>Additional Info</h3>",
         "contents"  : "stdout.txt",
-        "style"     : "{'width':'50em','height':'10em','background-color':'#eee'}",
-        "style_new" : "''"
+        "style"     : "''"
     }
   ]
 

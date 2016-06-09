@@ -97,23 +97,6 @@
     {
       "type"          : "html_text", 
       "contents"      : [ 
-        "<table style='margin-left:0px;margin-right:auto'>",
-        "<tr>",
-          "<td>",
-            "<label> Color-coding of vectors: </label>",
-            "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-              "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">", 
-              "{{scheme}}",
-              "</option>",
-            "</select><br/>",
-          "</td>",
-          "<td>",
-            "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-          "</td>",
-        "</tr>",
-        "<table>"
-      ],
-      "contents_new"      : [ 
         "'<table style=\"margin-left:0px;margin-right:auto;position:fixed;border:1px solid lightgray;padding:10px;top:0px;right:0px;z-index:102;\">",
         "<tr>",
           "<td>",
@@ -153,20 +136,6 @@
     {
       "type"          : "gallery",
       "contents"      : 
-        {   "Optical flow "                 : "stuff_phs.{{display.param1}}.1.png", 
-            "meta.hastruth?Ground truth"    : "t.{{display.param1}}.1.png",
-            "I1"                            : "input_0.png" ,
-            "I2"                            : "input_1.png" ,
-            "|flow|"                        : "stuff_phs_abs.png" ,
-            "div(flow)"                     : "stuff_phs_div.png",
-            "grad(flow)"                    : "stuff_phs_grad.png",
-            "Warped I2"                     : "stuff_phs_inv.png",
-            "Warped difference"             : "stuff_phs_aminv.png" ,
-            "Warped average"                : "stuff_phs_apinv.png" ,
-            "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
-            "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
-        },
-      "contents_new"      : 
         {   "Optical flow"                  : "stuff_phs.ipoln.1.png", 
             "meta.hastruth?Ground truth"    : "t.ipoln.1.png",
             "I1"                            : "input_0.png" ,
@@ -180,32 +149,11 @@
             "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.ipoln.1.png",
             "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
         },
-      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}",
-      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
+      "style"         : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
     },
     {
       "type"          : "html_text", 
       "contents"      : [ 
-          "<b>Summary</b><br/>",
-          "<div>",
-          "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-          "<tr bgcolor='#cccccc'>",
-            "<td ></td>",
-            "<th >Running time</th>",
-            "<th >Average Backprojection Error</th>",
-            "<th ng-if='meta.hastruth'>Average Endpoint Error</th>",
-            "<th ng-if='meta.hastruth'>Average Angular Error</th>",
-          "</tr>",
-          "<tr>",
-            "<th bgcolor='#cccccc'>phs</th>",
-            "<td align='center'>{{info.run_time | number:2 }} s</td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-            "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-            "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-          "</tr>",
-          "</table>",
-          "</div>"        ],
-      "contents_new"      : [ 
           "'<b>Summary</b><br/>",
           "<div>",
           "<table border=1 cellpadding=6 cellspacing=0 style=\"margin-left:0px;margin-right:auto\">",
