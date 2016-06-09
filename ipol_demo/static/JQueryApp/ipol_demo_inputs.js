@@ -511,8 +511,8 @@ var DrawInputs = function(ddl_json) {
                             
 //                             console.info("*** ratio = ", ratio);
                             
-                            if (ddl_json.general.hasOwnProperty('crop_maxsize_new')) {
-                                var maxdim = eval(ddl_json.general.crop_maxsize_new);
+                            if (ddl_json.general.hasOwnProperty('crop_maxsize')) {
+                                var maxdim = eval(ddl_json.general.crop_maxsize);
 //                                 console.info("maxdim = ",maxdim);
                             }
                             var resize=false;

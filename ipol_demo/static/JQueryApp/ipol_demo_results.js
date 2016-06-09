@@ -104,12 +104,7 @@ var DrawResults = function( //demo_id,key,
     this.CreateResult = function(res_desc,id) {
         this.InfoMessage("CreateResult ",id," type ",res_desc.type);
         var display = true;
-        var visible_expr = undefined;
-        if (res_desc.visible_new!==undefined) {
-            visible_expr = res_desc.visible_new;
-        } else {
-            visible_expr = res_desc.visible;
-        }
+        var visible_expr = res_desc.visible;
         if (visible_expr!==undefined) {
             display = this.EvalInContext(visible_expr);
             this.InfoMessage("evaluating ", visible_expr);
@@ -133,12 +128,7 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.CreateResultEvents = function(res_desc,id) {
         var display = true;
-        var visible_expr = undefined;
-        if (res_desc.visible_new!==undefined) {
-            visible_expr = res_desc.visible_new;
-        } else {
-            visible_expr = res_desc.visible;
-        }
+        var visible_expr = res_desc.visible;
         if (visible_expr!==undefined) {
             display = this.EvalInContext(visible_expr);
             this.InfoMessage("evaluating ", visible_expr);
@@ -190,9 +180,6 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.HtmlText = function(res_desc) {
         var contents = this.joinHtml(res_desc.contents);
-        if (res_desc.contents_new!==undefined) {
-            contents = this.joinHtml(res_desc.contents_new);
-        } 
         if (contents[0]==="'") {
             //this.InfoMessage("HtmlText evaluating ", contents);
             return "<div>"+this.EvalInContext(contents)+"</div><br/>";
@@ -223,8 +210,8 @@ var DrawResults = function( //demo_id,key,
         html += res_desc.label;
 //        html += '<iframe src="'+this.work_url+res_desc.contents+'" ';
         html += '<pre id=result_' + id+ ' ';
-        if (res_desc.style_new) {
-            html += 'style="'+default_style + this.EvalInContext(res_desc.style_new) + '" >';
+        if (res_desc.style) {
+            html += 'style="'+default_style + this.EvalInContext(res_desc.style) + '" >';
         } else {
             html += 'style="'+default_style + res_desc.style+'" >';
         }
@@ -326,7 +313,7 @@ var DrawResults = function( //demo_id,key,
         
         // compute style
         // TODO: improve security risks with eval()
-        var style = this.EvalInContext(res_desc.style_new);
+        var style = this.EvalInContext(res_desc.style);
         
         // TODO: check what variable needs the style and remove its angular code
         res += '<div id=result_' + id + ' style="height:auto">';
@@ -338,11 +325,7 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.Gallery_new_events = function(res_desc,id) {
         var index = 0;
-        if (res_desc.contents_new) {
-            var contents = res_desc.contents_new;
-        } else {
-            var contents = res_desc.contents;
-        }
+        var contents = res_desc.contents;
         var new_contents = {};
         jQuery.each( contents, function( label, image ) {
             index++;
@@ -408,11 +391,7 @@ var DrawResults = function( //demo_id,key,
     //--------------------------------------------------------------------------
     this.RepeatGallery_new_events = function(res_desc, id ) {
         var index = 0;
-        if (res_desc.contents_new) {
-            var contents = res_desc.contents_new;
-        } else {
-            var contents = res_desc.contents;
-        }
+        var contents = res_desc.contents;
         var new_contents = {};
 
         for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
