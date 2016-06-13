@@ -210,7 +210,7 @@ var DrawResults = function( //demo_id,key,
         html += res_desc.label;
 //        html += '<iframe src="'+this.work_url+res_desc.contents+'" ';
         html += '<pre id=result_' + id+ ' ';
-        if (res_desc.style) {
+        if (res_desc.style[0]==="'") {
             html += 'style="'+default_style + this.EvalInContext(res_desc.style) + '" >';
         } else {
             html += 'style="'+default_style + res_desc.style+'" >';
