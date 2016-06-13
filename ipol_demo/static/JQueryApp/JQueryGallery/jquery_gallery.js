@@ -234,11 +234,11 @@ var ImageGallery = function(galleryid)  {
                 this.InfoMessage("returning ",res);
                 return res;
             case "object":
-                res += '<table style="border:0px">';
-                res += '<tr>';
+                res += '<table style="margin:1px;">';
+                res += '<tr style="margin:1px">';
                 var idx=0;
                 jQuery.each( image, function(l,im) {
-                    res += '<td style="text-align:center">';
+                    res += '<td style="text-align:center;border:1px;padding:1px;margin:1px">';
                     res += '<img  crossorigin="anonymous"  style="'+img_style+'"';
                     res += ' class='+this.img_class+' ';
                     res += ' id=img_'+index+'_'+idx+' ';
@@ -248,9 +248,9 @@ var ImageGallery = function(galleryid)  {
                     idx++;
                 }.bind(this));
                 res += '</tr>';
-                res += '<tr>';
+                res += '<tr style="margin:1px">';
                 jQuery.each( image, function(l,im) {
-                    res += '<td style="text-align:center">';
+                    res += '<td style="text-align:center;border:1px;padding:1px;margin:1px">';
                     res += '<span>'+l+'</span>';
                     res += '</td>';
                 }.bind(this));
@@ -259,10 +259,10 @@ var ImageGallery = function(galleryid)  {
                 return res;
             case "array":
                 var res="";
-                res += '<table style="border:0px">';
-                res += '<tr>';
+                res += '<table style="margin:1px;">';
+                res += '<tr style="margin:1px">';
                 jQuery.each( image, function(idx, im) {
-                    res += '<td style="text-align:center">';
+                    res += '<td style="text-align:center;border:1px;padding:1px;margin:1px">';
                     res += '<img  crossorigin="anonymous"  style="'+img_style+'"';
                     res += '      class='+this.img_class+' ';
                     res += '      id=img_'+index+'_'+idx+' src="'+im+'"/>';
@@ -289,14 +289,17 @@ var ImageGallery = function(galleryid)  {
         this.display_maxwidth  = $(window).width()-used_width-120;
         this.display_maxheight = $(window).height()*0.80;
         
+        var contents1_sel = "#gallery_"+this.galleryid+" #contents1";
+        var contents2_sel = "#gallery_"+this.galleryid+" #contents2";
+        
         // set max width/height:
         if (compare_checked) {
-            $("#contents1").css({ "max-width":  this.display_maxwidth/2+"px",
+            $(contents1_sel).css({ "max-width":  (this.display_maxwidth/2-25)+"px",
                                 "max-height": this.display_maxheight+"px"});
-            $("#contents2").css({ "max-width":  this.display_maxwidth/2+"px",
+            $(contents2_sel).css({ "max-width":  (this.display_maxwidth/2-25)+"px",
                                 "max-height": this.display_maxheight+"px"});
         } else {
-            $("#contents1").css({ "max-width":  this.display_maxwidth+"px",
+            $(contents1_sel).css({ "max-width":  this.display_maxwidth+"px",
                                 "max-height": this.display_maxheight+"px"});
         }
         
@@ -695,17 +698,19 @@ var ImageGallery = function(galleryid)  {
         $("#gallery_"+this.galleryid+ " .compare_class, #gallery_"+this.galleryid+ " .image_class").
         unbind("mousedown").mousedown(
             function(e) {
-                //console.info("start move ");
-                e.preventDefault();
-                var info={  
-                    sl:$(contents1_sel).scrollLeft(), 
-                    sr:$(contents1_sel).scrollTop(), 
-                    x:e.pageX, 
-                    y:e.pageY, 
-                    moving:true };
-                $(contents1_sel).data(info);
-                $(document).mousemove(gal_mousemove);
-                $(document).mouseup(gal_mouseup);
+                if (e.target.nodeName.toLowerCase()==="img") {
+                    //console.info("start move ");
+                    e.preventDefault();
+                    var info={  
+                        sl:$(contents1_sel).scrollLeft(), 
+                        sr:$(contents1_sel).scrollTop(), 
+                        x:e.pageX, 
+                        y:e.pageY, 
+                        moving:true };
+                    $(contents1_sel).data(info);
+                    $(document).mousemove(gal_mousemove);
+                    $(document).mouseup(gal_mouseup);
+                }
             }
         );
         
