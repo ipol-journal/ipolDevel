@@ -44,7 +44,6 @@
                 "then interpolated and compared with the original image.",
             "</div>"
      ],
-    "enable_crop"           : true,
     "crop_maxsize"          : "Math.floor(800/$('#range_scalefactor').val())",
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
   }, 

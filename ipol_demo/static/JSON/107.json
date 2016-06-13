@@ -3,7 +3,6 @@
     "demo_title"            : "Multiscale Retinex",
     "input_description"     : [ "" ],
     "param_description"     : "",
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/107/"
   }, 
   "build": [

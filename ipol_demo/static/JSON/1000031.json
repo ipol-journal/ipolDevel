@@ -3,7 +3,6 @@
     "demo_title"            :  "Quasi-Euclidean Epipolar Rectification",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "",
-    "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
                                 "badparams",

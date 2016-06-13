@@ -8,7 +8,6 @@
       " that you can select. The default value of r is 10% ",
       "of the smallest dimension of the image."
     ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/gl_lcc/"
   }, 
   "build": [

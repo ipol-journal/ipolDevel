@@ -3,7 +3,6 @@
     "demo_title"            : "Implementation of Nonlocal Pansharpening Image Fusion",
     "input_description"     : [ "" ],
     "param_description"     : [ "" ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/pre/98/"
   }, 
   "build": [

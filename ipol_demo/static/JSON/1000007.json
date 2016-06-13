@@ -3,7 +3,6 @@
     "demo_title"            : "Image Color Cube Dimensional Filtering and Visualization",
     "input_description"     : [ "" ],
     "param_description"     : [ "" ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/blm-cdf/"
   }, 
   "build": [

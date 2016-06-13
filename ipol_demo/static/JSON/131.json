@@ -9,7 +9,6 @@
         "transformation of image values.",
       "</p>"
     ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/131/"
   }, 
   "build": [

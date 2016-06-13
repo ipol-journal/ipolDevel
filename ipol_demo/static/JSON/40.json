@@ -3,7 +3,6 @@
     "demo_title"            :  "Combined First and Second Order Total Variation Inpainting Using Split Bregman",
     "input_description"     : "",
     "param_description"     : "",
-    "enable_crop"           : false,
     "inpainting"            : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/40/",
     "input_condition"       : [ "input_size[0]==input_size[1]",

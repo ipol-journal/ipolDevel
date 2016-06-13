@@ -3,7 +3,6 @@
     "demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "",
-    "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
                                 "badparams",

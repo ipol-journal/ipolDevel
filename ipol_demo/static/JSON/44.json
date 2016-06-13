@@ -3,7 +3,6 @@
     "demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
     "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
     "param_description"     : "",
-    "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
                                 "badparams",

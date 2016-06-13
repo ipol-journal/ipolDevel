@@ -3,7 +3,6 @@
     "demo_title"            :  "Automatic Lens Distortion Correction Using One-Parameter Division Models",
     "input_description"     : "",
     "param_description"     : [""],
-    "enable_crop"           : false,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/106/"
   }, 
   "build": [

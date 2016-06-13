@@ -20,7 +20,6 @@
         "width based algorithm) and <font color=red> <i>w</i></font> to apply the width based algorithm.",
       "</p>"
     ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/70/"
   }, 
   "build": [

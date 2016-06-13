@@ -3,7 +3,6 @@
     "demo_title"            : "Screened Poisson Equation for Image Contrast Enhancement",
     "input_description"     : [ "" ],
     "param_description"     : [ "" ],
-    "enable_crop"           : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/84/"
   }, 
   "build": [
