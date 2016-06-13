@@ -215,6 +215,37 @@ function CreateSelectionRange(param) {
 }
 
 //------------------------------------------------------------------------------
+function CreateSelectionRangeJQuery(param) {
+    var html = "";
+    html += AddLabel(param);
+
+    var limits= '';
+    limits += ' min  ="' + param.values.min     + '"'; 
+    limits += ' max  ="' + param.values.max     + '"';
+    limits += ' step ="' + param.values.step    + '"';
+    limits += ' value="' + param.values.default + '"';
+
+    var number_id = 'number_'+param.id;
+    var range_id  = 'range_' +param.id;
+    
+    html += '<td style="border:0px;width:5em">';
+    html += '<input  style="width:100%"  type="number"';
+    html += ' id="'+number_id+'"';
+    html += ' name="'+param.id+'" '+limits + ' >';
+    html += '</td>';
+    html += '<td style="border:0px;width:20em">';
+    
+    html += '<div  style="width:100%"';
+    html += ' id="'+range_id+'"';
+    html += ' div>';
+    
+    html += '</td>';
+    html += AddComments(param);
+
+    return html;
+}
+
+//------------------------------------------------------------------------------
 // function used by the range_scientific parameter type
 // computes the slider position of a given value
 function num2sci(value, numDigits)
@@ -285,6 +316,35 @@ function CreateSelectionRangeEvents(param, ddl_json) {
 
     $('#'+number_id).on('input', function(){
         $('#'+range_id).val($('#'+number_id).val());
+        UpdateParams(ddl_json.params);
+    });
+    
+}
+
+//------------------------------------------------------------------------------
+function CreateSelectionRangeJQueryEvents(param, ddl_json) {
+
+    var number_id = 'number_'+param.id;
+    var range_id  = 'range_' +param.id;
+
+    $('#'+range_id).slider(
+    {
+        value:param.values.default,
+        min: param.values.min,
+        max: param.values.max,
+        step: param.values.step,
+        slide: function( event, ui ) {
+            $('#'+number_id).val($('#'+range_id).slider('value'));
+            UpdateParams(ddl_json.params);
+        },
+        change: function( event, ui ) {
+            $('#'+number_id).val($('#'+range_id).slider('value'));
+            UpdateParams(ddl_json.params);
+        }
+    });
+
+    $('#'+number_id).on('input', function(){
+        $('#'+range_id).slider('value',$('#'+number_id).val());
         UpdateParams(ddl_json.params);
     });
     
@@ -420,7 +480,7 @@ function CreateParams(ddl_json) {
                             params_html += CreateSelectionRadio(param);
                             break;
                         case "range":
-                            params_html += CreateSelectionRange(param);
+                            params_html += CreateSelectionRangeJQuery(param);
                             break;
                         case "range_scientific":
                             params_html += CreateSelectionRangeScientific(param);
@@ -466,7 +526,7 @@ function CreateParams(ddl_json) {
                         case "selection_radio":
                             break;
                         case "range":
-                            CreateSelectionRangeEvents(param,ddl_json);
+                            CreateSelectionRangeJQueryEvents(param,ddl_json);
                             break;
                         case "range_scientific":
                             CreateSelectionRangeScientificEvents(param,ddl_json);
