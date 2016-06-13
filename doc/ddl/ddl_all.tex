@@ -1,6 +1,6 @@
 \section{The Demo Description Language}
 
-current version is 1.0 \ToDo{[Miguel] Normally you use 1.0 for the first stable version in production, and 0.x for alpha versions.}
+current version is 0.2.
 
 \subsection{Introduction}
 The Demo Description Language (DDL) is a textual description of a IPOL demo that 
@@ -52,12 +52,10 @@ Many keys are derived from the static variables of the previous 'app' Python cla
                       & yes
                       \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
- enable\_crop       & enable or disable cropping for this demo, default is true 
-                      (crop enabled). & no   \\ \hline
  inpainting         & boolean: if true, the demo is an inpainting demo with a 
                       single input image and mask drawing is enabled. & no \\ \hline
  crop\_maxsize      & limit allowed crop size in both width and height, the string
-                      can contain an Angular expression which will be evaluated & no \\ \hline
+                      can contain a Javascript or JQuery expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
  input\_condition   & sets a condition on inputs using for example the input sizes,
                       it is written as an array of 3 string, the condition,
@@ -170,9 +168,9 @@ the input as the label inside the 'gallery' html display & yes \\ \hline
  max\_pixels   &  sets the maximal number of pixels of the input image, 
 bigger images will be downsized, if 0 no resizing is done. The resizing as 
 defined in the image class uses python PIL resizing with 'antialias' option. 
-Input can be a number or a string that will be evaluated in Angular.  & .. \\ \hline
+Input can be a number or a string that will be evaluated in Javascript.  & .. \\ \hline
  max\_weight   & max size (in bytes) of an input file, prevents uploading 
-bigger files. Input can be a number or a string that will be evaluated in Angular. & .. \\ \hline
+bigger files. Input can be a number or a string that will be evaluated in Javascript. & .. \\ \hline
  dtype        & input image expected data type, used as parameter of 
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
@@ -216,7 +214,7 @@ required around the values. The default value is stored with the 'values' field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range       & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -244,7 +242,7 @@ will also to change each digit.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range\_scientific       & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -269,7 +267,7 @@ string value. The default value is stored in a separate field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -298,7 +296,7 @@ options using radio buttons.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type     & selection\_radio    & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id       & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -326,7 +324,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
@@ -342,11 +340,11 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & readonly    & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & description of the parameter & yes \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
- value\_expr & AngularJS expression used to compute the parameter value, defined as an
+ value\_expr & Javascript/JQuery expression used to compute the parameter value, defined as an
               array of strings that will be concatenated to a single string.
             & yes \\ \hline
 \caption{Common keys for the 'readonly' type.}
@@ -360,7 +358,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -379,7 +377,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkboxes   & yes \\ \hline
- visible  & AngularJS boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -565,8 +563,8 @@ The gallery type uses the gallery class to display images. Its parameters are:
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-              controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible    & Javascript/JQuery boolean expression evaluted in the context 
+              defined in \ref{sec:JavascriptEval}, that can hide the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
@@ -580,7 +578,7 @@ The gallery type uses the gallery class to display images. Its parameters are:
               in the current context to enable or disable the pair display:
               using a label string of the form "condition?label".
             & yes \\ \hline
- style      & css style associated to the gallery, can contain Angular 
+ style      & css style associated to the gallery, can contain Javascript/JQuery
               expressions evaluated in the HTML template & yes \\ \hline
 \caption{Keys for the 'gallery' type.}
 \end{longtable}
@@ -595,7 +593,7 @@ the variable 'ZoomFactor' that can be selected by the user.
       "Input"     : "input_0.sel.png", 
       "Output"    : "output.png"
     },
-    "style"         : "{'height':sizeY*ZoomFactor+'px'}" },
+    "style"         : "'height:'+sizeY*ZoomFactor+'px'" },
 \end{lstlisting}
 The use of '?' in the label "meta.hastruth?Ground truth" will condition the 
 display of "t.ipol.png" image based on the boolean variable meta.hastruth.
@@ -607,7 +605,7 @@ display of "t.ipol.png" image based on the boolean variable meta.hastruth.
         "Optical flow "              : "stuff_phs.ipol.png", 
         "meta.hastruth?Ground truth" : "t.ipol.png",
       },
-    "style": "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}" },
+    "style": "'height:'+Math.max(sizeY*ZoomFactor,350)+'px'" },
 \end{lstlisting}
 The use of pairs title:filename in the contents will display a HTML table
 for each tab (here "DFT" and "DCT") with images and their associated titles.
@@ -624,7 +622,7 @@ for each tab (here "DFT" and "DCT") with images and their associated titles.
           "N iterations":"dct_iter.png",
           "difference"  :"dct_diff.png" }
     },
-    "style"         : "{'height':sizeY*ZoomFactor+'px'" },
+    "style"         : "'height:'+sizeY*ZoomFactor+'px'" },
 \end{lstlisting}
 The use of string array in the contents will display HTML table without associated
 titles.
@@ -637,7 +635,7 @@ titles.
       "residue"     : [ "ipol_diff.png", "palette2.png" ],
       "mask"        : [ "ipol_mask.png", "palette1.png" ]
     },
-    "style"         : "{'height':500*ZoomFactor+'px'}"   },
+    "style"         : "'height:'+500*ZoomFactor+'px'"   },
 \end{lstlisting}
 
 
@@ -649,8 +647,8 @@ titles.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible   & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEval}, that can hide the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  repeat    & range expression (evaluated in Angular):
               will create a loop in the form idx=0..range-1 & no \\ \hline
@@ -691,11 +689,11 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible   & Javascript/JQuery boolean expression evaluted in the context 
+             defined in \ref{sec:JavascriptEval}, that can hide the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & array of strings, that will be concatenated to form the html 
-             content. This content can contain Angular expression using \{\{expr\}\}& yes \\ \hline
+             content. This content can contain Javascript/JQuery expression using \{\{expr\}\}& yes \\ \hline
 \caption{Keys for the 'html\_text' type.}
 \end{longtable}
 
@@ -719,8 +717,8 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible   & Javascript/JQuery boolean expression evaluted in the context 
+              defined in \ref{sec:JavascriptEval}, that can hide the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  label     & HTML label & yes \\ \hline
  contents  & text filename to display & yes \\ \hline
@@ -733,7 +731,7 @@ Example using 'repeat':
   { "type"          : "text_file", 
     "label"         : "<h2>Output<h2>",
     "contents"      : "stdout.txt",
-    "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}" }
+    "style"         : "width:40em;height:16em;background-color:#eee" }
 \end{lstlisting}
 
 %------ warning  ------
@@ -745,8 +743,8 @@ Example using 'repeat':
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type      & warning  & yes \\ \hline
- visible   & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-             controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible   & Javascript/JQuery boolean expression evaluted in the context 
+            defined in \ref{sec:JavascriptEval}, that can hide the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & displayed text, can contain both HTML tags and Angular
 expressions of the form '\{\{expression\}\}'. & \\ \hline
@@ -771,8 +769,8 @@ algorithm.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & repeat\_gallery  & yes \\ \hline
- visible    & AngularJS boolean expression evaluted in the context of DemoResultCtrl
-              controller (see \ref{sec:DemoResultCtrl}), that can hide the result if
+ visible    & Javascript/JQuery boolean expression evaluted in the context 
+              defined in \ref{sec:JavascriptEval}, that can hide the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
@@ -780,7 +778,7 @@ algorithm.
  repeat     & range expression (evaluated in Angular):
               will create a loop in the form idx=0..range-1 & yes \\ \hline
  contents   & an array where the first element is a string representing the label
-              and that can contain angular expression using the index idx, and
+              and that can contain Javascript/JQuery expression using the index idx, and
               the second element is either a string or an array of strings
               representing the image filenames to display. & yes \\ \hline
  style      & display CSS style, usually setting width and height& yes \\ \hline
@@ -792,26 +790,26 @@ algorithm.
   { "type"     : "repeat_gallery",
     "repeat"   : "params.scales",
     "label"    : "<h2> Noise Curves </h2>",
-    "contents" : [ "Scale {{idx}}:","curve_{{idx}}.png"],
-    "style"    : "{'height':'600px'}" },
+    "contents" : [ "'Scale '+idx+':'","'curve_'+idx+'.png'"],
+    "style"    : "height:600px" },
 \end{lstlisting}
 
 \begin{lstlisting}[language=json,firstnumber=1]
   { "type"     : "repeat_gallery",
     "label"    : "<h2>Difference image (left), ...</h2> 
     "repeat"   : "params.nbscales",
-    "contents" : ["Scale{{idx}}",
-                   [ "denoised_diff_{{idx}}.png",
-                     "denoised_noiseCurves_L_{{idx}}.png",
-                     "denoised_noiseCurves_H_{{idx}}.png"] ],
-    "style"    : "{'width':'400px','height':400*sizeY/sizeX+'px'}" }
+    "contents" : ["'Scale'+idx",
+                   [ "'denoised_diff_'+idx+'.png'",
+                     "'denoised_noiseCurves_L_'+idx+'.png'",
+                     "'denoised_noiseCurves_H_'+idx+'.png'"] ],
+    "style"    : "'width:400px';height:'+400*sizeY/sizeX+'px'" }
 \end{lstlisting}
 
 
 %-------------------------------------------------------------------------------
 \subsection{Full examples}
 
-\paragraph{demo 104}: (the format has been densified on purpose)\\
+\paragraph{demo 104}: \\
 \begin{lstlisting}[language=json,firstnumber=1]
 { 
   "general": { 
@@ -868,93 +866,108 @@ algorithm.
       "Robustness Check"                : "ppRobust.png",
       "!(info.isgray)?Skin & Robustness Check":"ppBoth.png"
     },
-    "style"         : "{'height':sizeY*ZoomFactor+'px'}"
+    "style"         : "'height:'+sizeY*ZoomFactor+'px'"
   } ]
 }
 \end{lstlisting}
 
 \subsubsection{keywords}
 
-\section{AngularJS components}
-\ToDo{[Miguel] This section must dissapear (comment it out with begin-comment, end-comment.}
+\section{Javascript/JQuery code}
 
-Angular is used as a flexible tool in combination to CherryPy to create the web 
-pages from the demo descriptions. Angular files are located in 'static/Angular'
-directory, while the template HTML files are located in 'lib/template' directory.
-The main Angular files are app.js, controllers.js and services.js located in the
-'static/Angular/js' directory.
-The app.js file defines the Angular application, name "IPOLDemosApp".
+\subsection{Evaluation of expressions} \label{sec:JavascriptEval}
 
-\subsection{Services}
-Current services are Demo, Params, Meta and Info. They read and return the contents
-of a JSON file.
-
-\subsection{Controlers}
-\subsubsection{DemoInputCtrl}
-The demo input controler defines the following variables in its scope:
+Javascript expressions used in the results section are evaluated in the 
+following context of variables:
 \begin{itemize}
-  \item demo\_id: taken from the global variable, using CherryPy
-  \item blob\_server: taken from the global variable, using CherryPy
-  \item demo: the demo information read from the JSON file using the Demo service
-        the demo is preprocessed by the method PreprocessDemo() defined in app.js
-        which can set default values and preprocess some fields.
-  \item demoblobs: read from the webservice 'get\_blobs\_of\_demo\_by\_name\_ws' on the 
-        blob\_server. Initially implemented as a service, it has changed to 
-        a \$http.get() command to allow the use of the blob\_server variable.
-        Once the information is obtained, the variable html\_params is created
-        that contains the HTML parameters associated to each blob selection.
-  \item a DisableBlobDisplay() method disables the display of a blob if it couldn't
-        be loaded.
+  \item idx: index of the current loop if available,
+  \item sizeX, sizeY: input image dimensions (after possible crop),
+  \item info: the 'info' object defined in the config and run sections,
+  \item meta: the 'meta' object,
+  \item params: the 'params' object containing the values of the parameters,
+  \item imwidth, imheight: maximal dimension of the input images,
+  \item work\_url: url link to the outputs.
 \end{itemize}
 
-\subsubsection{DemoParamCtrl}
+% \ToDo{[Miguel] This section must dissapear (comment it out with begin-comment, end-comment.}
+% 
+% Angular is used as a flexible tool in combination to CherryPy to create the web 
+% pages from the demo descriptions. Angular files are located in 'static/Angular'
+% directory, while the template HTML files are located in 'lib/template' directory.
+% The main Angular files are app.js, controllers.js and services.js located in the
+% 'static/Angular/js' directory.
+% The app.js file defines the Angular application, name "IPOLDemosApp".
+% 
+% \subsection{Services}
+% Current services are Demo, Params, Meta and Info. They read and return the contents
+% of a JSON file.
+% 
+% \subsection{Controlers}
+% \subsubsection{DemoInputCtrl}
+% The demo input controler defines the following variables in its scope:
+% \begin{itemize}
+%   \item demo\_id: taken from the global variable, using CherryPy
+%   \item blob\_server: taken from the global variable, using CherryPy
+%   \item demo: the demo information read from the JSON file using the Demo service
+%         the demo is preprocessed by the method PreprocessDemo() defined in app.js
+%         which can set default values and preprocess some fields.
+%   \item demoblobs: read from the webservice 'get\_blobs\_of\_demo\_by\_name\_ws' on the 
+%         blob\_server. Initially implemented as a service, it has changed to 
+%         a \$http.get() command to allow the use of the blob\_server variable.
+%         Once the information is obtained, the variable html\_params is created
+%         that contains the HTML parameters associated to each blob selection.
+%   \item a DisableBlobDisplay() method disables the display of a blob if it couldn't
+%         be loaded.
+% \end{itemize}
+% 
+% \subsubsection{DemoParamCtrl}
+% 
+% The demo input controler defines the following variables in its scope:
+% \begin{itemize}
+%   \item current\_scope
+%   \item demo\_key and demo\_id given by Python in the HTLM template
+%   \item Math (for calculation), maxdim, display\_ratio
+%   \item CropInfo which contains the boolean enabled, the coord structure and
+%         the minsize information.
+%   \item the boolean variables got\_meta, got\_param, got\_demo that will be true
+%         when the corresponding json files are loaded.
+%   \item a function 'initParams' that initialize the parameters obtained from 
+%         the DDL json file
+%   \item a function updateCropInfo() that compute the real crop information
+%         based on the displayed crop (since there is a zoom factor)
+%   \item the initialization of demo, params, meta variables using the associated
+%         services and calling the PreprocessDemo(),initParams() and updateCropInfo()
+%         methods when needed, also updating display\_ratio, imwidth, imheight, 
+%         got\_\{demo,param,meta\},
+%         and crop\_image\_url variables.
+%   \item additional functions: renderHtml, CheckString, CheckArray, 
+%         Disable/LoadedImage that allow hiding images that don't load.
+% \end{itemize}
+% 
+% \subsubsection{DemoWaitCtrl}
+% 
+% The controller is used to update a timer of the number of seconds that the algorithm
+% takes to execute.
+% 
+% \subsubsection{DemoResultCtrl} \label{sec:DemoResultCtrl}
+% 
+% This controller contains the following variables in its scope:
+% \begin{itemize}
+%  \item the function initResults() that adds a load status to each image
+%         in a gallery, initial status is 'trying'.
+%  \item useful variables idx for loop, maxdim, current\_scope, Math, demo\_id,
+%       work\_url
+%   \item ZoomFactor allowing the user to scale the images in galleries 
+%         (if ZoomFactor is introduced in the 'style' section)
+%   \item 3 display parameters display={param1,param2,param3} that can be used
+%         by demos that need specific display parameters.
+%   \item the demo,params,meta and info parameters read from json files.
+%   \item the dimensions of the (possibly cropped) input image: sizeX and sizeY 
+%   \item the maximal dimension of original input images: imwidth and imheight and 
+%         the display ratio: display\_ratio.
+%   \item a few more useful functions.
+% \end{itemize}
 
-The demo input controler defines the following variables in its scope:
-\begin{itemize}
-  \item current\_scope
-  \item demo\_key and demo\_id given by Python in the HTLM template
-  \item Math (for calculation), maxdim, display\_ratio
-  \item CropInfo which contains the boolean enabled, the coord structure and
-        the minsize information.
-  \item the boolean variables got\_meta, got\_param, got\_demo that will be true
-        when the corresponding json files are loaded.
-  \item a function 'initParams' that initialize the parameters obtained from 
-        the DDL json file
-  \item a function updateCropInfo() that compute the real crop information
-        based on the displayed crop (since there is a zoom factor)
-  \item the initialization of demo, params, meta variables using the associated
-        services and calling the PreprocessDemo(),initParams() and updateCropInfo()
-        methods when needed, also updating display\_ratio, imwidth, imheight, 
-        got\_\{demo,param,meta\},
-        and crop\_image\_url variables.
-  \item additional functions: renderHtml, CheckString, CheckArray, 
-        Disable/LoadedImage that allow hiding images that don't load.
-\end{itemize}
-
-\subsubsection{DemoWaitCtrl}
-
-The controller is used to update a timer of the number of seconds that the algorithm
-takes to execute.
-
-\subsubsection{DemoResultCtrl} \label{sec:DemoResultCtrl}
-
-This controller contains the following variables in its scope:
-\begin{itemize}
- \item the function initResults() that adds a load status to each image
-        in a gallery, initial status is 'trying'.
- \item useful variables idx for loop, maxdim, current\_scope, Math, demo\_id,
-      work\_url
-  \item ZoomFactor allowing the user to scale the images in galleries 
-        (if ZoomFactor is introduced in the 'style' section)
-  \item 3 display parameters display={param1,param2,param3} that can be used
-        by demos that need specific display parameters.
-  \item the demo,params,meta and info parameters read from json files.
-  \item the dimensions of the (possibly cropped) input image: sizeX and sizeY 
-  \item the maximal dimension of original input images: imwidth and imheight and 
-        the display ratio: display\_ratio.
-  \item a few more useful functions.
-\end{itemize}
-
-
-\subsection{Templates}
-\subsection{Image crop component}
+% 
+% \subsection{Templates}
+% \subsection{Image crop component}
