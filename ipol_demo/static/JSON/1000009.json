@@ -186,8 +186,7 @@
     {
         "type"      : "html_text",
         "visible"   : "!info.showcontours",
-        "contents"  : [ "<p>To see the estimated contours, please select a subimage with no more than {{info.showcontours_max_pixels}} pixels.</p>" ],
-        "contents_new"  : [ "'<p>To see the estimated contours, please select a subimage with no more than '+info.showcontours_max_pixels+' pixels.</p>'" ]
+        "contents"  : [ "'<p>To see the estimated contours, please select a subimage with no more than '+info.showcontours_max_pixels+' pixels.</p>'" ]
     },
     {
       "type"          : "gallery",
@@ -206,8 +205,7 @@
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Contour stencils difference"   : "diffdmcswl1_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}" ,
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
+      "style"       : "'height:'+info.displayheight*ZoomFactor+'px'"
     },
     {
         "type"      : "file_download",
@@ -227,26 +225,7 @@
     },
     {
         "type"    : "html_text",
-      "contents"      : [
-        "<table border='0' cellspacing='0' cellpadding='2px' style='background:none; margin:0; padding:0; margin-top:20px; margin-bottom:20px; border-top:1px solid black; border-bottom:1px solid black'>",
-          "<tr>",
-            "<td style='border-bottom:1px solid black'>Method</td>",
-            "<td style='border-bottom:1px solid black'>Mean squared error&nbsp;&nbsp;&nbsp;</td>",
-            "<td style='border-bottom:1px solid black'>CPU time</td>",
-          "</tr>",
-          "<tr>",
-            "<td>Bilinear demosaicking</td>",
-            "<td>{{info.mse_bilinear}}</td>",
-            "<td>{{info.cpu_bilinear}}</td>",
-          "</tr>",
-          "<tr>",
-            "<td>Contour stencils demosaicking&nbsp;&nbsp;&nbsp;</td>",
-            "<td>{{info.mse_dmcswl1}}</td>",
-            "<td>{{info.cpu_dmcswl1}}</td>",
-          "</tr>",
-       "</table>"
-      ],
-      "contents_new"      : [
+        "contents": [
         "'<table border=0 cellspacing=0 cellpadding=2px style=\"background:none; margin:0; padding:0; margin-top:20px; margin-bottom:20px; border-top:1px solid black; border-bottom:1px solid black\">",
           "<tr>",
             "<td style=\"border-bottom:1px solid black\">Method</td>",

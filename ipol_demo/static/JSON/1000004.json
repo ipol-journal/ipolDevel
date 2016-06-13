@@ -102,15 +102,13 @@
         "ACE"                       : "ace.png", 
         "Histogram Equalization"    : "he.png"
       },
-      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}",
-      "style_new"     : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
+      "style"         : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
     },
     {
       "type"          : "text_file", 
       "label"         : "<h3>Program output<h3>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'6em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

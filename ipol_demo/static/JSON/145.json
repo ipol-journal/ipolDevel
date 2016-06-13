@@ -106,8 +106,7 @@
         "info.zoomfactor<=1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse" : "diff.png",
         "info.zoomfactor>1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse"  : "diff_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
+      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
     },
     {
         "visible"   : "info.zoomfactor>1",

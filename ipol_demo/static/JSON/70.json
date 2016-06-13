@@ -152,8 +152,7 @@
         "Input"     : "input_0.sel.png", 
         "Output"    : "output.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     },
     {
       "type"          : "file_download", 
@@ -169,8 +168,7 @@
       "type"          : "text_file", 
       "label"         : "<b>Additional Information:</b> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
       "contents"      : "shell_cmds.txt",
-      "style"         : "{'width':'55em','height':'6em','background-color:#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

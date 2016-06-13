@@ -152,11 +152,11 @@
       "type"          : "gallery",
       "label"         : "Input image:",
       "contents"      : { "Input" : "scale_s0.png" },
-      "style_new"     : "'width:'+(600*ZoomFactor)+'px'"
+      "style"         : "'width:'+(600*ZoomFactor)+'px'"
     },
     {
       "type"          : "html_text", 
-      "contents_new"  : [
+      "contents"      : [
           "'Additional noise of variance = '+params.anoise+' + '+params.bnoise+'u.<br/>",
           "Note that here the image may be showed with a size different from ",
           "the original to help looking at the results.<br/>'"
@@ -167,7 +167,7 @@
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
       "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
-      "style_new"     : "'height:'+(600*ZoomFactor)+'px'" 
+      "style"         : "'height:'+(600*ZoomFactor)+'px'" 
     },
     {
       "repeat"        : "params.scales",

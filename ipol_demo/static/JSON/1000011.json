@@ -124,8 +124,7 @@
     {
         "type"      : "html_text",
         "visible"   : "info.zoomfactor>1",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ],
-        "contents_new"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
+        "contents"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
     },
     {
       "type"          : "gallery",
@@ -138,8 +137,7 @@
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Zhang-Wu difference"           : "diffdmzhangwu_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'"
+      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'"
     },
     {
         "type"      : "file_download",

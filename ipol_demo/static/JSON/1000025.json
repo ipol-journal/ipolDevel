@@ -109,22 +109,12 @@
                           "Panorama"                   : "panorama.png", 
                           "Reg. image 1"               : "registered_0.png",
                           "Reg. image 2"               : "registered_1.png",
-                          "inliers  {{info.inliers}}"  : "inliers.png",
-                          "outliers {{info.matches-info.inliers}}" : "outliers.png",
-                          "first image"                : "input_0.png",
-                          "second image"               : "input_1.png"
-                        },
-      "contents_new"      : {
-                          "Panorama"                   : "panorama.png", 
-                          "Reg. image 1"               : "registered_0.png",
-                          "Reg. image 2"               : "registered_1.png",
                           "'inliers  '+info.inliers"  : "inliers.png",
                           "'outliers '+(info.matches-info.inliers)" : "outliers.png",
                           "first image"                : "input_0.png",
                           "second image"               : "input_1.png"
                         },
-      "style"         : "{'width':imwidth*ZoomFactor+'px','height':imheight*ZoomFactor+'px'}",
-      "style_new"     : "'width:'+(imwidth*ZoomFactor)+'px;height:'+(imheight*ZoomFactor)+'px'" 
+      "style"         : "'width:'+(imwidth*ZoomFactor)+'px;height:'+(imheight*ZoomFactor)+'px'" 
     },
     {
       "type"          : "file_download", 
@@ -135,8 +125,7 @@
       "type"          : "text_file", 
       "label"         : "<b>Program Output:</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'50em','height':'20em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 }

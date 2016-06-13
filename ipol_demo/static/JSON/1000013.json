@@ -140,8 +140,7 @@
             "Original"           : "input_0.sel_zoom.png",
             "Difference"         : "output_2_zoom.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
+      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
     },
     {
         "type"      : "file_download",
@@ -171,8 +170,7 @@
       "type"          : "text_file", 
       "label"         : "<h3>Program output</h3>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

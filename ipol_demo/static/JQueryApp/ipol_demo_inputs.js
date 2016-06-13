@@ -366,20 +366,25 @@ var DrawInputs = function(ddl_json) {
         if (inputs.length>1) {
             var images = new Array(inputs.length);
             for(var idx=0;idx<inputs.length;idx++) {
-                images[idx] = new Image();
-                images[idx].src =  $('#localdata_preview_'+idx).attr("src");
-                //this.OnLoadImageFromMultiple(idx.toString(),images,images[idx]);
-
+                // input can be optional
+                if ($('#localdata_preview_'+idx).attr("src")) {
+                    images[idx] = new Image();
+                    images[idx].src =  $('#localdata_preview_'+idx).attr("src");
+                    //this.OnLoadImageFromMultiple(idx.toString(),images,images[idx]);
+                }
             }
 
             // Create Gallery object
             var inputs_info = {};
             for(var idx=0;idx<inputs.length;idx++) {
-                var label = inputs[idx].description;
-                // set object input to have information text below the image
-                var obj = {};
-                obj['<span id="inputinfo_'+idx+'">img info</span>'] = images[idx].src;
-                inputs_info[label]= obj;
+                // image source could be missing if it is an optional input
+                if (images[idx]) {
+                    var label = inputs[idx].description;
+                    // set object input to have information text below the image
+                    var obj = {};
+                    obj['<span id="inputinfo_'+idx+'">img info</span>'] = images[idx].src;
+                    inputs_info[label]= obj;
+                }
             }
             this.CreateGallery(inputs_info);
         } else {
@@ -506,8 +511,8 @@ var DrawInputs = function(ddl_json) {
                             
 //                             console.info("*** ratio = ", ratio);
                             
-                            if (ddl_json.general.hasOwnProperty('crop_maxsize_new')) {
-                                var maxdim = eval(ddl_json.general.crop_maxsize_new);
+                            if (ddl_json.general.hasOwnProperty('crop_maxsize')) {
+                                var maxdim = eval(ddl_json.general.crop_maxsize);
 //                                 console.info("maxdim = ",maxdim);
                             }
                             var resize=false;

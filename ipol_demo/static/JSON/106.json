@@ -66,8 +66,7 @@
                             "Hough" : "output_hough.png",
                             "Output": "output_corrected_image.png",
                             "Input" : "input_0.png"},
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'" 
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'" 
     },
     {
       "type"          : "file_download", 
@@ -82,8 +81,7 @@
       "type"          : "text_file", 
       "label"         : "<h3>Additional info</h3>",
       "contents"      : "output.txt",
-      "style"         : "{'width':sizeX+'px','height':'14em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ],
   "archive":

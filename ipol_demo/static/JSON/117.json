@@ -114,8 +114,7 @@
             "N iterations of parameter &sigma;":"lindeberg_iter.png",
             "difference":"lindeberg_diff.png" }
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}" ,
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'" 
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'" 
     },
     {
       "type"          : "file_download", 

@@ -94,14 +94,12 @@
             "!info.has_zoom?Original"          : "input_0.sel.png",
             "!info.has_zoom?Difference"        : "output_2.png"
         },
-      "style"         : "{'height':info.displayheight*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+info.displayheight*ZoomFactor+'px'" 
+      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
     },
     {
         "type"      : "html_text",
         "visible"   : "info.has_zoom",
-        "contents"  : [ "<p>For visualization, the images are displayed with {{info.zoomfactor}}&times; pixel duplication.</p>" ],
-        "contents_new"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
+        "contents"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
     },
     {
         "type"      : "file_download",
@@ -117,8 +115,7 @@
       "type"          : "text_file", 
       "label"         : "<p>RMSE and PSNR</p>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'4em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 }

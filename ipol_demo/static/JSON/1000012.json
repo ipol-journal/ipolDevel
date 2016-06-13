@@ -130,8 +130,7 @@
         "Bilinear difference"         : "diffbilinear_zoom.png",
         "Malvar-He-Cutler difference" : "diffmalvar_zoom.png"
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 

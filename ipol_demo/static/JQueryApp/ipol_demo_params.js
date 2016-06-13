@@ -411,7 +411,7 @@ function CreateParams(ddl_json) {
                 params_html += '<tr style="border:0px;">';
                 var pos=param_group[1][n]; 
                 var param = ddl_json.params[pos];
-                if (param.visible_new===undefined||eval(param.visible_new)) {
+                if (param.visible===undefined||eval(param.visible)) {
                     switch(param.type) {
                         case "selection_collapsed":
                             params_html += CreateSelectionCollapsed(param);
@@ -459,7 +459,7 @@ function CreateParams(ddl_json) {
                 var pos=param_group[1][n]; 
                 var param = ddl_json.params[pos];
                 
-                if (param.visible_new===undefined||eval(param.visible_new)) {
+                if (param.visible===undefined||eval(param.visible)) {
                     switch(param.type) {
                         case "selection_collapsed":
                             break;
@@ -518,9 +518,9 @@ function UpdateParams(ddl_params) {
     //--------------------------------------------------------------------------
     function UpdateReadOnly(param) {
         try {
-            $("input[name='"+param.id+"']").val(eval(param.value_expr_new.join('')));
+            $("input[name='"+param.id+"']").val(eval(param.value_expr.join('')));
         } catch(err) {
-            console.info("UpdateReadOnly ", param.value_expr_new.join(''), ':', param, " error:",err.message);
+            console.info("UpdateReadOnly ", param.value_expr.join(''), ':', param, " error:",err.message);
         }
     }
 
@@ -530,7 +530,7 @@ function UpdateParams(ddl_params) {
         for(var n=0;n<ddl_params.length;n++) {
             var param = ddl_params[n];
             
-            if (param.visible_new===undefined||eval(param.visible_new)) {
+            if (param.visible===undefined||eval(param.visible)) {
                 switch(param.type) {
                     case "selection_collapsed":
                         break;

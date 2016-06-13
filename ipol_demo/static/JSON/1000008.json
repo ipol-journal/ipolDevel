@@ -63,8 +63,7 @@
         "Original"  : "input_1.png",
         "Processed" : "output_1.png"
       },
-      "style"         : "{'height':Math.max(sizeY*ZoomFactor)+'px'}",
-      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor)+'px'"
+      "style"         : "'height:'+Math.max(sizeY*ZoomFactor)+'px'"
     }
   ]
 

@@ -45,8 +45,7 @@
             "</div>"
      ],
     "enable_crop"           : true,
-    "crop_maxsize"          : "{{Math.floor(800/demo.params[0].value)*display_ratio}}",
-    "crop_maxsize_new"      : "Math.floor(800/$('#range_scalefactor').val())",
+    "crop_maxsize"          : "Math.floor(800/$('#range_scalefactor').val())",
     "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
   }, 
   "build": [
@@ -81,8 +80,7 @@
       "id"             : "maxdim",
       "type"           : "readonly", 
       "label"          : "Maximal allowed input dimension",
-      "value_expr"     : [ "{{Math.floor(800/demo.params[0].value)}}" ],
-      "value_expr_new" : [ "Math.floor(800/$('#range_scalefactor').val())" ]
+      "value_expr"     : [ "Math.floor(800/$('#range_scalefactor').val())" ]
     },
     {
       "id"            : "psfsigma",
@@ -176,26 +174,16 @@
   "results": [
     {
       "type"          : "gallery",
-      "contents"      : { 
-        "Input"                                            : "input_0_zoom.png", 
-        "Coarsened"                                        : "coarsened_zoom.png",
-        "Fourier {{params['scalefactor']}}&times;"         : "fourier_zoom.png",
-        "Roussos-Maragos {{params['scalefactor']}}&times;" : "interpolated_zoom.png",
-        "Exact"                                            : "input_0.sel_zoom.png",
-        "Fourier Difference"                               : "fdifference_zoom.png",
-        "Roussos-Maragos Difference"                       : "difference_zoom.png"
-      },
-      "contents_new"      : { 
-        "params.run_mode=='Interpolate'?Input"                                            : "input_0_zoom.png", 
-        "params.run_mode=='Coarsen_interpolate_compare'?Coarsened"                                        : "coarsened_zoom.png",
+      "contents"          : { 
+        "params.run_mode=='Interpolate'?Input"                                     : "input_0_zoom.png", 
+        "params.run_mode=='Coarsen_interpolate_compare'?Coarsened"                 : "coarsened_zoom.png",
         "Fourier "         : "fourier_zoom.png",
         "Roussos-Maragos " : "interpolated_zoom.png",
-        "params.run_mode=='Coarsen_interpolate_compare'?Exact"                                            : "input_0.sel_zoom.png",
-        "params.run_mode=='Coarsen_interpolate_compare'?Fourier Difference"                               : "fdifference_zoom.png",
-        "params.run_mode=='Coarsen_interpolate_compare'?Roussos-Maragos Difference"                       : "difference_zoom.png"
+        "params.run_mode=='Coarsen_interpolate_compare'?Exact"                     : "input_0.sel_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Fourier Difference"        : "fdifference_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Roussos-Maragos Difference": "difference_zoom.png"
       },
-      "style"         : "{'height':Math.max(200,sizeY*ZoomFactor)+'px'}",
-      "style_new"         : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
+      "style"             : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
     },
     {
       "type"          : "file_download", 
@@ -213,8 +201,7 @@
       "type"          : "text_file", 
       "label"         : "<b>Output</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'40em','height':'16em','background-color':'#eee'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ]
 

@@ -54,8 +54,7 @@
                             "Denoised"   : "output_1.png",
                             "Original"   : "input_0.sel.png",
                             "Difference" : "output_2.png"},
-      "style"         : "{'height':Math.max(200,sizeY)*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+Math.max(200,sizeY)*ZoomFactor+'px'"
+      "style"         : "'height:'+Math.max(200,sizeY)*ZoomFactor+'px'"
     },
     {
       "type"          : "file_download", 
@@ -69,8 +68,7 @@
       "type"          : "text_file", 
       "label"         : "<b>Additional info: RMSE and PSNR</b><br/>",
       "contents"      : "stdout.txt",
-      "style"         : "{'width':'20em','height':'4em'}",
-      "style_new"     : "''"
+      "style"         : "''"
     }
   ],
   "archive":

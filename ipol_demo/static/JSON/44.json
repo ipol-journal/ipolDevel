@@ -114,23 +114,6 @@
     {
       "type"          : "html_text", 
       "contents"      : [ 
-        "<table style='margin-left:0px;margin-right:auto'>",
-        "<tr>",
-          "<td>",
-            "<label> Color-coding of vectors: </label>",
-            "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-              "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">", 
-              "{{scheme}}",
-              "</option>",
-            "</select><br/>",
-          "</td>",
-          "<td>",
-            "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-          "</td>",
-        "</tr>",
-        "<table>"
-      ],
-      "contents_new"      : [ 
         "'<table style=\"margin-left:0px;margin-right:auto;position:fixed;border:1px solid lightgray;padding:10px;top:0px;right:0px;z-index:102;\">",
         "<tr>",
           "<td>",
@@ -170,20 +153,7 @@
     },
     {
       "type"          : "gallery",
-      "contents"      : {   "Optical flow"       : "stuff_clg.{{display.param1}}.1.png", 
-                            "Ground truth"        : "t.{{display.param1}}.1.png" ,
-                            "|flow|"              : "stuff_clg_abs.png" ,
-                            "I<sub>0</sub>"       : "input_0.png" ,
-                            "I<sub>1</sub>"       : "input_1.png" ,
-                            "div(flow)"           : "stuff_clg_div.png",
-                            "grad(flow)"          : "stuff_clg_grad.png",
-                            "Warped I<sub>1</sub>": "stuff_clg_inv.png",
-                            "Warped difference"   : "stuff_clg_aminv.png" ,
-                            "Warped average"      : "stuff_clg_apinv.png" ,
-                            "Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
-                            "Angular error"       : "stuff_clg_aerr.png"
-                        },
-      "contents_new"      : 
+      "contents"      : 
                         {   "Optical flow"                  : "stuff_clg.ipoln.1.png", 
                             "meta.hastruth?Ground truth"    : "t.ipoln.1.png",
                             "|flow|"                        : "stuff_clg_abs.png" ,
@@ -197,33 +167,11 @@
                             "meta.hastruth?Endpoint error"  : "stuff_clg_fmt.ipoln.1.png",
                             "meta.hastruth?Angular error"   : "stuff_clg_aerr.png"
                         },
-      "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}",
-      "style_new"     : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
+      "style"         : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
     },
     {
       "type"          : "html_text", 
-      "contents"      : [ 
-          "<h2>Summary</h2>",
-          "<div>",
-          "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-          "<tr bgcolor='#cccccc'>",
-            "<td ></td>",
-            "<th >Running time</th>",
-            "<th >Average Backprojection Error</th>",
-            "<th >Average Endpoint Error</th>",
-            "<th >Average Angular Error</th>",
-          "</tr>",
-          "<tr>",
-            "<th bgcolor='#cccccc'>clg</th>",
-            "<td align='center'>{{info.run_time | number:2 }} s</td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-            "<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-          "</tr>",
-          "</table>",
-          "</div>"
-        ],
-      "contents_new"      : [ 
+      "contents"          : [ 
           "'<b>Summary</b><br/>",
           "<div>",
           "<table border=1 cellpadding=6 cellspacing=0 style=\"margin-left:0px;margin-right:auto\">",

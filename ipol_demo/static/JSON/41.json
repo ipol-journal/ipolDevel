@@ -83,8 +83,7 @@
           "Enhanced dark (I)"                   : { "Image":"output_darkI.png",   "Histogram:R,G,B,I":"output_darkI_hist.png" },
           "Enhanced global (I)"                 : { "Image":"output_powerI.png",  "Histogram:R,G,B,I":"output_powerI_hist.png" }
       },
-      "style"         : "{'height':sizeY*ZoomFactor+'px'}",
-      "style_new"     : "'height:'+sizeY*ZoomFactor+'px'"
+      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
     }
   ]
 
