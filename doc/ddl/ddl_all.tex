@@ -214,7 +214,8 @@ required around the values. The default value is stored with the 'values' field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -242,7 +243,8 @@ will also to change each digit.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range\_scientific       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -267,7 +269,8 @@ string value. The default value is stored in a separate field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -296,7 +299,8 @@ options using radio buttons.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type     & selection\_radio    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id       & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -324,7 +328,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
@@ -340,7 +345,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & readonly    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & description of the parameter & yes \\ \hline
  id         & parameter name in lowercase letters  & yes \\ \hline
@@ -358,7 +364,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -377,7 +384,8 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkboxes   & yes \\ \hline
- visible  & Javascript/JQuery boolean expression that can hide the parameter if
+ visible  & Javascript/JQuery boolean expression evaluted in the context defined 
+              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -875,7 +883,15 @@ algorithm.
 
 \section{Javascript/JQuery code}
 
-\subsection{Evaluation of expressions} \label{sec:JavascriptEval}
+\subsection{Evaluation of expressions in 'params' section} \label{sec:JavascriptEvalParams}
+
+Javascript expressions used in the params section are evaluated in the 
+following context of variables:
+\begin{itemize}
+  \item params object: contains the name and values of each parameter.
+\end{itemize}
+
+\subsection{Evaluation of expressions in 'results' section} \label{sec:JavascriptEval}
 
 Javascript expressions used in the results section are evaluated in the 
 following context of variables:
