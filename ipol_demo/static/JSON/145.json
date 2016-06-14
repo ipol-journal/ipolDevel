@@ -33,7 +33,7 @@
         "default_value" : true
     },
     {
-        "visible"       : "!demo.params[0].value",
+        "visible"       : "!params.guessbeta",
         "id"            : "beta",
         "type"          : "range", 
         "label"         : "&beta;",

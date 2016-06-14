@@ -143,7 +143,7 @@ function CreateSelectionCollapsed(param) {
     var html = "";
     html += AddLabel(param);
     html += '<td style="border:0px;" colspan="2">';
-    html += '<select name="'+param.id+'">';
+    html += '<select name="'+param.id+'" id="param_'+param.id+'" >';
     jQuery.each( param.values, function( key, value ) {
         html += '<option value="'+value+'"';
         if (value===param.default_value) {
@@ -160,6 +160,13 @@ function CreateSelectionCollapsed(param) {
 }
     
 //------------------------------------------------------------------------------
+function CreateSelectionCollapsedEvents(param, ddl_json) {
+    $('#param_'+param.id).on('change', function(){
+        UpdateParams(ddl_json.params);
+    }.bind(this));
+}
+
+//------------------------------------------------------------------------------
 function CreateSelectionRadio(param) {
     var html = "";
     html += AddLabel(param);
@@ -170,6 +177,7 @@ function CreateSelectionRadio(param) {
         html += '<input type="radio"';
         html += ' name="'+param.id+'"';
         html += ' value="'+value+'"';
+//        html += ' id="param_'+param.id+'"';
         if (value===param.default_value) {
             html += ' checked';
         }
@@ -183,6 +191,13 @@ function CreateSelectionRadio(param) {
     html += '</td>';
     html += AddComments(param);
     return html;
+}
+
+//------------------------------------------------------------------------------
+function CreateSelectionRadioEvents(param, ddl_json) {
+    $('input[name='+param.id+']').on('change', function(){
+        UpdateParams(ddl_json.params);
+    }.bind(this));
 }
 
 //------------------------------------------------------------------------------
@@ -401,7 +416,7 @@ function CreateCheckBox(param) {
     html +=
         '<td style="border:0px;"  colspan="2" align="left"> ' +
         '<input  type="checkbox"' +
-            'name="'+param.id+'"';            
+            'name="'+param.id+'"' + ' id="param_'+param.id+'"';            
 //         '<input  type="text" '+
 //             'name="'+param.id+'_checked" ' +
 //             'value="{{demo.params[pos].value==true}}" hidden />' +
@@ -413,6 +428,13 @@ function CreateCheckBox(param) {
     return html;
     
 }    
+
+//------------------------------------------------------------------------------
+function CreateCheckBoxEvents(param,ddl_json) {
+    $('#param_'+param.id).on('change', function(){
+        UpdateParams(ddl_json.params);
+    }.bind(this));
+}
 
 //------------------------------------------------------------------------------
 function CreateCheckBoxes(param) {
@@ -468,36 +490,34 @@ function CreateParams(ddl_json) {
             
             params_html += '<table  style="float:left;border:1px;">';
             for(var n=0;n<param_group[1].length;n++) {
-                params_html += '<tr style="border:0px;">';
                 var pos=param_group[1][n]; 
                 var param = ddl_json.params[pos];
-                if (param.visible===undefined||eval(param.visible)) {
-                    switch(param.type) {
-                        case "selection_collapsed":
-                            params_html += CreateSelectionCollapsed(param);
-                            break;
-                        case "selection_radio":
-                            params_html += CreateSelectionRadio(param);
-                            break;
-                        case "range":
-                            params_html += CreateSelectionRangeJQuery(param);
-                            break;
-                        case "range_scientific":
-                            params_html += CreateSelectionRangeScientific(param);
-                            break;
-                        case "readonly":
-                            params_html += CreateReadOnly(param);
-                            break;
-                        case "label":
-                            params_html += CreateLabel(param);
-                            break;
-                        case "checkbox":
-                            params_html += CreateCheckBox(param);
-                            break;
-                        case "checkboxes":
-                            params_html += CreateCheckBoxes(param);
-                            break;
-                    }
+                params_html += '<tr style="border:0px;" id="tr_param_'+pos+'" >';
+                switch(param.type) {
+                    case "selection_collapsed":
+                        params_html += CreateSelectionCollapsed(param);
+                        break;
+                    case "selection_radio":
+                        params_html += CreateSelectionRadio(param);
+                        break;
+                    case "range":
+                        params_html += CreateSelectionRangeJQuery(param);
+                        break;
+                    case "range_scientific":
+                        params_html += CreateSelectionRangeScientific(param);
+                        break;
+                    case "readonly":
+                        params_html += CreateReadOnly(param);
+                        break;
+                    case "label":
+                        params_html += CreateLabel(param);
+                        break;
+                    case "checkbox":
+                        params_html += CreateCheckBox(param);
+                        break;
+                    case "checkboxes":
+                        params_html += CreateCheckBoxes(param);
+                        break;
                 }
                 params_html += '</tr>';
             }
@@ -518,29 +538,29 @@ function CreateParams(ddl_json) {
             for(var n=0;n<param_group[1].length;n++) {
                 var pos=param_group[1][n]; 
                 var param = ddl_json.params[pos];
-                
-                if (param.visible===undefined||eval(param.visible)) {
-                    switch(param.type) {
-                        case "selection_collapsed":
-                            break;
-                        case "selection_radio":
-                            break;
-                        case "range":
-                            CreateSelectionRangeJQueryEvents(param,ddl_json);
-                            break;
-                        case "range_scientific":
-                            CreateSelectionRangeScientificEvents(param,ddl_json);
-                            break;
-                        case "readonly":
-                            break;
-                        case "label":
-                            break;
-                        case "checkbox":
-                            break;
-                        case "checkboxes":
-                            break;
-                    } // end switch
-                } // end if param.visible
+                switch(param.type) {
+                    case "selection_collapsed":
+                        CreateSelectionCollapsedEvents(param,ddl_json);
+                        break;
+                    case "selection_radio":
+                        CreateSelectionRadioEvents(param,ddl_json);
+                        break;
+                    case "range":
+                        CreateSelectionRangeJQueryEvents(param,ddl_json);
+                        break;
+                    case "range_scientific":
+                        CreateSelectionRangeScientificEvents(param,ddl_json);
+                        break;
+                    case "readonly":
+                        break;
+                    case "label":
+                        break;
+                    case "checkbox":
+                        CreateCheckBoxEvents(param,ddl_json);
+                        break;
+                    case "checkboxes":
+                        break;
+                } // end switch
             } // end for param_group
         } // end for params_layout
     }
@@ -584,13 +604,16 @@ function UpdateParams(ddl_params) {
         }
     }
 
-
+    // get parameter values for eval()
+    var params = GetParamValues(ddl_params);
+    
     // add events
     if ((ddl_params)&&(ddl_params.length>0)) {
         for(var n=0;n<ddl_params.length;n++) {
             var param = ddl_params[n];
             
             if (param.visible===undefined||eval(param.visible)) {
+                $("#tr_param_"+n).show();
                 switch(param.type) {
                     case "selection_collapsed":
                         break;
@@ -610,7 +633,9 @@ function UpdateParams(ddl_params) {
                     case "checkboxes":
                         break;
                 } // end switch
-            } // end if param.visible
+            } else { //param.visible
+                $("#tr_param_"+n).hide();
+            }
         }
     }
 }
@@ -659,6 +684,7 @@ function GetParamValue(params_ddl,index) {
     return undefined;
 }
     
+//------------------------------------------------------------------------------
 function GetParamValues(params_ddl) {
     // create parameters
     var params={};

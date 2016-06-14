@@ -46,7 +46,7 @@
         "default_value" : false
     },
     {
-        "visible"       : "!demo.params[2].value",
+        "visible"       : "!params.guesslambda",
         "id*comment"    : "lambda is a python keyword so avoid using it",
         "id"            : "_lambda",
         "type"          : "range", 

@@ -45,7 +45,7 @@
       "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Gaussian, standard deviation",
       "type"         : "range",
       "values"       : { "min":20, "max":100, "step":1, "default": 25 },
-      "visible"      : "demo.params[1].value == 'G'"
+      "visible"      : "params.omega==='G'"
     },
     {
       "id"            : "method",
@@ -61,14 +61,14 @@
       "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Level interpolation, # levels:",
       "type"         : "range",
       "values"       : { "min":4, "max":32, "step":1, "default": 8 },
-      "visible"      : "demo.params[3].value == 'interp'"
+      "visible"      : "params.method==='interp'"
     },
     {
       "id"           : "degree",
       "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Polynomial <i>s<sub>&alpha;</sub></i>, degree:",
       "type"         : "range",
       "values"       : { "min":3, "max":11, "step":2, "default": 9 },
-      "visible"      : "demo.params[3].value == 'poly'"
+      "visible"      : "params.method==='poly'"
     }
   ]
   ,

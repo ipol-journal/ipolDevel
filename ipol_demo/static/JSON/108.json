@@ -22,6 +22,7 @@
       "label"         : "Velocity model",
       "values"        : {   "Gaussian (truncated at 4*std-dev)":"gaussian", 
                             "Uniform over [-s,s]":"uniform" },
+      "vertical"      : true,
       "default_value" : "gaussian"
     },
     {
@@ -29,14 +30,14 @@
       "label"         : "Choose the motion model and code parameters :"
     },
     {
-      "visible"       : "demo.params[0].value == 'gaussian'",
+      "visible"       : "params.motion_model == 'gaussian'",
       "id"            : "s1",
       "type"          : "range", 
       "label"         : "Standard deviation",
       "values"        : { "min":0.25, "max":10.0, "step":0.05, "default":0.25 }
     },
     {
-      "visible"       : "demo.params[0].value == 'uniform'",
+      "visible"       : "params.motion_model == 'uniform'",
       "id"            : "s2",
       "type"          : "range", 
       "label"         : "Range s:",
