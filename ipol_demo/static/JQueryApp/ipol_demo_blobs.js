@@ -47,7 +47,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
         this.InfoMessage("demoblobs.blobs.length=",this.demoblobs.blobs.length);
         
         var str = JSON.stringify(this.demoblobs, undefined, 4);
-        $("#tabs-blobs pre").html(syntaxHighlight(str));
+//         $("#tabs-blobs pre").html(syntaxHighlight(str));
 
         this.PreprocessDemo();
         this.DrawDemoBlobs();
