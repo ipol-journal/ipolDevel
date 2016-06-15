@@ -842,7 +842,8 @@ var DrawInputs = function(ddl_json) {
                     // change url hash
                     History.pushState(
                         new_state,
-                        "IPOLDemos "+this.ddl_json.demo_id+" results",
+                        "IPOL Journal - "+this.ddl_json.general.demo_title,
+                        //"IPOLDemos "+this.ddl_json.demo_id+" results",
                         "?id="+this.ddl_json.demo_id+"&res="+this.json2uri(run_demo_res));
                 } catch(err) {
                     console.error("error:", err.message);
