@@ -191,7 +191,7 @@ var Inpainting = function() {
         if (color[0]=="#") {
           var c = hexToRgb(color);
           color = 'rgba('+c.r+','+c.g+','+c.b+','+sketch.opacity+')';
-          console.info("color=",color);
+          //console.info("color=",color);
         }
             
         ctx.strokeStyle="#000";
