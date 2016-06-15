@@ -220,35 +220,6 @@ function CreateSelectionRange(param) {
     html += ' name="'+param.id+'" '+limits + ' >';
     html += '</td>';
     html += '<td style="border:0px;width:20em">';
-    html += '<input  style="width:100%"  type="range"';
-    html += ' id="'+range_id+'"';
-    html += ' name="'+param.id+'" '+limits + ' >';
-    html += '</td>';
-    html += AddComments(param);
-
-    return html;
-}
-
-//------------------------------------------------------------------------------
-function CreateSelectionRangeJQuery(param) {
-    var html = "";
-    html += AddLabel(param);
-
-    var limits= '';
-    limits += ' min  ="' + param.values.min     + '"'; 
-    limits += ' max  ="' + param.values.max     + '"';
-    limits += ' step ="' + param.values.step    + '"';
-    limits += ' value="' + param.values.default + '"';
-
-    var number_id = 'number_'+param.id;
-    var range_id  = 'range_' +param.id;
-    
-    html += '<td style="border:0px;width:5em">';
-    html += '<input  style="width:100%"  type="number"';
-    html += ' id="'+number_id+'"';
-    html += ' name="'+param.id+'" '+limits + ' >';
-    html += '</td>';
-    html += '<td style="border:0px;width:20em">';
     
     html += '<div  style="width:100%"';
     html += ' id="'+range_id+'"';
@@ -308,11 +279,15 @@ function CreateSelectionRangeScientific(param) {
          + ' value="'+sci2str(param.value_slider,param.values.digits)+'"'
          + ' id="'+number_id+'"'
          + ' name="'+param.id+'" '+limits + ' readonly >'
-         + '</td>'
-         + '<td style="border:0px;width:20em">'
-         + '<input  style="width:100%"  type="range"'
-         + ' id="'+range_id+'"'
-         + ' name="'+param.id+'" '+limits + ' >'
+         + '</td>';
+    
+    html += '<td style="border:0px;width:20em">'
+         +  '<div  style="width:100%"'
+         +  ' id="'+range_id+'"'
+         +  ' div>'
+//          + '<input  style="width:100%"  type="range"'
+//          + ' id="'+range_id+'"'
+//          + ' name="'+param.id+'" '+limits + ' >'
          + '</td>';
     html += AddComments(param);
 
@@ -321,23 +296,6 @@ function CreateSelectionRangeScientific(param) {
 
 //------------------------------------------------------------------------------
 function CreateSelectionRangeEvents(param, ddl_json) {
-
-    var number_id = 'number_'+param.id;
-    var range_id  = 'range_' +param.id;
-    $('#'+range_id).on('input', function(){
-        $('#'+number_id).val($('#'+range_id).val());
-        UpdateParams(ddl_json.params);
-    });
-
-    $('#'+number_id).on('input', function(){
-        $('#'+range_id).val($('#'+number_id).val());
-        UpdateParams(ddl_json.params);
-    });
-    
-}
-
-//------------------------------------------------------------------------------
-function CreateSelectionRangeJQueryEvents(param, ddl_json) {
 
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
@@ -370,13 +328,37 @@ function CreateSelectionRangeScientificEvents(param,ddl_json) {
     console.info("CreateSelectionRangeScientificEvents");
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
-    $('#'+range_id).on('input', function(){
-        var value_slider = $('#'+range_id).val();
-        $('#'+number_id).val(
-                sci2str(value_slider,param.values.digits)
-            );
-        UpdateParams(ddl_json.params);
-    }.bind(this));
+    
+    $('#'+range_id).slider(
+    {
+        value:num2sci(param.values.default, param.values.digits),
+        min:  num2sci(param.values.min,     param.values.digits),
+        max:  num2sci(param.values.max,     param.values.digits),
+        step: 1,
+        slide: function( event, ui ) {
+            var value_slider = $('#'+range_id).slider('value');
+            $('#'+number_id).val(
+                    sci2str(value_slider,param.values.digits)
+                );
+            UpdateParams(ddl_json.params);
+        },
+        change: function( event, ui ) {
+            var value_slider = $('#'+range_id).slider('value');
+            $('#'+number_id).val(
+                    sci2str(value_slider,param.values.digits)
+                );
+            UpdateParams(ddl_json.params);
+        }
+    });
+
+    
+//     $('#'+range_id).on('input', function(){
+//         var value_slider = $('#'+range_id).val();
+//         $('#'+number_id).val(
+//                 sci2str(value_slider,param.values.digits)
+//             );
+//         UpdateParams(ddl_json.params);
+//     }.bind(this));
 
 }
 
@@ -501,7 +483,7 @@ function CreateParams(ddl_json) {
                         params_html += CreateSelectionRadio(param);
                         break;
                     case "range":
-                        params_html += CreateSelectionRangeJQuery(param);
+                        params_html += CreateSelectionRange(param);
                         break;
                     case "range_scientific":
                         params_html += CreateSelectionRangeScientific(param);
@@ -546,7 +528,7 @@ function CreateParams(ddl_json) {
                         CreateSelectionRadioEvents(param,ddl_json);
                         break;
                     case "range":
-                        CreateSelectionRangeJQueryEvents(param,ddl_json);
+                        CreateSelectionRangeEvents(param,ddl_json);
                         break;
                     case "range_scientific":
                         CreateSelectionRangeScientificEvents(param,ddl_json);
@@ -744,8 +726,9 @@ function ResetParamValues() {
                 case "range_scientific":
                     param.value = param.values.default;
                     param.value_slider = num2sci(param.value,param.values.digits);
-                    $("input[name="+name+"]").val(param.value_slider);
-                    $("input[name="+name+"]").trigger("input");
+                    var range_id  = 'range_' +param.id;
+                    $('#'+range_id).slider('value',param.value_slider);
+                    $('#'+range_id).trigger("input");
                     break;
                 case "checkbox":
                     $("input[name="+name+"]").prop('checked',param.default_value);
@@ -798,8 +781,9 @@ function SetParamValues(param_values) {
                     case "range_scientific":
                         param.value = pval;
                         param.value_slider = num2sci(param.value,param.values.digits);
-                        $("input[name="+name+"]").val(param.value_slider);
-                        $("input[name="+name+"]").trigger("input");
+                        var range_id  = 'range_' +param.id;
+                        $('#'+range_id).slider('value',param.value_slider);
+                        $('#'+range_id).trigger("input");
                         break;
                     case "checkbox":
                         $("input[name="+name+"]").prop('checked',pval);
