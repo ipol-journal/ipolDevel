@@ -237,9 +237,9 @@ function CreateSelectionRange(param) {
 function num2sci(value, numDigits)
 {
     var exponent = Math.floor(Math.log(value) / Math.log(10));
-    console.info("exponent = ", exponent);
+    //console.info("exponent = ", exponent);
     var mantissa = value / Math.pow(10, exponent - numDigits);
-    console.info("mantissa = ", mantissa);
+    //console.info("mantissa = ", mantissa);
     return Math.round(mantissa + (9*exponent - 1)*Math.pow(10, numDigits));
 }
 
@@ -251,7 +251,7 @@ function sci2str(sci, numDigits)
     var exponent = Math.floor(sci / (9*Math.pow(10, numDigits)));
     var mantissa = sci/Math.pow(10, numDigits) - (9*exponent - 1);
     var value = Math.pow(10, exponent) * mantissa;
-    console.info("sci2str ", exponent, mantissa, value, value.toExponential(numDigits))
+    //console.info("sci2str ", exponent, mantissa, value, value.toExponential(numDigits))
     return value.toExponential(numDigits);
 }
 
@@ -261,7 +261,7 @@ function CreateSelectionRangeScientific(param) {
     html += AddLabel(param);
 
     var limits= '';
-    console.info("num2sci ", param.values.min, param.values.digits, num2sci(param.values.min,param.values.digits))
+    //console.info("num2sci ", param.values.min, param.values.digits, num2sci(param.values.min,param.values.digits))
     limits += ' min  ="' + num2sci(param.values.min,param.values.digits) + '"'; 
     limits += ' max  ="' + num2sci(param.values.max,param.values.digits) + '"';
     limits += ' step =1"';
@@ -325,7 +325,7 @@ function CreateSelectionRangeEvents(param, ddl_json) {
 
 //------------------------------------------------------------------------------
 function CreateSelectionRangeScientificEvents(param,ddl_json) {
-    console.info("CreateSelectionRangeScientificEvents");
+    //console.info("CreateSelectionRangeScientificEvents");
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
     
@@ -582,7 +582,7 @@ function UpdateParams(ddl_params) {
         try {
             $("input[name='"+param.id+"']").val(eval(param.value_expr.join('')));
         } catch(err) {
-            console.info("UpdateReadOnly ", param.value_expr.join(''), ':', param, " error:",err.message);
+            //console.info("UpdateReadOnly ", param.value_expr.join(''), ':', param, " error:",err.message);
         }
     }
 
@@ -660,7 +660,7 @@ function GetParamValue(params_ddl,index) {
                     }
                 }
             }
-            console.info("values",values);
+            //console.info("values",values);
             return values;
     }
     return undefined;
@@ -689,7 +689,7 @@ function GetParamValues(params_ddl) {
                     params[name] = value;
                 }
             }
-            console.info("param ",p," ",name, ":", value);
+            //console.info("param ",p," ",name, ":", value);
         }
     }
     return params;
@@ -792,9 +792,9 @@ function SetParamValues(param_values) {
                         for (var n=0;n< param.values.length; n++) {
                             var group = param.values[n];
                             for (var id in group) {
-                                console.info("checking ",param.id+'_'+id+" :",
-                                    $.inArray(param.id+'_'+id,Object.keys(param_values))
-                                );
+                                //console.info("checking ",param.id+'_'+id+" :",
+                                //    $.inArray(param.id+'_'+id,Object.keys(param_values))
+                                //);
                                 $("input[name="+param.id+'_'+id+"]").prop(
                                     'checked',
                                     ($.inArray(param.id+'_'+id,Object.keys(param_values))>-1)&&
