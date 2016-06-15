@@ -99,8 +99,7 @@ var Inpainting = function() {
         var zoom_html =
                 '<div>Zoom <input  style="width:3em"  type="number" id="zoom_number"'+
                     limits + ' >'+
-                '<input  style="width:8em" type="range" id="zoom_range"'+
-                    limits + ' >'+
+                '<div  style="width:8em;display:inline-block;" id="zoom_range" ></div>'+
                     '</div>';
                 
         // pensize limits
@@ -112,8 +111,10 @@ var Inpainting = function() {
         var pensize_html =
                 '<div>Size <input  style="width:3em"  type="number" id="pensize_number"'+
                     limits + ' >'+
-                '<input  style="width:8em" type="range" id="pensize_range"'+
-                    limits + ' >'+
+                '<div  style="width:8em;display:inline-block;" id="pensize_range" ></div>'+
+                    '</div>'+
+//                 '<input  style="width:8em" type="range" id="pensize_range"'+
+//                     limits + ' >'+
                 "<canvas id=pensize_display style='margin:2px;border:1px solid lightgrey;display:inline-block;'"+
                         " width=50px height=50px ></canvas> "+
                     '</div>';
@@ -127,8 +128,10 @@ var Inpainting = function() {
         var opacity_html =
                 '<div>Opacity <input  style="width:3em"  type="number" id="opacity_number"'+
                     limits + ' >'+
-                '<input  style="width:10em" type="range" id="opacity_range"'+
-                    limits + ' ></div>';
+                '<div  style="width:8em;display:inline-block;" id="opacity_range" ></div>'+
+//                 '<input  style="width:10em" type="range" id="opacity_range"'+
+//                     limits + ' >'+
+                    '</div>';
                     
         html += '<table id="inpaint_table" ">'+
                     '<tr>'+
@@ -282,7 +285,8 @@ var Inpainting = function() {
         }
 
         // update sketch settings
-        $('#pensize_range') .trigger('input');
+        $('#pensize_range') .trigger('change');
+        $('#opacity_number').trigger('input');
         $("#set_color_5")   .trigger('click');  // set blue pen
         $("#inpaint_marker").trigger('click');  // set marker
         
@@ -294,61 +298,103 @@ var Inpainting = function() {
         var update_pen = this.UpdatePenDisplay.bind(this);
         
         // add inpainting events
-        $('#zoom_range').on('input', function(){
-            var size= $('#zoom_range').val();
-            $('#zoom_number').val(size);
+        $('#zoom_range').slider(
+        {
+            value:1,
+            min:  0.1,
+            max:  5,
+            step: 0.1,
+            slide: function( event, ui ) {
+                var size = $('#zoom_range').slider('value');
+                $('#zoom_number').val(size);
+            },
+            change: function( event, ui ) {
+                var size = $('#zoom_range').slider('value');
+                var sketch = $("#colors_sketch").data().sketch;
+                $('#zoom_number').val(size);
+                $("#colors_sketch").data().sketch.resize(size);
+                $("#colors_sketch").data().sketch.redraw();
+                update_pen();
+            }
         });
         
-        $('#zoom_range').on('change', function(){
-            var sketch = $("#colors_sketch").data().sketch;
-            var size= $('#zoom_range').val();
-            $('#zoom_number').val(size);
-            $("#colors_sketch").data().sketch.resize(size);
-            $("#colors_sketch").data().sketch.redraw();
-            update_pen();
-        });
-
         $('#zoom_number').on('input', function(){
             var size= $('#zoom_number').val();
-            $('#zoom_range').val(size);
+            $('#zoom_range').slider('value',size);
         });
         
         $('#zoom_number').on('change', function(){
             var sketch = $("#colors_sketch").data().sketch;
             var size= $('#zoom_number').val();
-            $('#zoom_range').val(size);
+            $('#zoom_range').slider('value',size);
             $("#colors_sketch").data().sketch.resize(size);
             $("#colors_sketch").data().sketch.redraw();
             update_pen();
         });
 
-        $('#pensize_range').on('input', function(){
-            var sketch = $("#colors_sketch").data().sketch;
-            var size= $('#pensize_range').val();
-            $("#colors_sketch").data().sketch.size=size;
-            $('#pensize_number').val(size);
-            update_pen();
+        
+        $('#pensize_range').slider(
+        {
+            value:10,
+            min:  1,
+            max:  50,
+            step: 1,
+            slide: function( event, ui ) {
+                var sketch = $("#colors_sketch").data().sketch;
+                var size= $('#pensize_range').slider('value');
+                $("#colors_sketch").data().sketch.size=size;
+                $('#pensize_number').val(size);
+                update_pen();
+            },
+            change: function( event, ui ) {
+                var sketch = $("#colors_sketch").data().sketch;
+                var size= $('#pensize_range').slider('value');
+                $("#colors_sketch").data().sketch.size=size;
+                $('#pensize_number').val(size);
+                update_pen();
+            }
         });
+        
+//         $('#pensize_range').on('input', function(){
+//             var sketch = $("#colors_sketch").data().sketch;
+//             var size= $('#pensize_range').val();
+//             $("#colors_sketch").data().sketch.size=size;
+//             $('#pensize_number').val(size);
+//             update_pen();
+//         });
 
         $('#pensize_number').on('input', function(){
             var sketch = $("#colors_sketch").data().sketch;
             var size= $('#pensize_number').val();
             sketch.size=size;
-            $('#pensize_range').val(size);
+            $('#pensize_range').slider('value',size);
             update_pen();
         });
         
         // add inpainting events
-        $('#opacity_range').on('input', function(){
-            $("#colors_sketch").data().sketch.opacity=$('#opacity_range').val();
-            $('#opacity_number').val($('#opacity_range').val());
-            update_pen();
-            $("#colors_sketch").data().sketch.redraw();
+        $('#opacity_range').slider(
+        {
+            value:0.8,
+            min:  0.01,
+            max:  1,
+            step: 0.01,
+            slide: function( event, ui ) {
+                $("#colors_sketch").data().sketch.opacity=$('#opacity_range').slider('value');
+                $('#opacity_number').val($('#opacity_range').slider('value'));
+                update_pen();
+                $("#colors_sketch").data().sketch.redraw();
+            },
+            change: function( event, ui ) {
+                $("#colors_sketch").data().sketch.opacity=$('#opacity_range').slider('value');
+                $('#opacity_number').val($('#opacity_range').slider('value'));
+                update_pen();
+                $("#colors_sketch").data().sketch.redraw();
+            }
         });
-
+        
         $('#opacity_number').on('input', function(){
             $("#colors_sketch").data().sketch.opacity=$('#opacity_number').val();
-            $('#opacity_range').val($('#opacity_number').val());
+            $('#opacity_range').slider('value',$('#opacity_number').val());
             update_pen();
             $("#colors_sketch").data().sketch.redraw();
         });
