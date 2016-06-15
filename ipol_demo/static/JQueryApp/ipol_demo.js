@@ -83,7 +83,7 @@ function OnDemoList(demolist)
     var dl = demolist;
     if (dl.status == "OK") {
         var str = JSON.stringify(dl.demo_list, undefined, 4);
-        $("#tabs-demos pre").html(syntaxHighlight(str))
+//         $("#tabs-demos pre").html(syntaxHighlight(str))
         this.InfoMessage("demo list is ",dl);
     }
 
@@ -275,7 +275,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
             'demo_id=' + internal_demoid + '&returnjsons=True',
             function(demo_ddl) {
                 //console.info("read demo ddl status = ", demo_ddl.status);
-
+                
                 // empty inputs
                 $("#DrawInputs").empty();
                 $("#DrawInputs").removeData();
@@ -292,6 +292,10 @@ function InputController(demo_id,internal_demoid,origin,func) {
                     console.error(" --- failed to read DDL");
                 }
                 
+                // update document title
+                //$(document).attr("title","IPOL Journal &middot; "+ddl_json.general.demo_title);
+                $('title').html("IPOL Journal &middot; "+ddl_json.general.demo_title);
+
                 // for convenience, add demo_id field to the json DDL 
                 ddl_json['demo_id'] = demo_id
                 PreprocessDemo(ddl_json);
@@ -370,7 +374,10 @@ function InputController(demo_id,internal_demoid,origin,func) {
                             // !from_url mean the event is from changing the demo id
                             try {
                                 // change url hash
-                                History.pushState({demo_id:demo_id,state:1}, "IPOLDemos "+demo_id+" inputs", "?id="+demo_id+"&state=1");
+                                History.pushState({demo_id:demo_id,state:1}, 
+                                "IPOL Journal - "+ddl_json.general.demo_title,
+                                //"IPOLDemos "+demo_id+" inputs", 
+                                "?id="+demo_id+"&state=1");
                             } catch(err) {
                                 console.error("error:", err.message);
                             }
