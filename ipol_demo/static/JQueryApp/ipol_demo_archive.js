@@ -20,7 +20,7 @@
 var ArchiveDisplay = function()
 {
     
-    this.verbose=true;
+    this.verbose=false;
     //--------------------------------------------------------------------------
     this.InfoMessage = function( ) {
         if (this.verbose) {
