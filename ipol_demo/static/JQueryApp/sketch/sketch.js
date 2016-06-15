@@ -253,30 +253,40 @@ var __slice = Array.prototype.slice;
  
     //--------------------------------------------------------------------------
     draw: function(action) {
-      this.context.beginPath();
-      this.context.moveTo(action.events[0].x*this.scale_factor, 
-                          action.events[0].y*this.scale_factor);
-      $.each(action.events,function(index,event) {
-        this.context.lineTo(event.x*this.scale_factor, 
-                            event.y*this.scale_factor);
-      }.bind(this));
-      
-      if (this.use_unique_color) {
-        var action_color = this.color;
-      } else {
-        var action_color = action.color;
-      }
-      
-      if (action.color[0]=="#") {
-          var c = hexToRgb(action_color);
-          var sc = 'rgba('+c.r+','+c.g+','+c.b+','+this.opacity+')';
-      } else {
-          sc = action_color;
-      }
-      //console.info("sc=",sc);
-      this.context.strokeStyle = sc;
-      this.context.lineWidth = action.size*this.scale_factor;
-      return this.context.stroke();
+        
+        var ctx = this.context;
+        // compute and set action color
+        if (this.use_unique_color) {
+            var action_color = this.color;
+        } else {
+            var action_color = action.color;
+        }
+        if (action.color[0]=="#") {
+            var c = hexToRgb(action_color);
+            var action_color = 'rgba('+c.r+','+c.g+','+c.b+','+this.opacity+')';
+        }
+        
+        ctx.beginPath();
+        // if only one point, draw a disk
+        if (action.events.length===1) {
+            var x     = action.events[0].x*this.scale_factor;
+            var y     = action.events[0].y*this.scale_factor;
+            var rayon = (action.size*this.scale_factor-1)/2.0;
+            ctx.arc(x, y, rayon, 0, 2*Math.PI, false);
+            ctx.fillStyle   = action_color;
+            ctx.fill();
+            ctx.lineWidth = 1;
+        } else {
+            ctx.moveTo(action.events[0].x*this.scale_factor, 
+                                action.events[0].y*this.scale_factor);
+            $.each(action.events,function(index,event) {
+                ctx.lineTo(event.x*this.scale_factor, 
+                                    event.y*this.scale_factor);
+            }.bind(this));
+            ctx.lineWidth = action.size*this.scale_factor;
+        }
+        ctx.strokeStyle = action_color;
+        return ctx.stroke();
     }
   };
   
@@ -288,23 +298,34 @@ var __slice = Array.prototype.slice;
  
     //--------------------------------------------------------------------------
     draw: function(action) {
+      var ctx = this.context;
       var oldcomposite;
-      oldcomposite = this.context.globalCompositeOperation;
-      this.context.globalCompositeOperation = "destination-out";
+      oldcomposite = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = "destination-out";
       action.color = "rgba(0,0,0,1)";
       //      $.sketch.tools.marker.draw.call(this, action);
-      this.context.beginPath();
-      this.context.moveTo(action.events[0].x*this.scale_factor, 
-                          action.events[0].y*this.scale_factor);
-      $.each(action.events,function(index,event) {
-        this.context.lineTo(event.x*this.scale_factor, 
-                            event.y*this.scale_factor);
-      }.bind(this));
-      this.context.strokeStyle = action.color;
-      this.context.lineWidth   = action.size*this.scale_factor;
-      this.context.stroke();
+      ctx.beginPath();
+      if (action.events.length===1) {
+        var x     = action.events[0].x*this.scale_factor;
+        var y     = action.events[0].y*this.scale_factor;
+        var rayon = (action.size*this.scale_factor-1)/2.0;
+        ctx.arc(x, y, rayon, 0, 2*Math.PI, false);
+        ctx.fillStyle   = action.color;
+        ctx.lineWidth = 1;
+        ctx.fill();
+      } else {
+        ctx.moveTo(action.events[0].x*this.scale_factor, 
+                            action.events[0].y*this.scale_factor);
+        $.each(action.events,function(index,event) {
+            ctx.lineTo(event.x*this.scale_factor, 
+                                event.y*this.scale_factor);
+        }.bind(this));
+        ctx.strokeStyle = action.color;
+        ctx.lineWidth   = action.size*this.scale_factor;
+      }
+      ctx.stroke();
       
-      return this.context.globalCompositeOperation = oldcomposite;
+      return ctx.globalCompositeOperation = oldcomposite;
     }
   };
   
