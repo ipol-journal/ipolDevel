@@ -37,7 +37,7 @@ var DrawInputs = function(ddl_json) {
     //--------------------------------------------------------------------------
     // Initialize members
     //--------------------------------------------------------------------------
-    this.verbose=true;
+    this.verbose=false;
     this.PriorityMessage(" DrawInput started ");
     this.ddl_json      = ddl_json;
     this.draw_info     = { maxdim:768,  display_ratio:-1};
