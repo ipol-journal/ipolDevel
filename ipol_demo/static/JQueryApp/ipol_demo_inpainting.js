@@ -285,7 +285,7 @@ var Inpainting = function() {
         }
 
         // update sketch settings
-        $('#pensize_range') .trigger('change');
+        $('#pensize_number').trigger('input');
         $('#opacity_number').trigger('input');
         $("#set_color_5")   .trigger('click');  // set blue pen
         $("#inpaint_marker").trigger('click');  // set marker
