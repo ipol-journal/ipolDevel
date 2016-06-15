@@ -3,7 +3,9 @@
 <html lang="en">
 <head>
   <meta http-equiv='content-type' content='text/html; charset=utf-8'/>
-  <title>IPOL jquery test</title>
+
+  <title>IPOL Journal &middot; </title>
+
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
   <script src="http://code.jquery.com/jquery-1.12.1.js"></script>
   <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -15,7 +17,7 @@
 <!--   <link rel="stylesheet" href="/resources/demos/style.css"> -->
 <!--     <link rel="stylesheet" type="text/css" href="test.css">  -->
     <link rel="stylesheet" href="../CSS/style.css" type="text/css" />
-<!--     <link rel="stylesheet" href="../CSS/local.css" type="text/css" /> -->
+    <link rel="stylesheet" href="../CSS/local.css" type="text/css" />
     <link rel="stylesheet" href="../CSS/demo.css"  type="text/css" />
     <link rel="stylesheet" href="../Angular/css/app.css"  type="text/css" />
 
@@ -53,14 +55,49 @@
 <script src="ipol_demo_upload.js">              </script>
 <script src="ipol_demo.js">                     </script>
 
+    <div class="pageheader">
+      <div id="header">
+        <div id="motto">
+            <a href="http://www.ipol.im/">
+<!--                    <img src="http://www.ipol.im/static/IPOL-header-logo.png"
+                alt="IPOL" width="50" height="64" />-->
+            IPOL Journal &middot; Image Processing On Line
+            </a>
+        </div> <!-- #motto -->
+        <div id="menu" class="noprint">
+            <form action="http://www.google.com/cse" id="search">
+            <ul>
+                <li><a href="http://www.ipol.im/">HOME</a></li>
+                <li><a href="http://www.ipol.im/meta/">ABOUT</a></li>
+                <li><a href="http://www.ipol.im/pub/art/">ARTICLES</a></li>
+                <li><a href="http://www.ipol.im/pub/pre/">PREPRINTS</a></li>
+                <li><a href="http://dev.ipol.im/ws/">WORKSHOPS</a></li>
+                <li><a href="http://www.ipol.im/news/">NEWS</a></li>
+                <li class="search">
+            <input type="hidden" name="cx"
+                value="016691498998454533855:WMX-109950614"
+                />
+            <input type="hidden" name="ie"
+                value="UTF-8" />
+            <input type="submit"
+                value="SEARCH" />
+            <input type="text" name="q"
+                size="16" id="searchbox"
+                value="" />
+                </li>
+            </ul>
+            </form>
+        </div> <!-- #menu -->
+      </div> <!-- #header -->
+    </div> <!-- .pageheader -->
 
-<div id="divTest1"></div>
+
 
 
 <div id="tabs">
     <ul>
         <li>
-            <a href="#tabs-run">Run</a>
+            <a href="#tabs-run">Demo</a>
         </li>
 <!--        <li>
             <a href="#tabs-params">Params</a>
@@ -73,12 +110,6 @@
         </li>
         <li>
             <a href="#tabs-ddl">DDL</a>
-        </li>
-        <li>
-            <a href="#tabs-demos">Demos</a>
-        </li>
-        <li>
-            <a href="#tabs-blobs">Blobs</a>
         </li>
     </ul>
     <div id="tabs-run">
@@ -216,12 +247,6 @@
     </div>
     <div id="tabs-ddl">
         <pre style="width:92%;white-space:pre;">Content for Tab 4</pre>
-    </div>
-    <div id="tabs-demos">
-        <pre style="width:92%;white-space:pre;"> demos infomation</pre>
-    </div>
-    <div id="tabs-blobs">
-        <pre style="width:92%;white-space:pre;"> Content for Tab 5</pre>
     </div>
 </div>
 <div id="tabid"></div>
