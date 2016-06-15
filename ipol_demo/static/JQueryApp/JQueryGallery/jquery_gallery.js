@@ -35,7 +35,7 @@ var ImageGallery = function(galleryid)  {
     // set maximum display dimensions
     this.display_maxwidth  = $(window).width()*0.80;
     this.display_maxheight = $(window).height()*0.80;
-    this.verbose=true;
+    this.verbose=false;
     this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
     this.display_minwidth  = 400;
     this.display_minheight = 300;
