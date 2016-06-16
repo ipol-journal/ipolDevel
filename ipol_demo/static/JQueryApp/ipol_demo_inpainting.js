@@ -203,7 +203,7 @@ var Inpainting = function() {
         }
         ctx.closePath();
         
-        var r1 = Math.round(radius); // get radius as integer, round so 0.5-->1
+        var r1 = Math.ceil(radius)+1; // get radius as integer, round so 0.5-->1
         var d1 = 2*r1; // new related diameter
         var imgData=ctx.getImageData(center-r1,center-r1,d1,d1);
         var newCanvas = $("<canvas>").attr("width", d1).attr("height", d1)[0];
