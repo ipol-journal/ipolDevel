@@ -167,8 +167,8 @@ var __slice = Array.prototype.slice;
             (   (e.pageX-$(window).scrollLeft()!=e1.clientX)) || 
                 (e.pageY-$(window).scrollTop() !=e1.clientY))
             ) {
-            e.pageX -= $(window).scrollLeft();
-            e.pageY -= $(window).scrollTop();
+            e.pageX += $(window).scrollLeft();
+            e.pageY += $(window).scrollTop();
         }
       }
       $.sketch.tools[$(this).data('sketch').tool].onEvent.call($(this).data('sketch'), e);
