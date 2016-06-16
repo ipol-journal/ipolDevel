@@ -406,9 +406,9 @@ class DemoRunner(object):
         nb_inputs = len(inputs_desc)
         
         for i in range(nb_inputs):
-          file_up = kwargs['file_%i' % i]
+          file_up = kwargs.pop('file_%i' % i,None)
           
-          if file_up.filename == '':
+          if file_up==None or file_up.filename == '':
             if  not('required' in inputs_desc[i].keys()) or \
                 inputs_desc[i]['required']:
               # missing file
