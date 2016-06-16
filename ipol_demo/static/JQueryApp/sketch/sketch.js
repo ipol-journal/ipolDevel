@@ -163,7 +163,7 @@ var __slice = Array.prototype.slice;
         e.pageX = e1.pageX;
         e.pageY = e1.pageY;
         // fix chrome bug on Android ?
-        if ((e.type.startswith("touch")&&
+        if ((e.type.startsWith("touch")&&
             (   (e.pageX-$(window).scrollLeft()!=e1.clientX)) || 
                 (e.pageY-$(window).scrollTop() !=e1.clientY))
             ) {
