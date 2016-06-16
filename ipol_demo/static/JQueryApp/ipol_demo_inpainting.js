@@ -115,7 +115,7 @@ var Inpainting = function() {
                     '</div>'+
 //                 '<input  style="width:8em" type="range" id="pensize_range"'+
 //                     limits + ' >'+
-                "<canvas id=pensize_display style='margin:2px;border:1px solid lightgrey;display:inline-block;'"+
+                "<canvas id=pensize_display style='margin:2px;border:0px solid lightgrey;display:inline-block;'"+
                         " width=50px height=50px ></canvas> "+
                     '</div>';
                     
@@ -203,8 +203,8 @@ var Inpainting = function() {
         }
         ctx.closePath();
         
-        var r1 = Math.ceil(radius)+1; // get radius as integer, round so 0.5-->1
-        var d1 = 2*r1; // new related diameter
+        var r1 = Math.ceil(radius); // get radius as integer, round so 0.5-->1
+        var d1 = 2*r1+1; // new related diameter
         var imgData=ctx.getImageData(center-r1,center-r1,d1,d1);
         var newCanvas = $("<canvas>").attr("width", d1).attr("height", d1)[0];
         newCanvas.getContext("2d").putImageData(imgData, 0, 0);
@@ -215,7 +215,7 @@ var Inpainting = function() {
         //        center + ',auto');
         
         var cursor_url = newCanvas.toDataURL();
-        $("#canvas_div").css('cursor','url('+cursor_url+') '+r1+' '+r1+',auto');
+        $("#canvas_div").css('cursor','url('+cursor_url+') '+(r1+1)+' '+(r1+1)+',auto');
     }
     
     //--------------------------------------------------------------------------
@@ -250,7 +250,9 @@ var Inpainting = function() {
         
         $("#canvas_div").empty();
         $('<canvas>').attr({
-            style       : 'border:1px solid black;margin:2px;',
+            // don´t set borders since it displaces the coordinates ...
+            // style       : 'border:1px solid black;margin:2px;',
+            style       : 'border:0px;margin:2px;',
             id          : "colors_sketch",
             width       : image.naturalWidth + 'px',
             height      : image.naturalHeight + 'px',
@@ -258,7 +260,7 @@ var Inpainting = function() {
         }).appendTo('#canvas_div');
         
         $('<canvas>').attr({
-            style       : 'border:1px solid black;margin:2px;background:url(background_transparency.png)',
+            style       : 'border:0px;margin:2px;background:url(background_transparency.png)',
             id          : "mask_canvas",
             width       : image.naturalWidth + 'px',
             height      : image.naturalHeight + 'px',
