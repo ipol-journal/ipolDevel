@@ -159,8 +159,17 @@ var __slice = Array.prototype.slice;
       //console.info("onEvent: ",e.type, "--",e);
       if (e.originalEvent && e.originalEvent.targetTouches &&
           e.originalEvent.targetTouches[0]) {
-        e.pageX = e.originalEvent.targetTouches[0].pageX;
-        e.pageY = e.originalEvent.targetTouches[0].pageY;
+        var e1 =  e.originalEvent.targetTouches[0];
+        e.pageX = e1.pageX;
+        e.pageY = e1.pageY;
+        // fix chrome bug on Android ?
+        if ((e.type.startswith("touch")&&
+            (   (e.pageX-$(window).scrollLeft()!=e1.clientX)) || 
+                (e.pageY-$(window).scrollTop() !=e1.clientY))
+            ) {
+            e.pageX -= $(window).scrollLeft();
+            e.pageY -= $(window).scrollTop();
+        }
       }
       $.sketch.tools[$(this).data('sketch').tool].onEvent.call($(this).data('sketch'), e);
       e.preventDefault();
@@ -244,6 +253,7 @@ var __slice = Array.prototype.slice;
         //console.info(" e=",e," offset=",this.canvas.offset());
         //console.info(" x=",e.pageX - this.canvas.offset().left,
         //             " y=",e.pageY - this.canvas.offset().top;
+            
         this.action.events.push({
           x: (e.pageX - this.canvas.offset().left)/this.scale_factor,
           y: (e.pageY - this.canvas.offset().top )/this.scale_factor,
