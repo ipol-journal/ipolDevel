@@ -941,22 +941,32 @@ var DrawInputs = function(ddl_json) {
                             } else {
                                 // if several input image, TODO: deal with crop of first image
                                 var blobs_in_form=0;
+                                var image_src = [];
+                                var nb_uploads = 0;
                                 for(var idx=0;idx<inputs.length;idx++) {
-                                    // TODO: deal with non-image data
-                                    // TODO: deal with optional data
-                                    var image_src = //$("#input_gallery").data("image_gallery").GetImage(idx)[0];
-                                                        $('#localdata_preview_'+idx).attr("src");
-                                    blobUtil.imgSrcToBlob(image_src).then(
-                                        function(idx,obj) { return function(blob) {
-                                            console.info('idx=',idx);
-                                            formData.append('file_'+idx, blob);
-                                            blobs_in_form++;
-                                            console.info('blobs_in_form=',blobs_in_form);
-                                            if(blobs_in_form==obj.ddl_json.inputs.length) {
-                                                obj.UploadForm(formData);
+                                    var src = $('#localdata_preview_'+idx).attr("src");
+                                    // TODO: if image is not optional and src is undefined
+                                    // send error
+                                    if (src) {
+                                        image_src[idx] = src;
+                                        nb_uploads++;
+                                    }
+                                }
+                                
+                                for(var idx=0;idx<inputs.length;idx++) {
+                                    if (image_src[idx]) {
+                                        blobUtil.imgSrcToBlob(image_src[idx]).then(
+                                            function(idx,obj) { return function(blob) {
+                                                console.info('idx=',idx);
+                                                formData.append('file_'+idx, blob);
+                                                blobs_in_form++;
+                                                console.info('blobs_in_form=',blobs_in_form);
+                                                if(blobs_in_form==nb_uploads) {
+                                                    obj.UploadForm(formData);
+                                                }
                                             }
-                                        }
-                                        }(idx,this), 'image/png' );
+                                            }(idx,this), 'image/png' );
+                                    }
                                 }
                             }
                             break;
