@@ -300,7 +300,7 @@ function CreateSelectionRangeEvents(param, ddl_json) {
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
     
-    noUiSlider.create($('#'+range_id)[0], {
+    var slider_options = {
         start: param.values.default,
         connect: "lower",
 //         orientation: "vertical",
@@ -309,10 +309,30 @@ function CreateSelectionRangeEvents(param, ddl_json) {
         'max': param.values.max
         },
         step:param.values.step
-//         format: wNumb({
-//         decimals: 0
-//         })
-    });
+    };
+    
+    function hasdecimals(val,n) {
+        var v = val*Math.pow(10,n);
+        return v===parseInt(v);
+    }
+    
+    // try to set the right decimal values
+    if (hasdecimals(param.values.min,0)&&
+        hasdecimals(param.values.max,0)&&
+        hasdecimals(param.values.step,0)) {
+        slider_options['format']= wNumb({ decimals: 0 });
+    } else {
+        if (hasdecimals(param.values.min,1)&&
+            hasdecimals(param.values.max,1)&&
+            hasdecimals(param.values.step,1)) {
+            slider_options['format']= wNumb({ decimals: 1 });
+        }
+    }
+    
+    noUiSlider.create($('#'+range_id)[0], slider_options);
+    
+    
+    $('#'+range_id).css("background","antiquewhite");
     
     $('#'+range_id)[0].noUiSlider.on('slide', 
         function(  ) {
