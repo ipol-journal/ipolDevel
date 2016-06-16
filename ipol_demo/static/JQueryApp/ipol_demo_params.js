@@ -299,25 +299,52 @@ function CreateSelectionRangeEvents(param, ddl_json) {
 
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
-
-    $('#'+range_id).slider(
-    {
-        value:param.values.default,
-        min: param.values.min,
-        max: param.values.max,
-        step: param.values.step,
-        slide: function( event, ui ) {
-            $('#'+number_id).val($('#'+range_id).slider('value'));
-            UpdateParams(ddl_json.params);
+    
+    noUiSlider.create($('#'+range_id)[0], {
+        start: param.values.default,
+        connect: "lower",
+//         orientation: "vertical",
+        range: {
+        'min': param.values.min,
+        'max': param.values.max
         },
-        change: function( event, ui ) {
-            $('#'+number_id).val($('#'+range_id).slider('value'));
+        step:param.values.step
+//         format: wNumb({
+//         decimals: 0
+//         })
+    });
+    
+    $('#'+range_id)[0].noUiSlider.on('slide', 
+        function(  ) {
+            $('#'+number_id).val($('#'+range_id)[0].noUiSlider.get());
             UpdateParams(ddl_json.params);
         }
-    });
+    );
+    $('#'+range_id)[0].noUiSlider.on('update', 
+        function(  ) {
+            $('#'+number_id).val($('#'+range_id)[0].noUiSlider.get());
+            UpdateParams(ddl_json.params);
+        }
+    );
+
+//     $('#'+range_id).slider(
+//     {
+//         value:param.values.default,
+//         min: param.values.min,
+//         max: param.values.max,
+//         step: param.values.step,
+//         slide: function( event, ui ) {
+//             $('#'+number_id).val($('#'+range_id).slider('value'));
+//             UpdateParams(ddl_json.params);
+//         },
+//         change: function( event, ui ) {
+//             $('#'+number_id).val($('#'+range_id).slider('value'));
+//             UpdateParams(ddl_json.params);
+//         }
+//     });
 
     $('#'+number_id).on('input', function(){
-        $('#'+range_id).slider('value',$('#'+number_id).val());
+        $('#'+range_id)[0].noUiSlider.set($('#'+number_id).val());
         UpdateParams(ddl_json.params);
     });
     
