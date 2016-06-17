@@ -41,22 +41,12 @@
     ]
   ,
   "params": [  ],
-  "results_bak": [
-    {
-      "type"          : "gallery",
-      "label"         : "<h3>Input Images</h3>",
-      "contents"      : {   "first image"  : "input_0.png", 
-                            "second image" : "input_1.png" },
-      "style"         : "'height:'+(sizeY*ZoomFactor)+'px'"
-    }
-    ],
   "results": [
     {
       "type"          : "gallery",
       "label"         : "<h3>Rectified Images</h3>",
       "contents"      : {   "first image"  : "output_0_annotated.png", 
-                            "second image" : "output_1_annotated.png" },
-      "style"         : "'height:'+(sizeY*ZoomFactor)+'px'" 
+                            "second image" : "output_1_annotated.png" }
     },
     {
       "type"          : "file_download", 

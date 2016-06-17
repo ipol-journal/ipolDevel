@@ -145,8 +145,7 @@
             "params.runmode==1&&info.has_zoom?Denoised"   : "denoised_zoom.png",
             "params.runmode==1&&info.has_zoom?Difference" : "diff_zoom.png"
 
-        },
-      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'"
+        }
     },
     {
         "type"      : "file_download",

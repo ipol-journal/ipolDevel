@@ -70,8 +70,7 @@
             "Denoised"          : "denoised.png",
             "Original"          : "input_0.sel.png",
             "Difference"        : "diff.png"
-        },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'" 
+        }
     },
     {
       "type"          : "text_file", 

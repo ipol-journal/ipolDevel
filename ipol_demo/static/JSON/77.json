@@ -74,8 +74,8 @@
       "convert input_0.png input_0.pgm",
       "convert input_1.png input_1.pgm",
       "two_photos_psf_estim -s $s -k $k -t $t -d ipol -o psf_kernel.pgm -i int_kernel.pgm input_0.pgm input_1.pgm psf_kernel.txt int_kernel.txt >stdout.txt 2>&1",
-      "convert -filter point -resize 600x600 psf_kernel.pgm psf_kernel.png",
-      "convert -filter point -resize 600x600 int_kernel.pgm int_kernel.png",
+      "convert psf_kernel.pgm psf_kernel.png",
+      "convert int_kernel.pgm int_kernel.png",
       "convert ipol_imgC.pgm  ipol_imgC.png",
       "convert ipol_imgW.pgm  ipol_imgW.png",
       "convert ipol_diff.pgm  ipol_diff.png",
@@ -109,7 +109,7 @@
         "PSF"         :"psf_kernel.png", 
         "inter kernel":"int_kernel.png"
       },
-      "style"         : "'height:'+300*ZoomFactor+'px'"
+      "options"       : { "minheight": 300 }
     },
     {
       "type"          : "file_download", 
@@ -133,14 +133,13 @@
     },
     {
       "type"          : "gallery",
-      "label"         : "<b>The following images were resized (by the browser) for correct visualization. Image height is set to 500px.</b><br/>",
+      "label"         : "Results",
       "contents"      : { 
         "zoomed-out"  : [ "ipol_imgW.png", "palette1.png" ],
         "zoomed-in"   : [ "ipol_imgC.png", "palette1.png" ],
         "residue"     : [ "ipol_diff.png", "palette2.png" ],
         "mask"        : [ "ipol_mask.png", "palette1.png" ]
-      },
-      "style"         : "'height:'+500*ZoomFactor+'px'"
+      }
     },
     {
       "type"          : "text_file", 

@@ -70,15 +70,13 @@
       "contents"      : {
         "Original"  : "input_0.sel.png",
         "Filtered"  : "output_2.png"
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     },
     {
       "type"          : "repeat_gallery",
       "repeat"        : "21",
       "label"         : "<h3>RGB views</h3><p> Top: original and filtered. Bottom: density. </p>",
-      "contents"      : [ "'<small>VIEW '+(idx+1)+'</small>'","'view_'+(idx+100)+'.png'"],
-      "style"         : "'height:'+Math.max(600,sizeY*ZoomFactor)+'px'"
+      "contents"      : [ "'<small>VIEW '+(idx+1)+'</small>'","'view_'+(idx+100)+'.png'"]
     },
     {
       "type"          : "file_download",

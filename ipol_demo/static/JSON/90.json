@@ -170,8 +170,7 @@
     {
       "type"          : "gallery",
       "label"         : "Input image:",
-      "contents"      : { "Input" : "scale_s0.png" },
-      "style"         : "'height:'+600*ZoomFactor+'px'"
+      "contents"      : { "Input" : "scale_s0.png" }
     },
     {
       "type"          : "html_text", 
@@ -185,8 +184,7 @@
       "type"          : "repeat_gallery",
       "repeat"        : "params.scales",
       "label"         : "<h3> Noise Curves </h3>",
-      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"],
-      "style"         : "'height:'+600*ZoomFactor+'px'"
+      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"]
     },
     {
         "type"          : "html_text", 

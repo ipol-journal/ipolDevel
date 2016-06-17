@@ -101,8 +101,7 @@
       "contents"      : { 
         "Output" :"output.png", 
         "Input"  :"input_0.sel.png"
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     }
   ]
 

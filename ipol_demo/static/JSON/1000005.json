@@ -73,8 +73,7 @@
                             "output_rgb_hist.png" ],
             "IRGB"     : [  "output_irgb.png",
                             "output_irgb_hist.png" ]
-        },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+        }
     }
   ]
 

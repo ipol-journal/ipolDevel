@@ -127,7 +127,7 @@
         "Fourier transform of the flutter shutter function" : "TF_code.png", 
         "Gain G(v), and average gain"                       : "efficiency.png"
         },
-      "style"         : "'height:'+(480*ZoomFactor)+'px'" 
+      "options"       : { "minheight" : 480 }
     },
     {
       "type"          : "text_file", 

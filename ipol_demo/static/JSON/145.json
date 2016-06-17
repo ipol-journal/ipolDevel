@@ -60,18 +60,7 @@
         "python:f = open(self.work_dir + 'beta.txt', 'r')",
         "python:l=f.readline()",
         "python:beta = '%.2f' % float(l.split(':', 1)[1])",
-        "python:f.close()"],
-    "# Resize for visualization (always zoom by at least 2x)",
-    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
-    "python:zoomfactor = max(1, int(math.ceil(480.0/max(sizeX, sizeY))))",
-    ["zoomfactor>1",
-        "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
-        "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} mosaicked.png      mosaicked_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} demosaicked.png    demosaicked_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} diff.png           diff_zoom.png" ],
-    "python:self.algo_info['zoomfactor']    = zoomfactor",
-    "python:self.algo_info['displayheight'] = max(200, sizeY)"
+        "python:f.close()"]
    ],
   "archive":
     {
@@ -92,24 +81,17 @@
       "label"         : [ "'<h3>Results</h3> ",
             "<p>Images obtained with parameter &beta; = '+ params.beta + ",
             "(params.guessbeta?' computed dynamically':'') +",
-            "(info.zoomfactor>1?'.<br/>For visualization, the images are ",
-            "displayed with &times;'+info.zoomfactor+' pixel duplication. ':'')+",
             "'</p>'"],
       "contents"      : 
         {   
-        "info.zoomfactor<=1?Input"         : "input_0.sel.png", 
-        "info.zoomfactor>1?Input"          : "input_0.sel_zoom.png", 
-        "info.zoomfactor<=1?Demosaicked"   : "demosaicked.png", 
-        "info.zoomfactor>1?Demosaicked"    : "demosaicked_zoom.png", 
-        "info.zoomfactor<=1?Mosaicked"     : "mosaicked.png", 
-        "info.zoomfactor>1?Mosaicked"      : "mosaicked_zoom.png", 
-        "info.zoomfactor<=1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse" : "diff.png",
-        "info.zoomfactor>1?'Difference Input-Demosaicked <br/> RMSE '+info.rmse"  : "diff_zoom.png"
+        "Input"         : "input_0.sel.png", 
+        "Demosaicked"   : "demosaicked.png", 
+        "Mosaicked"     : "mosaicked.png", 
+        "'Difference Input-Demosaicked <br/> RMSE '+info.rmse" : "diff.png"
         },
-      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
+      "options" : { "minheight" : 400 }
     },
     {
-        "visible"   : "info.zoomfactor>1",
         "type"      : "file_download",
         "label"     : "<h3>Images at native resolution</h3>",
         "contents"  : {

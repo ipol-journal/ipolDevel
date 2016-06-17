@@ -182,7 +182,7 @@
         "params.run_mode=='Coarsen_interpolate_compare'?Fourier Difference"        : "fdifference_zoom.png",
         "params.run_mode=='Coarsen_interpolate_compare'?Roussos-Maragos Difference": "difference_zoom.png"
       },
-      "style"             : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
+      "options"       : { "minheight": 200 }
     },
     {
       "type"          : "file_download", 

@@ -112,8 +112,7 @@
                           "'outliers '+(info.matches-info.inliers)" : "outliers.png",
                           "first image"                : "input_0.png",
                           "second image"               : "input_1.png"
-                        },
-      "style"         : "'width:'+(imwidth*ZoomFactor)+'px;height:'+(imheight*ZoomFactor)+'px'" 
+                        }
     },
     {
       "type"          : "file_download", 

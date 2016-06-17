@@ -144,8 +144,7 @@
           "params.run_mode=='0'?'Deconvolved'"      : "tvdeconv.png", 
           "params.run_mode=='1'?Diff. input"        : "diff_blurry.png",
           "params.run_mode=='1'?Diff. deconvolved"  : "diff_tvdeconv.png"
-      },
-      "style"     : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     },
     {
       "type"      :"html_text",

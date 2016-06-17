@@ -148,7 +148,7 @@
             "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.ipoln.1.png",
             "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
         },
-      "style"         : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
+      "options"       : { "minheight": 200 }
     },
     {
       "type"          : "html_text", 

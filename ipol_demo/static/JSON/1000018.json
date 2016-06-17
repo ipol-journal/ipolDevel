@@ -54,7 +54,7 @@
                             "Denoised"   : "output_1.png",
                             "Original"   : "input_0.sel.png",
                             "Difference" : "output_2.png"},
-      "style"         : "'height:'+Math.max(200,sizeY)*ZoomFactor+'px'"
+      "options"       : { "minheight": 200 }
     },
     {
       "type"          : "file_download", 

@@ -101,7 +101,7 @@
         "ACE"                       : "ace.png", 
         "Histogram Equalization"    : "he.png"
       },
-      "style"         : "'height:'+Math.max(200,sizeY*ZoomFactor)+'px'"
+      "options"       : { "minheight": 200 }
     },
     {
       "type"          : "text_file", 

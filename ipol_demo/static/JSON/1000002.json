@@ -63,7 +63,7 @@
     "psf_estim -p pattern_noise.pgm -s $s -k $k -d det_out.ppm -t $t -o psf.pgm input_0.sel.pgm psf.txt >stdout.txt 2>&1",
     "python: # re adjust width and height to avoid visualization interpolation",
     "python:im = image(self.work_dir + 'psf.pgm')",
-    "python:im = im.resize((400, 400), 'nearest')",
+    "# not needed anymore: python:im = im.resize((400, 400), 'nearest')",
     "python:im.save(self.work_dir + 'psf.png')",
     "python:im = image(self.work_dir + 'det_out.ppm')",
     "python:im.save(self.work_dir + 'det_out.png')"
@@ -99,11 +99,11 @@
     {
       "visible"       : "info.status!='failure'",
       "type"          : "gallery",
-      "label"         : "'<h2>PSF</h2> This image has been resized from its original size '+params.k+' x '+params.k+' pixels for better visualization.'",
+      "label"         : "'<h2>PSF</h2> This image original size is '+params.k+' x '+params.k+' pixels'",
       "contents"      : { 
         "PSF"    : "psf.png" 
       },
-      "style"         : "'height:'+Math.min(sizeY*ZoomFactor,600)+'px'"
+      "options"       : { "minheight": 400 }
     },
     {
       "type"          : "gallery",
@@ -111,8 +111,7 @@
       "contents"      : { 
         "input"    : "input_0.sel.png" ,
         "detected" : "det_out.png"
-      },
-      "style"         : "'height:'+Math.min(sizeY*ZoomFactor,800)+'px'"
+      }
     },
     {
       "type"          : "text_file", 

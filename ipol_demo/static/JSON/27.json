@@ -130,8 +130,7 @@
             "HE (I)"    : { "Image"                 :"output_1_HE.png", 
                             "Histograms: R, G, B, I":"output_1_HE_hist.png",
                             "Contrast change"       :"pointsHE.png"}
-        },
-      "style"         : "'height:'+Math.max(500,(sizeY*ZoomFactor))+'px'" 
+        }
     }
   ]
 

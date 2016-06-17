@@ -68,8 +68,7 @@
         "second image" : "input_1.png", 
         "first output image"  : "output_0.png", 
         "second output image" : "output_1.png"
-        },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+        }
     }
   ]
 

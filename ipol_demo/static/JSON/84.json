@@ -64,8 +64,7 @@
         "input"             : ["input_0.sel.png",   "input_0.sel_hist.png" ],
         "input (simplest)"  : ["inputSimplest.png", "inputSimplest_hist.png" ],
         "output"            : ["output.png",        "output_hist.png"        ]
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     }
   ]
 

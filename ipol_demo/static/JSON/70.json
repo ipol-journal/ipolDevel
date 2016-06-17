@@ -150,8 +150,7 @@
       "contents"      : { 
         "Input"     : "input_0.sel.png", 
         "Output"    : "output.png"
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     },
     {
       "type"          : "file_download", 

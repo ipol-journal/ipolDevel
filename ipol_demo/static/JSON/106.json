@@ -64,8 +64,7 @@
       "contents"      : {   "Canny" : "output_canny.png", 
                             "Hough" : "output_hough.png",
                             "Output": "output_corrected_image.png",
-                            "Input" : "input_0.png"},
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'" 
+                            "Input" : "input_0.png"}
     },
     {
       "type"          : "file_download", 

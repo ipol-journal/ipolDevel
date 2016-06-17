@@ -126,11 +126,6 @@
   ,
   "results": [
     {
-        "type"      : "html_text",
-        "visible"   : "info.zoom_factor>1",
-        "contents"  : [ "'<p>For visualization, the images are displayed with &times;'+info.zoomfactor+' pixel duplication.</p>'" ]
-    },
-    {
       "type"          : "gallery",
       "label"         : [ "<h3>Images</h3>" ],
       "contents"      : 
@@ -139,8 +134,7 @@
             "Demosaic"           : "output_1_zoom.png",
             "Original"           : "input_0.sel_zoom.png",
             "Difference"         : "output_2_zoom.png"
-        },
-      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
+        }
     },
     {
         "type"      : "file_download",

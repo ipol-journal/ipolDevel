@@ -113,8 +113,7 @@
           { "1 iteration of parameter  <math><msqrt><mi>N</mi></msqrt></math> &sigma;":"lindeberg_direct.png", 
             "N iterations of parameter &sigma;":"lindeberg_iter.png",
             "difference":"lindeberg_diff.png" }
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'" 
+      }
     },
     {
       "type"          : "file_download", 

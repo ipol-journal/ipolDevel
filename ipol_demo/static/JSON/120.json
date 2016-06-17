@@ -53,22 +53,7 @@
     "#--- compute image differences",
     "img_diff_ipol input_0.sel.png output_1.png $sigma output_2.png",
     "#--- estimate MSE and PSNR",
-    "img_mse_ipol input_0.sel.png output_1.png >stdout.txt",
-    "#--- Resize for visualization (new size of the smallest dimension = 200)",
-    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
-    "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
-    "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
-    "python:has_zoom=zoomfactor>1",
-    [ "has_zoom",
-        "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png  input_0.sel_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} input_1.png      input_1_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} output_1.png     output_1_zoom.png",
-        "convert -filter point -resize ${sizeX}x${sizeY} output_2.png     output_2_zoom.png"
-    ],
-    "#--- save algorithm information",
-    "python:self.algo_info['displayheight'] = sizeY",
-    "python:self.algo_info['has_zoom'] = has_zoom",
-    "python:self.algo_info['zoomfactor'] = zoomfactor"
+    "img_mse_ipol input_0.sel.png output_1.png >stdout.txt"
   ],
   "archive":
     {
@@ -85,21 +70,12 @@
       "type"          : "gallery",
       "contents"      : 
         {
-            "info.has_zoom?Noisy"              : "input_1_zoom.png",
-            "info.has_zoom?Denoised"           : "output_1_zoom.png",
-            "info.has_zoom?Original"           : "input_0.sel_zoom.png",
-            "info.has_zoom?Difference"         : "output_2_zoom.png",
-            "!info.has_zoom?Noisy"             : "input_1.png",
-            "!info.has_zoom?Denoised"          : "output_1.png",
-            "!info.has_zoom?Original"          : "input_0.sel.png",
-            "!info.has_zoom?Difference"        : "output_2.png"
+            "Noisy"             : "input_1.png",
+            "Denoised"          : "output_1.png",
+            "Original"          : "input_0.sel.png",
+            "Difference"        : "output_2.png"
         },
-      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'" 
-    },
-    {
-        "type"      : "html_text",
-        "visible"   : "info.has_zoom",
-        "contents"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
+      "options"   : { "minheight" : 200, "minwidth": 200 }
     },
     {
         "type"      : "file_download",

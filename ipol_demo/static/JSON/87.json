@@ -172,8 +172,7 @@
           "params.algo_vyv_4?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=4" : "output-vyv_4.png",
           "params.algo_vyv_5?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
           "Exact*"                                       : "output-exact.png"
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     },
     {
       "type"          : "html_text", 

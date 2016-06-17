@@ -166,7 +166,7 @@
                             "meta.hastruth?Endpoint error"  : "stuff_clg_fmt.ipoln.1.png",
                             "meta.hastruth?Angular error"   : "stuff_clg_aerr.png"
                         },
-      "style"         : "'height:'+Math.max(sizeY*ZoomFactor,150)+'px'" 
+      "options"       : { "minheight" : 150 }
     },
     {
       "type"          : "html_text", 

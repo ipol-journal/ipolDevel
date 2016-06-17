@@ -61,8 +61,7 @@
       "contents"      : {
         "Original"  : "input_1.png",
         "Processed" : "output_1.png"
-      },
-      "style"         : "'height:'+Math.max(sizeY*ZoomFactor)+'px'"
+      }
     }
   ]
 

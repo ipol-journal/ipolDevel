@@ -102,9 +102,11 @@
     "python:(sizeX, sizeY) = img.size",
     "python:cropsize = (min(sizeX, 800), min(sizeY, 800))",
     [ "(sizeX, sizeY) != cropsize",
-        "python:(x0, y0) = (int(floor((sizeX - cropsize[0])/2)),int(floor((sizeY - cropsize[1])/2)))",
+        "python:(x0, y0) = (int(math.floor((sizeX - cropsize[0])/2)),int(math.floor((sizeY - cropsize[1])/2)))",
         "python:img.crop((x0, y0, x0 + cropsize[0], y0 + cropsize[1]))",
-        "python:img.save('input_0.sel.png')"
+        "# first remove input image since it could be a symbolic link",
+        "rm input_0.sel.png",
+        "python:img.save(self.work_dir + 'input_0.sel.png')"
     ],
     "python:showcontours = (cropsize[0]*cropsize[1] <= showcontours_max_pixels)",
     "#--- Mosaic image with 16-pixel padding",
@@ -204,8 +206,7 @@
             "Original"                      : "input_0.sel_zoom.png",
             "Bilinear difference"           : "diffbilinear_zoom.png",
             "Contour stencils difference"   : "diffdmcswl1_zoom.png"
-        },
-      "style"       : "'height:'+info.displayheight*ZoomFactor+'px'"
+        }
     },
     {
         "type"      : "file_download",

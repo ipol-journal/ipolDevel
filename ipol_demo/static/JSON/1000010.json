@@ -124,11 +124,6 @@
   ,
   "results": [
     {
-        "type"      : "html_text",
-        "visible"   : "info.zoomfactor>1",
-        "contents"  : [ "'<p>For visualization, the images are displayed with '+info.zoomfactor+'&times; pixel duplication.</p>'" ]
-    },
-    {
       "type"          : "gallery",
       "contents"      : 
         {
@@ -138,8 +133,7 @@
             "Original"                      : "input_0.sel_zoom.png",
             "Hamilton-Adams  difference"    : "diffha_zoom.png",
             "Gunturk difference"            : "diffgunturk_zoom.png"
-        },
-      "style"         : "'height:'+info.displayheight*ZoomFactor+'px'"
+        }
     },
     {
         "type"      : "file_download",

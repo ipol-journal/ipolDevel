@@ -62,8 +62,7 @@
       "contents"      : { 
                 "Original":"input_0.sel.png", 
                 "Denoised":"denoised.png", 
-                "Difference":"diff.png"},
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+                "Difference":"diff.png"}
     },
     {
       "type"          : "repeat_gallery",
@@ -74,7 +73,7 @@
                           [ "'denoised_diff_'+idx+'.png'",
                             "'denoised_noiseCurves_L_'+idx+'.png'",
                             "'denoised_noiseCurves_H_'+idx+'.png'"] ],
-      "style"         : "'width:400px;height:'+400*sizeY/sizeX+'px'"
+      "options"       :  { "minheight" : 400 }
     }
   ],
   "archive":

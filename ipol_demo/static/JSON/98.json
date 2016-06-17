@@ -42,6 +42,8 @@
     "python:rX = sizeX % sfactor",
     "python:rY = sizeY % sfactor",
     "python:im.crop((0, 0, sizeX-rX, sizeY-rY))",
+    "# first remove input image since it could be a symbolic link",
+    "rm input_0.sel.png",
     "python:im.save(self.work_dir + 'input_0.sel.png')",
     "pansharpening_ipol input_0.sel.png pan.png lowspectral.png ihs.png pansharpened.png $sfactor",
     "imdiff_ipol        input_0.sel.png ihs.png           diffInputIHS.png  >rmse_IHS.txt",
@@ -79,8 +81,7 @@
         "PanSharpened"                  : "pansharpened.png",
         "Difference Input-PanSharpened" : "diffInputPanS.png",
         "Difference Input-IHS"          : "diffInputIHS.png"
-      },
-      "style"         : "'height:'+sizeY*ZoomFactor+'px'"
+      }
     },
     {
       "type"          : "text_file", 

@@ -55,8 +55,7 @@
       "label"         : "",
       "contents"      : { "Output":"output.png",
                           "Output inv":"output-inv.png", 
-                          "Input":"input_0.sel.png"},
-      "style"         : "'height:'+(sizeY*ZoomFactor)+'px'"
+                          "Input":"input_0.sel.png"}
     },
     {
       "type"          : "file_download", 
