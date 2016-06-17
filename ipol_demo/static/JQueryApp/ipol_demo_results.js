@@ -32,26 +32,6 @@ var DrawResults = function( //demo_id,key,
     this.res          = res;
     this.params       = res.params;
     this.work_url     = res.work_url;
-    this.ZoomFactor   = 1;
-
-//     //--------------------------------------------------------------------------
-//     this.CreateZoomSelection = function() {
-//         var scales=[0.125,0.25,0.5,0.75,1, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-//         var res='';
-//         res += '<label> Zoom factor for images </label>'+
-//                '<select id="zoomfactor">';
-//             for(var id=0;id<scales.length;id++) {
-//                 if (scales[id]==this.ZoomFactor) {
-//                     res += "<option selected='selected'>";
-//                 } else {
-//                     res += "<option>";
-//                 }
-//                 res += scales[id]+"</option>";
-//             }
-//         res += "</select><br/>";
-//         return res;
-//     }
-//     
 
     //--------------------------------------------------------------------------
     // specify the archive experiment from which we are drawing the results
@@ -59,7 +39,6 @@ var DrawResults = function( //demo_id,key,
         this.experiment = exp;
         this.ddl_archive = ddl_archive; // archive part of the DDL
     }
-
 
     //--------------------------------------------------------------------------
     this.Create = function() {
@@ -90,14 +69,6 @@ var DrawResults = function( //demo_id,key,
             this.CreateResultEvents(this.ddl_results[id],id);
         }
 
-
-//         $("#zoomfactor").change(
-//             function() {
-//                 this.ZoomFactor = $("#zoomfactor option:selected").val();
-//                 this.InfoMessage(" ZoomFactor = ", this.ZoomFactor);
-//                 this.Create();
-//             }.bind(this)
-//         );
     };
     
     //--------------------------------------------------------------------------
@@ -283,8 +254,7 @@ var DrawResults = function( //demo_id,key,
         if (idx===undefined) {
             idx=0;
         }
-        // need sizeX, sizeY, ZoomFactor
-        var ZoomFactor = this.ZoomFactor;
+        // need sizeX, sizeY
         var sizeX = this.params.x1-this.params.x0;
         var sizeY = this.params.y1-this.params.y0;
         // need imwidth and imheight
@@ -310,10 +280,6 @@ var DrawResults = function( //demo_id,key,
         }
         
         var index = 0;
-        
-        // compute style
-        // TODO: improve security risks with eval()
-        var style = this.EvalInContext(res_desc.style);
         
         // TODO: check what variable needs the style and remove its angular code
         res += '<div id=result_' + id + ' style="height:auto">';
@@ -412,6 +378,13 @@ var DrawResults = function( //demo_id,key,
         }
         
         var ig = new ImageGallery(id);
+        if ((res_desc.options)&&(res_desc.options.minheight)) {
+            ig.SetMinHeight(res_desc.options.minheight);
+        }
+        if ((res_desc.options)&&(res_desc.options.minwidth)) {
+            ig.SetMinWidth(res_desc.options.minwidth);
+        }
+        
         ig.Append(new_contents);
         var html = ig.CreateHtml();
         $("#result_"+id).html(html);
