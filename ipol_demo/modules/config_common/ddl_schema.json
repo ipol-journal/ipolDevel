@@ -375,8 +375,7 @@
                                 {"type": "array", "items": { "type":"string"}},
                                 {"type":"object", "additionalProperties":  { "type":"string" }}
                             ]}
-                            },
-                        "style": {"type":"string" }
+                            }
                     }
                 },
                 { "type":"object", 
@@ -424,8 +423,7 @@
                                                         { "type":"array",
                                                           "items": {"type":"string"}}]}
                                                  ]
-                                    },
-                        "style": { "type":"string" }
+                                    }
                     }
                 },
                 { "type":"object", 
