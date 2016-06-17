@@ -37,12 +37,22 @@ var ImageGallery = function(galleryid)  {
     this.display_maxheight = $(window).height()*0.80;
     this.verbose=false;
     this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
-    this.display_minwidth  = 400;
+    this.display_minwidth  = 300;
     this.display_minheight = 300;
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     this.current_contents = "#contents1";
     this.keep_dimensions_onload = false;
     this.user_image_style = "";
+    
+    //--------------------------------------------------------------------------
+    this.SetMinHeight = function(mh) {
+        this.display_minheight = mh;
+    }
+    
+    //--------------------------------------------------------------------------
+    this.SetMinWidth = function(mw) {
+        this.display_minwidth = mw;
+    }
     
     //--------------------------------------------------------------------------
     this.Append = function(content) {
@@ -106,7 +116,7 @@ var ImageGallery = function(galleryid)  {
             html += "<table style='"+title_style+"'>";
             $.each(titles, function(index,title) {
                 html += "<tr style='"+title_style+"'>";
-                html +=   "<td id='t"+index+"' style='white-space:nowrap;border:0;height:1.25em;' >";
+                html +=   "<td id='t"+index+"' style='border:0;height:1.25em;max-width:10em;' >"; // white-space:nowrap;
                 html +=   title;
                 html +=   "</td>";
 //                 html +=   "<td class='compare_class' id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
@@ -137,12 +147,12 @@ var ImageGallery = function(galleryid)  {
         html +=   "</td>";
 //         html +=   "<td id='contents1' "+style+">";
         html +=   "<td class='image_class' "+style+">";
-        html +=   "<div id='contents1' "+"style='border:1px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
+        html +=   "<div id='contents1' "+"style='border:0px;margin:0px;padding:0px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents1";
         html +=   "</div>";
         html +=   "</td>";
         html +=   "<td class='compare_class' "+style+">";
-        html +=   "<div id='contents2' "+"style='border:1px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
+        html +=   "<div id='contents2' "+"style='border:0px;margin:0px;padding:0px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents2";
         html +=   "</div>";
         html +=   "</td>";
@@ -294,9 +304,9 @@ var ImageGallery = function(galleryid)  {
         
         // set max width/height:
         if (compare_checked) {
-            $(contents1_sel).css({ "max-width":  (this.display_maxwidth/2-25)+"px",
+            $(contents1_sel).css({ "max-width":  (this.display_maxwidth/2-5)+"px",
                                 "max-height": this.display_maxheight+"px"});
-            $(contents2_sel).css({ "max-width":  (this.display_maxwidth/2-25)+"px",
+            $(contents2_sel).css({ "max-width":  (this.display_maxwidth/2-5)+"px",
                                 "max-height": this.display_maxheight+"px"});
         } else {
             $(contents1_sel).css({ "max-width":  this.display_maxwidth+"px",
