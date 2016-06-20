@@ -5,6 +5,9 @@
 This file implements database class
 """
 
+import os
+import os.path
+
 import inspect
 import sqlite3 as lite
 from error import DatabaseInsertError, DatabaseSelectError, \
@@ -16,7 +19,7 @@ class   Database(object):
     The database architecture is defined in file /db/blob.sql
     One instance of this object represents one connection to the database
     """
-    def __init__(self, name):
+    def __init__(self, database_dir, database_name):
         """
         Initialize database class
         Connect to databse
@@ -25,8 +28,16 @@ class   Database(object):
         :type name: string
         """
         self.formats = ('audio', 'image', 'video')
-        self.name = name
-        self.database = lite.connect(name, check_same_thread=False)
+        
+        self.database_dir = database_dir
+        
+        self.database_file = os.path.join(database_dir, database_name)
+        self.status = self.init_database()
+        if not self.status:
+            sys.exit("Initialisation of database failed. Check the logs.")
+        
+        
+        self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
         self.init_tag_column()
 
@@ -36,6 +47,64 @@ class   Database(object):
         """
         self.database.close()
 
+    
+    def init_database(self):
+        """
+        Initialize the database used by the module if it doesn't exist. 
+        If the file is empty, the system delete it and create a new one.
+        :return: False if there was an error. True otherwise.
+        :rtype: bool
+        """
+        status = True
+        if os.path.isfile(self.database_file):
+                   
+            file_info = os.stat(self.database_file)
+                   
+            if file_info.st_size == 0:
+                print str(self.database_file) + ' is empty. Removing the file...'
+                try:
+                    self.error_log("init_database", 'Database file was empty')
+                    os.remove(self.database_file)
+                except Exception as ex:
+                    self.error_log("init_database", str(ex))
+                    status = False
+                    return status
+                        
+                print "Creating a correct new database"
+            
+        if not os.path.isfile(self.database_file):
+                    
+            try:
+                conn = lite.connect(self.database_file)
+                cursor_db = conn.cursor()
+            
+                sql_buffer = ""
+                    
+                with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
+                    print "Creating a new database"
+                    for line in sql_file:
+                                
+                        sql_buffer += line
+                        if lite.complete_statement(sql_buffer):         
+                            sql_buffer = sql_buffer.strip()
+                            cursor_db.execute(sql_buffer)
+                            sql_buffer = ""
+                                
+                conn.commit()
+                conn.close()  
+                    
+            except Exception as ex:
+                self.error_log("init_database", (str(ex)))
+                        
+                if os.path.isfile(self.database_file):
+                    try:
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.error_log("init_database", str(ex))
+                        status = False
+                
+        return status    
+    
     def add_demo_in_database(self, demo, is_template, template_id):
         """
         Add name demo in demo column in database
