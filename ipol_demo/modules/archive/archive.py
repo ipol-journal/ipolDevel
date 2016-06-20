@@ -212,7 +212,7 @@ class Archive(object):
             
                     sql_buffer = ""
                     
-                    with open('drop_create_db_schema.sql', 'r') as sql_file:
+                    with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
                         for line in sql_file:
                                 
                             sql_buffer += line
