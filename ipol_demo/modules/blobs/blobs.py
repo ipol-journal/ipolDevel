@@ -95,7 +95,21 @@ class   Blobs(object):
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
-
+        
+        global database_dir
+        
+        try:
+            database_dir = cherrypy.config.get("database_dir")
+        except Exception:
+            database_dir = "db"
+        
+        global database_name
+        
+        try:
+            database_name = cherrypy.config.get("database_name")
+        except Exception:
+            database_name = "blob.db"
+        
     @cherrypy.expose
     def default(self, attr):
         """
@@ -117,7 +131,6 @@ class   Blobs(object):
         """
         data = {}
         res = use_web_service('/demos_ws', data)
-
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
@@ -264,12 +277,9 @@ class   Blobs(object):
         dic["list_demos"] = {}
         try:
             dic["list_demos"] = data.list_of_demos()
-            #jak
-            #dic["return"] = "OK"
             dic["status"] = "OK"
         except DatabaseError as error:
             print_exception_function(error, "Cannot have the list of demos")
-            #dic["return"] = "KO"
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -441,40 +451,6 @@ class   Blobs(object):
         self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
 
         return self.get_blobs_of_demo(demo_id)
-
-    #@cherrypy.expose
-    #@cherrypy.tools.accept(media="application/json")
-    #def delete_blobset_ws(self, demo_id, blobset):
-        #"""
-        #This functions implements web service associated to '/delete_blob'
-        #Delete blob from demo name and hash blob in database
-
-        #:param demo_id: id demo
-        #:type demo_id: integer
-        #:param blobset: id blob
-        #:type blobset: string
-        #return: name of the blob if it is not associated to demo and
-        #"OK" if not error else "KO"
-        #:rtype: dictionnary
-        #"""
-        #data = instance_database()
-        #dic = {}
-        #dic["delete"] = ""
-        #try:
-            #blob_name = data.get_blob_filename(blob_id)
-            #value_return = data.delete_blobset_from_demo(demo_id, blobset)
-            #data.commit()
-
-            #if not value_return:
-                #dic["delete"] = blob_name
-            #dic["return"] = "OK"
-
-        #except DatabaseError as error:
-            #print_exception_function(error, "Cannot delete item in database")
-            #data.rollback()
-            #dic["return"] = "KO"
-
-        #return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -1235,7 +1211,7 @@ def instance_database():
     :rtype: Database object
     """
     try:
-        data = Database("blob.db")
+        data = Database(database_dir, database_name)
         return data
     except DatabaseError as error:
         print_exception_function(error,

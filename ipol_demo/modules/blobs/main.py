@@ -50,7 +50,7 @@ if __name__ == '__main__':
     }
 
     cherrypy.config.update(CONF)
-
+    
     APP = cherrypy.tree.mount(Blobs(), '/', CONF)
     APP.merge(CONF_FILE)
 
