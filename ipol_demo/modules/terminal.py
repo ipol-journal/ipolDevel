@@ -155,7 +155,7 @@ class Terminal(object):
             if status == "OK":
                 print module + " shut down."
             else:
-                print module + " : JSON response is KO when makes a ping"
+                print module + " : JSON response is KO when shutdowning the module"
 
         except IOError:
             print module + " : stop : service unreachable."
