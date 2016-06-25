@@ -19,6 +19,7 @@ This script implements a terminal for controlling the IPOL system modules.
 import os
 import subprocess
 import urllib
+import json
 import xml.etree.ElementTree as ET
 
 class Terminal(object):
@@ -74,15 +75,16 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print "Welcome to IPOL control terminal !"
+        print "Welcome to IPOL control terminal!\n"
         for key, value in self.dict_modules.items():
             try:
-                urllib.urlopen(value["url"] + "ping")
-                print key + " module running."
+                list_tmp = [key,]
+                self.ping_module(list_tmp)
                 modules_up = True
             except IOError:
                 pass
-
+        
+        print "\n"
         if not modules_up:
             print "No modules running."
 
@@ -115,11 +117,17 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            urllib.urlopen(self.dict_modules[module]["url"]
-                           + "ping")
-            print module + " : Module active, it says pong!"
+	    json_response = urllib.urlopen(self.dict_modules[module]["url"] + "ping").read()
+            response = json.loads(json_response)
+            status = response['status']
+            
+            if status == "OK":
+                print module + " : Module active, it says pong!"
+            else:
+                print module + " : JSON response is KO when makes a ping"
+        
         except IOError:
-            print module + " : Module unresponsive."
+            print module + " : Module unresponsive. The terminal could not connect with " + self.dict_modules[module]["url"] 
 
 
     def ping_all(self, _dummy):
@@ -140,9 +148,15 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            urllib.urlopen(self.dict_modules[module]["url"]
-                           + "shutdown")
-            print module + " shut down."
+            json_response = urllib.urlopen(self.dict_modules[module]["url"] +  + "shutdown").read()
+            response = json.loads(json_response)
+            status = response['status']
+            
+            if status == "OK":
+                print module + " shut down."
+            else:
+                print module + " : JSON response is KO when makes a ping"
+
         except IOError:
             print module + " : stop : service unreachable."
 
