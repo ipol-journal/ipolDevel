@@ -279,8 +279,6 @@ var DrawResults = function( //demo_id,key,
             res += label;
         }
         
-        var index = 0;
-        
         // TODO: check what variable needs the style and remove its angular code
         res += '<div id=result_' + id + ' style="height:auto">';
         res += '</div><br/>';
@@ -290,11 +288,9 @@ var DrawResults = function( //demo_id,key,
     
     //--------------------------------------------------------------------------
     this.Gallery_new_events = function(res_desc,id) {
-        var index = 0;
         var contents = res_desc.contents;
         var new_contents = {};
         jQuery.each( contents, function( label, image ) {
-            index++;
             // check label condition
             var label_condition=this.CheckLabelCondition(label);
             if (label_condition) {
@@ -356,7 +352,6 @@ var DrawResults = function( //demo_id,key,
 
     //--------------------------------------------------------------------------
     this.RepeatGallery_new_events = function(res_desc, id ) {
-        var index = 0;
         var contents = res_desc.contents;
         var new_contents = {};
 
