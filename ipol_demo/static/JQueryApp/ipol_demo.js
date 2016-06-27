@@ -463,11 +463,7 @@ function SetLegendFolding( selector) {
 //
 
 function DocumentReady() {
-    
-//     console.info($(window).width());
-//     console.info($(document).width()); 
-//     console.info(window.screen.width);
-    
+
     // be sure to have string function endsWith
     if (typeof String.prototype.endsWith !== 'function') {
         String.prototype.endsWith = function(suffix) {
@@ -476,8 +472,17 @@ function DocumentReady() {
     }
 
     $("#tabs").tabs({
-            activate: function(event, ui) {
-                var active = $('#tabs').tabs('option', 'active');
+            // update archive tab when selected
+            beforeActivate: function(event, ui) {
+                if (ui.newPanel.is("#tabs-archive")) {
+                    var ar = new ArchiveDisplay();
+                    // we need the demo_id here
+                    var demo_list = $("#demo-select").data("demo_list");
+                    if (demo_list) {
+                        var pos =$( "#demo-select option:selected" ).val();
+                        ar.get_archive(demo_list[pos].editorsdemoid,1);
+                    }
+                }
             }
         }
 
