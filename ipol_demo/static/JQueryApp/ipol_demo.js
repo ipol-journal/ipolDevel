@@ -366,7 +366,8 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 
                 // Display archive information
                 var ar = new ArchiveDisplay();
-                ar.get_archive(demo_id,1);
+                // get and display the last archive page
+                ar.get_archive(demo_id,-1);
 
                 if (demo_ddl.status == "OK") {
                     switch(origin) {
@@ -480,7 +481,8 @@ function DocumentReady() {
                     var demo_list = $("#demo-select").data("demo_list");
                     if (demo_list) {
                         var pos =$( "#demo-select option:selected" ).val();
-                        ar.get_archive(demo_list[pos].editorsdemoid,1);
+                        // get and display the last archive page
+                        ar.get_archive(demo_list[pos].editorsdemoid,-1);
                     }
                 }
             }
