@@ -13,9 +13,6 @@
 "use strict";
 
 
-    
-
-
 //------------------------------------------------------------------------------
 var ArchiveDisplay = function()
 {
@@ -154,8 +151,13 @@ var ArchiveDisplay = function()
         var first_date              = meta_info["first_date_of_an_experiment"];
         var nb_pages                = meta_info["number_of_pages"];
         
-        if (page_number<1)         { page_number=1;}
-        if (page_number>nb_pages)  { page_number=nb_pages;}
+        if (page_number===undefined) {
+            page_number = nb_pages;
+        }
+        // the last page is displayed if the page_number is out of range
+        if ((page_number<1)||(page_number>nb_pages))  { 
+            page_number=nb_pages;
+        }
         this.current_page=page_number;
         
         var nb_experiments_per_page = meta_info["number_of_experiments_in_a_page"];
@@ -236,6 +238,8 @@ var ArchiveDisplay = function()
     }
         
     //--------------------------------------------------------------------------
+    // Gets and displays archive contents for the given demo and page number 
+    // if the page number is undefined, the last page is displayed
     this.get_archive = function(demo_id,page_number) {
         
         var url_params =    'demo_id='    + demo_id + '&page='+page_number;
