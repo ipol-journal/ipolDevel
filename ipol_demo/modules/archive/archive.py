@@ -586,6 +586,8 @@ class Archive(object):
                 """
                 This function return a JSON string with all the informations needed
                         to build the given page for the given demo.
+                        if the page number is not in the range [1,number_of_pages],
+                        the last page is used
                 :return: JSON string
                 :rtype: string
                 """
