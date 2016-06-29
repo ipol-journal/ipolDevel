@@ -163,7 +163,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @cherrypy.tools.json_out()
     def add_blob_ws(self, demo_id, path, tag, ext, blob_set, blob_pos_in_set,
                     title, credit):
         """
@@ -184,6 +183,7 @@ class   Blobs(object):
         print "*********************"
         print "*********************"
         print "add_blob_ws"
+        cherrypy.response.headers['Content-Type'] = "application/json"
 
         blob_hash = get_hash_blob(path)
         print blob_hash
@@ -1178,7 +1178,6 @@ def create_tmp_file(blob, path):
         shutil.copyfileobj(blob.file, the_file)
     return filename
 
-@cherrypy.tools.accept(media='application/json')
 def use_web_service(req, data):
     """
     Call get function with urllib2
