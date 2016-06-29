@@ -1,23 +1,30 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_blobs.js
-// date: march 2016
-// author: Karl Krissian
-//
-// description:
-// this file contains the code that renders and deals with the demo blobs
-// associated with ipol_demo.html and ipol_demo.js
-//
+/**
+ * @file 
+ * this file contains the code that renders and deals with the demo blobs
+ * associated with ipol_demo.html and ipol_demo.js
+ * @author  Karl Krissian
+ * @version 0.1
+ */
+
 
 "use strict";
 
 //------------------------------------------------------------------------------
+/**
+ * Display proposed demo blobs
+ * @constructor
+ * @param demoblobs {object} object containing the list of demo blobs
+ * @param ddl_json  {object} DDL description of the demo
+ */
 var BlobsContainer = function(demoblobs, ddl_json)
 {
 
     //--------------------------------------------------------------------------
+    /**
+     * Displays message in console if verbose is true
+     * @function InfoMessage
+     * @memberOf BlobsContainer~
+     */
     this.InfoMessage = function( ) {
         if (this.verbose) {
             var args = [].slice.call( arguments ); //Convert to array
@@ -26,6 +33,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
         }
     }
     
+    /** @member {boolean} display information in browser console */
     this.verbose=true;
     this.InfoMessage(" BlobsContainer started ");
     this.verbose=false;
@@ -35,6 +43,12 @@ var BlobsContainer = function(demoblobs, ddl_json)
 
         
     //--------------------------------------------------------------------------
+    /**
+     * Appends blobs to the demo blobs
+     * @function append_blobs
+     * @memberOf BlobsContainer~
+     * @param {object} db result from asking blob template 
+     */
     this.append_blobs = function(db) {
         this.InfoMessage("append_blobs ", this.demoblobs, " -- ", db);
         this.demoblobs.blobs = this.demoblobs.blobs.concat(db.blobs);
@@ -42,12 +56,17 @@ var BlobsContainer = function(demoblobs, ddl_json)
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Displays demo blobs
+     * @function UpdateDemoBlobs
+     * @memberOf BlobsContainer~
+     */
     this.UpdateDemoBlobs = function() {
 
         this.InfoMessage("demoblobs.blobs.length=",this.demoblobs.blobs.length);
         
         var str = JSON.stringify(this.demoblobs, undefined, 4);
-//         $("#tabs-blobs pre").html(syntaxHighlight(str));
+//         $("#tabs-blobs pre").html(ipol_utils.syntaxHighlight(str));
 
         this.PreprocessDemo();
         this.DrawDemoBlobs();
@@ -58,6 +77,12 @@ var BlobsContainer = function(demoblobs, ddl_json)
     }
         
     //--------------------------------------------------------------------------
+    /**
+     * Pre-processes the demo information, sets each blobset html_params
+     * value containing the links of all the blob urls in the blobset
+     * @function PreprocessDemo
+     * @memberOf BlobsContainer~
+     */
     this.PreprocessDemo = function() {
         
         var blobs = this.demoblobs.blobs;
@@ -88,7 +113,7 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     }
                 }
                 current_id = blobset_contents[idx].id_in_set;
-                blobset[0].html_params += blobhash_subdir(blobset_contents[idx].hash) + 
+                blobset[0].html_params += ipol_utils.blobhash_subdir(blobset_contents[idx].hash) + 
                     blobset_contents[idx].hash + blobset_contents[idx].extension;
             }
         }
@@ -144,8 +169,9 @@ var BlobsContainer = function(demoblobs, ddl_json)
                              +  '   style=" max-width:'  +(thumbnail_size-6)+'px;'
                              +  '           max-height:' +(thumbnail_size-6)+'px;'
                              +  '           vertical-align:middle; margin:3px"'
-                             +  '   src="'+this.demoblobs.url_thumb+'/'+blobhash_subdir(blobset[idx].hash)+
-                                    'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
+                             +  '   src="'+this.demoblobs.url_thumb+'/'
+                             +  ipol_utils.blobhash_subdir(blobset[idx].hash)
+                             + 'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
                              +  '   alt='   +blobset[idx].title
                              +  '   title="'+blobset[idx].title+
                                     ' (credits: '+blobset[idx].credit+
@@ -231,7 +257,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                 // check if thumbnail load works, if not, hide the corresponding
                 // image
                 var tester=new Image();
-                tester.src=this.demoblobs.url_thumb+'/'+blobhash_subdir(blobset[idx].hash)+
+                tester.src= this.demoblobs.url_thumb+'/'+
+                            ipol_utils.blobhash_subdir(blobset[idx].hash)+
                             'thumbnail_'+blobset[idx].hash+blobset[idx].extension;
                 tester.onload = function(obj) { return function() {
 //                     obj.InfoMessage("start ",i);
@@ -295,7 +322,7 @@ function OnDemoBlobs(ddl_json) {
             // get template blobs
             var template_name = demoblobs.use_template.name;
             console.info("*** getting template")
-            ModuleService(
+            ipol_utils.ModuleService(
                 "blobs",
                 "get_blobs_from_template_ws",
                 "template="+template_name,

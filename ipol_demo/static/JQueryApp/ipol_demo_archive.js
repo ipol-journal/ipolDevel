@@ -243,7 +243,7 @@ var ArchiveDisplay = function()
     this.get_archive = function(demo_id,page_number) {
         
         var url_params =    'demo_id='    + demo_id + '&page='+page_number;
-        ModuleService("archive","get_page",url_params,
+        ipol_utils.ModuleService("archive","get_page",url_params,
             function(res) {
                 this.InfoMessage("archive result : ",res);
                 if (res['status']==='OK') {
