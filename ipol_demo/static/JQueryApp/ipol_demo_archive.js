@@ -1,24 +1,29 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_blobs.js
-// date: may 2016
-//
-// description:
-// this file contains the code that renders and deals with the demo archives
-// associated with ipol_demo.html and ipol_demo.js
-//
+/**
+ * @file 
+ * this file contains the code that renders and deals with the demo archives
+ * associated with ipol_demo.html and ipol_demo.js
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 "use strict";
 
-
 //------------------------------------------------------------------------------
+/**
+ * Display demo archives
+ * @constructor
+ */
 var ArchiveDisplay = function()
 {
     
     this.verbose=false;
+    
     //--------------------------------------------------------------------------
+    /**
+     * Displays message in console if verbose is true
+     * @function InfoMessage
+     * @memberOf ArchiveDisplay~
+     */
     this.InfoMessage = function( ) {
         if (this.verbose) {
             var args = [].slice.call( arguments ); //Convert to array
@@ -28,25 +33,44 @@ var ArchiveDisplay = function()
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Adds the links to the different archive pages
+     * @function ArchivePages
+     * @memberOf ArchiveDisplay~
+     * @param   {object} res
+     * @returns {string} HTML code to display the page links
+     */
     this.ArchivePages = function(res) {
         var html = "pages ";
         for(var p=1;p<=res.meta.number_of_pages;p++)
         {
             html += "<span class=set_page_"+p+">"+p+"</span>&nbsp;";
         }
-//         html += '<p>';
-// // <%include file="archive_pages.html" />
-//         html += '</p>';
         return html;
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * converts the object to a string that can be used in url params
+     * @function json2uri
+     * @memberOf ArchiveDisplay~
+     * @param   {object} json input json object
+     * @returns {string} string representing the json object
+     */
     this.json2uri = function(json) {
-            return encodeURIComponent(JSON.stringify(json));
+        return encodeURIComponent(JSON.stringify(json));
     }
         
     //--------------------------------------------------------------------------
-    this.OneArchive = function(demo_id,exp,meta_info) {
+    /**
+     * converts the object to a string that can be used in url params
+     * @function OneArchive
+     * @memberOf ArchiveDisplay~
+     * @param   {number} demo_id    demo id
+     * @param   {object} exp        experiment information
+     * @returns {string} HTML code to display one archive experiment
+     */
+    this.OneArchive = function(demo_id,exp) {
         var html = "";
         html += '<div class="bucket" >';
         //style="display:inline-block;vertical-align: top;">';
@@ -135,18 +159,27 @@ var ArchiveDisplay = function()
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Create the HTML code for the current page
+     * @function CreateCurrentPage
+     * @memberOf ArchiveDisplay~
+     * @param   {object} res          result object obtained from archive module
+     * @param   {number} demo_id      demo id
+     * @param   {number} page_number  page number to display
+     * @returns {string} HTML code to display the current archive page
+     */
     this.CreateCurrentPage = function(res,demo_id,page_number) {
         
         var meta_info       = res["meta"];
         var nb_experiments  = meta_info["number_of_experiments"];
             
-//             if number_of_experiments == '0': 
-//                 #Empty list. No experiments in the archive
-//                 archive_experiments = []
-//                 return self.tmpl_out("archive_index.html", archive_list=archive_experiments, page=0, 
-//                                      number_of_experiments=0, nbpage=0,first_date='never')           
-/*            
-            else:*/
+        //             if number_of_experiments == '0': 
+        //                 #Empty list. No experiments in the archive
+        //                 archive_experiments = []
+        //                 return self.tmpl_out("archive_index.html", archive_list=archive_experiments, page=0, 
+        //                                      number_of_experiments=0, nbpage=0,first_date='never')           
+        /*            
+                    else:*/
                 
         var first_date              = meta_info["first_date_of_an_experiment"];
         var nb_pages                = meta_info["number_of_pages"];
@@ -194,7 +227,7 @@ var ArchiveDisplay = function()
         html += '<hr class="clear">';
         $.each(res.experiments, 
                function(index,exp) {
-                    html += this.OneArchive(demo_id,exp, meta_info);
+                    html += this.OneArchive(demo_id,exp);
                }.bind(this));
 
         html += html_pages;
@@ -205,6 +238,13 @@ var ArchiveDisplay = function()
 
 
     //--------------------------------------------------------------------------
+    /**
+     * Create the page events
+     * @function CreatePageEvents
+     * @memberOf ArchiveDisplay~
+     * @param   {number} demo_id      demo id
+     * @param   {object} res          result object obtained from archive module
+     */
     this.CreatePageEvents = function(demo_id,res) {
         var meta_info = res["meta"];
         var nb_pages  = meta_info["number_of_pages"];
@@ -226,20 +266,28 @@ var ArchiveDisplay = function()
             );
         }
         
-//         // $( "#ReloadArchive" ).unbind("click");
-//         $("#ReloadArchive").button().on("click", 
-//             function(obj,demoid) { 
-//                 return function() 
-//                 { 
-//                     obj.get_archive(demoid,this.current_page);
-//                 }
-//             } (this,demo_id)
-//         );
+        // commented reload button
+        // // $( "#ReloadArchive" ).unbind("click");
+        // $("#ReloadArchive").button().on("click", 
+        //             function(obj,demoid) { 
+        //                 return function() 
+        //                 { 
+        //                     obj.get_archive(demoid,this.current_page);
+        //                 }
+        //             } (this,demo_id)
+        // );
     }
         
     //--------------------------------------------------------------------------
-    // Gets and displays archive contents for the given demo and page number 
-    // if the page number is undefined, the last page is displayed
+    /**
+     * Gets and displays archive contents for the given demo and page number 
+     * if the page number is undefined or out of range, 
+     * the last page is displayed.
+     * @function get_archive
+     * @memberOf ArchiveDisplay~
+     * @param   {number} demo_id      demo id
+     * @param   {number} page_number  page number
+     */
     this.get_archive = function(demo_id,page_number) {
         
         var url_params =    'demo_id='    + demo_id + '&page='+page_number;
@@ -253,21 +301,21 @@ var ArchiveDisplay = function()
                 }
             }.bind(this));
     }
-
-  
 }
 
 
 //------------------------------------------------------------------------------
-// static method of ArchiveDisplay class
-// search and returns the url in archive of a given result filename
-// if not found returns undefined
-//
-// parameters:
-//    filename string:              the filename to search for
-//    ddl_archive_files object: the ddl part of the archive
-//    experiement_files object: the archive experiment file section
-//
+/**
+ * search and returns the url in archive of a given result filename
+ * if not found returns undefined
+ * @function find_archive_url
+ * @memberOf ArchiveDisplay
+ * @static
+ * @param {string}    filename          filename to seach for in archive experiment
+ * @param {object}    ddl_archive_files  list of archive files and their descriptions
+ * @param {object[]}  experiment_files   array containing the experiment files
+ * @returns {string} url of the found file or undefined
+ */
 ArchiveDisplay.find_archive_url = function(filename,ddl_archive_files,experiment_files) {
     var archive_input_description = ddl_archive_files[filename];
     if (archive_input_description) {

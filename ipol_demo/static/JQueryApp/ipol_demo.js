@@ -1,6 +1,6 @@
 /**
  * @file this file contains the DocumentReady() function,
-  and deals with the initial interactions of the main page: enable page tabu-lations,
+  and deals with the initial interactions of the main page: enable page tabulations,
   set events for several buttons, set events for input description and parameters
   description modal windows, for upload modal window, set event for browser history,
   list available demos and create the demo selection. It deals with
@@ -609,7 +609,7 @@ function DocumentReady() {
             // Log the State
             var State = History.getState(); 
             // Note: We are using History.getState() instead of event.state
-            SetPageState(State.data);
+            ipol_history.SetPageState(State.data);
         });
 
 }

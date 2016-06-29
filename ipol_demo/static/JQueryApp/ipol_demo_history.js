@@ -1,25 +1,34 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_history.js
-// date: june 2016
-// author: Karl Krissian
-//
-// description:
-// deal with browser history, move back and forward, etc...
-//
+/**
+ * @file 
+ * deal with browser history, move back and forward, etc...
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 // using strict mode: better compatibility
 "use strict";
 
+/**
+ * utilities
+ * @namespace
+ */
+var ipol_history = {};
 
 //------------------------------------------------------------------------------
-// SetPageState
-//
-function SetPageState( page_state) {
+/**
+ * Set page contents based on its state (obtained from browser history)
+ * @param {object} page_state
+ */
+ipol_history.SetPageState = function( page_state) {
 
     //--------------------------------------------------------------------------
+    /**
+     * Set the demo id: changes the selection and the page contents accordingly
+     * @param demo_id     {number}
+     * @param onpage_func {callback}
+     * @function SetPageDemo
+     * @memberOf SetPageState
+     */
     function SetPageDemo(demo_id, onpage_func) {
         if (demo_id===undefined) {
             return;
@@ -52,6 +61,16 @@ function SetPageState( page_state) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Set the demo inputs
+     * @param blobset       {object}  blob set to display (can be undefined)
+     * @param upload_state  {object}  upload state (can be undefined)
+     * @param ddl_json      {object}  DDL object 
+     * @param params        {object}  algorithm parameters
+     * @param crop_checked  {boolean} if crop is checked
+     * @function SetInputsState
+     * @memberOf SetPageState
+     */
     function SetInputsState(blobset,upload_state, ddl_json,params,crop_checked) {
         var di = $("#DrawInputs").data("draw_inputs");
         var crop_area = {   
@@ -164,12 +183,26 @@ function SetPageState( page_state) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Set the parameters values
+     * @param params        {object}  algorithm parameters
+     * @function SetParamsState
+     * @memberOf SetPageState
+     */
     function SetParamsState(params) {
         // update parameters
         SetParamValues(params);
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Displays the results
+     * @param res         {object}  result object
+     * @param ddl_results {object}  results section of the DDL
+     * @param scrolltop   {object}  algorithm parameters
+     * @function SetResultsState
+     * @memberOf SetPageState
+     */
     function SetResultsState(res,ddl_results,scrolltop) {
         // draw results
         // trick to avoid flickering, set big height to

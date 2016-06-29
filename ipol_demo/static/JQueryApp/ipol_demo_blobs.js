@@ -33,7 +33,12 @@ var BlobsContainer = function(demoblobs, ddl_json)
         }
     }
     
-    /** @member {boolean} display information in browser console */
+    /** 
+     * Enable/Disable display of (tracing/debugging) 
+     * information in browser console.S
+     * @var {boolean} verbose
+     * @memberOf BlobsContainer~
+     */
     this.verbose=true;
     this.InfoMessage(" BlobsContainer started ");
     this.verbose=false;
@@ -121,6 +126,11 @@ var BlobsContainer = function(demoblobs, ddl_json)
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Displays demo blobs and create events
+     * @function DrawDemoBlobs
+     * @memberOf BlobsContainer~
+     */
     this.DrawDemoBlobs = function() {
         this.InfoMessage("DrawDemoBlobs");
         $("#displayblobs").html(this.CreateBlobSetDisplay());
@@ -128,6 +138,12 @@ var BlobsContainer = function(demoblobs, ddl_json)
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Displays demo blobs and create events
+     * @function CreateBlobSetDisplay
+     * @memberOf BlobsContainer~
+     * @returns {string} the HTML code to display the blobsets
+     */
     this.CreateBlobSetDisplay = function()
     {
         var blobsets_html = "";
@@ -208,6 +224,11 @@ var BlobsContainer = function(demoblobs, ddl_json)
 
     
     //--------------------------------------------------------------------------
+    /**
+     * Create demo blobs events
+     * @function DemoBlobsEvents
+     * @memberOf BlobsContainer~
+     */
     this.DemoBlobsEvents = function() {
         var blobs = this.demoblobs.blobs;
         
@@ -292,15 +313,16 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     }
                 }; }(this,i,idx);
             } 
-
-            
         }
-        
     }
 };
 
 //------------------------------------------------------------------------------
-// function called when receiving the list of demo blobs for user selection
+/**
+ * function called when receiving the list of demo blobs for user selection
+ * @param ddl_json {object} demo description object DDL
+ * @returns {callback} returns the function that deals with the returned blobs
+ */
 function OnDemoBlobs(ddl_json) {
     return function (demoblobs) {
         
