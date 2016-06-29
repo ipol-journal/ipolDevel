@@ -1,3 +1,20 @@
+/**
+ * @file this file contains the DocumentReady() function,
+  and deals with the initial interactions of the main page: enable page tabu-lations,
+  set events for several buttons, set events for input description and parameters
+  description modal windows, for upload modal window, set event for browser history,
+  list available demos and create the demo selection. It deals with
+  the demo selection in the function 'Input-Controller'. It calls methods or classes
+  from other files to display the demo page: input blobs, descriptions, parameters,
+  archive information. 
+  The demo can be selected
+  from three different inputs (demo_origin enumeration): user widget selection,
+  url or browser history. The function 'Set-Archive-Experiment' sets the demo
+  page information based on an archive experiment, it is called if the url parameters
+  contain an experiment id together with the demo id.
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 // using strict mode: better compatibility
 "use strict";
@@ -5,18 +22,20 @@
 
 
 //------------------------------------------------------------------------------
-// preprocess DDL demo, filling some properties:
-//   input.max_pixels if string
-//   input.max_weight if string
-// default values for:
-//   general.crop_maxsize
-//   general.thumbnail_size
-// set array of strings if single string for
-//   general.input_description
-//   general.param_description
-// default value for 
-//    params_layout
-// 
+/**
+ *    preprocess DDL demo, filling some properties:
+ *        input.max_pixels if string
+ *        input.max_weight if string
+ *    default values for:
+ *        general.crop_maxsize
+ *        general.thumbnail_size
+ *    set array of strings if single string for
+ *        general.input_description
+ *        general.param_description
+ *    default value for 
+ *        params_layout
+ * @param {object} demo
+ */
 function PreprocessDemo(demo) {
     //
 //     console.info("PreprocessDemo")
@@ -55,18 +74,17 @@ function PreprocessDemo(demo) {
     if (demo.params&&(demo.params_layout == undefined)) {
         if (demo.params!=undefined) {
             demo.params_layout = [
-                ["Parameters:", range(demo.params.length)]
+                ["Parameters:", ipol_utils.range(demo.params.length)]
             ];
         }
     }
 };
 
-
-
-
-
-
 //------------------------------------------------------------------------------
+/**
+ * Function called when the demo list is received
+ * @param {object} demolist returned by the demoinfo module
+ */
 function OnDemoList(demolist)
 {
     
@@ -83,7 +101,7 @@ function OnDemoList(demolist)
     var dl = demolist;
     if (dl.status == "OK") {
         var str = JSON.stringify(dl.demo_list, undefined, 4);
-//         $("#tabs-demos pre").html(syntaxHighlight(str))
+//         $("#tabs-demos pre").html(ipol_utils.syntaxHighlight(str))
         this.InfoMessage("demo list is ",dl);
     }
 
@@ -124,10 +142,10 @@ function OnDemoList(demolist)
     
     if (demo_pos!=-1) {
         $("#demo_selection").val(demo_pos);
-        InputController(dl.demo_list[demo_pos].editorsdemoid,
+        SetDemoPage(dl.demo_list[demo_pos].editorsdemoid,
                         dl.demo_list[demo_pos].id,
                         demo_origin.url
-                       );
+                    );
     }
 
     
@@ -135,40 +153,48 @@ function OnDemoList(demolist)
     $("#demo-select").change(
         function() {
             var pos =$( "#demo-select option:selected" ).val();
-            InputController(dl.demo_list[pos].editorsdemoid,
-                            dl.demo_list[pos].id,
-                            demo_origin.select_widget
-                           );
+            SetDemoPage(dl.demo_list[pos].editorsdemoid,
+                        dl.demo_list[pos].id,
+                        demo_origin.select_widget
+                        );
         });
-    
-
 };
 
 //------------------------------------------------------------------------------
-// List all demos and select one
-//
-function ListDemosController() {
-    
+/**
+ * List all demos and select one
+ */
+function ListDemos() {
 //     console.info("get demo list from server");
-    var dl;
-
-    ModuleService(
+    ipol_utils.ModuleService(
         'demoinfo',
         'demo_list',
         '',
         OnDemoList
     );
-    
-    
+};
+
+/**
+ * Enum for demo origin
+ * @readonly
+ * @enum {number}
+ */
+var demo_origin =  {  
+    /** demo selected from the webpage selector */
+    select_widget:0, 
+    /** demo specified in the url parameters */
+    url:1, 
+    /** demo obtained from using the browser history features */
+    browser_history:2
 };
 
 
-
-var demo_origin =  {  select_widget:0, url:1, browser_history:2};
-
-
 //------------------------------------------------------------------------------
-// set the demo page based on the archive experiment information
+/**
+ * set the demo page based on the archive experiment information
+ * @param {object} ddl_json demo description (DDL)
+ * @param {object} experiment contains the experiment files and results
+ */
 function SetArchiveExperiment(ddl_json, experiment) {
     
     // do as if data is being uploaded
@@ -258,10 +284,14 @@ function SetArchiveExperiment(ddl_json, experiment) {
 }
 
 //------------------------------------------------------------------------------
-// Starts everything needed for demo input tab
-// origin is of enum type demo_origin
-//
-function InputController(demo_id,internal_demoid,origin,func) {
+/**
+ * Starts everything needed for demo input tab
+ * @param {number} demo_id the demo id
+ * @param {number} internal_demoid the internal demo id for demoinfo module
+ * @param {number} origin of enum type demo_origin
+ * @param {callback} func
+ */
+function SetDemoPage(demo_id,internal_demoid,origin,func) {
     
     if (origin===undefined) {
         origin=demo_origin.select_widget;
@@ -269,7 +299,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
 
 //     console.info("internal demo id = ", internal_demoid);
     if (internal_demoid > 0) {
-        ModuleService(
+        ipol_utils.ModuleService(
             'demoinfo',
             'read_last_demodescription_from_demo',
             'demo_id=' + internal_demoid + '&returnjsons=True',
@@ -285,9 +315,9 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 $("#ResultsDisplay").removeData();
                 
                 if (demo_ddl.status == "OK") {
-                    var ddl_json = DeserializeJSON(demo_ddl.last_demodescription.json);
+                    var ddl_json = ipol_utils.DeserializeJSON(demo_ddl.last_demodescription.json);
                     var str = JSON.stringify(ddl_json, undefined, 4);
-                    $("#tabs-ddl pre").html(syntaxHighlight(str));
+                    $("#tabs-ddl pre").html(ipol_utils.syntaxHighlight(str));
                 } else {
                     console.error(" --- failed to read DDL");
                 }
@@ -335,7 +365,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                         (ddl_json.general.input_description != "")&&
                         (ddl_json.general.input_description != [""]))
                     {
-                        $("#InputDescription").html(joinHtml(ddl_json.general.input_description));
+                        $("#InputDescription").html(ipol_utils.joinHtml(ddl_json.general.input_description));
                         $("#description_input").show();
                     } else {
                         $("#description_input").hide();
@@ -358,7 +388,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                 CreateParams(ddl_json);
 
                 // Get demo blobs
-                ModuleService(
+                ipol_utils.ModuleService(
                     "blobs",
                     "get_blobs_of_demo_by_name_ws",
                     "demo_name=" + demo_id,
@@ -412,7 +442,7 @@ function InputController(demo_id,internal_demoid,origin,func) {
                                 console.info("demo experiment = ", exp_id);
                                 // ask archive about this experiment
                                 var url_params =    'demo_id='    + demo_id + '&id_experiment='+exp_id;
-                                ModuleService("archive","get_experiment",url_params,
+                                ipol_utils.ModuleService("archive","get_experiment",url_params,
                                     function(res) {
                                         console.info("archive get_experiment result : ",res);
                                         if (res['status']==='OK') {
@@ -441,8 +471,10 @@ function InputController(demo_id,internal_demoid,origin,func) {
     
 
 //------------------------------------------------------------------------------
-// allow folding/unfolding of legends
-//
+/**
+ * allow folding/unfolding of legends
+ * @param selector
+ */
 function SetLegendFolding( selector) {
     
     // Set cursor to pointer and add click function
@@ -460,9 +492,9 @@ function SetLegendFolding( selector) {
 
     
 //------------------------------------------------------------------------------
-// Starts processing when document is ready
-//
-
+/**
+ * Starts processing when document is ready
+ */
 function DocumentReady() {
 
     // be sure to have string function endsWith
@@ -566,7 +598,7 @@ function DocumentReady() {
             dialog.dialog("open");
         });
 
-    ListDemosController();
+    ListDemos();
 
     var History = window.History;
     // Bind to State Change
