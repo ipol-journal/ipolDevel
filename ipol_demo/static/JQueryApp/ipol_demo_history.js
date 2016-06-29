@@ -41,10 +41,10 @@ function SetPageState( page_state) {
             // don't trigger change since it will push a new history state,
             // instead, execute the change as if the url was loaded
             // which means we draw parameters and results too
-            InputController(demo_list[demo_position].editorsdemoid,
-                            demo_list[demo_position].id,
-                            demo_origin.browser_history,
-                            onpage_func
+            SetDemoPage(demo_list[demo_position].editorsdemoid,
+                        demo_list[demo_position].id,
+                        demo_origin.browser_history,
+                        onpage_func
                         );
         } else {
             onpage_func();
@@ -62,7 +62,7 @@ function SetPageState( page_state) {
         };
         console.info("1 di=",di);
         // recreate only if it has changed:
-        if ((!di)||(!objectEquals(ddl_json,di.ddl_json))) {
+        if ((!di)||(!ipol_utils.objectEquals(ddl_json,di.ddl_json))) {
             if (di) { console.info("2", ddl_json, " != ",di.ddl_json); }
             di = new DrawInputs(ddl_json);
             // just in case, be sure nothing is on upload page
@@ -70,7 +70,7 @@ function SetPageState( page_state) {
         }
         if (blobset) {
             console.info("3");
-            if (!objectEquals(blobset,di.GetBlobSet())) {
+            if (!ipol_utils.objectEquals(blobset,di.GetBlobSet())) {
                 console.info("4 ",blobset,' != ', di.GetBlobSet());
                 di.SetBlobSet(blobset);
                 di.input_origin = "blobset";

@@ -808,7 +808,7 @@ var DrawInputs = function(ddl_json) {
                     "&ddl_json="+this.json2uri(ddl_json_parts)+
                     "&params=" +this.json2uri(params)+
                     "&meta=" +this.json2uri(meta);
-        ModuleService("demorunner","run_demo",url_params,
+        ipol_utils.ModuleService("demorunner","run_demo",url_params,
             function(run_demo_res) {
                 this.ResultProgress(run_demo_res);
                 if ((run_demo_res.status==="KO")&&
@@ -854,7 +854,7 @@ var DrawInputs = function(ddl_json) {
                     var url_params =    'demo_id='    + this.ddl_json.demo_id + 
                                         "&blobs="     + this.json2uri(run_demo_res.archive_blobs) + 
                                         "&parameters="+ this.json2uri(run_demo_res.archive_params);
-                    ModuleService("archive","add_experiment",url_params,
+                    ipol_utils.ModuleService("archive","add_experiment",url_params,
                                   function(archive_res) {
                                       console.info("archive add_experiment archive_res=",archive_res);
                                   });
@@ -881,7 +881,7 @@ var DrawInputs = function(ddl_json) {
             var url_params =   "demo_id="+this.ddl_json.demo_id+
                             "&ddl_build="+this.json2uri(this.ddl_json.build);
             // code to be executed on click
-            ModuleService("demorunner","init_demo", url_params,
+            ipol_utils.ModuleService("demorunner","init_demo", url_params,
             function(res) {
                 console.info("init_demo res=", res);
                 if (res.status==="KO") {
@@ -905,7 +905,7 @@ var DrawInputs = function(ddl_json) {
                                     "&ddl_inputs="+this.json2uri(this.ddl_json.inputs)+
                                     "&"+this.blobset[0].html_params+
                                     "&crop_info="+this.json2uri(this.crop_info)
-                            ModuleService("demorunner","input_select_and_crop",url_params,
+                            ipol_utils.ModuleService("demorunner","input_select_and_crop",url_params,
                                                 this.RunDemo.bind(this)
                             ); // end input_select_and_crop
                             break;
@@ -976,7 +976,7 @@ var DrawInputs = function(ddl_json) {
                             // crop at the same time
                             this.progress_info = "initialize with no inputs";
                             url_params= "demo_id="+this.ddl_json.demo_id
-                            ModuleService("demorunner","init_noinputs",url_params,
+                            ipol_utils.ModuleService("demorunner","init_noinputs",url_params,
                                                 this.RunDemo.bind(this)
                             ); // end input_select_and_crop
                             break;

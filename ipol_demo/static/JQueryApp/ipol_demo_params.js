@@ -18,7 +18,7 @@
 function AddLabel(param) {
     var html = "";
     html += '<td style="border:0px;max-width:25em">';
-    html += '<label>'+joinHtml(param.label)+'</label>';
+    html += '<label>'+ipol_utils.joinHtml(param.label)+'</label>';
     html += '</td>';
     return html;
 }
@@ -28,7 +28,7 @@ function AddComments(param) {
     var html = "";
     if (param.comments!=undefined) {
         html += '<td   style="border:0px;max-width:25em">';
-        html += '<label>'+joinHtml(param.comments)+'</label>';
+        html += '<label>'+ipol_utils.joinHtml(param.comments)+'</label>';
         html += '</td>';
     }
     return html;
@@ -393,7 +393,7 @@ function CreateCheckBoxes(param) {
 //------------------------------------------------------------------------------
 function CreateParams(ddl_json) {
     
-    $("#ParamDescription").html(joinHtml(ddl_json.general.param_description));
+    $("#ParamDescription").html(ipol_utils.joinHtml(ddl_json.general.param_description));
     
     var params_html = "";
     if ((ddl_json.params)&&(ddl_json.params.length>0)) {
