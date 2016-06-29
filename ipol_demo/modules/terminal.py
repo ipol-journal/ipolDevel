@@ -75,7 +75,7 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print "Welcome to IPOL control terminal!\n"
+        print "\nWelcome to IPOL control terminal!\n"
         for key, value in self.dict_modules.items():
             try:
                 list_tmp = [key,]
@@ -148,7 +148,7 @@ class Terminal(object):
 
         module = args_array[0]
         try:
-            json_response = urllib.urlopen(self.dict_modules[module]["url"] +  + "shutdown").read()
+            json_response = urllib.urlopen(self.dict_modules[module]["url"] + "shutdown").read()
             response = json.loads(json_response)
             status = response['status']
             
@@ -158,7 +158,7 @@ class Terminal(object):
                 print module + " : JSON response is KO when shutdowning the module"
 
         except IOError:
-            print module + " : stop : service unreachable."
+            print module + " : stop : service unreachable. The terminal could not connect with " + self.dict_modules[module]["url"] 
 
 
     def start_module(self, args_array):
