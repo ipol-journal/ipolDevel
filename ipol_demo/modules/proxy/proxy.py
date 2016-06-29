@@ -25,7 +25,6 @@ import os.path
 import urllib
 import xml.etree.ElementTree as ET
 
-#jak
 import requests
 
 class Proxy(object):
@@ -84,7 +83,7 @@ class Proxy(object):
         """
         Initialize the error logs of the module.
         """
-        logger = logging.getLogger("archive_log")
+        logger = logging.getLogger("proxy_log")
         logger.setLevel(logging.ERROR)
         handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
         formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -94,7 +93,7 @@ class Proxy(object):
 
     def error_log(self, function_name, error):
         """
-        Write an error log in the logs_dir defined in archive.conf
+        Write an error log in the logs_dir defined in proxy.conf
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
@@ -108,15 +107,15 @@ class Proxy(object):
         self.dict_modules = self.get_dict_modules()
     
     
-        @cherrypy.expose
-        def default(self, attr):
-            """
-            Default method invoked when asked for non-existing service.
-            """
-            data = {}
-            data["status"] = "KO"
-            data["message"] = "Unknown service '{}'".format(attr)
-            return json.dumps(data)
+    @cherrypy.expose
+    def default(self, attr):
+        """
+        Default method invoked when asked for non-existing service.
+        """
+        data = {}
+        data["status"] = "KO"
+        data["message"] = "Unknown service '{}'".format(attr)
+        return json.dumps(data)
 
 
 #####
@@ -208,7 +207,6 @@ class Proxy(object):
 
         # Request module for service
         try:
-            print self.dict_modules[module]["url"] + service + params
             call_service = urllib.urlopen(self.dict_modules[module]["url"] + service + params).read()
         except Exception as ex:
             error["code"] = -5
