@@ -35,14 +35,24 @@ var BlobsContainer = function(demoblobs, ddl_json)
     
     /** 
      * Enable/Disable display of (tracing/debugging) 
-     * information in browser console.S
+     * information in browser console.
      * @var {boolean} verbose
      * @memberOf BlobsContainer~
      */
     this.verbose=true;
     this.InfoMessage(" BlobsContainer started ");
     this.verbose=false;
+    /** 
+     * list of demo blobs.
+     * @var {object} demoblobs
+     * @memberOf BlobsContainer~
+     */
     this.demoblobs = demoblobs;
+    /** 
+     * Demo Description Language DDL information.
+     * @var {object} ddl_json
+     * @memberOf BlobsContainer~
+     */
     this.ddl_json  = ddl_json;
     this.InfoMessage("this.demoblobs : ", this.demoblobs);
 
