@@ -3,12 +3,12 @@
     "demo_title"            :  "Midway Image Equalization",
     "input_description"     : "Please select or upload the image pair to register.",
     "param_description"     : "",
-    "xlink_article"         : "http://www.ipol.im/pub/pre/140/"
+    "xlink_article"         : "http://www.ipol.im/pub/art/2016/140/"
   }, 
   "build": [
     {
       "build_type"    : "make",
-      "url"           : "http://www.ipol.im/pub/pre/140/midway.zip", 
+      "url"           : "http://www.ipol.im/pub/art/2016/140/midway.zip", 
       "srcdir"        : "src_ipol",
       "prepare_make"  : "sed -i -e 's/CXXFLAGS  =/CXXFLAGS  = -include cstring /g' Makefile; mkdir obj; mkdir bin",
       "binaries"      : [ [".","bin/midway"] ],
