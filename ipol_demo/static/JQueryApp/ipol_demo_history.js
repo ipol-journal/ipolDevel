@@ -199,7 +199,7 @@ ipol_history.SetPageState = function( page_state) {
      * Displays the results
      * @param res         {object}  result object
      * @param ddl_results {object}  results section of the DDL
-     * @param scrolltop   {object}  algorithm parameters
+     * @param scrolltop   {number}  scrolling position
      * @function SetResultsState
      * @memberOf SetPageState
      */
@@ -214,7 +214,7 @@ ipol_history.SetPageState = function( page_state) {
         dr.onloadall_callback = function() {
             // reset result display height to empty so it is automatic
             $("#ResultsDisplay").parent().css("height","")
-            $(window).scrollTop(page_state.scrolltop);
+            $(window).scrollTop(scrolltop);
             console.info("onloadall_callback scrolltop=",scrolltop);
             // disable it 
             console.info("dr=",dr);
@@ -225,12 +225,13 @@ ipol_history.SetPageState = function( page_state) {
     }
     
     //--------------------------------------------------------------------------
-    // find position of demo id
+    // calling SetPageDemo with a callback
     SetPageDemo(page_state.demo_id,
         function() {
             History.log('statechange:', page_state);
             switch (page_state.state) {
                 // state 2: after run execution
+                // set all the page information
                 case 2:
                     
                     SetInputsState( page_state.blobset,
