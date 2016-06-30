@@ -1,25 +1,27 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_inpainting.js
-// date: june 2016
-// author: Karl Krissian
-//
-// description:
-// this file contains the code related to inpainting features
-//
+/**
+ * @file 
+ * this file contains the code related to inpainting features
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 "use strict";
 
 
 //------------------------------------------------------------------------------
-// Inpainting class
-//------------------------------------------------------------------------------
+/**
+ * Inpainting interface
+ * @constructor
+ */
 var Inpainting = function() {
 
 
     //--------------------------------------------------------------------------
+    /**
+     * Create random text as inpainting mask
+     * @function random_letters
+     * @memberOf Inpainting~
+     */
     this.random_letters = function(){
         /* Several text samples about TV inpainting */
         var Text = [];
@@ -86,6 +88,12 @@ var Inpainting = function() {
 
 
     //--------------------------------------------------------------------------
+    /**
+     * Creates and returns the HTML code for the inpainting mask interface
+     * @function CreateHTML
+     * @memberOf Inpainting~
+     * @returns {string} the HTML code
+     */
     this.CreateHTML = function( ) {
         var html = '';
         // add inpainting interface
@@ -171,7 +179,12 @@ var Inpainting = function() {
     }
         
     //--------------------------------------------------------------------------
-    this.UpdatePenDisplay = function(image) {
+    /**
+     * Updates the pen display: size, color, opacity, tool (marker/eraser) ...
+     * @function UpdatePenDisplay
+     * @memberOf Inpainting~
+     */
+    this.UpdatePenDisplay = function() {
         // draw pen as a circle
         var sketch   = $("#colors_sketch").data().sketch;
         var color    = sketch.color;
@@ -219,10 +232,17 @@ var Inpainting = function() {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Updates the inpainting interface
+     * @function UpdateInpaint
+     * @memberOf Inpainting~
+     * @param {object} image  input image set as canvas painting background
+     * @param {object} mask   optional initial mask
+     */
     this.UpdateInpaint = function(image,mask) {
         // 1. set background image and image size
-        //             var image_src = $("#inputimage").attr('src');
-//         var image_src = $("#input_gallery #img_0_0").prop("src");
+        //       var image_src = $("#inputimage").attr('src');
+        //       var image_src = $("#input_gallery #img_0_0").prop("src");
         var image_src = image.src;
         $('.inpaint_color').empty();
         $('.inpaint_color').append("Color");
@@ -295,11 +315,18 @@ var Inpainting = function() {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Create the events for the inpainting interface
+     * @function CreateHTMLEvents
+     * @memberOf Inpainting~
+     */
     this.CreateHTMLEvents = function( ) {
         
         var update_pen = this.UpdatePenDisplay.bind(this);
         
         // add inpainting events
+        
+        // Change display zoom
         $('#zoom_range').slider(
         {
             value:1,
@@ -335,6 +362,7 @@ var Inpainting = function() {
         });
 
         
+        // Change pen size
         $('#pensize_range').slider(
         {
             value:10,
@@ -357,14 +385,6 @@ var Inpainting = function() {
             }
         });
         
-//         $('#pensize_range').on('input', function(){
-//             var sketch = $("#colors_sketch").data().sketch;
-//             var size= $('#pensize_range').val();
-//             $("#colors_sketch").data().sketch.size=size;
-//             $('#pensize_number').val(size);
-//             update_pen();
-//         });
-
         $('#pensize_number').on('input', function(){
             var sketch = $("#colors_sketch").data().sketch;
             var size= $('#pensize_number').val();
@@ -373,7 +393,7 @@ var Inpainting = function() {
             update_pen();
         });
         
-        // add inpainting events
+        // Change opacity
         $('#opacity_range').slider(
         {
             value:0.8,
@@ -401,11 +421,13 @@ var Inpainting = function() {
             $("#colors_sketch").data().sketch.redraw();
         });
         
+        // undo button
         $('#inpaint_undo').click( function() {
             $("#colors_sketch").data().sketch.actions.pop();
             $("#colors_sketch").data().sketch.redraw();
         });
         
+        // clear button
         $('#inpaint_clear').click( function() {
             var sketch = $("#colors_sketch").data().sketch;
             var ctx0 = sketch.context;
@@ -415,6 +437,7 @@ var Inpainting = function() {
             this.UpdateMask();
         }.bind(this));
         
+        // Set marker tool
         $('#inpaint_marker').click( function() {
             $(".inpaint_tools").css("border","");
             $(this).css("border","2px solid black");
@@ -422,6 +445,7 @@ var Inpainting = function() {
             update_pen();
         });
         
+        // Set eraser tool
         $('#inpaint_eraser').click( function() {
             $(".inpaint_tools").css("border","");
             $(this).css("border","2px solid black");
@@ -429,6 +453,7 @@ var Inpainting = function() {
             update_pen();
         });
         
+        // random text button
         $('#inpaint_random_text').click( function() {
             $("#colors_sketch").data().sketch.actions=[];
             $("#colors_sketch").data().sketch.redraw();
@@ -440,7 +465,14 @@ var Inpainting = function() {
     }
 
     //--------------------------------------------------------------------------
-    this.UpdateMask = function( ddl_json, upload_callback ) {
+    /**
+     * Updates the mask image (in hidden canvas) based on the user drawings.
+     * The mask is set to white if the opacity is>0, otherwise it is set to 
+     * black
+     * @function UpdateMask
+     * @memberOf Inpainting~
+     */
+    this.UpdateMask = function( ) {
         
         var sketch = $("#colors_sketch").data().sketch;
         var ctx0 = sketch.context;
@@ -505,6 +537,13 @@ var Inpainting = function() {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Updates the mask image (in hidden canvas) based on the user drawings.
+     * The mask is set to white if the opacity is>0, otherwise it is set to 
+     * black
+     * @function SubmitInpaint
+     * @memberOf Inpainting~
+     */
     this.SubmitInpaint = function( ddl_json, upload_callback ) {
         // with inpainting upload input and mask ...
         // upload files and run the demo
