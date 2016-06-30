@@ -582,7 +582,7 @@ The gallery type uses the gallery class to display images. Its parameters are:
               a list of title:filename pairs. 
               If an image filename does succeed in loading,
               the image will be removed from the gallery. 
-              You can also add a condition evaluated in Angular
+              You can also add a condition evaluated in Javascript,
               in the current context to enable or disable the pair display:
               using a label string of the form "condition?label".
             & yes \\ \hline
@@ -759,7 +759,7 @@ Example using 'repeat':
  visible   & Javascript/JQuery boolean expression evaluted in the context 
             defined in \ref{sec:JavascriptEval}, that can hide the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
- contents  & displayed text, can contain both HTML tags and Angular
+ contents  & displayed text, can contain both HTML tags and Javascript/JQuery code.
 expressions of the form '\{\{expression\}\}'. & \\ \hline
 \caption{Keys for the 'warning' type.}
 \end{longtable}
@@ -788,7 +788,7 @@ algorithm.
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between.& yes \\ \hline
- repeat     & range expression (evaluated in Angular):
+ repeat     & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & yes \\ \hline
  contents   & an array where the first element is a string representing the label
               and that can contain Javascript/JQuery expression using the index idx, and
@@ -913,84 +913,99 @@ Some properties are automatically evaluated as expressions, like boolean express
 and repeat expressions. Others like strings can be evaluated as Javascript expressions
 if the string starts with a single quote.
 
+\subsection{Organization of the code}
 
-% \ToDo{[Miguel] This section must dissapear (comment it out with begin-comment, end-comment.}
-% 
-% Angular is used as a flexible tool in combination to CherryPy to create the web 
-% pages from the demo descriptions. Angular files are located in 'static/Angular'
-% directory, while the template HTML files are located in 'lib/template' directory.
-% The main Angular files are app.js, controllers.js and services.js located in the
-% 'static/Angular/js' directory.
-% The app.js file defines the Angular application, name "IPOLDemosApp".
-% 
-% \subsection{Services}
-% Current services are Demo, Params, Meta and Info. They read and return the contents
-% of a JSON file.
-% 
-% \subsection{Controlers}
-% \subsubsection{DemoInputCtrl}
-% The demo input controler defines the following variables in its scope:
-% \begin{itemize}
-%   \item demo\_id: taken from the global variable, using CherryPy
-%   \item blob\_server: taken from the global variable, using CherryPy
-%   \item demo: the demo information read from the JSON file using the Demo service
-%         the demo is preprocessed by the method PreprocessDemo() defined in app.js
-%         which can set default values and preprocess some fields.
-%   \item demoblobs: read from the webservice 'get\_blobs\_of\_demo\_by\_name\_ws' on the 
-%         blob\_server. Initially implemented as a service, it has changed to 
-%         a \$http.get() command to allow the use of the blob\_server variable.
-%         Once the information is obtained, the variable html\_params is created
-%         that contains the HTML parameters associated to each blob selection.
-%   \item a DisableBlobDisplay() method disables the display of a blob if it couldn't
-%         be loaded.
-% \end{itemize}
-% 
-% \subsubsection{DemoParamCtrl}
-% 
-% The demo input controler defines the following variables in its scope:
-% \begin{itemize}
-%   \item current\_scope
-%   \item demo\_key and demo\_id given by Python in the HTLM template
-%   \item Math (for calculation), maxdim, display\_ratio
-%   \item CropInfo which contains the boolean enabled, the coord structure and
-%         the minsize information.
-%   \item the boolean variables got\_meta, got\_param, got\_demo that will be true
-%         when the corresponding json files are loaded.
-%   \item a function 'initParams' that initialize the parameters obtained from 
-%         the DDL json file
-%   \item a function updateCropInfo() that compute the real crop information
-%         based on the displayed crop (since there is a zoom factor)
-%   \item the initialization of demo, params, meta variables using the associated
-%         services and calling the PreprocessDemo(),initParams() and updateCropInfo()
-%         methods when needed, also updating display\_ratio, imwidth, imheight, 
-%         got\_\{demo,param,meta\},
-%         and crop\_image\_url variables.
-%   \item additional functions: renderHtml, CheckString, CheckArray, 
-%         Disable/LoadedImage that allow hiding images that don't load.
-% \end{itemize}
-% 
-% \subsubsection{DemoWaitCtrl}
-% 
-% The controller is used to update a timer of the number of seconds that the algorithm
-% takes to execute.
-% 
-% \subsubsection{DemoResultCtrl} \label{sec:DemoResultCtrl}
-% 
-% This controller contains the following variables in its scope:
-% \begin{itemize}
-%  \item the function initResults() that adds a load status to each image
-%         in a gallery, initial status is 'trying'.
-%  \item useful variables idx for loop, maxdim, current\_scope, Math, demo\_id,
-%       work\_url
-%   \item 3 display parameters display={param1,param2,param3} that can be used
-%         by demos that need specific display parameters.
-%   \item the demo,params,meta and info parameters read from json files.
-%   \item the dimensions of the (possibly cropped) input image: sizeX and sizeY 
-%   \item the maximal dimension of original input images: imwidth and imheight and 
-%         the display ratio: display\_ratio.
-%   \item a few more useful functions.
-% \end{itemize}
+The Javascript code is divided in the following files, within the :
+ipol\_demo/\-static/\-JQuery\-App directory:
+\begin{itemize}
 
-% 
-% \subsection{Templates}
-% \subsection{Image crop component}
+ \item \emph{ipol\_demo.html}: this file is the HTML template file, it includes all the
+  required CSS stylesheets, Javascript files and modules, and the core HTML
+  code containing the main sections (upload modal window, inputs, parameters and 
+  run fieldsets, different tabs). The inner contents of each section are latter
+  filled by the Javascript/JQuery code.
+
+ \item \emph{ipol\_servers.js}: this file points to the proxy and the demorunner
+  servers. Ideally, only the proxy server should be used, but since we need to upload
+  files using a POST method (not available through the proxy) in ipol\_demo\_inputs.js 
+  UploadForm() method, we had to include the demorunner server address too.
+  Having this information in a separate file allows the user to change the server
+  without modifying other files (useful for version control systems like git).
+
+ \item \emph{ipol\_demo\_utils.js}: contains Javascript/JQuery convenient functions.
+
+ \item \emph{ipol\_demo.js}: this file contains the DocumentReady() function,
+  and deals with the initial interactions of the main page: enable page tabu\-lations,
+  set events for several buttons, set events for input description and parameters
+  description modal windows, for upload modal window, set event for browser history,
+  list available demos and create the demo selection. It deals with
+  the demo selection in the function 'Input\-Controller'. It calls methods or classes
+  from other files to display the demo page: input blobs, descriptions, parameters,
+  archive information. 
+  The demo can be selected
+  from three different inputs (demo\_origin enumeration): user widget selection,
+  url or browser history. The function 'Set\-Archive\-Experiment' sets the demo
+  page information based on an archive experiment, it is called if the url parameters
+  contain an experiment id together with the demo id.
+
+
+ \item \emph{ipol\_demo\_blobs.js}: This file contains the code that renders and 
+  deals with the demo blobs. The class 'BlobsContainer' takes care of loading
+  the list of proposed blobs associated to the demo and of displaying them.
+  It can read blobs templates and hide unavailable thumbnails. It also
+  deals with the blob selection by instanciating the 'DrawInputs' class which loads
+  the inputs blobs and prepares the demo execution.
+
+ \item \emph{ipol\_demo\_inputs.js}: This file contains the code that renders 
+  the selected input blobs including the option to crop the input image. The class
+  'DrawInputs' takes care of displaying the input blobs.
+  If the algorithm has several input images, the ImageGallery class is used
+  to display them, otherwise one image is displayed with the possibility to 
+  enable cropping and to preview the cropped image. Input data can be loaded
+  from blobset or uploaded from local files. The single image cropping is
+  implemented using the 'cropper.js' module available at 
+  \url{https://github.com/fengyuanchen/cropper}. The 'DrawInputs' class
+  calls the demo execution, uploads local files, and takes care of the progress bar.
+
+ \item \emph{ipol\_demo\_upload.js}: creates the HTML contents for uploading
+  files, and the execution code for applying or cancelling the upload. Applying 
+  the upload will instanciate an object of 'DrawInputs' class and set everything
+  needed to be able to run the algorithm. To deal with browser history features,
+  global variables 'last\_uploaded\_files' and 'last\-\_up\-loaded\-\_files\-\_pos' are created
+  and stored in 'window.localStorage'.
+
+ \item \emph{ipol\_demo\_params.js}: renders and deals with the demo parameters:
+  set events, set/reset/get values, evaluate expressions. The different parameter
+  types are: selection\_collapsed,  selection\_radio,  range,  ran\-ge\-\_scien\-ti\-fic, 
+  readonly,  label,  checkbox,  checkboxes.
+
+
+ \item \emph{ipol\_demo\_results.js}: implements the 'DrawResults' class. This
+  class creates the HTML code to display the experiment results with its associated
+  events. The different types of results are: html\_text, file\_download,
+  gallery, repeat\_gallery, text\_file and warning. If the results are displayed
+  from an archive experiment, the system tries to point to the archive url if
+  available, otherwise it points to the experiment url/directory.
+
+
+ \item \emph{ipol\_demo\_archive.js}: renders the information from an demo archive.
+  A link to each archive page is available. If the user clicks on the experiment
+  link, it will load the experiment on a new tab of the current browser, by using
+  the demo id and the experiment id as url parameters.
+
+ \item \emph{ipol\_demo\_history.js}: implements the SetPage() function that
+  changes the page contents based on a given state. The browser history is 
+  managed using the 'history.js' module available at 
+  \url{https://github.com/browserstate/history.js/}.
+  States are pushed to the browser history using the 'pushState' method, 
+  and an history state change event, specified in ipol\_demo.js, updates
+  the contents on the page.
+
+ \item \emph{ipol\_demo\_inpainting.js}: creates the interface needed to draw
+  the inpainting mask. It uses a modified version of the 'sketch.js' module.
+
+  \item \emph{JQueryGallery/jquery\_gallery.js}: implements the ImageGallery class
+  used to display image galleries in inputs and results sections.
+
+\end{itemize}
+
