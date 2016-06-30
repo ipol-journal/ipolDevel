@@ -1,24 +1,31 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_inputs.js
-// date: march 2016
-// author: Karl Krissian
-//
-// description:
-// this file contains the code that renders the selected input blobs
-// including the option to crop the input image
-// associated with ipol_demo.html and ipol_demo.js
-//
+/**
+ * @file 
+ * this file contains the code that renders the selected input blobs
+ * including the option to crop the input image
+ * associated with ipol_demo.html and ipol_demo.js
+ * this file contains the code related to inpainting features
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 "use strict";
 
 
+//------------------------------------------------------------------------------
+/**
+ * DrawInputs interface
+ * @constructor
+ * @param {object} ddl_json Demo description object (DDL)
+ */
 
 var DrawInputs = function(ddl_json) {
     
     //--------------------------------------------------------------------------
+    /**
+     * Displays message in console if verbose is true
+     * @function InfoMessage
+     * @memberOf DrawInputs~
+     */
     this.InfoMessage = function( ) {
         if (this.verbose) {
             var args = [].slice.call( arguments ); //Convert to array
@@ -28,6 +35,11 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Displays message in console independently of verbose 
+     * @function PriorityMessage
+     * @memberOf DrawInputs~
+     */
     this.PriorityMessage = function( ) {
         var args = [].slice.call( arguments ); //Convert to array
         args.unshift("---- DrawInputs ----");
@@ -37,17 +49,79 @@ var DrawInputs = function(ddl_json) {
     //--------------------------------------------------------------------------
     // Initialize members
     //--------------------------------------------------------------------------
+    /** 
+     * Enable/Disable display of (tracing/debugging) 
+     * information in browser console.
+     * @var {boolean} verbose
+     * @memberOf DrawInputs~
+     */
     this.verbose=false;
     this.PriorityMessage(" DrawInput started ");
+    /** 
+     * The Demo Description Language DDL object.
+     * @var {object} ddl_json
+     * @memberOf DrawInputs~
+     */
     this.ddl_json      = ddl_json;
+    /** 
+     * Contains image display constraints or information. 
+     * For single image display, maxdim is set to 768 so that bigger images
+     * will be scaled down. display_ratio is then the calculated display ratio.
+     * For multiple images, maxdim will be calculated based on the available 
+     * space of the webpage (window).
+     * @var {{maxdim: number, display_ratio: number}} draw_info
+     * @memberOf DrawInputs~
+     */
     this.draw_info     = { maxdim:768,  display_ratio:-1};
+
+    /** 
+     * Stores the origin of the inputs, initialized to , it can be 
+     * "blobset" or "localfiles".
+     * @var {string} input_origin
+     * @memberOf DrawInputs~
+     */
     this.input_origin  = "";
+
+    /** 
+     * Contains the crop information: {enabled, x, y, w, h}.
+     * @var {object} crop_info
+     * @memberOf DrawInputs~
+     */
     this.crop_info     = { enabled:false, x:0,y:0,w:1,h:1};
+
+    /** 
+     * id=progressbar selector.
+     * @var {object} progressbar
+     * @memberOf DrawInputs~
+     */
     this.progressbar   = $("#progressbar");
+
+    /** 
+     * class=progresslabel selector.
+     * @var {object} progresslabel
+     * @memberOf DrawInputs~
+     */
     this.progresslabel = $(".progress-label");
+
+    /** 
+     * callback called once crop is built.
+     * @var {object} oncropbuilt_cb
+     * @memberOf DrawInputs~
+     */
     this.oncropbuilt_cb  = undefined;
+
+    /** 
+     * callback called once the images are loaded.
+     * @var {object} onloadimages_cb
+     * @memberOf DrawInputs~
+     */
     this.onloadimages_cb = undefined;
 
+    /** 
+     * if inpainting is enabled, contains the Inpainting instance.
+     * @var {object} inpaint
+     * @memberOf DrawInputs~
+     */
     // add inpainting features
     if (this.ddl_json.general.inpainting) {
         this.inpaint = new Inpainting();
@@ -57,11 +131,22 @@ var DrawInputs = function(ddl_json) {
 
     
     //--------------------------------------------------------------------------
+    /**
+     * Undefine blobset variable.
+     * @function UnsetBlobSet
+     * @memberOf DrawInputs~
+     */
     this.UnsetBlobSet = function() {
         this.blobset = undefined;
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Define blobset variable.
+     * @function SetBlobSet
+     * @memberOf DrawInputs~
+     * @param {object} blobset
+     */
     this.SetBlobSet = function(blobset) {
         this.blobset = blobset;
         if (blobset) {
@@ -70,6 +155,12 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Get the blobsset.
+     * @function GetBlobSet
+     * @memberOf DrawInputs~
+     * @returns {object}
+     */
     this.GetBlobSet = function() {
         return this.blobset;
     }
@@ -80,16 +171,35 @@ var DrawInputs = function(ddl_json) {
 //     }
 //     
     //--------------------------------------------------------------------------
+    /**
+     * Sets On Crop built callback
+     * @function OnCropBuilt
+     * @memberOf DrawInputs~
+     * @param {callback} callback sets oncropbuilt callback
+     */
     this.OnCropBuilt = function(callback) {
         this.oncropbuilt_cb = callback;
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Sets On  Load Images callback
+     * @function OnLoadImages
+     * @memberOf DrawInputs~
+     * @param {callback} callback sets onloadimages callback
+     */
     this.OnLoadImages = function(callback) {
         this.onloadimages_cb = callback;
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Checks if blobs has an image for input number idx
+     * @function BlobHasImage
+     * @memberOf DrawInputs~
+     * @param {number} blob_idx
+     * @returns {boolean}
+     */
     this.BlobHasImage = function( blob_idx) {
         var image_found = false;
         var blobset = this.blobset;
@@ -114,6 +224,11 @@ var DrawInputs = function(ddl_json) {
     };
     
     //--------------------------------------------------------------------------
+    /**
+     * Create inputs HTML code
+     * @function CreateHTML
+     * @memberOf DrawInputs~
+     */
     this.CreateHTML = function() {
         
         // setting maxdim to half the screen width
@@ -192,7 +307,14 @@ var DrawInputs = function(ddl_json) {
 
     
     //--------------------------------------------------------------------------
-    // code from https://stereochro.me/ideas/detecting-broken-images-js
+    /**
+     * Check is an image has been correctly loaded
+     * code from https://stereochro.me/ideas/detecting-broken-images-js
+     * @function IsImageOk
+     * @memberOf DrawInputs~
+     * @param {object} img input image
+     * @return {boolean}
+     */
     this.IsImageOk = function(img) {
         // During the onload event, IE correctly identifies any images that
         // weren’t downloaded as not complete. Others should too. Gecko-based
@@ -213,7 +335,13 @@ var DrawInputs = function(ddl_json) {
     }
 
     //--------------------------------------------------------------------------
-    // on load a single input image
+    /**
+     * Update the page display after loading the input image for single input
+     * demos.
+     * @function OnLoadSingleImage
+     * @memberOf DrawInputs~
+     * @param {object} image input image
+     */
     this.OnLoadSingleImage = function(image) { 
         this.InfoMessage("OnLoadSingleImage begin");
         var draw_info = this.draw_info;
@@ -243,6 +371,13 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Creates an instance of ImageGallery object for multiple-input demos.
+     * @function CreateGallery
+     * @memberOf DrawInputs~
+     * @param {object} inputs_info list of input images and titles for the 
+     * Image Gallery object
+     */
     this.CreateGallery = function(inputs_info) {
 
         var ig = new ImageGallery("inputs");
@@ -264,16 +399,7 @@ var DrawInputs = function(ddl_json) {
                 this.crop_info.y = 0;
                 this.crop_info.w = image.naturalWidth;
                 this.crop_info.h = image.naturalHeight;
-                // set inpainting
-//                 if (this.inpaint) {
-//                     this.inpaint.UpdateInpaint(image);
-//                 }
             }
-//             if ((Object.keys(inputs_info)[index]=="Mask")&&
-//                 (inputs_info.Mask!=="background_transparency.png")) {
-//                 // add initial input mask
-//                 this.inpaint.AddInitialMask(image);
-//             }
         }.bind(this) );
         
         //-----------------------------------
@@ -281,7 +407,7 @@ var DrawInputs = function(ddl_json) {
             // set inpainting
             if (this.inpaint) {
                 // we assume that the first image is the input
-                // we assume that the second image is the mask
+                // and that the second image is the mask
                 if (inputs_info.Mask) {
                     this.inpaint.UpdateInpaint(ig.GetImage(0)[0],ig.GetImage(1)[0]);
                 } else {
@@ -310,6 +436,14 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Loads input data from the selected blobset. If the demo has several
+     * inputs, creates the inputs information and instanciate the ImageGallery
+     * class through the method CreateGallery, otherwise load a single image 
+     * and call OnLoadSingleImage.
+     * @function LoadDataFromBlobSet
+     * @memberOf DrawInputs~
+     */
     this.LoadDataFromBlobSet = function() {
 
         var inputs  = this.ddl_json.inputs;
@@ -359,6 +493,14 @@ var DrawInputs = function(ddl_json) {
     
     
     //--------------------------------------------------------------------------
+    /**
+     * Loads input data from the selected blobset. If the demo has several
+     * inputs, creates the inputs information and instanciate the ImageGallery
+     * class through the method CreateGallery, otherwise load a single image 
+     * and call OnLoadSingleImage.
+     * @function LoadDataFromLocalFiles
+     * @memberOf DrawInputs~
+     */
     this.LoadDataFromLocalFiles = function() {
         var inputs  = this.ddl_json.inputs;
         this.input_origin = "localfiles";
@@ -398,6 +540,14 @@ var DrawInputs = function(ddl_json) {
     
     
     //--------------------------------------------------------------------------
+    /**
+     * Gets the upload window state for browser history events. Uploaded file
+     * are stored in $('#localdata_preview_'+idx).data("src_pos")
+     * @function GetUploadPageState
+     * @memberOf DrawInputs~
+     * @returns {object} upload state object containing, for each input
+     * index, the associated src_pos.
+     */
     this.GetUploadPageState = function() {
         var upload_state = {};
         var inputs  = this.ddl_json.inputs;
@@ -408,6 +558,13 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Unsets the upload page state freeing thee
+     * @function UnsetUploadPageState
+     * @memberOf DrawInputs~
+     * @returns {object} upload state object containing, for each input
+     * index, the associated src_pos.
+     */
     this.UnsetUploadPageState = function() {
         var inputs  = this.ddl_json.inputs;
         for(var idx=0;idx<inputs.length;idx++) {
@@ -416,6 +573,11 @@ var DrawInputs = function(ddl_json) {
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * @function SetUploadPageState
+     * @memberOf DrawInputs~
+     * @param upload_state
+     */
     // return state:
     //  0: worked with changes
     //  1: failed since previous data is not available anymore
@@ -449,6 +611,12 @@ var DrawInputs = function(ddl_json) {
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Creates the cropper.
+     * @function CreateCropper
+     * @memberOf DrawInputs~
+     * @param upload_state
+     */
     this.CreateCropper = function() {
         this.InfoMessage("CreateCropper begin");
         var inputs  = this.ddl_json.inputs;
@@ -585,6 +753,11 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Destroys the cropper.
+     * @function DestroyCropper
+     * @memberOf DrawInputs~
+     */
     this.DestroyCropper = function() {
         this.InfoMessage("DestroyCropper ");
         $("#inputimage").cropper('destroy');
@@ -594,6 +767,12 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Sets the crop area
+     * @function SetCrop
+     * @memberOf DrawInputs~
+     * @param {object} crop_area contains x,y,width,height
+     */
     this.SetCrop = function(crop_area) {
         this.InfoMessage('SetCrop begin ',crop_area);
         var imageData  = $("#inputimage").cropper('getImageData');
@@ -611,6 +790,13 @@ var DrawInputs = function(ddl_json) {
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Updates the display of the crop area and the crop view 
+     * based on the parameters
+     * @function UpdateCrop
+     * @memberOf DrawInputs~
+     * @param {object} crop_area contains x,y,width,height
+     */
     this.UpdateCrop = function() {
         this.InfoMessage("UpdateCrop begin");
         var inputs  = this.ddl_json.inputs;
@@ -623,6 +809,7 @@ var DrawInputs = function(ddl_json) {
             $("#id_cropview").unbind().change( function() {  
                 if ($("#id_cropview").is(':checked')) { 
                     $('.table_crop').show();
+                    // call move to update/display the crop view
                     $("#inputimage").cropper('move',0,0);
                 } else {
                     $('.table_crop').hide();
@@ -657,6 +844,11 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Initializes the progress bar and sets its events
+     * @function InitProgress
+     * @memberOf DrawInputs~
+     */
     this.InitProgress = function() {
 
         this.InfoMessage("InitProgress");
@@ -669,10 +861,12 @@ var DrawInputs = function(ddl_json) {
             change: function() {
                 var current_time = new Date().getTime();
                 var elapsed = current_time-this.starttime;
+                // in the first two seconds, show time every 0.1 sec
                 if (elapsed<2000) {
                     this.progresslabel.text(  this.progress_info + " " + 
                                               Math.round(elapsed/100)/10 + " sec." );
                 } else {
+                    // then show time every sec.
                     this.progresslabel.text(  this.progress_info + " " + 
                                               Math.round(elapsed/1000) + " sec." );
                 }
@@ -687,6 +881,14 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
+    /**
+     * Initializes the progress bar and sets its events, sets timeout events
+     * it update itself, unless it has reached 100%
+     * @function progress
+     * @memberOf DrawInputs~
+     * @param {object} start time, if defined, gets the current time
+     * in the member variable starttime
+     */
     this.progress = function( start) {
         var val = this.progressbar.progressbar( "value" );
         if (start!==undefined) {
@@ -697,12 +899,15 @@ var DrawInputs = function(ddl_json) {
         if ( val < 99 ) {
             var current_time = new Date().getTime();
             var elapsed = current_time-this.starttime;
+            // if less than 2 sec, show progress every 1/10 sec
             if (elapsed<2000) {
                 setTimeout( this.progress.bind(this), 100 );
             } else {
+                // if less than 20 sec, show progress every sec
                 if (elapsed<20000) {
                     setTimeout( this.progress.bind(this), 1000 );
                 } else {
+                // otherwise show progress every 2 sec.
                     setTimeout( this.progress.bind(this), 2000 );
                 }
             }
@@ -711,7 +916,14 @@ var DrawInputs = function(ddl_json) {
 
 
     //--------------------------------------------------------------------------
-    // Uploads the form that contains the input blobs and runs the demo 
+    /**
+     * Uploads the form that contains the input blobs and runs the demo 
+     * note: we can´t upload through the proxy for the moment, so we need to 
+     * use the demorunner address
+     * @function UploadForm
+     * @memberOf DrawInputs~
+     * @param {object} form_data contains the data to upload
+     */
     this.UploadForm = function( form_data) {
         $.ajax(servers.demorunner+"input_upload",
         {
@@ -737,11 +949,21 @@ var DrawInputs = function(ddl_json) {
 
                         
     //--------------------------------------------------------------------------
+    /**
+     * @function json2uri
+     * @memberOf DrawInputs~
+     * @param {object} json
+     */
     this.json2uri = function(json) {
             return encodeURIComponent(JSON.stringify(json));
     }
         
     //--------------------------------------------------------------------------
+    /**
+     * @function ResultProgress
+     * @memberOf DrawInputs~
+     * @param {object} run_demo_res
+     */
     this.ResultProgress = function(run_demo_res) {
         if (run_demo_res.status==="KO") {
             this.PriorityMessage(" Failure demo run run_demo_res:",run_demo_res);
