@@ -270,7 +270,7 @@ function SetArchiveExperiment(ddl_json, experiment) {
     }
         
     // Set parameter values
-    SetParamValues(experiment.results.params);
+    ipol_params.SetParamValues(experiment.results.params);
     
     // Draw results
     //if ($("#DrawInputs").data("draw_inputs")) {
@@ -385,7 +385,7 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                 }
                 
                 // Create Parameters tab
-                CreateParams(ddl_json);
+                ipol_params.CreateParams(ddl_json);
 
                 // Get demo blobs
                 ipol_utils.ModuleService(
@@ -427,7 +427,7 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                                 var res = JSON.parse(url_params["res"]);
                                 console.info("***** demo results obtained from url parameters");
                                 // Set parameter values
-                                SetParamValues(res.params);
+                                ipol_params.SetParamValues(res.params);
                                 // Draw results
                                 if ($("#DrawInputs").data("draw_inputs")) {
                                     $("#DrawInputs").data("draw_inputs").ResultProgress(res);
@@ -529,7 +529,7 @@ function DocumentReady() {
     $("#reset_params").unbind();
     $("#reset_params").click( function() {
         console.info("reset params clicked");
-        ResetParamValues();
+        ipol_params.ResetParamValues();
     }
     );
     

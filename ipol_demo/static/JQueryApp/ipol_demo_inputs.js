@@ -3,7 +3,6 @@
  * this file contains the code that renders the selected input blobs
  * including the option to crop the input image
  * associated with ipol_demo.html and ipol_demo.js
- * this file contains the code related to inpainting features
  * @author  Karl Krissian
  * @version 0.1
  */
@@ -665,7 +664,7 @@ var DrawInputs = function(ddl_json) {
                     cropend: function(ddl_json) {
                         return function (e) {
                             // update parameters in case they depend on the crop
-                            UpdateParams(ddl_json.params);
+                            ipol_params.UpdateParams(ddl_json.params);
                         }
                     } (this.ddl_json),
                                          
@@ -978,7 +977,13 @@ var DrawInputs = function(ddl_json) {
     }
     
     //--------------------------------------------------------------------------
-    // runs the demo once the input(s) are selected (and cropped) or uploaded
+    /**
+     * runs the demo once the input(s) are selected (and cropped) or uploaded
+     * @function RunDemo
+     * @memberOf DrawInputs~
+     * @param {object} res result obtained from upload or select and crop
+     * calls to demorunner
+     */
     this.RunDemo = function(res) {
         
         this.PriorityMessage("upload/select&crop res=", res);
@@ -993,7 +998,7 @@ var DrawInputs = function(ddl_json) {
         }
         // create parameters
         if (this.ddl_json.params) {
-            var params = GetParamValues(this.ddl_json.params);
+            var params = ipol_params.GetParamValues(this.ddl_json.params);
         } else {
             var params = {};
         }
@@ -1090,6 +1095,12 @@ var DrawInputs = function(ddl_json) {
     }    
     
     //--------------------------------------------------------------------------
+    /**
+     * Sets the 'run' button click event, to call demorunner for upload,
+     * select blobset with crop or initialize without inputs
+     * @function SetRunEvent
+     * @memberOf DrawInputs~
+     */
     this.SetRunEvent = function() {
         this.InitProgress();
         $( "#run_button" ).unbind("click").prop("disabled",false);

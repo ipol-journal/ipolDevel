@@ -1,21 +1,26 @@
-//
-// IPOL demo system
-// CMLA ENS Cachan
-// 
-// file: ipol_demo_params.js
-// date: march 2016
-// author: Karl Krissian
-//
-// description:
-// this file contains the code that renders and deals with the demo parameters
-// associated with ipol_demo.html and ipol_demo.js
-//
+/**
+ * @file 
+ * this file contains the code that renders and deals with the demo parameters
+ * associated with ipol_demo.html and ipol_demo.js
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
 "use strict";
 
+/**
+ * Display and manage demo parameters
+ * @namespace
+ */
+var ipol_params = {};
 
 //------------------------------------------------------------------------------
-function AddLabel(param) {
+/** 
+ * Creates html code from param.label
+ * @param {object} param the current parameter object, containing a label property
+ * @returns {string} HTML code
+ */
+ipol_params.AddLabel = function (param) {
     var html = "";
     html += '<td style="border:0px;max-width:25em">';
     html += '<label>'+ipol_utils.joinHtml(param.label)+'</label>';
@@ -24,7 +29,12 @@ function AddLabel(param) {
 }
     
 //------------------------------------------------------------------------------
-function AddComments(param) {
+/** 
+ * Creates html code from param.comments
+ * @param {object} param the current parameter object, containing a comments property
+ * @returns {string} HTML code
+ */
+ipol_params.AddComments = function (param) {
     var html = "";
     if (param.comments!=undefined) {
         html += '<td   style="border:0px;max-width:25em">';
@@ -35,9 +45,15 @@ function AddComments(param) {
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionCollapsed(param) {
+/** 
+ * Creates selection collapsed interface
+ * @param {object} param the current parameter object, containing the properties
+ * label, comments, id, values, default_value
+ * @returns {string} HTML code
+ */
+ipol_params.CreateSelectionCollapsed = function (param) {
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
     html += '<td style="border:0px;" colspan="2">';
     html += '<select name="'+param.id+'" id="param_'+param.id+'" >';
     jQuery.each( param.values, function( key, value ) {
@@ -51,21 +67,33 @@ function CreateSelectionCollapsed(param) {
     });
     html += '</select>';
     html += '</td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
     return html;
 }
     
 //------------------------------------------------------------------------------
-function CreateSelectionCollapsedEvents(param, ddl_json) {
+/** 
+ * Creates events related to a selection collapsed widget (onchange event)
+ * @param {object} param the current parameter object, containing the properties
+ * label, comments, id, values, default_value
+ * @param {object} ddl_json the DDL description of the demo
+ */
+ipol_params.CreateSelectionCollapsedEvents = function (param, ddl_json) {
     $('#param_'+param.id).on('change', function(){
-        UpdateParams(ddl_json.params);
+        ipol_params.UpdateParams(ddl_json.params);
     }.bind(this));
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRadio(param) {
+/** 
+ * Creates selection radio interface
+ * @param {object} param the current parameter object, can contain the properties
+ * label, comments, id, values, vertical, default_value
+ * @returns {string} HTML code
+ */
+ipol_params.CreateSelectionRadio = function (param) {
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
     html += '<td style="border:0px;" colspan="2">';
     jQuery.each( param.values, function( key, value ) {
 
@@ -85,21 +113,27 @@ function CreateSelectionRadio(param) {
         }
     });
     html += '</td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
     return html;
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRadioEvents(param, ddl_json) {
+ipol_params.CreateSelectionRadioEvents = function (param, ddl_json) {
     $('input[name='+param.id+']').on('change', function(){
-        UpdateParams(ddl_json.params);
+        ipol_params.UpdateParams(ddl_json.params);
     }.bind(this));
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRange(param) {
+/** 
+ * Creates selection range interface (slider)
+ * @param {object} param the current parameter object, can contain the properties
+ * label, values.{min,max,step,default}, id
+ * @returns {string} HTML code
+ */
+ipol_params.CreateSelectionRange = function (param) {
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
 
     var limits= '';
     limits += ' min  ="' + param.values.min     + '"'; 
@@ -122,15 +156,20 @@ function CreateSelectionRange(param) {
     html += ' div>';
     
     html += '</td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
 
     return html;
 }
 
 //------------------------------------------------------------------------------
-// function used by the range_scientific parameter type
-// computes the slider position of a given value
-function num2sci(value, numDigits)
+/** 
+ * function used by the range_scientific parameter type
+ * computes the slider position of a given value
+ * @param {number} value
+ * @param {number} numDigits
+ * @returns {number}
+ */
+ipol_params.num2sci = function (value, numDigits)
 {
     var exponent = Math.floor(Math.log(value) / Math.log(10));
     //console.info("exponent = ", exponent);
@@ -140,31 +179,42 @@ function num2sci(value, numDigits)
 }
 
 //------------------------------------------------------------------------------
-// function used by the range_scientific parameter type
-// computes the number value from the slider position
-function sci2str(sci, numDigits)
+/** 
+ * function used by the range_scientific parameter type
+ * computes the the number value from the slider position
+ * @param {number} sci
+ * @param {number} numDigits
+ * @returns {number}
+ */
+ipol_params.sci2str = function (sci, numDigits)
 {
     var exponent = Math.floor(sci / (9*Math.pow(10, numDigits)));
     var mantissa = sci/Math.pow(10, numDigits) - (9*exponent - 1);
     var value = Math.pow(10, exponent) * mantissa;
-    //console.info("sci2str ", exponent, mantissa, value, value.toExponential(numDigits))
+    //console.info("ipol_params.sci2str ", exponent, mantissa, value, value.toExponential(numDigits))
     return value.toExponential(numDigits);
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRangeScientific(param) {
+/** 
+ * Creates selection range interface (slider) with scientific notations
+ * @param {object} param the current parameter object, can contain the properties
+ * label, values.{min,max,digits,default}, id
+ * @returns {string} HTML code
+ */
+ipol_params.CreateSelectionRangeScientific = function (param) {
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
 
     var limits= '';
     //console.info("num2sci ", param.values.min, param.values.digits, num2sci(param.values.min,param.values.digits))
-    limits += ' min  ="' + num2sci(param.values.min,param.values.digits) + '"'; 
-    limits += ' max  ="' + num2sci(param.values.max,param.values.digits) + '"';
+    limits += ' min  ="' + ipol_params.num2sci(param.values.min,param.values.digits) + '"'; 
+    limits += ' max  ="' + ipol_params.num2sci(param.values.max,param.values.digits) + '"';
     limits += ' step =1"';
     // TODO: need to improve this part to allow input parameters from
     // previous run?
     param.value = param.values.default;
-    param.value_slider = num2sci(param.value,param.values.digits);
+    param.value_slider = ipol_params.num2sci(param.value,param.values.digits);
     limits += ' value="' + param.value_slider + '"';
 
     var number_id = 'number_'+param.id;
@@ -172,7 +222,7 @@ function CreateSelectionRangeScientific(param) {
     
     html += '<td style="border:0px;width:5em">' 
          +  '<input  style="width:100%"  type="number"'
-         + ' value="'+sci2str(param.value_slider,param.values.digits)+'"'
+         + ' value="'+ipol_params.sci2str(param.value_slider,param.values.digits)+'"'
          + ' id="'+number_id+'"'
          + ' name="'+param.id+'" '+limits + ' readonly >'
          + '</td>';
@@ -185,13 +235,18 @@ function CreateSelectionRangeScientific(param) {
 //          + ' id="'+range_id+'"'
 //          + ' name="'+param.id+'" '+limits + ' >'
          + '</td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
 
     return html;
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRangeEvents(param, ddl_json) {
+/** 
+ * Creates selection range events
+ * @param {object} param 
+ * @param {object} ddl_json 
+ */
+ipol_params.CreateSelectionRangeEvents = function (param, ddl_json) {
 
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
@@ -233,13 +288,13 @@ function CreateSelectionRangeEvents(param, ddl_json) {
     $('#'+range_id)[0].noUiSlider.on('slide', 
         function(  ) {
             $('#'+number_id).val($('#'+range_id)[0].noUiSlider.get());
-            UpdateParams(ddl_json.params);
+            ipol_params.UpdateParams(ddl_json.params);
         }
     );
     $('#'+range_id)[0].noUiSlider.on('update', 
         function(  ) {
             $('#'+number_id).val($('#'+range_id)[0].noUiSlider.get());
-            UpdateParams(ddl_json.params);
+            ipol_params.UpdateParams(ddl_json.params);
         }
     );
 
@@ -251,46 +306,46 @@ function CreateSelectionRangeEvents(param, ddl_json) {
 //         step: param.values.step,
 //         slide: function( event, ui ) {
 //             $('#'+number_id).val($('#'+range_id).slider('value'));
-//             UpdateParams(ddl_json.params);
+//             ipol_params.UpdateParams(ddl_json.params);
 //         },
 //         change: function( event, ui ) {
 //             $('#'+number_id).val($('#'+range_id).slider('value'));
-//             UpdateParams(ddl_json.params);
+//             ipol_params.UpdateParams(ddl_json.params);
 //         }
 //     });
 
     $('#'+number_id).on('input', function(){
         $('#'+range_id)[0].noUiSlider.set($('#'+number_id).val());
-        UpdateParams(ddl_json.params);
+        ipol_params.UpdateParams(ddl_json.params);
     });
     
 }
 
 //------------------------------------------------------------------------------
-function CreateSelectionRangeScientificEvents(param,ddl_json) {
+ipol_params.CreateSelectionRangeScientificEvents = function (param,ddl_json) {
     //console.info("CreateSelectionRangeScientificEvents");
     var number_id = 'number_'+param.id;
     var range_id  = 'range_' +param.id;
     
     $('#'+range_id).slider(
     {
-        value:num2sci(param.values.default, param.values.digits),
-        min:  num2sci(param.values.min,     param.values.digits),
-        max:  num2sci(param.values.max,     param.values.digits),
+        value:ipol_params.num2sci(param.values.default, param.values.digits),
+        min:  ipol_params.num2sci(param.values.min,     param.values.digits),
+        max:  ipol_params.num2sci(param.values.max,     param.values.digits),
         step: 1,
         slide: function( event, ui ) {
             var value_slider = $('#'+range_id).slider('value');
             $('#'+number_id).val(
-                    sci2str(value_slider,param.values.digits)
+                    ipol_params.sci2str(value_slider,param.values.digits)
                 );
-            UpdateParams(ddl_json.params);
+            ipol_params.UpdateParams(ddl_json.params);
         },
         change: function( event, ui ) {
             var value_slider = $('#'+range_id).slider('value');
             $('#'+number_id).val(
-                    sci2str(value_slider,param.values.digits)
+                    ipol_params.sci2str(value_slider,param.values.digits)
                 );
-            UpdateParams(ddl_json.params);
+            ipol_params.UpdateParams(ddl_json.params);
         }
     });
 
@@ -298,15 +353,20 @@ function CreateSelectionRangeScientificEvents(param,ddl_json) {
 //     $('#'+range_id).on('input', function(){
 //         var value_slider = $('#'+range_id).val();
 //         $('#'+number_id).val(
-//                 sci2str(value_slider,param.values.digits)
+//                 ipol_params.sci2str(value_slider,param.values.digits)
 //             );
-//         UpdateParams(ddl_json.params);
+//         ipol_params.UpdateParams(ddl_json.params);
 //     }.bind(this));
 
 }
 
 //------------------------------------------------------------------------------
-function CreateReadOnly(param) {
+/** 
+ * Creates readonly text element
+ * @param {object} param the current parameter object
+ * @returns {string} HTML code
+ */
+ipol_params.CreateReadOnly = function (param) {
 
     var html = "";
     html = 
@@ -326,7 +386,12 @@ function CreateReadOnly(param) {
 
 
 //------------------------------------------------------------------------------
-function CreateLabel(param) {
+/** 
+ * Creates a label element
+ * @param {object} param the current parameter object
+ * @returns {string} HTML code
+ */
+ipol_params.CreateLabel = function (param) {
 
   return  "<th style='border:0' colspan=3>"+ 
               "<div>" + param.label + "</div>" +
@@ -334,10 +399,16 @@ function CreateLabel(param) {
 }
 
 //------------------------------------------------------------------------------
-function CreateCheckBox(param) {
+/** 
+ * Creates a checkbox element
+ * @param {object} param the current parameter object 
+ * (id,default_value,label,comments)
+ * @returns {string} HTML code
+ */
+ipol_params.CreateCheckBox = function (param) {
 
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
     html +=
         '<td style="border:0px;"  colspan="2" align="left"> ' +
         '<input  type="checkbox"' +
@@ -349,23 +420,29 @@ function CreateCheckBox(param) {
         html += ' checked';
     }
     html += ' > </td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
     return html;
     
 }    
 
 //------------------------------------------------------------------------------
-function CreateCheckBoxEvents(param,ddl_json) {
+ipol_params.CreateCheckBoxEvents = function (param,ddl_json) {
     $('#param_'+param.id).on('change', function(){
-        UpdateParams(ddl_json.params);
+        ipol_params.UpdateParams(ddl_json.params);
     }.bind(this));
 }
 
 //------------------------------------------------------------------------------
-function CreateCheckBoxes(param) {
+/** 
+ * Creates several checkbox elements
+ * @param {object} param the current parameter object 
+ * param.{id,values,default,comments}
+ * @returns {string} HTML code
+ */
+ipol_params.CreateCheckBoxes = function (param) {
 
     var html = "";
-    html += AddLabel(param);
+    html += ipol_params.AddLabel(param);
     html += '<td style="border:0"  colspan="2" align="left"> ';
     
     for (var n=0;n< param.values.length; n++) {
@@ -384,14 +461,19 @@ function CreateCheckBoxes(param) {
     }
           
     html += '</td>';
-    html += AddComments(param);
+    html += ipol_params.AddComments(param);
     return html;
     
     
 }    
     
 //------------------------------------------------------------------------------
-function CreateParams(ddl_json) {
+/** 
+ * Creates all the parameters HTML code and events
+ * @param {object} ddl_json demo DDL object
+ * @returns {string} HTML code
+ */
+ipol_params.CreateParams = function (ddl_json) {
     
     $("#ParamDescription").html(ipol_utils.joinHtml(ddl_json.general.param_description));
     
@@ -420,28 +502,28 @@ function CreateParams(ddl_json) {
                 params_html += '<tr style="border:0px;" id="tr_param_'+pos+'" >';
                 switch(param.type) {
                     case "selection_collapsed":
-                        params_html += CreateSelectionCollapsed(param);
+                        params_html += ipol_params.CreateSelectionCollapsed(param);
                         break;
                     case "selection_radio":
-                        params_html += CreateSelectionRadio(param);
+                        params_html += ipol_params.CreateSelectionRadio(param);
                         break;
                     case "range":
-                        params_html += CreateSelectionRange(param);
+                        params_html += ipol_params.CreateSelectionRange(param);
                         break;
                     case "range_scientific":
-                        params_html += CreateSelectionRangeScientific(param);
+                        params_html += ipol_params.CreateSelectionRangeScientific(param);
                         break;
                     case "readonly":
-                        params_html += CreateReadOnly(param);
+                        params_html += ipol_params.CreateReadOnly(param);
                         break;
                     case "label":
-                        params_html += CreateLabel(param);
+                        params_html += ipol_params.CreateLabel(param);
                         break;
                     case "checkbox":
-                        params_html += CreateCheckBox(param);
+                        params_html += ipol_params.CreateCheckBox(param);
                         break;
                     case "checkboxes":
-                        params_html += CreateCheckBoxes(param);
+                        params_html += ipol_params.CreateCheckBoxes(param);
                         break;
                 }
                 params_html += '</tr>';
@@ -465,23 +547,23 @@ function CreateParams(ddl_json) {
                 var param = ddl_json.params[pos];
                 switch(param.type) {
                     case "selection_collapsed":
-                        CreateSelectionCollapsedEvents(param,ddl_json);
+                        ipol_params.CreateSelectionCollapsedEvents(param,ddl_json);
                         break;
                     case "selection_radio":
-                        CreateSelectionRadioEvents(param,ddl_json);
+                        ipol_params.CreateSelectionRadioEvents(param,ddl_json);
                         break;
                     case "range":
-                        CreateSelectionRangeEvents(param,ddl_json);
+                        ipol_params.CreateSelectionRangeEvents(param,ddl_json);
                         break;
                     case "range_scientific":
-                        CreateSelectionRangeScientificEvents(param,ddl_json);
+                        ipol_params.CreateSelectionRangeScientificEvents(param,ddl_json);
                         break;
                     case "readonly":
                         break;
                     case "label":
                         break;
                     case "checkbox":
-                        CreateCheckBoxEvents(param,ddl_json);
+                        ipol_params.CreateCheckBoxEvents(param,ddl_json);
                         break;
                     case "checkboxes":
                         break;
@@ -492,13 +574,19 @@ function CreateParams(ddl_json) {
 
 //     SetLegendFolding(".param_legend");
     
-    UpdateParams(ddl_json.params);
+    ipol_params.UpdateParams(ddl_json.params);
     
 }
 
 //------------------------------------------------------------------------------
-function UpdateParams(ddl_params) {
+/** 
+ * Updates parameters, if they depend on other param values (in the case
+ * of readonly for example).
+ * @param {object} ddl_params the parameter section of the DDL object
+ */
+ipol_params.UpdateParams = function (ddl_params) {
 
+    // image dimensions, can be used in parameter expressions
     var imwidth  = 512;
     var imheight = 512;
     
@@ -507,7 +595,7 @@ function UpdateParams(ddl_params) {
 //         console.info("CheckImageDimensions() ");
         if ($("#inputimage").get(0)) {
             imwidth  = $("#inputimage").get(0).naturalWidth;
-            imheight = $("#inputimage").get(0).naturalWidth;
+            imheight = $("#inputimage").get(0).naturalHeight;
             if ($("#id_cropinput")&&($("#id_cropinput").is(':checked'))) {
                 var CropBox = $("#inputimage").cropper('getCropBoxData');
                 imwidth  = CropBox.width;
@@ -530,7 +618,7 @@ function UpdateParams(ddl_params) {
     }
 
     // get parameter values for eval()
-    var params = GetParamValues(ddl_params);
+    var params = ipol_params.GetParamValues(ddl_params);
     
     // add events
     if ((ddl_params)&&(ddl_params.length>0)) {
@@ -566,7 +654,13 @@ function UpdateParams(ddl_params) {
 }
 
 //------------------------------------------------------------------------------
-function GetParamValue(params_ddl,index) {
+/** 
+ * Get the value of a parameter
+ * @param {object} ddl_params the parameter section of the DDL object
+ * @param {index}  index of the parameter to get
+ * @returns {number|string|array} parameter value
+ */
+ipol_params.GetParamValue = function (params_ddl,index) {
 
     var param = params_ddl[index];
     var name  = param.id;
@@ -610,13 +704,18 @@ function GetParamValue(params_ddl,index) {
 }
     
 //------------------------------------------------------------------------------
-function GetParamValues(params_ddl) {
+/** 
+ * Get all the parameter values
+ * @param {object} ddl_params the parameter section of the DDL object
+ * @returns {object} pairs param.id:value
+ */
+ipol_params.GetParamValues = function (params_ddl) {
     // create parameters
     var params={};
     if (params_ddl) {
         for(var p=0;p<params_ddl.length;p++) {
             var name = params_ddl[p].id;
-            var value = GetParamValue(params_ddl,p);
+            var value = ipol_params.GetParamValue(params_ddl,p);
             if (params_ddl[p].type==="checkbox") {
                 // set both ...
                 params[name+"_checked"] = value;
@@ -639,9 +738,10 @@ function GetParamValues(params_ddl) {
 }
 
 //------------------------------------------------------------------------------
-// reset parameters to default values
-//
-function ResetParamValues() {
+/** 
+ * Reset parameters to default values
+ */
+ipol_params.ResetParamValues = function () {
     
     var ddl_params = $("#DisplayParams").data("ddl_params");
     if (ddl_params===undefined) {
@@ -668,7 +768,7 @@ function ResetParamValues() {
                     break;
                 case "range_scientific":
                     param.value = param.values.default;
-                    param.value_slider = num2sci(param.value,param.values.digits);
+                    param.value_slider = ipol_params.num2sci(param.value,param.values.digits);
                     var range_id  = 'range_' +param.id;
                     $('#'+range_id).slider('value',param.value_slider);
                     $('#'+range_id).trigger("input");
@@ -692,9 +792,12 @@ function ResetParamValues() {
 }
 
 //------------------------------------------------------------------------------
-// Set parameters to given values
-//
-function SetParamValues(param_values) {
+/** 
+ * Set parameters to given values
+ * @param {object} param_values object containing the parameters ids and their
+ * associated values to set
+ */
+ipol_params.SetParamValues = function (param_values) {
     
     var ddl_params = $("#DisplayParams").data("ddl_params");
     if (ddl_params===undefined) {
@@ -723,7 +826,7 @@ function SetParamValues(param_values) {
                         break;
                     case "range_scientific":
                         param.value = pval;
-                        param.value_slider = num2sci(param.value,param.values.digits);
+                        param.value_slider = ipol_params.num2sci(param.value,param.values.digits);
                         var range_id  = 'range_' +param.id;
                         $('#'+range_id).slider('value',param.value_slider);
                         $('#'+range_id).trigger("input");
