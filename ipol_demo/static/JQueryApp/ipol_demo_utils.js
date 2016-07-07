@@ -8,11 +8,14 @@
 
 "use strict";
 
+// ipol application namespace
+var ipol = ipol || {};
+
 /**
  * utilities
  * @namespace
  */
-var ipol_utils = {};
+ipol.utils = ipol.utils || {};
 
 //------------------------------------------------------------------------------
 /** 
@@ -22,7 +25,7 @@ var ipol_utils = {};
  * @param {number} depth directory depth
  * @returns {string} blob path
  */
-ipol_utils.blobhash_subdir = function ( blob_hash, depth) {
+ipol.utils.blobhash_subdir = function ( blob_hash, depth) {
     if (depth===undefined) {
         depth=2;
     }
@@ -35,7 +38,7 @@ ipol_utils.blobhash_subdir = function ( blob_hash, depth) {
  * @param {object|string} input json object
  * @returns {string} syntax highlighted representation of the json object
  */
-ipol_utils.syntaxHighlight = function(json) {
+ipol.utils.syntaxHighlight = function(json) {
     if (typeof json != 'string') {
         json = JSON.stringify(json, undefined, 2);
     }
@@ -63,7 +66,7 @@ ipol_utils.syntaxHighlight = function(json) {
  * @param {string} json_str serialized json object
  * @returns {object} deserialized object
  */
-ipol_utils.DeserializeJSON = function(json_str)
+ipol.utils.DeserializeJSON = function(json_str)
 {
     // need to deserialize twice: TODO: fix this problem
     var json_obj = jQuery.parseJSON(json_str);
@@ -80,8 +83,9 @@ ipol_utils.DeserializeJSON = function(json_str)
  * @param params  {string} list of url parameters
  * @param func    {callback} function to call when the service returns
  * @returns       {Object.jqXHR} jqXHR object
+ * @fires JQuery.getJSON()
  */
-ipol_utils.ModuleService = function(module,service,params,func)
+ipol.utils.ModuleService = function(module,service,params,func)
 {
     var link =  servers.proxy + 
                 '/?module='+ module +
@@ -116,7 +120,7 @@ ipol_utils.ModuleService = function(module,service,params,func)
  * @param {number} step interval step between values
  * @returns {number[]}
  */
-ipol_utils.range = function(min, max, step) {
+ipol.utils.range = function(min, max, step) {
     // parameters validation for method overloading
     if (max == undefined) {
         max = min;
@@ -143,7 +147,7 @@ ipol_utils.range = function(min, max, step) {
  * @param {(string|string[])}html_code
  * @return {string}
  */
-ipol_utils.joinHtml = function(html_code)
+ipol.utils.joinHtml = function(html_code)
 {
     if ($.isArray(html_code)) {
         return html_code.join(' ');
@@ -193,7 +197,7 @@ while (prop = props.pop()) {
  * @param {object} input object
  * @returns {number} number of object properties
  */
-ipol_utils.countProps = function(obj) {
+ipol.utils.countProps = function(obj) {
     var count = 0;
     for (var k in obj) {
         if (obj.hasOwnProperty(k)) {
@@ -210,7 +214,7 @@ ipol_utils.countProps = function(obj) {
  * @param {object} v2 second object
  * @returns {boolean} if objects are equal
  */
-ipol_utils.objectEquals = function(v1, v2) {
+ipol.utils.objectEquals = function(v1, v2) {
 
     if (typeof(v1) !== typeof(v2)) {
         return false;
@@ -221,12 +225,12 @@ ipol_utils.objectEquals = function(v1, v2) {
     }
 
     if (v1 instanceof Object && v2 instanceof Object) {
-        if (ipol_utils.countProps(v1) !== ipol_utils.countProps(v2)) {
+        if (ipol.utils.countProps(v1) !== ipol.utils.countProps(v2)) {
             return false;
         }
         var r = true;
         for (var k in v1) {
-            r = ipol_utils.objectEquals(v1[k], v2[k]);
+            r = ipol.utils.objectEquals(v1[k], v2[k]);
             if (!r) {
                 return false;
             }

@@ -1,5 +1,5 @@
 /**
- * @file this file contains the DocumentReady() function,
+ * @file this file contains the documentReady() function,
   and deals with the initial interactions of the main page: enable page tabulations,
   set events for several buttons, set events for input description and parameters
   description modal windows, for upload modal window, set event for browser history,
@@ -19,6 +19,11 @@
 // using strict mode: better compatibility
 "use strict";
 
+/**
+ * Image Processing OnLine (IPOL) journal demo system namespace
+ * @namespace
+ */
+var ipol = ipol || {};
 
 
 //------------------------------------------------------------------------------
@@ -36,9 +41,9 @@
  *        params_layout
  * @param {object} demo
  */
-function PreprocessDemo(demo) {
+ipol.preprocessDemo = function(demo) {
     //
-//     console.info("PreprocessDemo")
+//     console.info("preprocessDemo")
 //     console.info(demo)
     if (demo != undefined) {
         for (var idx=0; idx<demo.inputs.length;idx++) {
@@ -74,7 +79,7 @@ function PreprocessDemo(demo) {
     if (demo.params&&(demo.params_layout == undefined)) {
         if (demo.params!=undefined) {
             demo.params_layout = [
-                ["Parameters:", ipol_utils.range(demo.params.length)]
+                ["Parameters:", ipol.utils.range(demo.params.length)]
             ];
         }
     }
@@ -82,17 +87,33 @@ function PreprocessDemo(demo) {
 
 //------------------------------------------------------------------------------
 /**
+ * Get the url parameters
+ * @returns {object} containing the name and values of the parameters
+ */
+ipol.getUrlParameters = function() {
+    
+    var url_params = {};
+    location.search.substr(1).split("&").forEach(function(item) {
+        var s = item.split("="),
+            k = s[0],
+            v = s[1] && decodeURIComponent(s[1]);
+        (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
+    });
+    return url_params;
+}
+
+//------------------------------------------------------------------------------
+/**
  * Function called when the demo list is received
  * @param {object} demolist returned by the demoinfo module
  */
-function OnDemoList(demolist)
+ipol.onDemoInfoDemoList = function(demolist)
 {
-    
     //--------------------------------------------------------------------------
     this.InfoMessage = function( ) {
         if (this.verbose) {
             var args = [].slice.call( arguments ); //Convert to array
-            args.unshift("---- OnDemoList ----");
+            args.unshift("---- onDemoInfoDemoList ----");
             console.info.apply(console,args);
         }
     }
@@ -100,24 +121,13 @@ function OnDemoList(demolist)
     
     var dl = demolist;
     if (dl.status == "OK") {
-        var str = JSON.stringify(dl.demo_list, undefined, 4);
-//         $("#tabs-demos pre").html(ipol_utils.syntaxHighlight(str))
         this.InfoMessage("demo list is ",dl);
     }
 
-
-    // get url parameters (found on http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/21152762#21152762)
-    var url_params = {};
-    this.InfoMessage("*** OnDemoList location.search=",location.search);
-    location.search.substr(1).split("&").forEach(function(item) {
-        var s = item.split("="),
-            k = s[0],
-            v = s[1] && decodeURIComponent(s[1]);
-        (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
-    })
+    // Get the URL parameters
+    var url_params = ipol.getUrlParameters();
     this.InfoMessage("url parameters = ",url_params);
-    
-    
+    // Check for 'id' parameter
     if (url_params["id"]!=undefined) {
         var demo_id = url_params["id"][0];
         this.InfoMessage("demo_id = ", demo_id);
@@ -133,8 +143,7 @@ function OnDemoList(demolist)
         }
         html_selection += '<option value = "'+i+'">'
         html_selection += dl.demo_list[i].editorsdemoid + 
-                          '  '+ dl.demo_list[i].title
-        
+                            '  '+ dl.demo_list[i].title
         html_selection += '</option>'
     }
     html_selection += "</select>";
@@ -142,20 +151,19 @@ function OnDemoList(demolist)
     
     if (demo_pos!=-1) {
         $("#demo_selection").val(demo_pos);
-        SetDemoPage(dl.demo_list[demo_pos].editorsdemoid,
+        ipol.setDemoPage(dl.demo_list[demo_pos].editorsdemoid,
                         dl.demo_list[demo_pos].id,
-                        demo_origin.url
+                        ipol.demo_origin.url
                     );
     }
 
-    
     $("#demo-select").data("demo_list",dl.demo_list);
     $("#demo-select").change(
         function() {
             var pos =$( "#demo-select option:selected" ).val();
-            SetDemoPage(dl.demo_list[pos].editorsdemoid,
+            ipol.setDemoPage(dl.demo_list[pos].editorsdemoid,
                         dl.demo_list[pos].id,
-                        demo_origin.select_widget
+                        ipol.demo_origin.select_widget
                         );
         });
 };
@@ -164,13 +172,13 @@ function OnDemoList(demolist)
 /**
  * List all demos and select one
  */
-function ListDemos() {
+ipol.listDemos = function (){
 //     console.info("get demo list from server");
-    ipol_utils.ModuleService(
+    ipol.utils.ModuleService(
         'demoinfo',
         'demo_list',
         '',
-        OnDemoList
+        ipol.onDemoInfoDemoList
     );
 };
 
@@ -179,7 +187,7 @@ function ListDemos() {
  * @readonly
  * @enum {number}
  */
-var demo_origin =  {  
+ipol.demo_origin =  {  
     /** demo selected from the webpage selector */
     select_widget:0, 
     /** demo specified in the url parameters */
@@ -195,7 +203,7 @@ var demo_origin =  {
  * @param {object} ddl_json demo description (DDL)
  * @param {object} experiment contains the experiment files and results
  */
-function SetArchiveExperiment(ddl_json, experiment) {
+ipol.setArchiveExperiment = function (ddl_json, experiment) {
     
     // do as if data is being uploaded
     // fill upload areas with image sources
@@ -209,13 +217,13 @@ function SetArchiveExperiment(ddl_json, experiment) {
         // check input_XX.ext
         // check filename to look for in archive description
         var filename = "input_"+i+ddl_json.inputs[i].ext;
-        archive_input_url[i] = ArchiveDisplay.find_archive_url(
+        archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
             filename, ddl_json.archive.files, experiment.files);
         // check input_XX.orig.ext
         if (!archive_input_url[i]) {
             // check filename to look for in archive description
             var filename = "input_"+i+'.orig.png';
-            archive_input_url[i] = ArchiveDisplay.find_archive_url(
+            archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
                 filename, ddl_json.archive.files, experiment.files);
         }
         // check input_XX.sel.ext
@@ -223,7 +231,7 @@ function SetArchiveExperiment(ddl_json, experiment) {
         if (!archive_input_url[i]) {
             // check filename to look for in archive description
             var filename = "input_"+i+'.sel.png';
-            archive_input_url[i] = ArchiveDisplay.find_archive_url(
+            archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
                 filename, ddl_json.archive.files, experiment.files);
         }
         if (archive_input_url[i]||(ddl_json.inputs[i].required===false)) {
@@ -234,15 +242,17 @@ function SetArchiveExperiment(ddl_json, experiment) {
     
     // on everything loaded, set the inputs
     function SetInputs() {
-        var di = new DrawInputs(ddl_json);
+        var di = new ipol.DrawInputs(ddl_json);
         console.info("apply_local_data ", ddl_json);
-        di.SetBlobSet(null);
-        di.CreateHTML();
-        //di.CreateCropper();
-        di.LoadDataFromLocalFiles();
-        di.SetRunEvent();
+        di.setBlobSet(null);
+        di.createHTML();
+        di.loadDataFromLocalFiles();
+        var run = new ipol.RunDemo(ddl_json,
+                                   di.getInputOrigin(),
+                                   di.getCropInfo(),
+                                   di.getBlobSet(), di.getInpaint() );
+        run.setRunEvent();
     }
-    
     
     if (found_inputs==nb_inputs) {
         var total_loaded_images = 0;
@@ -270,36 +280,38 @@ function SetArchiveExperiment(ddl_json, experiment) {
     }
         
     // Set parameter values
-    ipol_params.SetParamValues(experiment.results.params);
+    ipol.params.SetParamValues(experiment.results.params);
     
+    // Set Progress information
+    ipol.RunDemo.staticSetProgress(experiment.results);
     // Draw results
-    //if ($("#DrawInputs").data("draw_inputs")) {
-    //    $("#DrawInputs").data("draw_inputs").ResultProgress(res);
-    //}
-    var dr = new DrawResults( experiment.results, ddl_json.results );
+    var dr = new ipol.DrawResults( experiment.results, ddl_json.results );
     // Telling the DrawResults object that we are drawing results from 
     // an experiment so it can search the urls from archive
-    dr.SetExperiment(experiment,ddl_json.archive);
-    dr.Create();
+    dr.setExperiment(experiment,ddl_json.archive);
+    dr.create();
 }
 
 //------------------------------------------------------------------------------
 /**
- * Starts everything needed for demo input tab
+ * Starts everything needed for demo input tab.
  * @param {number} demo_id the demo id
  * @param {number} internal_demoid the internal demo id for demoinfo module
- * @param {number} origin of enum type demo_origin
+ * @param {ipol.demo_origin} origin of enum type demo_origin
  * @param {callback} func
+ * @fires demoinfo:read_last_demodescription_from_demo
+ * @fires blobs:get_blobs_of_demo_by_name_ws
+ * @fires archive:get_experiment
  */
-function SetDemoPage(demo_id,internal_demoid,origin,func) {
+ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
     
     if (origin===undefined) {
-        origin=demo_origin.select_widget;
+        origin=ipol.demo_origin.select_widget;
     }
 
-//     console.info("internal demo id = ", internal_demoid);
+    // console.info("internal demo id = ", internal_demoid);
     if (internal_demoid > 0) {
-        ipol_utils.ModuleService(
+        ipol.utils.ModuleService(
             'demoinfo',
             'read_last_demodescription_from_demo',
             'demo_id=' + internal_demoid + '&returnjsons=True',
@@ -315,9 +327,9 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                 $("#ResultsDisplay").removeData();
                 
                 if (demo_ddl.status == "OK") {
-                    var ddl_json = ipol_utils.DeserializeJSON(demo_ddl.last_demodescription.json);
+                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.json);
                     var str = JSON.stringify(ddl_json, undefined, 4);
-                    $("#tabs-ddl pre").html(ipol_utils.syntaxHighlight(str));
+                    $("#tabs-ddl pre").html(ipol.utils.syntaxHighlight(str));
                 } else {
                     console.error(" --- failed to read DDL");
                 }
@@ -328,7 +340,7 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
 
                 // for convenience, add demo_id field to the json DDL 
                 ddl_json['demo_id'] = demo_id
-                PreprocessDemo(ddl_json);
+                ipol.preprocessDemo(ddl_json);
                 
                 // hide parameters if none
                 if ((ddl_json.params===undefined)||
@@ -365,13 +377,13 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                         (ddl_json.general.input_description != "")&&
                         (ddl_json.general.input_description != [""]))
                     {
-                        $("#InputDescription").html(ipol_utils.joinHtml(ddl_json.general.input_description));
+                        $("#InputDescription").html(ipol.utils.joinHtml(ddl_json.general.input_description));
                         $("#description_input").show();
                     } else {
                         $("#description_input").hide();
                     }
                     // Create local data selection to upload 
-                    CreateLocalData(ddl_json);
+                    ipol.upload.ManageLocalData(ddl_json);
 
                 } else {
                     $( "#run_button" ).unbind("click").prop("disabled",true);
@@ -379,29 +391,34 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                     $("#selectinputs_fieldset").hide();
                     $("#inputs_fieldset"      ).hide();
 
-                    var di = new DrawInputs(ddl_json);
-                    di.input_origin = "noinputs";
-                    di.SetRunEvent();
+                    var di = new ipol.DrawInputs(ddl_json);
+                    di.setInputOrigin("noinputs");
+                    var run = new ipol.RunDemo(ddl_json,
+                                               di.getInputOrigin(),
+                                               di.getCropInfo(),
+                                               di.getBlobSet(), di.getInpaint() );
+                    run.setRunEvent();
                 }
                 
                 // Create Parameters tab
-                ipol_params.CreateParams(ddl_json);
+                ipol.params.CreateParams(ddl_json);
 
                 // Get demo blobs
-                ipol_utils.ModuleService(
+                ipol.utils.ModuleService(
                     "blobs",
                     "get_blobs_of_demo_by_name_ws",
                     "demo_name=" + demo_id,
-                    OnDemoBlobs(ddl_json));
+                    ipol.DrawBlobs.staticOnDemoBlobs(ddl_json));
                 
                 // Display archive information
-                var ar = new ArchiveDisplay();
+                var ar = new ipol.ArchiveDisplay();
                 // get and display the last archive page
-                ar.get_archive(demo_id,-1);
+                ar.getArchive(demo_id,-1);
 
                 if (demo_ddl.status == "OK") {
                     switch(origin) {
-                        case demo_origin.select_widget:
+                        // user selection from the widget
+                        case ipol.demo_origin.select_widget:
                             // !from_url mean the event is from changing the demo id
                             try {
                                 // change url hash
@@ -413,27 +430,23 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                                 console.error("error:", err.message);
                             }
                             break;
-                        case demo_origin.url:
+                        // demo selection from the url parameters
+                        case ipol.demo_origin.url:
                             // check if result to display
-                            var url_params = {};
-                            location.search.substr(1).split("&").forEach(function(item) {
-                                var s = item.split("="),
-                                    k = s[0],
-                                    v = s[1] && decodeURIComponent(s[1]);
-                                (k in url_params) ? url_params[k].push(v) : url_params[k] = [v]
-                            });
+                            // Get the URL parameters
+                            var url_params = ipol.getUrlParameters();
+                            
                             // set results as url parameters
                             if (url_params["res"]!==undefined) {
                                 var res = JSON.parse(url_params["res"]);
                                 console.info("***** demo results obtained from url parameters");
                                 // Set parameter values
-                                ipol_params.SetParamValues(res.params);
+                                ipol.params.SetParamValues(res.params);
+                                // Set Progress information
+                                ipol.RunDemo.staticSetProgress(res);
                                 // Draw results
-                                if ($("#DrawInputs").data("draw_inputs")) {
-                                    $("#DrawInputs").data("draw_inputs").ResultProgress(res);
-                                }
-                                var dr = new DrawResults( res, ddl_json.results );
-                                dr.Create();
+                                var dr = new ipol.DrawResults( res, ddl_json.results );
+                                dr.create();
                                 //$("#progressbar").get(0).scrollIntoView();
                             }
                             // set experiment id as url parameter
@@ -442,32 +455,27 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
                                 console.info("demo experiment = ", exp_id);
                                 // ask archive about this experiment
                                 var url_params =    'demo_id='    + demo_id + '&id_experiment='+exp_id;
-                                ipol_utils.ModuleService("archive","get_experiment",url_params,
+                                ipol.utils.ModuleService("archive","get_experiment",url_params,
                                     function(res) {
                                         console.info("archive get_experiment result : ",res);
                                         if (res['status']==='OK') {
-                                            SetArchiveExperiment(ddl_json, res.experiment);
+                                            ipol.setArchiveExperiment(ddl_json, res.experiment);
                                         }
                                     }.bind(this));
                             }
-                            
                             break;
-                        case demo_origin.browser_history:
+                        // demo selection from moving in the browser history
+                        case ipol.demo_origin.browser_history:
                             if (func!=undefined) {
                                 func();
                             }
                             break;
                     }
                 }
-                
             });
-
-
     }
-    
 
 }
-    
     
 
 //------------------------------------------------------------------------------
@@ -475,7 +483,7 @@ function SetDemoPage(demo_id,internal_demoid,origin,func) {
  * allow folding/unfolding of legends
  * @param selector
  */
-function SetLegendFolding( selector) {
+ipol.setLegendFolding = function ( selector) {
     
     // Set cursor to pointer and add click function
     $(selector).css("cursor","pointer").click(function(){
@@ -488,14 +496,13 @@ function SetLegendFolding( selector) {
        $(this).siblings().slideToggle("slow", function() { legend.children("span").html(value); } );
     });
 }    
-    
 
-    
+
 //------------------------------------------------------------------------------
 /**
  * Starts processing when document is ready
  */
-function DocumentReady() {
+ipol.documentReady = function () {
 
     // be sure to have string function endsWith
     if (typeof String.prototype.endsWith !== 'function') {
@@ -508,28 +515,27 @@ function DocumentReady() {
             // update archive tab when selected
             beforeActivate: function(event, ui) {
                 if (ui.newPanel.is("#tabs-archive")) {
-                    var ar = new ArchiveDisplay();
+                    var ar = new ipol.ArchiveDisplay();
                     // we need the demo_id here
                     var demo_list = $("#demo-select").data("demo_list");
                     if (demo_list) {
                         var pos =$( "#demo-select option:selected" ).val();
                         // get and display the last archive page
-                        ar.get_archive(demo_list[pos].editorsdemoid,-1);
+                        ar.getArchive(demo_list[pos].editorsdemoid,-1);
                     }
                 }
             }
         }
-
     );
 
     $( "#progressbar" ).progressbar({ value:100 });
     $(".progress-label").text( "Waiting for input selection" );
 
-    SetLegendFolding("legend");
+    ipol.setLegendFolding("legend");
     $("#reset_params").unbind();
     $("#reset_params").click( function() {
         console.info("reset params clicked");
-        ipol_params.ResetParamValues();
+        ipol.params.ResetParamValues();
     }
     );
     
@@ -563,6 +569,12 @@ function DocumentReady() {
             input_desc_dialog.dialog("open");
         });
 
+    $("#upload-data").button().on("click", 
+        function() 
+        { 
+            dialog.dialog("open");
+        });
+    
     // upload modal dialog
     var dialog;
     dialog = $("#upload-dialog").dialog({
@@ -574,10 +586,7 @@ function DocumentReady() {
             Cancel: function() {
             dialog.dialog( "close" );
             }
-        },
-//         close: function(event, ui) {
-//             $(this).empty().dialog('destroy');
-//         }
+        }
     });
     
     // adjusting width of display blobs div
@@ -592,25 +601,20 @@ function DocumentReady() {
     }
     );
     
-    $("#upload-data").button().on("click", 
-        function() 
-        { 
-            dialog.dialog("open");
-        });
 
-    ListDemos();
+    ipol.listDemos();
 
     var History = window.History;
     // Bind to State Change
     History.Adapter.bind(window,'statechange',
         function(p){ // Note: We are using statechange instead of popstate
             console.info(" statechange param:",p);
-            console.info("last_uploaded_files:",last_uploaded_files);
+            console.info("last_uploaded_files:",ipol.upload.last_uploaded_files);
             // Log the State
             var State = History.getState(); 
             // Note: We are using History.getState() instead of event.state
-            ipol_history.SetPageState(State.data);
+            ipol.history.SetPageState(State.data);
         });
 
 }
-$(document).ready(DocumentReady);
+$(document).ready(ipol.documentReady);

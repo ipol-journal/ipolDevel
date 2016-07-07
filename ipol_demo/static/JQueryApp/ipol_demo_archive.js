@@ -8,24 +8,45 @@
 
 "use strict";
 
+// ipol application namespace
+var ipol = ipol || {};
+
+
 //------------------------------------------------------------------------------
 /**
  * Display demo archives
  * @constructor
  */
-var ArchiveDisplay = function()
+ipol.ArchiveDisplay = function()
 {
     
-    this.verbose=false;
+    /** 
+     * Enable/Disable display of (tracing/debugging) 
+     * information in browser console.
+     * @var {boolean} _verbose
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     */
+    var _verbose=false;
     
+
+    /** 
+     * number of current displayed page
+     * @var {number} _current_page
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     */
+    var _current_page=0;
+        
     //--------------------------------------------------------------------------
     /**
      * Displays message in console if verbose is true
-     * @function InfoMessage
-     * @memberOf ArchiveDisplay~
+     * @function _infoMessage
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
      */
-    this.InfoMessage = function( ) {
-        if (this.verbose) {
+    var _infoMessage = function( ) {
+        if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
             args.unshift("---- ArchiveDisplay ----");
             console.info.apply(console,args);
@@ -35,12 +56,13 @@ var ArchiveDisplay = function()
     //--------------------------------------------------------------------------
     /**
      * Adds the links to the different archive pages
-     * @function ArchivePages
-     * @memberOf ArchiveDisplay~
+     * @function _archivePages
+     * @memberOf ipol.ArchiveDisplay~
      * @param   {object} res
      * @returns {string} HTML code to display the page links
+     * @private
      */
-    this.ArchivePages = function(res) {
+    var _archivePages = function(res) {
         var html = "pages ";
         for(var p=1;p<=res.meta.number_of_pages;p++)
         {
@@ -51,26 +73,15 @@ var ArchiveDisplay = function()
 
     //--------------------------------------------------------------------------
     /**
-     * converts the object to a string that can be used in url params
-     * @function json2uri
-     * @memberOf ArchiveDisplay~
-     * @param   {object} json input json object
-     * @returns {string} string representing the json object
-     */
-    this.json2uri = function(json) {
-        return encodeURIComponent(JSON.stringify(json));
-    }
-        
-    //--------------------------------------------------------------------------
-    /**
-     * converts the object to a string that can be used in url params
-     * @function OneArchive
-     * @memberOf ArchiveDisplay~
+     * Displays the contents of one experiment
+     * @function _oneArchive
+     * @memberOf ipol.ArchiveDisplay~
      * @param   {number} demo_id    demo id
      * @param   {object} exp        experiment information
      * @returns {string} HTML code to display one archive experiment
+     * @private
      */
-    this.OneArchive = function(demo_id,exp) {
+    var _oneArchive = function(demo_id,exp) {
         var html = "";
         html += '<div class="bucket" >';
         //style="display:inline-block;vertical-align: top;">';
@@ -83,7 +94,7 @@ var ArchiveDisplay = function()
         var HasVisualRepresentation = function(file) {
             // for the moment, just check if the file ends with png
             // later use url_thumb property to decide
-            this.InfoMessage("file.url = ", file.url, " png?",file.url.endsWith('.png'));
+            _infoMessage("file.url = ", file.url, " png?",file.url.endsWith('.png'));
             return file.url.endsWith('.png');
         }.bind(this);
         
@@ -110,14 +121,15 @@ var ArchiveDisplay = function()
             }
         );
         
-        this.InfoMessage("exp=",exp);
+        _infoMessage("exp=",exp);
         
         // info table
         html += '<table class="info">';
             html += '<tr>';
             html += '<th style="text-align:center;vertical-align:middle;">Experiment</th>';
             // todo link to experiment details ...
-            html += '<td><a href="ipol_demo.html?id='+demo_id+'&exp='+exp.id+'"  target="_blank">Experiment '+exp.id+'</a>';
+            html += '<td><a href="ipol_demo.html?id='+demo_id+'&exp='+exp.id+
+                    '"  target="_blank">Experiment '+exp.id+'</a>';
             html += '</td>';
             html += '</tr>';
             html += '<tr>';
@@ -127,7 +139,8 @@ var ArchiveDisplay = function()
             $.each(exp.parameters,
                 function(param,value) {
                     html += '    <tr>';
-                    html += '      <th style="text-align:center;vertical-align:middle;">'+param+'</th>';
+                    html += '      <th style="text-align:center;vertical-align:middle;">'+
+                            param+'</th>';
                     html += '      <td>'+value+'</td>';
                     html += '    </tr>';
                 }
@@ -161,14 +174,15 @@ var ArchiveDisplay = function()
     //--------------------------------------------------------------------------
     /**
      * Create the HTML code for the current page
-     * @function CreateCurrentPage
-     * @memberOf ArchiveDisplay~
+     * @function _createCurrentPage
+     * @memberOf ipol.ArchiveDisplay~
      * @param   {object} res          result object obtained from archive module
      * @param   {number} demo_id      demo id
      * @param   {number} page_number  page number to display
      * @returns {string} HTML code to display the current archive page
+     * @private
      */
-    this.CreateCurrentPage = function(res,demo_id,page_number) {
+    var _createCurrentPage = function(res,demo_id,page_number) {
         
         var meta_info       = res["meta"];
         var nb_experiments  = meta_info["number_of_experiments"];
@@ -191,7 +205,7 @@ var ArchiveDisplay = function()
         if ((page_number<1)||(page_number>nb_pages))  { 
             page_number=nb_pages;
         }
-        this.current_page=page_number;
+        _current_page=page_number;
         
         var nb_experiments_per_page = meta_info["number_of_experiments_in_a_page"];
 
@@ -221,13 +235,13 @@ var ArchiveDisplay = function()
         html += '</p>';
 //         html += '<button id="ReloadArchive">Reload</button> <br/>';
 
-        var html_pages = this.ArchivePages(res);
+        var html_pages = _archivePages(res);
         html += html_pages;
 
         html += '<hr class="clear">';
         $.each(res.experiments, 
                function(index,exp) {
-                    html += this.OneArchive(demo_id,exp);
+                    html += _oneArchive(demo_id,exp);
                }.bind(this));
 
         html += html_pages;
@@ -240,22 +254,23 @@ var ArchiveDisplay = function()
     //--------------------------------------------------------------------------
     /**
      * Create the page events
-     * @function CreatePageEvents
-     * @memberOf ArchiveDisplay~
+     * @function _createPageEvents
+     * @memberOf ipol.ArchiveDisplay~
      * @param   {number} demo_id      demo id
      * @param   {object} res          result object obtained from archive module
+     * @private
      */
-    this.CreatePageEvents = function(demo_id,res) {
+    var _createPageEvents = function(demo_id,res) {
         var meta_info = res["meta"];
         var nb_pages  = meta_info["number_of_pages"];
         
-        $(".set_page_"+this.current_page).css("font-weight","bold");
+        $(".set_page_"+_current_page).css("font-weight","bold");
         for(var i=1;i<=nb_pages;i++) {
             $(".set_page_"+i).unbind().click(
                 function(obj,demoid,page) { 
                     return function() 
                     { 
-                        obj.get_archive(demoid,page);
+                        obj.getArchive(demoid,page);
                     }
                 } (this,demo_id,i)
             );
@@ -272,7 +287,7 @@ var ArchiveDisplay = function()
         //             function(obj,demoid) { 
         //                 return function() 
         //                 { 
-        //                     obj.get_archive(demoid,this.current_page);
+        //                     obj.getArchive(demoid,this.current_page);
         //                 }
         //             } (this,demo_id)
         // );
@@ -283,21 +298,22 @@ var ArchiveDisplay = function()
      * Gets and displays archive contents for the given demo and page number 
      * if the page number is undefined or out of range, 
      * the last page is displayed.
-     * @function get_archive
-     * @memberOf ArchiveDisplay~
+     * @function getArchive
+     * @memberOf ipol.ArchiveDisplay~
      * @param   {number} demo_id      demo id
      * @param   {number} page_number  page number
+     * @public
      */
-    this.get_archive = function(demo_id,page_number) {
+    this.getArchive = function(demo_id,page_number) {
         
         var url_params =    'demo_id='    + demo_id + '&page='+page_number;
-        ipol_utils.ModuleService("archive","get_page",url_params,
+        ipol.utils.ModuleService("archive","get_page",url_params,
             function(res) {
-                this.InfoMessage("archive result : ",res);
+                _infoMessage("archive result : ",res);
                 if (res['status']==='OK') {
-                    var html = this.CreateCurrentPage(res,demo_id,page_number);
+                    var html = _createCurrentPage(res,demo_id,page_number);
                     $("#tabs-archive").html(html);
-                    this.CreatePageEvents(demo_id,res);
+                    _createPageEvents(demo_id,res);
                 }
             }.bind(this));
     }
@@ -308,15 +324,16 @@ var ArchiveDisplay = function()
 /**
  * search and returns the url in archive of a given result filename
  * if not found returns undefined
- * @function find_archive_url
- * @memberOf ArchiveDisplay
+ * @function staticFindArchiveUrl
+ * @memberOf ipol.ArchiveDisplay
  * @static
- * @param {string}    filename          filename to seach for in archive experiment
- * @param {object}    ddl_archive_files  list of archive files and their descriptions
- * @param {object[]}  experiment_files   array containing the experiment files
+ * @param {string} filename        filename to seach for in archive experiment
+ * @param {object} ddl_archive_files list of archive files and their descriptions
+ * @param {object[]} experiment_files array containing the experiment files
  * @returns {string} url of the found file or undefined
  */
-ArchiveDisplay.find_archive_url = function(filename,ddl_archive_files,experiment_files) {
+ipol.ArchiveDisplay.staticFindArchiveUrl = function(filename,ddl_archive_files,
+                                                experiment_files) {
     var archive_input_description = ddl_archive_files[filename];
     if (archive_input_description) {
         // find file url in archive

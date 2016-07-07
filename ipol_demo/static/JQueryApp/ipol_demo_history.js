@@ -8,18 +8,23 @@
 // using strict mode: better compatibility
 "use strict";
 
+// ipol application namespace
+var ipol = ipol || {};
+
+
 /**
- * utilities
+ * history
  * @namespace
  */
-var ipol_history = {};
+ipol.history = ipol.history || {};
 
 //------------------------------------------------------------------------------
 /**
  * Set page contents based on its state (obtained from browser history)
+ * @constructor
  * @param {object} page_state
  */
-ipol_history.SetPageState = function( page_state) {
+ipol.history.SetPageState = function( page_state) {
 
     //--------------------------------------------------------------------------
     /**
@@ -27,7 +32,7 @@ ipol_history.SetPageState = function( page_state) {
      * @param demo_id     {number}
      * @param onpage_func {callback}
      * @function SetPageDemo
-     * @memberOf SetPageState
+     * @memberOf ipol.history.SetPageState~
      */
     function SetPageDemo(demo_id, onpage_func) {
         if (demo_id===undefined) {
@@ -50,7 +55,7 @@ ipol_history.SetPageState = function( page_state) {
             // don't trigger change since it will push a new history state,
             // instead, execute the change as if the url was loaded
             // which means we draw parameters and results too
-            SetDemoPage(demo_list[demo_position].editorsdemoid,
+            ipol.setDemoPage(demo_list[demo_position].editorsdemoid,
                         demo_list[demo_position].id,
                         demo_origin.browser_history,
                         onpage_func
@@ -69,7 +74,7 @@ ipol_history.SetPageState = function( page_state) {
      * @param params        {object}  algorithm parameters
      * @param crop_checked  {boolean} if crop is checked
      * @function SetInputsState
-     * @memberOf SetPageState
+     * @memberOf ipol.history.SetPageState~
      */
     function SetInputsState(blobset,upload_state, ddl_json,params,crop_checked) {
         var di = $("#DrawInputs").data("draw_inputs");
@@ -81,43 +86,43 @@ ipol_history.SetPageState = function( page_state) {
         };
         console.info("1 di=",di);
         // recreate only if it has changed:
-        if ((!di)||(!ipol_utils.objectEquals(ddl_json,di.ddl_json))) {
+        if ((!di)||(!ipol.utils.objectEquals(ddl_json,di.ddl_json))) {
             if (di) { console.info("2", ddl_json, " != ",di.ddl_json); }
-            di = new DrawInputs(ddl_json);
+            di = new ipol.DrawInputs(ddl_json);
             // just in case, be sure nothing is on upload page
-            di.UnsetUploadPageState();
+            di.unsetUploadPageState();
         }
         if (blobset) {
             console.info("3");
-            if (!ipol_utils.objectEquals(blobset,di.GetBlobSet())) {
-                console.info("4 ",blobset,' != ', di.GetBlobSet());
-                di.SetBlobSet(blobset);
-                di.input_origin = "blobset";
-                di.UnsetUploadPageState();
-                di.CreateHTML();
+            if (!ipol.utils.objectEquals(blobset,di.getBlobSet())) {
+                console.info("4 ",blobset,' != ', di.getBlobSet());
+                di.setBlobSet(blobset);
+                di.setInputOrigin("blobset");
+                di.unsetUploadPageState();
+                di.createHTML();
                 $("#id_cropinput").prop('checked',crop_checked);
-                di.OnCropBuilt( function() {
+                di.onCropBuilt( function() {
                     console.info("OnCropBuilt callback");
-                    di.OnCropBuilt( undefined);
+                    di.onCropBuilt( undefined);
                     if (crop_checked) {
                         // does not work yet
                         console.info("crop_area is ", crop_area);
-                        di.SetCrop(crop_area);
+                        di.setCrop(crop_area);
                     }
                 });
-                di.OnLoadImages( function() {
+                di.onLoadImages( function() {
                     console.info("OnLoadImages callback");
                 });
-                di.LoadDataFromBlobSet();
+                di.loadDataFromBlobSet();
             } else {
                 console.info("5");
                 // blobset is already loaded, set crop
                 if (crop_checked!=$("#id_cropinput").prop('checked')) {
                     if (crop_checked) {
                         // change from crop disabled to crop unabled, start crop
-                        di.OnCropBuilt( function() { 
-                            di.SetCrop(crop_area); 
-                            di.OnCropBuilt(undefined); 
+                        di.onCropBuilt( function() { 
+                            di.setCrop(crop_area); 
+                            di.onCropBuilt(undefined); 
                         });
                     }
                     $("#id_cropinput").prop('checked',crop_checked);
@@ -127,41 +132,45 @@ ipol_history.SetPageState = function( page_state) {
                     if (crop_checked) {
                         // does not work yet
                         console.info("crop_area is ", crop_area);
-                        di.SetCrop(crop_area);
+                        di.setCrop(crop_area);
                     }
                 }
             }
-            di.SetRunEvent();
+            var run = new ipol.RunDemo(ddl_json,
+                                       di.getInputOrigin(),
+                                       di.getCropInfo(),
+                                       di.getBlobSet(), di.getInpaint() );
+            run.setRunEvent();
         }
         if (upload_state) {
             console.info("10");
-            var upload_res = di.SetUploadPageState(upload_state);
+            var upload_res = di.setUploadPageState(upload_state);
             if (upload_res!=1) {
-                di.UnsetBlobSet();
-                di.input_origin = "localfiles";
+                di.unsetBlobSet();
+                di.setInputOrigin("localfiles");
                 if (upload_res==0) {
-                    di.CreateHTML();
+                    di.createHTML();
                     $("#id_cropinput").prop('checked',crop_checked);
-                    di.OnCropBuilt( function() {
+                    di.onCropBuilt( function() {
                         console.info("OnCropBuilt callback");
-                        di.OnCropBuilt( undefined);
+                        di.onCropBuilt( undefined);
                         if (crop_checked) {
                             console.info("crop_area is ", crop_area);
-                            di.SetCrop(crop_area);
+                            di.setCrop(crop_area);
                         }
                     });
-                    di.OnLoadImages( function() {
+                    di.onLoadImages( function() {
                         console.info("OnLoadImages callback");
                     });
-                    di.LoadDataFromLocalFiles();
+                    di.loadDataFromLocalFiles();
                 } else {
                     // data alread loaded, setting crop
                     if (crop_checked!=$("#id_cropinput").prop('checked')) {
                         if (crop_checked) {
                             // change from crop disabled to crop unabled, start crop
-                            di.OnCropBuilt( function() { 
-                                di.SetCrop(crop_area); 
-                                di.OnCropBuilt(undefined); 
+                            di.onCropBuilt( function() { 
+                                di.setCrop(crop_area); 
+                                di.onCropBuilt(undefined); 
                             });
                         }
                         $("#id_cropinput").prop('checked',crop_checked);
@@ -170,11 +179,15 @@ ipol_history.SetPageState = function( page_state) {
                     } else {
                         if (crop_checked) {
                             console.info("crop_area is ", crop_area);
-                            di.SetCrop(crop_area);
+                            di.setCrop(crop_area);
                         }
                     }
                 }
-                di.SetRunEvent();
+                var run = new ipol.RunDemo(ddl_json,
+                                           di.getInputOrigin(),
+                                           di.getCropInfo(),
+                                           di.getBlobSet(), di.getInpaint() );
+                run.setRunEvent();
             } else {
                 $("#DrawInputs").empty();
                 $("#DrawInputs").removeData();
@@ -187,11 +200,11 @@ ipol_history.SetPageState = function( page_state) {
      * Set the parameters values
      * @param params        {object}  algorithm parameters
      * @function SetParamsState
-     * @memberOf SetPageState
+     * @memberOf ipol.history.SetPageState~
      */
     function SetParamsState(params) {
         // update parameters
-        ipol_params.SetParamValues(params);
+        ipol.params.SetParamValues(params);
     }
     
     //--------------------------------------------------------------------------
@@ -201,7 +214,7 @@ ipol_history.SetPageState = function( page_state) {
      * @param ddl_results {object}  results section of the DDL
      * @param scrolltop   {number}  scrolling position
      * @function SetResultsState
-     * @memberOf SetPageState
+     * @memberOf ipol.history.SetPageState~
      */
     function SetResultsState(res,ddl_results,scrolltop) {
         // draw results
@@ -209,7 +222,7 @@ ipol_history.SetPageState = function( page_state) {
         // keep the scrolling position
         $("#ResultsDisplay").parent().css("height",$(window).height()+"px")
         
-        var dr = new DrawResults( res, ddl_results );
+        var dr = new ipol.DrawResults( res, ddl_results );
         
         dr.onloadall_callback = function() {
             // reset result display height to empty so it is automatic
@@ -220,7 +233,7 @@ ipol_history.SetPageState = function( page_state) {
             console.info("dr=",dr);
 //             dr.onloadall_callback=undefined;
         }
-        dr.Create();
+        dr.create();
         //$("#progressbar").get(0).scrollIntoView();
     }
     
@@ -244,10 +257,8 @@ ipol_history.SetPageState = function( page_state) {
                     // update parameters
                     SetParamsState(page_state.res.params);
                     
-                    var di = $("#DrawInputs").data("draw_inputs");
-                    if (di) {
-                        di.ResultProgress(page_state.res);
-                    }
+                    // Set Progress information
+                    ipol.RunDemo.staticSetProgress(page_state.res);
                     
                     SetResultsState(page_state.res,
                                     page_state.ddl_json.results,
