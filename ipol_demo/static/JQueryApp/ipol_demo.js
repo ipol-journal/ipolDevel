@@ -498,6 +498,8 @@ ipol.setLegendFolding = function ( selector) {
 }    
 
 
+
+
 //------------------------------------------------------------------------------
 /**
  * Starts processing when document is ready
