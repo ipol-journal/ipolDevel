@@ -410,7 +410,7 @@ class   Database(object):
 
             # now get blobs of each set
             blob_list.append(
-                        { "id": b[0], "id_in_set": b[1], "hash" : b[2], "extension": b[3],
+                        { "id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
                           "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
                       )
           blobset_list.append(blob_list)
@@ -727,8 +727,6 @@ class   Database(object):
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
-        
-        print "delete_blob_from_demo({0},{1},{2})".format(demo_id,blobset,blob_id)
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob
@@ -747,10 +745,45 @@ class   Database(object):
                 try:
                     self.cursor.execute('''
                     DELETE FROM demo_blob
-                    WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
+                    WHERE demo_blob.blob_id=? AND demo_blob.demo_id=? AND demo_blob.blob_set=? ''',\
                     (value[0], value[1],value[2]))
-                except self.database.Error:
-                    raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+                except self.database.Error as e:
+                    print "Database exception:", e
+                    raise DatabaseDeleteError(e)
+                
+        # recompute blob positions in set
+        #try:
+        print "recompute blob positions"
+        result = self.cursor.execute('''
+        SELECT blob_id, blob_pos_in_set, demo_blob.id FROM demo_blob
+        INNER JOIN demo ON demo_blob.demo_id=demo.id
+        INNER JOIN blob ON demo_blob.blob_id=blob.id
+        WHERE demo_blob.demo_id=? AND demo_blob.blob_set=? ''',\
+        (demo_id, blobset))
+        #except self.database.Error:
+            #raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        values = []
+        for item in result:
+            values.append((item[0], item[1], item[2]))
+        values = sorted(values, key=lambda b: b[1])
+        blobpos=0
+        idx=0
+        prev_pos = 0
+        for val in values:
+            if blobpos!=0 and prev_pos!=val[1]:
+                idx=idx+1
+            #try:
+            print "UPDATE demo_blob SET blob_pos_in_set=",idx," WHERE demo_blob.id=",val[2]
+            #
+            result = self.cursor.execute('''
+            UPDATE demo_blob SET blob_pos_in_set=?
+            WHERE demo_blob.id=? ''',\
+            (idx,val[2]))
+            #except self.database.Error:
+                #raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+            prev_pos = val[1]
+            blobpos=blobpos+1
+         
 
         #---- here
         self.delete_all_tag(blob_id)
