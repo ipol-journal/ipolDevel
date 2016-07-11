@@ -91,8 +91,6 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
     for(var i=0;i<ddl_json.inputs.length;i++) {
         $("#file_"+i).change( 
             (function(i) { return function() {
-
-                console.info("files=",this.files);
                 // check upload size
                 var size_ok = this.files[0].size<eval(ddl_json.inputs[i].max_weight);
                 var Mb=1024*1024;
@@ -106,23 +104,34 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
                             allowed_size.toPrecision(4)+" Mb");
                     return;
                 }
-                // upload the file, update the preview and the 
+                
+                // read the file, update the preview and the 
                 // last_uploaded_files information
                 if (this.files && this.files[0]) {
+                    // use FileReader()
                     var reader = new FileReader();
                     reader.onload = (function(i) { return function (e) {
                         console.info("onload ", i, ":",e.target);
                         $('#localdata_preview_'+i).attr("src", e.target.result);
                         console.info("size of uploaded file :", 
                                      e.target.result.length/1024/1024, " Mb" );
+                        // for browser history purposes:
+                        // save the result in the last_upload_files array
+                        // at position last_uploaded_files_pos
                         ipol.upload.last_uploaded_files
                             [ipol.upload.last_uploaded_files_pos] = e.target.result;
+                        // stores the position in the HTML element
+                        // this prevents uploading twice the save file while moving 
+                        // in the browser history
                         $('#localdata_preview_'+i).data("src_pos",
                                                         ipol.upload.last_uploaded_files_pos);
+                        // increment the position
                         ipol.upload.last_uploaded_files_pos++;
                         window.localStorage.setItem("last_uploaded_files_pos", 
                                                     ipol.upload.last_uploaded_files_pos);
                         // avoid filling the memory by releasing old files
+                        // we try to keep the 10 last files 
+                        // (depending on the available cache)
                         if (ipol.upload.last_uploaded_files_pos>=10) {
                             ipol.upload.last_uploaded_files
                                 [ipol.upload.last_uploaded_files_pos-10]=undefined;
@@ -154,16 +163,18 @@ ipol.upload.ManageLocalData = function(ddl_json) {
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
-                // code to be executed on click
+                // create DrawInputs instance
                 var di = new ipol.DrawInputs(ddl_json);
-                console.info("apply_local_data ", ddl_json);
                 di.setBlobSet(null);
                 di.createHTML();
+                // enable loading data from local files
                 di.loadDataFromLocalFiles();
+                // create RunDemo instance
                 var run = new ipol.RunDemo(ddl_json,
                                            di.getInputOrigin(),
                                            di.getCropInfo(),
-                                           di.getBlobSet(), di.getInpaint() );
+                                           di.getBlobSet(), 
+                                           di.getInpaint() );
                 run.setRunEvent();
                 $(this).dialog( "close" );
             }
@@ -171,7 +182,7 @@ ipol.upload.ManageLocalData = function(ddl_json) {
         Cancel: function() {
           $(this).dialog( "close" );
         }
-      });
+    });
     
     ipol.upload.UploadBlobsEvents(ddl_json);
 }

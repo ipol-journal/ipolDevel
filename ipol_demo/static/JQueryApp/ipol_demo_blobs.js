@@ -239,35 +239,39 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _demoBlobsEvents = function() {
+        
         var blobs = _demoblobs.blobs;
         
+        // compute the total number of images to load
+        // to adapt the height once all images are loaded
         var images_to_process = 0;
         for(var i=0;i<blobs.length;i++) {
             images_to_process += _demoblobs.blobs[i][0].size;
         }
         _infoMessage("images_to_process =", images_to_process);
         
-        // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
+            // set click events on blobsets
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
-                
+                // create an instance of DrawInputs
                 var di = new ipol.DrawInputs(_ddl_json);
                 di.setBlobSet(_demoblobs.blobs[event.data.blobset_id]);
                 di.setInputOrigin("blobset");
                 di.createHTML();
                 di.loadDataFromBlobSet();
+                // prepare to run the demo
                 var run = new ipol.RunDemo(ddl_json,
                                            di.getInputOrigin(),
                                            di.getCropInfo(), 
-                                           di.getBlobSet(), di.getInpaint() );
+                                           di.getBlobSet(),
+                                           di.getInpaint());
                 run.setRunEvent();
-            }.bind(this)
+            }
             );
-
-            
+            // Set hover event on blobset
             $("#table_blobset_"+i).hover(
                 (function(id) {
                     return function() {
@@ -280,7 +284,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                     };
                 })(i)
             );
-
+            // load thumbnails for this blobset
             var blobset = _demoblobs.blobs[i];
             _max_ratio = 0.5; 
             var processed_images = 0;
