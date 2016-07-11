@@ -296,7 +296,45 @@ sonFlickrFeed({
 
 - A way to get images from the browser in a smartphone with HTML5: \url{http://don.github.io/html-cam/}
 
+
 \ToDo{Keep adding!}
+
+\subsection{GitHub deploy key}
+The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
+
+For example:
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+\end{verbatim}
+
+\vspace{0.15cm}
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+ipol@smartalgo:~/ipolDevel$ cat .git/config 
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	#url = https://github.com/mcolom/ipolDevel
+	url = git@github_deploy:mcolom/ipolDevel.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+\end{verbatim}
+
 
 
 \bibliographystyle{plain}
