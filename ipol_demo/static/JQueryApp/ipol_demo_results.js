@@ -19,6 +19,15 @@ var ipol = ipol || {};
  */
 ipol.DrawResults = function( res,ddl_results) {
     
+    /** 
+     * By convention, we create a private variable '_this' to
+     * make the object available to the private methods.
+     * @var {object} _this
+     * @memberOf ipol.DrawResults~
+     * @private
+     */
+    var _this = this;
+
     //--------------------------------------------------------------------------
     /**
      * Displays message in console if verbose is true
@@ -77,6 +86,17 @@ ipol.DrawResults = function( res,ddl_results) {
      */
     var _work_url     = res.work_url;
 
+    /** 
+     * to be called when all image_gallery images are loaded
+     * @var {callback} _onloadall_callback
+     * @memberOf ipol.DrawResults~
+     * @private
+     * @defaults undefined
+     */
+    var _onloadall_callback = undefined;
+    
+    
+    
     //--------------------------------------------------------------------------
     /**
      * Creates one component of the results
@@ -279,10 +299,10 @@ ipol.DrawResults = function( res,ddl_results) {
     // to use archive url, otherwise use work_url path
     var _findUrl = function(filename) {
         var url=undefined;
-        if (this.experiment) {
+        if (_this._experiment) {
             url = ipol.ArchiveDisplay.staticFindArchiveUrl(filename,
-                                                  this.ddl_archive.files,
-                                                  this.experiment.files);
+                                                  _this._ddl_archive.files,
+                                                  _this._experiment.files);
         }
         if (!url) {
             url = _work_url+filename;
@@ -470,8 +490,8 @@ ipol.DrawResults = function( res,ddl_results) {
         ig.CreateEvents();
         $("#result_"+id).data("image_gallery",ig);
         
-        if (this.onloadall_callback) {
-            ig.SetOnLoadAll( this.onloadall_callback.bind(this) );
+        if (_this._onloadall_callback) {
+            ig.SetOnLoadAll( _this._onloadall_callback.bind(this) );
         }
 
     } // end _gallery_new_events
@@ -539,8 +559,21 @@ ipol.DrawResults = function( res,ddl_results) {
      * @public
      */
     this.setExperiment = function(exp,ddl_archive) {
-        this.experiment = exp;
-        this.ddl_archive = ddl_archive; // archive part of the DDL
+        /** 
+         * information about the experiment to be displayed
+         * @var {object} _experiment
+         * @memberOf ipol.ArchiveDisplay~
+         * @private
+         */
+        this._experiment = exp;
+        
+        /** 
+         *  archive section of the DDL
+         * @var {object} _ddl_archive
+         * @memberOf ipol.ArchiveDisplay~
+         * @private
+         */
+        this._ddl_archive = ddl_archive; // archive part of the DDL
     }
 
     //--------------------------------------------------------------------------
@@ -580,4 +613,15 @@ ipol.DrawResults = function( res,ddl_results) {
 
     };
     
+    //--------------------------------------------------------------------------
+    /**
+     * sets a callback function to be called when all the images of an 
+     * image gallery are loaded
+     * @function setOnLoadAllCallback
+     * @memberOf ipol.DrawResults~
+     * @public
+     */
+    this.setOnLoadAllCallback = function(cb) {
+        _onloadall_callback = cb;
+    }
 };
