@@ -1036,7 +1036,8 @@ ipol\_demo/\-static/\-JQuery\-App directory:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=3.5in]{Images/demo_snapshot}
+%  \includegraphics[width=3.5in]{Images/demo_snapshot}
+  \includegraphics[width=3.5in]{Images/demo_capture}
   \caption{Demo display layout}
   \label{img:demo_snapshot}
 \end{figure}
@@ -1072,7 +1073,7 @@ The main flow is as follows:
  \item Step 8: Display the results.
 \end{itemize}
 
-\subsubsection{Page skeleton}
+\subsubsection{Page template}
 
 \paragraph{Included scripts and stylesheets}
 The file "ipol\_demo.html" contains the page template, where the main displayed components are defined.
@@ -1139,19 +1140,90 @@ The modal dialog is then initialized by the following code:
 \lstinputlisting[language=JavaScript, firstnumber=574,
 linerange={574-592}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol_demo.js}
-and
-\lstinputlisting[language=JavaScript, firstnumber=151,
-linerange={151-175}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol_demo_upload.js}
+and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
-\subsubsection{Input demo selection}
+\subsubsection{Step 1: input demo selection}
 
 The list of demos is obtained from the demoinfo module using the service "demo\_list",
 in the function ipol.ListDemos(). Once the list is obtained, 
 ipol.OnDemoList(demolist) is called.
-The demo list is store in the HTML element "demo-select" and once the demo is
+The demo list is stored in the HTML element "demo-select" and once the demo is
 selected (from user selection or from the url parameters), the function 
-ipol.SetDemoPage() is called.
+ipol.setDemoPage() is called.
+
+The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
+of the "demoinfo" module using ipol.utils.ModuleService():
+\lstinputlisting[language=JavaScript, firstnumber=314,
+linerange={314-318}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.js}
+
+Once the demo description is returned, it runs the following steps:
+\begin{itemize}
+  \item empties the contents of the page,
+  \item changes its title to contain the demo title,
+  \item prepares the webpage to receive the different contents,
+  \item displays the parameters if any,
+  \item fills the contents of the archive tab,
+  \item calls demoinfo module service "get\_blobs\-\_of\-\_demo\-\_by\-\_name\-\_ws"
+to get the list of available blobsets for this demo, and calls staticOnDemoBlobs()
+method to display them and set their events,
+  \item and based on the "origin" parameter:
+    \begin{itemize}
+      \item if origin is "select\_widget" push a new state to the history,
+      \item if origin is "url", if it contains the parameter 'res', displays
+            the associated results. If it contains the parameter 'exp', displays
+            the corresponding archive experiment.
+      \item if origin is "browser\_history", call the callback function "func" 
+            given in parameter.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Step 2: read and display list of available blobsets}
+
+The static method ipol.DrawBlobs.staticOnDemoBlobs() returns a function
+that creates an instance of ipol.DrawBlobs class, add possible template
+to the blob list and displays all the blobs and their associated events.
+
+\subsubsection{Step 3: select input blobset}
+
+The input blobset can be either selected from the proposed list or uploaded from 
+local files.
+\paragraph{Blobset selection:}
+If it is selected by clicking on one of the proposed blobsets, the event will
+trigger the creation of a DrawInputs instance with the string "blobset" as origin,
+load the input blobset and prepare for running the demo:
+\lstinputlisting[language=JavaScript, firstnumber=253,
+linerange={253-273}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo_blobs.js}
+
+\paragraph{Data upload:}
+
+Clicking on the "Upload data" button will display a modal dialog window
+where the user can choose the files to upload from his local disk.
+\begin{figure}[H]
+  \centering
+%  \includegraphics[width=3.5in]{Images/demo_snapshot}
+  \includegraphics[width=3.5in]{Images/uploadwindow_capture}
+  \caption{Upload files modal window}
+  \label{img:uploadwindow_snapshot}
+\end{figure}
+
+This window is created by the ipol.upload.CreateUploadHTML(), and the function
+ipol.upload.UploadBlobsEvents() deals with the file selection and display.
+Note that the selected files will only be uploaded to the server before the
+demo execution (after clicking on the "run" button).
+Once the user accept its selection by clicking on the "Apply" button, 
+instances of the DrawInputs and RunDemo classes are created within the 
+ipol.upload.ManageLocalData() function:
+\lstinputlisting[language=JavaScript, firstnumber=160,
+linerange={160-185}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo_upload.js}
+
+\subsubsection{Step 4: Display selected blobset}
+Once the user has selected a blobset, it is displayed in the inputs fieldset
+with its corresponding interface.
+The initial HTML code is created by DrawInputs.createHTML() method. 
+In the case of a single input image, 
 
 \subsubsection{Managing browser history}
 
