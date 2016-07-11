@@ -25,7 +25,7 @@ var ipol = ipol || {};
 ipol.DrawInputs = function(ddl_json) {
     
     /** 
-     * By convention, we create a private variable 'that'. This is used to
+     * By convention, we create a private variable '_this' to
      * make the object available to the private methods.
      * @var {object} _this
      * @memberOf ipol.DrawInputs~

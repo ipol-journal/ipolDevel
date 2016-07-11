@@ -26,7 +26,7 @@ var ipol = ipol || {};
 ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
 
     /** 
-     * By convention, we create a private variable 'that'. This is used to
+     * By convention, we create a private variable '_this' to
      * make the object available to the private methods.
      * @var {object} _this
      * @memberOf ipol.RunDemo~
