@@ -226,8 +226,7 @@ class   Blobs(object):
 
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-          print "Exception ", error
+        except DatabaseError:
           print_exception_function("Cannot add item in database")
           data.rollback()
           dic["status"] = "KO"
@@ -327,7 +326,7 @@ class   Blobs(object):
         try:
             dic["list_demos"] = data.list_of_demos()
             dic["status"] = "OK"
-        except DatabaseError as error:
+        except DatabaseError:
             print_exception_function("Cannot have the list of demos")
             dic["status"] = "KO"
 
@@ -350,7 +349,7 @@ class   Blobs(object):
         try:
             dic["template_list"] = data.list_of_template()
             dic["status"] = "OK"
-        except DatabaseError as error:
+        except DatabaseError:
             print_exception_function("Cannot have the list of templates demos")
             dic["status"] = "KO"
 
@@ -395,7 +394,7 @@ class   Blobs(object):
             data.update_template(demo_id, template_id)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
+        except DatabaseError:
             print_exception_function("Cannot update template used")
             dic["status"] = "KO"
 
@@ -445,7 +444,7 @@ class   Blobs(object):
             data.add_demo_in_database(name, is_template, id_tmpl)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
+        except DatabaseError:
             print_exception_function("Cannot have the list of templates demos")
             data.rollback()
             dic["status"] = "KO"
@@ -562,7 +561,7 @@ class   Blobs(object):
             res = data.add_tag_in_database(blob_id, tag)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
+        except DatabaseError:
             print_exception_function("Cannot add tag in database")
             data.rollback()
             dic["status"] = "KO"
