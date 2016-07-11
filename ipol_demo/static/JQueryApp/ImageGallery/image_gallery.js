@@ -25,15 +25,25 @@ var ipol = ipol || {};
  */
 ipol.ImageGallery = function(galleryid)  {
     
+
+    /** 
+     * Enable/Disable display of (tracing/debugging) 
+     * information in browser console.
+     * @var {boolean} _verbose
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     */
+    var _verbose=false;
+
     //--------------------------------------------------------------------------
      /**
-     * Displays message in console if verbose is true
+     * Displays message in console if _verbose is true
      * @function _infoMessage
      * @memberOf ipol.ImageGallery~
      * @private
      */
    var _infoMessage = function( ) {
-        if (this.verbose) {
+        if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
             args.unshift("---- ImageGallery ----");
             console.info.apply(console,args);
@@ -144,8 +154,6 @@ ipol.ImageGallery = function(galleryid)  {
     this.display_maxwidth  = $(window).width()*0.80;
 
     this.display_maxheight = $(window).height()*0.80;
-
-    this.verbose=false;
 
     _infoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
 
