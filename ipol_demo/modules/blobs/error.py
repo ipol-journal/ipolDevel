@@ -6,8 +6,10 @@ This file describes exception error class and printing color exception
 """
 
 import sys
+import sqlite3
+import traceback
 
-class   DatabaseError(Exception):
+class   DatabaseError(sqlite3.Error):
     """
     Implements exception class
     """
@@ -50,7 +52,7 @@ class PrintColors(object):
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def print_exception_function(the_class, result):
+def print_exception_function(message):
     """
     This function prints exception message with color
     during access to the database
@@ -60,14 +62,11 @@ def print_exception_function(the_class, result):
     :param result: result of exception on web service function
     :type result: string
     """
-    type_error = type(the_class).__name__
-    name_function = str(the_class)
 
-    mess = PrintColors.FAIL
-    mess += "[Exception message]:\n\t[Type]: " + type_error
-    mess += "\n\t[Location]: " + name_function
-    mess += "\n\t[Result]: " + result + PrintColors.ENDC
-
+    mess =  PrintColors.FAIL
+    mess += "Exception: "+ message + "\n"
+    mess += traceback.format_exc( ) 
+    mess += PrintColors.ENDC
     print >> sys.stderr, mess
 
 def print_usage_function(executable):

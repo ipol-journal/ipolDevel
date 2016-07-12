@@ -224,15 +224,16 @@ ipol.history.SetPageState = function( page_state) {
         
         var dr = new ipol.DrawResults( res, ddl_results );
         
-        dr.onloadall_callback = function() {
+        // sets the scroll position when all images are loaded
+        dr.setOnLoadAllCallback( function() {
             // reset result display height to empty so it is automatic
             $("#ResultsDisplay").parent().css("height","")
             $(window).scrollTop(scrolltop);
             console.info("onloadall_callback scrolltop=",scrolltop);
             // disable it 
             console.info("dr=",dr);
-//             dr.onloadall_callback=undefined;
-        }
+            // dr.onloadall_callback=undefined;
+        });
         dr.create();
         //$("#progressbar").get(0).scrollIntoView();
     }

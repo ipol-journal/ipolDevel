@@ -24,10 +24,10 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
 {
 
     /** 
-     * By convention, we create a private variable 'that'. This is used to
+     * By convention, we create a private variable '_this' to
      * make the object available to the private methods.
      * @var {object} _this
-     * @memberOf ipol.DrawInputs~
+     * @memberOf ipol.DrawBlobs~
      * @private
      */
     var _this = this;
@@ -108,22 +108,22 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
-                return (a.id_in_set < b.id_in_set ? -1 : (a.id_in_set > b.id_in_set ? 1 : 0));
+                return (a.pos_in_set < b.pos_in_set ? -1 : (a.pos_in_set > b.pos_in_set ? 1 : 0));
             });
             var current_id = ""
             for (var idx = 0; idx < blobset_contents.length; idx++) {
                 if (idx == 0) {
-                    blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
+                    blobset[0].html_params += blobset_contents[idx].pos_in_set + ":";
                 } else {
                     // if same id, separate by comma ...
-                    if (blobset_contents[idx].id_in_set == current_id) {
+                    if (blobset_contents[idx].pos_in_set == current_id) {
                         blobset[0].html_params += ",";
                     } else {
                         // else separate arguments
-                        blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":";
                     }
                 }
-                current_id = blobset_contents[idx].id_in_set;
+                current_id = blobset_contents[idx].pos_in_set;
                 blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
                     blobset_contents[idx].hash + blobset_contents[idx].extension;
             }

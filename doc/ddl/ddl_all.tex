@@ -990,6 +990,12 @@ ipol\_demo/\-static/\-JQuery\-App directory:
   \url{https://github.com/fengyuanchen/cropper}. The 'DrawInputs' class
   calls the demo execution, uploads local files, and takes care of the progress bar.
 
+ \item \emph{ipol\_demo\_run.js}: This file contains the code that, based on the 
+  input and parameters selection, calls the webservices to upload input files
+  and run the algorithm. Input data can be loaded
+  from blobset or uploaded from local files. The 'RunDemo' class
+  calls the demo execution, uploads local files, and takes care of the progress bar.
+
  \item \emph{ipol\_demo\_upload.js}: creates the HTML contents for uploading
   files, and the execution code for applying or cancelling the upload. Applying 
   the upload will instanciate an object of 'DrawInputs' class and set everything
@@ -1079,7 +1085,7 @@ The main flow is as follows:
 The file "ipol\_demo.html" contains the page template, where the main displayed components are defined.
 The different scripts are included, together with their CSS stylesheets:
 
-\lstinputlisting[language=HTML, , firstnumber=18, firstline=18, lastline=48, 
+\lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, 
 basicstyle=\scriptsize]{../../ipol_demo/static/JQueryApp/ipol_demo.html}
 
 You will notice the use of the following external modules:
