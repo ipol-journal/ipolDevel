@@ -195,7 +195,7 @@ In this section we add general comments on the projects, parts which still neeed
 \item libtiff5-dev, libjpeg-dev, libpng-dev: open and write TIFF, JPEG, PNG files
 \item libfftw3-dev: fast DFT operations
 \item libgsl0-dev, libeigen3-dev, liblapack-dev, libblas-dev: linear algebra
-\item python, python-cherrypy3, python-mako, python-jsonschema: Python language, webserver, web templating, JSON
+\item python, python-dev, python-cherrypy3, python-mako, python-jsonschema: Python language, Python headers, webserver, web templating, JSON
 \item gnuplot, gnuplot-nox: to draw figures
 \item python-pip: to install python packages
 \item python-yaml: for parsing
@@ -203,7 +203,7 @@ In this section we add general comments on the projects, parts which still neeed
 Packages to be installed with pip install:
 \begin{itemize}
 \item python-magic
-\item Pillow
+\item pillow
 \item simplejson
 \end{itemize}
 
@@ -320,6 +320,7 @@ host github_deploy
       hostname github.com
       user git
       identityfile ~/.ssh/id_rsa
+
 ipol@smartalgo:~/ipolDevel$ cat .git/config 
 [core]
 	repositoryformatversion = 0
