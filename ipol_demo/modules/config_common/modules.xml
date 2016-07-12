@@ -3,7 +3,7 @@
 
   <module name="archive">
     <url>http://ns6624371.ip-5-196-85.eu:9000/</url>
-    <server>ipol2</server>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/modules/archive/</path>
     <command>start</command>
     <command>stop</command>
@@ -13,7 +13,7 @@
 
   <module name="blobs">
     <url>http://ns6624371.ip-5-196-85.eu:9001/</url>
-    <server>ipol2</server>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
     <command>start</command>
     <command>stop</command>
@@ -23,7 +23,7 @@
 
   <module name="demoinfo">
     <url>http://ns6624371.ip-5-196-85.eu:9002/</url>
-    <server>ipol2</server>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
     <command>start</command>
     <command>stop</command>
@@ -32,8 +32,8 @@
   </module>
 
   <module name="demorunner">
-    <url>ns6624371.ip-5-196-85.eu:9004/</url>
-    <server>ipol2</server>
+    <url>http://ns6624371.ip-5-196-85.eu:9004/</url>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
     <command>start</command>
     <command>stop</command>
@@ -42,8 +42,8 @@
   </module>
   
   <module name="proxy">
-    <url>ns6624371.ip-5-196-85.eu:9003/</url>
-    <server>ipol2</server>
+    <url>http://ns6624371.ip-5-196-85.eu:9003/</url>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/modules/proxy/</path>
     <command>start</command>
     <command>stop</command>
