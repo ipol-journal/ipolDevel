@@ -10,7 +10,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# Written by Alexis Mongin. Contact : alexis.mongin #~AT~# outlook.com
+# Alexis Mongin - alexis.mongin #~AT~# outlook.com
+# Miguel Colom -  http://mcolom.info
 
 """
 This script implements a terminal for controlling the IPOL system modules.
@@ -57,7 +58,6 @@ class Terminal(object):
 
         return dict_modules
 
-
     @staticmethod
     def do_nothing(_dummy):
         """
@@ -67,7 +67,11 @@ class Terminal(object):
 
 
     def __init__(self):
+        # Read module's info
         self.dict_modules = self.get_dict_modules()
+        
+        # Get pull server: the same as the proxy server
+        self.pull_server = self.dict_modules["proxy"]["server"]
 
 
     def get_active_modules(self):
@@ -75,7 +79,7 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print "\nWelcome to IPOL control terminal!\n"
+        print "\nWelcome to the IPOL control terminal!\n"
         for key, value in self.dict_modules.items():
             try:
                 list_tmp = [key,]
@@ -122,12 +126,12 @@ class Terminal(object):
             status = response['status']
             
             if status == "OK":
-                print module + " : Module active, it says pong!"
+                print module + " : Module active, it says PONG!"
             else:
-                print module + " : JSON response is KO when makes a ping"
+                print module + " : JSON response is KO when making a PING"
         
         except IOError:
-            print module + " : Module unresponsive. The terminal could not connect with " + self.dict_modules[module]["url"] 
+            print module + " : Module unresponsive. The terminal could not connect to " + self.dict_modules[module]["url"] 
 
 
     def ping_all(self, _dummy):
@@ -155,10 +159,10 @@ class Terminal(object):
             if status == "OK":
                 print module + " shut down."
             else:
-                print module + " : JSON response is KO when shutdowning the module"
+                print module + " : JSON response is KO when shutting down the module"
 
         except IOError:
-            print module + " : stop : service unreachable. The terminal could not connect with " + self.dict_modules[module]["url"] 
+            print module + " : stop : service unreachable. The terminal could not connect to " + self.dict_modules[module]["url"] 
 
 
     def start_module(self, args_array):
@@ -235,9 +239,10 @@ class Terminal(object):
 
     def pull(self, _dummy):
         """
-        Ssh into ipol2 and pull.
+        Ssh into server and pull.
         """
-        os.system("ssh ipol2 \"cd ipolDevel && git pull\"")
+        os.system("ssh {} \"cd ipolDevel && git pull\"".\
+          format(self.pull_server))
 
     def exec_loop(self):
         """
@@ -264,7 +269,7 @@ class Terminal(object):
 
         try:
             while str_input != "exit":
-                str_input = raw_input("admin@IPOL:~>")
+                str_input = raw_input(">")
                 tab_input = str_input.split(" ", -1)
 
                 if tab_input[0] in entry_buffer.keys():
