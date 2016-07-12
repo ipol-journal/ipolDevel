@@ -19,7 +19,7 @@ class   Database(object):
     The database architecture is defined in file /db/blob.sql
     One instance of this object represents one connection to the database
     """
-    def __init__(self, database_dir, database_name):
+    def __init__(self, database_dir, database_name, logger):
         """
         Initialize database class
         Connect to databse
@@ -27,6 +27,7 @@ class   Database(object):
         :param name: database name
         :type name: string
         """
+        self.logger = logger
         self.formats = ('audio', 'image', 'video')
         
         self.database_dir = database_dir
@@ -61,16 +62,17 @@ class   Database(object):
             file_info = os.stat(self.database_file)
                    
             if file_info.st_size == 0:
-                print str(self.database_file) + ' is empty. Removing the file...'
+                self.logger.warning( str(self.database_file) + \
+                                     ' is empty. Removing the file...')
                 try:
-                    self.error_log("init_database", 'Database file was empty')
+                    self.logger.warning('Database file was empty')
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.error_log("init_database", str(ex))
+                    self.logger.exception(str(ex))
                     status = False
                     return status
                         
-                print "Creating a correct new database"
+                self.logger.info( "Creating a correct new database")
             
         if not os.path.isfile(self.database_file):
                     
@@ -81,7 +83,7 @@ class   Database(object):
                 sql_buffer = ""
                     
                 with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
-                    print "Creating a new database"
+                    self.logger.info("Creating a new database")
                     for line in sql_file:
                                 
                         sql_buffer += line
@@ -94,13 +96,13 @@ class   Database(object):
                 conn.close()  
                     
             except Exception as ex:
-                self.error_log("init_database", (str(ex)))
+                self.logger.exception( (str(ex)))
                         
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.error_log("init_database", str(ex))
+                        self.logger.exception( str(ex))
                         status = False
                 
         return status    
@@ -154,7 +156,7 @@ class   Database(object):
         :param blobid: if blobid is omitted (= -1), then add blob
         (hash and format) to database else do not add, integer
         """
-        print "add_blob_in_database"
+        self.logger.info("add_blob_in_database")
         if blobid == -1:
             try:
                 self.cursor.execute('''
@@ -368,8 +370,6 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
-        print "Database.get_blobs_of_demo({0})".format(demo_id)
-        
         # 
         try:
           self.cursor.execute('''
@@ -402,7 +402,6 @@ class   Database(object):
             tags = self.get_tags_of_blob( b[0])
             
             tag_str = ''
-            print "tags = ",tags
             for tid in tags:
                 tag_str += ", "+tags[tid]
 
@@ -566,7 +565,7 @@ class   Database(object):
         :param demo_blobcount: tuple of integer
         :type demo_blobcount: tuple or None
         """
-        print "database.py remove_demo_from_database({0})".format(demo_id)
+        self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
         except self.database.Error as e:
@@ -582,7 +581,7 @@ class   Database(object):
         :return: number of blob present in database
         :rtype: tuple of integer
         """
-        print "database.py blob_democount({0})".format(blob_id)
+        self.logger.info("database.py blob_democount({0})".format(blob_id))
         democount = None
         try:
             self.cursor.execute('''
@@ -595,7 +594,6 @@ class   Database(object):
                 democount=0
             else:
                 democount = democount[0]
-            print "count blobid is", democount
         except self.database.Error as e:
             raise DatabaseSelectError(e)
         if democount==None:
@@ -612,7 +610,7 @@ class   Database(object):
         :param blob_demo_count: tuple of integer
         :type blob_demo_count: tuple or None
         """
-        print "database.py delete_blob({0},{1})".format(blob_id,blob_demo_count)
+        self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
         if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
@@ -739,7 +737,7 @@ class   Database(object):
         for item in result:
             value = (item[0], item[1], item[2])
             if value:
-                print "deleting from database: {0}".format(value) 
+                self.logger.info("deleting from database: {0}".format(value))
                 try:
                     self.cursor.execute('''
                     DELETE FROM demo_blob
