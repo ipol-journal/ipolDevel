@@ -583,7 +583,7 @@ class   Blobs(object):
                 self.blobs_lock.release()
 
         else:
-            dic["message"] = "Failed to acquire blobs lock"
+            self.logger.error( "Failed to acquire blobs lock")
             dic["status"]  = "KO"
             
         cherrypy.response.headers['Content-Type'] = "application/json"
