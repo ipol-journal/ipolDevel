@@ -550,13 +550,19 @@ class   Blobs(object):
         # wait for the lock until timeout in seconds is reach
         # if it can lock, locks and returns True
         # otherwise returns False
+        # code based on http://stackoverflow.com/questions/8392640/how-to-
+        # implement-a-lock-with-a-timeout-in-python-2-7
+        # another option is to use Queue:
+        # http://stackoverflow.com/questions/35149889/lock-with-timeout-in-
+        # python2-7
         def waitLock(lock,timeout):
             current_time = start_time = time.time()
             while current_time < start_time + timeout:
                 if lock.acquire(False):
                     return True
                 else:
-                    cond.wait(timeout - current_time + start_time)
+                    # wait for 50ms and try again
+                    time.sleep(0.05)
                     current_time = time.time()
             return False
         
