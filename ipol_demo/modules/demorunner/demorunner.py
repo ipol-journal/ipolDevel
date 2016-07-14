@@ -36,6 +36,12 @@ from    run_demo_base import IPOLTimeoutError
 
 import traceback
 
+
+import subprocess
+import errno
+import logging
+
+
 from sendarchive import SendArchive
 
 class DemoRunner(object):
@@ -54,6 +60,59 @@ class DemoRunner(object):
         self.png_compresslevel=1
         self.stack_depth = 0
 
+#####
+# web utilities
+#####
+    @cherrypy.expose
+    def index(self):
+        """
+        Small index for the demorunner.
+        """
+        return ("Welcome to IPOL DemoRunner !")
+
+    @cherrypy.expose
+    def ping(self):
+        """
+        Ping pong.
+        :rtype: JSON formatted string
+        """
+        data = {}
+        data["status"] = "OK"
+        data["ping"] = "pong"
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def shutdown(self):
+        """
+        Shutdown the module.
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            cherrypy.engine.exit()
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("shutdown", str(ex))
+        return json.dumps(data)
+    
+    @cherrypy.expose
+    def get_load_state(self):
+        """
+        json: return the percentage of time that the CPU or CPUs were idle 
+        and the system did not have an outstanding disk I/O request
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            mpstat_result = subprocess.check_output(['mpstat'])
+            CPU_information = str(mpstat_result).split()
+            CPU_information = CPU_information[-1].replace(",",".")
+            data["CPU"] = float (CPU_information)
+            data["status"] = "OK"
+        except Exception as ex:
+            self.error_log("get_load_state", str(ex))
+        return json.dumps(data)    
+        
     #---------------------------------------------------------------------------
     @cherrypy.expose
     def default(self, attr):
