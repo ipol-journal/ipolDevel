@@ -204,7 +204,7 @@ ipol.history.SetPageState = function( page_state) {
      */
     function SetParamsState(params) {
         // update parameters
-        ipol.params.SetParamValues(params);
+        ipol.DrawParams.staticSetParamValues(params);
     }
     
     //--------------------------------------------------------------------------

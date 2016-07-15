@@ -280,7 +280,7 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
     }
         
     // Set parameter values
-    ipol.params.SetParamValues(experiment.results.params);
+    ipol.DrawParams.staticSetParamValues(experiment.results.params);
     
     // Set Progress information
     ipol.RunDemo.staticSetProgress(experiment.results);
@@ -401,7 +401,8 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                 }
                 
                 // Create Parameters tab
-                ipol.params.CreateParams(ddl_json);
+                var params = new ipol.DrawParams();
+                params.createParams(ddl_json);
 
                 // Get demo blobs
                 ipol.utils.ModuleService(
@@ -441,7 +442,7 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                                 var res = JSON.parse(url_params["res"]);
                                 console.info("***** demo results obtained from url parameters");
                                 // Set parameter values
-                                ipol.params.SetParamValues(res.params);
+                                ipol.DrawParams.staticSetParamValues(res.params);
                                 // Set Progress information
                                 ipol.RunDemo.staticSetProgress(res);
                                 // Draw results
@@ -537,7 +538,7 @@ ipol.documentReady = function () {
     $("#reset_params").unbind();
     $("#reset_params").click( function() {
         console.info("reset params clicked");
-        ipol.params.ResetParamValues();
+        ipol.DrawParams.staticResetParamValues();
     }
     );
     

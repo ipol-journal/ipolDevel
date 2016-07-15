@@ -724,7 +724,7 @@ ipol.DrawInputs = function(ddl_json) {
                     cropend: function(ddl_json) {
                         return function (e) {
                             // update parameters in case they depend on the crop
-                            ipol.params.UpdateParams(ddl_json.params);
+                            ipol.DrawParams.staticUpdateParams(ddl_json.params);
                         }
                     } (_ddl_json),
                                          
