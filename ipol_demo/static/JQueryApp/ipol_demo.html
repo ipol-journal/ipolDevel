@@ -6,26 +6,30 @@
 
   <title>IPOL Journal &middot; </title>
 
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<!--   <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script> -->
-  <script src="https://code.jquery.com/jquery-2.2.0.js"></script>
-<!--   <script src="http://code.jquery.com/jquery-1.12.1.js"></script> -->
-  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-
 <!--  <link rel="stylesheet" href="jquery-ui/themes/smoothness/jquery-ui.css">
   <script src="jquery/dist/jquery.js"></script>
   <script src="jquery-ui/ui/jquery-ui.js"></script>-->
-
 <!--   <link rel="stylesheet" href="/resources/demos/style.css"> -->
 <!--     <link rel="stylesheet" type="text/css" href="test.css">  -->
+
+    <!-- jquery 3.1.0 -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"
+            integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+            crossorigin="anonymous"></script>
+    <!-- jquery ui 1.12.0 -->
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"
+            integrity="sha256-0YPKAwZP7Mp3ALMRVB2i8GXeEndvCq3eSl/WsAl1Ryk="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" 
+     href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
+    <!-- demo specific stylesheets -->
     <link rel="stylesheet" href="../CSS/style.css" type="text/css" />
     <link rel="stylesheet" href="../CSS/local.css" type="text/css" />
     <link rel="stylesheet" href="../CSS/demo.css"  type="text/css" />
     <link rel="stylesheet" href="../Angular/css/app.css"  type="text/css" />
-
     <!-- cropper -->
     <link  href="./cropper_dist/cropper.css" rel="stylesheet">
-    <script src="./cropper_dist/cropper.js">              </script>
+    <script src="./cropper_dist/cropper.js"></script>
 
     <!-- noUiSlider -->
     <link href="./noUiSlider/nouislider.min.css" rel="stylesheet">
@@ -35,15 +39,15 @@
     <!-- canvas-to-blob for uploads -->
     <script src="./canvas-to-blob/canvas-to-blob.min.js"> </script>
     <script src="./blob-util/blob-util.min.js"> </script>
-<!--     <script src="./blob-util/blob-util.js"> </script> -->
-    
-    <!--     sketch.js -->
+
+    <!-- sketch.js -->
     <script src="./sketch/sketch.js"> </script>
 
     <!-- history.js module -->
-    <script src="./history.js/scripts/bundled/html4+html5/jquery.history.js"> </script>
-</head>
+    <script src="./history.js/scripts/bundled/html4+html5/jquery.history.js"> 
+    </script>
 
+</head>
 
 <body>
 
@@ -54,9 +58,10 @@
 <script src="ipol_demo_utils.js">               </script>
 <script src="ipol_demo_blobs.js">               </script>
 <script src="ipol_demo_params.js">              </script>
-<script src="JQueryGallery/jquery_gallery.js">  </script>
+<script src="ImageGallery/image_gallery.js">    </script>
 <script src="ipol_demo_results.js">             </script>
 <script src="ipol_demo_inpainting.js">          </script>
+<script src="ipol_demo_run.js">                 </script>
 <script src="ipol_demo_inputs.js">              </script>
 <script src="ipol_servers.js">                  </script>
 <script src="ipol_demo_history.js">             </script>
@@ -120,16 +125,16 @@
 
         <!-- Upload in modal dialog -->
         <div id="upload-dialog" title="Upload data">
+
             <!-- User data to upload -->
-            <!--        <fieldset style="border:1px solid black;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;">
-                    <legend>Local input data <span>[-]</span> </legend> -->
-            <div class="upload_input" id="local_data">
-            </div>
-<!--             <button id="apply_localdata">Set</button> -->
+
+            <div class="upload_input" id="local_data"> </div>
+
             <p class="note">
                 Upload size is limited to  10MB for the whole upload set.
             <br />
             TIFF, JPEG, PNG, GIF, PNM (and 
+
             <a href="https://tools.ipol.im/wiki/ref/demo_input/">other standard formats</a>)
             are supported.
             The uploaded will be publicly archived unless you switch to
@@ -140,7 +145,7 @@
             See <a href="https://tools.ipol.im/wiki/ref/demo_input/">the copyright
             and legal conditions</a> for details.
             </p>
-            <!--         </fieldset> -->
+
         </div>
 
         <!-- Input Data Selection -->
@@ -233,9 +238,6 @@
         </fieldset>
 
     </div>
-<!--    <div id="tabs-results">
-        <p>Content for results</p>
-    </div>-->
     <div id="tabs-archive">
         <p>Content for archive</p>
     </div>
@@ -243,8 +245,5 @@
         <pre style="width:92%;white-space:pre;">Content for Tab 4</pre>
     </div>
 </div>
-<div id="tabid"></div>
-
-
 
 </body>

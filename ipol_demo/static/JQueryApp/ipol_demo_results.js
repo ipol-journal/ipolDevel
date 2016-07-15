@@ -7,22 +7,36 @@
 
 "use strict";
 
+// ipol application namespace
+var ipol = ipol || {};
+
+
 /**
  * Display the demo results
  * @constructor
  * @param {object} res          results obtained from running the algorithm
  * @param {object} ddl_results  results section of the demo description
  */
-var DrawResults = function( res,ddl_results) {
+ipol.DrawResults = function( res,ddl_results) {
     
+    /** 
+     * By convention, we create a private variable '_this' to
+     * make the object available to the private methods.
+     * @var {object} _this
+     * @memberOf ipol.DrawResults~
+     * @private
+     */
+    var _this = this;
+
     //--------------------------------------------------------------------------
     /**
      * Displays message in console if verbose is true
-     * @function InfoMessage
-     * @memberOf DrawResults~
+     * @function _infoMessage
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.InfoMessage = function( ) {
-        if (this.verbose) {
+    var _infoMessage = function( ) {
+        if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
             args.unshift("---- DrawResults ----");
             console.info.apply(console,args);
@@ -31,117 +45,86 @@ var DrawResults = function( res,ddl_results) {
     
     /** 
      * Enable/Disable verbose output to the console
-     * @var {boolean} verbose
-     * @memberOf DrawInputs~
+     * @var {boolean} _verbose
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.verbose=true;
-    this.InfoMessage("DrawResults started");
-    this.verbose = false;
+    var _verbose=true;
+    
+    _infoMessage("DrawResults started");
+    _verbose = false;
 
     /** 
      * Results section of the DDL
-     * @var {object} ddl_results
-     * @memberOf DrawInputs~
+     * @var {object} _ddl_results
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.ddl_results  = ddl_results;
+    var _ddl_results  = ddl_results;
 
     /** 
      * Results obtained from the algorithm execution
-     * @var {object} res
-     * @memberOf DrawInputs~
+     * @var {object} _res
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.res          = res;
+    var _res          = res;
 
     /** 
      * params (algorithm parameters) part of the results
-     * @var {object} params
-     * @memberOf DrawInputs~
+     * @var {object} _params
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.params       = res.params;
+    var _params       = res.params;
     
     /** 
      * default url to the algorithm results
-     * @var {string} work_url
-     * @memberOf DrawInputs~
+     * @var {string} _work_url
+     * @memberOf ipol.DrawResults~
+     * @private
      */
-    this.work_url     = res.work_url;
+    var _work_url     = res.work_url;
 
-    //--------------------------------------------------------------------------
-    /**
-     * Specify the archive experiment from which we are drawing the results
-     * @function SetExperiment
-     * @memberOf DrawResults~
-     * @param {number} exp         experiment number
-     * @param {object} ddl_archive archive section of the DDL
+    /** 
+     * to be called when all image_gallery images are loaded
+     * @var {callback} _onloadall_callback
+     * @memberOf ipol.DrawResults~
+     * @private
+     * @defaults undefined
      */
-    this.SetExperiment = function(exp,ddl_archive) {
-        this.experiment = exp;
-        this.ddl_archive = ddl_archive; // archive part of the DDL
-    }
-
-    //--------------------------------------------------------------------------
-    /**
-     * Creates all the HTML code for the displaying the results
-     * @function Create
-     * @memberOf DrawResults~
-     */
-    this.Create = function() {
-
-        var results_html = "";
-        var displayed_status = { "OK":"success", "KO":"failure" };
-        
-        // display result status
-        if (this.res.status==="KO") {
-            results_html += '  <p class="error"> '+res.error+' </p>';
-        }
-        
-        if (this.res.algo_meta["process_inputs_msg"]!=undefined) {
-            results_html +=
-                "<p style='border:1px solid;margin:3px 0px;padding:5px;color:#9F6000;'>"+
-                "<b>"+this.res.algo_meta["process_inputs_msg"]+"</b>"+
-                "</p>";
-        }
-//         results_html += this.CreateZoomSelection();
-
-        for(var id=0;id<this.ddl_results.length;id++) {
-            results_html+=this.CreateResult(this.ddl_results[id],id);
-        }
-        
-        $("#ResultsDisplay").html(results_html);
-
-        for(var id=0;id<this.ddl_results.length;id++) {
-            this.CreateResultEvents(this.ddl_results[id],id);
-        }
-
-    };
+    var _onloadall_callback = undefined;
+    
+    
     
     //--------------------------------------------------------------------------
     /**
      * Creates one component of the results
-     * @function CreateResult
-     * @memberOf DrawResults~
+     * @function _createResult
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc DDL description of this result component
      * @param {number} id       id of the result component
      * @returns {string} the HTML code to display this result component
+     * @private
      */
-    this.CreateResult = function(res_desc,id) {
-        this.InfoMessage("CreateResult ",id," type ",res_desc.type);
+    var _createResult = function(res_desc,id) {
+        _infoMessage("CreateResult ",id," type ",res_desc.type);
         var display = true;
         var visible_expr = res_desc.visible;
         if (visible_expr!==undefined) {
-            display = this.EvalInContext(visible_expr);
-            this.InfoMessage("evaluating ", visible_expr);
-            this.InfoMessage('display result = ',display);
+            display = _evalInContext(visible_expr);
+            _infoMessage("evaluating ", visible_expr);
+            _infoMessage('display result = ',display);
         }
         if (display) {
             switch(res_desc.type) {
-                case "html_text":       return this.HtmlText      (res_desc);
-                case "file_download":   return this.FileDownload  (res_desc);
-                case "gallery":         return this.Gallery_new   (res_desc,id);;
-                case "repeat_gallery":  return this.Gallery_new   (res_desc,id);
-                case "text_file":       return this.TextFile      (res_desc,id);
-                case "warning":         return this.Warning       (res_desc);
-                default: this.InfoMessage(" result type "+ res_desc.type + " not available");
+                case "html_text":       return _htmlText      (res_desc);
+                case "file_download":   return _fileDownload  (res_desc);
+                case "gallery":         return _gallery_new   (res_desc,id);;
+                case "repeat_gallery":  return _gallery_new   (res_desc,id);
+                case "text_file":       return _textFile      (res_desc,id);
+                case "warning":         return _warning       (res_desc);
+                default: _infoMessage(" result type "+ res_desc.type + " not available");
             }
         } else {
             return "";
@@ -151,29 +134,30 @@ var DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * Creates the events associated with a displayed result component
-     * @function CreateResultEvents
-     * @memberOf DrawResults~
+     * @function _createResultEvents
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc DDL description of this result component
      * @param {number} id       id of the result component
+     * @private
      */
-    this.CreateResultEvents = function(res_desc,id) {
+    var _createResultEvents = function(res_desc,id) {
         var display = true;
         var visible_expr = res_desc.visible;
         if (visible_expr!==undefined) {
-            display = this.EvalInContext(visible_expr);
-            this.InfoMessage("evaluating ", visible_expr);
-            this.InfoMessage('display result = ',display);
+            display = _evalInContext(visible_expr);
+            _infoMessage("evaluating ", visible_expr);
+            _infoMessage('display result = ',display);
         }
         if (display) {
             switch(res_desc.type) {
                 case "gallery":
-                    this.Gallery_new_events(res_desc,id);
+                    _gallery_new_events(res_desc,id);
                     break;
                 case "repeat_gallery":
-                    this.RepeatGallery_new_events(res_desc,id);
+                    _repeatGallery_new_events(res_desc,id);
                     break;
                 case "text_file":
-                    this.TextFile_events(res_desc,id);
+                    _textFile_events(res_desc,id);
                     break;
             }
         }
@@ -182,12 +166,13 @@ var DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * join array of strings to return a single string if needed
-     * @function joinHtml
-     * @memberOf DrawResults~
+     * @function _joinHtml
+     * @memberOf ipol.DrawResults~
      * @param {string[]|string} html_code as string or string array
      * @returns {string}
+     * @private
      */
-    this.joinHtml = function(html_code)
+    var _joinHtml = function(html_code)
     {
         if ($.isArray(html_code)) {
           return html_code.join(' ');
@@ -200,12 +185,13 @@ var DrawResults = function( res,ddl_results) {
     /**
      * Get the label part of a property for gallery object, since
      * a condition can be included with the '?' character.
-     * @function GetLabel
-     * @memberOf DrawResults~
+     * @function _getLabel
+     * @memberOf ipol.DrawResults~
      * @param {string} label with possible condition
      * @returns {string} label without the conditional part
+     * @private
      */
-    this.GetLabel = function(label)
+    var _getLabel = function(label)
     {
         if(label.indexOf('?') === -1) 
             return label;
@@ -217,35 +203,37 @@ var DrawResults = function( res,ddl_results) {
     /**
      * If no condition, return true, otherwise return the condition
      * evaluation
-     * @function CheckLabelCondition
-     * @memberOf DrawResults~
+     * @function _checkLabelCondition
+     * @memberOf ipol.DrawResults~
      * @param {string} label with possible condition
      * @returns {boolean} result from evaluating the condition if any, 
      * true otherwise
+     * @private
      */
-    this.CheckLabelCondition = function(label)
+    var _checkLabelCondition = function(label)
     {
         if(label.indexOf('?') === -1) return true;
         var c = label.split('?')[0];
-        var value = this.EvalInContext(c)
+        var value = _evalInContext(c)
         return value;
     }
 
     //--------------------------------------------------------------------------
     /**
      * Returns the HTML code for a result of type html_text
-     * @function HtmlText
-     * @memberOf DrawResults~
+     * @function _htmlText
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @returns {string} HTML code for this result component
+     * @private
      */
-    this.HtmlText = function(res_desc) {
-        var contents = this.joinHtml(res_desc.contents);
+    var _htmlText = function(res_desc) {
+        var contents = _joinHtml(res_desc.contents);
         if (contents[0]==="'") {
-            //this.InfoMessage("HtmlText evaluating ", contents);
-            return "<div>"+this.EvalInContext(contents)+"</div><br/>";
+            //_infoMessage("HtmlText evaluating ", contents);
+            return "<div>"+_evalInContext(contents)+"</div><br/>";
         } else {
-            //this.InfoMessage("contents=",contents);
+            //_infoMessage("contents=",contents);
             return "<div>"+contents+"</div><br/>";
         }
     };
@@ -253,40 +241,42 @@ var DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * Returns the HTML code for a result of type warning
-     * @function Warning
-     * @memberOf DrawResults~
+     * @function _warning
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @returns {string} HTML code for this result component
+     * @private
      */
-    this.Warning = function(res_desc) {
-        this.InfoMessage("display Warning ",res_desc);
+    var _warning = function(res_desc) {
+        _infoMessage("display Warning ",res_desc);
         var html=  
         "<p style='border:1px solid;margin:10px 0px;padding:15px 10px 15px 50px;color:#9F6000;'>"+
           "<b><u>WARNING</u></b><br/><br/>"+
           "<span>"+res_desc.contents+"</span> <br/><br/>"+
         "</p>";
-        this.InfoMessage(html);
+        _infoMessage(html);
         return html;
     }
         
     //--------------------------------------------------------------------------
     /**
      * Returns the HTML code for a result of type text_file
-     * @function TextFile
-     * @memberOf DrawResults~
+     * @function _textFile
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @returns {string} HTML code for this result component
+     * @private
      */
-    this.TextFile = function(res_desc,id) {
+    var _textFile = function(res_desc,id) {
 
         var default_style=  "width:auto;height:auto;background-color:#eee;overflow:auto;max-height:30em;"+
                             "white-space:pre;margin:1em 0;font-weight:normal;";
         var html = '';
         html += res_desc.label;
-//        html += '<iframe src="'+this.work_url+res_desc.contents+'" ';
+//        html += '<iframe src="'+_work_url+res_desc.contents+'" ';
         html += '<pre id=result_' + id+ ' ';
         if (res_desc.style[0]==="'") {
-            html += 'style="'+default_style + this.EvalInContext(res_desc.style) + '" >';
+            html += 'style="'+default_style + _evalInContext(res_desc.style) + '" >';
         } else {
             html += 'style="'+default_style + res_desc.style+'" >';
         }
@@ -299,22 +289,23 @@ var DrawResults = function( res,ddl_results) {
     /**
      * search filename url, if the results are from an experiment, try
      * to use archive url, otherwise use work_url path
-     * @function FindUrl
-     * @memberOf DrawResults~
+     * @function _findUrl
+     * @memberOf ipol.DrawResults~
      * @param {string} filename filename to look for
      * @returns {string} the filename url to use
+     * @private
      */
     // search filename url, if the results are from an experiment, try
     // to use archive url, otherwise use work_url path
-    this.FindUrl = function(filename) {
+    var _findUrl = function(filename) {
         var url=undefined;
-        if (this.experiment) {
-            url = ArchiveDisplay.find_archive_url(filename,
-                                                  this.ddl_archive.files,
-                                                  this.experiment.files);
+        if (_this._experiment) {
+            url = ipol.ArchiveDisplay.staticFindArchiveUrl(filename,
+                                                  _this._ddl_archive.files,
+                                                  _this._experiment.files);
         }
         if (!url) {
-            url = this.work_url+filename;
+            url = _work_url+filename;
         }
         return url;
     }
@@ -322,49 +313,51 @@ var DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * load text file
-     * @function TextFile_events
-     * @memberOf DrawResults~
+     * @function _textFile_events
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @param {number} id result component index
+     * @private
      */
-    this.TextFile_events = function(res_desc,id) {
-        $('#result_' + id).load(this.FindUrl(res_desc.contents));
+    var _textFile_events = function(res_desc,id) {
+        $('#result_' + id).load(_findUrl(res_desc.contents));
     };
     
     
     //--------------------------------------------------------------------------
     /**
      * Returns the HTML code for a result of type file_download
-     * @function FileDownload
-     * @memberOf DrawResults~
+     * @function _fileDownload
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @returns {string} HTML code for this result component
+     * @private
      */
-    this.FileDownload = function(res_desc) {
+    var _fileDownload = function(res_desc) {
         var html = "";
         
         if (res_desc.repeat!=undefined) {
-            for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
-                var file=this.EvalInContext(res_desc.contents,idx);
-                var label=this.EvalInContext(res_desc.label,idx);
-                html += '&nbsp;[&nbsp;<a href="'+this.FindUrl(file)+'" target="_blank">';
+            for(var idx=0;idx<_evalInContext(res_desc.repeat);idx++) {
+                var file=_evalInContext(res_desc.contents,idx);
+                var label=_evalInContext(res_desc.label,idx);
+                html += '&nbsp;[&nbsp;<a href="'+_findUrl(file)+'" target="_blank">';
                 html += label;
                 html += "</a>&nbsp;]<br/>"
             }
         } else {
-            var label = this.joinHtml(res_desc.label);
+            var label = _joinHtml(res_desc.label);
             if (label[0]=="'") {
-                label = this.EvalInContext(label);
+                label = _evalInContext(label);
             }
             html += label;
             if ($.type(res_desc.contents)==="object") {
               jQuery.each(res_desc.contents, function(label,file) {
-                html += '&nbsp;[&nbsp;<a href="'+this.FindUrl(file)+'" target="_blank">';
+                html += '&nbsp;[&nbsp;<a href="'+_findUrl(file)+'" target="_blank">';
                 html += label;
                 html += "</a>&nbsp;]&nbsp;"
               }.bind(this));
             } else {
-                html += '<a href="'+this.FindUrl(res_desc.contents)+'" target="_blank">';
+                html += '<a href="'+_findUrl(res_desc.contents)+'" target="_blank">';
                 html += res_desc.label;
                 html += '</a>';
             }
@@ -379,26 +372,27 @@ var DrawResults = function( res,ddl_results) {
      * Evaluates an expression with the following variables in the local
      * context: idx, sizeX, sizeY, info, meta, params, imwidth, imheight, 
      * work_url
-     * @function EvalInContext
-     * @memberOf DrawResults~
+     * @function _evalInContext
+     * @memberOf ipol.DrawResults~
      * @param {string} expr expression to evaluate
      * @param {number} idx  index associated to the evaluation, defaults to 0
      * @returns {string|number} result from evaluation
+     * @private
      */
-    this.EvalInContext = function( expr, idx ) {
+    var _evalInContext = function( expr, idx ) {
         if (idx===undefined) {
             idx=0;
         }
         // need sizeX, sizeY
-        var sizeX = this.params.x1-this.params.x0;
-        var sizeY = this.params.y1-this.params.y0;
+        var sizeX = _params.x1-_params.x0;
+        var sizeY = _params.y1-_params.y0;
         // need imwidth and imheight
-        var info     = this.res.algo_info;
-        var meta     = this.res.algo_meta;
-        var params   = this.params;
+        var info     = _res.algo_info;
+        var meta     = _res.algo_meta;
+        var params   = _params;
         var imwidth  = meta.max_width;
         var imheight = meta.max_height;
-        var work_url = this.work_url;
+        var work_url = _work_url;
         return eval(expr);
 
     }
@@ -406,18 +400,19 @@ var DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * Returns the HTML code for a result of type gallery or repeat_gallery
-     * @function Gallery_new
-     * @memberOf DrawResults~
+     * @function _gallery_new
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @param {number} id result component index
      * @returns {string} HTML code for this result component
+     * @private
      */
-    this.Gallery_new = function(res_desc,id) {
+    var _gallery_new = function(res_desc,id) {
         var res="";
         if (res_desc.label!=undefined) {
-            var label = this.joinHtml(res_desc.label);
+            var label = _joinHtml(res_desc.label);
             if (label[0]=="'") {
-                label = this.EvalInContext(label);
+                label = _evalInContext(label);
             }
             res += label;
         }
@@ -427,36 +422,37 @@ var DrawResults = function( res,ddl_results) {
         res += '</div><br/>';
         return res;
 
-    } // end Gallery_new
+    } // end _gallery_new
     
     //--------------------------------------------------------------------------
     /**
      * Completes the HTML code and the associated events 
      * for a result of type gallery
-     * @function Gallery_new_events
-     * @memberOf DrawResults~
+     * @function _gallery_new_events
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @param {number} id result component index
+     * @private
      */
-    this.Gallery_new_events = function(res_desc,id) {
+    var _gallery_new_events = function(res_desc,id) {
         var contents = res_desc.contents;
         var new_contents = {};
         jQuery.each( contents, function( label, image ) {
             // check label condition
-            var label_condition=this.CheckLabelCondition(label);
+            var label_condition=_checkLabelCondition(label);
             if (label_condition) {
                 // label
-                var label = this.GetLabel(label);
+                var label = _getLabel(label);
                 if (label[0]==="'") {
-                    label = this.EvalInContext(label);
+                    label = _evalInContext(label);
                 }
                 // string case
                 switch ($.type(image)) {
                     case "string":
                         if (image==="'") {
-                            image = this.EvalInContext(image);
+                            image = _evalInContext(image);
                         }
-                        new_contents[label]=this.FindUrl(image);
+                        new_contents[label]=_findUrl(image);
                         break;
                     case "object":
                         // avoid modifying original contents, using
@@ -466,9 +462,9 @@ var DrawResults = function( res,ddl_results) {
                         $.extend(true,new_contents,val);
                         jQuery.each( image, function(l,im) {
                             if (im==="'") {
-                                im = this.EvalInContext(im);
+                                im = _evalInContext(im);
                             }
-                            new_contents[label][l]=this.FindUrl(im);
+                            new_contents[label][l]=_findUrl(im);
                         }.bind(this));
                         break;
                     case "array":
@@ -478,60 +474,61 @@ var DrawResults = function( res,ddl_results) {
                         $.extend(true,new_contents,val);
                         jQuery.each( image, function(index, im) {
                             if (im==="'") {
-                                im = this.EvalInContext(im);
+                                im = _evalInContext(im);
                             }
-                            new_contents[label][index]=this.FindUrl(im);
+                            new_contents[label][index]=_findUrl(im);
                         }.bind(this));
                         break;
                 } // end switch
             } // if label condition
         }.bind(this));
         
-        var ig = new ImageGallery(id);
+        var ig = new ipol.ImageGallery(id);
         ig.Append(new_contents);
         var html = ig.CreateHtml();
         $("#result_"+id).html(html);
         ig.CreateEvents();
         $("#result_"+id).data("image_gallery",ig);
         
-        if (this.onloadall_callback) {
-            ig.SetOnLoadAll( this.onloadall_callback.bind(this) );
+        if (_this._onloadall_callback) {
+            ig.SetOnLoadAll( _this._onloadall_callback.bind(this) );
         }
 
-    } // end Gallery_new_events
+    } // end _gallery_new_events
     
 
     //--------------------------------------------------------------------------
     /**
      * Completes the HTML code and the associated events 
      * for a result of type repeat_gallery
-     * @function RepeatGallery_new_events
-     * @memberOf DrawResults~
+     * @function _repeatGallery_new_events
+     * @memberOf ipol.DrawResults~
      * @param {object} res_desc description if this result component
      * @param {number} id result component index
+     * @private
      */
-    this.RepeatGallery_new_events = function(res_desc, id ) {
+    var _repeatGallery_new_events = function(res_desc, id ) {
         var contents = res_desc.contents;
         var new_contents = {};
 
-        for(var idx=0;idx<this.EvalInContext(res_desc.repeat);idx++) {
+        for(var idx=0;idx<_evalInContext(res_desc.repeat);idx++) {
             
-            var label = this.EvalInContext(contents[0],idx);
+            var label = _evalInContext(contents[0],idx);
             
             if ($.type(contents[1])!=="array") {
-                new_contents[label]=this.FindUrl(this.EvalInContext(contents[1],idx));
+                new_contents[label]=_findUrl(_evalInContext(contents[1],idx));
             } else {
                 // avoid modifying original contents
                 var val={};
                 val[label]=contents[1];
                 $.extend(true,new_contents,val);
                 jQuery.each( contents[1], function(index, im) {
-                    new_contents[label][index]=this.FindUrl(this.EvalInContext(im,idx));
+                    new_contents[label][index]=_findUrl(_evalInContext(im,idx));
                 }.bind(this));
             }
         }
         
-        var ig = new ImageGallery(id);
+        var ig = new ipol.ImageGallery(id);
         if ((res_desc.options)&&(res_desc.options.minheight)) {
             ig.SetMinHeight(res_desc.options.minheight);
         }
@@ -547,4 +544,84 @@ var DrawResults = function( res,ddl_results) {
         
     }
 
-}
+    
+    //--------------------------------------------------------------------------
+    //  PUBLIC METHODS
+    //--------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------
+    /**
+     * Specify the archive experiment from which we are drawing the results
+     * @function setExperiment
+     * @memberOf ipol.DrawResults~
+     * @param {number} exp         experiment number
+     * @param {object} ddl_archive archive section of the DDL
+     * @public
+     */
+    this.setExperiment = function(exp,ddl_archive) {
+        /** 
+         * information about the experiment to be displayed
+         * @var {object} _experiment
+         * @memberOf ipol.ArchiveDisplay~
+         * @private
+         */
+        this._experiment = exp;
+        
+        /** 
+         *  archive section of the DDL
+         * @var {object} _ddl_archive
+         * @memberOf ipol.ArchiveDisplay~
+         * @private
+         */
+        this._ddl_archive = ddl_archive; // archive part of the DDL
+    }
+
+    //--------------------------------------------------------------------------
+    /**
+     * Creates all the HTML code for the displaying the results
+     * @function create
+     * @memberOf ipol.DrawResults~
+     * @public
+     */
+    this.create = function() {
+
+        var results_html = "";
+        var displayed_status = { "OK":"success", "KO":"failure" };
+        
+        // display result status
+        if (_res.status==="KO") {
+            results_html += '  <p class="error"> '+res.error+' </p>';
+        }
+        
+        if (_res.algo_meta["process_inputs_msg"]!=undefined) {
+            results_html +=
+                "<p style='border:1px solid;margin:3px 0px;padding:5px;color:#9F6000;'>"+
+                "<b>"+_res.algo_meta["process_inputs_msg"]+"</b>"+
+                "</p>";
+        }
+//         results_html += this.CreateZoomSelection();
+
+        for(var id=0;id<_ddl_results.length;id++) {
+            results_html+=_createResult(_ddl_results[id],id);
+        }
+        
+        $("#ResultsDisplay").html(results_html);
+
+        for(var id=0;id<_ddl_results.length;id++) {
+            _createResultEvents(_ddl_results[id],id);
+        }
+
+    };
+    
+    //--------------------------------------------------------------------------
+    /**
+     * sets a callback function to be called when all the images of an 
+     * image gallery are loaded
+     * @function setOnLoadAllCallback
+     * @memberOf ipol.DrawResults~
+     * @public
+     */
+    this.setOnLoadAllCallback = function(cb) {
+        _onloadall_callback = cb;
+    }
+};

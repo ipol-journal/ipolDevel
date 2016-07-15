@@ -1,18 +1,40 @@
 <!DOCTYPE html PUBLIC>
 <html>
     <head>
+        <title> Add blob for demo ${demo_id} </title>
       <meta charset="utf-8" />
     </head>
     <body>
+    <h1> Add blob for demo ${demo_id}</h1>
       <form action="/add_blob" method="post" enctype="multipart/form-data">
-        <input type="hidden"  name="demo[id]" value="${demo_id}">
-        The set:  <br><input type="text"  name="demo[set]" value="">   <br></br>
-        Tag:      <br><input type="text"  name="demo[tag]" value="">   <br></br>
-        Title:    <br><input type="text"  name="demo[title]" value=""> <br></br>
-        Credit:   <br><input type="text"  name="demo[credit]" value=""><br></br>
-        <input type="file"    name="demo[blob]">        <br></br>
+        <input type="hidden" name="demo[id]" value="${demo_id}">
+        <table style="border:1px solid black">
+            <tr>
+                <td style="margin:2px;padding:2px;" >The set </td>
+                <td style="margin:2px;padding:2px;"><input type="text"   name="blob[set]" value=""> </td>
+            </tr>
+            <tr>
+                <td style="margin:2px;padding:2px;">Tag</td>
+                <td style="margin:2px;padding:2px;"><input type="text"   name="blob[tag]" value=""> </td>
+            </tr>
+            <tr>
+                <td style="margin:2px;padding:2px;">Title</td>
+                <td style="margin:2px;padding:2px;"><input type="text"   name="blob[title]" value="">  </td>
+            </tr>
+            <tr>
+                <td style="margin:2px;padding:2px;">Credit</td>
+                <td style="margin:2px;padding:2px;"><input type="text"   name="blob[credit]" value=""> </td>
+            </tr>
+            <tr>
+                <td style="margin:2px;padding:2px;">Position in set</td>
+                <td style="margin:2px;padding:2px;"><input type="text"   name="blob[pos]" value="">    </td>
+            </tr>
+        </table><br>
+        <input type="file"   name="blob[file]"> <br><br>
         <input type="submit" value="Submit">
-        </div>
       </form>
+
+      <bf>Note on position:</bf> To add a visual representation of a non-image existing blob, add a PNG image
+            with the same position in set. Use position -1 (or any non existing position) to add at the end of the blobset.
     </body>
 </html>

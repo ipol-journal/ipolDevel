@@ -1,13 +1,49 @@
+/**
+ * @file 
+ * Interface for displaying image gallery.
+ * Display several images or tables containing images with/without captions.
+ * Allows resizing, and fast switch between the different inputs.
+ * Allows image comparison.
+ * @author  Karl Krissian
+ * @version 0.1
+ */
 
-// ImageGallery class
-// displays image contents associated with different titles
-// that changes based on mouse hover events
-// designed to replace the CSS based image gallery for IPOL
-var ImageGallery = function(galleryid)  {
+"use strict";
+
+
+// ipol application namespace
+var ipol = ipol || {};
+
+
+
+/**
+ * ImageGallery class: 
+ * displays image contents associated with different titles
+ * that changes based on mouse hover events,
+ * designed to replace the CSS based image gallery for IPOL.
+ * @constructor
+ */
+ipol.ImageGallery = function(galleryid)  {
     
+
+    /** 
+     * Enable/Disable display of (tracing/debugging) 
+     * information in browser console.
+     * @var {boolean} _verbose
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     */
+    var _verbose=false;
+
     //--------------------------------------------------------------------------
-    this.InfoMessage = function( ) {
-        if (this.verbose) {
+     /**
+     * Displays message in console if _verbose is true
+     * @function _infoMessage
+     * @memberOf ipol.ImageGallery~
+     * @private
+     */
+   var _infoMessage = function( ) {
+        if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
             args.unshift("---- ImageGallery ----");
             console.info.apply(console,args);
@@ -15,46 +51,153 @@ var ImageGallery = function(galleryid)  {
     }
     
 
-    // contents is an object of type 'title':'image contents'
-    // where image contents can be:
-    //   - a single location of an image
-    //   - an array of image location
-    //   - an object containing image and titles
+    /** 
+     * contents is an object of type 'title':'image contents'
+     * where image contents can be:
+     *   - a single location of an image
+     *   - an array of image location
+     *   - an object containing image and titles
+     * @var {object} contents
+     * @memberOf ipol.ImageGallery~
+     */
     this.contents = {};
-    this.ref_index      = 0;
-    this.compare_index  = 1;
-    this.galleryid = galleryid;
-    this.img_class = 'gallery_'+this.galleryid+'_img';
+    
+    /** 
+     * index of the reference displayed contents. 
+     * @default 0
+     * @var {number} _ref_index
+     * @memberOf ipol.ImageGallery~
+     * @private
+     */
+    var _ref_index      = 0;
+    
+    /** 
+     * index of the reference compared contents. 
+     * @default 1
+     * @var {number} _compare_index
+     * @memberOf ipol.ImageGallery~
+     * @private
+     */
+    var _compare_index  = 1;
+    
+    /** 
+     * gallery id for HTML
+     * @var {string} _galleryid
+     * @memberOf ipol.ImageGallery~
+     * @private
+     */
+    var _galleryid = galleryid;
+    
+    /** 
+     * name of the image HTML class for this gallery
+     * @var {string} img_class
+     * @memberOf ipol.ImageGallery~
+     */
+    this.img_class = 'gallery_'+_galleryid+'_img';
+    
+    /** 
+     * CSS style info
+     * @var {string} style
+     * @memberOf ipol.ImageGallery~
+     */
     this.style="height:200px;";
+    
+    /** 
+     * background color on hover over input labels
+     * @var {string} hover_bgcolor 
+     * @default 'rgba(255,228,196,155)'
+     * @memberOf ipol.ImageGallery~
+     */
     this.hover_bgcolor='rgba(255,228,196,155)';
+    
+    /** 
+     * background color of the reference input
+     * @var {string} ref_bgcolor 
+     * @default '#BCD2E'
+     * @memberOf ipol.ImageGallery~
+     */
     this.ref_bgcolor  ='#BCD2EE';
-    this.ZoomFactor   = 1;
+    
+    /** 
+     * Images zoom factor
+     * @var {string} zoom_factor 
+     * @default 1
+     * @memberOf ipol.ImageGallery~
+     */
+    this.zoom_factor   = 1;
+    
+    /** 
+     * callback called after loading each input image
+     * @var {callback} onload_callback
+     * @default undefined
+     * @memberOf ipol.ImageGallery~
+     */
     this.onload_callback    = undefined;
+
+    /** 
+     * callback called after displaying an input
+     * @var {callback} ondisplay_callback 
+     * @default undefined
+     * @memberOf ipol.ImageGallery~
+     */
     this.ondisplay_callback = undefined;
+    
+    /** 
+     * callback called after loading all input images
+     * @var {callback} onloadall_callback 
+     * @default undefined
+     * @memberOf ipol.ImageGallery~
+     */
     this.onloadall_callback = undefined;
+
     // set maximum display dimensions
     this.display_maxwidth  = $(window).width()*0.80;
+
     this.display_maxheight = $(window).height()*0.80;
-    this.verbose=false;
-    this.InfoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
+
+    _infoMessage("max dimensions = "+this.display_maxwidth+ "x"+this.display_maxheight);
+
     this.display_minwidth  = 300;
+
     this.display_minheight = 300;
+
     this.scales=[0.125,0.25, 0.333, 0.5, 0.667, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 6 , 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+
     this.current_contents = "#contents1";
+
     this.keep_dimensions_onload = false;
+
     this.user_image_style = "";
     
     //--------------------------------------------------------------------------
+    /** 
+     * Sets minimal display height
+     * @param {number} mh minimal height of display
+     * @function SetMinHeight
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetMinHeight = function(mh) {
         this.display_minheight = mh;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Sets minimal display width
+     * @param {number} mh minimal width of display
+     * @function SetMinWidth
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetMinWidth = function(mw) {
         this.display_minwidth = mw;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Add input contents
+     * @param {object} content to add to the gallery
+     * @function Append
+     * @memberOf ipol.ImageGallery~
+     */
     this.Append = function(content) {
         $.extend(this.contents,content);
     }
@@ -66,27 +209,51 @@ var ImageGallery = function(galleryid)  {
 //     }
 // 
     //--------------------------------------------------------------------------
+    /** 
+     * Sets on image load event callback
+     * @param {callback} callback
+     * @function SetOnLoad
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetOnLoad = function( callback ) {
         this.onload_callback = callback;
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Sets on display contents  callback
+     * @param {callback} callback
+     * @function SetOnDisplay
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetOnDisplay = function( callback ) {
         this.ondisplay_callback = callback;
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Sets on load all input images callback
+     * @param {callback} callback
+     * @function SetOnLoadAll
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetOnLoadAll = function( callback ) {
         this.onloadall_callback = callback;
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Creates the HTML code for selecting the Zoom factor
+     * @function CreateZoomSelection
+     * @memberOf ipol.ImageGallery~
+     * @returns {string} HTML code
+     */
     this.CreateZoomSelection = function() {
         var res='';
-        this.zoom_id = 'gallery_'+this.galleryid+'_zoomfactor';
+        this.zoom_id = 'gallery_'+_galleryid+'_zoomfactor';
         res += "x&nbsp;<select id='"+this.zoom_id+"'>";
             for(var id=0;id<this.scales.length;id++) {
-                if (this.scales[id]==this.ZoomFactor) {
+                if (this.scales[id]==this.zoom_factor) {
                     res += "<option selected='selected'>";
                 } else {
                     res += "<option>";
@@ -98,13 +265,19 @@ var ImageGallery = function(galleryid)  {
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Creates the main HTML code for the Gallery
+     * @function CreateHtml
+     * @memberOf ipol.ImageGallery~
+     * @returns {string} HTML code
+     */
     this.CreateHtml = function() {
         var html = "";
 
-//        var style="style='border:1px solid black;border-collapse: collapse;'";
+        // set border 0px to avoid coordinates problems in the canvas
         var style="style='border:0px;border-collapse: collapse;'";
         
-        html += "<table "+style+" id='gallery_"+this.galleryid+"' >";
+        html += "<table "+style+" id='gallery_"+_galleryid+"' >";
         
         var titles = Object.keys(this.contents);
         
@@ -114,14 +287,12 @@ var ImageGallery = function(galleryid)  {
         html +=   "<td style='vertical-align:top;"+title_style+"'>";
 
             html += "<table style='"+title_style+"'>";
+            // loop over titles
             $.each(titles, function(index,title) {
                 html += "<tr style='"+title_style+"'>";
                 html +=   "<td id='t"+index+"' style='border:0;height:1.25em;max-width:10em;' >"; // white-space:nowrap;
                 html +=   title;
                 html +=   "</td>";
-//                 html +=   "<td class='compare_class' id='compare_"+index+"' style='white-space:nowrap;border:1px;height:1.25em;' >";
-//                 html +=   "&nbsp;&nbsp;";
-//                 html +=   "</td>";
                 html += "</tr>";
             }.bind(this)
             );
@@ -145,7 +316,6 @@ var ImageGallery = function(galleryid)  {
             html += "</table>";
 
         html +=   "</td>";
-//         html +=   "<td id='contents1' "+style+">";
         html +=   "<td class='image_class' "+style+">";
         html +=   "<div id='contents1' "+"style='border:0px;margin:0px;padding:0px;max-width:1000px;max-height:1000px;overflow-x:auto;overflow-y:auto'>";
         html +=     "contents1";
@@ -179,35 +349,28 @@ var ImageGallery = function(galleryid)  {
             
         html += "</table>";
         
-        html += "<div id='gallery_"+this.galleryid+"_all' title='Gallery Images' ></div>";
+        html += "<div id='gallery_"+_galleryid+"_all' title='Gallery Images' ></div>";
         
-//     // parameters description dialog
-//     var param_desc_dialog;
-//     param_desc_dialog = $("#ParamDescription").dialog({
-//       autoOpen: false,
-// //       height: 500,
-//       width: 800,
-//       modal: true,
-//     });
-//     
-//     $("#description_params").button().on("click", 
-//         function() 
-//         { 
-//             param_desc_dialog.dialog("open");
-//         });
         return html;
-        
         
     };
         
     
     //--------------------------------------------------------------------------
+    /** 
+     * Creates the array of contents for a given title and index
+     * @function CreateContents
+     * @memberOf ipol.ImageGallery~
+     * @param {string} title
+     * @param {number} index
+     * @returns {string} HTML code
+     */
     this.CreateContents = function(title,index) {
         
         // need style ...
         
         var image = this.contents[title];
-        this.InfoMessage("CreateContents "+ title+ ": "+ image);
+        _infoMessage("CreateContents "+ title+ ": "+ image);
         var res="";
 
         // try to have nearest neighbor interpolation 
@@ -218,20 +381,9 @@ var ImageGallery = function(galleryid)  {
                         "image-rendering:optimizeSpeed;"+
                         "image-rendering:-moz-crisp-edges;"+
                         "image-rendering:-o-crisp-edges;"+
-//                         "image-rendering:-webkit-optimize-contrast;"+
+                        // "image-rendering:-webkit-optimize-contrast;"+
                         "image-rendering:optimize-contrast;"+
                         "image-rendering:crisp-edges;";
-        //this.style;
-//         .pixelated {
-//             image-rendering:optimizeSpeed;             /* Legal fallback */
-//             image-rendering:-moz-crisp-edges;          /* Firefox        */
-//             image-rendering:-o-crisp-edges;            /* Opera          */
-//             image-rendering:-webkit-optimize-contrast; /* Safari         */
-//             image-rendering:optimize-contrast;         /* CSS3 Proposed  */
-//             image-rendering:crisp-edges;               /* CSS4 Proposed  */
-//             image-rendering:pixelated;                 /* CSS4 Proposed  */
-//             -ms-interpolation-mode:nearest-neighbor;   /* IE8+           */
-//         }
         
         // string case
         switch ($.type(image)){
@@ -241,7 +393,7 @@ var ImageGallery = function(galleryid)  {
                 res += ' class='+this.img_class+' ';
                 res +=        'src="'+image+'"';
                 res += '/>';
-                this.InfoMessage("returning ",res);
+                _infoMessage("returning ",res);
                 return res;
             case "object":
                 res += '<table style="margin:1px;">';
@@ -286,11 +438,16 @@ var ImageGallery = function(galleryid)  {
     
     
     //--------------------------------------------------------------------------
-    // automatically computes image scales based on the window available width
+    /** 
+     * automatically computes image scales (zoom factor) 
+     * based on the window available width
+     * @function CheckDimensions
+     * @memberOf ipol.ImageGallery~
+     */
     //
     this.CheckDimensions = function() {
         // update window size
-        var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
+        var compare_sel = '#gallery_'+_galleryid+' #id_compare';
         var compare_checked = $(compare_sel).is(':checked');
         var used_width = $("#t0").parent().outerWidth();
         if (compare_checked) {
@@ -299,8 +456,8 @@ var ImageGallery = function(galleryid)  {
         this.display_maxwidth  = $(window).width()-used_width-120;
         this.display_maxheight = $(window).height()*0.80;
         
-        var contents1_sel = "#gallery_"+this.galleryid+" #contents1";
-        var contents2_sel = "#gallery_"+this.galleryid+" #contents2";
+        var contents1_sel = "#gallery_"+_galleryid+" #contents1";
+        var contents2_sel = "#gallery_"+_galleryid+" #contents2";
         
         // set max width/height:
         if (compare_checked) {
@@ -322,7 +479,7 @@ var ImageGallery = function(galleryid)  {
         } else {
             ratio = Math.min(ratio,this.display_maxwidth/this.max_width);
         }
-        this.InfoMessage("ratio = ",ratio);
+        _infoMessage("ratio = ",ratio);
         if (ratio<1) {
             // find scale to select
             var idx=0;
@@ -333,7 +490,7 @@ var ImageGallery = function(galleryid)  {
             if (idx>0) {
                 idx--;
             }
-            this.InfoMessage("scale ",idx," = ",this.scales[idx]);
+            _infoMessage("scale ",idx," = ",this.scales[idx]);
             $("#"+this.zoom_id).val(this.scales[idx]);
             $("#"+this.zoom_id).trigger("change");
         } else {
@@ -343,14 +500,14 @@ var ImageGallery = function(galleryid)  {
             var ratio = 1;
             ratio = Math.max(ratio,this.display_minheight/this.max_height);
             ratio = Math.max(ratio,this.display_minwidth/this.max_width);
-            this.InfoMessage("ratio = ",ratio);
+            _infoMessage("ratio = ",ratio);
             if (ratio>=1) {
                 var idx=this.scales.length-1;
                 while (this.scales[idx]>ratio) {
                     idx--
                 }
                 // TODO: check max constraint is still OK
-                this.InfoMessage("scale ",idx," = ",this.scales[idx]);
+                _infoMessage("scale ",idx," = ",this.scales[idx]);
                 $("#"+this.zoom_id).val(this.scales[idx]);
                 $("#"+this.zoom_id).trigger("change");
             }
@@ -358,13 +515,20 @@ var ImageGallery = function(galleryid)  {
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Check if all images are loaded, if so update the current contents
+     * for the selection (left) and comparing selection (right) if available,
+     * and triggers the callback if any
+     * @function CheckLoadAllImages
+     * @memberOf ipol.ImageGallery~
+     */
     this.CheckLoadAllImages = function() {
         
         if (this.total_loaded_images===this.total_images) {
             if (!this.keep_dimensions_onload) { this.CheckDimensions(); }
             this.UpdateSelection();
             this.UpdateCompareSelection();
-            this.InfoMessage("All images are loaded ... running callback ");
+            _infoMessage("All images are loaded ... running callback ");
             if (this.onloadall_callback!=undefined) {
                 this.onloadall_callback();
             }
@@ -372,12 +536,23 @@ var ImageGallery = function(galleryid)  {
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Create images to load for a given content index
+     * on each image load, update max_width and max_height variables and 
+     * triggers on image load callback if any
+     * update the total count of images this.total_images and of loaded images
+     * this.total_loaded_images
+     * @param {number} index
+     * @function CreateImages
+     * @memberOf ipol.ImageGallery~
+     * @returns {object[]} array of images for the given index
+     */
     this.CreateImages = function(index) {
         
         // need style ...
         var titles = Object.keys(this.contents);
         var image = this.contents[titles[index]];
-        this.InfoMessage("*** CreateImages ", titles[index], ": ", image);
+        _infoMessage("*** CreateImages ", titles[index], ": ", image);
         
         var res=[];
         
@@ -392,7 +567,7 @@ var ImageGallery = function(galleryid)  {
         // string case
         switch ($.type(image)){
             case "string": 
-                this.InfoMessage("string image");
+                _infoMessage("string image");
                 var im = new Image();
                 this.total_images++;
                 res.push(im);
@@ -401,9 +576,9 @@ var ImageGallery = function(galleryid)  {
                 im.onload = function() { 
                     this.max_height = Math.max(this.max_height,im.height);
                     this.max_width  = Math.max(this.max_width, im.width);
-                    this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
+                    _infoMessage(" max :", this.max_width, "x" , this.max_height);
                     $(this.Elt(index)).css(normal_font);
-                    this.InfoMessage("image for ",titles[index], " loaded");
+                    _infoMessage("image for ",titles[index], " loaded");
                     if (this.onload_callback!=undefined) {
                         this.onload_callback(index,im);
                     }
@@ -422,13 +597,13 @@ var ImageGallery = function(galleryid)  {
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
-                        this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
+                        _infoMessage(" max :", this.max_width, "x" , this.max_height);
                         //$(this.Elt(index)).css('font-style','normal');
-                        this.InfoMessage("[",l,"] for ",titles[index], " loaded");
+                        _infoMessage("[",l,"] for ",titles[index], " loaded");
                         this.nb_loaded_images[index]++;
                         // check if all images are loaded
                         if (this.nb_loaded_images[index]==Object.keys(image).length) {
-                            this.InfoMessage("all images loaded for ",titles[index]);
+                            _infoMessage("all images loaded for ",titles[index]);
                             this.max_width  = Math.max(this.max_width, this.total_width[index]);
                             $(this.Elt(index)).css(normal_font);
                         }
@@ -451,13 +626,13 @@ var ImageGallery = function(galleryid)  {
                     _im.onload = function() { 
                         this.max_height = Math.max(this.max_height,_im.height);
                         this.total_width[index] += _im.width;
-                        this.InfoMessage(" max :", this.max_width, "x" , this.max_height);
+                        _infoMessage(" max :", this.max_width, "x" , this.max_height);
                         //$(this.Elt(index)).css('font-style','normal');
-                        this.InfoMessage("image ",idx," for ",titles[index], " loaded");
+                        _infoMessage("image ",idx," for ",titles[index], " loaded");
                         this.nb_loaded_images[index]++;
                         // check if all images are loaded
                         if (this.nb_loaded_images[index]==image.length) {
-                            this.InfoMessage("all images loaded for ",titles[index]);
+                            _infoMessage("all images loaded for ",titles[index]);
                             this.max_width  = Math.max(this.max_width, this.total_width[index]);
                             $(this.Elt(index)).css(normal_font);
                         }
@@ -472,76 +647,158 @@ var ImageGallery = function(galleryid)  {
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * returns the string for selecting (using JQuery) the contents of the given
+     * index
+     * @function Elt
+     * @memberOf ipol.ImageGallery~
+     * @param {integer} index
+     * @returns {string} string for selecting the gallery content
+     */
     this.Elt = function(index) {
-        return "#gallery_"+this.galleryid+" #t"+index;
+        return "#gallery_"+_galleryid+" #t"+index;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * returns the string for selecting (using JQuery) the contents 
+     * of the given index in the comparison side
+     * @function CompareElt
+     * @memberOf ipol.ImageGallery~
+     * @param {integer} index
+     * @returns {string} string for selecting the compared gallery content
+     */
     this.CompareElt = function(index) {
-        return "#gallery_"+this.galleryid+" #compare_"+index;
+        return "#gallery_"+_galleryid+" #compare_"+index;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * returns the string for selecting (using JQuery) the reference contents 
+     * @function RefElt
+     * @memberOf ipol.ImageGallery~
+     * @returns {string} string for selecting the compared gallery content
+     */
     this.RefElt = function() {
-        return "#gallery_"+this.galleryid+" #t"+this.ref_index;
+        return "#gallery_"+_galleryid+" #t"+_ref_index;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * returns the string for selecting (using JQuery) the compared 
+     * reference contents 
+     * @function CompareRefElt
+     * @memberOf ipol.ImageGallery~
+     * @returns {string} string for selecting the compared gallery content
+     */
     this.CompareRefElt = function() {
-        return "#gallery_"+this.galleryid+" #compare_"+this.compare_index;
+        return "#gallery_"+_galleryid+" #compare_"+_compare_index;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * returns the string for setting reference contents 
+     * @function SelContents
+     * @memberOf ipol.ImageGallery~
+     * @param {number} pos contents to select: 1 left side (main), 2 right side (comparison)
+     * @returns {string} string for setting the reference content
+     */
     this.SelContents = function(pos) {
-        return "#gallery_"+this.galleryid+" "+"#contents"+pos;
-//         this.current_contents;
+        return "#gallery_"+_galleryid+" "+"#contents"+pos;
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Sets the contents
+     * @function SetContents
+     * @memberOf ipol.ImageGallery~
+     * @param {number} pos contents to set: 1 left side (main), 2 right side (comparison)
+     * @param {number} index
+     */
     this.SetContents = function(pos,index) {
         $(this.SelContents(pos)).html(this.html_contents[index]);
-        $("."+this.img_class).css("height",(this.ZoomFactor*this.max_height)+"px");
+        $("."+this.img_class).css("height",(this.zoom_factor*this.max_height)+"px");
         if (this.ondisplay_callback!=undefined) {
             this.ondisplay_callback(index);
         }
     }
         
     //--------------------------------------------------------------------------
+    /** 
+     * Sets the main contents (left side) to their reference
+     * @function UpdateSelection
+     * @memberOf ipol.ImageGallery~
+     */
     this.UpdateSelection = function() {
         $(this.RefElt()).css('background-color',this.ref_bgcolor);
-        this.SetContents(1,this.ref_index);
+        this.SetContents(1,_ref_index);
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Sets the comparison contents (right side) to their reference
+     * @function UpdateCompareSelection
+     * @memberOf ipol.ImageGallery~
+     */
     this.UpdateCompareSelection = function() {
         $(this.CompareRefElt()).css('background-color',this.ref_bgcolor);
-        this.SetContents(2,this.compare_index);
+        this.SetContents(2,_compare_index);
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Sets the main contents reference index
+     * @param {integer} index
+     * @function SetSelection
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetSelection = function(index) {
         $(this.RefElt()).css('background-color','');
-        this.ref_index = index;
+        _ref_index = index;
         this.UpdateSelection();
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Sets the comparison contents reference index
+     * @param {integer} index
+     * @function SetCompareSelection
+     * @memberOf ipol.ImageGallery~
+     */
     this.SetCompareSelection = function(index) {
         $(this.CompareRefElt()).css('background-color','');
-        this.compare_index = index;
+        _compare_index = index;
         this.UpdateCompareSelection();
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Gets the image contents for the given title index
+     * @param {integer} index
+     * @function GetImage
+     * @memberOf ipol.ImageGallery~
+     * @return {object[]} array of images of the requested index
+     */
     this.GetImage = function(index) {
         return this.images_contents[index];
     }
     
     //--------------------------------------------------------------------------
+    /** 
+     * Creates all the HTML contents in the array html_contents and also 
+     * all the images to load with their associated events
+     * @function BuildContents
+     * @memberOf ipol.ImageGallery~
+     */
     this.BuildContents = function() {
         // create and store all contents
         var titles = Object.keys(this.contents);
         
+        /** 
+         * stores all the HTML contents
+         * @var {string[]} html_contents html contents for each title
+         * @memberOf ipol.ImageGallery~
+         */
         this.html_contents = [];
         // create html content for each tab
         $.each(titles, function(index,title) {
@@ -549,8 +806,20 @@ var ImageGallery = function(galleryid)  {
             this.html_contents.push(c);
         }.bind(this));
         
+        /** 
+         * stores all the images for each title
+         * @var {object[][]} images_contents array of images to display for 
+         * each title
+         * @memberOf ipol.ImageGallery~
+         */
         this.images_contents = [];
-        // count loaded images to know when all images of a tab are loaded
+        
+        /** 
+         * counts loaded images to know when all images of a tab are loaded
+         * @var {number[]} nb_loaded_images for each title
+         * each title
+         * @memberOf ipol.ImageGallery~
+         */
         this.nb_loaded_images = Array(titles.length);
         for (var i = 0; i < titles.length; i++) this.nb_loaded_images[i] = 0; 
 
@@ -570,48 +839,38 @@ var ImageGallery = function(galleryid)  {
     }
 
     //--------------------------------------------------------------------------
+    /** 
+     * Calls BuildContents(), then creates all the events: hover, click, 
+     * select zoom, etc...
+     * @function BuildContents
+     * @memberOf ipol.ImageGallery~
+     */
     this.CreateEvents = function() {
 
         // deal with this.maxlength for text part
         
-        this.InfoMessage("ImageGallery::CreateEvents() contents= ", this.contents);
+        _infoMessage("ImageGallery::CreateEvents() contents= ", this.contents);
         var titles = Object.keys(this.contents);
 
         this.BuildContents();
-        
-        //         $("#gallery_"+this.galleryid+" #contents1").unbind().click(
-        //             function() {
-        //                 this.current_contents="#contents1";
-        //                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"wheat"});
-        //                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"white"});
-        //             }.bind(this)
-        //         );
-        //         
-        //         $("#gallery_"+this.galleryid+" #contents2").unbind().click(
-        //             function() {
-        //                 this.current_contents="#contents2";
-        //                 $("#gallery_"+this.galleryid+" #contents2").css({ "background-color":"wheat"});
-        //                 $("#gallery_"+this.galleryid+" #contents1").css({ "background-color":"white"});
-        //             }.bind(this)
-        //         );
         
         // Set ref index to 0
         this.SetSelection(0);
         // Set compare index to 1
         this.SetCompareSelection(1);
         
-        this.InfoMessage("CreateEvents");
+        _infoMessage("CreateEvents");
         // create events
         $.each(titles, function(index,title) {
-            this.InfoMessage("index =",index);
+            _infoMessage("index =",index);
             $(this.Elt(index)).hover( 
                 function() {
                     this.SetContents(1,index);
                     $(this.Elt(index)).css('background-color',this.hover_bgcolor);
                 }.bind(this),
                 function() {
-                    if (index!=this.ref_index) {
-                        this.SetContents(1,this.ref_index);
+                    if (index!=_ref_index) {
+                        this.SetContents(1,_ref_index);
                         $(this.Elt(index)).css('background-color','');
                     } else {
                         $(this.Elt(index)).css('background-color',this.ref_bgcolor);
@@ -628,8 +887,8 @@ var ImageGallery = function(galleryid)  {
                     $(this.CompareElt(index)).css('background-color',this.hover_bgcolor);
                 }.bind(this),
                 function() {
-                    if (index!=this.compare_index) {
-                        this.SetContents(2,this.compare_index);
+                    if (index!=_compare_index) {
+                        this.SetContents(2,_compare_index);
                         $(this.CompareElt(index)).css('background-color','');
                     } else {
                         $(this.CompareElt(index)).css('background-color',this.ref_bgcolor);
@@ -645,14 +904,14 @@ var ImageGallery = function(galleryid)  {
         // zoom factor selection events
         $("#"+this.zoom_id).unbind().change( 
             function() {
-                this.ZoomFactor = $("#"+this.zoom_id+" option:selected").val();
-                this.InfoMessage(this.zoom_id+ " changed ", this.ZoomFactor);
+                this.zoom_factor = $("#"+this.zoom_id+" option:selected").val();
+                _infoMessage(this.zoom_id+ " changed ", this.zoom_factor);
                 this.UpdateSelection();
             }.bind(this)
         );
         
 //         // for the moment the wheel event to change scale is commented
-//         $("#gallery_"+this.galleryid).unbind("wheel").bind("wheel",
+//         $("#gallery_"+_galleryid).unbind("wheel").bind("wheel",
 //             function(e) {
 //                 e.preventDefault();
 //                 var deltaY = 0;
@@ -685,8 +944,8 @@ var ImageGallery = function(galleryid)  {
 //             }.bind(this)
 //         );
         
-        var contents1_sel = "#gallery_"+this.galleryid+" #contents1";
-        var contents2_sel = "#gallery_"+this.galleryid+" #contents2";
+        var contents1_sel = "#gallery_"+_galleryid+" #contents1";
+        var contents2_sel = "#gallery_"+_galleryid+" #contents2";
         
         // move image with the mouse
         function gal_mousemove(e) {
@@ -705,7 +964,7 @@ var ImageGallery = function(galleryid)  {
             $(document).unbind("mouseup",gal_mouseup);
         };
 
-        $("#gallery_"+this.galleryid+ " .compare_class, #gallery_"+this.galleryid+ " .image_class").
+        $("#gallery_"+_galleryid+ " .compare_class, #gallery_"+_galleryid+ " .image_class").
         unbind("mousedown").mousedown(
             function(e) {
                 if (e.target.nodeName.toLowerCase()==="img") {
@@ -740,8 +999,8 @@ var ImageGallery = function(galleryid)  {
             }
         );
         
-        var compare_sel = '#gallery_'+this.galleryid+' #id_compare';
-        var compare_class_sel = '#gallery_'+this.galleryid+' .compare_class';
+        var compare_sel = '#gallery_'+_galleryid+' #id_compare';
+        var compare_class_sel = '#gallery_'+_galleryid+' .compare_class';
         $(compare_sel).unbind().change( function()   { 
             var compare_checked = $(compare_sel).is(':checked');
             if (compare_checked) {
@@ -755,9 +1014,9 @@ var ImageGallery = function(galleryid)  {
         
         $(compare_class_sel).hide();
         
-//         $("#gallery_"+this.galleryid).unbind().on("resize",function() { console.info("gallery resized"); } ); 
+//         $("#gallery_"+_galleryid).unbind().on("resize",function() { console.info("gallery resized"); } ); 
                                                                          
-        $("#gallery_"+this.galleryid+" #popup_all").button().unbind().on("click", 
+        $("#gallery_"+_galleryid+" #popup_all").button().unbind().on("click", 
             function() 
             { 
                 // parameters description dialog
@@ -767,7 +1026,7 @@ var ImageGallery = function(galleryid)  {
 //                     maxHeight: $(window).height()*0.95,
 //                     position: [30,30],
                     //{ my: "center", at: "center", of: window },
-                this.gallery_dialog = $("#gallery_"+this.galleryid+"_all").dialog({
+                this.gallery_dialog = $("#gallery_"+_galleryid+"_all").dialog({
                     autoOpen: false,
                     width: $(window).width()*0.95,
                     height: $(window).height()*0.95,
@@ -783,12 +1042,12 @@ var ImageGallery = function(galleryid)  {
                     // close on outside click ...
                     open: function(){
                         $('.ui-widget-overlay').bind('click',function(){
-                            $("#gallery_"+this.galleryid+"_all").dialog('close');
+                            $("#gallery_"+_galleryid+"_all").dialog('close');
                         }.bind(this))
                     }.bind(this)
                 });
         
-                this.InfoMessage("popup_all click length=",this.html_contents.length);
+                _infoMessage("popup_all click length=",this.html_contents.length);
                 var html = "<div >";
                 for(var i=0;i<this.html_contents.length;i++) {
                     html += '<div style="display:inline-block;vertical-align:top;margin:2px">';
@@ -803,10 +1062,10 @@ var ImageGallery = function(galleryid)  {
                     html += "</div>";
                 }
                 html += "</div>";
-                this.InfoMessage("setting ","#gallery_"+this.galleryid+"_all", " to ", html);
+                _infoMessage("setting ","#gallery_"+_galleryid+"_all", " to ", html);
                 this.gallery_dialog.dialog("open");
-                $("#gallery_"+this.galleryid+"_all").html(html);
-                $("."+this.img_class).css("height",(this.ZoomFactor*this.max_height)+"px");
+                $("#gallery_"+_galleryid+"_all").html(html);
+                $("."+this.img_class).css("height",(this.zoom_factor*this.max_height)+"px");
                 if (this.ondisplay_callback!=undefined) {
                     for(var i=0;i<this.html_contents.length;i++) {
                         this.ondisplay_callback(i);
@@ -818,14 +1077,3 @@ var ImageGallery = function(galleryid)  {
     
 }
 
-// //------------------------------------------------------------------------------
-// // Starts processing when document is ready
-// function DocumentReady() {
-//   var html="";
-//   var contents= { "title 1":"test/input_0.sel.png", "title 2":"test/output.png"};
-//   var ig = new ImageGallery();
-//   ig.Append(contents);
-//   $("#GalleryTest").html(ig.CreateHtml());
-//   ig.CreateEvents();
-// }
-// $(document).ready(DocumentReady);

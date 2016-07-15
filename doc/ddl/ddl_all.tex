@@ -915,6 +915,93 @@ if the string starts with a single quote.
 
 \subsection{Organization of the code}
 
+\subsubsection{Code conventions/style}
+
+The javascript source code is documented using the JSDoc conventions.
+Identations are written with four spaces (no tabulation).
+Namespaces are used to organize the classes, functions and variables.
+We try as much as possible to limit line length to 80 characters.
+Avoid long functions/methods.
+
+To understand the code, you need to understand the javascript concepts of closure,
+and the way to create public, private and protected members in javascript.
+
+variable naming:
+\begin{itemize}
+  \item variable name in lowercase,
+  \item the functions and methods names are in lowerCamelCase,
+  \item private members and variables start with underscore character.
+  \item static members start with 'static' followed by UpperCamelCase name.
+\end{itemize}
+
+\subsubsection{Javascript language}
+
+\paragraph{Variable scopes:}
+Javascript has some important differences with most programming languages.
+Here is a link that explains the scope of variables: 
+\url{http://javascriptissexy.com/javascript-variable-scope-and-hoisting-explained/}.
+Things to remember:
+\begin{itemize}
+ \item Javascript does not have block-level scope, instead, it has function-level scope,
+ \item a local variable should be declared with the 'var' keyword, otherwise it is considered global,
+ \item local variables have priority over global variables,
+ \item avoid as much as possible global variables and functions (do not pollute the global scope),
+ \item local variables declared in a function as accessible by functions inside that function (closure),
+ \item all variable declarations are hoisted (lifted and declared) to the top of the function or of the
+       global scope (if they are global).
+\end{itemize}
+
+\paragraph{Closures:}
+According to \url{https://developer.mozilla.org/en/docs/Web/JavaScript/Closures},
+"Closures are functions that refer to independent (free) variables (variables 
+that are used locally, but defined in an enclosing scope). 
+In other words, these functions 'remember' the environment in which they were created."
+Another point to remember is that
+\begin{itemize}
+ \item the closure has access to the outer function variables by reference, not by value.
+\end{itemize}
+
+In some sense, the classical notions of functions and classes in C++ are reduced,
+in javascript, to a single concept of javascript function, where local variables
+of the function stay in memory as long as the function reference exists, they 
+can be considered as member variables of the function. In the same way, functions inside
+other functions have access to the local variable of they outer scope, they 
+can be considered as member functions.
+
+ \paragraph{Keyword "this":}
+The keyword "this" in Javascript can have different meaning according to the
+context
+(\url{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this}).
+Two possibilities (among others) are:
+\begin{itemize}
+  \item "When a function is used as a constructor (with the "new" keyword), its this is bound 
+to the new object being constructed". The default for a constructor is to return
+the object being constructed, but it can return some other object if specified.
+  \item "When a function is called as a method of an object, its this is set to 
+        the object the method is called on."
+\end{itemize}
+
+
+\subsubsection{Implementation of classes}
+
+The implementation of classes with private members in javascript can be
+done using different approaches, as for example decribed in:
+\begin{itemize}
+ \item \url{http://javascript.crockford.com/private.html}, 
+ \item \url{http://www.2ality.com/2016/01/private-data-classes.html},
+ \item \url{https://developer.mozilla.org/en-US/Add-ons/SDK/Guides/Contributor_s_Guide/Private_Properties},
+ \item \url{https://philipwalton.com/articles/implementing-private-and-protected-members-in-javascript/}.
+\end{itemize}
+
+Based on the description of the Javascript variable scope and closure in the previous section,
+and based on information found on the internet, we decided to implement classes in
+javascript in the following way:
+
+\lstinputlisting[language=JavaScript,basicstyle=\scriptsize]{class_example.js}
+
+
+\subsubsection{Different files}
+
 The Javascript code is divided in the following files, within the :
 ipol\_demo/\-static/\-JQuery\-App directory:
 \begin{itemize}
@@ -967,6 +1054,12 @@ ipol\_demo/\-static/\-JQuery\-App directory:
   \url{https://github.com/fengyuanchen/cropper}. The 'DrawInputs' class
   calls the demo execution, uploads local files, and takes care of the progress bar.
 
+ \item \emph{ipol\_demo\_run.js}: This file contains the code that, based on the 
+  input and parameters selection, calls the webservices to upload input files
+  and run the algorithm. Input data can be loaded
+  from blobset or uploaded from local files. The 'RunDemo' class
+  calls the demo execution, uploads local files, and takes care of the progress bar.
+
  \item \emph{ipol\_demo\_upload.js}: creates the HTML contents for uploading
   files, and the execution code for applying or cancelling the upload. Applying 
   the upload will instanciate an object of 'DrawInputs' class and set everything
@@ -1004,8 +1097,230 @@ ipol\_demo/\-static/\-JQuery\-App directory:
  \item \emph{ipol\_demo\_inpainting.js}: creates the interface needed to draw
   the inpainting mask. It uses a modified version of the 'sketch.js' module.
 
-  \item \emph{JQueryGallery/jquery\_gallery.js}: implements the ImageGallery class
+  \item \emph{ImageGallery/image\_gallery.js}: implements the ImageGallery class
   used to display image galleries in inputs and results sections.
 
 \end{itemize}
+
+\subsubsection{Main flow}
+
+\begin{figure}[H]
+  \centering
+%  \includegraphics[width=3.5in]{Images/demo_snapshot}
+  \includegraphics[width=3.5in]{Images/demo_capture}
+  \caption{Demo display layout}
+  \label{img:demo_snapshot}
+\end{figure}
+
+The main flow is as follows:
+\begin{itemize}
+ \item Step 1: select input demo
+    \begin{itemize}
+      \item read list of available demos and propose selection,
+      \item or read demoid from url params
+    \end{itemize}
+ \item Step 2: Read and display list of available blobsets 
+ \item Step 3: Select input blobset:
+    \begin{itemize}
+      \item select blobset from the list,
+      \item or upload blobset.
+    \end{itemize}
+ \item Step 4: Display selected blobset 
+    \begin{itemize}
+      \item if there is a single image, allow crop selection,
+      \item if there are several input blobs, show then in an ImageGallery object.
+    \end{itemize}
+ \item Step 5: Display the parameters and allow their selection. 
+ \item Step 6: Allow 'run' button, on run click: 
+    \begin{itemize}
+      \item display progress bar,
+      \item prepare the demo: check for compilation and installation of the source code,
+      \item if blobset selection: send input blobset with possible crop,
+      \item if blobset upload: crop input (if available) and send input blobset,
+      \item execute the demo with the parameters.
+    \end{itemize}
+ \item Step 7: if upload, send results/parameters to archive. 
+ \item Step 8: Display the results.
+\end{itemize}
+
+\subsubsection{Page template}
+
+\paragraph{Included scripts and stylesheets}
+The file "ipol\_demo.html" contains the page template, where the main displayed components are defined.
+The different scripts are included, together with their CSS stylesheets:
+
+\lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, 
+basicstyle=\scriptsize]{../../ipol_demo/static/JQueryApp/ipol_demo.html}
+
+You will notice the use of the following external modules:
+\begin{itemize}
+ \item \emph{cropper.js} available at 
+        \url{https://github.com/fengyuanchen/cropper} is used to crop input 
+        images; 
+ \item \emph{noUiSlider} available at 
+        \url{http://refreshless.com/nouislider/} is used to create sliders that
+        behave better on touch screen. It is combined with wNumb: 
+        \url{http://refreshless.com/wnumb/} used to format outputs.
+        Only basic features of noUiSlider are used for the moment, but more 
+        advanced features could be added in the future, like displaying ticks 
+        for example.
+  \item In order to upload canvas images, the module 
+        \emph{canvas-to-blob} 
+        (\url{https://github.com/blueimp/JavaScript-Canvas-to-Blob}) and 
+        \emph{blob-util} (\url{https://github.com/nolanlawson/blob-util}) are 
+        used.
+  \item \emph{sketch.js} is used for drawing inpainting mask, it has been 
+        modified to better fit the needs of the mask drawing (and also to try 
+        to fix a position issue with chrome on touching devices). The original   
+        version is available at (\url{http://intridea.github.io/sketch.js/}), 
+        the modified version is on the github server of the IPOL demo system.
+  \item \emph{history.js} (\url{https://github.com/browserstate/history.js/}) is 
+        used to push states on the browser history and to deal with  
+        history events.
+\end{itemize}
+
+\paragraph{Page tabs} Three tabs are created using jquery ui, the first tab
+contains the demo selection, display and execution. The second tab contains
+the archive information, and the third tab contains the Demo Description 
+Language (DDL) file in JSON format.
+
+\lstinputlisting[language=HTML, firstnumber=111,
+linerange={111-123}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.html}
+$\cdots$
+\lstinputlisting[language=HTML, firstnumber=241,
+linerange={241-248}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.html}
+
+Additionally, when the user enters the 'Archive' tab, the archive information
+is automatically updated and the last archive page is displayed:
+\lstinputlisting[language=JavaScript, firstnumber=516,
+linerange={516-531}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.js}
+To obtain the demo id, we first get the demo list stored within the "demo-select"
+HTML element (using the jquery data() function), then we obtain the demo id 
+(editordemoid) from the current position of the demo selection widget.
+
+\paragraph{Page fieldsets and other displayed elements}
+
+Four fieldsets are defined in the file ipol\_demo.html: blob selection, inputs, 
+parameters and results. It also contains the code to create the progress bar
+and the modal dialog to upload data.
+The modal dialog is then initialized by the following code:
+\lstinputlisting[language=JavaScript, firstnumber=574,
+linerange={574-592}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.js}
+and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
+
+\subsubsection{Step 1: input demo selection}
+
+The list of demos is obtained from the demoinfo module using the service "demo\_list",
+in the function ipol.ListDemos(). Once the list is obtained, 
+ipol.OnDemoList(demolist) is called.
+The demo list is stored in the HTML element "demo-select" and once the demo is
+selected (from user selection or from the url parameters), the function 
+ipol.setDemoPage() is called.
+
+The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
+of the "demoinfo" module using ipol.utils.ModuleService():
+\lstinputlisting[language=JavaScript, firstnumber=314,
+linerange={314-318}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo.js}
+
+Once the demo description is returned, it runs the following steps:
+\begin{itemize}
+  \item empties the contents of the page,
+  \item changes its title to contain the demo title,
+  \item prepares the webpage to receive the different contents,
+  \item displays the parameters if any,
+  \item fills the contents of the archive tab,
+  \item calls demoinfo module service "get\_blobs\-\_of\-\_demo\-\_by\-\_name\-\_ws"
+to get the list of available blobsets for this demo, and calls staticOnDemoBlobs()
+method to display them and set their events,
+  \item and based on the "origin" parameter:
+    \begin{itemize}
+      \item if origin is "select\_widget" push a new state to the history,
+      \item if origin is "url", if it contains the parameter 'res', displays
+            the associated results. If it contains the parameter 'exp', displays
+            the corresponding archive experiment.
+      \item if origin is "browser\_history", call the callback function "func" 
+            given in parameter.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Step 2: read and display list of available blobsets}
+
+The static method ipol.DrawBlobs.staticOnDemoBlobs() returns a function
+that creates an instance of ipol.DrawBlobs class, add possible template
+to the blob list and displays all the blobs and their associated events.
+
+\subsubsection{Step 3: select input blobset}
+
+The input blobset can be either selected from the proposed list or uploaded from 
+local files.
+\paragraph{Blobset selection:}
+If it is selected by clicking on one of the proposed blobsets, the event will
+trigger the creation of a DrawInputs instance with the string "blobset" as origin,
+load the input blobset and prepare for running the demo:
+\lstinputlisting[language=JavaScript, firstnumber=253,
+linerange={253-273}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo_blobs.js}
+
+\paragraph{Data upload:}
+
+Clicking on the "Upload data" button will display a modal dialog window
+where the user can choose the files to upload from his local disk.
+\begin{figure}[H]
+  \centering
+%  \includegraphics[width=3.5in]{Images/demo_snapshot}
+  \includegraphics[width=3.5in]{Images/uploadwindow_capture}
+  \caption{Upload files modal window}
+  \label{img:uploadwindow_snapshot}
+\end{figure}
+
+This window is created by the ipol.upload.CreateUploadHTML(), and the function
+ipol.upload.UploadBlobsEvents() deals with the file selection and display.
+Note that the selected files will only be uploaded to the server before the
+demo execution (after clicking on the "run" button).
+Once the user accept its selection by clicking on the "Apply" button, 
+instances of the DrawInputs and RunDemo classes are created within the 
+ipol.upload.ManageLocalData() function:
+\lstinputlisting[language=JavaScript, firstnumber=160,
+linerange={160-185}, basicstyle=\scriptsize]{
+../../ipol_demo/static/JQueryApp/ipol_demo_upload.js}
+
+\subsubsection{Step 4: Display selected blobset}
+Once the user has selected a blobset, it is displayed in the inputs fieldset
+with its corresponding interface.
+The initial HTML code is created by DrawInputs.createHTML() method. 
+
+\paragraph{Single input image}
+In the case of a single input image, this input is displayed with a crop option.
+The user can crop the input image interactively and also display a zoomed preview
+of the crop area on the right. The crop is using the existing "cropper.js" module.
+
+\paragraph{Multiple inputs}
+In the case of multiple inputs, the "ImageGallery" class is used to display the 
+image representation of each input. In an input is of "image" type, it is its own
+image representation. Otherwise, its image representation is a PNG image at the same
+position in the blobset, if any.
+The image gallery is created by the private method DrawInputs.\_createGallery(inputs\_info).
+The "inputs\_info" object contains the titles and contents to be displayed and is created
+by the one of the public methods DrawInputs.loadDataFromBlobset() or DrawInputs.loadDataFromLocalFiles().
+
+\paragraph{Inpainting demos}
+If the demo DDL has inpainting enabled (general.inpainting=true), then an inpainting object
+of class "ipol.features.Inpainting" is created as a private member \_inpaint of the class
+DrawInputs. In this case, the usual displayed input is hidden and the displayed HTML code
+contains the result of the function call to \_inpaint.createHTML() that creates all 
+the inpainting interface. The mask image is also added to the hidden ImageGallery object,
+it will be updated after each drawing event and it will be used as an image to upload
+for the demo execution.
+
+\subsubsection{Step 5: Display the parameters and allow their selection}
+The functions related to the display of the parameters are located in the "ipol\_demo\_params.js"
+file and are within the namespace "ipol.params".
+
+
+\subsubsection{Managing browser history}
 

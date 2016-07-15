@@ -9,6 +9,10 @@
 
 "use strict";
 
+
+// ipol application namespace
+var ipol = ipol || {};
+
 //------------------------------------------------------------------------------
 /**
  * Display proposed demo blobs
@@ -16,19 +20,29 @@
  * @param demoblobs {object} object containing the list of demo blobs
  * @param ddl_json  {object} DDL description of the demo
  */
-var BlobsContainer = function(demoblobs, ddl_json)
+ipol.DrawBlobs = function(demoblobs, ddl_json)
 {
+
+    /** 
+     * By convention, we create a private variable '_this' to
+     * make the object available to the private methods.
+     * @var {object} _this
+     * @memberOf ipol.DrawBlobs~
+     * @private
+     */
+    var _this = this;
 
     //--------------------------------------------------------------------------
     /**
      * Displays message in console if verbose is true
-     * @function InfoMessage
-     * @memberOf BlobsContainer~
+     * @function _infoMessage
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.InfoMessage = function( ) {
-        if (this.verbose) {
+    var _infoMessage = function( ) {
+        if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
-            args.unshift("---- BlobsContainer ----");
+            args.unshift("---- ipol.DrawBlobs ----");
             console.info.apply(console,args);
         }
     }
@@ -36,71 +50,53 @@ var BlobsContainer = function(demoblobs, ddl_json)
     /** 
      * Enable/Disable display of (tracing/debugging) 
      * information in browser console.
-     * @var {boolean} verbose
-     * @memberOf BlobsContainer~
+     * @var {boolean} _verbose
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.verbose=true;
-    this.InfoMessage(" BlobsContainer started ");
-    this.verbose=false;
+    var _verbose=true;
+    _infoMessage(" ipol.DrawBlobs started ");
+    _verbose=false;
+    
     /** 
      * list of demo blobs.
-     * @var {object} demoblobs
-     * @memberOf BlobsContainer~
+     * @var {object} _demoblobs
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.demoblobs = demoblobs;
+    var _demoblobs = demoblobs;
+    
     /** 
      * Demo Description Language DDL information.
-     * @var {object} ddl_json
-     * @memberOf BlobsContainer~
+     * @var {object} _ddl_json
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.ddl_json  = ddl_json;
-    this.InfoMessage("this.demoblobs : ", this.demoblobs);
+    var _ddl_json  = ddl_json;
+    
+    _infoMessage("_demoblobs : ", _demoblobs);
 
-        
-    //--------------------------------------------------------------------------
-    /**
-     * Appends blobs to the demo blobs
-     * @function append_blobs
-     * @memberOf BlobsContainer~
-     * @param {object} db result from asking blob template 
+
+    /** 
+     * Maximal ratio (height/width) of thumbnail dimensions to optimize display.
+     * @var {number} _max_ratio
+     * @memberOf ipol.DrawBlobs~
+     * @private
+     * @defaults 0.5
      */
-    this.append_blobs = function(db) {
-        this.InfoMessage("append_blobs ", this.demoblobs, " -- ", db);
-        this.demoblobs.blobs = this.demoblobs.blobs.concat(db.blobs);
-        this.UpdateDemoBlobs();
-    }
-
-    //--------------------------------------------------------------------------
-    /**
-     * Displays demo blobs
-     * @function UpdateDemoBlobs
-     * @memberOf BlobsContainer~
-     */
-    this.UpdateDemoBlobs = function() {
-
-        this.InfoMessage("demoblobs.blobs.length=",this.demoblobs.blobs.length);
-        
-        var str = JSON.stringify(this.demoblobs, undefined, 4);
-//         $("#tabs-blobs pre").html(ipol_utils.syntaxHighlight(str));
-
-        this.PreprocessDemo();
-        this.DrawDemoBlobs();
-        
-        $("#ThumbnailSize")      .unbind().change( function() { this.InfoMessage("ThumbnailSize changed");this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowCreditsCheckbox").unbind().change( function() { this.InfoMessage("ShowCreditsCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
-        $("#ShowTitlesCheckbox") .unbind().change( function() { this.InfoMessage("ShowTitlesCheckbox changed");this.DrawDemoBlobs(); }.bind(this));
-    }
+    var _max_ratio = 0.5; 
         
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information, sets each blobset html_params
      * value containing the links of all the blob urls in the blobset
-     * @function PreprocessDemo
-     * @memberOf BlobsContainer~
+     * @function _preprocessDemo
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.PreprocessDemo = function() {
+    var _preprocessDemo = function() {
         
-        var blobs = this.demoblobs.blobs;
+        var blobs = _demoblobs.blobs;
         
         // preprocess HTML parameters string
         // for each blob set, in the form
@@ -108,27 +104,27 @@ var BlobsContainer = function(demoblobs, ddl_json)
         for(var i=0;i<blobs.length;i++)
         {
             var blobset = blobs[i];
-            blobset[0].html_params = "url=" + this.demoblobs.url + "&"
+            blobset[0].html_params = "url=" + _demoblobs.url + "&"
                 // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
-                return (a.id_in_set < b.id_in_set ? -1 : (a.id_in_set > b.id_in_set ? 1 : 0));
+                return (a.pos_in_set < b.pos_in_set ? -1 : (a.pos_in_set > b.pos_in_set ? 1 : 0));
             });
             var current_id = ""
             for (var idx = 0; idx < blobset_contents.length; idx++) {
                 if (idx == 0) {
-                    blobset[0].html_params += blobset_contents[idx].id_in_set + ":";
+                    blobset[0].html_params += blobset_contents[idx].pos_in_set + ":";
                 } else {
                     // if same id, separate by comma ...
-                    if (blobset_contents[idx].id_in_set == current_id) {
+                    if (blobset_contents[idx].pos_in_set == current_id) {
                         blobset[0].html_params += ",";
                     } else {
                         // else separate arguments
-                        blobset[0].html_params += "&" + blobset_contents[idx].id_in_set + ":";
+                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":";
                     }
                 }
-                current_id = blobset_contents[idx].id_in_set;
-                blobset[0].html_params += ipol_utils.blobhash_subdir(blobset_contents[idx].hash) + 
+                current_id = blobset_contents[idx].pos_in_set;
+                blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
                     blobset_contents[idx].hash + blobset_contents[idx].extension;
             }
         }
@@ -138,23 +134,25 @@ var BlobsContainer = function(demoblobs, ddl_json)
     //--------------------------------------------------------------------------
     /**
      * Displays demo blobs and create events
-     * @function DrawDemoBlobs
-     * @memberOf BlobsContainer~
+     * @function _drawDemoBlobs
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.DrawDemoBlobs = function() {
-        this.InfoMessage("DrawDemoBlobs");
-        $("#displayblobs").html(this.CreateBlobSetDisplay());
-        this.DemoBlobsEvents();
+    var _drawDemoBlobs = function() {
+        _infoMessage("DrawDemoBlobs");
+        $("#displayblobs").html(_createBlobSetDisplay());
+        _demoBlobsEvents();
     }
     
     //--------------------------------------------------------------------------
     /**
      * Displays demo blobs and create events
-     * @function CreateBlobSetDisplay
-     * @memberOf BlobsContainer~
+     * @function _createBlobSetDisplay
+     * @memberOf ipol.DrawBlobs~
      * @returns {string} the HTML code to display the blobsets
+     * @private
      */
-    this.CreateBlobSetDisplay = function()
+    var _createBlobSetDisplay = function()
     {
         var blobsets_html = "";
         
@@ -162,12 +160,12 @@ var BlobsContainer = function(demoblobs, ddl_json)
         var display_credits  = $("#ShowCreditsCheckbox").is(':checked');
         var display_titles   = $("#ShowTitlesCheckbox").is(':checked');
         
-        this.InfoMessage("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
+        _infoMessage("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
         
         // loop over blobsets
-        for(var i=0;i<this.demoblobs.blobs.length;i++)
+        for(var i=0;i<_demoblobs.blobs.length;i++)
         {
-            var blobset = this.demoblobs.blobs[i];
+            var blobset = _demoblobs.blobs[i];
             // represent the blob set within a HTML table
             var blobset_html = "";
             blobset_html += '<div  ';
@@ -195,8 +193,8 @@ var BlobsContainer = function(demoblobs, ddl_json)
                              +  '   style=" max-width:'  +(thumbnail_size-6)+'px;'
                              +  '           max-height:' +(thumbnail_size-6)+'px;'
                              +  '           vertical-align:middle; margin:3px"'
-                             +  '   src="'+this.demoblobs.url_thumb+'/'
-                             +  ipol_utils.blobhash_subdir(blobset[idx].hash)
+                             +  '   src="'+_demoblobs.url_thumb+'/'
+                             +  ipol.utils.blobhash_subdir(blobset[idx].hash)
                              + 'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
                              +  '   alt='   +blobset[idx].title
                              +  '   title="'+blobset[idx].title+
@@ -236,37 +234,44 @@ var BlobsContainer = function(demoblobs, ddl_json)
     //--------------------------------------------------------------------------
     /**
      * Create demo blobs events
-     * @function DemoBlobsEvents
-     * @memberOf BlobsContainer~
+     * @function _demoBlobsEvents
+     * @memberOf ipol.DrawBlobs~
+     * @private
      */
-    this.DemoBlobsEvents = function() {
-        var blobs = this.demoblobs.blobs;
+    var _demoBlobsEvents = function() {
         
+        var blobs = _demoblobs.blobs;
+        
+        // compute the total number of images to load
+        // to adapt the height once all images are loaded
         var images_to_process = 0;
         for(var i=0;i<blobs.length;i++) {
-            images_to_process += this.demoblobs.blobs[i][0].size;
+            images_to_process += _demoblobs.blobs[i][0].size;
         }
-        this.InfoMessage("images_to_process =", images_to_process);
+        _infoMessage("images_to_process =", images_to_process);
         
-        // set click events on blobsets
         for(var i=0;i<blobs.length;i++) {
+            // set click events on blobsets
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
-                
-                var di = new DrawInputs(this.ddl_json);
-                di.SetBlobSet(this.demoblobs.blobs[event.data.blobset_id]);
-                di.input_origin = "blobset";
-                di.CreateHTML();
-//                 di.CreateCropper();
-                di.LoadDataFromBlobSet();
-                //this.InfoMessage("blobset "+event.data.blobset_id+" clicked ");
-                di.SetRunEvent();
-            }.bind(this)
+                // create an instance of DrawInputs
+                var di = new ipol.DrawInputs(_ddl_json);
+                di.setBlobSet(_demoblobs.blobs[event.data.blobset_id]);
+                di.setInputOrigin("blobset");
+                di.createHTML();
+                di.loadDataFromBlobSet();
+                // prepare to run the demo
+                var run = new ipol.RunDemo(ddl_json,
+                                           di.getInputOrigin(),
+                                           di.getCropInfo(), 
+                                           di.getBlobSet(),
+                                           di.getInpaint());
+                run.setRunEvent();
+            }
             );
-
-            
+            // Set hover event on blobset
             $("#table_blobset_"+i).hover(
                 (function(id) {
                     return function() {
@@ -279,61 +284,114 @@ var BlobsContainer = function(demoblobs, ddl_json)
                     };
                 })(i)
             );
-
-            var blobset = this.demoblobs.blobs[i];
-            this.max_ratio = 0.5; 
+            // load thumbnails for this blobset
+            var blobset = _demoblobs.blobs[i];
+            _max_ratio = 0.5; 
             var processed_images = 0;
             for(var idx=1;idx<blobset[0].size+1;idx++)
             {
                 // check if thumbnail load works, if not, hide the corresponding
                 // image
                 var tester=new Image();
-                tester.src= this.demoblobs.url_thumb+'/'+
-                            ipol_utils.blobhash_subdir(blobset[idx].hash)+
+                tester.src= _demoblobs.url_thumb+'/'+
+                            ipol.utils.blobhash_subdir(blobset[idx].hash)+
                             'thumbnail_'+blobset[idx].hash+blobset[idx].extension;
-                tester.onload = function(obj) { return function() {
-//                     obj.InfoMessage("start ",i);
-                    // Run onload code.
-                    // set lowest possible height for all thumbnails
-//                     var prev_ratio = obj.max_ratio;
-                    obj.max_ratio = Math.min(Math.max(obj.max_ratio,this.height/this.width),1);
+                tester.onload = function() {
+                    _max_ratio = Math.min(Math.max(_max_ratio,this.height/this.width),1);
                     processed_images++;
-//                     if (prev_ratio!=obj.max_ratio) {
                     if (processed_images==images_to_process) {
-                        obj.InfoMessage("processed_images=",processed_images," / ",images_to_process);
-                        obj.InfoMessage("setting ratio to ",obj.max_ratio, " for blob ", i);
+                        _infoMessage("processed_images=",processed_images," / ",images_to_process);
+                        _infoMessage("setting ratio to ",_max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
-                        var new_height = thumbnail_size*obj.max_ratio;
+                        var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                     }
-//                     obj.InfoMessage("end ",i);
-                }; }(this);
-                tester.onerror = function(obj,i,idx) { return function() {
+                }; 
+                tester.onerror = function(i,idx) { return function() {
                     console.info("tester.onerror blobset:",i," blob index:",idx);
                     $("#blob_"+i+"_"+idx).hide();
-                    obj.InfoMessage("failed to load blob image ",i," index ",idx);
+                    _infoMessage("failed to load blob image ",i," index ",idx);
                     processed_images++;
                     if (processed_images==images_to_process) {
-                        obj.InfoMessage("setting ratio to ",obj.max_ratio, " for blob ", i);
+                        _infoMessage("setting ratio to ",_max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
-                        var new_height = thumbnail_size*obj.max_ratio;
+                        var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                     }
-                }; }(this,i,idx);
+                }; }(i,idx);
             } 
         }
     }
+
+    //--------------------------------------------------------------------------
+    // PUBLIC METHODS
+    //--------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Appends blobs to the demo blobs
+     * @function appendBlobs
+     * @memberOf ipol.DrawBlobs~
+     * @param {object} db result from asking blob template 
+     * @public
+     */
+    this.appendBlobs = function(db) {
+        _infoMessage("appendBlobs ", _demoblobs, " -- ", db);
+        _demoblobs.blobs = _demoblobs.blobs.concat(db.blobs);
+        _this.updateDemoBlobs();
+    }
+
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Displays demo blobs
+     * @function updateDemoBlobs
+     * @memberOf ipol.DrawBlobs~
+     * @public
+     */
+    this.updateDemoBlobs = function() {
+
+        _infoMessage("demoblobs.blobs.length=",_demoblobs.blobs.length);
+        
+        var str = JSON.stringify(_demoblobs, undefined, 4);
+//         $("#tabs-blobs pre").html(ipol.utils.syntaxHighlight(str));
+
+        _preprocessDemo();
+        _drawDemoBlobs();
+        
+        $("#ThumbnailSize")      .unbind().change( function() { 
+            _infoMessage("ThumbnailSize changed");
+            _drawDemoBlobs(); 
+        });
+        $("#ShowCreditsCheckbox").unbind().change( function() { 
+            _infoMessage("ShowCreditsCheckbox changed");
+            _drawDemoBlobs(); 
+        });
+        $("#ShowTitlesCheckbox") .unbind().change( function() { 
+            _infoMessage("ShowTitlesCheckbox changed");
+            _drawDemoBlobs(); 
+        });
+    }
+        
+    
 };
+
+//------------------------------------------------------------------------------
+// STATIC METHODS
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 /**
  * function called when receiving the list of demo blobs for user selection
  * @param ddl_json {object} demo description object DDL
  * @returns {callback} returns the function that deals with the returned blobs
+ * @function staticOnDemoBlobs
+ * @memberOf ipol.DrawBlobs
+ * @static
  */
-function OnDemoBlobs(ddl_json) {
+ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
     return function (demoblobs) {
         
 //        console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
@@ -347,21 +405,21 @@ function OnDemoBlobs(ddl_json) {
             return;
         }
         
-        var bc = new BlobsContainer(demoblobs, ddl_json);
+        var bc = new ipol.DrawBlobs(demoblobs, ddl_json);
         
         // Check for template
         if (demoblobs.use_template.hasOwnProperty('name')) {
             // get template blobs
             var template_name = demoblobs.use_template.name;
             console.info("*** getting template")
-            ipol_utils.ModuleService(
+            ipol.utils.ModuleService(
                 "blobs",
                 "get_blobs_from_template_ws",
                 "template="+template_name,
-                function(db){bc.append_blobs(db)}
+                function(db){bc.appendBlobs(db)}
             );
         } else {
-            bc.UpdateDemoBlobs();
+            bc.updateDemoBlobs();
         }
         
     }

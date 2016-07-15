@@ -19,7 +19,7 @@ class   Database(object):
     The database architecture is defined in file /db/blob.sql
     One instance of this object represents one connection to the database
     """
-    def __init__(self, database_dir, database_name):
+    def __init__(self, database_dir, database_name, logger):
         """
         Initialize database class
         Connect to databse
@@ -27,6 +27,7 @@ class   Database(object):
         :param name: database name
         :type name: string
         """
+        self.logger = logger
         self.formats = ('audio', 'image', 'video')
         
         self.database_dir = database_dir
@@ -61,16 +62,17 @@ class   Database(object):
             file_info = os.stat(self.database_file)
                    
             if file_info.st_size == 0:
-                print str(self.database_file) + ' is empty. Removing the file...'
+                self.logger.warning( str(self.database_file) + \
+                                     ' is empty. Removing the file...')
                 try:
-                    self.error_log("init_database", 'Database file was empty')
+                    self.logger.warning('Database file was empty')
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.error_log("init_database", str(ex))
+                    self.logger.exception(str(ex))
                     status = False
                     return status
                         
-                print "Creating a correct new database"
+                self.logger.info( "Creating a correct new database")
             
         if not os.path.isfile(self.database_file):
                     
@@ -81,7 +83,7 @@ class   Database(object):
                 sql_buffer = ""
                     
                 with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
-                    print "Creating a new database"
+                    self.logger.info("Creating a new database")
                     for line in sql_file:
                                 
                         sql_buffer += line
@@ -94,13 +96,13 @@ class   Database(object):
                 conn.close()  
                     
             except Exception as ex:
-                self.error_log("init_database", (str(ex)))
+                self.logger.exception( (str(ex)))
                         
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.error_log("init_database", str(ex))
+                        self.logger.exception( str(ex))
                         status = False
                 
         return status    
@@ -130,8 +132,8 @@ class   Database(object):
                 else:
                     self.cursor.execute('''
                     INSERT INTO demo(name, is_template) VALUES(?, ?)''', (demo, is_template,))
-        except self.database.Error:
-            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseInsertError(e)
 
     def add_blob_in_database(self, demoid, hash_blob, fileformat,
                              ext, tag, blob_set, blob_pos_in_set,
@@ -154,7 +156,7 @@ class   Database(object):
         :param blobid: if blobid is omitted (= -1), then add blob
         (hash and format) to database else do not add, integer
         """
-        print "add_blob_in_database"
+        self.logger.info("add_blob_in_database")
         if blobid == -1:
             try:
                 self.cursor.execute('''
@@ -162,8 +164,8 @@ class   Database(object):
                 VALUES(?, ?, ?, ?, ?)''', \
                 (hash_blob, fileformat, ext, title, credit,))
                 blobid = self.cursor.lastrowid
-            except self.database.Error:
-                raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseInsertError(e)
 
         try:
             self.cursor.execute(
@@ -172,8 +174,8 @@ class   Database(object):
                 VALUES(?, ?, ?, ?)''', \
                 (blobid, demoid, blob_set,blob_pos_in_set,))
 
-        except self.database.Error:
-            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseInsertError(e)
 
         self.add_tag_in_database(blobid, tag)
 
@@ -200,8 +202,8 @@ class   Database(object):
                     self.cursor.execute("INSERT INTO tag(name) VALUES(?)", \
                                         (tag,))
                     tagid = self.cursor.lastrowid
-            except self.database.Error, DatabaseError:
-                raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseInsertError(e)
 
             try:
                 self.cursor.execute('''
@@ -209,8 +211,8 @@ class   Database(object):
                 blob_tag(blob_id, tag_id)
                 VALUES(?, ?)''', \
                 (blobid, tagid,))
-            except self.database.Error:
-                raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseInsertError(e)
 
         else:
             for item in tag:
@@ -223,8 +225,8 @@ class   Database(object):
                         self.cursor.execute("INSERT INTO tag(name) VALUES(?)", \
                                             (item,))
                         tagid = self.cursor.lastrowid
-                    except self.database.Error:
-                        raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+                    except self.database.Error as e:
+                        raise DatabaseInsertError(e)
 
                 try:
                     self.cursor.execute('''
@@ -232,8 +234,8 @@ class   Database(object):
                     blob_tag(blob_id, tag_id)
                     VALUES(?, ?)''', \
                     (blobid, tagid,))
-                except self.database.Error:
-                    raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+                except self.database.Error as e:
+                    raise DatabaseInsertError(e)
 
     #---------------------------------------------------------------------------
     def demo_is_in_database(self, demo):
@@ -248,8 +250,8 @@ class   Database(object):
         try:
             self.cursor.execute("SELECT name FROM demo WHERE name=?", (demo,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return something is not None
 
     #---------------------------------------------------------------------------
@@ -267,8 +269,8 @@ class   Database(object):
             SELECT hash FROM blob WHERE hash=?''',
             (hash_blob,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return something is not None
 
     #---------------------------------------------------------------------------
@@ -285,8 +287,8 @@ class   Database(object):
         try:
             self.cursor.execute("SELECT name FROM tag WHERE name=?", (tag,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return something is not None
 
     #---------------------------------------------------------------------------
@@ -319,8 +321,8 @@ class   Database(object):
             INNER JOIN blob ON demo_blob.blob_id=blob.id WHERE blob.hash=?''',\
             (hash_blob,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return None if something is None else something[0]
 
     def demo_id(self, demo):
@@ -337,8 +339,8 @@ class   Database(object):
             SELECT demo.id FROM demo
             WHERE demo.name=?''', (demo,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return None if something is None else something[0]
 
     #---------------------------------------------------------------------------
@@ -354,8 +356,8 @@ class   Database(object):
         try:
             self.cursor.execute("SELECT id FROM tag WHERE name=?", (tag,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return None if something is None else something[0]
 
     #---------------------------------------------------------------------------
@@ -368,8 +370,6 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
-        print "Database.get_blobs_of_demo({0})".format(demo_id)
-        
         # 
         try:
           self.cursor.execute('''
@@ -377,9 +377,8 @@ class   Database(object):
             INNER JOIN demo ON demo_blob.demo_id=demo.id
             INNER JOIN blob ON demo_blob.blob_id=blob.id
             WHERE demo.id=? GROUP BY blob_set ''', (demo_id,))
-        except self.database.Error:
-          print "exception"
-          raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+          raise DatabaseSelectError(e)
 
         blobsets_list = self.cursor.fetchall()
         
@@ -393,9 +392,8 @@ class   Database(object):
               INNER JOIN demo ON demo_blob.demo_id=demo.id
               INNER JOIN blob ON demo_blob.blob_id=blob.id
               WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
-          except self.database.Error:
-            print "exception"
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+          except self.database.Error as e:
+            raise DatabaseSelectError(e)
           
           blobset_blobs = self.cursor.fetchall()
           blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
@@ -404,13 +402,12 @@ class   Database(object):
             tags = self.get_tags_of_blob( b[0])
             
             tag_str = ''
-            print "tags = ",tags
             for tid in tags:
                 tag_str += ", "+tags[tid]
 
             # now get blobs of each set
             blob_list.append(
-                        { "id": b[0], "id_in_set": b[1], "hash" : b[2], "extension": b[3],
+                        { "id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
                           "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
                       )
           blobset_list.append(blob_list)
@@ -437,8 +434,8 @@ class   Database(object):
             dic[something[0]] = {"name": something[1], "is_template": something[2],
                                  "template_id": something[3]}
 
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         return dic
 
@@ -463,8 +460,8 @@ class   Database(object):
             dic[something[0]] = {"name": something[1], "is_template": something[2],
                                  "template_id": something[3]}
 
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         return dic
 
@@ -484,8 +481,8 @@ class   Database(object):
             INNER JOIN tag ON blob_tag.tag_id=tag.id
             WHERE tag.name IN (%s)''' % \
             ("?," * len(tag))[:-1], tag)
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         lis = []
         for item in something:
@@ -508,8 +505,8 @@ class   Database(object):
             INNER JOIN blob ON blob_tag.blob_id=blob.id
             WHERE blob.id=?''', \
             (blob_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         lis = {}
         for item in something:
@@ -526,8 +523,8 @@ class   Database(object):
             SELECT  tag.name FROM tag
             WHERE tag.id=?''', \
             (tag_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         return tagname
 
@@ -553,8 +550,8 @@ class   Database(object):
                 return 0
             else:
                 return count[0]
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         return count
 
@@ -568,11 +565,11 @@ class   Database(object):
         :param demo_blobcount: tuple of integer
         :type demo_blobcount: tuple or None
         """
-        print "database.py remove_demo_from_database({0})".format(demo_id)
+        self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
-        except self.database.Error:
-            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseDeleteError(e)
 
     #---------------------------------------------------------------------------
     def blob_democount(self, blob_id):
@@ -584,7 +581,7 @@ class   Database(object):
         :return: number of blob present in database
         :rtype: tuple of integer
         """
-        print "database.py blob_democount({0})".format(blob_id)
+        self.logger.info("database.py blob_democount({0})".format(blob_id))
         democount = None
         try:
             self.cursor.execute('''
@@ -597,9 +594,8 @@ class   Database(object):
                 democount=0
             else:
                 democount = democount[0]
-            print "count blobid is", democount
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         if democount==None:
             democount=0
         return democount
@@ -614,15 +610,15 @@ class   Database(object):
         :param blob_demo_count: tuple of integer
         :type blob_demo_count: tuple or None
         """
-        print "database.py delete_blob({0},{1})".format(blob_id,blob_demo_count)
+        self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
         if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
                 DELETE FROM blob
                 WHERE blob.id=?''', \
                 (blob_id,))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseDeleteError(e)
 
     #---------------------------------------------------------------------------
     def tag_is_empty(self, tag_id):
@@ -642,8 +638,8 @@ class   Database(object):
             WHERE tag.id=?''',\
             (tag_id,))
             something = self.cursor.fetchone()
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
         return None if not something else something
 
     #---------------------------------------------------------------------------
@@ -662,8 +658,8 @@ class   Database(object):
                 DELETE FROM tag
                 WHERE tag.id=?''',\
                 (tag_id,))
-            except self.database.Error:
-                raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseDeleteError(e)
 
 
     ##---------------------------------------------------------------------------
@@ -690,8 +686,8 @@ class   Database(object):
             #INNER JOIN blob ON demo_blob.blob_id=blob.id
             #WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=?''',\
             #(demo_id, blob_id,blobset))
-        #except self.database.Error:
-            #raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        #except self.database.Error as e:
+            #raise DatabaseSelectError(e)
 
         #value = ()
         #for item in result:
@@ -702,8 +698,8 @@ class   Database(object):
                     #DELETE FROM demo_blob
                     #WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
                     #(value[0], value[1],value[2]))
-                #except self.database.Error:
-                    #raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+                #except self.database.Error as e:
+                    #raise DatabaseDeleteError(e)
 
         #self.delete_all_tag(blob_id)
         #blob_demo_count = self.blob_democount(blob_id)
@@ -727,8 +723,6 @@ class   Database(object):
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
-        
-        print "delete_blob_from_demo({0},{1},{2})".format(demo_id,blobset,blob_id)
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob
@@ -736,21 +730,53 @@ class   Database(object):
             INNER JOIN blob ON demo_blob.blob_id=blob.id
             WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=? ''',\
             (demo_id, blob_id,blobset))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         value = ()
         for item in result:
             value = (item[0], item[1], item[2])
             if value:
-                print "deleting from database: {0}".format(value) 
+                self.logger.info("deleting from database: {0}".format(value))
                 try:
                     self.cursor.execute('''
                     DELETE FROM demo_blob
-                    WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
+                    WHERE demo_blob.blob_id=? AND demo_blob.demo_id=? AND demo_blob.blob_set=? ''',\
                     (value[0], value[1],value[2]))
-                except self.database.Error:
-                    raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+                except self.database.Error as e:
+                    raise DatabaseDeleteError(e)
+                
+        # recompute blob positions in set
+        try:
+            print "recompute blob positions"
+            result = self.cursor.execute('''
+            SELECT blob_id, blob_pos_in_set, demo_blob.id FROM demo_blob
+            INNER JOIN demo ON demo_blob.demo_id=demo.id
+            INNER JOIN blob ON demo_blob.blob_id=blob.id
+            WHERE demo_blob.demo_id=? AND demo_blob.blob_set=? ''',\
+            (demo_id, blobset))
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
+        values = []
+        for item in result:
+            values.append((item[0], item[1], item[2]))
+        values = sorted(values, key=lambda b: b[1])
+        blobpos=0
+        idx=0
+        prev_pos = 0
+        for val in values:
+            if blobpos!=0 and prev_pos!=val[1]:
+                idx=idx+1
+            try:
+                result = self.cursor.execute('''
+                    UPDATE demo_blob SET blob_pos_in_set=?
+                    WHERE demo_blob.id=? ''',\
+                    (idx,val[2]))
+            except self.database.Error as e:
+                raise DatabaseSelectError(e)
+            prev_pos = val[1]
+            blobpos=blobpos+1
+         
 
         #---- here
         self.delete_all_tag(blob_id)
@@ -810,8 +836,8 @@ class   Database(object):
                                     ("Coloured",))
                 self.cursor.execute("INSERT INTO tag(name) VALUES(?)",
                                     ("Classic",))
-        except self.database.Error, DatabaseError:
-            raise DatabaseInsertError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseInsertError(e)
 
 
     #---------------------------------------------------------------------------
@@ -826,8 +852,8 @@ class   Database(object):
             self.cursor.execute('''
             SELECT id, name, is_template, template_id
             FROM demo''')
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         #jak
         #todo  change json schema, avoun int keys
@@ -845,9 +871,8 @@ class   Database(object):
                     INNER JOIN demo ON demo_blob.demo_id=demo.id
                     INNER JOIN blob ON demo_blob.blob_id=blob.id
                     WHERE demo.id=? GROUP BY blob_set ''', (item[0],))
-            except self.database.Error:
-                print "exception"
-                raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+            except self.database.Error as e:
+                raise DatabaseSelectError(e)
 
             #blobsets_list = self.cursor.fetchall()
             #print item[0]
@@ -872,8 +897,8 @@ class   Database(object):
             SELECT hash, extension FROM blob
             WHERE blob.id=?''', \
             (blob_id,))
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         value = ()
         for item in something:
@@ -900,8 +925,8 @@ class   Database(object):
             something = self.cursor.fetchone()
             dic = {"id": something[0], "hash": something[1], "extension": something[2],
                "credit": something[3]}
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         return dic
 
@@ -921,8 +946,8 @@ class   Database(object):
             DELETE FROM blob_tag
             WHERE tag_id=? AND blob_id=?''',
             (tag_id, blob_id))
-        except self.database.Error:
-            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        except self.database.Error as e:
+            raise DatabaseDeleteError(e)
 
         tag_is_reducible = self.tag_is_empty(tag_id)
         self.delete_tag(tag_id, tag_is_reducible)
@@ -949,8 +974,8 @@ class   Database(object):
                 for item in something:
                     self.delete_tag_from_blob(item, blob_id)
 
-        except self.database.Error, DatabaseDeleteError:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error, e:
+            raise DatabaseSelectError(e)
 
 
     #---------------------------------------------------------------------------
@@ -966,8 +991,8 @@ class   Database(object):
             SELECT id, name
             FROM demo
             WHERE is_template=1''')
-        except self.database.Error:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except self.database.Error, e:
+            raise DatabaseSelectError(e)
 
         lis = {}
         for item in something:
@@ -1000,8 +1025,8 @@ class   Database(object):
             print "demo blobcount = ", demo_blobcount
             if demo_blobcount==0:
                 self.remove_demo_from_database(demo_id)
-        except self.database.Error, DatabaseSelectError:
-            raise DatabaseDeleteError(inspect.currentframe().f_code.co_name)
+        except self.database.Error, e:
+            raise DatabaseDeleteError(e)
         return blobfilenames_to_delete
         
 
@@ -1025,8 +1050,8 @@ class   Database(object):
             something = self.cursor.fetchone()
             if something[0] == 0 and something[1] != 0:
                 dic = self.get_demo_name_from_id(something[1])[something[1]]
-        except DatabaseError, DatabaseSelectError:
-            raise DatabaseSelectError(inspect.currentframe().f_code.co_name)
+        except DatabaseError, e:
+            raise DatabaseSelectError(e)
 
         return dic
 
@@ -1046,8 +1071,8 @@ class   Database(object):
             UPDATE demo SET template_id=?
             WHERE demo.id=?''', \
             (template_id, demo_id,))
-        except DatabaseError:
-            raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)
+        except DatabaseError as e:
+            raise DatabaseUpdateError(e)
 
     #---------------------------------------------------------------------------
     def list_templated_demo_using_from_demo(self, demo_id):
@@ -1062,5 +1087,5 @@ class   Database(object):
             UPDATE demo SET template_id=0
             WHERE template_id=?''',\
             (demo_id,))
-        except DatabaseError:
-            raise DatabaseUpdateError(inspect.currentframe().f_code.co_name)
+        except DatabaseError as e:
+            raise DatabaseUpdateError(e)

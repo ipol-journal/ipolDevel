@@ -25,9 +25,12 @@ import inspect
 import string
 import re
 import ConfigParser as configparser
+import threading
+import logging
+import time
+
 from database import Database
-from error import DatabaseError, print_exception_function,\
-print_exception_thumbnail, print_exception_zip
+from error import DatabaseError
 from collections import defaultdict
 from mako.lookup import TemplateLookup
 
@@ -84,6 +87,9 @@ class   Blobs(object):
         Initialize Blob class
         """
 
+        # control the concurrent access to the blobs instance
+        self.blobs_lock = threading.Lock()
+        
         self.tmp_dir = cherrypy.config['tmp.dir']
         self.final_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
@@ -96,19 +102,67 @@ class   Blobs(object):
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
         
-        global database_dir
+        self.database_dir = "db"
         
+        self.logs_dir = cherrypy.config.get("logs_dir")
         try:
-            database_dir = cherrypy.config.get("database_dir")
-        except Exception:
-            database_dir = "db"
+            if not os.path.exists(self.logs_dir):
+                os.makedirs(self.logs_dir)
+        except Exception as e:
+            self.logs_dir = os.path.dirname(os.path.realpath(__file__))
+            self.logger   = self.init_logging()
+            self.logger.exception(
+                    "Failed to create log dir (using file dir) : %s".format(e))
+        else:
+            self.logger   = self.init_logging()
         
-        global database_name
+        self.logger.info("----- starting blobs module -----")
+                
+        try:
+            self.database_dir = cherrypy.config.get("database_dir")
+        except:
+            self.logger.exception("failed to get database_dir config")
+        
+        self.database_name = "blob.db"
         
         try:
             database_name = cherrypy.config.get("database_name")
-        except Exception:
-            database_name = "blob.db"
+        except:
+            self.logger.exception("failed to get database_name config")
+            
+
+    #---------------------------------------------------------------------------
+    def init_logging(self):
+        """
+        Initialize the error logs of the module.
+        """
+        logger = logging.getLogger("blobs_log")
+        # handle all messages for the moment
+        logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+        formatter = logging.Formatter('%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        
+        logger.addHandler(handler)
+        return logger
+
+        
+    #---------------------------------------------------------------------------
+    def instance_database(self):
+        """
+        Create an instance of the Database object
+        If an exception is catched, close the program
+
+        :return: a connection to the database
+        :rtype: Database object
+        """
+        try:
+            data = Database(self.database_dir, self.database_name, self.logger)
+            return data
+        except DatabaseError:
+            self.logger.exception("Cannot instantiate Database Object")
+            sys.exit(1)
+            
         
     @cherrypy.expose
     def default(self, attr):
@@ -180,27 +234,21 @@ class   Blobs(object):
         :param credit:          credit blob string
         :return:                hash of current blob (dictionnary) json format
         """
-        print "*********************"
-        print "*********************"
-        print "add_blob_ws"
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         blob_hash = get_hash_blob(path)
-        print blob_hash
         fileformat = file_format(path)
         #hash_tmp = -1
         dic = {}
         dic["the_hash"] = blob_hash
-        data = instance_database()
+        data = self.instance_database()
 
         try:
             data.start_transaction()
             blobid = -1
             if not data.blob_is_in_database(blob_hash):
-              print "not in database"
-              print fileformat
+              self.logger.info( "not in database, format: "+ fileformat)
             else:
-              print "in database"
               blobid = data.blob_id(blob_hash)
             data.add_blob_in_database(demo_id, blob_hash, fileformat,
                                       ext, tag, blob_set, blob_pos_in_set,
@@ -208,11 +256,10 @@ class   Blobs(object):
 
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-          print "Exception ", error
-          print_exception_function(error, "Cannot add item in database")
-          data.rollback()
-          dic["status"] = "KO"
+        except DatabaseError:
+            self.logger.exception("Cannot add item in database")
+            data.rollback()
+            dic["status"] = "KO"
 
         #dic["the_hash"] = hash_tmp
 
@@ -230,11 +277,12 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         demo      = kwargs['demo[id]']
-        tag       = kwargs['demo[tag]']
-        blob      = kwargs['demo[blob]']
-        blob_set  = kwargs['demo[set]']
-        title     = kwargs['demo[title]']
-        credit    = kwargs['demo[credit]']
+        tag       = kwargs['blob[tag]']
+        blob      = kwargs['blob[file]']
+        blob_set  = kwargs['blob[set]']
+        blob_pos  = kwargs['blob[pos]']
+        title     = kwargs['blob[title]']
+        credit    = kwargs['blob[credit]']
 
         pattern = re.compile("^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
@@ -249,9 +297,29 @@ class   Blobs(object):
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
+        # pos in set 0 by default (if the set does not exists)
+        blob_pos_in_set = 0
+        
+        # add blob to the end of the blobset
+        # look for the size of the blobset
+        blobset_size = 0
+        demo_blobs = use_web_service('/get_blobs_of_demo_ws', {"demo": demo})
+        for bs in demo_blobs["blobs"]:
+          if bs[0]['set_name'] == blob_set:
+              # check if blob_pos is an existing position
+              # and also compute the maximal exisiting position
+              blob_maxpos = 0
+              for i in range(1,bs[0]['size']+1):
+                  if str(bs[i]['pos_in_set'])==str(blob_pos):
+                      blob_pos_in_set = blob_pos
+                      break
+                  else:
+                      blob_maxpos = max(blob_maxpos,bs[i]['pos_in_set'])
+                      blob_pos_in_set = blob_maxpos+1
+
         path = create_tmp_file(blob, tmp_directory)
         data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext, 
-                "blob_set": blob_set, "blob_pos_in_set":0,
+                "blob_set": blob_set, "blob_pos_in_set":blob_pos_in_set,
                 "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
 
@@ -275,7 +343,7 @@ class   Blobs(object):
         :return: list of demos (dictionnary)
         :rtype: json format
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
@@ -283,8 +351,8 @@ class   Blobs(object):
         try:
             dic["list_demos"] = data.list_of_demos()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot have the list of demos")
+        except DatabaseError:
+            self.logger.exception("Cannot have the list of demos")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -298,7 +366,7 @@ class   Blobs(object):
         :return: list of template (dictionnary)
         :rtype: json format
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
@@ -306,8 +374,8 @@ class   Blobs(object):
         try:
             dic["template_list"] = data.list_of_template()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot have the list of templates demos")
+        except DatabaseError:
+            self.logger.exception("Cannot have the list of templates demos")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -340,7 +408,7 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
@@ -351,8 +419,8 @@ class   Blobs(object):
             data.update_template(demo_id, template_id)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot update template used")
+        except DatabaseError:
+            self.logger.exception("Cannot update template used")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -392,7 +460,7 @@ class   Blobs(object):
         :return: "OK" if not error else "KO" (dictionnary)
         :rtype: json format
         """
-        data = instance_database()
+        data = self.instance_database()
         dic = {}
         try:
             id_tmpl = 0
@@ -401,8 +469,8 @@ class   Blobs(object):
             data.add_demo_in_database(name, is_template, id_tmpl)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot have the list of templates demos")
+        except DatabaseError:
+            self.logger.exception("Cannot have the list of templates demos")
             data.rollback()
             dic["status"] = "KO"
 
@@ -455,7 +523,7 @@ class   Blobs(object):
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
-        print "tmp_directory = ", tmp_directory
+        self.logger.info("tmp_directory = "+tmp_directory)
         path = create_tmp_file(the_archive, tmp_directory)
         self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
 
@@ -476,26 +544,57 @@ class   Blobs(object):
         "OK" if not error else "KO"
         :rtype: dictionnary
         """
-        data = instance_database()
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
         dic = {}
         dic["delete"] = ""
-        try:
-            blob_name     = data.get_blob_filename(blob_id)
-            has_no_demo   = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
-            data.commit()
+        
+        # wait for the lock until timeout in seconds is reach
+        # if it can lock, locks and returns True
+        # otherwise returns False
+        # code based on http://stackoverflow.com/questions/8392640/how-to-
+        # implement-a-lock-with-a-timeout-in-python-2-7
+        # another option is to use Queue:
+        # http://stackoverflow.com/questions/35149889/lock-with-timeout-in-
+        # python2-7
+        def waitLock(lock,timeout):
+            current_time = start_time = time.time()
+            while current_time < start_time + timeout:
+                if lock.acquire(False):
+                    return True
+                else:
+                    # wait for 50ms and try again
+                    time.sleep(0.05)
+                    current_time = time.time()
+            return False
+        
+        # prevent simultaneous calls
+        # try to acquire lock during 3 seconds
+        if waitLock(self.blobs_lock,3):
+        
+            data = self.instance_database()
 
-            if has_no_demo:
-                dic["delete"] = blob_name
-            dic["status"] = "OK"
+            try:
+                blob_name     = data.get_blob_filename(blob_id)
+                has_no_demo   = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
+                data.commit()
+                if has_no_demo:
+                    dic["delete"] = blob_name
+                dic["status"] = "OK"
 
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot delete item in database")
-            data.rollback()
-            dic["status"] = "KO"
+            except DatabaseError:
+                self.logger.exception("Cannot delete item in database")
+                data.rollback()
+                dic["status"] = "KO"
 
+            finally:
+                self.blobs_lock.release()
+
+        else:
+            self.logger.error( "Failed to acquire blobs lock")
+            dic["status"]  = "KO"
+            
+        cherrypy.response.headers['Content-Type'] = "application/json"
         return json.dumps(dic)
+            
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -510,7 +609,7 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: dictionnary
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
@@ -518,8 +617,8 @@ class   Blobs(object):
             res = data.add_tag_in_database(blob_id, tag)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot add tag in database")
+        except DatabaseError:
+            self.logger.exception("Cannot add tag in database")
             data.rollback()
             dic["status"] = "KO"
 
@@ -563,7 +662,7 @@ class   Blobs(object):
         :return: 'OK' if not error else 'KO'
         :rtype: dictionnary
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
@@ -571,8 +670,8 @@ class   Blobs(object):
             res = data.delete_tag_from_blob(tag_id, blob_id)
             data.commit()
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot delete item in database")
+        except DatabaseError:
+            self.logger.exception("Cannot delete item in database")
             data.rollback()
             dic["status"] = "KO"
 
@@ -638,7 +737,6 @@ class   Blobs(object):
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data)
 
-        print "op_remove_blob_from_demo res=",res
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
@@ -666,14 +764,13 @@ class   Blobs(object):
         dic = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        data = instance_database()
+        data = self.instance_database()
         try:
             template_id = data.demo_id(template)
-            print template_id
             dic["blobs"] = data.get_blobs_of_demo(template_id)
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot access to blob from template demo")
+        except DatabaseError:
+            self.logger.exception("Cannot access to blob from template demo")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -695,7 +792,7 @@ class   Blobs(object):
         dic  = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        data = instance_database()
+        data = self.instance_database()
         try:
             dic                      = data.get_demo_info_from_name(demo_name)
             demo_id                  = dic.keys()[0]
@@ -709,8 +806,8 @@ class   Blobs(object):
             #for idx in range(len(dic["blobs"])):
                 #dic["blobs"][idx] = get_new_path(dic["blobs"][idx],False)
             dic["status"]            = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot access to blob from demo")
+        except DatabaseError:
+            self.logger.exception("Cannot access to blob from demo")
             dic["status"]            = "KO"
 
         return json.dumps(dic)
@@ -729,17 +826,16 @@ class   Blobs(object):
         :return: list of hash blob
         :rtype: json format list
         """
-        print "get_blobs_of_demo_ws"
         cherrypy.response.headers['Content-Type'] = "application/json"
         dic  = {}
-        data = instance_database()
+        data = self.instance_database()
         try:
           dic = data.get_demo_name_from_id(demo)
           dic["use_template"] = data.demo_use_template(demo)
           dic["blobs"]        = data.get_blobs_of_demo(demo)
           dic["status"]       = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot access to blob from demo")
+        except DatabaseError:
+            self.logger.exception("Cannot access to blob from demo")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -816,7 +912,6 @@ class   Blobs(object):
         data = {"blob_id": blob_id}
         res = use_web_service('/get_blob_ws', data)
 
-        print "return = ", res["status"]
         if res["status"] == "OK":
             b_name = res["hash"] + res["extension"]
             res["physical_location"] = os.path.join(self.current_directory,
@@ -869,15 +964,15 @@ class   Blobs(object):
         :return: extension, id, hash, credit of blob
         :rtype: dictionnary
         """
-        data = instance_database()
+        data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         dic = {}
         try:
             dic = data.get_blob(blob_id)
             dic["status"] = "OK"
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot access to blob from id blob")
+        except DatabaseError:
+            self.logger.exception("Cannot access to blob from id blob")
             dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -897,11 +992,11 @@ class   Blobs(object):
         lis = []
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        data = instance_database()
+        data = self.instance_database()
         try:
             lis = data.get_tags_of_blob(blob_id)
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot access to tag from blob")
+        except DatabaseError:
+            self.logger.exception("Cannot access to tag from blob")
         return json.dumps(lis)
 
     #---------------------------------------------------------------------------
@@ -916,10 +1011,9 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
-        print "op_remove_demo_ws({0})".format(demo_id)
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        data = instance_database()
+        data = self.instance_database()
         dic = {}
         try:
             blobfilenames_to_delete = data.remove_demo(demo_id)
@@ -928,7 +1022,7 @@ class   Blobs(object):
             
             # remove from disk unused blobs
             for blobfilename in blobfilenames_to_delete:
-                print "blobfilename to delete =",blobfilename
+                self.logger.debug("blobfilename to delete ="+blobfilename)
                 path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
                 path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
                 # process paths
@@ -936,14 +1030,14 @@ class   Blobs(object):
                 path_thumb = get_new_path(path_thumb)
                 # remove blob
                 if os.path.isfile(path_file) :  
-                    print "removing ",path_file
+                    self.logger.info("removing "+path_file)
                     os.remove(path_file)
                 if os.path.isfile(path_thumb): 
-                    print "removing ",path_thumb
+                    self.logger.info("removing "+path_thumb)
                     os.remove(path_thumb)
             
-        except DatabaseError as error:
-            print_exception_function(error, "Cannot delete demo")
+        except DatabaseError:
+            self.logger.exception("Cannot delete demo")
             data.rollback()
             dic["status"] = "KO"
 
@@ -1007,19 +1101,18 @@ class   Blobs(object):
         file_dest = get_new_path(file_dest)
         name = "thumbnail_" + name
         fil_format = file_format(src)
-        print "creating ",file_dest
+        self.logger.info( "creating "+file_dest)
         try:
             if fil_format == 'image':
                 try:
                     image = PIL.Image.open(src)
                 except:
-                    print "Warning: failed to open image file"
+                    self.logger.exception( "failed to open image file")
                     return
                 image.thumbnail((256, 256))
                 image.save(file_dest)
         except IOError:
-            print_exception_thumbnail("Cannot create thumbnail",\
-                inspect.currentframe().f_code.co_name)
+            self.logger.exception("Cannot create thumbnail")
 
     #---------------------------------------------------------------------------
     def parse_archive(self, ext, path, tmp_directory, the_archive, demo_id):
@@ -1062,11 +1155,10 @@ class   Blobs(object):
                     pos = _file.find(',')
                     _file_image = _file[pos+1:]
                     _file       = _file[:pos]
-                    print "file=",_file, "_file_image=",_file_image
                     has_image_representation = True
                   if _file and _file in files:
                       title = buff.get(section, 'title')
-                      print "processing:",title
+                      self.logger.debug("processing:"+title)
                       try:
                         credit = buff.get(section, 'credit')
                       except:
@@ -1090,9 +1182,8 @@ class   Blobs(object):
                       
                       res = use_web_service('/add_tag_to_blob_ws/', data)
                       
-                      print " return = ", res["status"]
+                      self.logger.debug(" return = "+ res["status"])
                       the_hash = res["the_hash"]
-                      print the_hash
                       if the_hash != -1 and res["status"] == "OK":
                         file_dest = self.move_to_input_directory(tmp_path,
                                                                 the_hash,
@@ -1126,8 +1217,9 @@ class   Blobs(object):
                   else:
                       pass
         else:
-            print_exception_zip(inspect.currentframe().f_code.co_name,\
-                                the_archive)
+            self.logger.exception(
+                            "ZipError: index.cfg missing in " + the_archive +
+                            ": Cannot add item in database")
     
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -1156,7 +1248,7 @@ class   Blobs(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            print "something went wrong in blobs module"
+            self.logger.error("something went wrong in blobs module")
             sys.exit(1)
         return json.dumps(data)
 
@@ -1225,8 +1317,9 @@ def file_format(the_file):
       fileformat = mime.from_file(the_file)
       return fileformat[:5]
     else:
-      print "This version of magic module is not officially supported by Python"
-      print ", we advise you to install it from PIP."
+      self.logger.warning("This version of magic module is not officially "\
+                          "supported by Python, "\
+                          "we advise you to install it from PIP.")
       # if dist version
       if "open" in dir(magic):
         m = magic.open(magic.MAGIC_MIME)
@@ -1234,20 +1327,5 @@ def file_format(the_file):
         fileformat = m.file(the_file)
         return fileformat[:5]
 
-def instance_database():
-    """
-    Create an instance of the Database object
-    If an exception is catched, close the program
-
-    :return: a connection to the database
-    :rtype: Database object
-    """
-    try:
-        data = Database(database_dir, database_name)
-        return data
-    except DatabaseError as error:
-        print_exception_function(error,
-                                 "Cannot instantiate Database Object")
-        sys.exit(1)
 
 

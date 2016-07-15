@@ -117,6 +117,7 @@
                 "function() { ",
                     "var coding=$(\"select[name=colorcoding]\").val();",
                     "$(\"#colorcoding_im\").attr(\"src\",\"'+work_url+ '/cw.\"+coding+\".1.png\");",
+                    "$(\"#result_1\").data(\"image_gallery\").SetOnLoadAll(undefined);",
                     "$(\"#result_1\").data(\"image_gallery\").keep_dimensions_onload = true;",
                     "var c = $(\"#result_1\").data(\"image_gallery\").contents;",
                     "c[\"Optical flow\"]  =\"'+work_url+'stuff_phs.\"     +coding+\".1.png\";",

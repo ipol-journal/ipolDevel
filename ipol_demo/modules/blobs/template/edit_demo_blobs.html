@@ -54,18 +54,20 @@
                 </tr>
                 <tr>
                 %for idx in range(1,blob_set[0]['size']+1):
-                    <td style="align:center">${blob_set[idx]['title']}</td>
+                    <td style="align:center">${blob_set[idx]['title']}
+                        (pos:${blob_set[idx]["pos_in_set"]})
+                        <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_set=${blob_set[0]['set_name']}&blob_id=${blob_set[idx]["id"]}">
+                            delete
+                        </a>
+                    </td>
                 %endfor
                 </tr>
                 <tr>
                     <td colspan="20" align="center">
-                    ${blob_set[0]['set_name']} -- 
+                    ${blob_set[0]['set_name']} (size:${blob_set[0]['size']})
 <!--                    <a href="op_remove_blobset_from_demo?demo_id=${demo_id}&blob_set=${blob_set[0]['set_name']}">
                         delete set
-                    </a> ---->
-                    <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_set=${blob_set[0]['set_name']}&blob_id=${blob_set[idx]["id"]}">
-                        delete last blob
-                    </a>
+                    </a> -->
                     </td>
                 </tr>
             </table>
