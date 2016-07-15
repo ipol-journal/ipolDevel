@@ -934,6 +934,70 @@ variable naming:
   \item static members start with 'static' followed by UpperCamelCase name.
 \end{itemize}
 
+\subsubsection{Javascript language}
+
+\paragraph{Variable scopes:}
+Javascript has some important differences with most programming languages.
+Here is a link that explains the scope of variables: 
+\url{http://javascriptissexy.com/javascript-variable-scope-and-hoisting-explained/}.
+Things to remember:
+\begin{itemize}
+ \item Javascript does not have block-level scope, instead, it has function-level scope,
+ \item a local variable should be declared with the 'var' keyword, otherwise it is considered global,
+ \item local variables have priority over global variables,
+ \item avoid as much as possible global variables and functions (do not pollute the global scope),
+ \item local variables declared in a function as accessible by functions inside that function (closure),
+ \item all variable declarations are hoisted (lifted and declared) to the top of the function or of the
+       global scope (if they are global).
+\end{itemize}
+
+\paragraph{Closures:}
+According to \url{https://developer.mozilla.org/en/docs/Web/JavaScript/Closures},
+"Closures are functions that refer to independent (free) variables (variables 
+that are used locally, but defined in an enclosing scope). 
+In other words, these functions 'remember' the environment in which they were created."
+Another point to remember is that
+\begin{itemize}
+ \item the closure has access to the outer function variables by reference, not by value.
+\end{itemize}
+
+In some sense, the classical notions of functions and classes in C++ are reduced,
+in javascript, to a single concept of javascript function, where local variables
+of the function stay in memory as long as the function reference exists, they 
+can be considered as member variables of the function. In the same way, functions inside
+other functions have access to the local variable of they outer scope, they 
+can be considered as member functions.
+
+ \paragraph{Keyword "this":}
+The keyword "this" in Javascript can have different meaning according to the
+context
+(\url{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this}).
+Two possibilities (among others) are:
+\begin{itemize}
+  \item "When a function is used as a constructor (with the "new" keyword), its this is bound 
+to the new object being constructed". The default for a constructor is to return
+the object being constructed, but it can return some other object if specified.
+  \item "When a function is called as a method of an object, its this is set to 
+        the object the method is called on."
+\end{itemize}
+
+
+\subsubsection{Implementation of classes}
+
+The implementation of classes with private members in javascript can be
+done using different approaches, as for example decribed in:
+\begin{itemize}
+ \item \url{http://javascript.crockford.com/private.html}, 
+ \item \url{http://www.2ality.com/2016/01/private-data-classes.html},
+ \item \url{https://developer.mozilla.org/en-US/Add-ons/SDK/Guides/Contributor_s_Guide/Private_Properties},
+ \item \url{https://philipwalton.com/articles/implementing-private-and-protected-members-in-javascript/}.
+\end{itemize}
+
+Based on the description of the Javascript variable scope and closure in the previous section,
+and based on information found on the internet, we decided to implement classes in
+javascript in the following way:
+
+\lstinputlisting[language=JavaScript,basicstyle=\scriptsize]{class_example.js}
 
 
 \subsubsection{Different files}
@@ -1229,7 +1293,34 @@ linerange={160-185}, basicstyle=\scriptsize]{
 Once the user has selected a blobset, it is displayed in the inputs fieldset
 with its corresponding interface.
 The initial HTML code is created by DrawInputs.createHTML() method. 
-In the case of a single input image, 
+
+\paragraph{Single input image}
+In the case of a single input image, this input is displayed with a crop option.
+The user can crop the input image interactively and also display a zoomed preview
+of the crop area on the right. The crop is using the existing "cropper.js" module.
+
+\paragraph{Multiple inputs}
+In the case of multiple inputs, the "ImageGallery" class is used to display the 
+image representation of each input. In an input is of "image" type, it is its own
+image representation. Otherwise, its image representation is a PNG image at the same
+position in the blobset, if any.
+The image gallery is created by the private method DrawInputs.\_createGallery(inputs\_info).
+The "inputs\_info" object contains the titles and contents to be displayed and is created
+by the one of the public methods DrawInputs.loadDataFromBlobset() or DrawInputs.loadDataFromLocalFiles().
+
+\paragraph{Inpainting demos}
+If the demo DDL has inpainting enabled (general.inpainting=true), then an inpainting object
+of class "ipol.features.Inpainting" is created as a private member \_inpaint of the class
+DrawInputs. In this case, the usual displayed input is hidden and the displayed HTML code
+contains the result of the function call to \_inpaint.createHTML() that creates all 
+the inpainting interface. The mask image is also added to the hidden ImageGallery object,
+it will be updated after each drawing event and it will be used as an image to upload
+for the demo execution.
+
+\subsubsection{Step 5: Display the parameters and allow their selection}
+The functions related to the display of the parameters are located in the "ipol\_demo\_params.js"
+file and are within the namespace "ipol.params".
+
 
 \subsubsection{Managing browser history}
 
