@@ -126,12 +126,12 @@ class Terminal(object):
             status = response['status']
             
             if status == "OK":
-                print module + " : Module active, it says PONG!"
+                print module + "  (" + self.dict_modules[module]["url"] + ")" + ":  Module active, it says PONG!"
             else:
-                print module + " : JSON response is KO when making a PING"
+                print module + "  (" + self.dict_modules[module]["url"] + ")" + " : JSON response is KO when making a PING"
         
         except IOError:
-            print module + " : Module unresponsive. The terminal could not connect to " + self.dict_modules[module]["url"] 
+            print module + "  (" + self.dict_modules[module]["url"] + ")" + " : Module unresponsive. "
 
 
     def ping_all(self, _dummy):
@@ -157,12 +157,12 @@ class Terminal(object):
             status = response['status']
             
             if status == "OK":
-                print module + " shut down."
+                print module + "  (" + self.dict_modules[module]["url"] + ")" + " is shut down."
             else:
-                print module + " : JSON response is KO when shutting down the module"
+                print module + "  (" + self.dict_modules[module]["url"] + ")" + " : JSON response is KO when shutting down the module"
 
         except IOError:
-            print module + " : stop : service unreachable. The terminal could not connect to " + self.dict_modules[module]["url"] 
+            print module + "  (" + self.dict_modules[module]["url"] + ")" + " stop : service unreachable. "
 
 
     def start_module(self, args_array):
