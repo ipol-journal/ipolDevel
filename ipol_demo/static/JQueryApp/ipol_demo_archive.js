@@ -21,6 +21,15 @@ ipol.ArchiveDisplay = function()
 {
     
     /** 
+     * By convention, we create a private variable '_this' to
+     * make the object available to the private methods.
+     * @var {object} _this
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     */
+    var _this = this;
+
+    /** 
      * Enable/Disable display of (tracing/debugging) 
      * information in browser console.
      * @var {boolean} _verbose
@@ -267,12 +276,12 @@ ipol.ArchiveDisplay = function()
         $(".set_page_"+_current_page).css("font-weight","bold");
         for(var i=1;i<=nb_pages;i++) {
             $(".set_page_"+i).unbind().click(
-                function(obj,demoid,page) { 
+                function(demoid,page) { 
                     return function() 
                     { 
-                        obj.getArchive(demoid,page);
+                        _this.getArchive(demoid,page);
                     }
-                } (this,demo_id,i)
+                } (demo_id,i)
             );
             // underline on hover
             $(".set_page_"+i).hover(
