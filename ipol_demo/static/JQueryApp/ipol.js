@@ -477,7 +477,6 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
     }
 
 }
-    
 
 //------------------------------------------------------------------------------
 /**
