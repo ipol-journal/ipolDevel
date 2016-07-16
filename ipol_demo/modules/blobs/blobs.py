@@ -123,8 +123,6 @@ class   Blobs(object):
         except:
             self.logger.exception("failed to get database_dir config")
         
-        self.database_name = "blob.db"
-        
         try:
             database_name = cherrypy.config.get("database_name")
         except:
