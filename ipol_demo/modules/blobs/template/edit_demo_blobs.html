@@ -6,7 +6,7 @@
     <body>
       <ul>
     <a href="index">return</a>
-    <h1>List of blobs of ${demo[demo_id]["name"]}</h1>
+    <h1>Blob list of demo ${demo[demo_id]["name"]}</h1>
         This demo is a template:
         %if demo[demo_id]["is_template"] == 1:
             Yes
@@ -39,7 +39,7 @@
     <a href="op_remove_demo?demo_id=${demo_id}">  remove this demo            </a><br>
     <br>
     %if len(blobs_list):
-        <h1>List of blob of this demo</h1>
+        <h1>Demo blob list </h1>
         %for blob_set in blobs_list:
             <table  style=' background-color:#EEEEEE;
                             margin:5px;float:left;
@@ -77,7 +77,7 @@
     %endif
 
 	%if len(tmpl_blobs):
-    <h1>List of blob of the demo template</h1>
+    <h1>Demo template blob list</h1>
     %for blob_set in tmpl_blobs:
         <table style="margin:5px">
         <tr>
