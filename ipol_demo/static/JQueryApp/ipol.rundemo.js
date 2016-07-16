@@ -294,7 +294,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
         }
         // create parameters
         if (_ddl_json.params) {
-            var params = ipol.params.GetParamValues(_ddl_json.params);
+            var params = ipol.DrawParams.staticGetParamValues(_ddl_json.params);
         } else {
             var params = {};
         }

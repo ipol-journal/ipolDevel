@@ -18,4 +18,4 @@ django-allauth
 
 #http://django-autocomplete-light.readthedocs.org/en/master/#projects-upgrading-to-django-1-9
 #do: find . -name '*.py' | xargs perl -i -pe 's/import autocomplete_light/from autocomplete_light import shortcuts as autocomplete_light/'
-django-autocomplete-light
+django-autocomplete-light==2.2.10
