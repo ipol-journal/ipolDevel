@@ -44,6 +44,11 @@ ipol.ClassExample = function()  {
     // elements in "this" are available in the class instance
 }
 
+// static member
+ipol.ClassExample.staticExample = function() {
+    ...
+}
+
 // instance of ClassExample, with access to public members
 ipol.object = new ipol.ClassExample();
 
