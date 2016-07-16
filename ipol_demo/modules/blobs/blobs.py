@@ -103,6 +103,7 @@ class   Blobs(object):
                                   cherrypy.config['server.socket_port'])
         
         self.database_dir = "db"
+        self.database_name = "blob.db"
         
         self.logs_dir = cherrypy.config.get("logs_dir")
         try:
@@ -124,7 +125,7 @@ class   Blobs(object):
             self.logger.exception("failed to get database_dir config")
         
         try:
-            database_name = cherrypy.config.get("database_name")
+            self.database_name = cherrypy.config.get("database_name")
         except:
             self.logger.exception("failed to get database_name config")
             
