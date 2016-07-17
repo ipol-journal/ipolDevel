@@ -1172,14 +1172,16 @@ class   Blobs(object):
                       
 
                       data = {"demo_id": demo_id, "path": tmp_path,
+                              "tag":tags,
                               "ext": ext, "blob_set": section, 
                               "blob_pos_in_set": file_id, "title": title,
                               "credit": credit}
+                      self.logger.debug("add_blob_ws data = {0}".format(data))
                       res = use_web_service('/add_blob_ws/', data)
                       
                       # add the tags
                       
-                      res = use_web_service('/add_tag_to_blob_ws/', data)
+                      #res = use_web_service('/add_tag_to_blob_ws/', data)
                       
                       self.logger.debug(" return = "+ res["status"])
                       the_hash = res["the_hash"]
@@ -1198,9 +1200,11 @@ class   Blobs(object):
                             # according to Miguel, don´t add a blob image representation
                             # as a blob item
                             data = {"demo_id": demo_id, "path": tmp_image_path, 
+                                    "tag":tags,
                                     "ext": image_ext, "blob_set": section, 
                                     "blob_pos_in_set": file_id, "title": title,
                                     "credit": credit}
+                            self.logger.debug("add_blob_ws data = {1}".format(data))
                             res = use_web_service('/add_blob_ws/', data)
                             the_hash = res["the_hash"]
 
@@ -1284,6 +1288,7 @@ def use_web_service(req, data):
 
     urls_values = urllib.urlencode(data, True)
     url = cherrypy.server.base() + req + '?' + urls_values
+    print "url=",url
     res = urllib2.urlopen(url)
     tmp = res.read()
     return json.loads(tmp)
