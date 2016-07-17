@@ -47,7 +47,7 @@ hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
-production_machines = ['my_production_hostname']
+production_machines = ['ipol_core']
 
 #alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
