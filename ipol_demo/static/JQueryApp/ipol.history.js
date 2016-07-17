@@ -57,7 +57,7 @@ ipol.history.SetPageState = function( page_state) {
             // which means we draw parameters and results too
             ipol.setDemoPage(demo_list[demo_position].editorsdemoid,
                         demo_list[demo_position].id,
-                        demo_origin.browser_history,
+                        ipol.demo_origin.browser_history,
                         onpage_func
                         );
         } else {

@@ -278,7 +278,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
      * @param {object} res result obtained from upload or select and crop
      * calls to demorunner
      * @private
+     * @fires demorunner:run_demo
      * @fires archive:add_experiment
+     * @fires History.pushState
      */
      var _doRun = function(res) {
         
