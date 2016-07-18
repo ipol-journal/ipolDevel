@@ -408,8 +408,8 @@ class Archive(object):
                         data["status"] = "KO"
                 
                         try:
-                                conn.rollback()
-                                conn.close()
+                            conn.rollback()
+                            conn.close()
                         except Exception as ex:
                                 pass
                 return json.dumps(data)
@@ -534,23 +534,19 @@ class Archive(object):
                 
                 all_rows = cursor_db.fetchall()
 
-                print "\n\n--------------"
                 for row in all_rows:
                     
                     path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
                     
                     if row[2]=="results from experiment":
-                        print "found results json file ",path_file
                         # load the json file
                         with open(path_file) as data_file:
                             results_json = json.load(data_file)
-                            print results_json
                         dict_exp["results"]=results_json
                     else:
                         path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
                         list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
-                print "-------------\n"
                 dict_exp["id"] = id_exp
                 dict_exp["date"] = date
                 dict_exp["parameters"] = json.loads(parameters)
