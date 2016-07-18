@@ -1321,8 +1321,38 @@ it will be updated after each drawing event and it will be used as an image to u
 for the demo execution.
 
 \subsubsection{Step 5: Display the parameters and allow their selection}
+
 The functions related to the display of the parameters are located in the "ipol.drawparams.js"
-file and are within the class "ipol.DrawParams".
+file and are within the class "ipol.DrawParams". Default parameter values can be reset using
+the dedicated button.
+The static method ipol.DrawParams.staticUpdateParams() takes care to updating parameters
+that may have interdependencies. Currently, only the "visible" properties, and the 
+"readonly" type contents are evaluated using javascript eval() function.
+
+\subsubsection{Step 6: deal with 'run' events}
+
+The method "ipol.RunDemo.setRunEvent()" initializes the progress bar and deals
+with the click on the "run" button.
+The first step is to call the service "demorunner:init\_demo" that checks for the
+source code installation and compilation. Once the current demo is successfully
+initialized, input data can be either uploaded to defined:
+\begin{itemize}
+ \item for inpainting demo, the method \_inpaint.submitInpaint() is called,
+        that will submit inpaint inputs: image and mask.
+ \item for non-inpainting demos where the input comes from a selected blobset,
+        the service "demorunner:input\_select\_and\_crop" is called with all the
+        required parameters: demo id, blobset information, crop information.
+ \item for non-inpainting demos with local files to upload, a local variable
+        of type "FormData" is instanciated and filled with the data to upload.
+        In the case of a single input image with selected crop, the image
+        is reduced to the crop area before its upload (using the getCroppedCanvas
+        option of the cropper module). The convertion from canvas or img to 
+        blobs that can be uploaded is obtained using either "canvas.toBlob()"
+        function or "blobUtil.imgSrcToBlob().then()" function. Once the 
+        form data is filled, the private method "\_uploadForm()" is called.
+ \item for demos without any input blob, the private method "\_doRun()" is
+        called in return of the service "demorunner:init\_noinputs".
+\end{itemize}
 
 
 \subsubsection{Managing browser history}

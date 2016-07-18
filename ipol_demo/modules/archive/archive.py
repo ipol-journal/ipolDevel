@@ -248,8 +248,9 @@ class Archive(object):
             where new directories are created for each 'depth' first letters
             of the hash, for example:
             input  is /tmp/abvddff.png
-            output is /tmp/a/b/v/abvddff.png
+            output is /tmp/a/b/abvddff.png
             where the full path /tmp/a/b/ has been created
+            returns this new_path and the subdirectory (a/b/) if depth = 2
             """
             l = min(len(hash_name),depth)
             
@@ -259,10 +260,9 @@ class Archive(object):
             if not os.path.isdir(new_directory_name):
                 os.makedirs(new_directory_name)
             
-            new_hash_file =  subdirs + '/' + hash_name
             new_path = new_directory_name + hash_name + "." + file_extension
             
-            return new_path, new_hash_file
+            return new_path, subdirs
 
 
 
@@ -321,17 +321,17 @@ class Archive(object):
                 
                 if not tmp:
                         
-                        path_new_file, new_hash = self.get_new_path(self.blobs_dir, hash_file, type_file)
+                        path_new_file, subdirs = self.get_new_path(self.blobs_dir, hash_file, type_file)
                         
                         cursor_db.execute('''
                         INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
-                        ''', (new_hash, type_file, format_file,))
+                        ''', (hash_file, type_file, format_file,))
                         
                         shutil.copyfile(blob_path, path_new_file)
                         
                         if copy_thumbnail:
                             
-                            path_new_thumbnail, new_hash = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
+                            path_new_thumbnail, subdirs = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
                             shutil.copyfile(blob_thumbnail_path, path_new_thumbnail)
 
                 id_blob = int(cursor_db.lastrowid)
@@ -533,21 +533,24 @@ class Archive(object):
                     WHERE id_experiment = ?""", (id_exp,))
                 
                 all_rows = cursor_db.fetchall()
-                
+
+                print "\n\n--------------"
                 for row in all_rows:
+                    
+                    path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
+                    
                     if row[2]=="results from experiment":
-                        path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
                         print "found results json file ",path_file
                         # load the json file
                         with open(path_file) as data_file:
                             results_json = json.load(data_file)
+                            print results_json
                         dict_exp["results"]=results_json
                     else:
-                        path_file = os.path.join(self.blobs_dir, (row[0] + '.' + row[1]))
-                        path_thumb = os.path.join(self.blobs_thumbs_dir, row[0] + '.jpeg')
+                        path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
                         list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
-                
+                print "-------------\n"
                 dict_exp["id"] = id_exp
                 dict_exp["date"] = date
                 dict_exp["parameters"] = json.loads(parameters)
