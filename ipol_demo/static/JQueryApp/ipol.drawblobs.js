@@ -88,13 +88,28 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
     //--------------------------------------------------------------------------
     /**
-     * Pre-processes the demo information, sets each blobset html_params
-     * value containing the links of all the blob urls in the blobset
+     * Pre-processes the demo information
      * @function _preprocessDemo
      * @memberOf ipol.DrawBlobs~
      * @private
      */
     var _preprocessDemo = function() {
+        if (use_core) {
+            _preprocessDemoNew()
+        } else {
+            _preprocessDemoOld()
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Pre-processes the demo information, sets each blobset html_params
+     * value containing the links of all the blob urls in the blobset
+     * @function _preprocessDemoOld
+     * @memberOf ipol.DrawBlobs~
+     * @private
+     */
+    var _preprocessDemoOld = function() {
         
         var blobs = _demoblobs.blobs;
         
@@ -127,6 +142,49 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
                     blobset_contents[idx].hash + blobset_contents[idx].extension;
             }
+        }
+        
+    }
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Pre-processes the demo information, sets each blobset html_params
+     * value containing the links of all the blob urls in the blobset
+     * @function _preprocessDemoNew
+     * @memberOf ipol.DrawBlobs~
+     * @private
+     */
+    var _preprocessDemoNew = function() {
+        
+        var blobs = _demoblobs.blobs;
+        
+        // preprocess FormData blobset parameters as an object
+        // for each blob set, in the form
+        // form_params={url:XXXX,0:blob,1:blob,2:blob,blob etc ..."
+        for(var i=0;i<blobs.length;i++)
+        {
+            var blobset = blobs[i];
+            blobset[0].form_params = {};
+            blobset[0].form_params["url"] = _demoblobs.url;
+                // extract only contents of interest
+            var blobset_contents = blobset.slice(1);
+            blobset_contents.sort(function(a, b) {
+                return (a.pos_in_set < b.pos_in_set ? 
+                        -1 : 
+                        (a.pos_in_set > b.pos_in_set ? 1 : 0));
+            });
+            for (var idx = 0; idx < blobset_contents.length; idx++) {
+                var pos = blobset_contents[idx].pos_in_set;
+                if (!blobset[0].form_params[pos]) {
+                    blobset[0].form_params[pos]=[];
+                }
+                blobset[0].form_params[pos].push(
+                    ipol.utils.blobhash_subdir(blobset_contents[idx].hash) +
+                    blobset_contents[idx].hash + 
+                    blobset_contents[idx].extension);
+            }
+            //_infoMessage("_preprocessDemo blobset ", i, 
+            //             " form_params=",blobset[0].form_params);
         }
         
     }
