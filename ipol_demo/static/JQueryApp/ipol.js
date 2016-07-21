@@ -338,8 +338,9 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                 //$(document).attr("title","IPOL Journal &middot; "+ddl_json.general.demo_title);
                 $('title').html("IPOL Journal &middot; "+ddl_json.general.demo_title);
 
-                // for convenience, add demo_id field to the json DDL 
-                ddl_json['demo_id'] = demo_id
+                // for convenience, add demo_id and internal_demoid fields to the json DDL 
+                ddl_json['demo_id']         = demo_id
+                ddl_json['internal_demoid'] = internal_demoid
                 ipol.preprocessDemo(ddl_json);
                 
                 // hide parameters if none
