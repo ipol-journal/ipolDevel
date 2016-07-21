@@ -82,7 +82,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
      * @memberOf ipol.RunDemo~
      * @private
      */
-    var _verbose=false;
+    var _verbose=true;
 
     /** 
      * id=progressbar selector.
@@ -402,7 +402,11 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
         // We need to use ajax POST directly 
         // with global variable servers.demorunner since
         // it does not work with the proxy for the moment
-        $.ajax(servers.demorunner+"input_upload",
+        form_data.append("module","demorunner");
+        form_data.append("service","input_upload");
+
+        // $.ajax(servers.demorunner+"input_upload",
+        $.ajax(servers.proxy+"proxy_post",
         {
             method: "POST",
             data: form_data,
