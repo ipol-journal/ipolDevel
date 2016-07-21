@@ -40,7 +40,17 @@
     <command>restart</command>
     <command>ping</command>
   </module>
-  
+
+  <module name="core">
+    <url>http://ns3018037.ip-151-80-24.eu:8080/</url>
+    <server>ipol2</server>
+    <path>~/ipolDevel/ipol_demo/</path>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </module>
+
   <module name="proxy">
     <url>http://ns3018037.ip-151-80-24.eu:9003/</url>
     <server>ipol2</server>
