@@ -95,9 +95,10 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      */
     var _preprocessDemo = function() {
         if (use_core) {
-            _preprocessDemoNew()
+            _preprocessDemoOld();
+            _preprocessDemoNew();
         } else {
-            _preprocessDemoOld()
+            _preprocessDemoOld();
         }
     }
     
@@ -148,7 +149,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     
     //--------------------------------------------------------------------------
     /**
-     * Pre-processes the demo information, sets each blobset html_params
+     * Pre-processes the demo information, sets each blobset form_params
      * value containing the links of all the blob urls in the blobset
      * @function _preprocessDemoNew
      * @memberOf ipol.DrawBlobs~
