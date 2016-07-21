@@ -11,3 +11,6 @@ var servers = {
              "http://ns3018037.ip-151-80-24.eu:9004/"
 //            "http://127.0.0.1:9004/"
 };
+
+// switch between version using demorunner and version using core
+var use_core = false;
