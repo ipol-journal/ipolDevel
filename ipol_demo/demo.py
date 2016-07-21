@@ -374,13 +374,15 @@ class demo_index(object):
 
     
     @cherrypy.expose
-    def run(self, demo_id, internal_demo_id,  **kwargs):
+    def run(self, demo_id, internal_demoid,  **kwargs):
         """
         Check if a demo is already compiled, if not compiles it
         :param demo_id:   id demo
         :param ddl_build: build section of the ddl json 
         """
         print "### RUN in CORE ####"
+        print "demo_id =",demo_id, " internal_demoid=", internal_demoid
+        print "kwargs=",kwargs
         key = self.get_new_key(demo_id) 
         
         run_path = self.create_run_dir(demo_id, key)
@@ -389,7 +391,7 @@ class demo_index(object):
         blobs_info = kwargs.copy()
         self.copy_blobs(run_path, blobs_info)
         
-        request = '?module=demoinfo&service=read_demo_description&demodescriptionID=' + internal_demo_id
+        request = '?module=demoinfo&service=read_demo_description&demodescriptionID=' + internal_demoid
         print self.proxy_server + request
         json_response = urllib.urlopen(self.proxy_server + request).read()
         response = json.loads(json_response)
