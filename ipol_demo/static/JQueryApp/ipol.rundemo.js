@@ -721,6 +721,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
                         form_data.append( "blobs", 
                                 JSON.stringify(_blobset[0].form_params));
                         form_data.append("input_type","blobset");
+                        _sendRunForm(form_data);
                         break;
 
                     case "localfiles":
