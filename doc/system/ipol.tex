@@ -190,6 +190,14 @@ ipol            soft     priority            0
 
 We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
 
+- Backups. For the moment we use the very simple script at ipolDevel/sysadmin/backup.sh
+Cron controls it. To add the cron line, use {\tt crontab -e} as root.
+
+For example, to run the backup script once per week at 3:00h, add this line:
+
+{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+
+
 \subsection{GitHub deploy key}
 The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
 
@@ -413,7 +421,7 @@ We need to use PyUnit for the unit tests.
 
 - Add statistics data collecting. Piwik can be used for this.
 
-- Automatic incremental and differential backups
+- Add a cleanup script to delete temporal files older than, say, one month.
 
 
 \bibliographystyle{plain}
