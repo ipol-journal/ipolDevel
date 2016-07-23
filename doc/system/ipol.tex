@@ -168,20 +168,17 @@ Nelson Monzón
 % The Control Terminal 
 \input{terminal/terminal.tex}
 
-\section{To Do}
-- Automatic testing. Two kind of tests:
-\begin{itemize}
-  \item For the IPOL system itself
-  \item To ensure good compilation of the algorithm source codes
-\end{itemize}
 
-We need to use PyUnit for the unit tests.
 
-- Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
+\section{System administration}
+\ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
 
-- Add statistics data collecting. Piwik can be used for this.
+- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
 
-- Automatic incremental backups
+Install mail with {\tt apt-get install mailutils}
+
+To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
+
 
 - Setup priorities and memory limits to the processes of the users.
 
@@ -192,6 +189,47 @@ ipol            soft     priority            0
 \end{verbatim}
 
 We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
+
+\subsection{GitHub deploy key}
+The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
+
+For example:
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+\end{verbatim}
+
+\vspace{0.15cm}
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+
+ipol@smartalgo:~/ipolDevel$ cat .git/config 
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	#url = https://github.com/mcolom/ipolDevel
+	url = git@github_deploy:mcolom/ipolDevel.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+\end{verbatim}
+
+We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
+
+
 
 
 \section{General notes}
@@ -225,8 +263,6 @@ Packages to be installed with pip install:
 \item pillow
 \item simplejson
 \end{itemize}
-
-- \ToDo{} Check that all modules which store a SQLite database file (.db) are able to create the file when they are started and the file does not exist. The best solution is to have a text file with the SQL instructions to drop all  tables and to create them. This way you only need to modify this text file instead of a Python function in the module.
 
 - Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
@@ -318,44 +354,6 @@ sonFlickrFeed({
 
 \ToDo{Keep adding!}
 
-\subsection{GitHub deploy key}
-The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
-
-For example:
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-\end{verbatim}
-
-\vspace{0.15cm}
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-
-ipol@smartalgo:~/ipolDevel$ cat .git/config 
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	#url = https://github.com/mcolom/ipolDevel
-	url = git@github_deploy:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-\end{verbatim}
-
-
 \subsection{Git branches}
 There are two git branches:
 
@@ -401,6 +399,21 @@ git push
 git checkout master
 \end{verbatim}
 
+
+\section{To Do}
+- Automatic testing. Two kind of tests:
+\begin{itemize}
+  \item For the IPOL system itself
+  \item To ensure good compilation of the algorithm source codes
+\end{itemize}
+
+We need to use PyUnit for the unit tests.
+
+- Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
+
+- Add statistics data collecting. Piwik can be used for this.
+
+- Automatic incremental and differential backups
 
 
 \bibliographystyle{plain}
