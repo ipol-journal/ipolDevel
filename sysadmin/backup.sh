@@ -6,7 +6,7 @@
 baksDir="/home/ipol/backups"
 orig="/home/ipol/ipolDevel"
 
-filename=$(date +"backup_%T_%m-%d-%Y.tar")
+filename=$(date +"backup_%T_%m-%d-%Y.tar.gz")
 fullFilename=${baksDir}/${filename}
 
 mkdir -p ${baksDir}

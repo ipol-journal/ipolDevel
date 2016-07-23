@@ -190,12 +190,16 @@ ipol            soft     priority            0
 
 We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
 
-- Backups. For the moment we use the very simple script at ipolDevel/sysadmin/backup.sh
+- Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
 Cron controls it. To add the cron line, use {\tt crontab -e} as root.
 
 For example, to run the backup script once per week at 3:00h, add this line:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+
+- Cleanup. The script {\tt ipolDevel/sysadmin/backup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
 
 
 \subsection{GitHub deploy key}
@@ -420,8 +424,6 @@ We need to use PyUnit for the unit tests.
 - Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
 
 - Add statistics data collecting. Piwik can be used for this.
-
-- Add a cleanup script to delete temporal files older than, say, one month.
 
 
 \bibliographystyle{plain}
