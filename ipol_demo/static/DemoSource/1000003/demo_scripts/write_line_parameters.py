@@ -25,5 +25,5 @@ if __name__ == '__main__':
             ofile.writelines("%i\n" % len(lines[ii]) )
             ofile.writelines("%i %i \n" % (x, y) for (x, y) in lines[ii] )
         ofile.close()
-    else
+    else:
         print "Error: missing drawlines parameter"
