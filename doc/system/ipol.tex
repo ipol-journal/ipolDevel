@@ -173,32 +173,6 @@ Nelson Monzón
 \section{System administration}
 \ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
 
-- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
-
-Install mail with {\tt apt-get install mailutils}
-
-To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
-
-
-- Setup priorities and memory limits to the processes of the users.
-
-Added this to /etc/security/limits.conf:
-\begin{verbatim}
-*               soft     priority            17
-ipol            soft     priority            0
-\end{verbatim}
-
-We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
-
-To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
-
-More info:
-
-\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
-
-\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
-
-
 - Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
 Cron controls it. To add the cron line, use {\tt crontab -e} as root.
 
@@ -250,6 +224,46 @@ ipol@smartalgo:~/ipolDevel$ cat .git/config
 
 We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
 
+\subsection{Setup of a new machine}
+When a new machine is added to the IPOL infrastructure, the following needs to be done:
+- Create the {\tt ipol} user in a new machine: {\tt adduser --disabled-password ipol}
+
+- Install bash-completion {\tt apt-get install bash-completion}
+
+- Install cron-apt: {\tt apt-get install cron-apt}
+
+And edit /etc/cron-apt/config:
+\begin{verbatim}
+APTCOMMAND=/usr/bin/apt-get
+OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/sources.list"
+SYSLOGON="always"
+\end{verbatim}
+
+- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
+
+Install mail with {\tt apt-get install mailutils}
+
+To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
+
+
+- Setup priorities and memory limits to the processes of the users.
+
+Added this to /etc/security/limits.conf:
+\begin{verbatim}
+*               soft     priority            17
+ipol            soft     priority            0
+\end{verbatim}
+
+We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
+
+
+%To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
+%
+%More info:
+%
+%\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
+%
+%\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
 
 
 
@@ -277,6 +291,7 @@ In this section we add general comments on the projects, parts which still neeed
 \item python-yaml: for parsing
 \item libpq-dev: PostgreSQL headers
 \item libmagic-dev: needed to install python-magic with pip
+\item libav-tools: audio/video tools for demos with these data types
 \end{itemize}
 Packages to be installed with pip install:
 \begin{itemize}
