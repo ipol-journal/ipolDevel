@@ -79,8 +79,11 @@ var __slice = Array.prototype.slice;
       this.initial_width=this.el.width;
       this.initial_height=this.el.height;
       this.initial_mask = undefined;
+      this.segments_mode = true;
       
-      this.canvas.bind('click mousedown touchstart', this.onEvent);
+      // removed click from events since mousedown catches the event
+      //this.canvas.bind('click mousedown touchstart', this.onEvent);
+      this.canvas.bind('mousedown touchstart', this.onEvent);
       
       if (this.options.toolLinks) {
         $('body').delegate("a[href=\"#" + (this.canvas.attr('id')) + "\"]", 'click', function(e) {
@@ -143,6 +146,33 @@ var __slice = Array.prototype.slice;
     //--------------------------------------------------------------------------
     Sketch.prototype.stopPainting = function() {
       this.canvas.unbind('mouseup mousemove mouseleave mouseout touchmove touchend touchcancel', this.onEvent);
+      if (this.action) {
+        this.actions.push(this.action);
+      }
+      this.painting = false;
+      this.action = null;
+      this.redraw();
+      if (this.stoppainting_callback) {
+          this.stoppainting_callback();
+      }
+    };
+    
+    //--------------------------------------------------------------------------
+    Sketch.prototype.startSegments = function() {
+      this.canvas.bind('dblclick touchend touchcancel', 
+                       this.onEvent);
+      this.painting = true;
+      return this.action = {
+        tool: this.tool,
+        color: this.color,
+        size: parseFloat(this.size),
+        events: []
+      };
+    };
+    
+    //--------------------------------------------------------------------------
+    Sketch.prototype.stopSegments = function() {
+      this.canvas.unbind('dblclick touchend touchcancel', this.onEvent);
       if (this.action) {
         this.actions.push(this.action);
       }
@@ -240,14 +270,28 @@ var __slice = Array.prototype.slice;
       switch (e.type) {
         case 'mousedown':
         case 'touchstart':
-          this.startPainting();
+          if (this.segments_mode) {
+              if (!this.painting) {
+                this.startSegments();
+              }
+          } else {
+            this.startPainting();
+          }
           break;
         case 'mouseup':
         case 'mouseout':
         case 'mouseleave':
         case 'touchend':
         case 'touchcancel':
-          this.stopPainting();
+          if (!this.segments_mode) {
+            this.stopPainting();
+          }
+          break;
+        case 'dblclick':
+          if (this.segments_mode) {
+            this.stopPainting();
+          }
+          break;
       }
       if (this.painting) {
         //console.info(" e=",e," offset=",this.canvas.offset());
@@ -299,7 +343,25 @@ var __slice = Array.prototype.slice;
             ctx.lineWidth = action.size*this.scale_factor;
             ctx.strokeStyle = action_color;
         }
-        return ctx.stroke();
+        ctx.stroke();
+        
+        //
+        if (this.segments_mode) {
+            $.each(action.events,function(index,event) {
+                ctx.beginPath();
+                var x     = event.x*this.scale_factor;
+                var y     = event.y*this.scale_factor;
+                var rayon = (action.size*this.scale_factor)/2.0;
+                ctx.arc(x, y, rayon*4, 0, 2*Math.PI, false);
+                ctx.fillStyle   = action_color;
+                ctx.strokeStyle = 'rgba(0,0,0,0)';
+                ctx.lineWidth = 0.01;
+                ctx.fill();
+                ctx.stroke();
+            }.bind(this));
+        }
+        
+        return;
     }
   };
   
