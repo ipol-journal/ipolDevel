@@ -195,6 +195,18 @@ ipol.DrawInputs = function(ddl_json) {
     }
 
     /** 
+     * if draxlines is enabled, contains the DrawLines instance.
+     * @var {object} _drawlines
+     * @memberOf ipol.DrawInputs~
+     * @private
+     */
+    var _drawlines = undefined;
+    // add line drawing features
+    if (_ddl_json.general.drawlines) {
+        _drawlines = new ipol.features.DrawLines();
+    }
+
+    /** 
      * Gets _inpaint private variable
      * @function getInpaint
      * @memberOf ipol.DrawInputs~
@@ -203,6 +215,17 @@ ipol.DrawInputs = function(ddl_json) {
      */
     this.getInpaint = function() {
         return _inpaint;
+    }
+    
+    /** 
+     * Gets _drawlines private variable
+     * @function getDrawLines
+     * @memberOf ipol.DrawInputs~
+     * @returns {object}
+     * @public
+     */
+    this.getDrawLines = function() {
+        return _drawlines;
     }
     
     //--------------------------------------------------------------------------
@@ -314,8 +337,9 @@ ipol.DrawInputs = function(ddl_json) {
                         "image-rendering:optimize-contrast;"+
                         "image-rendering:crisp-edges;";
 
-        // add inpainting interface
-        if (_inpaint) { html += _inpaint.createHTML(); }
+        // add features interface
+        if (_inpaint)   { html += _inpaint.createHTML(); }
+        if (_drawlines) { html += _drawlines.createHTML(); }
         
         // use gallery only if several images 
         if (inputs.length>1) {
@@ -368,9 +392,14 @@ ipol.DrawInputs = function(ddl_json) {
         // save object in DrawInputs HTML element
         $("#DrawInputs").data("draw_inputs",this);
 
+        // add features events
         if (_inpaint) { 
             html += _inpaint.createHTMLEvents(); 
             $("#input_gallery").hide();
+        }
+        if (_drawlines) { 
+            html += _drawlines.createHTMLEvents(); 
+            $("#inputimage_table").hide();
         }
     };
 
@@ -439,6 +468,12 @@ ipol.DrawInputs = function(ddl_json) {
         if (_onloadimages_cb!=undefined) {
             _onloadimages_cb();
         }
+        // set line drawing
+        if (_drawlines) {
+            // we assume that the first image is the input
+            _drawlines.updateDrawLines(image);
+        }
+        
     }
     
     //--------------------------------------------------------------------------
