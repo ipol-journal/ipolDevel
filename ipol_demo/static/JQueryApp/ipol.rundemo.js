@@ -23,7 +23,8 @@ var ipol = ipol || {};
  * @param {object} inpaint instance of inpainting class (or undefined)
  */
 
-ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
+ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, 
+                        inpaint, drawlines) {
 
     /** 
      * By convention, we create a private variable '_this' to
@@ -74,6 +75,14 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
       * @private
       */
     var _inpaint = inpaint;
+    
+     /**
+      * line drawing class instance.
+      * @memberOf ipol.RunDemo~
+      * @var {object} _drawlines DrawLines instance
+      * @private
+      */
+    var _drawlines = drawlines;
     
     /** 
      * Enable/Disable display of (tracing/debugging) 
@@ -364,6 +373,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
         params['x1']=Math.round(_crop_info.x+_crop_info.w);
         params['y0']=Math.round(_crop_info.y);
         params['y1']=Math.round(_crop_info.y+_crop_info.h);
+        
+        // if drawing line segments, add them as parameters
+        if (_drawlines) {
+            _drawlines.AddLinesParameters(params);
+        }
+        
         _infoMessage("params = ",params);
         // create meta information
         var meta={};
