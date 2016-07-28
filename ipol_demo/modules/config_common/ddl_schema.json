@@ -26,6 +26,7 @@
                 "xlink_article":  { "type" : "string"  },
                 "enable_crop":    { "type" : "boolean" },
                 "inpainting":     { "type" : "boolean" },
+                "drawlines":      { "type" : "boolean" },
                 "crop_maxsize":   { "type" : "string"  },
                 "thumbnail_size": { "type" : "integer" },
                 "input_condition": 
