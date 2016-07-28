@@ -737,6 +737,7 @@ class DemoRunner(object):
     @cherrypy.expose
     def run_demo(self, demo_id, key, ddl_json, params, meta):
         
+        work_dir = self.WorkDir(demo_id,key)
         res_data = {}
         res_data["key"] = key
         print "#### run demo ####"
@@ -751,6 +752,14 @@ class DemoRunner(object):
         res_data['params']   = params
         res_data['algo_info'] = {}
         res_data['algo_meta'] = json.loads(meta)
+        
+        # save parameters as a params.json file
+        try:
+            with open(os.path.join(work_dir,"params.json"),"w") as resfile:
+                json.dump(params,resfile)
+        except Exception:
+            print "Failed to save params.json file"
+            raise
         
         # run the algorithm
         try:
@@ -808,7 +817,6 @@ class DemoRunner(object):
         else:
             res_data["send_archive"]=False
 
-        work_dir = self.WorkDir(demo_id,key)
         # save res_data as a results.json file
         try:
             with open(os.path.join(work_dir,"results.json"),"w") as resfile:
