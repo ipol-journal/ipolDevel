@@ -250,7 +250,10 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
         var run = new ipol.RunDemo(ddl_json,
                                    di.getInputOrigin(),
                                    di.getCropInfo(),
-                                   di.getBlobSet(), di.getInpaint() );
+                                   di.getBlobSet(), 
+                                   di.getInpaint(),
+                                   di.getDrawLines()
+                                  );
         run.setRunEvent();
     }
     
@@ -397,7 +400,10 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                     var run = new ipol.RunDemo(ddl_json,
                                                di.getInputOrigin(),
                                                di.getCropInfo(),
-                                               di.getBlobSet(), di.getInpaint() );
+                                               di.getBlobSet(), 
+                                               di.getInpaint(),
+                                               di.getDrawLines()
+                                              );
                     run.setRunEvent();
                 }
                 

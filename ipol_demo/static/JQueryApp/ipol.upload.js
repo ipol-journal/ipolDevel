@@ -174,7 +174,9 @@ ipol.upload.ManageLocalData = function(ddl_json) {
                                            di.getInputOrigin(),
                                            di.getCropInfo(),
                                            di.getBlobSet(), 
-                                           di.getInpaint() );
+                                           di.getInpaint(),
+                                           di.getDrawLines()
+                                          );
                 run.setRunEvent();
                 $(this).dialog( "close" );
             }

@@ -139,7 +139,10 @@ ipol.history.SetPageState = function( page_state) {
             var run = new ipol.RunDemo(ddl_json,
                                        di.getInputOrigin(),
                                        di.getCropInfo(),
-                                       di.getBlobSet(), di.getInpaint() );
+                                       di.getBlobSet(), 
+                                       di.getInpaint(),
+                                       di.getDrawLines()
+                                      );
             run.setRunEvent();
         }
         if (upload_state) {
@@ -186,7 +189,10 @@ ipol.history.SetPageState = function( page_state) {
                 var run = new ipol.RunDemo(ddl_json,
                                            di.getInputOrigin(),
                                            di.getCropInfo(),
-                                           di.getBlobSet(), di.getInpaint() );
+                                           di.getBlobSet(), 
+                                           di.getInpaint(),
+                                           di.getDrawLines()
+                                          );
                 run.setRunEvent();
             } else {
                 $("#DrawInputs").empty();
