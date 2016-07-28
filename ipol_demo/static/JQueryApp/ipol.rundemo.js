@@ -253,7 +253,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             _progress(100);
         } else {
             // stop progress
-            _progress_info = "success (ran in "+ 
+            _progress_info = " success (ran in "+ 
                                 run_demo_res.algo_info.run_time.toPrecision(2)+
                                 " s)";
             _progress(100);
@@ -517,7 +517,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
         form_data.append("module","core");
         form_data.append("service","run");
 
-        // $.ajax(servers.demorunner+"input_upload",
         $.ajax(servers.proxy+"proxy_post",
         {
             method: "POST",
@@ -526,12 +525,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             contentType: false,
             //Do not cache the page
             cache: false,
-            success: function ( res) {
+            success: function (res) {
                 _infoMessage('Run success res=',res);
                 _progress_info = "Run success";
                 _onDemoRun(JSON.parse(res));
             },
-            error: function ( res) {
+            error: function (res) {
                 _infoMessage('Run error res=',res);
                 _progress_info = "Run failure";
                 _progress(100);
@@ -725,7 +724,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             _infoMessage("input_origin = ", _input_origin);
             if (_inpaint) {
                 form_data.append("input_type","upload");
-                _inpaint.submitInpaint(_ddl_json, _sendRunForm);
+                _inpaint.submitInpaintNew(_ddl_json, form_data, _sendRunForm);
             } else {
                 switch (_input_origin) {
                     case "blobset":
@@ -741,6 +740,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
 
                     case "localfiles":
                         form_data.append("input_type","upload");
+                        
                         var inputs  = _ddl_json.inputs;
                         if (inputs.length===1) {
                             // Upload cropped image to server if the browser 
