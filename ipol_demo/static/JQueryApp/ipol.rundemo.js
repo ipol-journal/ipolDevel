@@ -240,7 +240,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
     var _resultProgress = function(run_demo_res) {
         if (run_demo_res.status==="KO") {
             _priorityMessage(" Failure demo run run_demo_res:",run_demo_res);
-            _progress_info = "run_demo:failure linea 242" + run_demo_res.info;
+            _progress_info = "run_demo:failure";
             _progress(100);
         } else {
             // stop progress
@@ -512,12 +512,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, inpaint) {
             cache: false,
             success: function (res) {
                 _infoMessage('Run success res=',res);
-                _progress_info = "Run success en _sendRunForm linea 517";
+                _progress_info = "Run success";
                 _onDemoRun(JSON.parse(res));
             },
             error: function (res) {
                 _infoMessage('Run error res=',res);
-                _progress_info = "Run failure en _sendRunForm linea 522";
+                _progress_info = "Run failure";
                 _progress(100);
             }
         });
