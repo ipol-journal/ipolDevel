@@ -122,6 +122,10 @@ class RunDemoBase:
     could also be called by a batch processor
     """
     
+    # set working directory
+    current_working_dir = os.getcwd()
+    os.chdir(self.work_dir)
+    
     # convert parameters to variables
     for _k_ in self.algo_params:
       exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
@@ -277,6 +281,9 @@ class RunDemoBase:
         print "failed to get back parameter ",_k_
       
     shell_cmds.close()
+
+    # set back previous working directory
+    os.chdir(current_working_dir)
         
 
   #-----------------------------------------------------------------------------
