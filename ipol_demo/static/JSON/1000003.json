@@ -78,7 +78,11 @@
         "python:x_center=(x1-x0)/2.0",
         "python:y_center=(y1-y0)/2.0"
     ],
-    "convert input_0.png input_0.bmp",
+    "# use Python to convert since using convert leads to problems",
+    "# probably due to conception error in the source code",
+    "# convert input_0.png input_0.bmp",
+    "python:img=PIL.Image.open('input_0.png')",
+    "python:img.save('input_0.bmp')",
     "write_line_parameters.py",
     "# convert boolean to 1/0 values",
     "python:center_optimization=1 if center_optimization else 0",
