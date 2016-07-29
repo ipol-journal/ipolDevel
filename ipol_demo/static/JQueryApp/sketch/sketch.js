@@ -79,7 +79,7 @@ var __slice = Array.prototype.slice;
       this.initial_width=this.el.width;
       this.initial_height=this.el.height;
       this.initial_mask = undefined;
-      this.segments_mode = true;
+      this.polyline_mode = false;
       
       // removed click from events since mousedown catches the event
       //this.canvas.bind('click mousedown touchstart', this.onEvent);
@@ -104,6 +104,11 @@ var __slice = Array.prototype.slice;
           return false;
         });
       }
+    }
+    
+    //--------------------------------------------------------------------------
+    Sketch.prototype.draw_polylines = function(dp) {
+      this.polyline_mode = dp;
     }
     
     //--------------------------------------------------------------------------
@@ -270,7 +275,7 @@ var __slice = Array.prototype.slice;
       switch (e.type) {
         case 'mousedown':
         case 'touchstart':
-          if (this.segments_mode) {
+          if (this.polyline_mode) {
               if (!this.painting) {
                 this.startSegments();
               }
@@ -283,12 +288,12 @@ var __slice = Array.prototype.slice;
         case 'mouseleave':
         case 'touchend':
         case 'touchcancel':
-          if (!this.segments_mode) {
+          if (!this.polyline_mode) {
             this.stopPainting();
           }
           break;
         case 'dblclick':
-          if (this.segments_mode) {
+          if (this.polyline_mode) {
             this.stopPainting();
           }
           break;
@@ -346,7 +351,7 @@ var __slice = Array.prototype.slice;
         ctx.stroke();
         
         //
-        if (this.segments_mode) {
+        if (this.polyline_mode) {
             $.each(action.events,function(index,event) {
                 ctx.beginPath();
                 var x     = event.x*this.scale_factor;
