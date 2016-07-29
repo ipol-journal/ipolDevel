@@ -100,6 +100,28 @@ ipol.features.Inpainting = function() {
         
     //--------------------------------------------------------------------------
     /**
+     * Create random text as inpainting mask
+     * @function _bernoulli
+     * @memberOf ipol.features.Inpainting~
+     * @private
+     */
+    var _bernoulli = function(){
+        var height = $("#colors_sketch").height();
+        var width  = $("#colors_sketch").width();
+
+        var ctx=$("#colors_sketch").data().sketch.context;
+        
+        for(var y = 0; y < height; y++){
+            for(var x = 0; x < width;  x++){
+                if(Math.round(Math.random()*100000)%2 == 1){
+                    ctx.fillRect(x,y,1,1);
+                }
+            }
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    /**
      * Updates the pen display: size, color, opacity, tool (marker/eraser) ...
      * @function _updatePenDisplay
      * @memberOf ipol.features.Inpainting~
@@ -357,6 +379,7 @@ ipol.features.Inpainting = function() {
                             "<hr><label> <b>Generate mask</b></label>"+
                             '<div class="inpaint_random" style="padding:2px"> '+
                                 '<button id="inpaint_random_text" style="margin:2px;">Random text</button>'+
+                                '<button id="inpaint_bernouilli" style="margin:2px;">Bernouilli</button>'+
                             '</div>'+
                         '</td>'+
                         '<td>'+
@@ -520,7 +543,17 @@ ipol.features.Inpainting = function() {
             sketch.context.fillStyle=sketch.color;
             _randomLetters();
             _updateMask();
-        }.bind(this));
+        });
+        
+        // bernouilli button
+        $('#inpaint_bernouilli').click( function() {
+            $("#colors_sketch").data().sketch.actions=[];
+            $("#colors_sketch").data().sketch.redraw();
+            var sketch = $("#colors_sketch").data().sketch;
+            sketch.context.fillStyle=sketch.color;
+            _bernoulli();
+            _updateMask();
+        });
     }
 
     //--------------------------------------------------------------------------
