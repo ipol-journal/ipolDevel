@@ -90,7 +90,7 @@
       "view_clg.sh ipol   1",
       "view_clg.sh mid    1",
       "view_clg.sh arrows 1",
-      "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
+      "python:self.algo_meta['hastruth'] = os.path.isfile('input_2.tiff')"
   ]
   ,
   "archive":

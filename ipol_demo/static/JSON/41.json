@@ -47,7 +47,7 @@
   ],
   "run": [ 
     "poisson_lca -t $t -a $a -b $alpha input_0.sel.png output_normI.png output_darkI.png output_powerI.png output_normRGB.png output_darkRGB.png output_powerRGB.png",
-    "python:im=image(self.work_dir + 'input_0.sel.png')",
+    "python:im=image('input_0.sel.png')",
     "python:self.algo_info['isgray'] = im.is_grayscale()",
     "image_histogram.py input_0.sel.png output_normI.png output_darkI.png output_powerI.png",
     [   "not(self.algo_info['isgray'])",

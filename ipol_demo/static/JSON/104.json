@@ -46,7 +46,7 @@
       [ "zoomfactor>1", 
           "echo 'here we should save resized images: really needed ??'" ],
       "echo 'creating isGray information'",
-      "python:im=image(self.work_dir + 'input_0.sel.png')",
+      "python:im=image('input_0.sel.png')",
       "python:self.algo_info['isgray'] = im.is_grayscale()"
    ]
   ,

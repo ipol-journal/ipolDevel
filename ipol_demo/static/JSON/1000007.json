@@ -25,8 +25,8 @@
       }
     ],
   "run": [ 
-    "python:_stdout = open(self.work_dir + 'stdout.txt', 'w')",
-    "python:img = image(self.work_dir + 'input_0.sel.png')",
+    "python:_stdout = open('stdout.txt', 'w')",
+    "python:img = image('input_0.sel.png')",
     "python:(dx, dy) = img.size",
     "python:_stdout.write('Number of pixels of input image: %i' %(dx*dy))",
     "python:_stdout.close()",
@@ -50,7 +50,7 @@
     "rgbprocess RGB2VRML2 output_1.png output_1_RGBd.wrl $displayDensity dstyimage.png",
     "python:#compress .wrl files",
     "python:from lib.misc import gzip",
-    "python:for fname in ['input_1_RGB', 'output_1_RGB', 'output_1_RGBd']: gzip(self.work_dir + fname + '.wrl')"
+    "python:for fname in ['input_1_RGB', 'output_1_RGB', 'output_1_RGBd']: gzip(fname + '.wrl')"
   ]
   ,
   "archive":

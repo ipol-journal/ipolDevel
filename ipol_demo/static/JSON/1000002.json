@@ -57,16 +57,16 @@
     }
   ],
   "run": [ 
-    "python:im = image(self.work_dir + 'input_0.sel.png')",
-    "python:im.save(   self.work_dir + 'input_0.sel.pgm')",
+    "python:im = image('input_0.sel.png')",
+    "python:im.save(   'input_0.sel.pgm')",
     "cp ../../bin/pattern_noise.pgm .",
     "psf_estim -p pattern_noise.pgm -s $s -k $k -d det_out.ppm -t $t -o psf.pgm input_0.sel.pgm psf.txt >stdout.txt 2>&1",
     "python: # re adjust width and height to avoid visualization interpolation",
-    "python:im = image(self.work_dir + 'psf.pgm')",
+    "python:im = image('psf.pgm')",
     "# not needed anymore: python:im = im.resize((400, 400), 'nearest')",
-    "python:im.save(self.work_dir + 'psf.png')",
-    "python:im = image(self.work_dir + 'det_out.ppm')",
-    "python:im.save(self.work_dir + 'det_out.png')"
+    "python:im.save('psf.png')",
+    "python:im = image('det_out.ppm')",
+    "python:im.save('det_out.png')"
   ]
   ,
   "config":
