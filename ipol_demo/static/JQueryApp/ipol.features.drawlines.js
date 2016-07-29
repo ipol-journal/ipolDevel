@@ -380,6 +380,7 @@ ipol.features.DrawLines = function() {
         $("#colors_sketch").css("background-image", "url(" + image_src + ")");
         $("#colors_sketch").css("background-size", "cover");
         $('#colors_sketch').sketch();
+        $("#colors_sketch").data().sketch.draw_polylines(true);
         //
         $("#drawlines_table").show();
         
