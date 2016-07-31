@@ -291,7 +291,7 @@ class DemoRunner(object):
         max_pixels = eval(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
         if resize:
-            cherrypy.log("input resize")
+            #cherrypy.log("input resize")
             im.resize(max_pixels)
             if msg!= "":
                 msg += "&"
@@ -326,10 +326,15 @@ class DemoRunner(object):
           
           if input_desc['type']=='image':
             # we deal with an image, go on ...
-            self.output( "Processing input {0}".format(i))
+            self.output( "\nProcessing input {0}".format(i))
             if len(input_files)!=1:
-              # problem here
-              raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                if  ('required' in inputs_desc[i].keys()) and \
+                    inputs_desc[i]['required']:
+                    # problem here
+                    raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                else:
+                    # optional input missing, end of inputs
+                    break
             else:
               # open the file as an image
               try:
@@ -378,7 +383,7 @@ class DemoRunner(object):
                 im_converted_filename = 'input_%i.orig.png' % i
             
             if self.need_convert_or_resize(im_converted,input_desc):
-                print "need convertion or resize, input description: ", input_desc
+                self.output("need convertion or resize, input description: {0}".format(input_desc))
                 output_msg = self.convert_and_resize(im_converted,input_desc)
                 input_msg += " Input {0}:".format(i)+output_msg+" "
                 # save a web viewable copy
@@ -403,13 +408,10 @@ class DemoRunner(object):
 
             if im.size != im_converted.size:
                 input_msg += " {0} --> {1} ".format(im.size,im_converted.size)
-                print "The image has been resized for a reduced computation time ",
-                print  "({0} --> {1})".format(im.size,im_converted.size)
+                self.output("The image has been resized for a reduced computation time ({0} --> {1})".format(im.size,im_converted.size))
             # update maximal dimensions information
             max_width  = max(max_width,im_converted.size[0])
             max_height = max(max_height,im_converted.size[1])
-            #self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
-            #self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
             if input_msg!="":
                 # next line in html
                 msg += input_msg+"<br/>\n"
@@ -420,9 +422,6 @@ class DemoRunner(object):
               # the number of input files should be 2...
               # for the moment, only check for png file
               png_file = os.path.join(work_dir,'input_%i.png' % i)
-              #if png_file in input_files:
-                ## save in configuration the information to allow its display
-                #self.cfg['meta']['input%i_has_image'%i] = True
         # end for i in range(nb_inputs)
         
         # for compatibility with previous system, create input_0.sel.png
@@ -466,14 +465,17 @@ class DemoRunner(object):
         
         for i in range(nb_inputs):
           file_up = kwargs.pop('file_%i' % i,None)
+          self.output("file_up = {0}".format(file_up))
           
           if file_up==None or file_up.filename == '':
             if  not('required' in inputs_desc[i].keys()) or \
                 inputs_desc[i]['required']:
-              # missing file
-              raise cherrypy.HTTPError(400, # Bad Request
-                                       "Missing input file number {0}".format(i))
+                self.output("missing file")
+                # missing file
+                raise cherrypy.HTTPError(400, # Bad Request
+                                        "Missing input file number {0}".format(i))
             else:
+                self.output("skip")
                 # skip this input
                 continue
 
@@ -532,7 +534,9 @@ class DemoRunner(object):
         res_data['info'] = ""
         # for the moment, we can only crop the first image
         if idx!=0:
+            self.output("for the moment, we can only crop the first image")
             res_data["status"] = "KO"
+            self.stack_depth -= 1
             return res_data
             
         work_dir = self.WorkDir(demo_id,key)
@@ -551,35 +555,6 @@ class DemoRunner(object):
             try:
                 ## TODO: get rid of eval()
                 max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
-                # ----- this code is not used anymore since
-                #       uploaded images are sent after crop
-                #       we will also save the crop information in archive
-                #       to be able to reload the experiment from archive in the 
-                #       future
-                ##
-                ## cut subimage from original image
-                ##
-                ## draw selected rectangle on the image
-                #imgS        = image(initial_filename)
-                #self.output("imgS mode = {0}".format(imgS.im.mode))
-                ## need to convert image to RGB mode before drawing ...
-                #start=timer()
-                #imgS.convert('3x8i')
-                #self.output(" imgS.convert('3x8i') took: {0} seconds;".format(timer()-start))
-                #start=timer()
-                ##imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
-                                ##color="red")
-                ##imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
-                                ##(x0+1, y1-1), (x0+1, y0+1)], color="white")
-                #self.output(" draw_lines took: {0} seconds;".format(timer()-start))
-                #self.save_image(imgS,os.path.join(work_dir,'input_{0}s.png'.format(idx)))
-                
-                # Karl: here different from base_app approach
-                # crop coordinates are on original image size
-
-                #start=timer()
-                #img = image(initial_filename)
-                #self.output(" read image took: {0} seconds;".format(timer()-start))
                 start=timer()
                 img.crop((x0, y0, x1, y1))
                 self.output(" img.crop took: {0} seconds;".format(timer()-start))
