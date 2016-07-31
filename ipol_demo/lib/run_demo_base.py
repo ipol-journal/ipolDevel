@@ -121,7 +121,7 @@ class RunDemoBase:
     the core algo runner
     could also be called by a batch processor
     """
-    
+    print "*** run_algo ... "
     # set working directory
     current_working_dir = os.getcwd()
     os.chdir(self.work_dir)
