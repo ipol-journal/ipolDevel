@@ -121,6 +121,8 @@ class RunDemoBase:
     the core algo runner
     could also be called by a batch processor
     """
+    current_working_dir = os.getcwd()
+    os.chdir(self.work_dir)
     
     # convert parameters to variables
     for _k_ in self.algo_params:
@@ -277,6 +279,10 @@ class RunDemoBase:
         print "failed to get back parameter ",_k_
       
     shell_cmds.close()
+    # set back previous working directory
+    os.chdir(current_working_dir)
+  
+  
   #-----------------------------------------------------------------------------
   #
   # SUBPROCESS
