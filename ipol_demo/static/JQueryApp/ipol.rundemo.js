@@ -325,17 +325,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
         } catch(err) {
             _priorityMessage("error:", err.message);
         }
-        
-        // send to archive
-        if (run_demo_res.send_archive) {
-            var url_params =    'demo_id='    + _ddl_json.demo_id + 
-                                "&blobs="     + _json2Uri(run_demo_res.archive_blobs) + 
-                                "&parameters="+ _json2Uri(run_demo_res.archive_params);
-            ipol.utils.ModuleService("archive","add_experiment",url_params,
-                            function(archive_res) {
-                                console.info("archive add_experiment archive_res=",archive_res);
-                            });
-        }
     }
     
     //--------------------------------------------------------------------------
@@ -344,9 +333,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
      * @function _doRun
      * @memberOf ipol.RunDemo~
      * @param {object} res result obtained from upload or select and crop
-     * calls to demorunner
+     * calls to demorunner_old
      * @private
-     * @fires demorunner:run_demo
+     * @fires demorunner_old:run_demo
      * @fires archive:add_experiment
      * @fires History.pushState
      */
@@ -407,7 +396,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                     "&ddl_json="+_json2Uri(ddl_json_parts)+
                     "&params=" +_json2Uri(params)+
                     "&meta=" +_json2Uri(meta);
-        ipol.utils.ModuleService("demorunner","run_demo",url_params,
+        ipol.utils.ModuleService("demorunner_old","run_demo",url_params,
             function(run_demo_res) {
                 _resultProgress(run_demo_res);
                 if ((run_demo_res.status==="KO")&&
@@ -468,16 +457,16 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
      * @memberOf ipol.RunDemo~
      * @param {object} form_data contains the data to upload
      * @private
-     * @fires demorunner:input_upload 
+     * @fires demorunner_old:input_upload 
      */
     var _uploadForm = function( form_data) {
         // We need to use ajax POST directly 
-        // with global variable servers.demorunner since
+        // with global variable servers.demorunner_old since
         // it does not work with the proxy for the moment
-        form_data.append("module","demorunner");
+        form_data.append("module","demorunner_old");
         form_data.append("service","input_upload");
 
-        // $.ajax(servers.demorunner+"input_upload",
+        // $.ajax(servers.demorunner_old+"input_upload",
         $.ajax(servers.proxy+"proxy_post",
         {
             method: "POST",
@@ -512,7 +501,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
      */
     var _sendRunForm = function( form_data) {
         // We need to use ajax POST directly 
-        // with global variable servers.demorunner since
+        // with global variable servers.demorunner_old since
         // it does not work with the proxy for the moment
         form_data.append("module","core");
         form_data.append("service","run");
@@ -540,7 +529,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
     
     //--------------------------------------------------------------------------
     /**
-     * Sets the 'run' button click event, to call demorunner for upload,
+     * Sets the 'run' button click event, to call demorunner_old for upload,
      * select blobset with crop or initialize without inputs
      * @function setRunEventOld
      * @memberOf ipol.RunDemo~
@@ -560,7 +549,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             var url_params =   "demo_id="+_ddl_json.demo_id+
                             "&ddl_build="+_json2Uri(_ddl_json.build);
             // code to be executed on click
-            ipol.utils.ModuleService("demorunner","init_demo", url_params,
+            ipol.utils.ModuleService("demorunner_old","init_demo", url_params,
             function(res) {
                 console.info("init_demo res=", res);
                 if (res.status==="KO") {
@@ -583,7 +572,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                                     "&ddl_inputs="+_json2Uri(_ddl_json.inputs)+
                                     "&"+_blobset[0].html_params+
                                     "&crop_info="+_json2Uri(_crop_info)
-                            ipol.utils.ModuleService("demorunner",
+                            ipol.utils.ModuleService("demorunner_old",
                                                      "input_select_and_crop",
                                                      url_params,
                                                      _doRun
@@ -657,7 +646,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                             // crop at the same time
                             _progress_info = "initialize with no inputs";
                             url_params= "demo_id="+_ddl_json.demo_id
-                            ipol.utils.ModuleService("demorunner",
+                            ipol.utils.ModuleService("demorunner_old",
                                                      "init_noinputs",
                                                      url_params,
                                                      _doRun
@@ -674,7 +663,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
     
     //--------------------------------------------------------------------------
     /**
-     * Sets the 'run' button click event, to call demorunner for upload,
+     * Sets the 'run' button click event, to call demorunner_old for upload,
      * select blobset with crop or initialize without inputs
      * fill a FormData() variable with all the required information
      * to be able to run the demo in all the cases (blobset selection,
