@@ -4,9 +4,9 @@
 \label{sec:proxy_introduction}
 
 %~\cite{GoF}
-The purpose of the Proxy module is to hide the internal architecture of the IPOL system and to provide an unique entry point for the communication between its different modules. 
+The purpose of the Proxy module is to hide the internal architecture of the IPOL system and to provide a unique entry point for the communication between its different modules. It is technically a \emph{Reverse Proxy} \footnote{\url{https://en.wikipedia.org/wiki/Reverse_proxy}}.
 
-This proxy simplifies problems, such as the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As a consequence, the system does not need more modifications for a correct performance. Figure ~\ref{fig:proxy_example} shows an example of the idea behind the proxy module.
+The proxy solves several problems, as for example the strong dependency between the machines where the other modules are located. For instance, if we want to change the location of one of our IPOL modules, we only need to modify the information file used in the proxy. As a consequence, the system does not need more modifications. Figure ~\ref{fig:proxy_example} shows an example.
 
 \begin{figure}[!ht]
 \centering
