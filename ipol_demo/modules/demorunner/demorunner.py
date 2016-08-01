@@ -345,15 +345,15 @@ class DemoRunner(object):
                     print "moving ",path.join(src_path, script[0], script[1]), " to ", scripts_dir
                     new_file = path.join( scripts_dir, script[1])
                 
-                if os.path.exists(new_file):
-                    if path.isfile(new_file): 
-                        os.remove(new_file)
-                    else:
-                        os.chmod( new_file, stat.S_IRWXU )
-                        shutil.rmtree(new_file)
-                shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
-                # Give exec permission to the script
-                os.chmod( new_file, stat.S_IREAD | stat.S_IEXEC )
+                    if os.path.exists(new_file):
+                        if path.isfile(new_file): 
+                            os.remove(new_file)
+                        else:
+                            os.chmod( new_file, stat.S_IRWXU )
+                            shutil.rmtree(new_file)
+                    shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
+                    # Give exec permission to the script
+                    os.chmod( new_file, stat.S_IREAD | stat.S_IEXEC )
             
             # prepare_cmake can fix some options before configuration
             if ('post_build' in ddl_build.keys()):
