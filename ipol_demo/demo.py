@@ -668,7 +668,7 @@ class demo_index(object):
         #except Exception as ex:
                 #pass
             
-        dr_winner = 'demorunner2' ## In the future, the demo_dispatcher call will be included here.
+        dr_winner = 'demorunner' ## In the future, the demo_dispatcher call will be included here.
                         
         try:
             print "Entering dr.ensure_compilation()"
