@@ -706,6 +706,10 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             params['x1']=Math.round(_crop_info.x+_crop_info.w);
             params['y0']=Math.round(_crop_info.y);
             params['y1']=Math.round(_crop_info.y+_crop_info.h);
+
+            if (_drawlines) {
+                _drawlines.AddLinesParameters(params);
+            }
             
             form_data.append("params",  JSON.stringify(params));
                                  
