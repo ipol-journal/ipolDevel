@@ -446,10 +446,12 @@ class   Database(object):
 
         :param demo_name: demo name
         ::type demo_name: string
-        :return: name, is template, id template
+        :return: status, name, is template, id template, 
         :rtype: dictionnary
         """
         dic = {}
+        dic['status'] = 'OK'
+        
         try:
             self.cursor.execute('''
             SELECT id, name, is_template, template_id
@@ -459,10 +461,10 @@ class   Database(object):
             something = self.cursor.fetchone()
             dic[something[0]] = {"name": something[1], "is_template": something[2],
                                  "template_id": something[3]}
-
-        except self.database.Error as e:
-            raise DatabaseSelectError(e)
-
+        except Exception as e:
+            dic['info'] = 'The database does not have the demo ({0}) '.format(demo_name)
+            dic['status'] = 'KO'
+        
         return dic
 
     def get_blob_of_tag(self, tag):
@@ -1041,6 +1043,7 @@ class   Database(object):
         :rtype: dictionnary
         """
         dic = {}
+        dic['status'] = 'OK'
         try:
             self.cursor.execute('''
             SELECT is_template, template_id
@@ -1050,8 +1053,9 @@ class   Database(object):
             something = self.cursor.fetchone()
             if something[0] == 0 and something[1] != 0:
                 dic = self.get_demo_name_from_id(something[1])[something[1]]
-        except DatabaseError, e:
-            raise DatabaseSelectError(e)
+        except Exception as e:
+            dic['info'] = 'It has fail in the demo_use_template from the database.py. In demo ({0}) '.format(demo_id)
+            dic['status'] = 'KO'
 
         return dic
 
