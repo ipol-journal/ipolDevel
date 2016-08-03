@@ -461,6 +461,7 @@ class   Database(object):
                                  "template_id": something[3]}
 
         except self.database.Error as e:
+            self.logger.exception("get_demo_info_from_name --> The database does not have the demo ({0}) ".format(demo_name))
             raise DatabaseSelectError(e)
 
         return dic
