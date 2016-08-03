@@ -70,7 +70,7 @@ Many keys are derived from the static variables of the previous 'app' Python cla
 
 The build section contains an array of build descriptions in the form
 ''[ \{...\}, \{...\}, ...] ''. For each description, an archive containing the 
-source code is downloaded and compiled using either 'make' or 'cmake' features.
+source code is downloaded and compiled using either 'make','cmake' or 'script' features.
 It has the following information:
 
 \subsubsection{\emph{make} type}
@@ -150,6 +150,30 @@ It has the following information:
   "binaries"   : [ [".","lens_distortion_correction"] ],
   "flags"      : "OMP=1 -j4" } ]
 \end{lstlisting}
+
+\subsubsection{\emph{script} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ build\_type  & script & yes \\ \hline
+ url          & same as make type & yes \\ \hline
+ srcdir       & same as make type & yes \\ \hline
+ scripts      & same as make type & no  \\ \hline
+\caption{Keys for the 'script' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"build": [ { 
+    "build_type": "script",
+    "url": "http://151.80.24.28:8080/DemoSource/1000003/demo_scripts.tgz",
+    "srcdir": "demo_scripts",
+    "scripts": [ [ ".", "write_line_parameters.py" ] ]
+  }
+\end{lstlisting}
+
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{inputs} section}
