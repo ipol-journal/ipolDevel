@@ -447,7 +447,12 @@ We need to use PyUnit for the unit tests.
 
 - Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
 
+- Related for the previous point, configure {\tt iptables} to block access to certain services. It seems that we'll have to put the services in one port and the static content in other, to filter the access. This problem needs to be studied.
+
+- When a error happens during execution, the core should send an email to the autors, and also IPOL's tech and edit.
+
 - Add statistics data collecting. Piwik can be used for this.
+
 
 
 \bibliographystyle{plain}
