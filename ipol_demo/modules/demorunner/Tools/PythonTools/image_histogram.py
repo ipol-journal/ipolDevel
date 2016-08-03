@@ -6,11 +6,11 @@
 #
 
 import os, sys
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # go up 1 level ...
-sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 
-import image
+from image import image
+import logging
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         maxH = im.max_histogram(option="all")
         im.histogram(option="all", maxRef=maxH)
       except Exception as e:
-        print "Histogram creation failed ", e
+        logging.exception( "Histogram creation failed ");
         
       im.save(os.path.splitext(imname)[0]+"_hist.png")
       
@@ -43,11 +43,11 @@ if __name__ == '__main__':
           try:
             im.histogram(option="all", maxRef=maxH)
           except Exception as e:
-            print "Histogram creation failed ", e
+            logging.exception( "Histogram creation failed ");
           im.save(os.path.splitext(imname)[0]+"_hist.png")
         except Exception as e:
           print "failed to create histogram for ", imname, " ", e
     except Exception as e:
-      print "Histogram creation failed ", e
+      logging.exception( "Histogram creation failed ");
   else:
     print "need at least one input image to process"
