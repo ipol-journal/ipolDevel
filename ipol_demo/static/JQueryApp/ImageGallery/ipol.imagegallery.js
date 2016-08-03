@@ -33,7 +33,7 @@ ipol.ImageGallery = function(galleryid)  {
      * @memberOf ipol.ArchiveDisplay~
      * @private
      */
-    var _verbose=false;
+    var _verbose=true;
 
     //--------------------------------------------------------------------------
      /**
@@ -45,7 +45,7 @@ ipol.ImageGallery = function(galleryid)  {
    var _infoMessage = function( ) {
         if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
-            args.unshift("---- ImageGallery ----");
+            args.unshift("---- ImageGallery "+ _galleryid + " ----");
             console.info.apply(console,args);
         }
     }
@@ -238,6 +238,7 @@ ipol.ImageGallery = function(galleryid)  {
      * @memberOf ipol.ImageGallery~
      */
     this.SetOnLoadAll = function( callback ) {
+        _infoMessage("SetOnLoadAll");
         this.onloadall_callback = callback;
     }
 
