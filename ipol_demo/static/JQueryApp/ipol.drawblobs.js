@@ -236,6 +236,21 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                          +  "<tr>";
             for(var idx=1;idx<blobset[0].size+1;idx++)
             {
+                var show_blob = true;
+                var show_ellipsis = false;
+                // if many blobs (>4) show only first and last ...
+                if ((blobset[0].size>4)) {
+                    show_blob = (idx===1)||(idx===blobset[0].size);
+                    show_ellipsis = (idx===2);
+                }
+                
+                if (!show_blob) {
+                    if (show_ellipsis) {
+                        blobset_html += "<td style='margin:0px;padding:0px;'> &hellip; </td>";
+                    }
+                    continue;
+                }
+                
                 // blob display could be disabled ...
                 blobset_html += "<td style='margin:0px;padding:0px;' id='blob_"+i+"_"+idx+"'>"
                 // apply the selection ???
@@ -256,12 +271,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                              +  ipol.utils.blobhash_subdir(blobset[idx].hash)
                              + 'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
                              +  '   alt='   +blobset[idx].title
-                             +  '   title="'+blobset[idx].title+
-                                    ' (credits: '+blobset[idx].credit+
-                                    ', tags:'+blobset[idx].tag+')" >&nbsp;'
+                             +  '   title="'+blobset[idx].title
+                             +      ' (credits: '+blobset[idx].credit
+                             +      ', tags:'+blobset[idx].tag
+                             +      ', '+idx+'/'+blobset[0].size+' )" >&nbsp;' 
                              +  "</div> "
                              +  "</td>";
-            }
+            } // end for idx
             blobset_html += "</tr>";
             if (display_titles||display_credits) {
                 blobset_html += '<tr  style="background-color:#EEEEEE;">';
@@ -270,7 +286,11 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 //          We could use the blob name but in general each image has the same title
                 //             which is a better name <span>{{blob_set[0].set_name}}</span>
                 if (display_titles) {
-                    blobset_html += '<font size="-1">'+blobset[1].title+'</font>';
+                    if (blobset[0].set_name!="") {
+                        blobset_html += '<font size="-1">'+blobset[0].set_name+'</font>';
+                    } else {
+                        blobset_html += '<font size="-1">'+blobset[1].title+'</font>';
+                    }
                 }
                 if (display_credits) {
                     if (display_titles) {
