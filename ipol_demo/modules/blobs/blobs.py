@@ -1256,7 +1256,7 @@ class   Blobs(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.error("something went wrong in blobs module")
+            self.logger.error("Failed to shutdown")
             sys.exit(1)
         return json.dumps(data)
 
