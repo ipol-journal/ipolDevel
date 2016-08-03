@@ -95,8 +95,24 @@ ipol.DrawResults = function( res,ddl_results) {
      */
     var _onloadall_callback = undefined;
     
+    /** 
+     * information about the experiment to be displayed
+     * @var {object} _experiment
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     * @defaults undefined
+     */
+    var _experiment = undefined;
     
-    
+    /** 
+     *  archive section of the DDL
+     * @var {object} _ddl_archive
+     * @memberOf ipol.ArchiveDisplay~
+     * @private
+     * @defaults undefined
+     */
+    var _ddl_archive = undefined;
+        
     //--------------------------------------------------------------------------
     /**
      * Creates one component of the results
@@ -299,10 +315,10 @@ ipol.DrawResults = function( res,ddl_results) {
     // to use archive url, otherwise use work_url path
     var _findUrl = function(filename) {
         var url=undefined;
-        if (_this._experiment) {
+        if (_experiment) {
             url = ipol.ArchiveDisplay.staticFindArchiveUrl(filename,
-                                                  _this._ddl_archive.files,
-                                                  _this._experiment.files);
+                                                  _ddl_archive.files,
+                                                  _experiment.files);
         }
         if (!url) {
             url = _work_url+filename;
@@ -490,8 +506,8 @@ ipol.DrawResults = function( res,ddl_results) {
         ig.CreateEvents();
         $("#result_"+id).data("image_gallery",ig);
         
-        if (_this._onloadall_callback) {
-            ig.SetOnLoadAll( _this._onloadall_callback.bind(this) );
+        if (_onloadall_callback) {
+            ig.SetOnLoadAll( _onloadall_callback.bind(this) );
         }
 
     } // end _gallery_new_events
@@ -559,21 +575,8 @@ ipol.DrawResults = function( res,ddl_results) {
      * @public
      */
     this.setExperiment = function(exp,ddl_archive) {
-        /** 
-         * information about the experiment to be displayed
-         * @var {object} _experiment
-         * @memberOf ipol.ArchiveDisplay~
-         * @private
-         */
-        this._experiment = exp;
-        
-        /** 
-         *  archive section of the DDL
-         * @var {object} _ddl_archive
-         * @memberOf ipol.ArchiveDisplay~
-         * @private
-         */
-        this._ddl_archive = ddl_archive; // archive part of the DDL
+        _experiment  = exp;
+        _ddl_archive = ddl_archive; // archive part of the DDL
     }
 
     //--------------------------------------------------------------------------
