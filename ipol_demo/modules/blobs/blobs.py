@@ -790,10 +790,15 @@ class   Blobs(object):
         """
         dic  = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
-
+        dic["status"] = "KO"
         data = self.instance_database()
         try:
-            dic                      = data.get_demo_info_from_name(demo_name)
+            try:
+                dic                  = data.get_demo_info_from_name(demo_name)
+            except Exception as ex:
+                self.logger.exception("The database does not have the demo ({0}) ".format(demo_name))
+                return json.dumps(dic)
+                
             demo_id                  = dic.keys()[0]
             dic["use_template"]      = data.demo_use_template(demo_id)
             dic["blobs"]             = data.get_blobs_of_demo(demo_id)
@@ -807,7 +812,7 @@ class   Blobs(object):
             dic["status"]            = "OK"
         except DatabaseError:
             self.logger.exception("Cannot access to blob from demo")
-            dic["status"]            = "KO"
+            
 
         return json.dumps(dic)
 
