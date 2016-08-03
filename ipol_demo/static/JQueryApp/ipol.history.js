@@ -164,6 +164,8 @@ ipol.history.SetPageState = function( page_state) {
                     });
                     di.onLoadImages( function() {
                         console.info("OnLoadImages callback");
+                        // we set the parameters once all images are loaded
+                        SetParamsState(page_state.res.params);
                     });
                     di.loadDataFromLocalFiles();
                 } else {
@@ -262,6 +264,8 @@ ipol.history.SetPageState = function( page_state) {
                                 );
                     
                     // update parameters
+                    // TODO: we need to be sure that the input images
+                    // are loaded before setting the parameters
                     SetParamsState(page_state.res.params);
                     
                     // Set Progress information
