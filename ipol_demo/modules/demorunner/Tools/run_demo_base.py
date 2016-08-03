@@ -184,22 +184,30 @@ class RunDemoBase:
             v = re.search(r'\$\w+',p)
             # more complicate, search all variables and replace them
             if v!=None:
-              while v!=None:
-                p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
-                print "argument number ",i," evaluated to: ",p
-                v = re.search(r'\$\w+',p)
-              args[i] = p
+                while v!=None:
+                    try:
+                        p = p[:v.start()]+str(eval(v.group()[1:]))+p[v.end():]
+                        print "argument number ",i," evaluated to: ",p
+                    except:
+                        print "Failed to evaluate argument ",p
+                        break
+                    v = re.search(r'\$\w+',p)
+                args[i] = p
               
             # 2 replace more complex expressions, of type ${expression},
             # where expression does not contain '{' or '}' characters
             v = re.search(r'\$\{[^\{\}]*\}',p)
             # more complicate, search all variables and replace them
             if v!=None:
-              while v!=None:
-                p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
-                print "argument number ",i," evaluated to: ",p
-                v = re.search(r'\$\{[^\{\}]*\}',p)
-              args[i] = p
+                while v!=None:
+                    try:
+                        p = p[:v.start()]+str(eval(v.group()[2:-1]))+p[v.end():]
+                        print "argument number ",i," evaluated to: ",p
+                        v = re.search(r'\$\{[^\{\}]*\}',p)
+                    except:
+                        print "Failed to evaluate argument ",p
+                        break
+                args[i] = p
 
             # output file >filename 
             if p[0]=='>':
@@ -327,7 +335,7 @@ class RunDemoBase:
       #self.log("warning: MATLAB path directory %s does not exist" % p,
                 #context='SETUP/%s' % self.get_demo_id(), 
                 #traceback=False)
-      
+    
     newenv.update({'PATH' : path, 'LD_LIBRARY_PATH' : self.bin_dir})
     # run
     return Popen(args,  stdin=stdin, stdout=stdout, stderr=stderr,
