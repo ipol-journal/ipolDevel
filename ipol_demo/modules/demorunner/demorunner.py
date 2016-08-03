@@ -300,44 +300,47 @@ class DemoRunner(object):
                         print "{0}-->{1}".format(bin_path, bin_dir)
                         shutil.copy(bin_path, bin_dir)
             else:
-                #----- MAKE build
-                print "using MAKE"
+                if  ('build_type' in ddl_build.keys()) and \
+                    (ddl_build['build_type'].upper()=='make'.upper()):
+                    #----- MAKE build
+                    print "using MAKE"
 
-                # prepare_cmake can fix some options before configuration
-                if ('prepare_make' in ddl_build.keys()):
-                    print 'prepare_make :', ddl_build['prepare_make']
-                    build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
-                
-                print "..."
+                    # prepare_cmake can fix some options before configuration
+                    if ('prepare_make' in ddl_build.keys()):
+                        print 'prepare_make :', ddl_build['prepare_make']
+                        build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
+                    
+                    print "..."
 
-                # build the programs for make
-                for program in programs:
-                    prog_path=path.join(src_path,  program[0])
-                    bin_path =path.join(prog_path, program[1])
-                
-                    # build
-                    if os.path.isdir(bin_path):
-                        cmd = "make %s -C %s" % (ddl_build['flags'], prog_path)
-                    else:
-                        cmd = "make %s -C %s %s" % (ddl_build['flags'], prog_path, program[1])
-                
-                    print cmd
-                    build.run(cmd, stdout=log_file)
-                
-                    if os.path.isdir(bin_path):
-                        print "copying all files in bin dir ", bin_path
-                        # copy all files to bin dir
-                        src_files = os.listdir(bin_path)
-                        for file_name in src_files:
-                            full_file_name = os.path.join(bin_path, file_name)
-                            if (os.path.isfile(full_file_name)):
-                                print "{0}; ".format(file_name),
-                                shutil.copy(full_file_name, bin_dir)
-                    else:
-                        # copy binary to bin dir
-                        print "{0}-->{1}".format(bin_path, bin_dir)
-                        shutil.copy(bin_path, bin_dir)
+                    # build the programs for make
+                    for program in programs:
+                        prog_path=path.join(src_path,  program[0])
+                        bin_path =path.join(prog_path, program[1])
+                    
+                        # build
+                        if os.path.isdir(bin_path):
+                            cmd = "make %s -C %s" % (ddl_build['flags'], prog_path)
+                        else:
+                            cmd = "make %s -C %s %s" % (ddl_build['flags'], prog_path, program[1])
+                    
+                        print cmd
+                        build.run(cmd, stdout=log_file)
+                    
+                        if os.path.isdir(bin_path):
+                            print "copying all files in bin dir ", bin_path
+                            # copy all files to bin dir
+                            src_files = os.listdir(bin_path)
+                            for file_name in src_files:
+                                full_file_name = os.path.join(bin_path, file_name)
+                                if (os.path.isfile(full_file_name)):
+                                    print "{0}; ".format(file_name),
+                                    shutil.copy(full_file_name, bin_dir)
+                        else:
+                            # copy binary to bin dir
+                            print "{0}-->{1}".format(bin_path, bin_dir)
+                            shutil.copy(bin_path, bin_dir)
 
+            # if build_type is 'script', just execute this part
             if 'scripts' in ddl_build.keys():
                 print ddl_build['scripts']
                 # Move scripts to the scripts dir
@@ -440,7 +443,14 @@ class DemoRunner(object):
             print res_data['algo_meta']
         
         
-        
+        # save parameters as a params.json file
+        try:
+            with open(os.path.join(work_dir,"params.json"),"w") as resfile:
+                json.dump(params,resfile)
+        except Exception:
+            print "Failed to save params.json file"
+            raise
+          
         #run the algorithm
         try:
             run_time = time.time()
