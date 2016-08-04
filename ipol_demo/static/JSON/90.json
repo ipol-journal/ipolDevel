@@ -22,16 +22,22 @@
   }, 
   "build": [
     {
-      "build_type"    : "make",
-      "url*previous"  : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
-      "url"           : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
+      "build_type": "make",
+      "url"       : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
+      "url_deprecated" : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
       "srcdir"        : "percentile_v1/",
       "binaries"      : [ ["fnoise","fnoise"], ["subscale","subscale"], ["percentile","percentile"] ],
       "flags"         : "-j4",
       "scripts"       : [   [ "scripts","writeNoiseCurve.sh"], 
-                            [ "percentile","per_corrections/", "per_corr_w15_p0.0001_f0.txt"],
-                            [ "demo_scripts", "run_algo.py" ]]
-    }]
+                            [ "percentile","per_corrections/", "per_corr_w15_p0.0001_f0.txt"]]
+    },
+    {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/90/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","run_algo.py"] ]
+    }
+    ]
   ,
   "inputs": [ 
       {
