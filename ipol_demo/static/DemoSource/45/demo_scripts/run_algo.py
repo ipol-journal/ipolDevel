@@ -5,10 +5,8 @@ import json
 import os, sys
 # include ../.. in path to be able to import lib
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-# go up 3 levels ...
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR))))
 
-from lib import image
+from PIL import Image
 from subprocess import Popen
 import time
 from math import sqrt
@@ -253,7 +251,7 @@ if __name__ == '__main__':
       bins += 1
 
   # Get input size
-  ima = image('input_0.sel.png')
+  ima = Image.open('input_0.sel.png')
   sizeX, sizeY = ima.size
 
   print "Image size = ", sizeX, "x", sizeY
