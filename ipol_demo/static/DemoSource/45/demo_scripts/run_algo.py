@@ -275,7 +275,7 @@ if __name__ == '__main__':
   for scale in range(num_scales):
     if scale != num_scales - 1:
       # Create next subscale scale s{i+1} for s{i}.
-      os.system("../../bin/subscale -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
+      os.system(os.path.join(CURRENT_DIR,"../bin/subscale")+" -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
 
   # Estimate the noise, in parallel,
   processes = []
@@ -308,7 +308,7 @@ if __name__ == '__main__':
       #self.wait_proc(pid, timeout*0.8)
       #fd.close()
 
-      processes.append(run_proc("../../bin",procOptions, stdout=fd, stderr=fd))
+      processes.append(run_proc(os.path.join(CURRENT_DIR,"../bin"),procOptions, stdout=fd, stderr=fd))
       fds.append(fd)
 
   # Wait for the parallel processes to end
@@ -342,7 +342,7 @@ if __name__ == '__main__':
                       '%d' % num_channels, 
                       'curve_s%d.png' % scale]
       # Run
-      procDesc = run_proc("../../scripts",procOptions)
+      procDesc = run_proc(os.path.join(CURRENT_DIR,"../scripts"),procOptions)
       wait_proc(procDesc, timeout*0.8)
 
   # Cleanup
