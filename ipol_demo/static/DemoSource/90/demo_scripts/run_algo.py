@@ -7,7 +7,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # go up 3 levels ...
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR))))
 
-from lib import image
+from PIL import Image
 from subprocess import Popen
 import time
 from math import sqrt
@@ -252,7 +252,7 @@ if __name__ == '__main__':
       bins += 1
 
   # Get input size
-  ima = image('input_0.sel.png')
+  ima = Image.open('input_0.sel.png')
   sizeX, sizeY = ima.size
 
   print "Image size = ", sizeX, "x", sizeY
@@ -276,8 +276,9 @@ if __name__ == '__main__':
   for scale in range(num_scales):
     if scale != num_scales - 1:
       # Create next subscale scale s{i+1} for s{i}.
-      os.system("../../bin/subscale -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
+      os.system(os.path.join(CURRENT_DIR,"../bin/subscale")+" -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
 
+  print "Estimate the noise, in parallel"
   # Estimate the noise, in parallel,
   processes = []
   fds = []
@@ -302,11 +303,11 @@ if __name__ == '__main__':
                     '-g%d'    % curvefilter, \
                     param_remove_equals,
                     '-c%d'    % correction_type, \
-                    '-e%s'    % os.path.join("../../scripts/",'per_corrections'),\
+                    '-e%s'    % os.path.join(CURRENT_DIR,"../scripts/",'per_corrections'),\
                     'scale_s%d.rgb' % scale]
 
     print "running ", ' '.join(procOptions)
-    processes.append(run_proc("../../bin",procOptions, stdout=fd, stderr=fd))
+    processes.append(run_proc(os.path.join(CURRENT_DIR,"../bin"),procOptions, stdout=fd, stderr=fd))
     fds.append(fd)
 
   # Wait for the parallel processes to end
@@ -317,7 +318,7 @@ if __name__ == '__main__':
       fd.close()
       
   
-
+  print "Remove last bin, correct quantization error and draw noise curves"
   # Remove last bin, correct quantization error and draw noise curves
   RMSEs = ''
   for scale in range(num_scales):
@@ -342,7 +343,7 @@ if __name__ == '__main__':
                       '%d' % num_channels, 
                       'curve_s%d.png' % scale]
       # Run
-      procDesc = run_proc("../../scripts",procOptions)
+      procDesc = run_proc(os.path.join(CURRENT_DIR,"../scripts"),procOptions)
       wait_proc(procDesc, timeout*0.8)
 
   # Cleanup
