@@ -17,16 +17,10 @@
         "flags"         : "-j4  --makefile=makefile"
       },
       {
-        "binaries": [],
-        "build_type": "make",
-        "scripts": [
-            [
-                ".",
-                "write_line_parameters.py"
-            ]
-        ],
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/1000003/demo_scripts.tgz",
         "srcdir": "demo_scripts",
-        "url": "http://151.80.24.28:8080/DemoSource/1000003/demo_scripts.tgz"
+        "scripts": [ [".","write_line_parameters.py"] ]
       }
     ]
   ,

@@ -22,16 +22,22 @@
   }, 
   "build": [
     {
-      "build_type"    : "make",
-      "url*previous"  : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
-      "url"           : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
+      "build_type": "make",
+      "url"       : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
+      "url_deprecated" : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
       "srcdir"        : "percentile_v1/",
       "binaries"      : [ ["fnoise","fnoise"], ["subscale","subscale"], ["percentile","percentile"] ],
       "flags"         : "-j4",
       "scripts"       : [   [ "scripts","writeNoiseCurve.sh"], 
-                            [ "percentile","per_corrections/", "per_corr_w15_p0.0001_f0.txt"],
-                            [ "demo_scripts", "run_algo.py" ]]
-    }]
+                            [ "percentile","per_corrections/", "per_corr_w15_p0.0001_f0.txt"]]
+    },
+    {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/90/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","run_algo.py"] ]
+    }
+    ]
   ,
   "inputs": [ 
       {
@@ -133,23 +139,7 @@
   "run": [
     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
-    "# we need to convert some parameters to numbers",
-    "python:self.algo_params['percentile']  = float(self.algo_params['percentile'])",
-    "python:self.algo_params['operator']    = int(self.algo_params['operator'])",
-    "python:self.algo_params['block']       = int(self.algo_params['block'])",
-    "python:self.algo_params['curvefilter'] = int(self.algo_params['curvefilter'])",
-    "python:self.algo_params['removeequals']= int(self.algo_params['removeequals'])",
-    "python:self.algo_params['correction']  = int(self.algo_params['correction'])",
-    "# save parameters to json file",
-    "python:import json",
-    "python:fp =  open('params.json', 'w')",
-    "python:json.dump(self.algo_params, fp)",
-    "python:fp.close()",
-    "run_algo.py",
-    "# get back parameters",
-    "python:fp = open('params.json')",
-    "python:self.algo_params = json.load(fp)",
-    "python:fp.close()"
+    "run_algo.py"
   ],
   "archive":
     {

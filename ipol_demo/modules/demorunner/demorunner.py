@@ -177,7 +177,6 @@ class DemoRunner(object):
         print "make begin"
         total_start = time.time()
         make_info = ""
-        programs = ddl_build['binaries']
         
         print "make(clean_previous={0})".format(clean_previous)
         zip_filename  = urlparse.urlsplit(ddl_build['url']).path.split('/')[-1]
@@ -201,15 +200,17 @@ class DemoRunner(object):
         rebuild_needed = False
 
         ## test if the dest file is missing, or too old, for each program to build
-        for program in programs:
-            print "build ", program
-            # use first binary name to check time
-            prog_filename = program[1]
-            prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
-            if os.path.basename(prog_filename)=='' and len(program)==3:
-                prog_file = path.join(bin_dir,program[2])
-            if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
-                rebuild_needed = True
+        if 'binaries' in ddl_build:
+            programs = ddl_build['binaries']
+            for program in programs:
+                print "build ", program
+                # use first binary name to check time
+                prog_filename = program[1]
+                prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
+                if os.path.basename(prog_filename)=='' and len(program)==3:
+                    prog_file = path.join(bin_dir,program[2])
+                if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
+                    rebuild_needed = True
         
         # test timestamp for scripts too
         if 'scripts' in ddl_build.keys():
@@ -443,6 +444,7 @@ class DemoRunner(object):
             print res_data['algo_meta']
         
         
+        # TODO:this code will be moved to the CORE
         # save parameters as a params.json file
         try:
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
@@ -466,6 +468,15 @@ class DemoRunner(object):
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
             res_data['error']    = str(e)
+        
+        # TODO:this code will be moved to the CORE
+        # get back parameters
+        try:
+            with open(os.path.join(work_dir,"params.json")) as resfile:
+                res_data['params'] = json.load(resfile)
+        except Exception:
+            print "Failed to read params.json file"
+            raise
         
         # check if new config fields
         if ddl_config != None:
