@@ -22,7 +22,7 @@
         "build_type": "script",
         "url": "http://151.80.24.28:8080/DemoSource/27/demo_scripts.tgz",
         "srcdir": "demo_scripts",
-        "scripts": [ [".","run_algo.py"] ]
+        "scripts": [ [".","compute_hist_and_curves.py"], [".","image.py"] ]
     }
     ]
   ,
