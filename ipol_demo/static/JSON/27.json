@@ -13,13 +13,18 @@
   "build": [
     {
       "build_type"    : "make",
-      "url*previous"  : "http://www.ipol.im/pub/art/2012/lps-pae/piecewise_eq.tgz", 
-      "url"           : "http://151.80.24.28:8080/DemoSource/27/piecewise_eq.tgz", 
+      "url"           : "http://www.ipol.im/pub/art/2012/lps-pae/piecewise_eq.tgz", 
       "srcdir"        : "piecewise_eq",
       "binaries"      : [ [".","piecewise_equalization"] ],
-      "flags"         : "-j4",
-      "scripts"       : [ [ "demo_scripts", "compute_hist_and_curves.py"] ]
-    } ]
+      "flags"         : "-j4"
+    },
+    {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/27/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","run_algo.py"] ]
+    }
+    ]
   ,
   "inputs": [ 
       {
