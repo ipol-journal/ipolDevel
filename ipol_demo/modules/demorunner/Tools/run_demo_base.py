@@ -124,6 +124,9 @@ class RunDemoBase:
     current_working_dir = os.getcwd()
     os.chdir(self.work_dir)
     
+    # create demodata variable to access demo data 
+    demodata=self.bin_dir
+    
     # convert parameters to variables
     for _k_ in self.algo_params:
       exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
