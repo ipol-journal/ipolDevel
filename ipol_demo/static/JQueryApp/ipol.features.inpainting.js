@@ -251,6 +251,45 @@ ipol.features.Inpainting = function() {
     //--------------------------------------------------------------------------
     //  PUBLIC METHODS
     //--------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
+    /**
+     * Updates the mask image (in hidden canvas) based on the user drawings.
+     * The mask is set to white if the opacity is>0, otherwise it is set to 
+     * black
+     * @function submitInpaintNew
+     * @memberOf ipol.features.Inpainting~
+     * @public
+     */
+    this.submitInpaintNew = function(ddl_json, formData, upload_callback) {
+
+        var inputs  = ddl_json.inputs;
+        // we should have two inputs: the image and the mask
+        // if several input image, TODO: deal with crop of first image
+        var blobs_in_form=0;
+        // TODO: change this line to avoid depending on the html code
+        var ig = $("#input_gallery").data("image_gallery");
+        var image_src = ig.GetImage(0)[0].src;
+        // upload input image
+        blobUtil.imgSrcToBlob(image_src,"image/png","Anonymous").then(
+            function(blob) { 
+                formData.append('file_0', blob);
+                blobs_in_form++;
+                if(blobs_in_form==ddl_json.inputs.length) {
+                    upload_callback(formData);
+                }
+            }, 'image/png' );
+        // upload input mask
+        var mask_src = $("#mask_canvas")[0].toDataURL("image/png");
+
+        blobUtil.dataURLToBlob(mask_src).then(
+            function(blob) {
+                    formData.append('file_1', blob);
+                    blobs_in_form++;
+                    if(blobs_in_form==ddl_json.inputs.length) {
+                        upload_callback(formData);
+                    }
+            });
+    }
     
     
     //--------------------------------------------------------------------------
