@@ -59,7 +59,7 @@
   "run": [ 
     "python:im = image('input_0.sel.png')",
     "python:im.save(   'input_0.sel.pgm')",
-    "cp ../../bin/pattern_noise.pgm .",
+    "cp ${demodata}/pattern_noise.pgm .",
     "psf_estim -p pattern_noise.pgm -s $s -k $k -d det_out.ppm -t $t -o psf.pgm input_0.sel.pgm psf.txt >stdout.txt 2>&1",
     "python: # re adjust width and height to avoid visualization interpolation",
     "python:im = image('psf.pgm')",
