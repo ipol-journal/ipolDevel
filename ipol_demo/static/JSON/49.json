@@ -1,0 +1,261 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Obtaining High Quality Photographs of Paintings by Image Fusion",
+    "input_description"     : "",
+    "param_description"     : "",
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/49/"
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2015/49/tableaux_6.tar.gz", 
+        "srcdir"        : "tableaux_6",
+        "binaries"      : [ [".","bin/","iip_burst_fusion_by_scales"] ],
+        "flags"         : "-j4 "
+      },
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2015/49/tableaux_4_demo_support_code.tar.gz", 
+        "srcdir"        : "tableaux_4_demo_support_code",
+        "binaries"      : [ [".","bin/","plambda"] ],
+        "prepare_make"  : "sed -i -e 's/zoombil\\\//zoombil/g' Makefile",
+        "flags"         : "-j4 "
+      },
+      {
+        "binaries": [],
+        "build_type": "make",
+        "scripts": [
+            [
+                ".",
+                "rename_inputs.sh"
+            ]
+        ],
+        "srcdir": "demo_scripts",
+        "url": "http://151.80.24.28:8080/DemoSource/49/demo_scripts.tgz"
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input 0",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 1",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 2",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 3",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 4",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 5",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 6",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 7",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 8",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 9",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 10",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 11",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 12",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 13",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 14",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 15",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 16",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 17",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 18",
+          "max_pixels"      : "1440*1080",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      }
+    ],
+  "params": 
+    [
+      {
+        "id"   : "reference",
+        "label": "Reference image",
+        "type": "range",
+        "values": {
+            "default": 0,
+            "max": 18,
+            "min": 0,
+            "step": 1
+        }
+      }
+    ],
+  "run": [
+    "# rename input_XX.png as iiXX.png for the scripts",
+    "rename_inputs.sh",
+    "ipol_demo_high_toni.sh"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_0.png" : "Input Image",
+                    "output_0.png" : "Output Image",
+                    "line_primitives.dat" : "Selected lines",
+                    "output_0.dat" : "Output data"
+                },
+      "params" :  [ "x_center", "y_center", "center_optimization" ]
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : 
+        {   "Input"      : "input_0.png", 
+            "Output"     : "output_0.png"
+        },
+      "options"       : { "minheight": 350 }
+    },
+    {
+      "type"          : "file_download",
+      "label"         : "The images can be downloaded here:",
+      "contents"      : { "Distortion model coefficient parameter estimation"     : "output_0.dat", 
+                          "output" : "output_0.png",
+                          "input"  : "input_0.png"
+                        }
+    }
+  ]
+}
