@@ -245,6 +245,13 @@ if __name__ == '__main__':
     print "running {0} = {1}".format(k,repr(params[k]))
     exec("{0} = {1}".format(k,repr(params[k])))
   
+  # we need to convert some parameters to numbers
+  percentile    = float(percentile)
+  block         = int(block)
+  curvefilter   = int(curvefilter)
+  removeequals  = int(removeequals)
+  mean_type     = int(mean_type)
+    
   # Increment the number of bins, since the last will be
   # removed later
   if bins > 0:
