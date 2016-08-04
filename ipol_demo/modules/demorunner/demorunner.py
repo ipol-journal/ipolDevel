@@ -444,6 +444,7 @@ class DemoRunner(object):
             print res_data['algo_meta']
         
         
+        # TODO:this code will be moved to the CORE
         # save parameters as a params.json file
         try:
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
@@ -467,6 +468,15 @@ class DemoRunner(object):
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
             res_data['error']    = str(e)
+        
+        # TODO:this code will be moved to the CORE
+        # get back parameters
+        try:
+            with open(os.path.join(work_dir,"params.json")) as resfile:
+                res_data['params'] = json.load(resfile)
+        except Exception:
+            print "Failed to read params.json file"
+            raise
         
         # check if new config fields
         if ddl_config != None:
