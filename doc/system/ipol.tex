@@ -81,6 +81,7 @@
 
 
 \newcommand{\ToDo}[1]{\textcolor{magenta}{\textbf{[ToDo]} \textbf{#1}}}
+\newcommand{\miguel}[1]{\textcolor{magenta}{\textbf{[Miguel]} \textbf{#1}}}
 
 
 \begin{document}
@@ -452,6 +453,43 @@ We need to use PyUnit for the unit tests.
 - When a error happens during execution, the core should send an email to the autors, and also IPOL's tech and edit.
 
 - Add statistics data collecting. Piwik can be used for this.
+
+\subsection{Design issues (a.k.a. \emph{Hall of Shame})}
+\miguel{This section is maintained by Miguel Colom to track bad design issues. Please do never edit it.}
+
+
+- DemoRunner has a lot of {\tt exec} commands which inject code to update variables in the DR Python's workspace. This solution is totally unacceptable from the point of view of system design and moreover it means a huge security risk for the server. The possibility of manipulating variables in the DDL with the {\tt python: } prefix does not justify such a bad design.
+
+The proposed solution is that DR reads the parameters from the webservice's call, update a dictionary without code injection, and makes very simple substitutions. For example:
+
+\begin{verbatim}
+run.sh ${sigma} ${removeFlag} ${demoExtras}/data/polynomial${polNum}.txt
+\end{verbatim}
+
+The user's scripts are allowed to write a file with the params and variable values, which will be read by the Core and send it along the run response to the JQuery code. This allows to update parameters and variables in the client interface.
+
+The idea behind the DDL is to \emph{describe} the demo, not to specify the operations needed to run it. Thus, any scripts containing running operations must be given as a user's script will will be called from run.sh
+
+- DemoRunner is writing a {\tt params.json} file and stores it in the run directory. Actually, only the Core needs to write and read this file. It doesn't make any sense that demoRunner stores these parameters. If we consider that we finally need this {\tt params.json} file to re-create the page in another client given the demo ID and experiment key, it should be the Core, not DemoRunner who is responsible for writing and reading it.
+
+In the current system another use of the {\tt params.json} file is to store the lines drawn by the user. It's correct that this data is considered as a parameter, and it's true that perhaps it's too big to be passed as a text string. In any case, if we adopt the solution of keeping the {\tt params.json} file in the run directory, it has to be written by the Core, never by DemoRunner.
+
+- DemoRunner is writing a {\tt results.json} file. Exactly the same bad design issue as in the previous point. That's totally out of the scope of DemoRunner and it should be the Core who eventually would write that file.
+
+- The Archive module has a special case where it reads a JSON file containing results. The task of the archive is to store and serve blobs. It can't be used as a placeholder to store a JSON file with extra data.
+
+It has already a field {\tt params} in its {\tt experiments} table. If we need to have the results too, the way to do it is to add an extra field in that table, not to store a file.
+
+Example of code in the Archive:
+\begin{verbatim}
+   if row[2]=="results from experiment":
+       # load the json file
+       with open(path_file) as data_file:
+	   results_json = json.load(data_file)
+\end{verbatim}
+
+However, within the archive database I wasn't able to find the {\tt results from experiment} text in the {\tt type} column. This needs to be investigated.
+
 
 
 
