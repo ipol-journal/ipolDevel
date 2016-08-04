@@ -467,6 +467,8 @@ If you also want to redirect the standard errors to the same file, use can add
 ('|' character).
 Python scripts from the PythonTools directory can be used in commands: currently
 'count\_lines.py' and 'image\_histogram.py'.
+If you want to access specific demo data copied in the binary directory, use must
+use the variable 'demodata', for example "cp \$\{demodata\}/\-pattern\-\_noise.pgm .".
 
 
 \paragraph{Examples}:\\
@@ -1221,8 +1223,8 @@ linerange={241-248}, basicstyle=\scriptsize]{
 
 Additionally, when the user enters the 'Archive' tab, the archive information
 is automatically updated and the last archive page is displayed:
-\lstinputlisting[language=JavaScript, firstnumber=516,
-linerange={516-531}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=523,
+linerange={523-538}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 To obtain the demo id, we first get the demo list stored within the "demo-select"
 HTML element (using the jquery data() function), then we obtain the demo id 
@@ -1234,8 +1236,8 @@ Four fieldsets are defined in the file ipol\_demo.html: blob selection, inputs,
 parameters and results. It also contains the code to create the progress bar
 and the modal dialog to upload data.
 The modal dialog is then initialized by the following code:
-\lstinputlisting[language=JavaScript, firstnumber=574,
-linerange={574-592}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=581,
+linerange={581-599}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
@@ -1250,8 +1252,8 @@ ipol.setDemoPage() is called.
 
 The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
 of the "demoinfo" module using ipol.utils.ModuleService():
-\lstinputlisting[language=JavaScript, firstnumber=314,
-linerange={314-318}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=317,
+linerange={317-321}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 
 Once the demo description is returned, it runs the following steps:
@@ -1289,8 +1291,8 @@ local files.
 If it is selected by clicking on one of the proposed blobsets, the event will
 trigger the creation of a DrawInputs instance with the string "blobset" as origin,
 load the input blobset and prepare for running the demo:
-\lstinputlisting[language=JavaScript, firstnumber=253,
-linerange={253-273}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=333,
+linerange={333-353}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.drawblobs.js}
 
 \paragraph{Data upload:}
