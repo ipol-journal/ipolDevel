@@ -452,7 +452,10 @@ We need to use PyUnit for the unit tests.
 
 - When a error happens during execution, the core should send an email to the autors, and also IPOL's tech and edit.
 
-- Add statistics data collecting. Piwik can be used for this.
+- Now the flow to execute a demo is as follows: 1) The JQuery calls the run webservices in the Core 2) The Core runs the demo and sends back the results to JQuery in the JSON response. This is the right way to do it and the flow must not change. However, we could use asynchronous push status messages from the Core to the client related to the execution (say, when it's compiling, copying blobs, doing conversions or running the user's code). 
+
+- Add statistics data collecting. Piwik can be used for this. Or Google Analytics, amongs others.
+
 
 \subsection{Design issues (a.k.a. \emph{Hall of Shame})}
 \miguel{This section is maintained by Miguel Colom to track bad design issues. Please do never edit it.}
