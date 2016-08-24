@@ -465,7 +465,7 @@ ipol.DrawResults = function( res,ddl_results) {
                 // string case
                 switch ($.type(image)) {
                     case "string":
-                        if (image==="'") {
+                        if (image[0]==="'") {
                             image = _evalInContext(image);
                         }
                         new_contents[label]=_findUrl(image);
@@ -477,11 +477,11 @@ ipol.DrawResults = function( res,ddl_results) {
                         val[label]=image;
                         $.extend(true,new_contents,val);
                         jQuery.each( image, function(l,im) {
-                            if (im==="'") {
+                            if (im[0]==="'") {
                                 im = _evalInContext(im);
                             }
                             new_contents[label][l]=_findUrl(im);
-                        }.bind(this));
+                        });
                         break;
                     case "array":
                         // avoid modifying original contents
@@ -489,11 +489,11 @@ ipol.DrawResults = function( res,ddl_results) {
                         val[label]=image;
                         $.extend(true,new_contents,val);
                         jQuery.each( image, function(index, im) {
-                            if (im==="'") {
+                            if (im[0]==="'") {
                                 im = _evalInContext(im);
                             }
                             new_contents[label][index]=_findUrl(im);
-                        }.bind(this));
+                        });
                         break;
                 } // end switch
             } // if label condition
@@ -531,17 +531,31 @@ ipol.DrawResults = function( res,ddl_results) {
             
             var label = _evalInContext(contents[0],idx);
             
-            if ($.type(contents[1])!=="array") {
-                new_contents[label]=_findUrl(_evalInContext(contents[1],idx));
-            } else {
-                // avoid modifying original contents
-                var val={};
-                val[label]=contents[1];
-                $.extend(true,new_contents,val);
-                jQuery.each( contents[1], function(index, im) {
-                    new_contents[label][index]=_findUrl(_evalInContext(im,idx));
-                }.bind(this));
-            }
+            
+            switch ($.type(contents[1])) {
+                case "string":
+                    new_contents[label]=_findUrl(_evalInContext(contents[1],idx));
+                    break;
+                case "object":
+                    // avoid modifying original contents, using
+                    // jquery extend with deep copy
+                    var val={};
+                    val[label]=contents[1];
+                    $.extend(true,new_contents,val);
+                    jQuery.each( contents[1], function(l,im) {
+                        new_contents[label][l]=_findUrl(_evalInContext(im,idx));
+                    });
+                    break;
+                case "array":
+                    // avoid modifying original contents
+                    var val={};
+                    val[label]=contents[1];
+                    $.extend(true,new_contents,val);
+                    jQuery.each( contents[1], function(index, im) {
+                        new_contents[label][index]=_findUrl(_evalInContext(im,idx));
+                    });
+                    break;
+            } // end switch
         }
         
         var ig = new ipol.ImageGallery(id);
