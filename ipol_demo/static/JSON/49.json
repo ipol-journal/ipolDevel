@@ -40,7 +40,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 0",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -49,7 +49,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 1",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -58,7 +58,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 2",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -67,7 +67,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 3",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -76,7 +76,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 4",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -85,7 +85,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 5",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -94,7 +94,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 6",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -103,7 +103,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 7",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -112,7 +112,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 8",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -121,7 +121,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 9",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -130,7 +130,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 10",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -139,7 +139,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 11",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -148,7 +148,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 12",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -157,7 +157,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 13",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -166,7 +166,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 14",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -175,7 +175,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 15",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -184,7 +184,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 16",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -193,7 +193,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 17",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -202,7 +202,7 @@
       {
           "type"            : "image", 
           "description"     : "Input 18",
-          "max_pixels"      : "1440*1080",
+          "max_pixels"      : "800*800",
           "max_weight"      : "3*1024*1024",
           "dtype"           : "3x8i",
           "ext"             : ".png",
@@ -225,7 +225,7 @@
     ],
   "run": [
     "# rename input_XX.png as iiXX.png for the scripts",
-    "rename_inputs.sh",
+    "rename_inputs.sh $reference",
     "ipol_demo_high_toni.sh"
   ]
   ,
@@ -242,20 +242,23 @@
   "results": [
     {
       "type"          : "gallery",
-      "label"         : "<h2>Images</h2>",
-      "contents"      : 
-        {   "Input"      : "input_0.png", 
-            "Output"     : "output_0.png"
-        },
-      "options"       : { "minheight": 350 }
+      "label"         : "<h3>Blended output</h3>",
+      "contents"      : { 
+                "blended"         :"zum_d_grad.png", 
+                "blended (detail)":"kro_d_grad.png"}
     },
     {
-      "type"          : "file_download",
-      "label"         : "The images can be downloaded here:",
-      "contents"      : { "Distortion model coefficient parameter estimation"     : "output_0.dat", 
-                          "output" : "output_0.png",
-                          "input"  : "input_0.png"
-                        }
+      "type"          : "repeat_gallery",
+      "label"         : "<h3>Differences</h3>",
+      "repeat"        : "meta.nb_inputs",
+      "contents"      : [
+            "'Input '+idx",
+                {
+                "Registered"    : "'zum_reg_i'    +('00'+idx).slice(-2)+'.png'",
+                "Original"      : "'zum_ii'        +idx+'.png'",
+                "Shadow (diff)" : "'zshadow_reg_i'+('00'+idx).slice(-2)+'.png'"
+                } ],
+      "options"       :  { "minheight" : 400 }
     }
   ]
 }
