@@ -332,7 +332,13 @@ class demo_index(object):
             # we deal with an image, go on ...
             print "Processing input {0}".format(i)
             if len(input_files)!=1:
-              raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                if  ('required' in inputs_desc[i].keys()) and \
+                    inputs_desc[i]['required']:
+                    # problem here
+                    raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                else:
+                    # optional input missing, end of inputs
+                    break
             else:
               # open the file as an image
               try:
@@ -646,6 +652,7 @@ class demo_index(object):
                      meta["process_inputs_msg"] = res_data["process_inputs_msg"]
                 meta["max_width"]  = res_data["max_width"]
                 meta["max_height"] = res_data["max_height"]
+                meta["nb_inputs"]  = len(blobs)
                 meta["original"]   = original_exp
                 
             except Exception as ex:
