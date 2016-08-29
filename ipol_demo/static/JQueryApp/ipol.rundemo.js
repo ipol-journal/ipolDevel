@@ -319,6 +319,10 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             var di = $("#DrawInputs").data("draw_inputs");
             new_state["mask_state"] = di.getInpaint().getState();
         }
+        if (_drawlines) {
+            var di = $("#DrawInputs").data("draw_inputs");
+            new_state["drawlines_state"] = di.getDrawLines().getState();
+        }
         
         try {
             // change url hash

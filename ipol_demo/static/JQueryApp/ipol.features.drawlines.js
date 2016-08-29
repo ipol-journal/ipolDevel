@@ -75,8 +75,9 @@ ipol.features.DrawLines = function() {
         //        center + ' '+
         //        center + ',auto');
         
-        var cursor_url = newCanvas.toDataURL();
-        $("#canvas_div").css('cursor','url('+cursor_url+') '+(r1+1)+' '+(r1+1)+',auto');
+        // keep normal cursor for setting line points: it is better :)
+        //var cursor_url = newCanvas.toDataURL();
+        //$("#canvas_div").css('cursor','url('+cursor_url+') '+(r1+1)+' '+(r1+1)+',auto');
     }
     
 
@@ -398,6 +399,51 @@ ipol.features.DrawLines = function() {
         $('#pensize_number').trigger('input');
         $('#opacity_number').trigger('input');
         $("#set_color_5")   .trigger('click');  // set blue pen
+    }
+    
+
+    //--------------------------------------------------------------------------
+    /**
+     * Gets the current line interface state: different options like pen size
+     * color and current actions (drawn lines)
+     * @function getState
+     * @memberOf ipol.features.Inpainting~
+     * @public
+     */
+    this.getState = function() {
+        var lines_state = {}
+        var sketch   = $("#colors_sketch").data().sketch;
+        
+        lines_state.actions = sketch.actions;
+        
+        // zoom
+        lines_state.zoom = $('#zoom_range').slider('value');
+        // pensize
+        // opacity
+        
+        
+        return lines_state;
+    }
+    
+
+    //--------------------------------------------------------------------------
+    /**
+     * Sets the current mask interface state: different options like pen size
+     * color and current actions (drawn lines)
+     * @function getState
+     * @memberOf ipol.features.Inpainting~
+     * @public
+     */
+    this.setState = function( lines_state) {
+        var sketch   = $("#colors_sketch").data().sketch;
+        
+        sketch.actions = lines_state.actions;
+        
+        // zoom
+        $('#zoom_range').slider('value',lines_state.zoom);
+        // pensize
+        // opacity
+        
     }
     
     

@@ -465,13 +465,13 @@ ipol.DrawInputs = function(ddl_json) {
         crop_info.h = image.naturalHeight;
         _infoMessage("crop_info = ", crop_info);
         _infoMessage("OnLoadSingleImage end");
-        if (_onloadimages_cb!=undefined) {
-            _onloadimages_cb();
-        }
         // set line drawing
         if (_drawlines) {
             // we assume that the first image is the input
             _drawlines.updateDrawLines(image);
+        }
+        if (_onloadimages_cb!=undefined) {
+            _onloadimages_cb();
         }
         
     }
@@ -521,6 +521,11 @@ ipol.DrawInputs = function(ddl_json) {
                     _inpaint.updateInpaint(ig.GetImage(0)[0]);
                 }
             }
+            // set draw lines
+            if (_drawlines) {
+                _drawlines.updateDrawLines(ig.GetImage(0)[0]);
+            }
+            
             if (_onloadimages_cb!=undefined) {
                 _onloadimages_cb();
             }

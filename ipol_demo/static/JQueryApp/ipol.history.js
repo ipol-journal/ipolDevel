@@ -216,10 +216,22 @@ ipol.history.SetPageState = function( page_state) {
      * @memberOf ipol.history.SetPageState~
      */
     function SetMaskState(mask_state) {
-        console.info("**** SetMaskState");
         if (mask_state) {
             var di = $("#DrawInputs").data("draw_inputs");
             di.getInpaint().setState(mask_state);
+        }
+    }
+     
+    //--------------------------------------------------------------------------
+    /**
+     * Set the draw lines drawing state
+     * @function SetDrawLinesState
+     * @memberOf ipol.history.SetPageState~
+     */
+    function SetDrawLinesState(lines_state) {
+        if (lines_state) {
+            var di = $("#DrawInputs").data("draw_inputs");
+            di.getDrawLines().setState(lines_state);
         }
     }
      
@@ -285,8 +297,9 @@ ipol.history.SetPageState = function( page_state) {
                                     function() {
                                         // update parameters once the inputs
                                         // are loaded
-                                        SetMaskState(   page_state.mask_state);
-                                        SetParamsState( page_state.res.params);
+                                        SetMaskState(     page_state.mask_state);
+                                        SetDrawLinesState(page_state.drawlines_state);
+                                        SetParamsState(   page_state.res.params);
                                     }
                                 );
                     
