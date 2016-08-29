@@ -3,7 +3,7 @@
     "demo_title"            :  "Interactive Segmentation Based on Component-trees",
     "input_description"     : "",
     "param_description"     : "",
-    "inpainting"            : true,
+    "drawmask"              : true,
     "xlink_article"         : "http://www.ipol.im/pub/art/2014/71/",
     "input_condition"       : [ "input_size[0]==input_size[1]",
                                 "badparams",
