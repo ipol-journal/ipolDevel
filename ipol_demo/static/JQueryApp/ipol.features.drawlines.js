@@ -115,7 +115,7 @@ ipol.features.DrawLines = function() {
      */
     this.createHTML = function( ) {
         var html = '';
-        // add inpainting interface
+        // add draw line interface
 
         // zoom
         var limits= '';
@@ -174,7 +174,7 @@ ipol.features.DrawLines = function() {
                             '<div  style="padding:2px"> '+
                                 '<button id="drawlines_newline" style="margin:2px;">New line</button>'+
                             '</div>'+
-                            '<div class="inpaint_actions" style="padding:2px"> '+
+                            '<div class="drawlines_actions" style="padding:2px"> '+
                                 '<button id="drawlines_undo"   style="margin:2px;">Undo</button>'+
                                 '<button id="drawlines_clear"  style="margin:2px;">Clear</button>'+
                             '</div>'+
@@ -193,16 +193,16 @@ ipol.features.DrawLines = function() {
 
     //--------------------------------------------------------------------------
     /**
-     * Create the events for the inpainting interface
+     * Create the events for the draw line interface
      * @function createHTMLEvents
-     * @memberOf ipol.features.Inpainting~
+     * @memberOf ipol.features.DrawLines~
      * @public
      */
     this.createHTMLEvents = function( ) {
         
         var update_pen = _updatePenDisplay.bind(this);
         
-        // add inpainting events
+        // add draw line events
         
         // Change display zoom
         $('#zoom_range').slider(
@@ -333,8 +333,8 @@ ipol.features.DrawLines = function() {
     //--------------------------------------------------------------------------
     /**
      * Updates the line drawing interface
-     * @function updateInpaint
-     * @memberOf ipol.features.Inpainting~
+     * @function updateDrawLines
+     * @memberOf ipol.features.DrawLines~
      * @param {object} image  input image set as canvas painting background
      * @public
      */
@@ -407,7 +407,7 @@ ipol.features.DrawLines = function() {
      * Gets the current line interface state: different options like pen size
      * color and current actions (drawn lines)
      * @function getState
-     * @memberOf ipol.features.Inpainting~
+     * @memberOf ipol.features.DrawLines~
      * @public
      */
     this.getState = function() {
@@ -431,7 +431,7 @@ ipol.features.DrawLines = function() {
      * Sets the current mask interface state: different options like pen size
      * color and current actions (drawn lines)
      * @function getState
-     * @memberOf ipol.features.Inpainting~
+     * @memberOf ipol.features.DrawLines~
      * @public
      */
     this.setState = function( lines_state) {
