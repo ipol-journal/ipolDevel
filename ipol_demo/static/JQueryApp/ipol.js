@@ -251,7 +251,7 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
                                    di.getInputOrigin(),
                                    di.getCropInfo(),
                                    di.getBlobSet(), 
-                                   di.getInpaint(),
+                                   di.getDrawMask(),
                                    di.getDrawLines()
                                   );
         run.setRunEvent();
@@ -401,7 +401,7 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                                                di.getInputOrigin(),
                                                di.getCropInfo(),
                                                di.getBlobSet(), 
-                                               di.getInpaint(),
+                                               di.getDrawMask(),
                                                di.getDrawLines()
                                               );
                     run.setRunEvent();

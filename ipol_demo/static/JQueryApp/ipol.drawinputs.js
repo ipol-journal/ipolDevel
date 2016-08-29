@@ -183,15 +183,15 @@ ipol.DrawInputs = function(ddl_json) {
     }
     
     /** 
-     * if inpainting is enabled, contains the Inpainting instance.
-     * @var {object} _inpaint
+     * if drawmask is enabled, contains the DrawMask instance.
+     * @var {object} _drawmask
      * @memberOf ipol.DrawInputs~
      * @private
      */
-    var _inpaint = undefined;
-    // add inpainting features
-    if (_ddl_json.general.inpainting) {
-        _inpaint = new ipol.features.Inpainting();
+    var _drawmask = undefined;
+    // add drawmask features
+    if (_ddl_json.general.drawmask) {
+        _drawmask = new ipol.features.DrawMask();
     }
 
     /** 
@@ -207,14 +207,14 @@ ipol.DrawInputs = function(ddl_json) {
     }
 
     /** 
-     * Gets _inpaint private variable
-     * @function getInpaint
+     * Gets _drawmask private variable
+     * @function getDrawMask
      * @memberOf ipol.DrawInputs~
      * @returns {object}
      * @public
      */
-    this.getInpaint = function() {
-        return _inpaint;
+    this.getDrawMask = function() {
+        return _drawmask;
     }
     
     /** 
@@ -338,7 +338,7 @@ ipol.DrawInputs = function(ddl_json) {
                         "image-rendering:crisp-edges;";
 
         // add features interface
-        if (_inpaint)   { html += _inpaint.createHTML(); }
+        if (_drawmask)   { html += _drawmask.createHTML(); }
         if (_drawlines) { html += _drawlines.createHTML(); }
         
         // use gallery only if several images 
@@ -393,8 +393,8 @@ ipol.DrawInputs = function(ddl_json) {
         $("#DrawInputs").data("draw_inputs",this);
 
         // add features events
-        if (_inpaint) { 
-            html += _inpaint.createHTMLEvents(); 
+        if (_drawmask) { 
+            html += _drawmask.createHTMLEvents(); 
             $("#input_gallery").hide();
         }
         if (_drawlines) { 
@@ -489,7 +489,7 @@ ipol.DrawInputs = function(ddl_json) {
 
         var ig = new ipol.ImageGallery("inputs");
         ig.Append(inputs_info);
-        if ((_inpaint)&&(!inputs_info.Mask)) {
+        if ((_drawmask)&&(!inputs_info.Mask)) {
             ig.Append({ "Mask":"background_transparency.png"});
         }
         var html = ig.CreateHtml();
@@ -511,14 +511,15 @@ ipol.DrawInputs = function(ddl_json) {
         
         //-----------------------------------
         ig.SetOnLoadAll( function() {
-            // set inpainting
-            if (_inpaint) {
+            // set draw mask
+            if (_drawmask) {
                 // we assume that the first image is the input
                 // and that the second image is the mask
                 if (inputs_info.Mask) {
-                    _inpaint.updateInpaint(ig.GetImage(0)[0],ig.GetImage(1)[0]);
+                    _drawmask.updateDrawMask(ig.GetImage(0)[0],
+                                             ig.GetImage(1)[0]);
                 } else {
-                    _inpaint.updateInpaint(ig.GetImage(0)[0]);
+                    _drawmask.updateDrawMask(ig.GetImage(0)[0]);
                 }
             }
             // set draw lines

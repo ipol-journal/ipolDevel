@@ -20,11 +20,12 @@ var ipol = ipol || {};
  * @param {string} input_origin 
  * @param {object} crop_info crop information in case of crop 
  * @param {object} blobset selected blobset if any (or undefined)
- * @param {object} inpaint instance of inpainting class (or undefined)
+ * @param {object} mask drawing instance of DrawMask class (or undefined)
+ * @param {object} line drawing instance of DrawLines class (or undefined)
  */
 
 ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, 
-                        inpaint, drawlines) {
+                        drawmask, drawlines) {
 
     /** 
      * By convention, we create a private variable '_this' to
@@ -69,12 +70,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
     var _blobset = blobset;
     
      /**
-      * inpainting class instance.
+      * mask drawing class instance.
       * @memberOf ipol.RunDemo~
-      * @var {object} _inpaint inpainting instance
+      * @var {object} _drawmask DrawMask instance
       * @private
       */
-    var _inpaint = inpaint;
+    var _drawmask = drawmask;
     
      /**
       * line drawing class instance.
@@ -315,9 +316,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             new_state["upload_state"] = _getUploadPageState();
         }
         
-        if (_inpaint) {
+        if (_drawmask) {
             var di = $("#DrawInputs").data("draw_inputs");
-            new_state["mask_state"] = di.getInpaint().getState();
+            new_state["mask_state"] = di.getDrawMask().getState();
         }
         if (_drawlines) {
             var di = $("#DrawInputs").data("draw_inputs");
@@ -380,7 +381,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
      * select blobset with crop or initialize without inputs
      * fill a FormData() variable with all the required information
      * to be able to run the demo in all the cases (blobset selection,
-     * local file upload, no inputs, inpainting, etc...)
+     * local file upload, no inputs, mask drawing, etc...)
      * a parameter input_type is send in the form to inform the run service
      * about the type of input, it can be:
      *  - blobset
@@ -428,9 +429,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                                  
             // select input from blobset or upload from local files
             _infoMessage("input_origin = ", _input_origin);
-            if (_inpaint) {
+            if (_drawmask) {
                 form_data.append("input_type","upload");
-                _inpaint.submitInpaintNew(_ddl_json, form_data, _sendRunForm);
+                _drawmask.submitDrawMask(_ddl_json, form_data, _sendRunForm);
             } else {
                 switch (_input_origin) {
                     case "blobset":
@@ -506,7 +507,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                         _sendRunForm(form_data);
                         break;
                 } // end switch input_origin
-            } // end if (inpaint)
+            } // end if (_drawmask)
         }
         );
     }
