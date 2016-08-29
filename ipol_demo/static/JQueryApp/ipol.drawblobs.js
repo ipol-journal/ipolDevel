@@ -94,19 +94,19 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _preprocessDemo = function() {
-        _preprocessDemoOld();
-        _preprocessDemoNew();
+        _preprocessDemofromHTML();
+        _preprocessDemoFormParam();
     }
     
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information, sets each blobset html_params
      * value containing the links of all the blob urls in the blobset
-     * @function _preprocessDemoOld
+     * @function preprocessDemofromHTML
      * @memberOf ipol.DrawBlobs~
      * @private
      */
-    var _preprocessDemoOld = function() {
+    var _preprocessDemofromHTML = function() {
         
         var blobs = _demoblobs.blobs;
         
@@ -147,11 +147,11 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     /**
      * Pre-processes the demo information, sets each blobset form_params
      * value containing the links of all the blob urls in the blobset
-     * @function _preprocessDemoNew
+     * @function _preprocessDemoFormParam
      * @memberOf ipol.DrawBlobs~
      * @private
      */
-    var _preprocessDemoNew = function() {
+    var _preprocessDemoFormParam = function() {
         
         var blobs = _demoblobs.blobs;
         
