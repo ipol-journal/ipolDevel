@@ -94,12 +94,8 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _preprocessDemo = function() {
-        if (use_core) {
-            _preprocessDemoOld();
-            _preprocessDemoNew();
-        } else {
-            _preprocessDemoOld();
-        }
+        _preprocessDemoOld();
+        _preprocessDemoNew();
     }
     
     //--------------------------------------------------------------------------
