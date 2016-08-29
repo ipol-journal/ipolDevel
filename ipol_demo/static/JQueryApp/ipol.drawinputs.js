@@ -521,6 +521,9 @@ ipol.DrawInputs = function(ddl_json) {
                     _inpaint.updateInpaint(ig.GetImage(0)[0]);
                 }
             }
+            if (_onloadimages_cb!=undefined) {
+                _onloadimages_cb();
+            }
         }.bind(this) );
         
         //-----------------------------------
