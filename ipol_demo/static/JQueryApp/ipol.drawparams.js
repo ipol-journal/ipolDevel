@@ -308,17 +308,18 @@ ipol.DrawParams = function() {
         }
         
         // try to set the right decimal values
-        if (hasdecimals(param.values.min,0)&&
-            hasdecimals(param.values.max,0)&&
-            hasdecimals(param.values.step,0)) {
-            slider_options['format']= wNumb({ decimals: 0 });
-        } else {
-            if (hasdecimals(param.values.min,1)&&
-                hasdecimals(param.values.max,1)&&
-                hasdecimals(param.values.step,1)) {
-                slider_options['format']= wNumb({ decimals: 1 });
+        var num_decimals = 0;
+        var ok = false;
+        while ((!ok)&&(num_decimals<4)) {
+            ok = (hasdecimals(param.values.min, num_decimals)&&
+                  hasdecimals(param.values.max, num_decimals)&&
+                  hasdecimals(param.values.step,num_decimals));
+            
+            if (!ok) {
+                num_decimals++;
             }
         }
+        slider_options['format']= wNumb({ decimals: num_decimals });
         
         noUiSlider.create($('#'+range_id)[0], slider_options);
         
