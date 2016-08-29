@@ -722,6 +722,7 @@ ipol.features.Inpainting = function() {
         // pensize
         // opacity
         
+        _updateMask();
     }
     
 }
