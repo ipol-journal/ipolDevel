@@ -19,7 +19,7 @@
         "url"           : "http://www.ipol.im/pub/art/2015/49/tableaux_4_demo_support_code.tar.gz", 
         "srcdir"        : "tableaux_4_demo_support_code",
         "binaries"      : [ [".","bin/","plambda"] ],
-        "prepare_make"  : "sed -i -e 's/zoombil\\\//zoombil/g' Makefile",
+        "prepare_make"  : "sed -i -e 's/zoombil\\\//zoombil/g' Makefile -e 's/\\\/usr\\\/bin\\\/time -f \"stufftime %e s\" $CMD/TIMEFORMAT=\"stufftime %R s\";{ time $CMD; }/g' bin/ipol_demo_high_toni.sh",
         "flags"         : "-j4 "
       },
       {
@@ -215,6 +215,7 @@
         "id"   : "reference",
         "label": "Reference image",
         "type": "range",
+        "comments":"If the reference is not the first image (image 0), it will be swapped with with the first image in the results",
         "values": {
             "default": 0,
             "max": 18,
@@ -244,8 +245,20 @@
       "type"          : "gallery",
       "label"         : "<h3>Blended output</h3>",
       "contents"      : { 
-                "blended"         :"zum_d_grad.png", 
-                "blended (detail)":"kro_d_grad.png"}
+                "blended"         :"zum_d_grad.png"
+        }
+    },
+    {
+      "type"          : "repeat_gallery",
+      "label"         : "<h3>Registered</h3>",
+      "repeat"        : "meta.nb_inputs",
+      "contents"      : [
+            "'Input '+idx",
+                {
+                "Registered"    : "'zum_reg_i' +('00'+idx).slice(-2)+'.png'",
+                "Original"      : "'zum_i'     +('00'+idx).slice(-2)+'.png'"
+                } ],
+      "options"       :  { "minheight" : 400 }
     },
     {
       "type"          : "repeat_gallery",
@@ -254,11 +267,37 @@
       "contents"      : [
             "'Input '+idx",
                 {
-                "Registered"    : "'zum_reg_i'    +('00'+idx).slice(-2)+'.png'",
-                "Original"      : "'zum_ii'        +idx+'.png'",
                 "Shadow (diff)" : "'zshadow_reg_i'+('00'+idx).slice(-2)+'.png'"
                 } ],
       "options"       :  { "minheight" : 400 }
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<h3>Download full-size results:</h3>",
+      "contents"      : { "blended gradient"  : "d_grad.png", 
+                          "blended min"       : "d_min.png",
+                          "blended median"    : "d_median.png"
+                        }
+    },
+    {
+      "type"      :"html_text",
+      "contents"  : "<h3>Download full-size input images:</h3>"
+    },
+    {
+      "repeat"        : "meta.nb_inputs",
+      "type"          : "file_download", 
+      "label"         : "'Original image '+idx+''",
+      "contents"      : "'i'+('00'+idx).slice(-2)+'.png'"
+    },
+    {
+      "type"      :"html_text",
+      "contents"  : "<h3>Download full-size registered images:</h3>"
+    },
+    {
+      "repeat"        : "meta.nb_inputs",
+      "type"          : "file_download", 
+      "label"         : "'Registered image '+idx+''",
+      "contents"      : "'reg_i'+('00'+idx).slice(-2)+'.png'"
     }
   ]
 }
