@@ -73,10 +73,12 @@ ipol.history.SetPageState = function( page_state) {
      * @param ddl_json      {object}  DDL object 
      * @param params        {object}  algorithm parameters
      * @param crop_checked  {boolean} if crop is checked
+     *                                (can be undefined)
      * @function SetInputsState
      * @memberOf ipol.history.SetPageState~
      */
-    function SetInputsState(blobset,upload_state, ddl_json,params,crop_checked) {
+    function SetInputsState(blobset, upload_state, ddl_json, params,
+                            crop_checked, onload_callback) {
         var di = $("#DrawInputs").data("draw_inputs");
         var crop_area = {   
             x:      params.x0, 
@@ -111,7 +113,8 @@ ipol.history.SetPageState = function( page_state) {
                     }
                 });
                 di.onLoadImages( function() {
-                    console.info("OnLoadImages callback");
+                    console.info("**** OnLoadImages callback");
+                    onload_callback();
                 });
                 di.loadDataFromBlobSet();
             } else {
@@ -135,6 +138,7 @@ ipol.history.SetPageState = function( page_state) {
                         di.setCrop(crop_area);
                     }
                 }
+                onload_callback();
             }
             var run = new ipol.RunDemo(ddl_json,
                                        di.getInputOrigin(),
@@ -166,6 +170,7 @@ ipol.history.SetPageState = function( page_state) {
                         console.info("OnLoadImages callback");
                         // we set the parameters once all images are loaded
                         SetParamsState(page_state.res.params);
+                        onload_callback();
                     });
                     di.loadDataFromLocalFiles();
                 } else {
@@ -187,6 +192,7 @@ ipol.history.SetPageState = function( page_state) {
                             di.setCrop(crop_area);
                         }
                     }
+                    onload_callback();
                 }
                 var run = new ipol.RunDemo(ddl_json,
                                            di.getInputOrigin(),
@@ -205,12 +211,27 @@ ipol.history.SetPageState = function( page_state) {
     
     //--------------------------------------------------------------------------
     /**
+     * Set the mask drawing state
+     * @function SetMaskState
+     * @memberOf ipol.history.SetPageState~
+     */
+    function SetMaskState(mask_state) {
+        console.info("**** SetMaskState");
+        if (mask_state) {
+            var di = $("#DrawInputs").data("draw_inputs");
+            di.getInpaint().setState(mask_state);
+        }
+    }
+     
+    //--------------------------------------------------------------------------
+    /**
      * Set the parameters values
      * @param params        {object}  algorithm parameters
      * @function SetParamsState
      * @memberOf ipol.history.SetPageState~
      */
     function SetParamsState(params) {
+        console.info("**** SetParamsState");
         // update parameters
         ipol.DrawParams.staticSetParamValues(params);
     }
@@ -260,13 +281,15 @@ ipol.history.SetPageState = function( page_state) {
                                     page_state.upload_state,
                                     page_state.ddl_json,
                                     page_state.res.params,
-                                    page_state.crop_checked
+                                    page_state.crop_checked,
+                                    function() {
+                                        // update parameters once the inputs
+                                        // are loaded
+                                        SetMaskState(   page_state.mask_state);
+                                        SetParamsState( page_state.res.params);
+                                    }
                                 );
                     
-                    // update parameters
-                    // TODO: we need to be sure that the input images
-                    // are loaded before setting the parameters
-                    SetParamsState(page_state.res.params);
                     
                     // Set Progress information
                     ipol.RunDemo.staticSetProgress(page_state.res);
