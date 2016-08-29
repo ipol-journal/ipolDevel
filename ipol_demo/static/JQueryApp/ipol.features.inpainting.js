@@ -678,5 +678,50 @@ ipol.features.Inpainting = function() {
         $("#inpaint_marker").trigger('click');  // set marker
         
     }
+
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Gets the current mask interface state: different options like pen size
+     * color and current actions (drawn lines)
+     * @function getState
+     * @memberOf ipol.features.Inpainting~
+     * @public
+     */
+    this.getState = function() {
+        var mask_state = {}
+        var sketch   = $("#colors_sketch").data().sketch;
+        
+        mask_state.actions = sketch.actions;
+        
+        // zoom
+        mask_state.zoom = $('#zoom_range').slider('value');
+        // pensize
+        // opacity
+        
+        
+        return mask_state;
+    }
+    
+
+    //--------------------------------------------------------------------------
+    /**
+     * Sets the current mask interface state: different options like pen size
+     * color and current actions (drawn lines)
+     * @function getState
+     * @memberOf ipol.features.Inpainting~
+     * @public
+     */
+    this.setState = function( mask_state) {
+        var sketch   = $("#colors_sketch").data().sketch;
+        
+        sketch.actions = mask_state.actions;
+        
+        // zoom
+        $('#zoom_range').slider('value',mask_state.zoom);
+        // pensize
+        // opacity
+        
+    }
     
 }
