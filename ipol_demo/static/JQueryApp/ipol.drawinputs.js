@@ -692,7 +692,8 @@ ipol.DrawInputs = function(ddl_json) {
                                                       upload_state[idx]);
                 }
             } else {
-                ok=false;
+                // ok if input not required, skip it
+                ok=!_ddl_json.inputs[idx].required;
             }
         }
         if (!ok) {
