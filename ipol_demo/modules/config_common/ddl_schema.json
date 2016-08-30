@@ -25,8 +25,9 @@
                     },
                 "xlink_article":  { "type" : "string"  },
                 "enable_crop":    { "type" : "boolean" },
-                "inpainting":     { "type" : "boolean" },
+                "drawmask":       { "type" : "boolean" },
                 "drawlines":      { "type" : "boolean" },
+                "drawpoints":     { "type" : "boolean" },
                 "crop_maxsize":   { "type" : "string"  },
                 "thumbnail_size": { "type" : "integer" },
                 "input_condition": 
@@ -121,7 +122,8 @@
                                                 },
                                             "minItems" : 1
                                         },
-                        "required" : [ "build_type", "url", "srcdir", "scripts" ]
+                    },
+                    "required" : [ "build_type", "url", "srcdir", "scripts" ]
                 } ]
             },
             "minItems": 1
