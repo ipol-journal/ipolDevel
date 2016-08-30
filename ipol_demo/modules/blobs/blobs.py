@@ -1201,7 +1201,7 @@ class   Blobs(object):
                                     "ext": image_ext, "blob_set": section, 
                                     "blob_pos_in_set": file_id, "title": title,
                                     "credit": credit}
-                            self.logger.debug("add_blob_ws data = {1}".format(data))
+                            self.logger.debug("add_blob_ws data = {0}".format(data))
                             res = use_web_service('/add_blob_ws/', data)
                             the_hash = res["the_hash"]
 
