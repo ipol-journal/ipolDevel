@@ -675,7 +675,7 @@ class demo_index(object):
         #except Exception as ex:
                 #pass
             
-        dr_winner = 'demorunner' ## In the future, the demo_dispatcher call will be included here.
+        dr_winner = 'demorunner' ## In the future, the demo_dispatcher request will be included here.
                         
         try:
             print "Entering dr.ensure_compilation()"
@@ -723,12 +723,11 @@ class demo_index(object):
                 status = json_response['status']
                 
                 if status == 'OK':
-                    if 'archive' in ddl_json:
-                        print "archive.store_experiment()"
-                        if original_exp == 'true':
-                            ddl_archive = ddl_json['archive']
-                            print ddl_archive
-                            result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
+                    print "archive.store_experiment()"
+                    if original_exp == 'true':
+                        ddl_archive = ddl_json['archive']
+                        print ddl_archive
+                        result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
                 else:
                     print "FAIL RUNNING"
                     self.logger.exception("Failed running in the demorunner")
@@ -745,9 +744,6 @@ class demo_index(object):
                 res_data["status"]  = "KO"
                 return json.dumps(json_response)
             
-        #response = {}
-        #response['status'] = 'KO' # Quiero que falle
-        
         return json.dumps(json_response)
 
 
