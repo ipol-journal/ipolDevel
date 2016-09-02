@@ -20,12 +20,12 @@ var ipol = ipol || {};
  * @param {string} input_origin 
  * @param {object} crop_info crop information in case of crop 
  * @param {object} blobset selected blobset if any (or undefined)
- * @param {object} mask drawing instance of DrawMask class (or undefined)
- * @param {object} line drawing instance of DrawLines class (or undefined)
+ * @param {object} feature drawing instance of DrawBase class:
+ * can be any class Drawing feature class: DrawMask, DrawLines, etc... 
+ * or undefined
  */
 
-ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, 
-                        drawmask, drawlines) {
+ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) {
 
     /** 
      * By convention, we create a private variable '_this' to
@@ -70,20 +70,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
     var _blobset = blobset;
     
      /**
-      * mask drawing class instance.
+      * feature drawing class instance.
       * @memberOf ipol.RunDemo~
-      * @var {object} _drawmask DrawMask instance
+      * @var {object} _drawfeature DrawBase instance
       * @private
       */
-    var _drawmask = drawmask;
-    
-     /**
-      * line drawing class instance.
-      * @memberOf ipol.RunDemo~
-      * @var {object} _drawlines DrawLines instance
-      * @private
-      */
-    var _drawlines = drawlines;
+    var _drawfeature = drawfeature;
     
     /** 
      * Enable/Disable display of (tracing/debugging) 
@@ -316,13 +308,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             new_state["upload_state"] = _getUploadPageState();
         }
         
-        if (_drawmask) {
+        if (_drawfeature) {
             var di = $("#DrawInputs").data("draw_inputs");
-            new_state["mask_state"] = di.getDrawMask().getState();
-        }
-        if (_drawlines) {
-            var di = $("#DrawInputs").data("draw_inputs");
-            new_state["drawlines_state"] = di.getDrawLines().getState();
+            new_state["feature_state"] = di.getDrawFeature().getState();
         }
         
         try {
@@ -421,18 +409,24 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
             params['y0']=Math.round(_crop_info.y);
             params['y1']=Math.round(_crop_info.y+_crop_info.h);
 
-            if (_drawlines) {
-                _drawlines.AddLinesParameters(params);
+            if (_drawfeature) {
+                _drawfeature.AddToParameters(params);
             }
             
             form_data.append("params",  JSON.stringify(params));
                                  
             // select input from blobset or upload from local files
             _infoMessage("input_origin = ", _input_origin);
-            if (_drawmask) {
-                form_data.append("input_type","upload");
-                _drawmask.submitDrawMask(_ddl_json, form_data, _sendRunForm);
-            } else {
+            
+            var submitted_feature = false;
+            if (_drawfeature && _drawfeature.submitDrawing) {
+                form_data.set("input_type","upload");
+                submitted_feature = _drawfeature.submitDrawing( _ddl_json, 
+                                                                form_data, 
+                                                                _sendRunForm);
+            }
+            
+            if (!submitted_feature) {
                 switch (_input_origin) {
                     case "blobset":
                         // Set inputs using blobset
@@ -441,12 +435,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                                 JSON.stringify(_crop_info));
                         form_data.append( "blobs", 
                                 JSON.stringify(_blobset[0].form_params));
-                        form_data.append("input_type","blobset");
+                        form_data.set("input_type","blobset");
                         _sendRunForm(form_data);
                         break;
 
                     case "localfiles":
-                        form_data.append("input_type","upload");
+                        form_data.set("input_type","upload");
                         
                         var inputs  = _ddl_json.inputs;
                         if (inputs.length===1) {
@@ -503,11 +497,11 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset,
                         break;
                         
                     case "noinputs":
-                        form_data.append("input_type","noinputs");
+                        form_data.set("input_type","noinputs");
                         _sendRunForm(form_data);
                         break;
                 } // end switch input_origin
-            } // end if (_drawmask)
+            } // end if (!submitted_feature)
         }
         );
     }

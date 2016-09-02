@@ -251,8 +251,7 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
                                    di.getInputOrigin(),
                                    di.getCropInfo(),
                                    di.getBlobSet(), 
-                                   di.getDrawMask(),
-                                   di.getDrawLines()
+                                   di.getDrawFeature()
                                   );
         run.setRunEvent();
     }
