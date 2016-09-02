@@ -144,8 +144,7 @@ ipol.history.SetPageState = function( page_state) {
                                        di.getInputOrigin(),
                                        di.getCropInfo(),
                                        di.getBlobSet(), 
-                                       di.getDrawMask(),
-                                       di.getDrawLines()
+                                       di.getDrawFeature()
                                       );
             run.setRunEvent();
         }
@@ -198,8 +197,7 @@ ipol.history.SetPageState = function( page_state) {
                                            di.getInputOrigin(),
                                            di.getCropInfo(),
                                            di.getBlobSet(), 
-                                           di.getDrawMask(),
-                                           di.getDrawLines()
+                                           di.getDrawFeature()
                                           );
                 run.setRunEvent();
             } else {
@@ -211,27 +209,14 @@ ipol.history.SetPageState = function( page_state) {
     
     //--------------------------------------------------------------------------
     /**
-     * Set the mask drawing state
-     * @function SetMaskState
+     * Set the feature drawing state
+     * @function SetDrawFeatureState
      * @memberOf ipol.history.SetPageState~
      */
-    function SetMaskState(mask_state) {
-        if (mask_state) {
+    function SetDrawFeatureState(feature_state) {
+        if (feature_state) {
             var di = $("#DrawInputs").data("draw_inputs");
-            di.getDrawMask().setState(mask_state);
-        }
-    }
-     
-    //--------------------------------------------------------------------------
-    /**
-     * Set the draw lines drawing state
-     * @function SetDrawLinesState
-     * @memberOf ipol.history.SetPageState~
-     */
-    function SetDrawLinesState(lines_state) {
-        if (lines_state) {
-            var di = $("#DrawInputs").data("draw_inputs");
-            di.getDrawLines().setState(lines_state);
+            di.getDrawFeature().setState(feature_state);
         }
     }
      
@@ -289,20 +274,19 @@ ipol.history.SetPageState = function( page_state) {
                 // set all the page information
                 case 2:
                     
-                    SetInputsState( page_state.blobset,
-                                    page_state.upload_state,
-                                    page_state.ddl_json,
-                                    page_state.res.params,
-                                    page_state.crop_checked,
-                                    function() {
-                                        // update parameters once the inputs
-                                        // are loaded
-                                        SetMaskState(     page_state.mask_state);
-                                        SetDrawLinesState(page_state.drawlines_state);
-                                        SetParamsState(   page_state.res.params);
-                                    }
-                                );
-                    
+                    SetInputsState( 
+                        page_state.blobset,
+                        page_state.upload_state,
+                        page_state.ddl_json,
+                        page_state.res.params,
+                        page_state.crop_checked,
+                        function() {
+                            // update parameters once the inputs
+                            // are loaded
+                            SetDrawFeatureState(  page_state.feature_state);
+                            SetParamsState(       page_state.res.params);
+                        }
+                    );
                     
                     // Set Progress information
                     ipol.RunDemo.staticSetProgress(page_state.res);
