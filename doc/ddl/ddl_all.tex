@@ -52,8 +52,10 @@ Many keys are derived from the static variables of the previous 'app' Python cla
                       & yes
                       \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
- inpainting         & boolean: if true, the demo is an inpainting demo with a 
+ drawmask           & boolean: if true, the demo is an mask drawing (like inpainting) demo with a 
                       single input image and mask drawing is enabled. & no \\ \hline
+ drawlines          & boolean: if true, the demo is a line drawing demo with a 
+                      single input image and line drawing is enabled. & no \\ \hline
  crop\_maxsize      & limit allowed crop size in both width and height, the string
                       can contain a Javascript or JQuery expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
@@ -1123,8 +1125,8 @@ ipol\_demo/\-static/\-JQuery\-App directory:
   and an history state change event, specified in ipol\_demo.js, updates
   the contents on the page.
 
- \item \emph{ipol.features.inpainting.js}: creates the interface needed to draw
-  the inpainting mask. It uses a modified version of the 'sketch.js' module.
+ \item \emph{ipol.features.drawmask.js}: creates the interface needed to draw
+  a mask for example for inpainting demo. It uses a modified version of the 'sketch.js' module.
 
   \item \emph{ImageGallery/ipol.imagegallery.js}: implements the ImageGallery class
   used to display image galleries in inputs and results sections.
@@ -1198,7 +1200,7 @@ You will notice the use of the following external modules:
         (\url{https://github.com/blueimp/JavaScript-Canvas-to-Blob}) and 
         \emph{blob-util} (\url{https://github.com/nolanlawson/blob-util}) are 
         used.
-  \item \emph{sketch.js} is used for drawing inpainting mask, it has been 
+  \item \emph{sketch.js} is used for drawing mask, it has been 
         modified to better fit the needs of the mask drawing (and also to try 
         to fix a position issue with chrome on touching devices). The original   
         version is available at (\url{http://intridea.github.io/sketch.js/}), 
@@ -1338,11 +1340,11 @@ The "inputs\_info" object contains the titles and contents to be displayed and i
 by the one of the public methods DrawInputs.loadDataFromBlobset() or DrawInputs.loadDataFromLocalFiles().
 
 \paragraph{Inpainting demos}
-If the demo DDL has inpainting enabled (general.inpainting=true), then an inpainting object
-of class "ipol.features.Inpainting" is created as a private member \_inpaint of the class
+If the demo DDL has mask drawing enabled (general.drawmask=true), then an drawmask object
+of class "ipol.features.Inpainting" is created as a private member \_drawmask of the class
 DrawInputs. In this case, the usual displayed input is hidden and the displayed HTML code
-contains the result of the function call to \_inpaint.createHTML() that creates all 
-the inpainting interface. The mask image is also added to the hidden ImageGallery object,
+contains the result of the function call to \_drawmask.createHTML() that creates all 
+the mask drawing interface. The mask image is also added to the hidden ImageGallery object,
 it will be updated after each drawing event and it will be used as an image to upload
 for the demo execution.
 
@@ -1363,12 +1365,12 @@ The first step is to call the service "demorunner:init\_demo" that checks for th
 source code installation and compilation. Once the current demo is successfully
 initialized, input data can be either uploaded to defined:
 \begin{itemize}
- \item for inpainting demo, the method \_inpaint.submitInpaint() is called,
-        that will submit inpaint inputs: image and mask.
- \item for non-inpainting demos where the input comes from a selected blobset,
+ \item for mask drawing demos, the method \_drawmask.submitDrawMask() is called,
+        that will submit the inputs: image and mask.
+ \item for non-mask-drawing demos where the input comes from a selected blobset,
         the service "demorunner:input\_select\_and\_crop" is called with all the
         required parameters: demo id, blobset information, crop information.
- \item for non-inpainting demos with local files to upload, a local variable
+ \item for non-mask-drawing demos with local files to upload, a local variable
         of type "FormData" is instanciated and filled with the data to upload.
         In the case of a single input image with selected crop, the image
         is reduced to the crop area before its upload (using the getCroppedCanvas
