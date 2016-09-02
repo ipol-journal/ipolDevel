@@ -21,10 +21,13 @@ ipol.features = ipol.features || {};
 //------------------------------------------------------------------------------
 /**
  * Line drawing interface
+ * @extends ipol.features.DrawBase
  * @constructor
  */
 ipol.features.DrawLines = function() {
 
+    // call super constructor.
+    ipol.features.DrawBase.call(this); 
 
     //--------------------------------------------------------------------------
     /**
@@ -89,7 +92,7 @@ ipol.features.DrawLines = function() {
      * @param params object containing the parameters
      * @public
      */
-    this.AddLinesParameters = function(params) {
+    this.AddToParameters = function(params) {
         var sketch   = $("#colors_sketch").data().sketch;
         sketch.stopPainting();
         params.drawlines = [];
@@ -338,7 +341,7 @@ ipol.features.DrawLines = function() {
      * @param {object} image  input image set as canvas painting background
      * @public
      */
-    this.updateDrawLines = function(image) {
+    this.updateDrawing = function(image) {
         // 1. set background image and image size
         //       var image_src = $("#inputimage").attr('src');
         //       var image_src = $("#input_gallery #img_0_0").prop("src");
@@ -430,7 +433,7 @@ ipol.features.DrawLines = function() {
     /**
      * Sets the current mask interface state: different options like pen size
      * color and current actions (drawn lines)
-     * @function getState
+     * @function setState
      * @memberOf ipol.features.DrawLines~
      * @public
      */
@@ -448,3 +451,8 @@ ipol.features.DrawLines = function() {
     
     
 }
+
+// subclass extends superclass
+ipol.features.DrawLines.prototype = Object.create(ipol.features.DrawBase.prototype);
+ipol.features.DrawLines.prototype.constructor = ipol.features.DrawLines;
+    

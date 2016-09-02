@@ -22,9 +22,12 @@ ipol.features = ipol.features || {};
 /**
  * Mask drawing interface for demos like inpainting or others
  * @constructor
+ * @extends ipol.features.DrawBase
  */
 ipol.features.DrawMask = function() {
 
+    // call super constructor.
+    ipol.features.DrawBase.call(this); 
 
     //--------------------------------------------------------------------------
     /**
@@ -257,11 +260,11 @@ ipol.features.DrawMask = function() {
      * Updates the mask image (in hidden canvas) based on the user drawings.
      * The mask is set to white if the opacity is>0, otherwise it is set to 
      * black
-     * @function submitDrawMask
+     * @function submitDrawing
      * @memberOf ipol.features.DrawMask~
      * @public
      */
-    this.submitDrawMask = function(ddl_json, formData, upload_callback) {
+    this.submitDrawing = function(ddl_json, formData, upload_callback) {
 
         var inputs  = ddl_json.inputs;
         // we should have two inputs: the image and the mask
@@ -290,6 +293,7 @@ ipol.features.DrawMask = function() {
                         upload_callback(formData);
                     }
             });
+        return true;
     }
     
     //--------------------------------------------------------------------------
@@ -550,13 +554,13 @@ ipol.features.DrawMask = function() {
     //--------------------------------------------------------------------------
     /**
      * Updates the mask drawing interface
-     * @function updateDrawMask
+     * @function updateDrawing
      * @memberOf ipol.features.DrawMask~
      * @param {object} image  input image set as canvas painting background
      * @param {object} mask   optional initial mask
      * @public
      */
-    this.updateDrawMask = function(image,mask) {
+    this.updateDrawing = function(image,mask) {
         // 1. set background image and image size
         //       var image_src = $("#inputimage").attr('src');
         //       var image_src = $("#input_gallery #img_0_0").prop("src");
@@ -660,7 +664,7 @@ ipol.features.DrawMask = function() {
     /**
      * Sets the current mask interface state: different options like pen size
      * color and current actions (drawn lines)
-     * @function getState
+     * @function setState
      * @memberOf ipol.features.DrawMask~
      * @public
      */
@@ -678,3 +682,8 @@ ipol.features.DrawMask = function() {
     }
     
 }
+
+// subclass extends superclass
+ipol.features.DrawMask.prototype = Object.create(ipol.features.DrawBase.prototype);
+ipol.features.DrawMask.prototype.constructor = ipol.features.DrawMask;
+    
