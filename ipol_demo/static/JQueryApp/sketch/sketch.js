@@ -80,6 +80,7 @@ var __slice = Array.prototype.slice;
       this.initial_height=this.el.height;
       this.initial_mask = undefined;
       this.polyline_mode = false;
+      this.point_mode = false;
       
       // removed click from events since mousedown catches the event
       //this.canvas.bind('click mousedown touchstart', this.onEvent);
@@ -109,6 +110,11 @@ var __slice = Array.prototype.slice;
     //--------------------------------------------------------------------------
     Sketch.prototype.draw_polylines = function(dp) {
       this.polyline_mode = dp;
+    }
+    
+    //--------------------------------------------------------------------------
+    Sketch.prototype.draw_points = function(dp) {
+      this.points_mode = dp;
     }
     
     //--------------------------------------------------------------------------
@@ -303,6 +309,10 @@ var __slice = Array.prototype.slice;
         //console.info(" x=",e.pageX - this.canvas.offset().left,
         //             " y=",e.pageY - this.canvas.offset().top;
             
+        if (this.points_mode) {
+            // empty events to keep last point only
+            this.action.events =[];
+        }
         this.action.events.push({
           x: (e.pageX - this.canvas.offset().left)/this.scale_factor,
           y: (e.pageY - this.canvas.offset().top )/this.scale_factor,
