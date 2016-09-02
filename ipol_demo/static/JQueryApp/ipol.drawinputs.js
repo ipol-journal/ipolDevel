@@ -182,50 +182,40 @@ ipol.DrawInputs = function(ddl_json) {
         return _blobset;
     }
     
-    /** 
-     * if drawmask is enabled, contains the DrawMask instance.
-     * @var {object} _drawmask
-     * @memberOf ipol.DrawInputs~
-     * @private
-     */
-    var _drawmask = undefined;
-    // add drawmask features
-    if (_ddl_json.general.drawmask) {
-        _drawmask = new ipol.features.DrawMask();
-    }
 
     /** 
-     * if draxlines is enabled, contains the DrawLines instance.
-     * @var {object} _drawlines
+     * _drawfeature contains the drawing feature 
+     * can be drawlines, drawmask, drawpoints, etc.
+     * @var {object} _drawfeature
      * @memberOf ipol.DrawInputs~
      * @private
      */
-    var _drawlines = undefined;
+    var _drawfeature = undefined;
+
     // add line drawing features
     if (_ddl_json.general.drawlines) {
-        _drawlines = new ipol.features.DrawLines();
+        _drawfeature = new ipol.features.DrawLines();
+    } else {
+        // add point drawing features
+        if (_ddl_json.general.drawpoints) {
+            _drawfeature = new ipol.features.DrawPoints();
+        } else {
+            // add drawmask features
+            if (_ddl_json.general.drawmask) {
+                _drawfeature = new ipol.features.DrawMask();
+            }
+        }
     }
 
     /** 
-     * Gets _drawmask private variable
-     * @function getDrawMask
+     * Gets _drawfeature private variable
+     * @function getDrawFeature
      * @memberOf ipol.DrawInputs~
      * @returns {object}
      * @public
      */
-    this.getDrawMask = function() {
-        return _drawmask;
-    }
-    
-    /** 
-     * Gets _drawlines private variable
-     * @function getDrawLines
-     * @memberOf ipol.DrawInputs~
-     * @returns {object}
-     * @public
-     */
-    this.getDrawLines = function() {
-        return _drawlines;
+    this.getDrawFeature = function() {
+        return _drawfeature;
     }
     
     //--------------------------------------------------------------------------
@@ -338,8 +328,7 @@ ipol.DrawInputs = function(ddl_json) {
                         "image-rendering:crisp-edges;";
 
         // add features interface
-        if (_drawmask)   { html += _drawmask.createHTML(); }
-        if (_drawlines) { html += _drawlines.createHTML(); }
+        if (_drawfeature)   { html += _drawfeature.createHTML(); }
         
         // use gallery only if several images 
         if (inputs.length>1) {
@@ -393,12 +382,9 @@ ipol.DrawInputs = function(ddl_json) {
         $("#DrawInputs").data("draw_inputs",this);
 
         // add features events
-        if (_drawmask) { 
-            html += _drawmask.createHTMLEvents(); 
+        if (_drawfeature) { 
+            html += _drawfeature.createHTMLEvents(); 
             $("#input_gallery").hide();
-        }
-        if (_drawlines) { 
-            html += _drawlines.createHTMLEvents(); 
             $("#inputimage_table").hide();
         }
     };
@@ -465,10 +451,10 @@ ipol.DrawInputs = function(ddl_json) {
         crop_info.h = image.naturalHeight;
         _infoMessage("crop_info = ", crop_info);
         _infoMessage("OnLoadSingleImage end");
-        // set line drawing
-        if (_drawlines) {
+        // set feature drawing
+        if (_drawfeature ) {
             // we assume that the first image is the input
-            _drawlines.updateDrawLines(image);
+            _drawfeature.updateDrawing(image);
         }
         if (_onloadimages_cb!=undefined) {
             _onloadimages_cb();
@@ -489,7 +475,7 @@ ipol.DrawInputs = function(ddl_json) {
 
         var ig = new ipol.ImageGallery("inputs");
         ig.Append(inputs_info);
-        if ((_drawmask)&&(!inputs_info.Mask)) {
+        if ((_drawfeature)&&(!inputs_info.Mask)) {
             ig.Append({ "Mask":"background_transparency.png"});
         }
         var html = ig.CreateHtml();
@@ -512,21 +498,16 @@ ipol.DrawInputs = function(ddl_json) {
         //-----------------------------------
         ig.SetOnLoadAll( function() {
             // set draw mask
-            if (_drawmask) {
+            if (_drawfeature) {
                 // we assume that the first image is the input
                 // and that the second image is the mask
                 if (inputs_info.Mask) {
-                    _drawmask.updateDrawMask(ig.GetImage(0)[0],
-                                             ig.GetImage(1)[0]);
+                    _drawfeature.updateDrawing(ig.GetImage(0)[0],
+                                               ig.GetImage(1)[0]);
                 } else {
-                    _drawmask.updateDrawMask(ig.GetImage(0)[0]);
+                    _drawfeature.updateDrawing(ig.GetImage(0)[0]);
                 }
             }
-            // set draw lines
-            if (_drawlines) {
-                _drawlines.updateDrawLines(ig.GetImage(0)[0]);
-            }
-            
             if (_onloadimages_cb!=undefined) {
                 _onloadimages_cb();
             }
@@ -597,11 +578,38 @@ ipol.DrawInputs = function(ddl_json) {
             _createGallery(inputs_info);
         } else {
             var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
-            var image = new Image();
-            image.onload = function () {
-                    _onLoadSingleImage(this);
-                };
-            image.src = blobs_url+blob;
+            if (inputs[0].type=="image") {
+                var image = new Image();
+                image.onload = function () {
+                        _onLoadSingleImage(this);
+                    };
+                image.src = blobs_url+blob;
+            } else {
+                // extract non PNG file, ususally .txt for example
+                if (blob.indexOf(',')>-1) {
+                    var blobs = blob.split(',');
+                    for(var n=0;n<blobs.length;n++) {
+                        if (!blobs[n].toLowerCase().endsWith(".png")) {
+                            blob = blobs[n];
+                        }
+                    }
+                }
+                jQuery.get(blobs_url+blob, undefined, function(data) {
+                    // set feature drawing
+                    if (_drawfeature) {
+                        var feature_data = JSON.parse(data);
+                        console.info("feature_data",feature_data);
+                        // we assume that the first image is the input
+                        _drawfeature.updateDrawing(feature_data);
+                    }
+                    if (_onloadimages_cb!=undefined) {
+                        _onloadimages_cb();
+                    }
+                }, "text").done(function() {
+                }).fail(function(jqXHR, textStatus) {
+                }).always(function() {
+                });
+            }
         }
         _infoMessage("loadDataFromBlobSet end");
     };
@@ -646,11 +654,24 @@ ipol.DrawInputs = function(ddl_json) {
             }
             _createGallery(inputs_info);
         } else {
-            var image = new Image();
-            image.src =  $('#localdata_preview_0').attr("src");
-            image.onload = function () {
-               _onLoadSingleImage(image);
-            };
+            if (inputs[0].type=="image") {
+                var image = new Image();
+                image.src =  $('#localdata_preview_0').attr("src");
+                image.onload = function () {
+                    _onLoadSingleImage(image);
+                };
+            } else {
+                // TODO
+//                 jQuery.get("foo.txt", undefined, function(data) {
+//                     alert(data);
+//                 }, "html").done(function() {
+//                     alert("second success");
+//                 }).fail(function(jqXHR, textStatus) {
+//                     alert(textStatus);
+//                 }).always(function() {
+//                     alert("finished");
+//                 });
+            }
         }
     };
     

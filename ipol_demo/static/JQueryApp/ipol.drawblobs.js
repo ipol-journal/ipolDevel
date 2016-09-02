@@ -342,8 +342,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                                            di.getInputOrigin(),
                                            di.getCropInfo(), 
                                            di.getBlobSet(),
-                                           di.getDrawMask(),
-                                           di.getDrawLines()
+                                           di.getDrawFeature()
                                           );
                 run.setRunEvent();
             }
