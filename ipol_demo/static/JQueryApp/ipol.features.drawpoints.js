@@ -171,7 +171,7 @@ ipol.features.DrawPoints = function() {
         limits += ' min  ="' + 0.01 + '"'; 
         limits += ' max  ="' + 1    + '"';
         limits += ' step ="' + 0.01 + '"';
-        limits += ' value="' + 0.8  + '"';
+        limits += ' value="' + 0.9  + '"';
         var opacity_html =
                 '<div>Opacity <input  style="width:3em"  type="number" id="opacity_number"'+
                     limits + ' >'+
@@ -297,7 +297,7 @@ ipol.features.DrawPoints = function() {
         // Change opacity
         $('#opacity_range').slider(
         {
-            value:0.8,
+            value:0.9,
             min:  0.01,
             max:  1,
             step: 0.01,
@@ -442,6 +442,8 @@ ipol.features.DrawPoints = function() {
         $("#colors_sketch").css("background-size", "cover");
         $('#colors_sketch').sketch();
         $("#colors_sketch").data().sketch.draw_points(true);
+        //disable unique color 
+        $("#colors_sketch").data().sketch.use_unique_color = false;
         //
         $("#drawpoints_table").show();
         
@@ -482,54 +484,73 @@ ipol.features.DrawPoints = function() {
     }
     
 
-    //--------------------------------------------------------------------------
-    /**
-     * Gets the current line interface state: different options like pen size
-     * color and current actions (drawn lines)
-     * @function getState
-     * @memberOf ipol.features.DrawPoints~
-     * @public
-     * @override
-     */
-    this.getState = function() {
-        var points_state = {}
-        var sketch   = $("#colors_sketch").data().sketch;
-        
-        points_state.actions = sketch.actions;
-        
-        // zoom
-        points_state.zoom = $('#zoom_range').slider('value');
-        // pensize
-        // opacity
-        
-        
-        return points_state;
-    }
-    
-
-    //--------------------------------------------------------------------------
-    /**
-     * Sets the current mask interface state: different options like pen size
-     * color and current actions (drawn lines)
-     * @function setState
-     * @memberOf ipol.features.DrawPoints~
-     * @public
-     * @override
-     */
-    this.setState = function( points_state) {
-        var sketch   = $("#colors_sketch").data().sketch;
-        
-        sketch.actions = points_state.actions;
-        
-        // zoom
-        $('#zoom_range').slider('value',points_state.zoom);
-        // pensize
-        // opacity
-        
-    }
     
 }
 
 // subclass extends superclass
 ipol.features.DrawPoints.prototype = Object.create(ipol.features.DrawBase.prototype);
 ipol.features.DrawPoints.prototype.constructor = ipol.features.DrawPoints;
+
+//--------------------------------------------------------------------------
+/**
+ * Gets the current line interface state: different options like pen size
+ * color and current actions (drawn lines)
+ * @function getState
+ * @memberOf ipol.features.DrawPoints.prototype
+ * @public
+ * @override
+ */
+ipol.features.DrawPoints.prototype.getState = function() {
+    var points_state = {}
+    var sketch   = $("#colors_sketch").data().sketch;
+    
+    // actions
+    points_state.actions = sketch.actions;
+
+    // zoom
+    points_state.zoom    = $('#zoom_range').slider('value');
+
+    // pensize
+    points_state.pensize = $('#pensize_range').slider('value');
+
+    // opacity
+    points_state.opacity = $('#opacity_range').slider('value');
+
+    // color
+    points_state.color   = sketch.color;
+    return points_state;
+}
+
+
+//--------------------------------------------------------------------------
+/**
+ * Sets the current mask interface state: different options like pen size
+ * color and current actions (drawn lines)
+ * @function setState
+ * @memberOf ipol.features.DrawPoints.prototype
+ * @public
+ * @override
+ */
+ipol.features.DrawPoints.prototype.setState = function( points_state) {
+    var sketch   = $("#colors_sketch").data().sketch;
+    
+    // actions
+    sketch.actions = points_state.actions;
+
+    // zoom
+    $('#zoom_range')    .slider('value',points_state.zoom);
+
+    // pensize
+    $('#pensize_range') .slider('value',points_state.pensize);
+
+    // opacity
+    $('#opacity_range') .slider('value',points_state.opacity);
+
+    // color
+    var colors = ['#f00', '#ff0', '#0f0', '#0ff', '#00f', '#f0f', '#000', '#fff'];
+    var color_pos = colors.indexOf(points_state.color)+1;
+    if (color_pos>=0) {
+          $("#set_color_"+color_pos).trigger('click');
+    }
+}
+
