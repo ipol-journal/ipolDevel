@@ -30,7 +30,6 @@ from math import ceil
 
 from model import *
 
-
 #GLOBAL VARS
 from tools import is_json, Payload,convert_str_to_bool
 
@@ -55,12 +54,21 @@ class DemoInfo(object):
 		self.logs_dir = cherrypy.config.get("logs_dir")
 		self.mkdir_p(self.logs_dir)
 		self.logger = self.init_logging()
+                
+                self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
+                self.mkdir_p(self.dl_extras_dir)
+                
+                self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
+                
+		self.server_address=  'http://{0}:{1}'.format(
+                                  cherrypy.config['server.socket_host'],
+                                  cherrypy.config['server.socket_port'])
 
-		# Database
+                # Database
 		self.database_dir = cherrypy.config.get("database_dir")
 		self.database_name = cherrypy.config.get("database_name")
 		self.database_file = os.path.join(self.database_dir, self.database_name)
-
+                
 		# check if DB already exist
 		if not os.path.isfile(self.database_name):
 
@@ -101,10 +109,9 @@ class DemoInfo(object):
 
 		:rtype: bool
 		"""
-		if not (
-				cherrypy.config.has_key("database_dir") and
-				cherrypy.config.has_key("database_name") and
-				cherrypy.config.has_key("logs_dir") ):
+		if not (cherrypy.config.has_key("database_dir") and
+			cherrypy.config.has_key("database_name") and
+			cherrypy.config.has_key("logs_dir") ):
 			print "Missing elements in configuration file."
 			return False
 		else:
@@ -145,6 +152,70 @@ class DemoInfo(object):
             data["status"] = "KO"
             data["message"] = "Unknown service '{}'".format(attr)
             return json.dumps(data)
+
+        
+        
+        def get_compressed_file_url(self, demo_id):
+            """
+            :param demo_id: demo id integer
+            :return:        dictionary with the url or failure if file does not exist
+            """
+            data = {}
+            data["status"]= "KO"            
+            
+            extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
+                
+            if os.path.isdir(extras_folder):
+                compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+                if os.path.isfile(compressed_file):
+                    
+                    url_compressed_file  = self.server_address + "/" + self.dl_extras_dir
+                    url_compressed_file += demo_id  + "/" + self.demoExtrasFilename
+
+                    data['url_compressed_file'] = url_compressed_file
+                    data['code'] = "1"
+                    data["status"] = "OK"
+                else:
+                    data['code'] = "-2"
+            else:
+                data['code'] = "-1"
+
+            return data
+
+        @cherrypy.expose
+        def get_compressed_file_url_ws(self, demo_id):
+            """
+            WS for obtaining the url for the compressed file with the demoExtras
+            """
+            return json.dumps(self.get_compressed_file_url(demo_id))
+      
+        
+        @cherrypy.expose
+        def update_file_from_demoinfo(self, demo_id, time_of_file_in_core):
+            """
+            :param demo_id:              demo id integer
+            :param time_of_file_in_core  
+            :return:        dictionary with the url or failure if file does not exist
+            """
+            print "Entering in update_file_from_demoinfo"
+            
+            data = self.get_compressed_file_url(demo_id)
+            
+            if data['status'] == 'KO': #The compressed_file does not exist...
+                return json.dumps(data)      
+            
+            compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+                
+            file_state_in_demoinfo = os.stat(compressed_file)
+            time_of_file_in_demoinfo = file_state_in_demoinfo.st_mtime 
+                
+            if float(time_of_file_in_core) >= float(time_of_file_in_demoinfo):
+                data['code'] = "1"
+            else:
+                data['code'] = "0"
+            
+            return json.dumps(data)
+  
 
 	#todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
 	@cherrypy.expose
