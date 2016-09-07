@@ -36,6 +36,8 @@ import mimetypes
 import time
 from   timeit   import default_timer as timer
 
+import build
+
 from sendarchive import SendArchive
 
 #-------------------------------------------------------------------------------
@@ -92,15 +94,22 @@ class demo_index(object):
             self.logs_dir = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.share_run_dir = cherrypy.config.get("running.dir")
+            self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
+            self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
+            
             self.current_directory = os.getcwd()
-            self.proxy_server = cherrypy.config.get("demo.proxy_server")
+            
+            self.demoExtrasFilename = "DemoExtras.tar.gz"
             
             self.mkdir_p(self.logs_dir)
             self.mkdir_p(self.share_run_dir)
-            self.logger = self.init_logging()
+            self.mkdir_p(self.dl_extras_dir)
+            self.mkdir_p(self.demoExtrasMainDir)
             
+            self.logger = self.init_logging()
             self.png_compresslevel=1
             
+            self.proxy_server = cherrypy.config.get("demo.proxy_server")
             self.stack_depth = 0 ### Maybe we should quit this. It's for JQuery Message I think....
             
             print "IPOL Core system Initialized"
@@ -511,6 +520,89 @@ class demo_index(object):
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
     #--------------
     
+    def ensure_extras_updated(self, demo_id):
+        """
+        Ensure that the demo extras of a given demo are updated respect to demoinfo information. 
+        and exists in the core folder.
+        """
+        print "### Ensuring demo extras... ##"
+        
+        ddl_extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
+        compressed_file = os.path.join(ddl_extras_folder, self.demoExtrasFilename)
+
+        download_compressed_file = False
+        
+        if os.path.isdir(ddl_extras_folder):
+            
+            if os.path.isfile(compressed_file):
+                
+                file_state = os.stat(compressed_file)
+                
+                userdata = {"module":"demoinfo", "service":"update_file_from_demoinfo"}
+                userdata["demo_id"] = demo_id
+                userdata["time_of_file_in_core"] = str(file_state.st_mtime)
+                
+                resp = requests.post(self.proxy_server, data=userdata)
+                response = resp.json() 
+            
+                status = response['status']
+                
+                if status == 'OK':
+                    
+                    core_file_is_newer = response['code']
+                    
+                    print "core_file_is_newer (0 = no, 1 = yes)",core_file_is_newer
+                    if core_file_is_newer == '0':
+                        
+                        print "Deleting the previous file..."
+                        os.remove(compressed_file)
+                        compressed_file_url_from_demoinfo = response['url_compressed_file']
+                        
+                        print "Downloading the new file..."
+                        build.download(compressed_file_url_from_demoinfo, compressed_file)
+                        
+                        demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
+                        if os.path.isdir(demoExtrasFolder):
+                            print "Cleaning the original " + demoExtrasFolder + " ..."
+                            shutil.rmtree(demoExtrasFolder)
+                        
+                        build.extract(compressed_file, demoExtrasFolder)
+                else:
+                    print "Failure requesting the demo_extras file from demoinfo"
+                    return response # In a near future we will raise an exception
+            else:
+                download_compressed_file = True
+        else:
+            self.mkdir_p(ddl_extras_folder)
+            download_compressed_file = True
+            
+        
+        if download_compressed_file:
+            
+            userdata = {"module":"demoinfo", "service":"get_compressed_file_url_ws", "demo_id":demo_id}
+            resp = requests.post(self.proxy_server, data=userdata)
+            response = resp.json()
+            
+            status = response['status']
+            
+            if status == 'OK':
+                
+                code = response['code']
+                if code == '1':
+                    compressed_file_url_from_demoinfo = response['url_compressed_file']
+                    
+                    print compressed_file_url_from_demoinfo
+                    build.download(compressed_file_url_from_demoinfo, compressed_file)
+                    
+                    demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
+                    self.mkdir_p(demoExtrasFolder)
+                    build.extract(compressed_file, demoExtrasFolder)
+
+            else:
+                print "Failure downloading the demo_extras from demoinfo"        
+        
+        return response
+
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs, crop_info=None):
         """
         copy the blobs in the run path. 
@@ -618,12 +710,17 @@ class demo_index(object):
             blobs = json.loads(kwargs['blobs']) 
         
         try:
-            request = '?module=demoinfo&service=read_last_demodescription_from_demo&demo_id=' + internal_demoid + '&returnjsons=True'
-            json_response = urllib.urlopen(self.proxy_server + request).read()
-            response = json.loads(json_response)
+            
+            userdata = {"module":"demoinfo", "service":"read_last_demodescription_from_demo"}
+            userdata['demo_id'] = internal_demoid
+            userdata['returnjsons'] = 'True'
+            
+            resp = requests.post(self.proxy_server, data=userdata)
+            response = resp.json() 
+            
             last_demodescription = response['last_demodescription']
             
-            ddl_json    = json.loads(json.loads(last_demodescription['json']))
+            ddl_json = json.loads(json.loads(last_demodescription['json']))
             
             if 'build' in ddl_json:
                 ddl_build   = ddl_json['build']
@@ -689,6 +786,13 @@ class demo_index(object):
             print "ensure_compilation response --> " + status
             
             if status == 'OK':
+                
+                print "Entering ensure_extras_updated()"
+                data = self.ensure_extras_updated(demo_id)
+                print "Result in ensure_extras_updated : ",data
+                #return json.dumps(data)
+                
+                
                 print "dr.exec_and_wait()"
                 
                 userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
