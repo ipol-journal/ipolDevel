@@ -38,12 +38,12 @@ class RunDemoBase:
     self.base_dir    = base_dir
     self.work_dir    = work_dir
     
-    self.pytools_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
+    self.scriptsCommon = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
     self.bin_dir     = os.path.join(self.base_dir,'bin/')
     self.scripts_dir = os.path.join(self.base_dir,'scripts/')
     self.python_dir  = os.path.join(self.base_dir,'python/')
     self.dl_dir      = os.path.join(self.base_dir,'dl/')
-    self.log_file    = os.path.join(self.base_dir, "build.log"   )
+    self.log_file    = os.path.join(self.base_dir, "build.log")
     self.logger      = None
     self.MATLAB_path = None
     self.demo_id     = None
@@ -113,7 +113,13 @@ class RunDemoBase:
   def log(self,*args, **kwargs):
     if self.logger!=None:
       return self.logger(*args,**kwargs)
-    
+  
+  #------------------- demoextras functions ------------------------------------
+  def set_share_demoExtras_dirs(self, share_demoExtras_dir, demo_id):
+      self.main_demoExtras_Folder = os.path.join(share_demoExtras_dir, demo_id)
+      
+  def get_demoExtras_main_folder(self):
+      return self.main_demoExtras_Folder  
 
   #-----------------------------------------------------------------------------
   def run_algo(self, timeout=False):
@@ -124,16 +130,15 @@ class RunDemoBase:
     current_working_dir = os.getcwd()
     os.chdir(self.work_dir)
     
-    # create demodata variable to access demo data 
-    demodata=self.bin_dir
-    
     # convert parameters to variables
     for _k_ in self.algo_params:
       exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
     #convert meta info to variables
     for _k_ in self.algo_meta:
       exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
-      
+    
+    demoextras = self.get_demoExtras_main_folder()
+    
     ## there is a problem in Python, seems that locals() should not be modified
     ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
     #locals().update(self.algo_params)
@@ -248,7 +253,6 @@ class RunDemoBase:
                   stderr_file = None
                 last_arg_pos = min(last_arg_pos,i-1)
               
-              
           last_shell_cmd = ' '.join(args)
           shell_cmds.write(last_shell_cmd+'\n')
               
@@ -293,53 +297,49 @@ class RunDemoBase:
     # set back previous working directory
     os.chdir(current_working_dir)
   
-  
-  #-----------------------------------------------------------------------------
-  #
-  # SUBPROCESS
-  #
+
   def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
     """
-    execute a sub-process from the 'tmp' folder
+    execute a sub-process from the share run folder
     """
-
     if env is None:
         env = {}
     # update the environment
     newenv = os.environ.copy()
     # add local environment settings
-    
     newenv.update(env)
+    
+    demoExtras = {}
+    demoExtras['scriptsCommon'] = self.scriptsCommon
+    demoExtras['demoextras']    = self.get_demoExtras_main_folder()
+    newenv.update(demoExtras)
 
     # TODO clear the PATH, hard-rewrite the exec arg0
     # TODO use shell-string execution
 
     # Add PATH in configuration
     path = self.bin_dir
+    path +=":/bin:/usr/bin:/usr/local/bin"
     
-    # add also the scripts dir
-    path = path + ":" + self.scripts_dir
-    # add also the python dir
-    path = path + ":" + self.python_dir
-    # add also the python tools dir
-    path = path + ":" + self.pytools_dir
-
-    path=path+":/bin:/usr/bin:/usr/local/bin"
-
+    ###TODO: Remove these lines when the DDL's are correct 
+    # We are only using these for the moment
+    # We do not want to break the old system yet...
+    path += ":" + self.scripts_dir
+    path += ":" + self.python_dir #Scripts of the demo
+    path += ":" + self.scriptsCommon #scripts of PythonTools
+    ### ---------------------------------------------------
+    
+    
     # Check if there are extra paths
     if self.get_extra_path()!=None:
-      path = path + ":" + self.get_extra_path()
+      path += ":" + self.get_extra_path()
       
-    #
     p = self.get_MATLAB_path()
     if not (p is None):
-      path = path + ":" + p
-    #else:
-      #self.log("warning: MATLAB path directory %s does not exist" % p,
-                #context='SETUP/%s' % self.get_demo_id(), 
-                #traceback=False)
+      path += ":" + p
     
     newenv.update({'PATH' : path, 'LD_LIBRARY_PATH' : self.bin_dir})
+    
     # run
     return Popen(args,  stdin=stdin, stdout=stdout, stderr=stderr,
                         env=newenv, cwd=self.work_dir)
@@ -383,10 +383,6 @@ class RunDemoBase:
       time.sleep(0.1)
           
     if any([0 != p.returncode for p in process_list]):
-      #with open(self.work_dir+"stderr.txt", "r") as errfile:
-        #errors=errfile.read()
-      #raise RuntimeError(errors)
-      #print "**** wait_proc: raising RuntimeError"
       raise RuntimeError
     return
 

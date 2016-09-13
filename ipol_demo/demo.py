@@ -568,7 +568,7 @@ class demo_index(object):
                         
                         build.extract(compressed_file, demoExtrasFolder)
                 else:
-                    print "Failure requesting the demo_extras file from demoinfo"
+                    print "Failure requesting the demo_extras file from demoinfo. Failure code -> " + response['code'] 
                     return response # In a near future we will raise an exception
             else:
                 download_compressed_file = True
@@ -599,7 +599,7 @@ class demo_index(object):
                     build.extract(compressed_file, demoExtrasFolder)
 
             else:
-                print "Failure downloading the demo_extras from demoinfo"        
+                print "Failure downloading the demo_extras from demoinfo. Faiulure code -> " + response['code']        
         
         return response
 
@@ -790,8 +790,6 @@ class demo_index(object):
                 print "Entering ensure_extras_updated()"
                 data = self.ensure_extras_updated(demo_id)
                 print "Result in ensure_extras_updated : ",data
-                #return json.dumps(data)
-                
                 
                 print "dr.exec_and_wait()"
                 
@@ -806,7 +804,6 @@ class demo_index(object):
                 userdata['meta'] = json.dumps(meta)
                 
                 resp = requests.post(self.proxy_server, data=userdata)
-                
                 json_response = resp.json() 
                 json_response['work_url'] =  os.path.join(self.server_address,\
                                                             self.share_run_dir,\
@@ -834,11 +831,12 @@ class demo_index(object):
                         result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
                 else:
                     print "FAIL RUNNING"
-                    self.logger.exception("Failed running in the demorunner")
+                    self.logger.exception("Failed running in the demorunner: " + dr_winner + " module")
                     return json.dumps(json_response)
 
             else:
                 print "FAILURE IN THE COMPILATION"
+                self.logger.exception("Failed compiling the demo code in the demorunner: " + dr_winner + " module")
                 return json.dumps(json_response)
                 
         except Exception as ex:

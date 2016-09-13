@@ -124,24 +124,22 @@ class DemoInfo(object):
 		"""
 		logger = logging.getLogger(LOGNAME)
 		logger.setLevel(logging.ERROR)
-		handler = logging.FileHandler(os.path.join(self.logs_dir,
-												   'error.log'))
-		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
-									  datefmt='%Y-%m-%d %H:%M:%S')
+		handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 		return logger
 
 
-	def error_log(self, function_name, error):
-		"""
-		Write an error log in the logs_dir defined in archive.conf
-		"""
-		error_string = function_name + ": " + error
-		self.logger.error(error_string)
+        def error_log(self, function_name, error):
+                """
+                Write an error log in the logs_dir defined in archive.conf
+                """
+                error_string = function_name + ": " + error
+                self.logger.error(error_string)
  
 
-	# DEMO
+        # DEMO
 
         @cherrypy.expose
         def default(self, attr):

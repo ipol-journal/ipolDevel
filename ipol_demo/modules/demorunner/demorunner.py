@@ -78,6 +78,14 @@ class DemoRunner(object):
         return created
     
     
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in proxy.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string) 
+
+        
     def __init__(self):
         """
         Initialize DemoRunner
@@ -87,6 +95,8 @@ class DemoRunner(object):
         self.main_bin_dir  = os.path.join(self.current_directory, cherrypy.config['main.bin.dir'])
         self.main_log_dir  = cherrypy.config['main.log.dir']
         self.main_log_name = cherrypy.config['main.log.name']
+        self.share_demoExtras_dir = cherrypy.config['share.demoExtras.dir']
+        self.log_file = os.path.join(self.main_log_dir, self.main_log_name)
         
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
@@ -97,10 +107,15 @@ class DemoRunner(object):
         self.mkdir_p(self.main_bin_dir)
         self.mkdir_p(self.main_log_dir)
         
-        self.log_file = os.path.join(self.main_log_dir, self.main_log_name)
-        
-        
-
+        if not os.path.isdir(self.share_demoExtras_dir):
+            error_message = "There not exist the folder:  " + self.share_demoExtras_dir
+            print error_message
+            self.error_log("__init__", error_message)
+            
+        if not os.path.isdir(self.share_running_dir):
+            error_message = "There not exist the folder: " + self.share_running_dir
+            print error_message
+            self.error_log("__init__", error_message)
         
 
 #####
@@ -430,10 +445,6 @@ class DemoRunner(object):
         work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
         print "run dir = ",work_dir
         
-        #os.chdir(work_dir)
-        #subprocess.call('pwd')
-        #subprocess.call("ls")
-        
         res_data = {}
         res_data["key"] = key
         res_data['params'] = params
@@ -456,7 +467,11 @@ class DemoRunner(object):
         #run the algorithm
         try:
             run_time = time.time()
+            
+            print "Demoid: ",demo_id
+            
             self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data)
+
             # re-read the config in case it changed during the execution
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
@@ -511,7 +526,7 @@ class DemoRunner(object):
         """
         the core algo runner
         """
-        print "----- run_algo begin -----"
+        print "\n\n----- run_algo begin -----\n\n"
         rd = run_demo_base.RunDemoBase(bin_path, work_dir)
         rd.set_logger(cherrypy.log)
         rd.set_algo_params(params)
@@ -520,10 +535,14 @@ class DemoRunner(object):
         #rd.set_MATLAB_path(self.get_MATLAB_path())  ---> We have to deal with MATLAB in the future
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
+        
+        rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
         rd.run_algo()
+        
         ## take into account possible changes in parameters
         res_data['params']      = rd.get_algo_params()
         res_data['algo_info']   = rd.get_algo_info()
         res_data['algo_meta']   = rd.get_algo_meta()
         print "----- run_algo end -----"
         return
+        
