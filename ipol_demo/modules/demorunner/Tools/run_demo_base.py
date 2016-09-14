@@ -38,7 +38,7 @@ class RunDemoBase:
     self.base_dir    = base_dir
     self.work_dir    = work_dir
     
-    self.scriptsCommon = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
+    self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
     self.bin_dir     = os.path.join(self.base_dir,'bin/')
     self.scripts_dir = os.path.join(self.base_dir,'scripts/')
     self.python_dir  = os.path.join(self.base_dir,'python/')
@@ -138,6 +138,7 @@ class RunDemoBase:
       exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
     
     demoextras = self.get_demoExtras_main_folder()
+    scriptsCommon = self.ipol_scripts
     
     ## there is a problem in Python, seems that locals() should not be modified
     ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
@@ -310,7 +311,7 @@ class RunDemoBase:
     newenv.update(env)
     
     demoExtras = {}
-    demoExtras['scriptsCommon'] = self.scriptsCommon
+    demoExtras['scriptsCommon'] = self.ipol_scripts
     demoExtras['demoextras']    = self.get_demoExtras_main_folder()
     newenv.update(demoExtras)
 
@@ -326,7 +327,7 @@ class RunDemoBase:
     # We do not want to break the old system yet...
     path += ":" + self.scripts_dir
     path += ":" + self.python_dir #Scripts of the demo
-    path += ":" + self.scriptsCommon #scripts of PythonTools
+    path += ":" + self.ipol_scripts #scripts of PythonTools
     ### ---------------------------------------------------
     
     
