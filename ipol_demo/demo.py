@@ -91,29 +91,29 @@ class demo_index(object):
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
             
+            # Read configuration file
             self.logs_dir = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.share_run_dir = cherrypy.config.get("running.dir")
             self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
             self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
             
-            self.current_directory = os.getcwd()
-            
+            # Configure
+            self.logger = self.init_logging()
+            self.current_directory = os.getcwd() # [ToDo] Use a better name or call getcwd(). They can be desynchronized
             self.demoExtrasFilename = "DemoExtras.tar.gz"
-            
+            self.png_compresslevel=1
+
+            # Create directories
             self.mkdir_p(self.logs_dir)
             self.mkdir_p(self.share_run_dir)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
-            
-            self.logger = self.init_logging()
-            self.png_compresslevel=1
-            
+                        
             self.proxy_server = cherrypy.config.get("demo.proxy_server")
             self.stack_depth = 0 ### Maybe we should quit this. It's for JQuery Message I think....
             
-            print "IPOL Core system Initialized"
-        
+            print "IPOL Core system Initialized" # [ToDo] Log this, do not print
         except Exception as ex:
             self.error_log("__init__", str(ex))
         
@@ -128,6 +128,7 @@ class demo_index(object):
             os.makedirs(path)
             created = 'true'
         except OSError as exc:
+            # Better safe than sorry
             if exc.errno == errno.EEXIST and os.path.isdir(path):
                 pass
             else:
@@ -138,8 +139,9 @@ class demo_index(object):
     @cherrypy.expose
     def index(self):
         """
-        Small index for the demorunner.
+        Index page
         """
+        # [ToDo] We should show a list of demos here
         return ("Welcome to IPOL Core !")
 
     @cherrypy.expose
@@ -184,6 +186,8 @@ class demo_index(object):
         '''
         Save image object given full path
         '''
+        # [ToDo] It's not clear to me what stack_depth is used for.
+        # In any case, it seems that probably we have here a typical race condition.
         self.stack_depth+=1
         start = timer()
         im.save(fullpath, compresslevel=self.png_compresslevel)
@@ -679,6 +683,12 @@ class demo_index(object):
         print "demo_id =",demo_id, " internal_demoid=", internal_demoid
         print "kwargs=",kwargs
         
+        # [ToDo] There's a better way to get from a dic and to have a
+        # default value.
+        #
+        # For example:
+        # crop_info = kwargs.get('crop_info', None)
+        
         if 'input_type' in kwargs:
             input_type = kwargs['input_type']
         
@@ -699,6 +709,9 @@ class demo_index(object):
             meta = {}
         
         blobs = {}
+        # [ToDo] Here you are accessing input_type, but from the code
+        # above it's clear that the variable might not exist when you
+        # arrive here. Please fix.
         if input_type == 'upload':
             i = 0
             while "file_{0}".format(i) in kwargs:

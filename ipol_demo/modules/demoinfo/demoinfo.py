@@ -2,25 +2,17 @@
 # -*- coding:utf-8 -*-
 
 """
-Demo Info metadata module
-Provides a set of stateless JSON webservices
+DemoInfo: an information container module
 
-All exposed WS return JSON
-they must have a status value OK/KO
-if error, they must return error value with the error description
+All exposed WS return JSON with a status OK/KO, along with an error
+description if that's the case.
 
-
-to test POST WS:
-
+To test the POST WS use the following:
 	curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
 	curl -d editorsdemoid=777 -d title='demo1' -d abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
 	or use Ffox plugin: Poster
 
 """
-
-# todo: secure webservices oauth perhaps?
-# todo: secure db access
-
 
 import cherrypy
 import sys
@@ -29,16 +21,13 @@ import logging
 from math import ceil
 
 from model import *
-
-#GLOBAL VARS
 from tools import is_json, Payload,convert_str_to_bool
 
+# GLOBAL VARS
 LOGNAME = "demoinfo_log"
 
 
-
 class DemoInfo(object):
-
 	def __init__(self, configfile=None):
 
 		# Cherrypy Conf
@@ -333,7 +322,10 @@ class DemoInfo(object):
 			#if demos found, return pagination
 			if demo_list:
 
-				r=float(len(demo_list))/ float(num_elements_page)
+				# [ToDo] Check if the first float cast r=float(.) is
+				# really needed. It seems not, because the divisor is
+				# already a float and thus the result must be a float.
+				r = float(len(demo_list)) /  float(num_elements_page)
 
 				totalpages = int(ceil(r))
 
@@ -356,7 +348,7 @@ class DemoInfo(object):
 
 				start_element= (page -1) * num_elements_page
 
-				demo_list= demo_list[ start_element:start_element+num_elements_page ]
+				demo_list= demo_list[start_element:start_element+num_elements_page]
 
 				# print " totalpages: ",totalpages
 				# print " page: ",page
@@ -380,7 +372,9 @@ class DemoInfo(object):
 			print error_string
 			self.error_log("demo_list_pagination_and_filter",error_string)
 			try:
-				conn.close()
+				conn.close() # [ToDo] It seems that this should do in a
+				# finally clause, not in a nested try. Check all similar
+				# cases in this file.
 			except Exception as ex:
 				pass
 			#raise Exception
@@ -421,7 +415,10 @@ class DemoInfo(object):
 
 	@cherrypy.expose
 	def demo_get_available_authors_list(self,demo_id):
-		# lista all authors that are not currently assigned to a demo
+		# [ToDo] Convert all comments as the following into the Python
+		# format for automated documentation
+
+		# list all authors that are not currently assigned to a demo
 		data = {}
 		data["status"] = "KO"
 		available_author_list=list()
@@ -461,6 +458,9 @@ class DemoInfo(object):
 
 	@cherrypy.expose
 	def demo_get_editors_list(self,demo_id):
+		# [ToDo] Missing docstrings for a exposed method!
+		# In general, all functions should be documented
+
 		data = {}
 		data["status"] = "KO"
 		editor_list=list()
@@ -748,7 +748,7 @@ class DemoInfo(object):
 
 			conn = lite.connect(self.database_file)
 
-			# hard_delete must be aconvertet to int!
+			# hard_delete must be converted to int!
 			try:
 				hard_delete=int(hard_delete)
 				if hard_delete not in [0,1]:
