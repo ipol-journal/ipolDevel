@@ -46,8 +46,8 @@ USE_MEMCACHED = False
 hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
 dev_machines_hostname = ['ipol.im','smartalgo']
-dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
-production_machines = ['my_production_hostname']
+dev_machines = ['.ns3018037.ip-151-80-24.eu']
+production_machines = ['ipol_core', 'ipolcore.ipol.im']
 
 #alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
@@ -129,19 +129,19 @@ elif hostname in dev_machines_hostname:
 elif hostname in production_machines:
 	SITE_ID = 3
 	# PRO USA APACHE
-	HOST = 'produccion'
+	HOST = 'ipolcore.ipol.im'
 	#asi evito python manage.py collectstatic y servir con apache
 	DEBUG = False
 	TEMPLATEDEBUG = False
-	DBHOST = 'localhost'
+	DBHOST = 'ipol_core'
 	DBUSER = ''
 	DBPSSWD = ''
 	HTTPS = False
 	# permite modo debug False
-	DOMAIN_NAME = 'localhost'
+	DOMAIN_NAME = 'ipolcore.ipol.im'
 	ADMINS = (('JAK', 'josearrecio@gmail.com'))
 	# dominio y subdominios , ojo por ip no funciona.
-	ALLOWED_HOSTS = dev_machines
+	ALLOWED_HOSTS = production_machines
 	MANAGERS = ADMINS
 	USE_MEMCACHED = False
 	####################################
