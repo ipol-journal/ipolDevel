@@ -78,7 +78,7 @@
   ],
   "run": [ 
         "python:import json",
-        "python:fp =  open(self.work_dir + 'params.json', 'w')",
+        "python:fp =  open('params.json', 'w')",
         "python:json.dump(self.algo_params, fp)",
         "python:fp.close()",
         "run_algorithms.py"  

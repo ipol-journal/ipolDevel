@@ -1,0 +1,88 @@
+{ 
+  "general": { 
+    "demo_title"            :  "An Unsupervised Point Alignment Detection Algorithm",
+    "input_description"     : "",
+    "param_description"     : "",
+    "drawpoints"            : true,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/126/"
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2015/126/126.zip", 
+        "srcdir"        : "point_alignments_1.0",
+        "binaries"      : [ 
+                            [".","point_alignments"],
+                            [".","alignments2eps"]
+                            ],
+        "flags"         : "-j4 omp"
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "2dpoints", 
+          "description"     : "List of input points",
+          "max_weight"      : "20000",
+          "ext"             : ".txt"
+      }
+    ],
+  "params": 
+    [ ],
+  "run": [
+    "# convert input_0.txt into the points.txt format",
+    "python:sizeX=512",
+    "python:out_file = file('points.txt', 'w')",
+    "python:out_file.writelines( '%g %g \\n' % (p[0][0], p[0][1]) for (p) in drawpoints )",
+    "python:out_file.close()",
+    "# Function to run the point alignment detector binary, draw the result as EPS, and convert it to PNG",
+    "# compute alignments",
+    "point_alignments points.txt 1 1 output.txt >stdout.txt",
+    "# conversion to EPS",
+    "alignments2eps points.txt output.txt 1 1 $sizeX 1.75 2 0 0 0  output.eps >>stdout.txt",
+    "alignments2eps points.txt output.txt 1 1 $sizeX 1.75 2 1 1 15 output2.eps >>stdout.txt",
+    "alignments2eps points.txt output.txt 1 1 $sizeX 1.75 0 0 0 0' points.eps  >>stdout.txt",
+    "# convert the EPS output to a PNG image",
+    "/usr/bin/gs -dNOPAUSE -dBATCH -sDEVICE=png16m -dGraphicsAlphaBits=4 -r72 -dEPSCrop -sOutputFile=output.png  output.eps",
+    "/usr/bin/gs -dNOPAUSE -dBATCH -sDEVICE=png16m -dGraphicsAlphaBits=4 -r72 -dEPSCrop -sOutputFile=output2.png output2.eps",
+    "/usr/bin/gs -dNOPAUSE -dBATCH -sDEVICE=png16m -dGraphicsAlphaBits=4 -r72 -dEPSCrop -sOutputFile=points.png  points.eps"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "points.txt"  :  "input points",
+                    "points.eps"  :  "input points EPS",
+                    "points.png"  :  "input points PNG",
+                    "output.txt"  :  "output",
+                    "output.eps"  :  "output EPS",
+                    "output.png"  :  "output PNG",
+                    "output2.eps" :  "output EPS",
+                    "output2.png" :  "output PNG"
+                }
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : 
+        { 
+            "Point Alignments"              : "output.png",
+            "Input pointsl"                 : "points.png", 
+            "Point Alingments (more info)"  : "output2.png"
+        },
+      "options"       : { "minheight": 350 }
+    },
+    {
+      "type"          : "file_download",
+      "label"         : "The images can be downloaded here:",
+      "contents"      : { "points.txt"  : "points.txt", 
+                          "output.txt"  : "output.txt",
+                          "points.eps"  : "points.eps",
+                          "output.eps"  : "output.eps",
+                          "output2.eps" : "output2.eps"
+                        }
+    }
+  ]
+}

@@ -25,7 +25,9 @@
                     },
                 "xlink_article":  { "type" : "string"  },
                 "enable_crop":    { "type" : "boolean" },
-                "inpainting":     { "type" : "boolean" },
+                "drawmask":       { "type" : "boolean" },
+                "drawlines":      { "type" : "boolean" },
+                "drawpoints":     { "type" : "boolean" },
                 "crop_maxsize":   { "type" : "string"  },
                 "thumbnail_size": { "type" : "integer" },
                 "input_condition": 
@@ -104,6 +106,24 @@
                         "post_build": {"type":"string" }
                         },
                         "required" : [ "build_type", "url", "srcdir", "binaries", "flags" ]
+                },
+                {   "type":"object",
+                    "properties":
+                    {
+                        "build_type":   { "type":"string",  "enum": ["script"] },
+                        "url":          { "type":"string", "format":"uri" },
+                        "srcdir":       {"type":"string" },
+                        "scripts":      {   "type":"array",
+                                            "items": 
+                                                {   "type":"array", 
+                                                    "items": [
+                                                                {"type":"string"},
+                                                                {"type":"string"} ]
+                                                },
+                                            "minItems" : 1
+                                        },
+                    },
+                    "required" : [ "build_type", "url", "srcdir", "scripts" ]
                 } ]
             },
             "minItems": 1

@@ -2,25 +2,17 @@
 # -*- coding:utf-8 -*-
 
 """
-Demo Info metadata module
-Provides a set of stateless JSON webservices
+DemoInfo: an information container module
 
-All exposed WS return JSON
-they must have a status value OK/KO
-if error, they must return error value with the error description
+All exposed WS return JSON with a status OK/KO, along with an error
+description if that's the case.
 
-
-to test POST WS:
-
+To test the POST WS use the following:
 	curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
 	curl -d editorsdemoid=777 -d title='demo1' -d abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
 	or use Ffox plugin: Poster
 
 """
-
-# todo: secure webservices oauth perhaps?
-# todo: secure db access
-
 
 import cherrypy
 import sys
@@ -29,17 +21,13 @@ import logging
 from math import ceil
 
 from model import *
-
-
-#GLOBAL VARS
 from tools import is_json, Payload,convert_str_to_bool
 
+# GLOBAL VARS
 LOGNAME = "demoinfo_log"
 
 
-
 class DemoInfo(object):
-
 	def __init__(self, configfile=None):
 
 		# Cherrypy Conf
@@ -55,12 +43,21 @@ class DemoInfo(object):
 		self.logs_dir = cherrypy.config.get("logs_dir")
 		self.mkdir_p(self.logs_dir)
 		self.logger = self.init_logging()
+                
+                self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
+                self.mkdir_p(self.dl_extras_dir)
+                
+                self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
+                
+		self.server_address=  'http://{0}:{1}'.format(
+                                  cherrypy.config['server.socket_host'],
+                                  cherrypy.config['server.socket_port'])
 
-		# Database
+                # Database
 		self.database_dir = cherrypy.config.get("database_dir")
 		self.database_name = cherrypy.config.get("database_name")
 		self.database_file = os.path.join(self.database_dir, self.database_name)
-
+                
 		# check if DB already exist
 		if not os.path.isfile(self.database_name):
 
@@ -101,10 +98,9 @@ class DemoInfo(object):
 
 		:rtype: bool
 		"""
-		if not (
-				cherrypy.config.has_key("database_dir") and
-				cherrypy.config.has_key("database_name") and
-				cherrypy.config.has_key("logs_dir") ):
+		if not (cherrypy.config.has_key("database_dir") and
+			cherrypy.config.has_key("database_name") and
+			cherrypy.config.has_key("logs_dir") ):
 			print "Missing elements in configuration file."
 			return False
 		else:
@@ -117,24 +113,22 @@ class DemoInfo(object):
 		"""
 		logger = logging.getLogger(LOGNAME)
 		logger.setLevel(logging.ERROR)
-		handler = logging.FileHandler(os.path.join(self.logs_dir,
-												   'error.log'))
-		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s',
-									  datefmt='%Y-%m-%d %H:%M:%S')
+		handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+		formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 		handler.setFormatter(formatter)
 		logger.addHandler(handler)
 		return logger
 
 
-	def error_log(self, function_name, error):
-		"""
-		Write an error log in the logs_dir defined in archive.conf
-		"""
-		error_string = function_name + ": " + error
-		self.logger.error(error_string)
+        def error_log(self, function_name, error):
+                """
+                Write an error log in the logs_dir defined in archive.conf
+                """
+                error_string = function_name + ": " + error
+                self.logger.error(error_string)
  
 
-	# DEMO
+        # DEMO
 
         @cherrypy.expose
         def default(self, attr):
@@ -145,6 +139,70 @@ class DemoInfo(object):
             data["status"] = "KO"
             data["message"] = "Unknown service '{}'".format(attr)
             return json.dumps(data)
+
+        
+        
+        def get_compressed_file_url(self, demo_id):
+            """
+            :param demo_id: demo id integer
+            :return:        dictionary with the url or failure if file does not exist
+            """
+            data = {}
+            data["status"]= "KO"            
+            
+            extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
+                
+            if os.path.isdir(extras_folder):
+                compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+                if os.path.isfile(compressed_file):
+                    
+                    url_compressed_file  = self.server_address + "/" + self.dl_extras_dir
+                    url_compressed_file += demo_id  + "/" + self.demoExtrasFilename
+
+                    data['url_compressed_file'] = url_compressed_file
+                    data['code'] = "1"
+                    data["status"] = "OK"
+                else:
+                    data['code'] = "-2"
+            else:
+                data['code'] = "-1"
+
+            return data
+
+        @cherrypy.expose
+        def get_compressed_file_url_ws(self, demo_id):
+            """
+            WS for obtaining the url for the compressed file with the demoExtras
+            """
+            return json.dumps(self.get_compressed_file_url(demo_id))
+      
+        
+        @cherrypy.expose
+        def update_file_from_demoinfo(self, demo_id, time_of_file_in_core):
+            """
+            :param demo_id:              demo id integer
+            :param time_of_file_in_core  
+            :return:        dictionary with the url or failure if file does not exist
+            """
+            print "Entering in update_file_from_demoinfo"
+            
+            data = self.get_compressed_file_url(demo_id)
+            
+            if data['status'] == 'KO': #The compressed_file does not exist...
+                return json.dumps(data)      
+            
+            compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+                
+            file_state_in_demoinfo = os.stat(compressed_file)
+            time_of_file_in_demoinfo = file_state_in_demoinfo.st_mtime 
+                
+            if float(time_of_file_in_core) >= float(time_of_file_in_demoinfo):
+                data['code'] = "1"
+            else:
+                data['code'] = "0"
+            
+            return json.dumps(data)
+  
 
 	#todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
 	@cherrypy.expose
@@ -264,7 +322,10 @@ class DemoInfo(object):
 			#if demos found, return pagination
 			if demo_list:
 
-				r=float(len(demo_list))/ float(num_elements_page)
+				# [ToDo] Check if the first float cast r=float(.) is
+				# really needed. It seems not, because the divisor is
+				# already a float and thus the result must be a float.
+				r = float(len(demo_list)) /  float(num_elements_page)
 
 				totalpages = int(ceil(r))
 
@@ -287,7 +348,7 @@ class DemoInfo(object):
 
 				start_element= (page -1) * num_elements_page
 
-				demo_list= demo_list[ start_element:start_element+num_elements_page ]
+				demo_list= demo_list[start_element:start_element+num_elements_page]
 
 				# print " totalpages: ",totalpages
 				# print " page: ",page
@@ -311,7 +372,9 @@ class DemoInfo(object):
 			print error_string
 			self.error_log("demo_list_pagination_and_filter",error_string)
 			try:
-				conn.close()
+				conn.close() # [ToDo] It seems that this should do in a
+				# finally clause, not in a nested try. Check all similar
+				# cases in this file.
 			except Exception as ex:
 				pass
 			#raise Exception
@@ -352,7 +415,10 @@ class DemoInfo(object):
 
 	@cherrypy.expose
 	def demo_get_available_authors_list(self,demo_id):
-		# lista all authors that are not currently assigned to a demo
+		# [ToDo] Convert all comments as the following into the Python
+		# format for automated documentation
+
+		# list all authors that are not currently assigned to a demo
 		data = {}
 		data["status"] = "KO"
 		available_author_list=list()
@@ -392,6 +458,9 @@ class DemoInfo(object):
 
 	@cherrypy.expose
 	def demo_get_editors_list(self,demo_id):
+		# [ToDo] Missing docstrings for a exposed method!
+		# In general, all functions should be documented
+
 		data = {}
 		data["status"] = "KO"
 		editor_list=list()
@@ -679,7 +748,7 @@ class DemoInfo(object):
 
 			conn = lite.connect(self.database_file)
 
-			# hard_delete must be aconvertet to int!
+			# hard_delete must be converted to int!
 			try:
 				hard_delete=int(hard_delete)
 				if hard_delete not in [0,1]:

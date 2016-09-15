@@ -5,7 +5,7 @@
 % * Do not change the current LaTeX coding style to yours. The style and format should be homogeneous along sections.
 
 % To convert .dia diagrams into PDF:
-% 1) Create the diagram with dia (or any other tool)
+% 1) Create the diagram with dia
 % 2) Export it as .eps
 % 3) use epstopdf to convert to PDF
 
@@ -81,6 +81,7 @@
 
 
 \newcommand{\ToDo}[1]{\textcolor{magenta}{\textbf{[ToDo]} \textbf{#1}}}
+\newcommand{\miguel}[1]{\textcolor{magenta}{\textbf{[Miguel]} \textbf{#1}}}
 
 
 \begin{document}
@@ -119,13 +120,21 @@ Miguel Colom - \url{http://mcolom.info}
 \textbf{Software engineers and external consultats, past and present (in alphabetical order):}
 
 
+Martín Arévalo
+
 José Arrecio
 
 Miguel Colom
 
+Joan Duran
+
+Carlos Escobar
+
 Vincent Firmin
 
 Karl Krissian
+
+José Luis Lisani
 
 Alexis Mongin
 
@@ -168,14 +177,104 @@ Nelson Monzón
 % The Control Terminal 
 \input{terminal/terminal.tex}
 
-\section{Automatic testing}
-Two kind of tests:
-\begin{itemize}
-  \item For the IPOL system itself
-  \item To ensure good compilation of the algorithm source codes
-\end{itemize}
 
-We need to use PyUnit for the unit tests.
+
+\section{System administration}
+\ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
+
+- Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
+Cron controls it. To add the cron line, use {\tt crontab -e} as root.
+
+For example, to run the backup script once per week at 3:00h, add this line:
+
+{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+
+- Cleanup. The script {\tt ipolDevel/sysadmin/backup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
+
+
+\subsection{GitHub deploy key}
+The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
+
+For example:
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+\end{verbatim}
+
+\vspace{0.15cm}
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+
+ipol@smartalgo:~/ipolDevel$ cat .git/config 
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	#url = https://github.com/mcolom/ipolDevel
+	url = git@github_deploy:mcolom/ipolDevel.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+\end{verbatim}
+
+We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
+
+\subsection{Setup of a new machine}
+When a new machine is added to the IPOL infrastructure, the following needs to be done:
+- Create the {\tt ipol} user in a new machine: {\tt adduser --disabled-password ipol}
+
+- Install bash-completion {\tt apt-get install bash-completion}
+
+- Install cron-apt: {\tt apt-get install cron-apt}
+
+And edit /etc/cron-apt/config:
+\begin{verbatim}
+APTCOMMAND=/usr/bin/apt-get
+OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/sources.list"
+SYSLOGON="always"
+\end{verbatim}
+
+- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
+
+Install mail with {\tt apt-get install mailutils}
+
+To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
+
+
+- Setup priorities and memory limits to the processes of the users.
+
+Added this to /etc/security/limits.conf:
+\begin{verbatim}
+*               soft     priority            17
+ipol            soft     priority            0
+\end{verbatim}
+
+We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
+
+
+%To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
+%
+%More info:
+%
+%\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
+%
+%\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
+
+
 
 \section{General notes}
 In this section we add general comments on the projects, parts which still neeed to be written or coded. In general, information which needs to be documented but has not still found its place in the document. It works as a reminder not to forget.
@@ -201,15 +300,15 @@ In this section we add general comments on the projects, parts which still neeed
 \item python-yaml: for parsing
 \item libpq-dev: PostgreSQL headers
 \item libmagic-dev: needed to install python-magic with pip
+\item libav-tools: audio/video tools for demos with these data types
 \end{itemize}
 Packages to be installed with pip install:
 \begin{itemize}
 \item python-magic
 \item pillow
 \item simplejson
+\item validoot (\url{https://github.com/AstromechZA/validoot/tarball/1.3})
 \end{itemize}
-
-- \ToDo{} Check that all modules which store a SQLite database file (.db) are able to create the file when they are started and the file does not exist. The best solution is to have a text file with the SQL instructions to drop all  tables and to create them. This way you only need to modify this text file instead of a Python function in the module.
 
 - Example of another demo system: \url{http://places.csail.mit.edu/demo.html}
 
@@ -301,44 +400,6 @@ sonFlickrFeed({
 
 \ToDo{Keep adding!}
 
-\subsection{GitHub deploy key}
-The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
-
-For example:
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-\end{verbatim}
-
-\vspace{0.15cm}
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-
-ipol@smartalgo:~/ipolDevel$ cat .git/config 
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	#url = https://github.com/mcolom/ipolDevel
-	url = git@github_deploy:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-\end{verbatim}
-
-
 \subsection{Git branches}
 There are two git branches:
 
@@ -371,9 +432,6 @@ The .git/config ends up as:
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
-#[remote "ipolserver"]
-#	url = ipol@ipol2:ipolDevel
-#	fetch = +refs/heads/*:refs/remotes/ipolserver/*
 [branch "prod"]
 	remote = origin
 	merge = refs/heads/prod
@@ -386,6 +444,64 @@ git merge master
 git push
 git checkout master
 \end{verbatim}
+
+
+\section{To Do}
+- Automatic testing. Two kind of tests:
+\begin{itemize}
+  \item For the IPOL system itself
+  \item To ensure good compilation of the algorithm source codes
+\end{itemize}
+
+We need to use PyUnit for the unit tests.
+
+- Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
+
+- Related for the previous point, configure {\tt iptables} to block access to certain services. It seems that we'll have to put the services in one port and the static content in other, to filter the access. This problem needs to be studied.
+
+- When a error happens during execution, the core should send an email to the autors, and also IPOL's tech and edit.
+
+- Now the flow to execute a demo is as follows: 1) The JQuery calls the run webservices in the Core 2) The Core runs the demo and sends back the results to JQuery in the JSON response. This is the right way to do it and the flow must not change. However, we could use asynchronous push status messages\footnote{\url{https://www.w3.org/TR/push-api/}} from the Core to the client related to the execution (say, when it's compiling, copying blobs, doing conversions or running the user's code). 
+
+- Add statistics data collecting. Piwik can be used for this. Or Google Analytics, amongs others.
+
+
+\subsection{Design issues (a.k.a. \emph{Hall of Shame})}
+\miguel{This section is maintained by Miguel Colom to track bad design issues. Please do never edit it.}
+
+
+- DemoRunner has a lot of {\tt exec} commands which inject code to update variables in the DR Python's workspace. This solution is totally unacceptable from the point of view of system design and moreover it means a huge security risk for the server. The possibility of manipulating variables in the DDL with the {\tt python: } prefix does not justify such a bad design.
+
+The proposed solution is that DR reads the parameters from the webservice's call, update a dictionary without code injection, and makes very simple substitutions. For example:
+
+\begin{verbatim}
+run.sh ${sigma} ${removeFlag} ${demoExtras}/data/polynomial${polNum}.txt
+\end{verbatim}
+
+The user's scripts are allowed to write a file with the params and variable values, which will be read by the Core and send it along the run response to the JQuery code. This allows to update parameters and variables in the client interface.
+
+The idea behind the DDL is to \emph{describe} the demo, not to specify the operations needed to run it. Thus, any scripts containing running operations must be given as a user's script will will be called from run.sh
+
+- DemoRunner is writing a {\tt params.json} file and stores it in the run directory. Actually, only the Core needs to write and read this file. It doesn't make any sense that demoRunner stores these parameters. If we consider that we finally need this {\tt params.json} file to re-create the page in another client given the demo ID and experiment key, it should be the Core, not DemoRunner who is responsible for writing and reading it.
+
+In the current system another use of the {\tt params.json} file is to store the lines drawn by the user. It's correct that this data is considered as a parameter, and it's true that perhaps it's too big to be passed as a text string. In any case, if we adopt the solution of keeping the {\tt params.json} file in the run directory, it has to be written by the Core, never by DemoRunner.
+
+- DemoRunner is writing a {\tt results.json} file. Exactly the same bad design issue as in the previous point. That's totally out of the scope of DemoRunner and it should be the Core who eventually would write that file.
+
+- The Archive module has a special case where it reads a JSON file containing results. The task of the archive is to store and serve blobs. It can't be used as a placeholder to store a JSON file with extra data.
+
+It has already a field {\tt params} in its {\tt experiments} table. If we need to have the results too, the way to do it is to add an extra field in that table, not to store a file.
+
+Example of code in the Archive:
+\begin{verbatim}
+   if row[2]=="results from experiment":
+       # load the json file
+       with open(path_file) as data_file:
+	   results_json = json.load(data_file)
+\end{verbatim}
+
+However, within the archive database I wasn't able to find the {\tt results from experiment} text in the {\tt type} column. This needs to be investigated.
+
 
 
 

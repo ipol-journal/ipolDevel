@@ -136,12 +136,12 @@
           "nninterp -g topleft -x $scalefactor coarsened.png coarsened_zoom.png >>stdout.txt",
 
           "echo 'Ensure same size'",
-          "python:img=image(self.work_dir+'coarsened_zoom.png')",
-          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save(self.work_dir+'coarsened_zoom.png')",
-          "python:img=image(self.work_dir+'interpolated.png')",
-          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save(self.work_dir+'interpolated.png')",
-          "python:img=image(self.work_dir+'fourier.png')",
-          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save(self.work_dir+'fourier.png')",
+          "python:img=image('coarsened_zoom.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('coarsened_zoom.png')",
+          "python:img=image('interpolated.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('interpolated.png')",
+          "python:img=image('fourier.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('fourier.png')",
 
           "echo 'Generate difference image'",
           "imdiff input_0.sel.png interpolated.png  difference.png",

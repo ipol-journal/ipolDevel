@@ -1,0 +1,303 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Obtaining High Quality Photographs of Paintings by Image Fusion",
+    "input_description"     : "",
+    "param_description"     : "",
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/49/"
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2015/49/tableaux_6.tar.gz", 
+        "srcdir"        : "tableaux_6",
+        "binaries"      : [ [".","bin/","iip_burst_fusion_by_scales"] ],
+        "flags"         : "-j4 "
+      },
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2015/49/tableaux_4_demo_support_code.tar.gz", 
+        "srcdir"        : "tableaux_4_demo_support_code",
+        "binaries"      : [ [".","bin/","plambda"] ],
+        "prepare_make"  : "sed -i -e 's/zoombil\\\//zoombil/g' Makefile -e 's/\\\/usr\\\/bin\\\/time -f \"stufftime %e s\" $CMD/TIMEFORMAT=\"stufftime %R s\";{ time $CMD; }/g' bin/ipol_demo_high_toni.sh",
+        "flags"         : "-j4 "
+      },
+      {
+        "binaries": [],
+        "build_type": "make",
+        "scripts": [
+            [
+                ".",
+                "rename_inputs.sh"
+            ]
+        ],
+        "srcdir": "demo_scripts",
+        "url": "http://151.80.24.28:8080/DemoSource/49/demo_scripts.tgz"
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input 0",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 1",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 2",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : true
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 3",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 4",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 5",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 6",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 7",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 8",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 9",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 10",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 11",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 12",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 13",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 14",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 15",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 16",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 17",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Input 18",
+          "max_pixels"      : "800*800",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      }
+    ],
+  "params": 
+    [
+      {
+        "id"   : "reference",
+        "label": "Reference image",
+        "type": "range",
+        "comments":"If the reference is not the first image (image 0), it will be swapped with with the first image in the results",
+        "values": {
+            "default": 0,
+            "max": 18,
+            "min": 0,
+            "step": 1
+        }
+      }
+    ],
+  "run": [
+    "# rename input_XX.png as iiXX.png for the scripts",
+    "rename_inputs.sh $reference",
+    "ipol_demo_high_toni.sh"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_0.png" : "Input Image",
+                    "output_0.png" : "Output Image",
+                    "line_primitives.dat" : "Selected lines",
+                    "output_0.dat" : "Output data"
+                },
+      "params" :  [ "x_center", "y_center", "center_optimization" ]
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h3>Blended output</h3>",
+      "contents"      : { 
+                "blended"         :"zum_d_grad.png"
+        }
+    },
+    {
+      "type"          : "repeat_gallery",
+      "label"         : "<h3>Registered</h3>",
+      "repeat"        : "meta.nb_inputs",
+      "contents"      : [
+            "'Input '+idx",
+                {
+                "Registered"    : "'zum_reg_i' +('00'+idx).slice(-2)+'.png'",
+                "Original"      : "'zum_i'     +('00'+idx).slice(-2)+'.png'"
+                } ],
+      "options"       :  { "minheight" : 400 }
+    },
+    {
+      "type"          : "repeat_gallery",
+      "label"         : "<h3>Differences</h3>",
+      "repeat"        : "meta.nb_inputs",
+      "contents"      : [
+            "'Input '+idx",
+                {
+                "Shadow (diff)" : "'zshadow_reg_i'+('00'+idx).slice(-2)+'.png'"
+                } ],
+      "options"       :  { "minheight" : 400 }
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<h3>Download full-size results:</h3>",
+      "contents"      : { "blended gradient"  : "d_grad.png", 
+                          "blended min"       : "d_min.png",
+                          "blended median"    : "d_median.png"
+                        }
+    },
+    {
+      "type"      :"html_text",
+      "contents"  : "<h3>Download full-size input images:</h3>"
+    },
+    {
+      "repeat"        : "meta.nb_inputs",
+      "type"          : "file_download", 
+      "label"         : "'Original image '+idx+''",
+      "contents"      : "'i'+('00'+idx).slice(-2)+'.png'"
+    },
+    {
+      "type"      :"html_text",
+      "contents"  : "<h3>Download full-size registered images:</h3>"
+    },
+    {
+      "repeat"        : "meta.nb_inputs",
+      "type"          : "file_download", 
+      "label"         : "'Registered image '+idx+''",
+      "contents"      : "'reg_i'+('00'+idx).slice(-2)+'.png'"
+    }
+  ]
+}

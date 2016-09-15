@@ -27,6 +27,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 
+
 class Proxy(object):
     """
     This class implements a proxy for the other modules.
@@ -223,7 +224,8 @@ class Proxy(object):
 
 
     @cherrypy.expose
-    def proxy_service_call(self, module, service, servicehttpmethod=None, params=None, jsonparam=None):
+    def proxy_service_call(self, module, service, servicehttpmethod=None, 
+                           params=None, jsonparam=None):
         """
 
         I need to be able to call proxy in POST, and get it to call the WS depending
@@ -235,20 +237,8 @@ class Proxy(object):
         http://docs.python-requests.org/en/latest/user/quickstart/
         Instead of encoding the dict yourself, you can also pass it directly using the json parameter (added in version 2.4.2) and it will be encoded automatically:
         """
-
-        # print ("")
-        #print "\n\n\n\nproxy_call\n\n\n\n"
         error_json = {}
         error_json["status"] = "KO"
-                
-                
-        #error_json["status"] = "OKIDOKY!!"
-        #error_json["module"] = module
-        #error_json["service"] = service
-        #error_json["http"] = servicehttpmethod
-        #error_json["params"] = params
-        #error_json["jsonparam"] = jsonparam
-        #return json.dumps(error_json)
                 
         #validate params and set default params
         try:
@@ -291,39 +281,25 @@ class Proxy(object):
                     return json.dumps(error_json)
 
         except Exception as e:
-            error_msg="no params e: %s",e
-            self.error_log("proxy_service_call", error_msg)
+            error_msg="no params e: {0}".format(e)
+            self.logger.exception(error_msg)
             error_json["code"] = -1
             return json.dumps(error_json)
-
 
         #build WS url
         ws_url= self.dict_modules[module]["url"]+ service
 
-
-        # print " ws_url ",ws_url
-        # print "--params ",params
-        # print "--params ",type(params)
-        # print "jsonparam ",jsonparam
-        # print "json type",type(jsonparam)
-        # print "servicehttpmethod",servicehttpmethod
-        # print "servicehttpmethod",type(servicehttpmethod)
-
         # WS call
         try:
-
             if servicehttpmethod == 'GET':
 
-                #print (" servicehttpmethod GET")
                 response = requests.get(ws_url, params = params)
 
             elif servicehttpmethod =='POST':
 
-                #print (" servicehttpmethod POST")
-                if json is not None:
-                    response = requests.post(ws_url, params = params, json = jsonparam)
-                else:
-                    response = requests.post(ws_url, params = params)
+                response = requests.post(   ws_url, 
+                                            params = params, 
+                                            json = jsonparam)
             else:
 
                 error_msg = " Invalid servicehttpmethod, only GET and POST allowed at the present moment"
@@ -333,12 +309,10 @@ class Proxy(object):
                 return json.dumps(error_json)
 
             result = response.content
-            # print " JSON:",result
+            
             # validate that json returned by WS is valid
             try:
                 json_object = json.loads(result)
-                #test error
-                #raise ValueError(" error generated on purpose in proxy_service_call for testing ")
             except Exception:
                 error_msg=" Invalid JSON returned"
                 print error_msg
@@ -348,10 +322,87 @@ class Proxy(object):
 
         except Exception as e:
             error_json["code"] = -5
-            self.error_log("proxy_service_call", "Module '" + module + "' communication error; " + str(e))
+            self.error_log("proxy_service_call", "Module '" + module + \
+                            "' communication error; " + str(e))
             print error_json
             return json.dumps(error_json)
 
         return result
+
+
+
+    @cherrypy.expose
+    def proxy_post(self, module, service,**kwargs):
+        """
+        Designed for proxy posts
+        files are send using file_0:blob, file_1:blob, etc ...
+        from the javascript FormData post
+
+        this function uses requests to execute WS calls
+        http://docs.python-requests.org/en/latest/user/quickstart/
+        Instead of encoding the dict yourself, you can also pass it directly using the json parameter (added in version 2.4.2) and it will be encoded automatically:
+        """
+
+        error_json = {}
+        error_json["status"] = "KO"
+        #validate params and set default params
+        
+        if module is None:
+            error_json["code"] = -2
+            self.error_log(proxy_service_call,"no module")
+            return json.dumps(error_json)
+        else:
+            # Check if module is valid
+            if module not in self.dict_modules.keys():
+                error_json["code"] = -3
+                if module == "":
+                    error_msg = " module in url is empty"
+                else:
+                    error_msg = module + \
+                        " does not appear in the XML file in the proxy "
+
+                self.error_log("proxy_service_call", error_msg)
+                return json.dumps(error_json)
+
+        if service is None:
+            error_json["code"] = -4
+            error_msg = "Not WS in the url"
+            self.error_log("proxy_service_call", error_msg)
+            return json.dumps(error_json)
+
+        #build WS url
+        ws_url= self.dict_modules[module]["url"]+ service
+
+        # WS call
+        try:
+            print "sending with data = ",kwargs
+            p = kwargs.copy()
+            filelist={}
+            i=0
+            while "file_{0}".format(i) in p:
+                fname="file_{0}".format(i)
+                filelist[fname]=p[fname].file
+                p.pop(fname)
+                i+=1
+            response = requests.post(ws_url, params=p, files=filelist)
+
+            result = response.content
+            # validate that json returned by WS is valid
+            try:
+                json_object = json.loads(result)
+            except Exception:
+                error_msg=" Invalid JSON returned"
+                print error_msg
+                error_json["code"] = -6
+                self.error_log("proxy_service_call", error_msg)
+                return json.dumps(error_json)
+
+        except Exception as e:
+            error_json["code"] = -5
+            self.logger.exception(  "Module '" + module + \
+                                    "' communication error; " + str(e))
+            return json.dumps(error_json)
+
+        return json.dumps(result)
 
 

@@ -72,7 +72,7 @@
       "python:high_scale  =min(high_scale,  maxscale)",
       "MSR_original -S 3 -L $low_scale -M $medium_scale -H $high_scale -N 1 -l $prc_left -R $prc_right input_0.sel.png output_RGB.png output_I.png >stdout.txt 2>&1",
       "#--- Check if input image is monochrome",
-      "python:im=image(self.work_dir + 'input_0.sel.png')",
+      "python:im=image('input_0.sel.png')",
       "python:isgray = im.is_grayscale()",
       "#--- Compute histograms",
       "image_histogram.py input_0.sel.png output_I.png",

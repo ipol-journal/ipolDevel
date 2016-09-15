@@ -8,13 +8,12 @@ which takes care of running an IPOL demo using web services
 
 # add lib path for import
 import os.path, sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../lib"))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../.."))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
 
 
 import hashlib
 from   datetime import datetime
-from   random   import random
+
 import urllib
 from   timeit   import default_timer as timer
 from   image    import thumbnail, image
@@ -23,7 +22,6 @@ import PIL.ImageDraw
 
 import threading
 import cherrypy
-import build_demo_base
 import os
 import json
 import glob
@@ -42,23 +40,83 @@ import errno
 import logging
 
 
-from sendarchive import SendArchive
+import urlparse
+import os, shutil
+
+from misc import ctime
+
+import shutil
+import stat
+import urlparse
+from os import path
+
+import build
+
+import tempfile
+import time 
 
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
     """
+    @staticmethod
+    def mkdir_p(path):
+        """
+        Implement the UNIX shell command "mkdir -p"
+        with given path as parameter.
+        """
+        created = 'false'
+        try:
+            os.makedirs(path)
+            created = 'true'
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
+        
+        return created
+    
+    
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in proxy.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string) 
+
+        
     def __init__(self):
         """
         Initialize DemoRunner
         """
-        self.running_dir = cherrypy.config['running.dir']
         self.current_directory = os.getcwd()
+        self.share_running_dir = cherrypy.config['share.running.dir']
+        self.main_bin_dir  = os.path.join(self.current_directory, cherrypy.config['main.bin.dir'])
+        self.main_log_dir  = cherrypy.config['main.log.dir']
+        self.main_log_name = cherrypy.config['main.log.name']
+        self.share_demoExtras_dir = cherrypy.config['share.demoExtras.dir']
+        self.log_file = os.path.join(self.main_log_dir, self.main_log_name)
+        
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
         self.png_compresslevel=1
         self.stack_depth = 0
+        
+        self.mkdir_p(self.main_bin_dir)
+        self.mkdir_p(self.main_log_dir)
+        
+        if not os.path.isdir(self.share_demoExtras_dir):
+            error_message = "There not exist the folder:  " + self.share_demoExtras_dir
+            print error_message
+            self.error_log("__init__", error_message)
+            
+        if not os.path.isdir(self.share_running_dir):
+            error_message = "There not exist the folder: " + self.share_running_dir
+            print error_message
+            self.error_log("__init__", error_message)
+        
 
 #####
 # web utilities
@@ -69,6 +127,7 @@ class DemoRunner(object):
         Small index for the demorunner.
         """
         return ("Welcome to IPOL DemoRunner !")
+
 
     @cherrypy.expose
     def ping(self):
@@ -98,8 +157,7 @@ class DemoRunner(object):
     @cherrypy.expose
     def get_load_state(self):
         """
-        json: return the percentage of time that the CPU or CPUs were idle 
-        and the system did not have an outstanding disk I/O request
+        return CPU charge
         """
         data = {}
         data["status"] = "KO"
@@ -107,8 +165,8 @@ class DemoRunner(object):
             mpstat_result = subprocess.check_output(['mpstat'])
             CPU_information = str(mpstat_result).split()
             CPU_information = CPU_information[-1].replace(",",".")
-            data["CPU"] = float (CPU_information)
             data["status"] = "OK"
+            data["CPU"] = float (CPU_information)
         except Exception as ex:
             self.error_log("get_load_state", str(ex))
         return json.dumps(data)    
@@ -124,671 +182,326 @@ class DemoRunner(object):
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
 
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def init_demo(self, demo_id, ddl_build):
+    
+    #-----------------------------------------------------------------------------
+    def make(self, path_for_the_compilation, ddl_build, clean_previous=True):
         """
-        Check if a demo is already compiled, if not compiles it
-        :param demo_id:   id demo
-        :param ddl_build: build section of the ddl json 
+        program build/update
         """
-        print "#### init_demo ####"
-        result = self.check_build(demo_id,ddl_build)
-        print "result is ",result
-        return json.dumps(result)
-
-    #---------------------------------------------------------------------------
-    def check_build(self, demo_id, ddl_build):
-        """
-            rebuild demo from source code if required
-        """
-
-        res_data = {}
-
-        # reload demo description
-        demo_path = os.path.join(self.current_directory,\
-                                 self.running_dir,\
-                                 demo_id)
         
-        # parse stringified json
-        ddl_build = json.loads(ddl_build)
-        print "ddl_build = ", ddl_build
+        print "make begin"
+        total_start = time.time()
+        make_info = ""
+        
+        print "make(clean_previous={0})".format(clean_previous)
+        zip_filename  = urlparse.urlsplit(ddl_build['url']).path.split('/')[-1]
+        src_dir_name  = ddl_build['srcdir']
+        
+        dl_dir        = os.path.join(path_for_the_compilation, 'dl/')
+        scripts_dir   = os.path.join(path_for_the_compilation, 'scripts/')
+        log_file      = os.path.join(path_for_the_compilation, 'build.log')
+        src_dir       = os.path.join(path_for_the_compilation, 'src/')
+        bin_dir       = os.path.join(path_for_the_compilation, 'bin/')
+        src_path      = os.path.join(src_dir, src_dir_name)
+        
+        
+        self.mkdir_p(dl_dir)
+        tgz_file  = path.join(dl_dir, zip_filename)
+        
+        print "make download archive"
+        # get the latest source archive
+        build.download(ddl_build['url'], tgz_file)
 
-        print "---- check_build demo: {0:10}".format(demo_id),
-        # we should have a dict or a list of dict
+        rebuild_needed = False
+
+        ## test if the dest file is missing, or too old, for each program to build
+        if 'binaries' in ddl_build:
+            programs = ddl_build['binaries']
+            for program in programs:
+                print "build ", program
+                # use first binary name to check time
+                prog_filename = program[1]
+                prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
+                if os.path.basename(prog_filename)=='' and len(program)==3:
+                    prog_file = path.join(bin_dir,program[2])
+                if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
+                    rebuild_needed = True
+        
+        # test timestamp for scripts too
+        if 'scripts' in ddl_build.keys():
+            for script in ddl_build['scripts']:
+                script_file = path.join(scripts_dir, script[1])
+                if os.path.basename(script[1])=='' and len(script)==3:
+                    script_file = path.join(scripts_dir,script[1],script[2])
+                if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
+                    rebuild_needed = True
+
+        #--- build
+        if not(rebuild_needed):
+            make_info += "no rebuild needed "
+            print "no rebuild needed ",
+        else:
+            
+            print "extracting archive"
+            # extract the archive
+            start = time.time()
+            
+            if clean_previous and path.isdir(src_dir): 
+                shutil.rmtree(src_dir)
+            
+            self.mkdir_p(src_dir)
+            build.extract(tgz_file, src_dir)
+            make_info += "extracting archive: " + tgz_file + " sec.; ".format(time.time()-start)
+            print make_info
+            
+            print "creating bin_dir"
+            if clean_previous and path.isdir(bin_dir): 
+                shutil.rmtree(bin_dir)
+                
+            self.mkdir_p(bin_dir)
+            
+            print "creating scripts dir"
+            if clean_previous and path.isdir(scripts_dir): 
+                shutil.rmtree(scripts_dir)
+                
+            self.mkdir_p(scripts_dir)
+            
+                    
+            ##----- CMAKE build
+            start = time.time()
+            print "creating bin_dir"
+            if  ('build_type' in ddl_build.keys()) and \
+                (ddl_build['build_type'].upper()=='cmake'.upper()):
+                
+                print "using CMAKE"
+                # Run cmake first:
+                # create temporary build dir IPOL_xxx_build
+                build_dir = path.join(src_path,"__IPOL_build__")
+                self.mkdir_p(build_dir)
+                
+                # prepare_cmake can fix some options before configuration
+                if ('prepare_cmake' in ddl_build.keys()):
+                    print 'prepare_cmake :', ddl_build['prepare_cmake']
+                    build.run(ddl_build['prepare_cmake'], stdout=log_file, cwd=src_path)
+                
+                print "..."
+                # set release mode by default, other options could be added
+                if ('cmake_flags' in ddl_build.keys()):
+                    cmake_flags = ddl_build['cmake_flags']
+                else:
+                    cmake_flags = ''
+                
+                build.run("cmake -D CMAKE_BUILD_TYPE:string=Release "+cmake_flags+ " " +src_path,
+                            stdout=log_file, cwd=build_dir)
+                # build
+                build.run("make %s " % (ddl_build['flags']), stdout=log_file,cwd=build_dir)
+                
+                ## copy binaries
+                for program in programs:
+                    prog_path=path.join(build_dir, program[0])
+                    bin_path =path.join(prog_path, program[1])
+                    
+                    if os.path.isdir(bin_path):
+                        print "copying all files in bin dir"
+                        # copy all files to bin dir
+                        src_files = os.listdir(bin_path)
+                        for file_name in src_files:
+                            full_file_name = os.path.join(bin_path, file_name)
+                        if (os.path.isfile(full_file_name)):
+                            print "{0}; ".format(file_name),
+                            shutil.copy(full_file_name, bin_dir)
+                        print ''
+                    else:
+                        # copy binary to bin dir
+                        print "{0}-->{1}".format(bin_path, bin_dir)
+                        shutil.copy(bin_path, bin_dir)
+            else:
+                if  ('build_type' in ddl_build.keys()) and \
+                    (ddl_build['build_type'].upper()=='make'.upper()):
+                    #----- MAKE build
+                    print "using MAKE"
+
+                    # prepare_cmake can fix some options before configuration
+                    if ('prepare_make' in ddl_build.keys()):
+                        print 'prepare_make :', ddl_build['prepare_make']
+                        build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
+                    
+                    print "..."
+
+                    # build the programs for make
+                    for program in programs:
+                        prog_path=path.join(src_path,  program[0])
+                        bin_path =path.join(prog_path, program[1])
+                    
+                        # build
+                        if os.path.isdir(bin_path):
+                            cmd = "make %s -C %s" % (ddl_build['flags'], prog_path)
+                        else:
+                            cmd = "make %s -C %s %s" % (ddl_build['flags'], prog_path, program[1])
+                    
+                        print cmd
+                        build.run(cmd, stdout=log_file)
+                    
+                        if os.path.isdir(bin_path):
+                            print "copying all files in bin dir ", bin_path
+                            # copy all files to bin dir
+                            src_files = os.listdir(bin_path)
+                            for file_name in src_files:
+                                full_file_name = os.path.join(bin_path, file_name)
+                                if (os.path.isfile(full_file_name)):
+                                    print "{0}; ".format(file_name),
+                                    shutil.copy(full_file_name, bin_dir)
+                        else:
+                            # copy binary to bin dir
+                            print "{0}-->{1}".format(bin_path, bin_dir)
+                            shutil.copy(bin_path, bin_dir)
+
+            # if build_type is 'script', just execute this part
+            if 'scripts' in ddl_build.keys():
+                print ddl_build['scripts']
+                # Move scripts to the scripts dir
+                for script in ddl_build['scripts']:
+                    print "moving ",path.join(src_path, script[0], script[1]), " to ", scripts_dir
+                    new_file = path.join( scripts_dir, script[1])
+                
+                    if os.path.exists(new_file):
+                        if path.isfile(new_file): 
+                            os.remove(new_file)
+                        else:
+                            os.chmod( new_file, stat.S_IRWXU )
+                            shutil.rmtree(new_file)
+                    shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
+                    # Give exec permission to the script
+                    os.chmod( new_file, stat.S_IREAD | stat.S_IEXEC )
+            
+            # prepare_cmake can fix some options before configuration
+            if ('post_build' in ddl_build.keys()):
+                print 'post_build command:', ddl_build['post_build']
+                build.run(ddl_build['post_build'],
+                        stdout=log_file, cwd=src_path)
+                
+            # cleanup the source dir
+            shutil.rmtree(src_dir)
+            make_info += "build: {0} sec.; ".format(time.time()-start)
+
+        make_info += "total elapsed time: {0} sec.".format(time.time()-total_start)
+        print "make end"
+        
+        return make_info
+
+    @cherrypy.expose
+    def ensure_compilation(self, demo_id, ddl_build):
+        """
+            Ensure compilation in the demorunner
+        """
+        data = {}
+        data['status'] = 'KO'
+        
+        ddl_build = json.loads(ddl_build)
+        
+        path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
+        
+        print path_for_the_compilation
+        self.mkdir_p(path_for_the_compilation)
+        
+        #we should have a dict or a list of dict
         if isinstance(ddl_build,dict):
             builds = [ ddl_build ]
         else:
             builds = ddl_build
+        
         first_build = True
         for build_params in builds:
-            bd = build_demo_base.BuildDemoBase( demo_path)
-            bd.set_params(build_params)
-            cherrypy.log("building", context='SETUP/%s' % demo_id,
-                        traceback=False)
+            cherrypy.log("building", context='SETUP/%s' % demo_id, traceback=False)
             try:
-                make_info = bd.make(first_build)
+                make_info = self.make(path_for_the_compilation, build_params, first_build)
+                print make_info
                 first_build=False
-                res_data["status"]  = "OK"
-                res_data["message"] = "Build for demo {0} checked".format(demo_id)
-                res_data["info"]    = make_info
+                data['status']  = "OK"
+                data['message'] = "Build for demo {0} checked".format(demo_id)
+                data['info']    = make_info
             except Exception as e:
                 print "Build failed with exception ",e
-                cherrypy.log("build failed (see the build log)",
-                                context='SETUP/%s' % demo_id,
-                                traceback=False)
-                res_data["status"] = "KO"
-                res_data["message"] = "Build for demo {0} failed".format(demo_id)
-                return res_data
+                cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
+                data['message'] = "Build for demo {0} failed".format(demo_id)
+                return json.dumps(data)
             
         print ""
-        return res_data
-
-    #---------------------------------------------------------------------------
-    def WorkDir(self,demo_id,key):
-        return os.path.join(    self.current_directory,\
-                                self.running_dir,\
-                                demo_id,\
-                                'tmp',\
-                                key+'/')
-
-    #---------------------------------------------------------------------------
-    def WorkUrl(self,demo_id,key):
-        return os.path.join(    self.server_address,\
-                                self.running_dir,\
-                                demo_id,\
-                                'tmp',\
-                                key+'/')
-
-    #---------------------------------------------------------------------------
-    def BaseDir(self,demo_id,key):
-        return os.path.join(    self.current_directory,\
-                                self.running_dir,\
-                                demo_id+'/')
-
-    #---------------------------------------------------------------------------
-    #
-    # KEY MANAGEMENT
-    #
-    def get_new_key(self, demo_id, key=None):
-        """
-        create a key if needed, and the key-related attributes
-        """
-        if key is None:
-            keygen = hashlib.md5()
-            seeds = [cherrypy.request.remote.ip,
-                     # use port to improve discrimination
-                     # for proxied or NAT clients
-                     cherrypy.request.remote.port,
-                     datetime.now(),
-                     random()]
-            for seed in seeds:
-                keygen.update(str(seed))
-            key = keygen.hexdigest().upper()
-
-        # check key
-        if not (key and key.isalnum()):
-            # HTTP Bad Request
-            raise cherrypy.HTTPError(400, "The key is invalid")
-
-        # reload demo description
-        work_dir = self.WorkDir(demo_id,key)
-        if not os.path.isdir(work_dir):
-            os.makedirs(work_dir)
-
-        return key
+        
+        return json.dumps(data)
     
-
-    #
-    # INPUT HANDLING TOOLS
-    #
-
-    #---------------------------------------------------------------------------
-    def save_image(self, im, fullpath):
-        '''
-        Save image object given full path
-        '''
-        self.stack_depth+=1
-        start = timer()
-        im.save(fullpath, compresslevel=self.png_compresslevel)
-        end=timer()
-        self.output( "save_image {0} took {1} sec".format(fullpath,end-start))
-        self.stack_depth-=1
-
-    #---------------------------------------------------------------------------
-    def need_convert(self, im, input_info):
-        '''
-        check if input image needs convertion
-        '''
-        mode_kw = {'1x8i' : 'L',
-                    '3x8i' : 'RGB'}
-        # check max size
-        return  im.im.mode != mode_kw[input_info['dtype']]
-            
-    #---------------------------------------------------------------------------
-    def need_convert_or_resize(self, im, input_info):
-        '''
-        Convert and resize an image object
-        '''
-        # check max size
-        max_pixels = eval(str(input_info['max_pixels']))
-        return  self.need_convert(im,input_info) or \
-                prod(im.size) > max_pixels
-
-    #---------------------------------------------------------------------------
-    def convert_and_resize(self, im, input_info):
-        '''
-        Convert and resize an image object
-        '''
-        msg=""
-        self.stack_depth+=1
-        start = timer()
-        if self.need_convert(im,input_info):
-            im.convert(input_info['dtype'])
-            msg += " converted to '{0}' ".format(input_info['dtype'])
-        self.output( "im.im.mode = {0}".format(im.im.mode))
-        # check max size
-        max_pixels = eval(str(input_info['max_pixels']))
-        resize = prod(im.size) > max_pixels
-        if resize:
-            cherrypy.log("input resize")
-            im.resize(max_pixels)
-            if msg!= "":
-                msg += "&"
-            msg += " resized to {0}px ".format(max_pixels)
-        end=timer()
-        self.output( "convert_and_resize took {0} sec".format(end-start))
-        self.stack_depth-=1
-        return msg
-
-    #---------------------------------------------------------------------------
-    def process_inputs(self, demo_id, key, inputs_desc, crop_info, res_data):
-        """
-        pre-process the input data
-        we suppose that config has been initialized, and save the dimensions
-        of each converted image in self.cfg['meta']['input$i_size_{x,y}']
-        """
-        self.stack_depth += 1
-        self.output("#### process_inputs ####")
-        start = timer()
-        msg = ""
-        max_width = 0
-        max_height = 0
-        nb_inputs = len(inputs_desc)
-        work_dir = self.WorkDir(demo_id,key)
-        
-        for i in range(nb_inputs):
-          input_msg = ""
-          # check the input type
-          input_desc = inputs_desc[i]
-          # find files starting with input_%i
-          input_files = glob.glob(os.path.join(work_dir,'input_%i' % i+'.*'))
-          
-          if input_desc['type']=='image':
-            # we deal with an image, go on ...
-            self.output( "Processing input {0}".format(i))
-            if len(input_files)!=1:
-              # problem here
-              raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
-            else:
-              # open the file as an image
-              try:
-                  im = image(input_files[0])
-              except IOError:
-                self.output( "failed to read image " + input_files[0])
-                raise cherrypy.HTTPError(400, # Bad Request
-                                         "Bad input file")
-
-            
-            #-----------------------------
-            # Save the original file as PNG
-            # todo: why save original image as PNG??
-            #
-            # Do a check before security attempting copy.
-            # If the check fails, do a save instead
-            if  im.im.format != "PNG" or \
-                im.size[0] > 20000 or im.size[1] > 20000 or \
-                len(im.im.getbands()) > 4:
-              # Save as PNG (slow)
-              self.output( "calling self.save_image()")
-              self.save_image(im, os.path.join(work_dir,'input_%i.orig.png' % i))
-              # delete the original
-              os.remove(input_files[0])
-            else:
-              # Move file (fast)
-              shutil.move(input_files[0],
-                          os.path.join(work_dir,'input_%i.orig.png' % i))
-
-            
-            #-----------------------------
-            # convert to the expected input format: TODO: do it if needed ...
-            
-            # crop first if available
-            if crop_info!=None:
-                crop_res = self.crop_input(im, i, demo_id, key, inputs_desc, crop_info)
-                res_data['info'] += crop_res['info']
-                if crop_res['status']=="OK":
-                    im_converted = image(crop_res['filename'])
-                    im_converted_filename = 'input_%i.crop.png' % i
-                else:
-                    im_converted = im.clone()
-                    im_converted_filename = 'input_%i.orig.png' % i
-            else:
-                im_converted = im.clone()
-                im_converted_filename = 'input_%i.orig.png' % i
-            
-            if self.need_convert_or_resize(im_converted,input_desc):
-                print "need convertion or resize, input description: ", input_desc
-                output_msg = self.convert_and_resize(im_converted,input_desc)
-                input_msg += " Input {0}:".format(i)+output_msg+" "
-                # save a web viewable copy
-                im_converted.save(os.path.join(work_dir,'input_%i.png' % i),
-                                  compresslevel=self.png_compresslevel)
-            else:
-                # just create a symbolic link  
-                os.symlink(im_converted_filename,\
-                           os.path.join(work_dir,'input_%i.png' % i))
-                
-            ext = input_desc['ext']
-            # why saving a copy of the converted image in non-png format ?
-            ## save a working copy:
-            #if ext != ".png":
-                ## Problem with PIL or our image class: this call seems to be
-                ## problematic when saving PGM files. Not reentrant?? In any
-                ## case, avoid calling it from a thread.
-                ##threads.append(threading.Thread(target=self.save_image,
-                ##               args = (im_converted, self.work_dir + 'input_%i' % i + ext))
-                #self.save_image(im_converted, self.work_dir + 'input_%i' % i + ext)
-
-
-            if im.size != im_converted.size:
-                input_msg += " {0} --> {1} ".format(im.size,im_converted.size)
-                print "The image has been resized for a reduced computation time ",
-                print  "({0} --> {1})".format(im.size,im_converted.size)
-            # update maximal dimensions information
-            max_width  = max(max_width,im_converted.size[0])
-            max_height = max(max_height,im_converted.size[1])
-            #self.cfg['meta']['input%i_size_x'%i] = im_converted.size[0]
-            #self.cfg['meta']['input%i_size_y'%i] = im_converted.size[1]
-            if input_msg!="":
-                # next line in html
-                msg += input_msg+"<br/>\n"
-            # end if type is image
-          else:
-            # check if we have a representing image to display
-            if len(input_files)>1:
-              # the number of input files should be 2...
-              # for the moment, only check for png file
-              png_file = os.path.join(work_dir,'input_%i.png' % i)
-              #if png_file in input_files:
-                ## save in configuration the information to allow its display
-                #self.cfg['meta']['input%i_has_image'%i] = True
-        # end for i in range(nb_inputs)
-        
-        # for compatibility with previous system, create input_0.sel.png
-        # as symbolic link
-        os.symlink('input_0.png', os.path.join(work_dir,'input_0.sel.png'))
-        
-        end=timer()
-        self.output( " process_inputs() took: {0} sec.;".format(end-start))
-        res_data["info"] += " process_inputs() took: {0} sec.;".format(end-start)
-        res_data["max_width"]  = max_width
-        res_data["max_height"] = max_height
-        
-        self.stack_depth -= 1
-        self.output("#### process_inputs end ####")
-        return msg
-
-
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def input_upload(self, **kwargs):
-        """
-        use the uploaded input files
-        file_0, file_1, ... are the input files
-        demo_id   id of the current demo
-        ddl_input is the input section of the demo description
-        """
-        
-        print "#### input_upload ####"
-        print "args:", kwargs
-        res_data = {}
-        res_data['info'] = ''
-        # we need a unique key for the execution
-        demo_id = kwargs['demo_id']
-        print "demo_id=",demo_id
-        key = self.get_new_key(demo_id)
-        res_data["key"]     = key
-        work_dir = self.WorkDir(demo_id,key)
-        print "ddl_inputs = ",kwargs['ddl_inputs']
-        inputs_desc = json.loads(kwargs['ddl_inputs'])
-        nb_inputs = len(inputs_desc)
-        
-        for i in range(nb_inputs):
-          file_up = kwargs.pop('file_%i' % i,None)
-          
-          if file_up==None or file_up.filename == '':
-            if  not('required' in inputs_desc[i].keys()) or \
-                inputs_desc[i]['required']:
-              # missing file
-              raise cherrypy.HTTPError(400, # Bad Request
-                                       "Missing input file number {0}".format(i))
-            else:
-                # skip this input
-                continue
-
-          # suppose than the file is in the correct format for its extension
-          ext = inputs_desc[i]['ext']
-          file_save = file(os.path.join(work_dir,'input_%i' % i + ext), 'wb')
-
-          size = 0
-          while True:
-            # TODO larger data size
-            data = file_up.file.read(128)
-            if not data:
-                break
-            size += len(data)
-            if 'max_weight' in inputs_desc[i] and size > eval(str(inputs_desc[i]['max_weight'])):
-                # file too heavy
-                raise cherrypy.HTTPError(400, # Bad Request
-                                          "File too large, " +
-                                          "resize or use better compression")
-            file_save.write(data)
-          file_save.close()
-
-        crop_info=None
-        msg = self.process_inputs(demo_id, key, inputs_desc, crop_info, res_data)
-        
-        #msg = self.process_inputs()
-        #self.log("input uploaded")
-        #self.cfg['meta']['original'] = True
-        #self.cfg['meta']['max_width']  = self.max_width;
-        #self.cfg['meta']['max_height'] = self.max_height;
-        #self.cfg.save()
-
-        res_data['status'] = "OK"
-        if msg!="":
-            res_data['process_inputs_msg'] = msg
-        print "upload res_data=",res_data
-        return json.dumps(res_data)
-
-
-    #---------------------------------------------------------------------------
-    def crop_input(self, img, idx, demo_id, key, inputs_desc, crop_info):
-        """
-        Crop input if selected
-            img: input image to crop
-            idx: input position
-            demo_id
-            key
-            inputs_desc
-            crop_info
-        """
-
-        self.stack_depth += 1
-        self.output("#### crop_input ####")
-        crop_start = timer()
-        res_data = {}
-        res_data['info'] = ""
-        # for the moment, we can only crop the first image
-        if idx!=0:
-            res_data["status"] = "KO"
-            return res_data
-            
-        work_dir = self.WorkDir(demo_id,key)
-        #initial_filename = os.path.join(work_dir,'input_{0}.orig.png'.format(idx))
-        cropped_filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
-        res_data['filename'] = cropped_filename
-        self.output( "crop_info = {0}".format(crop_info))
-        
-        if crop_info["enabled"]:
-            # define x0,y0,x1,y1
-            x0 = int(round(crop_info['x']))
-            y0 = int(round(crop_info['y']))
-            x1 = int(round(crop_info['x']+crop_info['w']))
-            y1 = int(round(crop_info['y']+crop_info['h']))
-            #save parameters
-            try:
-                ## TODO: get rid of eval()
-                max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
-                # ----- this code is not used anymore since
-                #       uploaded images are sent after crop
-                #       we will also save the crop information in archive
-                #       to be able to reload the experiment from archive in the 
-                #       future
-                ##
-                ## cut subimage from original image
-                ##
-                ## draw selected rectangle on the image
-                #imgS        = image(initial_filename)
-                #self.output("imgS mode = {0}".format(imgS.im.mode))
-                ## need to convert image to RGB mode before drawing ...
-                #start=timer()
-                #imgS.convert('3x8i')
-                #self.output(" imgS.convert('3x8i') took: {0} seconds;".format(timer()-start))
-                #start=timer()
-                ##imgS.draw_line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)],
-                                ##color="red")
-                ##imgS.draw_line([(x0+1, y0+1), (x1-1, y0+1), (x1-1, y1-1),
-                                ##(x0+1, y1-1), (x0+1, y0+1)], color="white")
-                #self.output(" draw_lines took: {0} seconds;".format(timer()-start))
-                #self.save_image(imgS,os.path.join(work_dir,'input_{0}s.png'.format(idx)))
-                
-                # Karl: here different from base_app approach
-                # crop coordinates are on original image size
-
-                #start=timer()
-                #img = image(initial_filename)
-                #self.output(" read image took: {0} seconds;".format(timer()-start))
-                start=timer()
-                img.crop((x0, y0, x1, y1))
-                self.output(" img.crop took: {0} seconds;".format(timer()-start))
-                # resize if cropped image is too big
-                if max_pixels and prod(img.size) > max_pixels:
-                    start=timer()
-                    img.resize(max_pixels, method="antialias")
-                    self.output(" img.resize took: {0} seconds;".format(timer()-start))
-                # save result
-                self.save_image(img,cropped_filename)
-
-            except ValueError as e:
-                self.output("crop failed with exception : {0}".format(e))
-                traceback.print_exc()
-                res_data["status"] = "KO"
-                res_data['info'] += " cropping failed with exception;"
-                # TODO deal with errors in a clean way
-                raise cherrypy.HTTPError(400, # Bad Request
-                                            "Incorrect parameters, " +
-                                            "image cropping failed.")
-                self.stack_depth -= 1
-                return res_data
-        else:
-            res_data["status"]  = "KO"
-            res_data['info'] += " no cropping area selected;"
-            self.stack_depth -= 1
-            return res_data
-
-        res_data["status"]  = "OK"
-        end=timer()
-        res_data["info"]    += " crop_input took: {0} seconds;".format(end-crop_start)
-        self.output(" crop_input took: {0} seconds;".format(end-crop_start))
-        self.stack_depth -= 1
-        return res_data
-
-
-    def output(self, mess):
-        print "  "*self.stack_depth+mess
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def input_select_and_crop(self, **kwargs):
-        """
-        use the selected available input images
-        input parameters:
-            demo_id
-            ddl_inputs
-            url
-            list of inputs
-        returns:
-            { key, status, message }
-        """
-        start = timer()
-        self.stack_depth=0
-        self.output("#### input_select_and_crop begin ####")
-        self.stack_depth+=1
-        res_data = {}
-        res_data['info'] = ''
-        # we need a unique key for the execution
-        demo_id = kwargs.pop('demo_id',None)
-        key = self.get_new_key(demo_id)
-        res_data["key"]     = key
-        work_dir = self.WorkDir(demo_id,key)
-        inputs_desc = kwargs.pop('ddl_inputs',None)
-        inputs_desc = json.loads(inputs_desc)
-
-        crop_info   = kwargs.pop('crop_info',None)
-        crop_info   = json.loads(crop_info)
-
-        nb_inputs = len(inputs_desc)
-
-        blob_url = kwargs.pop('url',None)
-        self.output("blob_url: {0}".format(blob_url))
-        self.output("kwargs: {0}".format(kwargs))
-        
-        self.output("\n-----\ninput_select : {0}".format(kwargs.keys()))
-        # copy to work_dir
-        blobfile = urllib.URLopener()
-        for inputinfo in kwargs.keys():
-          self.output("\n**\n")
-          # 1. retreive index
-          posstart=inputinfo.index(':')
-          idx = int(inputinfo[:posstart])
-          #print inputs_desc[idx]
-          inputinfo = inputinfo[posstart+1:]
-          if ',' in inputinfo:
-            # what should we do ? we should have two files here...
-            inputfiles = inputinfo.split(',')
-          else:
-            inputfiles = [ inputinfo ]
-          # extract input files to work dir as input_%i.ext
-          self.output("inputfiles: {0}".format(inputfiles))
-          for inputfile in inputfiles:
-            start=timer()
-            self.output( "---- inputfile: '{0}'".format(inputfile))
-            self.output( "{0}".format(type(inputfile)))
-            basename  = inputfile[:inputfile.index('.')]
-            ext       = inputfile[inputfile.index('.'):]
-            self.output( "basename : {0}".format(basename))
-            blob_link =  blob_url +'/'+ basename + ext
-            self.output("blob_link = {0}".format(blob_link))
-            blobfile.retrieve(blob_link, 
-                              os.path.join(work_dir,'input_{0}{1}'.format(idx,ext)))
-            end=timer()
-            self.output("---- retrieving file took {0} seconds".format(end-start))
-        
-        msg = self.process_inputs(demo_id, key, inputs_desc,crop_info, res_data)
-        ##self2.log("input selected : %s" % kwargs.keys()[0])
-        #self.cfg['meta']['original'] = False
-        #self.cfg['meta']['max_width']  = self.max_width;
-        #self.cfg['meta']['max_height'] = self.max_height;
-        #self.cfg.save()
-
-        # Let users copy non-standard input into the work dir
-        # don't have fnames here
-        #self2.input_select_callback(fnames)
-
-        ## jump to the params page
-        #return self.params(msg=msg, key=self2.key)
-        
-        res_data["status"]  = "OK"
-        res_data["message"] = "input files copied to the local path"
-        if msg!="":
-            res_data['process_inputs_msg'] = msg
-        self.stack_depth-=1
-        self.output("#### input_select_and_crop:{0} sec.".format(timer()-start))
-        
-        return json.dumps(res_data)
-
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def init_noinputs(self, **kwargs):
-        """
-        use the selected available input images
-        input parameters:
-            demo_id
-        returns:
-            { key, status, message }
-        """
-        start = timer()
-        self.stack_depth=0
-        res_data = {}
-        res_data['info'] = ''
-        # we need a unique key for the execution
-        demo_id = kwargs.pop('demo_id',None)
-        key = self.get_new_key(demo_id)
-        res_data["key"]     = key
-        work_dir = self.WorkDir(demo_id,key)
-        res_data["status"]  = "OK"
-        return json.dumps(res_data)
-
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def run_demo(self, demo_id, key, ddl_json, params, meta):
-        
-        res_data = {}
-        res_data["key"] = key
+    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None):        
         print "#### run demo ####"
         print "demo_id = ",demo_id
-        print "key = ",key
-        ddl_json = json.loads(ddl_json)
-        ddl_run = ddl_json['run']
+        ddl_run = json.loads(ddl_run)
         print "ddl_run = ",ddl_run
         params  = json.loads(params)
         print "params = ",params
-        res_data["work_url"] = self.WorkUrl(demo_id,key)
-        res_data['params']   = params
-        res_data['algo_info'] = {}
-        res_data['algo_meta'] = json.loads(meta)
         
-        # run the algorithm
+        path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
+        print "path_with_the_binaries = ",path_with_the_binaries
+        work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
+        print "run dir = ",work_dir
+        
+        res_data = {}
+        res_data["key"] = key
+        res_data['params'] = params
+        res_data['status'] = 'KO' 
+        res_data['algo_info'] = {}
+        if meta !=None:
+            res_data['algo_meta'] = json.loads(meta)
+            print res_data['algo_meta']
+        
+        
+        # TODO:this code will be moved to the CORE
+        # save parameters as a params.json file
+        try:
+            with open(os.path.join(work_dir,"params.json"),"w") as resfile:
+                json.dump(params,resfile)
+        except Exception:
+            print "Failed to save params.json file"
+            raise
+          
+        #run the algorithm
         try:
             run_time = time.time()
-            #self.cfg.save()
-            self.run_algo(demo_id,key,ddl_run, params, res_data)
-            #self.cfg.Reload()
-            ## re-read the config in case it changed during the execution
+            
+            print "Demoid: ",demo_id
+            
+            self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data)
+
+            # re-read the config in case it changed during the execution
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'timeout'
         except RuntimeError as e:
-            #print "self.show_results_on_error =", self.show_results_on_error
-            #if not(self.show_results_on_error):
-                #return self.error(errcode='runtime',errmsg=str(e))
-            #else:
-                #self.cfg['info']['run_time'] = time.time() - run_time
-                #self.cfg['info']['status']   = 'failure'
-                #self.cfg['info']['error']    = str(e)
-                #self.cfg.save()
-                #pass
             res_data['algo_info']['status']   = 'failure'
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
             res_data['error']    = str(e)
-            
+        
+        # TODO:this code will be moved to the CORE
+        # get back parameters
+        try:
+            with open(os.path.join(work_dir,"params.json")) as resfile:
+                res_data['params'] = json.load(resfile)
+        except Exception:
+            print "Failed to read params.json file"
+            raise
+        
         # check if new config fields
-        if 'config' in ddl_json.keys():
-            ddl_config = ddl_json['config']
+        if ddl_config != None:
+            ddl_config = json.loads(ddl_config)
             if 'info_from_file' in ddl_config.keys():
                 for info in ddl_config['info_from_file']:
                     print "*** ",info
                     filename = ddl_config['info_from_file'][info]
                     try:
-                        work_dir = self.WorkDir(demo_id,key)
-                        f = open( os.path.join(work_dir,filename))
+                        f = open(os.path.join(work_dir,filename))
                         print "open ok"
                         file_lines = f.read().splitlines()
                         print file_lines
@@ -800,58 +513,36 @@ class DemoRunner(object):
                     except Exception as e:
                         print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
                         print "Exception ",e
-
-        # Files must be stored by the archive module
-        if (len(ddl_json['inputs'])==0) or \
-            res_data['algo_meta']['original']:
-            res_data["send_archive"]=True
-        else:
-            res_data["send_archive"]=False
-
-        work_dir = self.WorkDir(demo_id,key)
-        # save res_data as a results.json file
-        try:
-            with open(os.path.join(work_dir,"results.json"),"w") as resfile:
-                json.dump(res_data,resfile)
-        except Exception:
-            print "Failed to save results.json file"
-            raise
         
-        if res_data["send_archive"]:
-            SendArchive.prepare_archive(work_dir,ddl_json['archive'],res_data)
-            
+        print res_data
         return json.dumps(res_data)
         
+         
         
     #---------------------------------------------------------------------------
     # Core algorithm runner
     #---------------------------------------------------------------------------
-    def run_algo(self,demo_id,key,ddl_run,params, res_data):
+    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data):
         """
         the core algo runner
         """
-        
-        # refresh demo description ??
-        print "----- run_algo begin -----"
-        work_dir = self.WorkDir(demo_id,key)
-        base_dir = self.BaseDir(demo_id,key)
-        rd = run_demo_base.RunDemoBase(base_dir, work_dir)
+        print "\n\n----- run_algo begin -----\n\n"
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir)
         rd.set_logger(cherrypy.log)
-        #if 'demo.extra_path' in cherrypy.config:
-            #rd.set_extra_path(cherrypy.config['demo.extra_path'])
         rd.set_algo_params(params)
         rd.set_algo_info  (res_data['algo_info'])
         rd.set_algo_meta  (res_data['algo_meta'])
-        #rd.set_MATLAB_path(self.get_MATLAB_path())
+        #rd.set_MATLAB_path(self.get_MATLAB_path())  ---> We have to deal with MATLAB in the future
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
-        print "--"
+        
+        rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
         rd.run_algo()
-        print "--"
+        
         ## take into account possible changes in parameters
         res_data['params']      = rd.get_algo_params()
         res_data['algo_info']   = rd.get_algo_info()
         res_data['algo_meta']   = rd.get_algo_meta()
-        #print "self.cgf['param']=",self.cfg['param']
         print "----- run_algo end -----"
         return
+        

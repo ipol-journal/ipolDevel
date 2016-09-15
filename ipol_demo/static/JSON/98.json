@@ -36,7 +36,7 @@
   ,
   "run": [ 
     "python:# first crop input so that its dimensions are multiples of the sampling factor",
-    "python:im = image(self.work_dir + 'input_0.sel.png')",
+    "python:im = image('input_0.sel.png')",
     "python:(sizeX, sizeY) = im.size",
     "python:sfactor = int(sfactor) # be sure to have an integer value",
     "python:rX = sizeX % sfactor",
@@ -44,16 +44,16 @@
     "python:im.crop((0, 0, sizeX-rX, sizeY-rY))",
     "# first remove input image since it could be a symbolic link",
     "rm input_0.sel.png",
-    "python:im.save(self.work_dir + 'input_0.sel.png')",
+    "python:im.save('input_0.sel.png')",
     "pansharpening_ipol input_0.sel.png pan.png lowspectral.png ihs.png pansharpened.png $sfactor",
     "imdiff_ipol        input_0.sel.png ihs.png           diffInputIHS.png  >rmse_IHS.txt",
     "imdiff_ipol        input_0.sel.png pansharpened.png  diffInputPanS.png >rmse_PanS.txt",
     "python:#embed lowspectral image in white image of the same size as the original",
     "python:im = PIL.Image.new('RGB', (sizeX, sizeY), 'white')",
-    "python:im0 = PIL.Image.open(self.work_dir + 'lowspectral.png')",
+    "python:im0 = PIL.Image.open('lowspectral.png')",
     "python:(sizeX0, sizeY0) = im0.size",
     "python:im.paste(im0, (0, 0, sizeX0, sizeY0))",
-    "python:im.save(self.work_dir + 'lowspectral_display.png')"
+    "python:im.save('lowspectral_display.png')"
   ]
   ,
   "archive":

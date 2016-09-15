@@ -48,6 +48,16 @@ ddl.pdf
 *.toc
 *.out
 
+#
+# ignore kile files
+#
+*.kilepr
+
+#
+# ignore generated pdf docs
+#
+
+ipol.pdf
 
 
 # other

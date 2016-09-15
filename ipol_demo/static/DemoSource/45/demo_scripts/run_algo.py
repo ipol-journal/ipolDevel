@@ -5,10 +5,8 @@ import json
 import os, sys
 # include ../.. in path to be able to import lib
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-# go up 3 levels ...
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR))))
 
-from lib import image
+from PIL import Image
 from subprocess import Popen
 import time
 from math import sqrt
@@ -247,13 +245,20 @@ if __name__ == '__main__':
     print "running {0} = {1}".format(k,repr(params[k]))
     exec("{0} = {1}".format(k,repr(params[k])))
   
+  # we need to convert some parameters to numbers
+  percentile    = float(percentile)
+  block         = int(block)
+  curvefilter   = int(curvefilter)
+  removeequals  = int(removeequals)
+  mean_type     = int(mean_type)
+    
   # Increment the number of bins, since the last will be
   # removed later
   if bins > 0:
       bins += 1
 
   # Get input size
-  ima = image('input_0.sel.png')
+  ima = Image.open('input_0.sel.png')
   sizeX, sizeY = ima.size
 
   print "Image size = ", sizeX, "x", sizeY
@@ -277,7 +282,7 @@ if __name__ == '__main__':
   for scale in range(num_scales):
     if scale != num_scales - 1:
       # Create next subscale scale s{i+1} for s{i}.
-      os.system("../../bin/subscale -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
+      os.system(os.path.join(CURRENT_DIR,"../bin/subscale")+" -s2 scale_s{0}.rgb scale_s{1}.rgb".format(scale,scale+1))
 
   # Estimate the noise, in parallel,
   processes = []
@@ -310,7 +315,7 @@ if __name__ == '__main__':
       #self.wait_proc(pid, timeout*0.8)
       #fd.close()
 
-      processes.append(run_proc("../../bin",procOptions, stdout=fd, stderr=fd))
+      processes.append(run_proc(os.path.join(CURRENT_DIR,"../bin"),procOptions, stdout=fd, stderr=fd))
       fds.append(fd)
 
   # Wait for the parallel processes to end
@@ -344,7 +349,7 @@ if __name__ == '__main__':
                       '%d' % num_channels, 
                       'curve_s%d.png' % scale]
       # Run
-      procDesc = run_proc("../../scripts",procOptions)
+      procDesc = run_proc(os.path.join(CURRENT_DIR,"../scripts"),procOptions)
       wait_proc(procDesc, timeout*0.8)
 
   # Cleanup

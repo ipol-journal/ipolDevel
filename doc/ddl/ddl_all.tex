@@ -52,8 +52,10 @@ Many keys are derived from the static variables of the previous 'app' Python cla
                       & yes
                       \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
- inpainting         & boolean: if true, the demo is an inpainting demo with a 
+ drawmask           & boolean: if true, the demo is an mask drawing (like inpainting) demo with a 
                       single input image and mask drawing is enabled. & no \\ \hline
+ drawlines          & boolean: if true, the demo is a line drawing demo with a 
+                      single input image and line drawing is enabled. & no \\ \hline
  crop\_maxsize      & limit allowed crop size in both width and height, the string
                       can contain a Javascript or JQuery expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
@@ -70,7 +72,7 @@ Many keys are derived from the static variables of the previous 'app' Python cla
 
 The build section contains an array of build descriptions in the form
 ''[ \{...\}, \{...\}, ...] ''. For each description, an archive containing the 
-source code is downloaded and compiled using either 'make' or 'cmake' features.
+source code is downloaded and compiled using either 'make','cmake' or 'script' features.
 It has the following information:
 
 \subsubsection{\emph{make} type}
@@ -93,7 +95,7 @@ It has the following information:
             from this directory will be copied
             to the demo binary path. If the second path is a directory, give 
             a third value corresponding to one of the files to be copied, so that
-            the system and check the file timetamp to decide if rebuild is needed.
+            the system can check the file timestamp to decide if rebuild is needed.
             & yes \\ \hline
  flags      & make command compilation flags & yes \\ \hline
  scripts    & list of scripts and their associated paths relative to the source 
@@ -150,6 +152,30 @@ It has the following information:
   "binaries"   : [ [".","lens_distortion_correction"] ],
   "flags"      : "OMP=1 -j4" } ]
 \end{lstlisting}
+
+\subsubsection{\emph{script} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ build\_type  & script & yes \\ \hline
+ url          & same as make type & yes \\ \hline
+ srcdir       & same as make type & yes \\ \hline
+ scripts      & same as make type & no  \\ \hline
+\caption{Keys for the 'script' type.}
+\end{longtable}
+
+\paragraph{Example}:\\
+\begin{lstlisting}[language=json,firstnumber=1]
+"build": [ { 
+    "build_type": "script",
+    "url": "http://151.80.24.28:8080/DemoSource/1000003/demo_scripts.tgz",
+    "srcdir": "demo_scripts",
+    "scripts": [ [ ".", "write_line_parameters.py" ] ]
+  }
+\end{lstlisting}
+
 
 %-------------------------------------------------------------------------------
 \subsection{The \emph{inputs} section}
@@ -443,6 +469,8 @@ If you also want to redirect the standard errors to the same file, use can add
 ('|' character).
 Python scripts from the PythonTools directory can be used in commands: currently
 'count\_lines.py' and 'image\_histogram.py'.
+If you want to access specific demo data copied in the binary directory, use must
+use the variable 'demodata', for example "cp \$\{demodata\}/\-pattern\-\_noise.pgm .".
 
 
 \paragraph{Examples}:\\
@@ -1097,8 +1125,8 @@ ipol\_demo/\-static/\-JQuery\-App directory:
   and an history state change event, specified in ipol\_demo.js, updates
   the contents on the page.
 
- \item \emph{ipol.features.inpainting.js}: creates the interface needed to draw
-  the inpainting mask. It uses a modified version of the 'sketch.js' module.
+ \item \emph{ipol.features.drawmask.js}: creates the interface needed to draw
+  a mask for example for inpainting demo. It uses a modified version of the 'sketch.js' module.
 
   \item \emph{ImageGallery/ipol.imagegallery.js}: implements the ImageGallery class
   used to display image galleries in inputs and results sections.
@@ -1172,7 +1200,7 @@ You will notice the use of the following external modules:
         (\url{https://github.com/blueimp/JavaScript-Canvas-to-Blob}) and 
         \emph{blob-util} (\url{https://github.com/nolanlawson/blob-util}) are 
         used.
-  \item \emph{sketch.js} is used for drawing inpainting mask, it has been 
+  \item \emph{sketch.js} is used for drawing mask, it has been 
         modified to better fit the needs of the mask drawing (and also to try 
         to fix a position issue with chrome on touching devices). The original   
         version is available at (\url{http://intridea.github.io/sketch.js/}), 
@@ -1197,8 +1225,8 @@ linerange={241-248}, basicstyle=\scriptsize]{
 
 Additionally, when the user enters the 'Archive' tab, the archive information
 is automatically updated and the last archive page is displayed:
-\lstinputlisting[language=JavaScript, firstnumber=516,
-linerange={516-531}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=523,
+linerange={523-538}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 To obtain the demo id, we first get the demo list stored within the "demo-select"
 HTML element (using the jquery data() function), then we obtain the demo id 
@@ -1210,8 +1238,8 @@ Four fieldsets are defined in the file ipol\_demo.html: blob selection, inputs,
 parameters and results. It also contains the code to create the progress bar
 and the modal dialog to upload data.
 The modal dialog is then initialized by the following code:
-\lstinputlisting[language=JavaScript, firstnumber=574,
-linerange={574-592}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=581,
+linerange={581-599}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
@@ -1226,8 +1254,8 @@ ipol.setDemoPage() is called.
 
 The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
 of the "demoinfo" module using ipol.utils.ModuleService():
-\lstinputlisting[language=JavaScript, firstnumber=314,
-linerange={314-318}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=317,
+linerange={317-321}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.js}
 
 Once the demo description is returned, it runs the following steps:
@@ -1265,8 +1293,8 @@ local files.
 If it is selected by clicking on one of the proposed blobsets, the event will
 trigger the creation of a DrawInputs instance with the string "blobset" as origin,
 load the input blobset and prepare for running the demo:
-\lstinputlisting[language=JavaScript, firstnumber=253,
-linerange={253-273}, basicstyle=\scriptsize]{
+\lstinputlisting[language=JavaScript, firstnumber=333,
+linerange={333-353}, basicstyle=\scriptsize]{
 ../../ipol_demo/static/JQueryApp/ipol.drawblobs.js}
 
 \paragraph{Data upload:}
@@ -1312,17 +1340,47 @@ The "inputs\_info" object contains the titles and contents to be displayed and i
 by the one of the public methods DrawInputs.loadDataFromBlobset() or DrawInputs.loadDataFromLocalFiles().
 
 \paragraph{Inpainting demos}
-If the demo DDL has inpainting enabled (general.inpainting=true), then an inpainting object
-of class "ipol.features.Inpainting" is created as a private member \_inpaint of the class
+If the demo DDL has mask drawing enabled (general.drawmask=true), then an drawmask object
+of class "ipol.features.Inpainting" is created as a private member \_drawmask of the class
 DrawInputs. In this case, the usual displayed input is hidden and the displayed HTML code
-contains the result of the function call to \_inpaint.createHTML() that creates all 
-the inpainting interface. The mask image is also added to the hidden ImageGallery object,
+contains the result of the function call to \_drawmask.createHTML() that creates all 
+the mask drawing interface. The mask image is also added to the hidden ImageGallery object,
 it will be updated after each drawing event and it will be used as an image to upload
 for the demo execution.
 
 \subsubsection{Step 5: Display the parameters and allow their selection}
+
 The functions related to the display of the parameters are located in the "ipol.drawparams.js"
-file and are within the class "ipol.DrawParams".
+file and are within the class "ipol.DrawParams". Default parameter values can be reset using
+the dedicated button.
+The static method ipol.DrawParams.staticUpdateParams() takes care to updating parameters
+that may have interdependencies. Currently, only the "visible" properties, and the 
+"readonly" type contents are evaluated using javascript eval() function.
+
+\subsubsection{Step 6: deal with 'run' events}
+
+The method "ipol.RunDemo.setRunEvent()" initializes the progress bar and deals
+with the click on the "run" button.
+The first step is to call the service "demorunner:init\_demo" that checks for the
+source code installation and compilation. Once the current demo is successfully
+initialized, input data can be either uploaded to defined:
+\begin{itemize}
+ \item for mask drawing demos, the method \_drawmask.submitDrawMask() is called,
+        that will submit the inputs: image and mask.
+ \item for non-mask-drawing demos where the input comes from a selected blobset,
+        the service "demorunner:input\_select\_and\_crop" is called with all the
+        required parameters: demo id, blobset information, crop information.
+ \item for non-mask-drawing demos with local files to upload, a local variable
+        of type "FormData" is instanciated and filled with the data to upload.
+        In the case of a single input image with selected crop, the image
+        is reduced to the crop area before its upload (using the getCroppedCanvas
+        option of the cropper module). The convertion from canvas or img to 
+        blobs that can be uploaded is obtained using either "canvas.toBlob()"
+        function or "blobUtil.imgSrcToBlob().then()" function. Once the 
+        form data is filled, the private method "\_uploadForm()" is called.
+ \item for demos without any input blob, the private method "\_doRun()" is
+        called in return of the service "demorunner:init\_noinputs".
+\end{itemize}
 
 
 \subsubsection{Managing browser history}

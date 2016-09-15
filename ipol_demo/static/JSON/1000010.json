@@ -96,7 +96,7 @@
     "imdiff input_0.sel.png gunturk.png diffgunturk.png",
     "imdiff input_0.sel.png ha.png      diffha.png",
     "#--- Resize for visualization (new size of the smallest dimension = 200)",
-    "python:(sizeX, sizeY) = image(self.work_dir + 'input_0.sel.png').size",
+    "python:(sizeX, sizeY) = image('input_0.sel.png').size",
     "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
     "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
     "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",

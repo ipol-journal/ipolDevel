@@ -22,17 +22,22 @@
   "build": [
     {
       "build_type"    : "make",
-      "url*previous"  : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
-      "url"           : "http://151.80.24.28:8080/DemoSource/45/ponomarenko_v4.tgz", 
+      "url"           : "http://www.ipol.im/pub/art/2013/45/ponomarenko_v4.zip", 
       "srcdir"        : "ponomarenko_v4",
       "binaries"      : [   ["ponomarenko","ponomarenko"] , 
                             ["fnoise","fnoise"], 
                             ["subscale","subscale"]
                         ],
       "flags"         : "-j4",
-      "scripts"       : [   ["scripts","writeNoiseCurve.sh"], 
-                            [ "demo_scripts", "run_algo.py"] ]
-    } ]
+      "scripts"       : [   ["scripts","writeNoiseCurve.sh"] ]
+    },
+    {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/45/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","run_algo.py"] ]
+    }
+    ]
   ,
   "inputs": [ 
       {
@@ -112,22 +117,7 @@
   "run": [
     "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
     "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
-    "# we need to convert some parameters to numbers",
-    "python:self.algo_params['percentile']  = float(self.algo_params['percentile'])",
-    "python:self.algo_params['block']       = int(self.algo_params['block'])",
-    "python:self.algo_params['curvefilter'] = int(self.algo_params['curvefilter'])",
-    "python:self.algo_params['removeequals']= int(self.algo_params['removeequals'])",
-    "python:self.algo_params['mean_type']   = int(self.algo_params['mean_type'])",
-    "# save parameters to json file",
-    "python:import json",
-    "python:fp =  open(self.work_dir + 'params.json', 'w')",
-    "python:json.dump(self.algo_params, fp)",
-    "python:fp.close()",
-    "run_algo.py",
-    "# get back parameters",
-    "python:fp = open(self.work_dir + 'params.json')",
-    "python:self.algo_params = json.load(fp)",
-    "python:fp.close()"
+    "run_algo.py"
   ],
   "archive":
     {
