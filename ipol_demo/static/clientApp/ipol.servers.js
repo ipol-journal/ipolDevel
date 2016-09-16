@@ -1,5 +1,5 @@
 
 // global variable
 var servers = {
-    proxy: "http://ipolcore.ipol.im/:9003/",
+    proxy: "http://ipolcore.ipol.im/:9003/"
 };
