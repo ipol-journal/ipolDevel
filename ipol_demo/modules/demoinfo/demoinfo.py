@@ -129,7 +129,6 @@ class DemoInfo(object):
  
 
         # DEMO
-
         @cherrypy.expose
         def default(self, attr):
             """
@@ -139,8 +138,6 @@ class DemoInfo(object):
             data["status"] = "KO"
             data["message"] = "Unknown service '{}'".format(attr)
             return json.dumps(data)
-
-        
         
         def get_compressed_file_url(self, demo_id):
             """
@@ -148,25 +145,24 @@ class DemoInfo(object):
             :return:        dictionary with the url or failure if file does not exist
             """
             data = {}
-            data["status"]= "KO"            
+            data['status']= "KO"     ### Talk with Miguel which is the exeption for the KO        
             
             extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
-                
-            if os.path.isdir(extras_folder):
-                compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
-                if os.path.isfile(compressed_file):
+            compressed_file = os.path.join(extras_folder, self.demoExtrasFilename)
+            
+            if os.path.isfile(compressed_file):
                     
-                    url_compressed_file  = self.server_address + "/" + self.dl_extras_dir
-                    url_compressed_file += demo_id  + "/" + self.demoExtrasFilename
+                url_compressed_file  = self.server_address + "/" + self.dl_extras_dir
+                url_compressed_file += demo_id  + "/" + self.demoExtrasFilename
 
-                    data['url_compressed_file'] = url_compressed_file
-                    data['code'] = "1"
-                    data["status"] = "OK"
-                else:
-                    data['code'] = "-2"
+                data['url_compressed_file'] = url_compressed_file
+                data['code'] = "2"
+                data['status'] = "OK"
+            
             else:
-                data['code'] = "-1"
-
+                data['code'] = "1"
+                data['status'] = "OK"
+            
             return data
 
         @cherrypy.expose
@@ -178,28 +174,33 @@ class DemoInfo(object):
       
         
         @cherrypy.expose
-        def update_file_from_demoinfo(self, demo_id, time_of_file_in_core):
+        def get_file_updated_state(self, demo_id, time_of_file_in_core, size_of_file_in_core):
             """
             :param demo_id:              demo id integer
             :param time_of_file_in_core  
             :return:        dictionary with the url or failure if file does not exist
             """
-            print "Entering in update_file_from_demoinfo"
+            print "Entering in get_file_updated_state"
             
             data = self.get_compressed_file_url(demo_id)
-            
-            if data['status'] == 'KO': #The compressed_file does not exist...
+            if data['code'] == '1': #The compressed_file does not exist...
                 return json.dumps(data)      
             
-            compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+            try:
+                compressed_file = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+                file_state_in_demoinfo = os.stat(compressed_file)
+                time_of_file_in_demoinfo = float(file_state_in_demoinfo.st_mtime) 
+                size_of_file_in_demoinfo = float(file_state_in_demoinfo.st_size)
+                time_of_file_in_core     = float(time_of_file_in_core)
+                size_of_file_in_core     = float(size_of_file_in_core)
+                data['code'] = "2"
+                if (time_of_file_in_core >= time_of_file_in_demoinfo 
+		     and size_of_file_in_core == size_of_file_in_demoinfo):
+                        data["code"] = "0"
+            except Exception as ex:
+                data['status'] = 'KO'
                 
-            file_state_in_demoinfo = os.stat(compressed_file)
-            time_of_file_in_demoinfo = file_state_in_demoinfo.st_mtime 
-                
-            if float(time_of_file_in_core) >= float(time_of_file_in_demoinfo):
-                data['code'] = "1"
-            else:
-                data['code'] = "0"
+            print data
             
             return json.dumps(data)
   

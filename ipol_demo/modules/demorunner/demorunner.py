@@ -77,7 +77,18 @@ class DemoRunner(object):
         
         return created
     
-    
+    def init_logging(self):
+        """
+        Initialize the error logs of the module.
+        """
+        logger = logging.getLogger("core_log")
+        logger.setLevel(logging.ERROR)
+        handler = logging.FileHandler(self.log_file)
+        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
+
     def error_log(self, function_name, error):
         """
         Write an error log in the logs_dir defined in proxy.conf
@@ -107,11 +118,8 @@ class DemoRunner(object):
         self.mkdir_p(self.main_bin_dir)
         self.mkdir_p(self.main_log_dir)
         
-        if not os.path.isdir(self.share_demoExtras_dir):
-            error_message = "There not exist the folder:  " + self.share_demoExtras_dir
-            print error_message
-            self.error_log("__init__", error_message)
-            
+        self.logger = self.init_logging()
+        
         if not os.path.isdir(self.share_running_dir):
             error_message = "There not exist the folder: " + self.share_running_dir
             print error_message
@@ -210,8 +218,11 @@ class DemoRunner(object):
         
         print "make download archive"
         # get the latest source archive
-        build.download(ddl_build['url'], tgz_file)
-
+        try:
+            build.download(ddl_build['url'], tgz_file)
+        except Exception as ex:
+            self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
+            
         rebuild_needed = False
 
         ## test if the dest file is missing, or too old, for each program to build
