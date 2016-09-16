@@ -36,7 +36,7 @@ import mimetypes
 import time
 from   timeit   import default_timer as timer
 
-import build
+import tarfile, zipfile
 
 from sendarchive import SendArchive
 
@@ -98,22 +98,27 @@ class demo_index(object):
             self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
             self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
             
-            # Configure
-            self.logger = self.init_logging()
-            self.current_directory = os.getcwd() # [ToDo] Use a better name or call getcwd(). They can be desynchronized
-            self.demoExtrasFilename = "DemoExtras.tar.gz"
-            self.png_compresslevel=1
-
             # Create directories
             self.mkdir_p(self.logs_dir)
             self.mkdir_p(self.share_run_dir)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
+            
+            print self.logs_dir
+            print self.logs_name
+            
+            # Configure
+            self.logger = self.init_logging()
+            self.demoExtrasFilename = "DemoExtras.tar.gz"
+            self.png_compresslevel=1
+
                         
             self.proxy_server = cherrypy.config.get("demo.proxy_server")
             self.stack_depth = 0 ### Maybe we should quit this. It's for JQuery Message I think....
             
-            print "IPOL Core system Initialized" # [ToDo] Log this, do not print
+            cherrypy.log("IPOL Core system Initialized" , context='__init__', traceback=False)
+            print "IPOL CORE system Initialized"
+        
         except Exception as ex:
             self.error_log("__init__", str(ex))
         
@@ -142,7 +147,22 @@ class demo_index(object):
         Index page
         """
         # [ToDo] We should show a list of demos here
-        return ("Welcome to IPOL Core !")
+        # [ToDo] Better look for the response?
+        
+        userdata = {"module":"demoinfo", "service":"demo_list"}
+        resp = requests.post(self.proxy_server, data=userdata)
+        response = resp.json() 
+        demo_list = response['demo_list']
+        
+        i = 0
+        b = '\nWelcome to IPOL Core !\nWe have these list of demos for you.\n\n'
+        for title in demo_list:
+            i = i + 1
+            a = "DEMO " + str(i) + " : " + title['title']
+            b += a + "\n"
+        
+        
+        return (b)
 
     @cherrypy.expose
     def ping(self):
@@ -524,6 +544,79 @@ class demo_index(object):
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
     #--------------
     
+    
+    def download(self, url_file, filename):
+        """
+        Download a file from the network 
+        @param url: source url
+        @param fname: destination file name
+ 
+        @return: successfull process
+        """
+        cherrypy.log("retrieving: %s" % url_file, context='ensure_extras_updated', traceback=False)
+        
+        try:
+            url_handle = urllib.urlopen(url_file)
+            file_handle = open(filename, 'w')
+            file_handle.write(url_handle.read())
+            file_handle.close()
+            cherrypy.log("retrieved", context='ensure_extras_updated', traceback=False)
+            success=0  
+        except Exception as ex:
+            success=1
+        
+        return success    
+
+    def extract(self, filename, target):
+        """
+        extract tar, tgz, tbz and zip archives
+ 
+        @param filename: archive file name
+        @param target: target extraction directory
+ 
+        @return: the archive content
+        """
+        try:
+            # start with tar
+            ar = tarfile.open(filename)
+            content = ar.getnames()
+        except tarfile.ReadError:
+            # retry with zip
+            ar = zipfile.ZipFile(filename)
+            content = ar.namelist()
+
+        # no absolute file name
+        assert not any([os.path.isabs(f) for f in content])
+        # no .. in file name
+        assert not any([(".." in f) for f in content])
+        
+        try:
+            ar.extractall(target)
+        except IOError, AttributeError:
+        # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
+        # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
+        # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
+        # SO WE HAVE TO CLEAN IT BEFORE STARTING OVER WITH ZIP
+        # cleanup/create the target dir
+            if os.path.isdir(target):
+                shutil.rmtree(target)
+            os.mkdir(target)
+            
+            # zipfile module < 2.6
+            for member in content:
+                if member.endswith(os.path.sep):
+                    os.mkdir(os.path.join(target, member))
+                else:
+                    f = open(os.path.join(target, member), 'wb')
+                    f.write(ar.read(member))
+                    f.close()
+
+        cherrypy.log("extracted: %s" % filename,  context='ensure_extras_updated', traceback=False)
+ 
+        return content
+        
+    
+    
     def ensure_extras_updated(self, demo_id):
         """
         Ensure that the demo extras of a given demo are updated respect to demoinfo information. 
@@ -541,10 +634,11 @@ class demo_index(object):
             if os.path.isfile(compressed_file):
                 
                 file_state = os.stat(compressed_file)
-                
-                userdata = {"module":"demoinfo", "service":"update_file_from_demoinfo"}
+               
+                userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
                 userdata["time_of_file_in_core"] = str(file_state.st_mtime)
+                userdata["size_of_file_in_core"] = str(file_state.st_size)
                 
                 resp = requests.post(self.proxy_server, data=userdata)
                 response = resp.json() 
@@ -555,22 +649,27 @@ class demo_index(object):
                     
                     core_file_is_newer = response['code']
                     
-                    print "core_file_is_newer (0 = no, 1 = yes)",core_file_is_newer
-                    if core_file_is_newer == '0':
+                    print "core_file_is_newer (2 = no, 0 = yes)",core_file_is_newer
+                    if core_file_is_newer == '2':
                         
                         print "Deleting the previous file..."
                         os.remove(compressed_file)
                         compressed_file_url_from_demoinfo = response['url_compressed_file']
                         
                         print "Downloading the new file..."
-                        build.download(compressed_file_url_from_demoinfo, compressed_file)
-                        
+                        if self.download(compressed_file_url_from_demoinfo, compressed_file) == 1:
+                            print "Problem dowloading the compressed_file"
+                            
                         demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
                         if os.path.isdir(demoExtrasFolder):
                             print "Cleaning the original " + demoExtrasFolder + " ..."
                             shutil.rmtree(demoExtrasFolder)
+                        else:
+                            self.mkdir_p(demoExtrasFolder)                             
                         
-                        build.extract(compressed_file, demoExtrasFolder)
+                        print "Extracting the new file..."
+                        self.extract(compressed_file, demoExtrasFolder)
+                
                 else:
                     print "Failure requesting the demo_extras file from demoinfo. Failure code -> " + response['code'] 
                     return response # In a near future we will raise an exception
@@ -592,20 +691,26 @@ class demo_index(object):
             if status == 'OK':
                 
                 code = response['code']
-                if code == '1':
+                if code == '2':
                     compressed_file_url_from_demoinfo = response['url_compressed_file']
                     
-                    print compressed_file_url_from_demoinfo
-                    build.download(compressed_file_url_from_demoinfo, compressed_file)
+                    print "Downloading the new file..."
+                    if self.download(compressed_file_url_from_demoinfo, compressed_file) == 1:
+                        print "Problem dowloading the compressed_file"
+                        response["status"] = 'KO'
+                        return response
                     
                     demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
+                    print "Creating the " + demoExtrasFolder + " folder..."
                     self.mkdir_p(demoExtrasFolder)
-                    build.extract(compressed_file, demoExtrasFolder)
+                    print "Extracting the " + compressed_file + " in " + demoExtrasFolder + " folder..."
+                    self.extract(compressed_file, demoExtrasFolder)
 
-            else:
-                print "Failure downloading the demo_extras from demoinfo. Faiulure code -> " + response['code']        
+                else:
+                    print "Failure downloading the demo_extras from demoinfo. Faiulure code -> " + response['code']        
         
         return response
+
 
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs, crop_info=None):
         """
@@ -664,7 +769,7 @@ class demo_index(object):
         :param demo_id:   id demo
         :param run_folder: key 
         """
-        demo_path = os.path.join(self.current_directory,\
+        demo_path = os.path.join(os.getcwd(),\
                                  self.share_run_dir,\
                                  demo_id,\
                                   key)
@@ -688,9 +793,17 @@ class demo_index(object):
         #
         # For example:
         # crop_info = kwargs.get('crop_info', None)
+        # 
+        # Nelson Response:
+        # The system needs more information for the copy blobs.
+        # The JQuery returns as input_type when using the 
+        
         
         if 'input_type' in kwargs:
             input_type = kwargs['input_type']
+            print input_type
+            input_type2 = kwargs.get('input_type', None)
+            print input_type2
         
         if 'params' in kwargs:
             params = kwargs['params']
@@ -849,7 +962,7 @@ class demo_index(object):
 
             else:
                 print "FAILURE IN THE COMPILATION"
-                self.logger.exception("Failed compiling the demo code in the demorunner: " + dr_winner + " module")
+                self.error_log("run", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
                 return json.dumps(json_response)
                 
         except Exception as ex:
