@@ -43,7 +43,7 @@
 
   <module name="core">
     <url>http://ipolcore.ipol.im:8080/</url>
-    <server>ipol2</server>
+    <server>ipol_core</server>
     <path>~/ipolDevel/ipol_demo/</path>
     <command>start</command>
     <command>stop</command>
