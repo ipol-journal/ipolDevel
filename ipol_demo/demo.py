@@ -153,7 +153,7 @@ class demo_index(object):
 
         demos_string = ""
         for demo in demo_list:
-            demos_string += "<a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['title'])
+            demos_string += "Demo #{}: <a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
             
         string = """
 <!DOCTYPE html>
