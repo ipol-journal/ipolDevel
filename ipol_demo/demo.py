@@ -169,9 +169,7 @@ class demo_index(object):
 </html>
 """.format(demos_string)
             
-
-        
-        
+        cherrypy.response.headers['Content-Type'] = 'text/html'
         return string
 
     @cherrypy.expose
