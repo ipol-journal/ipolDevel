@@ -146,23 +146,31 @@ class demo_index(object):
         """
         Index page
         """
-        # [ToDo] We should show a list of demos here
-        # [ToDo] Better look for the response?
-        
-        userdata = {"module":"demoinfo", "service":"demo_list"}
+        userdata = {"module": "demoinfo", "service": "demo_list"}
         resp = requests.post(self.proxy_server, data=userdata)
         response = resp.json() 
         demo_list = response['demo_list']
-        
-        i = 0
-        b = '\nWelcome to IPOL Core !\nWe have these list of demos for you.\n\n'
-        for title in demo_list:
-            i = i + 1
-            a = "DEMO " + str(i) + " : " + title['title']
-            b += a + "\n"
-        
-        
-        return (b)
+
+        demos_string = ""
+        for demo in demo_list:
+            demos_string += "Demo #{}: <a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
+            
+        string = """
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>IPOL demos</title>
+  </head>
+  <body>
+    <h2>List of demos</h2><br>
+    {}
+  </body>
+</html>
+""".format(demos_string)
+            
+        cherrypy.response.headers['Content-Type'] = 'text/html'
+        return string
 
     @cherrypy.expose
     def ping(self):
