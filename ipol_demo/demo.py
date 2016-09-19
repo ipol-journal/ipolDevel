@@ -8,9 +8,7 @@ base cherrypy launcher for the IPOL demo app
 import cherrypy
 import sys
 
-
 import shutil
-from lib import base_app
 
 import json     
 
@@ -27,8 +25,10 @@ from   datetime import datetime
 from   random   import random
 import glob
 
-from   misc     import prod
+from misc import prod
+
 from image import thumbnail, image
+
 import magic
 from PIL import Image,ImageDraw
 import mimetypes
@@ -104,9 +104,6 @@ class demo_index(object):
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
             
-            print self.logs_dir
-            print self.logs_name
-            
             # Configure
             self.logger = self.init_logging()
             self.demoExtrasFilename = "DemoExtras.tar.gz"
@@ -156,18 +153,18 @@ class demo_index(object):
             demos_string += "Demo #{}: <a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
             
         string = """
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>IPOL demos</title>
-  </head>
-  <body>
-    <h2>List of demos</h2><br>
-    {}
-  </body>
-</html>
-""".format(demos_string)
+                 <!DOCTYPE html>
+                 <html lang="en">
+                 <head>
+                 <meta charset="utf-8">
+                 <title>IPOL demos</title>
+                 </head>
+                 <body>
+                 <h2>List of demos</h2><br>
+                 {}
+                 </body>
+                 </html>
+                 """.format(demos_string)
             
         cherrypy.response.headers['Content-Type'] = 'text/html'
         return string
@@ -802,19 +799,13 @@ class demo_index(object):
         # For example:
         # crop_info = kwargs.get('crop_info', None)
         # 
-        # Nelson Response:
-        # The system needs more information for the copy blobs.
-        # The JQuery returns as input_type when using the 
         
         
         if 'input_type' in kwargs:
-            input_type = kwargs['input_type']
-            print input_type
-            input_type2 = kwargs.get('input_type', None)
-            print input_type2
+            input_type = kwargs.get('input_type', None)
         
         if 'params' in kwargs:
-            params = kwargs['params']
+            params = kwargs.get('params', None)
         
         if 'original' in kwargs:
             original_exp = kwargs['original']
