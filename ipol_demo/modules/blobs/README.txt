@@ -43,15 +43,3 @@ Blobs configuration file allows to set adress and port to server.
 It allows also to set name of the temporary directory, where uploaded file are temporary put, and
 final directory, where files are stored.
 
-The shell script init allows to reset an empty database and to remove temporary
-and final directories.
-
-Usage of this script: ./init [-g] blobs.conf
-
-      -g (git option)
-		remove blob.db file
-
-Test program will test only the web service, so
-the management of the database (ADD, DELETE, GET).
-
-Usage: python test.py blobs.conf
