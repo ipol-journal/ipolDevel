@@ -53,387 +53,387 @@ sub>":"input_0.png","I<sub>1<\/sub>":"input_1.png","div(flow)":"stuff_clg_div.pn
 >pixels<\/i><\/td>","<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º<\/td>","<\/tr>","<\/table>","<\/div>"]},{"type":"file_download","label":"<h3>Download inputs:<\/h3>","contents":{"first image I1":"input_0.png","second image I2":"input_1.png","ground truth":"input_2.tiff"}},{"type":"file_download","label":"<h3>Download computed optical flow:<\/h3>","contents":{"tiff":"stuff_tvl1.tiff","flo":"stuff_tvl1.flo","uv":"stuff_tvl1.uv"}},{"type":"html_text","contents":["<p style='font-size:small'>Note on formats:","<ul style='font-size:small'>","<li>The <tt>.tiff<\/tt> file is a two-channel image with floating-point samples.<\/li>","<li>The <tt>.flo<\/tt> file is the same fomat as in the","<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>","Middlebury database","<\/a>.<\/li>","<li>The <tt>.uv<\/tt> file can be read and written by ","<a href='http://dev.ipol.im/~coco/file_uv.h'>simple<\/a> code.<\/li>","<\/ul><\/p>"]}]}
 json44={ 
   "general": { 
-	"demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
-	"input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-	"param_description"     : ["You can now run the rectification process."],
-	"enable_crop"           : false,
-	"xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
-	"input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
-								"badparams",
-								"The images must have the same size" ],
-	"thumbnail_size"        : 64
+        "demo_title"            :  "An Implementation of Combined Local-Global Optical Flow",
+        "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+        "param_description"     : ["You can now run the rectification process."],
+        "enable_crop"           : false,
+        "xlink_article"         : "http://www.ipol.im/pub/art/2015/44/",
+        "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+                                                                "badparams",
+                                                                "The images must have the same size" ],
+        "thumbnail_size"        : 64
   },
   "build":
-	[
-	  {
-		"build_type"    : "cmake",
-		"url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz",
-		"srcdir"        : "clg_6.1",
-		"binaries"      : [ ["../bin","test_clgof"] ],
-		"flags"         : "-j4"
-	  },
-	  {
-		"build_type"    : "make",
-		"url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
-		"srcdir"        : "imscript",
-		"binaries"      : [ [".","bin/"] ],
-	   "flags"         : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
-	  }
-	]
+        [
+          {
+                "build_type"    : "cmake",
+                "url"           : "http://www.ipol.im/pub/art/2015/44/clg_6.1.tgz",
+                "srcdir"        : "clg_6.1",
+                "binaries"      : [ ["../bin","test_clgof"] ],
+                "flags"         : "-j4"
+          },
+          {
+                "build_type"    : "make",
+                "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
+                "srcdir"        : "imscript",
+                "binaries"      : [ [".","bin/"] ],
+           "flags"         : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+          }
+        ]
   ,
   "inputs": [ 
-	  {
-		  "type"            : "image",
-		  "description"     : "I1",
-		  "max_pixels"      : "1024 * 1024",
-		  "max_weight"      : 5242880,
-		  "dtype"           : "3x8i",
-		  "ext"             : ".png"
-	  },
-	  {
-		  "type"            : "image",
-		  "description"     : "I2",
-		  "max_pixels"      : "1024 * 1024",
-		  "max_weight"      : 5242880,
-		  "dtype"           : "3x8i",
-		  "ext"             : ".png"
-	  },
-	  {
-		  "type"              : "flow",
-		  "description"       : "Ground truth",
-		  "ext"               : ".tiff",
-		  "required"          : false
-	  }
-	],
+          {
+                  "type"            : "image",
+                  "description"     : "I1",
+                  "max_pixels"      : "1024 * 1024",
+                  "max_weight"      : 5242880,
+                  "dtype"           : "3x8i",
+                  "ext"             : ".png"
+          },
+          {
+                  "type"            : "image",
+                  "description"     : "I2",
+                  "max_pixels"      : "1024 * 1024",
+                  "max_weight"      : 5242880,
+                  "dtype"           : "3x8i",
+                  "ext"             : ".png"
+          },
+          {
+                  "type"              : "flow",
+                  "description"       : "Ground truth",
+                  "ext"               : ".tiff",
+                  "required"          : false
+          }
+        ],
   "params": 
-	[
-	  {
-		"id"            : "alpha",
-		"type"          : "range",
-		"label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
-		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
-	  }
-	  ,
-	  {
-		"id"            : "rho",
-		"type"          : "range",
-		"label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
-		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
-	  }
-	  ,
-	  {
-		"id"            : "sigma",
-		"type"          : "range",
-		"label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
-		"values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
-	  }
-	],
+        [
+          {
+                "id"            : "alpha",
+                "type"          : "range",
+                "label"         : " &alpha; : global regularization parameter (&alpha;>0. Higher values produce more homogeneus fields, &nbsp; lower values allow more variating displacement vectors in a given image region)",
+                "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
+          }
+          ,
+          {
+                "id"            : "rho",
+                "type"          : "range",
+                "label"         : " &rho; : neighborhood size in local approach (size of Gaussian kernel = 2 &rho; + 1, &nbsp; &rho; = 0 implies no local smoothing)",
+                "values"        : { "min":0.1, "max":100, "step":0.1, "default": 10 }
+          }
+          ,
+          {
+                "id"            : "sigma",
+                "type"          : "range",
+                "label"         : " &sigma; : Pre-processing Gaussian smoothing variance",
+                "values"        : { "min":0.3, "max":10, "step":0.01, "default": 0.85 }
+          }
+        ],
   "run": [
-	  "ln -fs input_0.png  a.png ",
-	  "ln -fs input_1.png  b.png ",
-	  "ln -fs input_2.tiff t.tiff",
-	  "run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt",
-	  "view_clg.sh ipoln  1",
-	  "view_clg.sh ipol   1",
-	  "view_clg.sh mid    1",
-	  "view_clg.sh arrows 1"
+          "ln -fs input_0.png  a.png ",
+          "ln -fs input_1.png  b.png ",
+          "ln -fs input_2.tiff t.tiff",
+          "run_clg_noview.sh $alpha $rho $sigma 1000 1.9 10 0.65 1 0 >stdout.txt",
+          "view_clg.sh ipoln  1",
+          "view_clg.sh ipol   1",
+          "view_clg.sh mid    1",
+          "view_clg.sh arrows 1"
   ]
   ,
   "archive":
-	{
-	  "files" : { "input_0.png"             : "input #1",
-				  "input_1.png"             : "input #2",
-				  "input_2.tiff"            : "ground truth",
-				  "stuff_clg.tiff"          : "flow",
-				  "stuff_clg.png"           : "flow as RGB image"
-				},
-	  "params" :  [ "alpha", "rho", "sigma" ]
-	},
+        {
+          "files" : { "input_0.png"             : "input #1",
+                                  "input_1.png"             : "input #2",
+                                  "input_2.tiff"            : "ground truth",
+                                  "stuff_clg.tiff"          : "flow",
+                                  "stuff_clg.png"           : "flow as RGB image"
+                                },
+          "params" :  [ "alpha", "rho", "sigma" ]
+        },
   "config":
-	{
-	  "info_from_file": {  "sixerrors" : "sixerror_clg.txt"
-						}
-	}
+        {
+          "info_from_file": {  "sixerrors" : "sixerror_clg.txt"
+                                                }
+        }
   ,
   "results": [
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		"<table style='margin-left:0px;margin-right:auto'>",
-		"<tr>",
-		  "<td>",
-			"<label> Color-coding of vectors: </label>",
-			"<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-			  "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
-			  "{{scheme}}",
-			  "</option>",
-			"</select><br/>",
-		  "</td>",
-		  "<td>",
-			"<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-		  "</td>",
-		"</tr>",
-		"<table>"
-	  ]
-	},
-	{
-	  "type"          : "gallery",
-	  "label"         : "<h2>Images</h2>",
-	  "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png",
-							"Ground truth"        : "t.{{display.param1}}.1.png" ,
-							"|flow|"              : "stuff_clg_abs.png" ,
-							"I<sub>0</sub>"       : "input_0.png" ,
-							"I<sub>1</sub>"       : "input_1.png" ,
-							"div(flow)"           : "stuff_clg_div.png",
-							"grad(flow)"          : "stuff_clg_grad.png",
-							"Warped I<sub>1</sub>": "stuff_clg_inv.png",
-							"Warped difference"   : "stuff_clg_aminv.png" ,
-							"Warped average"      : "stuff_clg_apinv.png" ,
-							"Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
-							"Angular error"       : "stuff_clg_aerr.png"
-						},
-	  "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}"
-	},
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		  "<h2>Summary</h2>",
-		  "<div>",
-		  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-		  "<tr bgcolor='#cccccc'>",
-			"<td ></td>",
-			"<th >Running time</th>",
-			"<th >Average Backprojection Error</th>",
-			"<th >Average Endpoint Error</th>",
-			"<th >Average Angular Error</th>",
-		  "</tr>",
-		  "<tr>",
-			"<th bgcolor='#cccccc'>clg</th>",
-			"<td align='center'>{{info.run_time | number:2 }} s</td>",
-			"<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-			"<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-			"<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-		  "</tr>",
-		  "</table>",
-		  "</div>"
-		]
-	},
-	{
-	  "type"          : "file_download",
-	  "label"         : "<h3>Download inputs:</h3>",
-	  "contents"      : { "first image I1"  : "input_0.png",
-						  "second image I2" : "input_1.png",
-						  "ground truth"    : "input_2.tiff"
-						}
-	},
-	{
-	  "type"          : "file_download",
-	  "label"         : "<h3>Download computed optical flow:</h3>",
-	  "contents"      : { "tiff": "stuff_tvl1.tiff",
-						  "flo" : "stuff_tvl1.flo",
-						  "uv"  : "stuff_tvl1.uv" }
-	},
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		"<p style='font-size:small'>Note on formats:",
-		"<ul style='font-size:small'>",
-		  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
-		  "<li>The <tt>.flo</tt> file is the same fomat as in the",
-			"<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
-			  "Middlebury database",
-			"</a>.</li>",
-		  "<li>The <tt>.uv</tt> file can be read and written by ",
-			"<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
-		"</ul></p>"
-	  ]
-	}
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                "<table style='margin-left:0px;margin-right:auto'>",
+                "<tr>",
+                  "<td>",
+                        "<label> Color-coding of vectors: </label>",
+                        "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
+                          "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
+                          "{{scheme}}",
+                          "</option>",
+                        "</select><br/>",
+                  "</td>",
+                  "<td>",
+                        "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
+                  "</td>",
+                "</tr>",
+                "<table>"
+          ]
+        },
+        {
+          "type"          : "gallery",
+          "label"         : "<h2>Images</h2>",
+          "contents"      : {   "Optical flow "       : "stuff_clg.{{display.param1}}.1.png",
+                                                        "Ground truth"        : "t.{{display.param1}}.1.png" ,
+                                                        "|flow|"              : "stuff_clg_abs.png" ,
+                                                        "I<sub>0</sub>"       : "input_0.png" ,
+                                                        "I<sub>1</sub>"       : "input_1.png" ,
+                                                        "div(flow)"           : "stuff_clg_div.png",
+                                                        "grad(flow)"          : "stuff_clg_grad.png",
+                                                        "Warped I<sub>1</sub>": "stuff_clg_inv.png",
+                                                        "Warped difference"   : "stuff_clg_aminv.png" ,
+                                                        "Warped average"      : "stuff_clg_apinv.png" ,
+                                                        "Endpoint error"      : "stuff_clg_fmt.{{display.param1}}.1.png",
+                                                        "Angular error"       : "stuff_clg_aerr.png"
+                                                },
+          "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}"
+        },
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                  "<h2>Summary</h2>",
+                  "<div>",
+                  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
+                  "<tr bgcolor='#cccccc'>",
+                        "<td ></td>",
+                        "<th >Running time</th>",
+                        "<th >Average Backprojection Error</th>",
+                        "<th >Average Endpoint Error</th>",
+                        "<th >Average Angular Error</th>",
+                  "</tr>",
+                  "<tr>",
+                        "<th bgcolor='#cccccc'>clg</th>",
+                        "<td align='center'>{{info.run_time | number:2 }} s</td>",
+                        "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
+                        "<td align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
+                        "<td align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
+                  "</tr>",
+                  "</table>",
+                  "</div>"
+                ]
+        },
+        {
+          "type"          : "file_download",
+          "label"         : "<h3>Download inputs:</h3>",
+          "contents"      : { "first image I1"  : "input_0.png",
+                                                  "second image I2" : "input_1.png",
+                                                  "ground truth"    : "input_2.tiff"
+                                                }
+        },
+        {
+          "type"          : "file_download",
+          "label"         : "<h3>Download computed optical flow:</h3>",
+          "contents"      : { "tiff": "stuff_tvl1.tiff",
+                                                  "flo" : "stuff_tvl1.flo",
+                                                  "uv"  : "stuff_tvl1.uv" }
+        },
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                "<p style='font-size:small'>Note on formats:",
+                "<ul style='font-size:small'>",
+                  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
+                  "<li>The <tt>.flo</tt> file is the same fomat as in the",
+                        "<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
+                          "Middlebury database",
+                        "</a>.</li>",
+                  "<li>The <tt>.uv</tt> file can be read and written by ",
+                        "<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
+                "</ul></p>"
+          ]
+        }
   ]
 }
 
 json20={
   "general": {
-	"demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
-	"input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
-	"param_description"     : ["You can now run the rectification process."],
-	"enable_crop"           : false,
-	"xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
-	"input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
-								"badparams",
-								"The images must have the same size" ],
-	"thumbnail_size"        : 64
+        "demo_title"            :  "Horn-Schunck Optical Flow with a Multi-Scale Strategy",
+        "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+        "param_description"     : ["You can now run the rectification process."],
+        "enable_crop"           : false,
+        "xlink_article"         : "http://www.ipol.im/pub/art/2013/20/",
+        "input_condition"       : [ "(input0_size_x==input1_size_x)and(input0_size_y==input1_size_y)",
+                                                                "badparams",
+                                                                "The images must have the same size" ],
+        "thumbnail_size"        : 64
   },
   "build":
-	[
-	  {
-		"build_type"    : "make",
-		"url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz",
-		"srcdir"        : "phs_3",
-		"binaries"      : [ [".","horn_schunck_pyramidal"] ],
-		"flags"         : "-j4"
-	  },
-	  {
-		"build_type"    : "make",
-		"url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
-		"srcdir"        : "imscript",
-		"binaries"      : [ [".","bin/"] ],
-	   "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
-	  }
-	]
+        [
+          {
+                "build_type"    : "make",
+                "url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz",
+                "srcdir"        : "phs_3",
+                "binaries"      : [ [".","horn_schunck_pyramidal"] ],
+                "flags"         : "-j4"
+          },
+          {
+                "build_type"    : "make",
+                "url"           : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz",
+                "srcdir"        : "imscript",
+                "binaries"      : [ [".","bin/"] ],
+           "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+          }
+        ]
   ,
   "inputs": [
-	  {
-		  "type"            : "image",
-		  "description"     : "I1",
-		  "max_pixels"      : "1024 * 1024",
-		  "max_weight"      : 5242880,
-		  "dtype"           : "3x8i",
-		  "ext"             : ".png"
-	  },
-	  {
-		  "type"            : "image",
-		  "description"     : "I2",
-		  "max_pixels"      : "1024 * 1024",
-		  "max_weight"      : 5242880,
-		  "dtype"           : "3x8i",
-		  "ext"             : ".png"
-	  },
-	  {
-		  "type"              : "flow",
-		  "description"       : "Ground truth",
-		  "ext"               : ".tiff",
-		  "required"          : false
-	  }
-	],
+          {
+                  "type"            : "image",
+                  "description"     : "I1",
+                  "max_pixels"      : "1024 * 1024",
+                  "max_weight"      : 5242880,
+                  "dtype"           : "3x8i",
+                  "ext"             : ".png"
+          },
+          {
+                  "type"            : "image",
+                  "description"     : "I2",
+                  "max_pixels"      : "1024 * 1024",
+                  "max_weight"      : 5242880,
+                  "dtype"           : "3x8i",
+                  "ext"             : ".png"
+          },
+          {
+                  "type"              : "flow",
+                  "description"       : "Ground truth",
+                  "ext"               : ".tiff",
+                  "required"          : false
+          }
+        ],
   "params":
-	[
-	  {
-		"id"            : "alpha",
-		"type"          : "range",
-		"label"         : "Weight of the regularization term, e.g. &alpha;=1 discontinuous flow,  &alpha;=40 smooth flow",
-		"values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
-	  }
-	],
+        [
+          {
+                "id"            : "alpha",
+                "type"          : "range",
+                "label"         : "Weight of the regularization term, e.g. &alpha;=1 discontinuous flow,  &alpha;=40 smooth flow",
+                "values"        : { "min":0.1, "max":100, "step":0.1, "default": 15 }
+          }
+        ],
   "run": [
-	  "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
-	  "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
-	  "view_method.sh ipoln  1",
-	  "view_method.sh ipol   1",
-	  "view_method.sh mid    1",
-	  "view_method.sh arrows 1",
-	  "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
+          "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
+          "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
+          "view_method.sh ipoln  1",
+          "view_method.sh ipol   1",
+          "view_method.sh mid    1",
+          "view_method.sh arrows 1",
+          "python:self.algo_meta['hastruth'] = os.path.isfile(self.work_dir+'input_2.tiff')"
   ]
   ,
   "archive":
-	{
-	  "files" : { "input_0.png"             : "input #1",
-				  "input_1.png"             : "input #2",
-				  "input_2.tiff"            : "ground truth",
-				  "stuff_phs.tiff"          : "flow",
-				  "stuff_phs.png"           : "flow as RGB image"
-				},
-	  "params" :  [ "alpha" ]
-	},
+        {
+          "files" : { "input_0.png"             : "input #1",
+                                  "input_1.png"             : "input #2",
+                                  "input_2.tiff"            : "ground truth",
+                                  "stuff_phs.tiff"          : "flow",
+                                  "stuff_phs.png"           : "flow as RGB image"
+                                },
+          "params" :  [ "alpha" ]
+        },
   "config":
-	{
-	  "info_from_file": {  "sixerrors" : "sixerror_phs.txt"
-						}
-	}
+        {
+          "info_from_file": {  "sixerrors" : "sixerror_phs.txt"
+                                                }
+        }
   ,
   "results": [
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		"<table style='margin-left:0px;margin-right:auto'>",
-		"<tr>",
-		  "<td>",
-			"<label> Color-coding of vectors: </label>",
-			"<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
-			  "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
-			  "{{scheme}}",
-			  "</option>",
-			"</select><br/>",
-		  "</td>",
-		  "<td>",
-			"<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
-		  "</td>",
-		"</tr>",
-		"<table>"
-	  ]
-	},
-	{
-	  "type"          : "gallery",
-	  "label"         : "<h2>Images</h2>",
-	  "contents"      :
-		{   "Optical flow "                 : "stuff_phs.{{display.param1}}.1.png",
-			"meta.hastruth?Ground truth"    : "t.{{display.param1}}.1.png",
-			"I1"                            : "input_0.png" ,
-			"I2"                            : "input_1.png" ,
-			"|flow|"                        : "stuff_phs_abs.png" ,
-			"div(flow)"                     : "stuff_phs_div.png",
-			"grad(flow)"                    : "stuff_phs_grad.png",
-			"Warped I2"                     : "stuff_phs_inv.png",
-			"Warped difference"             : "stuff_phs_aminv.png" ,
-			"Warped average"                : "stuff_phs_apinv.png" ,
-			"meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
-			"meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
-		},
-	  "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}"
-	},
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		  "<h2>Summary</h2>",
-		  "<div>",
-		  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
-		  "<tr bgcolor='#cccccc'>",
-			"<td ></td>",
-			"<th >Running time</th>",
-			"<th >Average Backprojection Error</th>",
-			"<th ng-if='meta.hastruth'>Average Endpoint Error</th>",
-			"<th ng-if='meta.hastruth'>Average Angular Error</th>",
-		  "</tr>",
-		  "<tr>",
-			"<th bgcolor='#cccccc'>phs</th>",
-			"<td align='center'>{{info.run_time | number:2 }} s</td>",
-			"<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
-			"<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
-			"<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
-		  "</tr>",
-		  "</table>",
-		  "</div>"
-		]
-	},
-	{
-	  "type"          : "file_download",
-	  "label"         : "<h3>Download inputs:</h3>",
-	  "contents"      : { "first image I1"  : "input_0.png",
-						  "second image I2" : "input_1.png",
-						  "ground truth"    : "input_2.tiff"
-						}
-	},
-	{
-	  "type"          : "file_download",
-	  "label"         : "<h3>Download computed optical flow:</h3>",
-	  "contents"      : { "tiff": "stuff_phs.tiff",
-						  "flo" : "stuff_phs.flo",
-						  "uv"  : "stuff_phs.uv" }
-	},
-	{
-	  "type"          : "html_text",
-	  "contents"      : [
-		"<p style='font-size:small'>Note on formats:",
-		"<ul style='font-size:small'>",
-		  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
-		  "<li>The <tt>.flo</tt> file is the same fomat as in the",
-			"<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
-			  "Middlebury database",
-			"</a>.</li>",
-		  "<li>The <tt>.uv</tt> file can be read and written by ",
-			"<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
-		"</ul></p>"
-	  ]
-	}
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                "<table style='margin-left:0px;margin-right:auto'>",
+                "<tr>",
+                  "<td>",
+                        "<label> Color-coding of vectors: </label>",
+                        "<select ng-model=\"display.param1\" ng-init=\"display.param1='ipoln'\">",
+                          "<option ng-repeat=\"scheme in ['ipoln','ipol','mid','arrows']\" value=\"{{scheme}}\">",
+                          "{{scheme}}",
+                          "</option>",
+                        "</select><br/>",
+                  "</td>",
+                  "<td>",
+                        "<img style=\"\" ng-src=\"{{work_url}}/cw.{{display.param1}}.1.png\" />",
+                  "</td>",
+                "</tr>",
+                "<table>"
+          ]
+        },
+        {
+          "type"          : "gallery",
+          "label"         : "<h2>Images</h2>",
+          "contents"      :
+                {   "Optical flow "                 : "stuff_phs.{{display.param1}}.1.png",
+                        "meta.hastruth?Ground truth"    : "t.{{display.param1}}.1.png",
+                        "I1"                            : "input_0.png" ,
+                        "I2"                            : "input_1.png" ,
+                        "|flow|"                        : "stuff_phs_abs.png" ,
+                        "div(flow)"                     : "stuff_phs_div.png",
+                        "grad(flow)"                    : "stuff_phs_grad.png",
+                        "Warped I2"                     : "stuff_phs_inv.png",
+                        "Warped difference"             : "stuff_phs_aminv.png" ,
+                        "Warped average"                : "stuff_phs_apinv.png" ,
+                        "meta.hastruth?Endpoint error"  : "stuff_phs_fmt.{{display.param1}}.1.png",
+                        "meta.hastruth?Angular error"   : "stuff_phs_aerr.png"
+                },
+          "style"         : "{'height':Math.max(sizeY*ZoomFactor,350)+'px'}"
+        },
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                  "<h2>Summary</h2>",
+                  "<div>",
+                  "<table border='1' cellpadding='6' cellspacing='0' style='margin-left:0px;margin-right:auto'>",
+                  "<tr bgcolor='#cccccc'>",
+                        "<td ></td>",
+                        "<th >Running time</th>",
+                        "<th >Average Backprojection Error</th>",
+                        "<th ng-if='meta.hastruth'>Average Endpoint Error</th>",
+                        "<th ng-if='meta.hastruth'>Average Angular Error</th>",
+                  "</tr>",
+                  "<tr>",
+                        "<th bgcolor='#cccccc'>phs</th>",
+                        "<td align='center'>{{info.run_time | number:2 }} s</td>",
+                        "<td align='center'>{{info.sixerrors.split(' ')[0]}} <i style='font-size:x-small'>gray levels</i></td>",
+                        "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[2]}} <i style='font-size:x-small'>pixels</i></td>",
+                        "<td  ng-if='meta.hastruth' align='center'>{{info.sixerrors.split(' ')[4]}}&nbsp;º</td>",
+                  "</tr>",
+                  "</table>",
+                  "</div>"
+                ]
+        },
+        {
+          "type"          : "file_download",
+          "label"         : "<h3>Download inputs:</h3>",
+          "contents"      : { "first image I1"  : "input_0.png",
+                                                  "second image I2" : "input_1.png",
+                                                  "ground truth"    : "input_2.tiff"
+                                                }
+        },
+        {
+          "type"          : "file_download",
+          "label"         : "<h3>Download computed optical flow:</h3>",
+          "contents"      : { "tiff": "stuff_phs.tiff",
+                                                  "flo" : "stuff_phs.flo",
+                                                  "uv"  : "stuff_phs.uv" }
+        },
+        {
+          "type"          : "html_text",
+          "contents"      : [
+                "<p style='font-size:small'>Note on formats:",
+                "<ul style='font-size:small'>",
+                  "<li>The <tt>.tiff</tt> file is a two-channel image with floating-point samples.</li>",
+                  "<li>The <tt>.flo</tt> file is the same fomat as in the",
+                        "<a href = 'http://vision.middlebury.edu/flow/code/flow-code/README.txt'>",
+                          "Middlebury database",
+                        "</a>.</li>",
+                  "<li>The <tt>.uv</tt> file can be read and written by ",
+                        "<a href='http://dev.ipol.im/~coco/file_uv.h'>simple</a> code.</li>",
+                "</ul></p>"
+          ]
+        }
   ]
 }
 #loqpasoaposter="{'inputs': [{'description': 'input', 'max_pixels': '700 * 700', 'dtype': '3x8i', 'ext': '.png', 'type': 'image', 'max_weight': '10 * 1024 * 1024'}], 'results': [{'style': 'height:{{sizeY*ZoomFactor}}px', 'type': 'gallery', 'contents': {'Input': 'input_0.sel.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=3': 'output-am_3.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=5': 'output-am_5.png', 'Alvarez&ndash;Mazorra, <i>K<\\\\/i>=4': 'output-am_4.png', 'DCT': 'output-dct.png', 'FIR, <i>tol<\\\\/i>=10<sup>&minus;2<\\\\/sup>': 'output-fir.png', 'Exact*': 'output-exact.png', 'Box, <i>K<\\\\/i>=3': 'output-box_3.png', 'Box, <i>K<\\\\/i>=4': 'output-box_4.png', 'Box, <i>K<\\\\/i>=5': 'output-box_5.png', 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=5': 'output-vyv_5.png', 'Vliet&ndash;Young&ndash;Verbeek, <i>K<\\\\/i>=4': 'output-vyv_4.png', 'Extended box, <i>K<\\\\/i>=3': 'output-ebox_3.png', 'Extended box, <i>K<\\\\/i>=4': 'output-ebox_4.png', 'Extended box, <i>K<\\\\/i>=5': 'output-ebox_5.png', 'Vliet&
@@ -472,1227 +472,1227 @@ png': 'output am_3', 'output-fir.png': 'output fir', 'output-box_4.png': 'output
 
 class TestDemoinfo(unittest.TestCase):
 
-	demoinfo = DemoInfo(CONFIGFILE)
-
-	####################
-	# individual tests #
-	####################
-
-
-	def add_demo_description_1(self):
-		test_passed = True
-		try:
-
-			# CREATE demo_description
-			#convert python dict to json (el dict, directamente, no es json valido, en jslint si,pq estoy pasando el dict a string al hacer copypaste)
-			data_dict1 = json.dumps(json44)
-			dd1=str(data_dict1)
-			# print " is json",is_json(dd1)
-			id1=self.demoinfo.add_demo_description_using_param(dd1)
-			print " demodescription created: ",id1
-
-			# CREATE demo_description
-			data_dict2 = json.dumps(json81)
-			dd2=str(data_dict2)
-			# print " is json",is_json(dd2)
-			id2=self.demoinfo.add_demo_description_using_param(dd2)
-			print " demodescription created: ",id2
-
-			# READ demo_description
-			demojsonread = self.demoinfo.read_demo_description(1)
-
-			# print "demojsonread ",demojsonread
-			# print
-			if not is_json(demojsonread):
-				print ("demojsonread NOT JSON !!!!!")
-				test_passed = False
-
-
-		except Exception as ex:
-			print "add_demo_description_1 ex: ",ex
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , add_demo_description_1 Failed ')
-
-
-	def add_ddl_history_to_demo(self):
-		test_passed = True
-		try:
-
-			#modify demo2 ddl history
-			print " add_ddl_history_to_demo"
-			demoid=2
-
-			# READ all demodescriptions for demo
-			demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid)
-			#demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid,returnjsons=True)
-			print
-			print " demodescription_nojson_list",demodescription_nojson_list
-			print " time: ",datetime.datetime.now()
-			print
-
-			#Add new ddl to demo, inproductio=True
-			json1=str(json.dumps(json_g_roussos_diffusion_interpolation))
-			dd=self.demoinfo.add_demo_description_using_param( json1)
-			dd=json.loads(dd)
-			ddid=int(dd['demo_description_id'])
-			print " demo_description_id: ",ddid
-			ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
-			print " demo_dd: ",ddd
-			print " demo description (in production = True by default)with id: %s added to demo %s"%(ddid,demoid)
-			print
-
-			#Add new ddl to demo, inproductio=False
-			json2=str(json.dumps(json20))
-			dd=self.demoinfo.add_demo_description_using_param(json2,inproduction=False)
-			dd=json.loads(dd)
-			ddid=int(dd['demo_description_id'])
-			print " demo_description_id: ",ddid
-			ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
-			print " demo_dd: ",ddd
-			print " demo description (in production = False ) with id: %s added to demo %s"%(ddid,demoid)
-			print
-
-
-			#Add new ddl to demo, inproductio=False
-			json2=str(json.dumps(json81))
-			dd=self.demoinfo.add_demo_description_using_param(json2,inproduction=True)
-			dd=json.loads(dd)
-			ddid=int(dd['demo_description_id'])
-			print " demo_description_id: ",ddid
-			ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
-			print " demo_dd: ",ddd
-			print " demo description (in production = False ) with id: %s added to demo %s"%(ddid,demoid)
-			print
-
-			# # CREATE demo_description
-			# #convert python dict to json (el dict, directamente, no es json valido, en jslint si,pq estoy pasando el dict a string al hacer copypaste)
-			# data_dict1 = json.dumps(json20)
-			# dd1=str(data_dict1)
-			# # print " is json",is_json(dd1)
-			# id1=self.demoinfo.add_demo_description_using_param(dd1)
-			# print " demodescription created: ",id1
-			#
-			# # CREATE demo_description
-			# data_dict2 = json.dumps(json81)
-			# dd2=str(data_dict2)
-			# # print " is json",is_json(dd2)
-			# id2=self.demoinfo.add_demo_description_using_param(dd2)
-			# print " demodescription created: ",id2
-
-			# # READ demo_description
-			# demojsonread = self.demoinfo.read_demo_description(demoid)
-			# print "demojsonread ",demojsonread
-			# print
-			# if not is_json(demojsonread):
-			# 	print ("demojsonread NOT JSON !!!!!")
-			# 	test_passed = False
-
-			# READ all demodescriptions for demo
-			demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid,returnjsons=False)
-			print
-			print " demodescription_nojson_list",demodescription_nojson_list
-			print " time: ",datetime.datetime.now()
-			print
-
-			# READ last demodescription for demo
-			last_demodescription_nojson=self.demoinfo.read_last_demodescription_from_demo(demoid,returnjsons=False)
-			print " last_demodescription_nojson",last_demodescription_nojson
-			print " time: ",datetime.datetime.now()
-			print
-
-		except Exception as ex:
-			print "add_ddl_history_to_demo ex: ",ex
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , add_ddl_history_to_demo Failed ')
-
-
-	def special_test(self):
-		test_passed = True
-		try:
-
-			#http://stackoverflow.com/questions/15900338/python-request-post-with-param-data
-
-			# WS with JSON PARAMETER, not the best option, params are encoded
-			print
-			print (" This tests attacs DemoInfo module, so it DemoInfo must be running in localhost, its a more realistic test than the rest")
-			print (" This tests attacs the real DB, not the test DB. Adds a demo description json to demo 1 into DB and reads it")
-			print (" This also serves to help me init demo  whith data  so i can show it with CP app")
-			print
-
-
-			demojson = json81
-			#demojson = {'demojson':{'var': 'data'}}
-
-
-			# print (" add_demo_description_2 WS with JSON PARAMETER")
-			# url = 'http://127.0.0.1:9002/add_demo_description_using_param'
-			# print " demojson param is json",is_json(json.dumps(demojson))
-			# #params y data son diferentes!!!los ws post deberian recibir data
-			# params = {'demojson':json.dumps(demojson) }
-			# r = requests.post(url, params=params)
-
-
-			# ADD
-			# WS with JSON AS DATA , no parms
-			print (" add_demo_description_2 WS with JSON AS POST DATA")
-			url = 'http://127.0.0.1:9002/add_demo_description'
-			print " demojson data is json: ",is_json(json.dumps(demojson))
-			#print " demojson ", demojson
-			print " demojson: ...", str(demojson)[-150:]
-			#r = requests.post(url, data=json.dumps(demojson))
-			params = {'demoid':1 }
-			r = requests.post(url, json=demojson,params=params)
-			print
-			print (" ADD DEMO WS with JSON AS POST DATA RESULT")
-			print " url: ",r.url
-			print " text: ",r.text
-			print " headers: ",r.headers.get('content-type')
-			print " result: ",r
-			print
-
-			#parse id from response
-			import yaml
-			print " parse id from response with YAM"
-			resp_dict = yaml.safe_load(r.text) #dict, str not unicode
-			print " resp_dict: ",resp_dict
-			print " resp_dict type: ",type(resp_dict) #dict unicode
-			print
-			id=int(resp_dict["demo_description_id"])
-			print " demojsonread id: ",id
-
-			# READ
-			# read_demo_description , must access not demo db,
-			# yo u cannot use this now: demojsonread = self.demoinfo.read_demo_description(id)
-			url = 'http://127.0.0.1:9002/read_demo_description'
-			params = {'demodescriptionID':id }
-			r = requests.post(url, params=params)
-
-			print (" READ  RESULT")
-			print " url: ",r.url
-			print " text: ...",r.text[-50:]
-			print " headers: ",r.headers.get('content-type')
-			print " result: ",r
-			print
-
-			resp_dict = yaml.safe_load(r.text) # str
-			#resp_dict = json.loads(r.text) # unicode
-			print " resp_dict type: ",type(resp_dict)
-			read_data = resp_dict["demo_description"]
-			print " read_data type: ",type(read_data)
-			print " read_data is_json: ",is_json(read_data)
-			print "read_data: ..." ,read_data[-150:]
-			print
-
-			myjson = yaml.safe_load(read_data)
-			print " json params original: " ,json81["params"]
-			print
-			print " json params: ",type(myjson["params"])
-			print " json params: " ,myjson["params"]
-			print
-
-			#UPDATE
-			# WS with JSON AS DATA , no parms
-			print (" UPDATE  ---- update WS with JSON AS POST DATA")
-			url = 'http://127.0.0.1:9002/update_demo_description'
-			#demojson = {"demojson":{"key": "data"}}
-			demojson = json44
-
-			print " demojson data is json",is_json(json.dumps(demojson))
-			# print " demojson ", demojson
-			print " demojson ...", str(demojson)[-150:]
-			print type(demojson)
-
-			# #convert unicode str to dict for WS
-			# demojson=json.loads(demojson)
-			# print " demojson ...", str(demojson)[-150:]
-			# print type(demojson)
-			# #convert dict to  str
-			demojson=json.dumps(demojson)
-			print " demojson ...", str(demojson)[-150:]
-			print type(demojson)
-			params = {'demodescriptionID':id }
-			r = requests.post(url, params=params, json=demojson )
-			print (" add_demo_description_2 update WS with JSON AS POST DATA RESULT")
-			# print " url: ",r.url
-			# print " text: ",r.text
-			# print " headers: ",r.headers.get('content-type')
-			# print " result: ",r
-			print
-
-
-			#ADD DEMODESCRIPTION 1 TO  DEMO 1
-
-
-			# READ
-			url = 'http://127.0.0.1:9002/read_demo_description'
-			params = {'demodescriptionID':id }
-			r = requests.post(url, params=params)
-			print
-			print (" read_demo_description RESULT")
-			print " url: ",r.url
-			print " text: ...",r.text[-50:]
-			print
-			#resp_dict = yaml.safe_load(r.text) # str
-			resp_dict=json.loads(r.text)
-
-			read_data = resp_dict["demo_description"]
-			print " read_data is_json: ",is_json(read_data)
-			print " read status: ",resp_dict['status']
-			print " read_data: ..." ,read_data[-150:]
-			print
-
-
-		except Exception as ex:
-			print "special_test ",ex
-			print "check demoinfo is up and running locally"
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , edit_editor  updating  editor')
-
-
-	def delete_db(self):
-		# after running all tests clean db, its gets created and init when you instance DemoInfo
-		dbname = DBNAME
-		test_passed = True
-		print " Delete tests DB"
-		try:
-			if os.path.isfile(dbname):
-				try:
-					os.remove(dbname)
-				except Exception as ex:
-					error_string=("DBremove e:%s"%(str(ex)))
-					print (error_string)
-			status = False
-		except Exception as ex:
-			error_string=("TEST delete_db  e:%s"%(str(ex)))
-			print error_string
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , test_add_demo_1 Failed creating two demos')
-
-
-	def add_demo_1(self):
-		test_passed = True
-		try:
-			editorsdemoid = 23
-			title = 'DemoTEST1 Title'
-			abstract = 'DemoTEST1 Abstract'
-			zipURL = 'https://DemoTEST1.html'
-			active = 1
-			stateID = 1
-			demodescriptionID = 1
-
-			demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID=demodescriptionID )
-			print " created demo: ",demoid
-
-			editorsdemoid = 24
-			title = 'DemoTEST2 Title'
-			abstract = 'DemoTEST2 Abstract'
-			zipURL = 'https://DemoTEST2.html'
-			active = 1
-			stateID = 1
-
-			#creates demo and creates it's demodescription (with id=3)
-			demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionJson = str(json_g_roussos_diffusion_interpolation))
-			print " created demo: ",demoid
-			print " time: ",datetime.datetime.now()
-
-
-			editorsdemoid = 25
-			title = 'DemoTEST3 Title'
-			abstract = 'DemoTEST3 Abstract'
-			zipURL = 'https://DemoTEST3.html'
-			active = 1
-			stateID = 1
-
-			#creates demo and no demodescription
-			demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID)
-			print " created demo: ",demoid
-
-
-		except Exception as ex:
-			print "add_demo_1 ex: ", ex
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , test_add_demo_1 Failed creating two demos')
-
-
-	def add_duplicated_demo(self):
-		# create duplicated demo
-		test_passed = False
-		try:
-			editorsdemoid = 26
-			title = 'DemoTEST4 Title'
-			abstract = 'DemoTEST4 Abstract'
-			zipURL = 'https://DemoTEST4.html'
-			active = 1
-			stateID = 1
-			demodescriptionID = 2
-			self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
-
-			editorsdemoid = 27
-			title = 'DemoTEST4 Title'
-			abstract = 'DemoTEST5 Abstract'
-			zipURL = 'https://DemoTEST5.html'
-			active = 1
-			stateID = 1
-			demodescriptionID = 2
-			result = self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
-
-			print result
-			if 'error' in result:
-				raise ValueError(result)
-
-
-		except Exception as ex:
-			print "add_duplicated_demo ex: ",ex
-			test_passed = True
-
-			# ajson = self.demoinfo.demo_list()
-			# print ajson
-
-		self.failUnless(test_passed, 'failure , add_duplicated_demo does not fail creating demo with the same tile')
-
-
-	def add_author_1(self):
-		test_passed = True
-		try:
-			name='Author Name1'
-			mail = 'authoremail1@gmail.com'
-			a1=self.demoinfo.add_author(name, mail)
-			print " author created",a1
-
-			name='Author Name2'
-			mail = 'authoremail2@gmail.com'
-			a2=self.demoinfo.add_author(name, mail)
-			print " author created",
-
-
-			name='Author Name3'
-			mail = 'authoremail3@gmail.com'
-			a3=self.demoinfo.add_author(name, mail)
-			print " author created",a3
-
-
-		except Exception as ex:
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , add_author_1 Failed creating two authors')
-
-
-	def add_duplicated_author(self):
-
-		test_passed = False
-		try:
-			name='Author Name3'
-			mail = 'authoremail3@gmail.com'
-			self.demoinfo.add_author(name, mail)
-
-			name='Author Name3'
-			mail = 'authoremail3@gmail.com'
-			result=self.demoinfo.add_author(name, mail)
-
-			print result
-			if 'error' in result:
-				raise ValueError(result)
-		except Exception as ex:
-			test_passed = True
-
-		self.failUnless(test_passed, 'failure , add_duplicated_author does not fail creating two authors  with the same email ')
-
-
-	def add_editor_1(self):
-		test_passed = True
-		try:
-			name='editor Name1'
-			mail = 'editoremail1@gmail.com'
-			e1=self.demoinfo.add_editor(name, mail)
-			print " editor created ",e1
-
-			name='editor Name2'
-			mail = 'editoremail2@gmail.com'
-			e2=self.demoinfo.add_editor(name, mail)
-			print " editor created ",e2
-
-			name='editor Name3'
-			mail = 'editoremail3@gmail.com'
-			e3=self.demoinfo.add_editor(name, mail)
-			print " editor created ",e3
-		except Exception as ex:
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , add_editor_1 Failed creating two authors')
-
-
-	def add_duplicated_editor(self):
-		test_passed = False
-		try:
-			name='editor Name3'
-			mail = 'editoremail3@gmail.com'
-			self.demoinfo.add_editor(name, mail)
-
-			name='editor Name3'
-			mail = 'editoremail3@gmail.com'
-			result=self.demoinfo.add_editor(name, mail)
-
-			print result
-			if 'error' in result:
-				raise ValueError(result)
-
-
-		except Exception as ex:
-			test_passed = True
-
-		self.failUnless(test_passed, 'failure , add_editor_2 does not fail creating two editors  with the same email ')
-
-
-	def add_authors_and_editors_to_demo_1(self):
-		test_passed = True
-		try:
-
-			self.demoinfo.add_author_to_demo(1 ,1)
-			self.demoinfo.add_editor_to_demo(1 ,1)
-			self.demoinfo.add_author_to_demo(1 ,3)
-			self.demoinfo.add_editor_to_demo(1 ,3)
-			self.demoinfo.add_author_to_demo(2 ,2)
-			self.demoinfo.add_editor_to_demo(2 ,2)
-
-		except Exception as ex:
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , add_editor_1 Failed adding editor/author to a demo  ')
-
-
-	def add_duplicated_authors_to_demo(self):
-		test_passed = False
-		try:
-
-			result=self.demoinfo.add_author_to_demo(1 ,1)
-			print result
-			if 'error' in result:
-				raise ValueError(result)
-		except Exception as ex:
-			test_passed = True
-
-		self.failUnless(test_passed, 'failure , add_authors_to_demo_2 does not fail creating two duplicate authors  with the same demo ')
-
-
-	def add_duplicated_editors_to_demo(self):
-		test_passed = False
-		try:
-
-			result=self.demoinfo.add_editor_to_demo(1 ,1)
-			print result
-			if 'error' in result:
-				raise ValueError(result)
-		except Exception as ex:
-			test_passed = True
-
-		self.failUnless(test_passed, 'failure , add_editors_to_demo_3 does not fail creating two duplicate editors  with the same demo ')
-
-
-	def remove_authors_and_editors_to_demo_1(self):
-		test_passed = True
-		try:
-
-			self.demoinfo.remove_author_from_demo(1 ,3)
-			self.demoinfo.remove_editor_from_demo(1 ,3)
-
-			ajson = self.demoinfo.demo_get_authors_list(1)
-			# print ajson
-			if not "\"id\": 1" in ajson or "\"id\": 3" in ajson:
-				print "only author 1 not found in demo 1"
-				raise Exception
+        demoinfo = DemoInfo(CONFIGFILE)
+
+        ####################
+        # individual tests #
+        ####################
+
+
+        def add_demo_description_1(self):
+                test_passed = True
+                try:
+
+                        # CREATE demo_description
+                        #convert python dict to json (el dict, directamente, no es json valido, en jslint si,pq estoy pasando el dict a string al hacer copypaste)
+                        data_dict1 = json.dumps(json44)
+                        dd1=str(data_dict1)
+                        # print " is json",is_json(dd1)
+                        id1=self.demoinfo.add_demo_description_using_param(dd1)
+                        print " demodescription created: ",id1
+
+                        # CREATE demo_description
+                        data_dict2 = json.dumps(json81)
+                        dd2=str(data_dict2)
+                        # print " is json",is_json(dd2)
+                        id2=self.demoinfo.add_demo_description_using_param(dd2)
+                        print " demodescription created: ",id2
+
+                        # READ demo_description
+                        demojsonread = self.demoinfo.read_demo_description(1)
+
+                        # print "demojsonread ",demojsonread
+                        # print
+                        if not is_json(demojsonread):
+                                print ("demojsonread NOT JSON !!!!!")
+                                test_passed = False
+
+
+                except Exception as ex:
+                        print "add_demo_description_1 ex: ",ex
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , add_demo_description_1 Failed ')
+
+
+        def add_ddl_history_to_demo(self):
+                test_passed = True
+                try:
+
+                        #modify demo2 ddl history
+                        print " add_ddl_history_to_demo"
+                        demoid=2
+
+                        # READ all demodescriptions for demo
+                        demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid)
+                        #demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid,returnjsons=True)
+                        print
+                        print " demodescription_nojson_list",demodescription_nojson_list
+                        print " time: ",datetime.datetime.now()
+                        print
+
+                        #Add new ddl to demo, inproductio=True
+                        json1=str(json.dumps(json_g_roussos_diffusion_interpolation))
+                        dd=self.demoinfo.add_demo_description_using_param( json1)
+                        dd=json.loads(dd)
+                        ddid=int(dd['demo_description_id'])
+                        print " demo_description_id: ",ddid
+                        ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
+                        print " demo_dd: ",ddd
+                        print " demo description (in production = True by default)with id: %s added to demo %s"%(ddid,demoid)
+                        print
+
+                        #Add new ddl to demo, inproductio=False
+                        json2=str(json.dumps(json20))
+                        dd=self.demoinfo.add_demo_description_using_param(json2,inproduction=False)
+                        dd=json.loads(dd)
+                        ddid=int(dd['demo_description_id'])
+                        print " demo_description_id: ",ddid
+                        ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
+                        print " demo_dd: ",ddd
+                        print " demo description (in production = False ) with id: %s added to demo %s"%(ddid,demoid)
+                        print
+
+
+                        #Add new ddl to demo, inproductio=False
+                        json2=str(json.dumps(json81))
+                        dd=self.demoinfo.add_demo_description_using_param(json2,inproduction=True)
+                        dd=json.loads(dd)
+                        ddid=int(dd['demo_description_id'])
+                        print " demo_description_id: ",ddid
+                        ddd=self.demoinfo.add_demodescription_to_demo(demoid,ddid)
+                        print " demo_dd: ",ddd
+                        print " demo description (in production = False ) with id: %s added to demo %s"%(ddid,demoid)
+                        print
+
+                        # # CREATE demo_description
+                        # #convert python dict to json (el dict, directamente, no es json valido, en jslint si,pq estoy pasando el dict a string al hacer copypaste)
+                        # data_dict1 = json.dumps(json20)
+                        # dd1=str(data_dict1)
+                        # # print " is json",is_json(dd1)
+                        # id1=self.demoinfo.add_demo_description_using_param(dd1)
+                        # print " demodescription created: ",id1
+                        #
+                        # # CREATE demo_description
+                        # data_dict2 = json.dumps(json81)
+                        # dd2=str(data_dict2)
+                        # # print " is json",is_json(dd2)
+                        # id2=self.demoinfo.add_demo_description_using_param(dd2)
+                        # print " demodescription created: ",id2
+
+                        # # READ demo_description
+                        # demojsonread = self.demoinfo.read_demo_description(demoid)
+                        # print "demojsonread ",demojsonread
+                        # print
+                        # if not is_json(demojsonread):
+                        #         print ("demojsonread NOT JSON !!!!!")
+                        #         test_passed = False
+
+                        # READ all demodescriptions for demo
+                        demodescription_nojson_list=self.demoinfo.demo_get_demodescriptions_list(demoid,returnjsons=False)
+                        print
+                        print " demodescription_nojson_list",demodescription_nojson_list
+                        print " time: ",datetime.datetime.now()
+                        print
+
+                        # READ last demodescription for demo
+                        last_demodescription_nojson=self.demoinfo.read_last_demodescription_from_demo(demoid,returnjsons=False)
+                        print " last_demodescription_nojson",last_demodescription_nojson
+                        print " time: ",datetime.datetime.now()
+                        print
+
+                except Exception as ex:
+                        print "add_ddl_history_to_demo ex: ",ex
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , add_ddl_history_to_demo Failed ')
+
+
+        def special_test(self):
+                test_passed = True
+                try:
+
+                        #http://stackoverflow.com/questions/15900338/python-request-post-with-param-data
+
+                        # WS with JSON PARAMETER, not the best option, params are encoded
+                        print
+                        print (" This tests attacs DemoInfo module, so it DemoInfo must be running in localhost, its a more realistic test than the rest")
+                        print (" This tests attacs the real DB, not the test DB. Adds a demo description json to demo 1 into DB and reads it")
+                        print (" This also serves to help me init demo  whith data  so i can show it with CP app")
+                        print
+
+
+                        demojson = json81
+                        #demojson = {'demojson':{'var': 'data'}}
+
+
+                        # print (" add_demo_description_2 WS with JSON PARAMETER")
+                        # url = 'http://127.0.0.1:9002/add_demo_description_using_param'
+                        # print " demojson param is json",is_json(json.dumps(demojson))
+                        # #params y data son diferentes!!!los ws post deberian recibir data
+                        # params = {'demojson':json.dumps(demojson) }
+                        # r = requests.post(url, params=params)
+
+
+                        # ADD
+                        # WS with JSON AS DATA , no parms
+                        print (" add_demo_description_2 WS with JSON AS POST DATA")
+                        url = 'http://127.0.0.1:9002/add_demo_description'
+                        print " demojson data is json: ",is_json(json.dumps(demojson))
+                        #print " demojson ", demojson
+                        print " demojson: ...", str(demojson)[-150:]
+                        #r = requests.post(url, data=json.dumps(demojson))
+                        params = {'demoid':1 }
+                        r = requests.post(url, json=demojson,params=params)
+                        print
+                        print (" ADD DEMO WS with JSON AS POST DATA RESULT")
+                        print " url: ",r.url
+                        print " text: ",r.text
+                        print " headers: ",r.headers.get('content-type')
+                        print " result: ",r
+                        print
+
+                        #parse id from response
+                        import yaml
+                        print " parse id from response with YAM"
+                        resp_dict = yaml.safe_load(r.text) #dict, str not unicode
+                        print " resp_dict: ",resp_dict
+                        print " resp_dict type: ",type(resp_dict) #dict unicode
+                        print
+                        id=int(resp_dict["demo_description_id"])
+                        print " demojsonread id: ",id
+
+                        # READ
+                        # read_demo_description , must access not demo db,
+                        # yo u cannot use this now: demojsonread = self.demoinfo.read_demo_description(id)
+                        url = 'http://127.0.0.1:9002/read_demo_description'
+                        params = {'demodescriptionID':id }
+                        r = requests.post(url, params=params)
+
+                        print (" READ  RESULT")
+                        print " url: ",r.url
+                        print " text: ...",r.text[-50:]
+                        print " headers: ",r.headers.get('content-type')
+                        print " result: ",r
+                        print
+
+                        resp_dict = yaml.safe_load(r.text) # str
+                        #resp_dict = json.loads(r.text) # unicode
+                        print " resp_dict type: ",type(resp_dict)
+                        read_data = resp_dict["demo_description"]
+                        print " read_data type: ",type(read_data)
+                        print " read_data is_json: ",is_json(read_data)
+                        print "read_data: ..." ,read_data[-150:]
+                        print
+
+                        myjson = yaml.safe_load(read_data)
+                        print " json params original: " ,json81["params"]
+                        print
+                        print " json params: ",type(myjson["params"])
+                        print " json params: " ,myjson["params"]
+                        print
+
+                        #UPDATE
+                        # WS with JSON AS DATA , no parms
+                        print (" UPDATE  ---- update WS with JSON AS POST DATA")
+                        url = 'http://127.0.0.1:9002/update_demo_description'
+                        #demojson = {"demojson":{"key": "data"}}
+                        demojson = json44
+
+                        print " demojson data is json",is_json(json.dumps(demojson))
+                        # print " demojson ", demojson
+                        print " demojson ...", str(demojson)[-150:]
+                        print type(demojson)
+
+                        # #convert unicode str to dict for WS
+                        # demojson=json.loads(demojson)
+                        # print " demojson ...", str(demojson)[-150:]
+                        # print type(demojson)
+                        # #convert dict to  str
+                        demojson=json.dumps(demojson)
+                        print " demojson ...", str(demojson)[-150:]
+                        print type(demojson)
+                        params = {'demodescriptionID':id }
+                        r = requests.post(url, params=params, json=demojson )
+                        print (" add_demo_description_2 update WS with JSON AS POST DATA RESULT")
+                        # print " url: ",r.url
+                        # print " text: ",r.text
+                        # print " headers: ",r.headers.get('content-type')
+                        # print " result: ",r
+                        print
+
+
+                        #ADD DEMODESCRIPTION 1 TO  DEMO 1
+
+
+                        # READ
+                        url = 'http://127.0.0.1:9002/read_demo_description'
+                        params = {'demodescriptionID':id }
+                        r = requests.post(url, params=params)
+                        print
+                        print (" read_demo_description RESULT")
+                        print " url: ",r.url
+                        print " text: ...",r.text[-50:]
+                        print
+                        #resp_dict = yaml.safe_load(r.text) # str
+                        resp_dict=json.loads(r.text)
+
+                        read_data = resp_dict["demo_description"]
+                        print " read_data is_json: ",is_json(read_data)
+                        print " read status: ",resp_dict['status']
+                        print " read_data: ..." ,read_data[-150:]
+                        print
+
+
+                except Exception as ex:
+                        print "special_test ",ex
+                        print "check demoinfo is up and running locally"
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , edit_editor  updating  editor')
+
+
+        def delete_db(self):
+                # after running all tests clean db, its gets created and init when you instance DemoInfo
+                dbname = DBNAME
+                test_passed = True
+                print " Delete tests DB"
+                try:
+                        if os.path.isfile(dbname):
+                                try:
+                                        os.remove(dbname)
+                                except Exception as ex:
+                                        error_string=("DBremove e:%s"%(str(ex)))
+                                        print (error_string)
+                        status = False
+                except Exception as ex:
+                        error_string=("TEST delete_db  e:%s"%(str(ex)))
+                        print error_string
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , test_add_demo_1 Failed creating two demos')
+
+
+        def add_demo_1(self):
+                test_passed = True
+                try:
+                        editorsdemoid = 23
+                        title = 'DemoTEST1 Title'
+                        abstract = 'DemoTEST1 Abstract'
+                        zipURL = 'https://DemoTEST1.html'
+                        active = 1
+                        stateID = 1
+                        demodescriptionID = 1
+
+                        demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID=demodescriptionID )
+                        print " created demo: ",demoid
+
+                        editorsdemoid = 24
+                        title = 'DemoTEST2 Title'
+                        abstract = 'DemoTEST2 Abstract'
+                        zipURL = 'https://DemoTEST2.html'
+                        active = 1
+                        stateID = 1
+
+                        #creates demo and creates it's demodescription (with id=3)
+                        demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionJson = str(json_g_roussos_diffusion_interpolation))
+                        print " created demo: ",demoid
+                        print " time: ",datetime.datetime.now()
+
+
+                        editorsdemoid = 25
+                        title = 'DemoTEST3 Title'
+                        abstract = 'DemoTEST3 Abstract'
+                        zipURL = 'https://DemoTEST3.html'
+                        active = 1
+                        stateID = 1
+
+                        #creates demo and no demodescription
+                        demoid=self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID)
+                        print " created demo: ",demoid
+
+
+                except Exception as ex:
+                        print "add_demo_1 ex: ", ex
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , test_add_demo_1 Failed creating two demos')
+
+
+        def add_duplicated_demo(self):
+                # create duplicated demo
+                test_passed = False
+                try:
+                        editorsdemoid = 26
+                        title = 'DemoTEST4 Title'
+                        abstract = 'DemoTEST4 Abstract'
+                        zipURL = 'https://DemoTEST4.html'
+                        active = 1
+                        stateID = 1
+                        demodescriptionID = 2
+                        self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
+
+                        editorsdemoid = 27
+                        title = 'DemoTEST4 Title'
+                        abstract = 'DemoTEST5 Abstract'
+                        zipURL = 'https://DemoTEST5.html'
+                        active = 1
+                        stateID = 1
+                        demodescriptionID = 2
+                        result = self.demoinfo.add_demo(editorsdemoid,title, abstract, zipURL,active,stateID,demodescriptionID = demodescriptionID)
+
+                        print result
+                        if 'error' in result:
+                                raise ValueError(result)
+
+
+                except Exception as ex:
+                        print "add_duplicated_demo ex: ",ex
+                        test_passed = True
+
+                        # ajson = self.demoinfo.demo_list()
+                        # print ajson
+
+                self.failUnless(test_passed, 'failure , add_duplicated_demo does not fail creating demo with the same tile')
+
+
+        def add_author_1(self):
+                test_passed = True
+                try:
+                        name='Author Name1'
+                        mail = 'authoremail1@gmail.com'
+                        a1=self.demoinfo.add_author(name, mail)
+                        print " author created",a1
+
+                        name='Author Name2'
+                        mail = 'authoremail2@gmail.com'
+                        a2=self.demoinfo.add_author(name, mail)
+                        print " author created",
+
+
+                        name='Author Name3'
+                        mail = 'authoremail3@gmail.com'
+                        a3=self.demoinfo.add_author(name, mail)
+                        print " author created",a3
+
+
+                except Exception as ex:
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , add_author_1 Failed creating two authors')
+
+
+        def add_duplicated_author(self):
+
+                test_passed = False
+                try:
+                        name='Author Name3'
+                        mail = 'authoremail3@gmail.com'
+                        self.demoinfo.add_author(name, mail)
+
+                        name='Author Name3'
+                        mail = 'authoremail3@gmail.com'
+                        result=self.demoinfo.add_author(name, mail)
+
+                        print result
+                        if 'error' in result:
+                                raise ValueError(result)
+                except Exception as ex:
+                        test_passed = True
+
+                self.failUnless(test_passed, 'failure , add_duplicated_author does not fail creating two authors  with the same email ')
+
+
+        def add_editor_1(self):
+                test_passed = True
+                try:
+                        name='editor Name1'
+                        mail = 'editoremail1@gmail.com'
+                        e1=self.demoinfo.add_editor(name, mail)
+                        print " editor created ",e1
+
+                        name='editor Name2'
+                        mail = 'editoremail2@gmail.com'
+                        e2=self.demoinfo.add_editor(name, mail)
+                        print " editor created ",e2
+
+                        name='editor Name3'
+                        mail = 'editoremail3@gmail.com'
+                        e3=self.demoinfo.add_editor(name, mail)
+                        print " editor created ",e3
+                except Exception as ex:
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , add_editor_1 Failed creating two authors')
+
+
+        def add_duplicated_editor(self):
+                test_passed = False
+                try:
+                        name='editor Name3'
+                        mail = 'editoremail3@gmail.com'
+                        self.demoinfo.add_editor(name, mail)
+
+                        name='editor Name3'
+                        mail = 'editoremail3@gmail.com'
+                        result=self.demoinfo.add_editor(name, mail)
+
+                        print result
+                        if 'error' in result:
+                                raise ValueError(result)
+
+
+                except Exception as ex:
+                        test_passed = True
+
+                self.failUnless(test_passed, 'failure , add_editor_2 does not fail creating two editors  with the same email ')
+
+
+        def add_authors_and_editors_to_demo_1(self):
+                test_passed = True
+                try:
+
+                        self.demoinfo.add_author_to_demo(1 ,1)
+                        self.demoinfo.add_editor_to_demo(1 ,1)
+                        self.demoinfo.add_author_to_demo(1 ,3)
+                        self.demoinfo.add_editor_to_demo(1 ,3)
+                        self.demoinfo.add_author_to_demo(2 ,2)
+                        self.demoinfo.add_editor_to_demo(2 ,2)
+
+                except Exception as ex:
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , add_editor_1 Failed adding editor/author to a demo  ')
+
+
+        def add_duplicated_authors_to_demo(self):
+                test_passed = False
+                try:
+
+                        result=self.demoinfo.add_author_to_demo(1 ,1)
+                        print result
+                        if 'error' in result:
+                                raise ValueError(result)
+                except Exception as ex:
+                        test_passed = True
+
+                self.failUnless(test_passed, 'failure , add_authors_to_demo_2 does not fail creating two duplicate authors  with the same demo ')
+
+
+        def add_duplicated_editors_to_demo(self):
+                test_passed = False
+                try:
+
+                        result=self.demoinfo.add_editor_to_demo(1 ,1)
+                        print result
+                        if 'error' in result:
+                                raise ValueError(result)
+                except Exception as ex:
+                        test_passed = True
+
+                self.failUnless(test_passed, 'failure , add_editors_to_demo_3 does not fail creating two duplicate editors  with the same demo ')
+
+
+        def remove_authors_and_editors_to_demo_1(self):
+                test_passed = True
+                try:
+
+                        self.demoinfo.remove_author_from_demo(1 ,3)
+                        self.demoinfo.remove_editor_from_demo(1 ,3)
+
+                        ajson = self.demoinfo.demo_get_authors_list(1)
+                        # print ajson
+                        if not "\"id\": 1" in ajson or "\"id\": 3" in ajson:
+                                print "only author 1 not found in demo 1"
+                                raise Exception
 
-			ejson = self.demoinfo.demo_get_editors_list(1)
-			#print ejson
-			if not "\"id\": 1" in ejson or "\"id\": 3" in ejson:
-				print "only editor 1 not found in demo 1"
-				raise Exception
+                        ejson = self.demoinfo.demo_get_editors_list(1)
+                        #print ejson
+                        if not "\"id\": 1" in ejson or "\"id\": 3" in ejson:
+                                print "only editor 1 not found in demo 1"
+                                raise Exception
 
-		except Exception as ex:
-			test_passed = False
+                except Exception as ex:
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , remove_authors_and_editors_to_demo_1 Failed removing editor/author to a demo  ')
+                self.failUnless(test_passed, 'failure , remove_authors_and_editors_to_demo_1 Failed removing editor/author to a demo  ')
 
 
-	def edit_demo(self):
-		test_passed = True
-		try:
+        def edit_demo(self):
+                test_passed = True
+                try:
 
 
 
-			ajson = self.demoinfo.demo_list()
-			print ' demo list before update demo', ajson
-			print
+                        ajson = self.demoinfo.demo_list()
+                        print ' demo list before update demo', ajson
+                        print
 
 
-			json_demo_1='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "stateID": 1, "id": 1, "zipURL": "http://demo1updated.com"}'
-			self.demoinfo.update_demo(json_demo_1)
+                        json_demo_1='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "stateID": 1, "id": 1, "zipURL": "http://demo1updated.com"}'
+                        self.demoinfo.update_demo(json_demo_1)
 
-			ajson = self.demoinfo.demo_list()
-			print ' demo list after update demo', ajson
+                        ajson = self.demoinfo.demo_list()
+                        print ' demo list after update demo', ajson
 
-			if not "newdemo1" in ajson or not "newdemo1abstract" in ajson or not "http://demo1updated.com" in ajson:
-				print "Demo update failed"
-				raise Exception
+                        if not "newdemo1" in ajson or not "newdemo1abstract" in ajson or not "http://demo1updated.com" in ajson:
+                                print "Demo update failed"
+                                raise Exception
 
 
 
-		except Exception as ex:
-			print "edit_demo: ",ex
-			test_passed = False
+                except Exception as ex:
+                        print "edit_demo: ",ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , edit demo')
+                self.failUnless(test_passed, 'failure , edit demo')
 
 
-	def edit_author(self):
+        def edit_author(self):
 
-		test_passed = True
-		try:
+                test_passed = True
+                try:
 
-			al = self.demoinfo.demo_get_authors_list(1)
-			print " author list before: ",al
-			print
+                        al = self.demoinfo.demo_get_authors_list(1)
+                        print " author list before: ",al
+                        print
 
 
-			json_author_1='{"mail": "authoremail1_updated@gmail.com", "creation": "2015-12-03 20:53:07", "id": 1, "name": "Author_Name1_updated"}'
-			self.demoinfo.update_author(json_author_1)
-			al = self.demoinfo.demo_get_authors_list(1)
-			print " author list after: ",al
+                        json_author_1='{"mail": "authoremail1_updated@gmail.com", "creation": "2015-12-03 20:53:07", "id": 1, "name": "Author_Name1_updated"}'
+                        self.demoinfo.update_author(json_author_1)
+                        al = self.demoinfo.demo_get_authors_list(1)
+                        print " author list after: ",al
 
-			if not "authoremail1_updated" in al or not "Author_Name1_updated" in al:
-				print "Author update failed"
-				raise Exception
+                        if not "authoremail1_updated" in al or not "Author_Name1_updated" in al:
+                                print "Author update failed"
+                                raise Exception
 
-		except Exception as ex:
-			print ex
-			test_passed = False
-
-		self.failUnless(test_passed, 'failure , edit_author  updating  authors')
+                except Exception as ex:
+                        print ex
+                        test_passed = False
+
+                self.failUnless(test_passed, 'failure , edit_author  updating  authors')
 
-
-	def edit_editor(self):
-		test_passed = True
-		try:
+
+        def edit_editor(self):
+                test_passed = True
+                try:
 
-			ejson = self.demoinfo.demo_get_authors_list(1)
-			print " editor list before: ",ejson
-			print
+                        ejson = self.demoinfo.demo_get_authors_list(1)
+                        print " editor list before: ",ejson
+                        print
 
-			json_editor_1='{"mail": "editoremail1_updated@gmail.com", "creation": "2015-12-03 20:53:07","active": 1, "id": 1, "name": "Editor_Name1_updated"}'
-			self.demoinfo.update_editor(json_editor_1)
-			el = self.demoinfo.demo_get_editors_list(1)
-			print " editor list after: ",el
+                        json_editor_1='{"mail": "editoremail1_updated@gmail.com", "creation": "2015-12-03 20:53:07","active": 1, "id": 1, "name": "Editor_Name1_updated"}'
+                        self.demoinfo.update_editor(json_editor_1)
+                        el = self.demoinfo.demo_get_editors_list(1)
+                        print " editor list after: ",el
 
-			if not "editoremail1_updated" in el or not "Editor_Name1_updated" in el:
-				print "Editor update failed"
-				raise Exception
+                        if not "editoremail1_updated" in el or not "Editor_Name1_updated" in el:
+                                print "Editor update failed"
+                                raise Exception
 
 
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , edit_editor  updating  editor')
+                self.failUnless(test_passed, 'failure , edit_editor  updating  editor')
 
 
-	def read_demo(self):
-		test_passed = True
-		try:
+        def read_demo(self):
+                test_passed = True
+                try:
 
 
-			demo1 = self.demoinfo.read_demo(1)
-			print "read demo1: ",demo1.__dict__
+                        demo1 = self.demoinfo.read_demo(1)
+                        print "read demo1: ",demo1.__dict__
 
-			demo2 = self.demoinfo.read_demo(2)
-			print "read demo2: ",demo2.__dict__
+                        demo2 = self.demoinfo.read_demo(2)
+                        print "read demo2: ",demo2.__dict__
 
-			demo2json = self.demoinfo.read_demo_metainfo(2)
-			print "read demo2 demo2json: ",demo2json
+                        demo2json = self.demoinfo.read_demo_metainfo(2)
+                        print "read demo2 demo2json: ",demo2json
 
 
 
 
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
+                self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
 
 
-	def remove_demo(self):
-		test_passed = True
-		try:
+        def remove_demo(self):
+                test_passed = True
+                try:
 
-			#initial
-			dl0 = self.demoinfo.demo_list()
+                        #initial
+                        dl0 = self.demoinfo.demo_list()
 
-			#no hard_delete demo 1
-			print " no hard_delete demo 1"
-			self.demoinfo.delete_demo(1)
-			dl1 = self.demoinfo.demo_list()
-			al_demo1= self.demoinfo.demo_get_authors_list(1)
-			if  ('"id": 1' in dl0) and ('"id": 1' in dl1) and (not "\"id\": 1" in al_demo1) :
-				print "Demo 1 delete failed"
-				raise Exception
+                        #no hard_delete demo 1
+                        print " no hard_delete demo 1"
+                        self.demoinfo.delete_demo(1)
+                        dl1 = self.demoinfo.demo_list()
+                        al_demo1= self.demoinfo.demo_get_authors_list(1)
+                        if  ('"id": 1' in dl0) and ('"id": 1' in dl1) and (not "\"id\": 1" in al_demo1) :
+                                print "Demo 1 delete failed"
+                                raise Exception
 
-			# hard_delete demo 2
-			print " hard_delete demo 2"
-			al_demo2_init = self.demoinfo.demo_get_authors_list(2)
-			self.demoinfo.delete_demo(2,hard_delete = True)
-			dl2 = self.demoinfo.demo_list()
-			al_demo2 = self.demoinfo.demo_get_authors_list(2)
-			if ('"id": 2' in dl0) and ('"id": 2' in dl2) and ("\"id\": 2" in al_demo2_init) and ("\"id\": 2" in al_demo2):
-				print "Demo 2 hard delete failed"
-				raise Exception
+                        # hard_delete demo 2
+                        print " hard_delete demo 2"
+                        al_demo2_init = self.demoinfo.demo_get_authors_list(2)
+                        self.demoinfo.delete_demo(2,hard_delete = True)
+                        dl2 = self.demoinfo.demo_list()
+                        al_demo2 = self.demoinfo.demo_get_authors_list(2)
+                        if ('"id": 2' in dl0) and ('"id": 2' in dl2) and ("\"id\": 2" in al_demo2_init) and ("\"id\": 2" in al_demo2):
+                                print "Demo 2 hard delete failed"
+                                raise Exception
 
 
-			# print
-			# print " Initial Demo list"
-			# print dl0
-			# print
-			# print " Demo list after delete demo 1 no hard delete"
-			# print dl1
-			# print
-			# print "al_demo1"
-			# print al_demo1
-			# print
-			# print " Initial Author list for demo 2"
-			# print al_demo2_init
-			# print
-			# print "  Demo list after hard delete demo 2"
-			# print dl2
-			# print
-			# print "al_demo2"
-			# print al_demo2
+                        # print
+                        # print " Initial Demo list"
+                        # print dl0
+                        # print
+                        # print " Demo list after delete demo 1 no hard delete"
+                        # print dl1
+                        # print
+                        # print "al_demo1"
+                        # print al_demo1
+                        # print
+                        # print " Initial Author list for demo 2"
+                        # print al_demo2_init
+                        # print
+                        # print "  Demo list after hard delete demo 2"
+                        # print dl2
+                        # print
+                        # print "al_demo2"
+                        # print al_demo2
 
-		except Exception as ex:
-			print "remove demos",ex
-			test_passed = False
+                except Exception as ex:
+                        print "remove demos",ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , removing demos ')
+                self.failUnless(test_passed, 'failure , removing demos ')
 
 
-	def read_by_editordemoid(self):
-		test_passed = True
-		try:
+        def read_by_editordemoid(self):
+                test_passed = True
+                try:
 
 
 
-			add_demo_1__editordemoid = 13333
-			demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
-			print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
+                        add_demo_1__editordemoid = 13333
+                        demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
+                        print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
 
 
-			add_demo_1__editordemoid = 1
-			demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
-			print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
+                        add_demo_1__editordemoid = 1
+                        demojson = self.demoinfo.read_demo_metainfo_by_editordemoid(add_demo_1__editordemoid)
+                        print "read demo1 retrieved by editordemoid: %d demojson: %s "%(add_demo_1__editordemoid,demojson)
 
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
+                self.failUnless(test_passed, 'failure , reading  demos before deleting them ')
 
 
-	def list_demos_pagination_filter(self):
-		test_passed = True
-		try:
+        def list_demos_pagination_filter(self):
+                test_passed = True
+                try:
 
 
-			ajson = self.demoinfo.demo_list()
-			print ' demo list ', ajson
-			print
+                        ajson = self.demoinfo.demo_list()
+                        print ' demo list ', ajson
+                        print
 
-			num_elements_page = 2
-			page = 1
-			qfilter = 'ddd'
-			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
-			print
-			print " num_elements_page: ", num_elements_page
-			print " page: ", page
-			print " qfilter: ", qfilter
-			print
-			print ' demo list filtered and pagination, no result', ajson
+                        num_elements_page = 2
+                        page = 1
+                        qfilter = 'ddd'
+                        ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        print
+                        print " num_elements_page: ", num_elements_page
+                        print " page: ", page
+                        print " qfilter: ", qfilter
+                        print
+                        print ' demo list filtered and pagination, no result', ajson
 
-			num_elements_page = 2
-			page = 1
-			qfilter = 'DemoTEST3'
-			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
-			print
-			print " num_elements_page: ", num_elements_page
-			print " page: ", page
-			print " qfilter: ", qfilter
-			print
-			print ' demo list filtered and pagination', ajson
+                        num_elements_page = 2
+                        page = 1
+                        qfilter = 'DemoTEST3'
+                        ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        print
+                        print " num_elements_page: ", num_elements_page
+                        print " page: ", page
+                        print " qfilter: ", qfilter
+                        print
+                        print ' demo list filtered and pagination', ajson
 
 
 
-			num_elements_page = 1
-			page = 1
-			qfilter = 'Demo'
-			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
-			print
-			print " num_elements_page: ", num_elements_page
-			print " page: ", page
-			print " qfilter: ", qfilter
-			print
-			print ' demo list filtered and pagination', ajson
+                        num_elements_page = 1
+                        page = 1
+                        qfilter = 'Demo'
+                        ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        print
+                        print " num_elements_page: ", num_elements_page
+                        print " page: ", page
+                        print " qfilter: ", qfilter
+                        print
+                        print ' demo list filtered and pagination', ajson
 
 
-			num_elements_page = 1
-			page = 2
-			qfilter = 'Demo'
-			ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
-			print
-			print " num_elements_page: ", num_elements_page
-			print " page: ", page
-			print " qfilter: ", qfilter
-			print
-			print ' demo list filtered and pagination', ajson
+                        num_elements_page = 1
+                        page = 2
+                        qfilter = 'Demo'
+                        ajson = self.demoinfo.demo_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        print
+                        print " num_elements_page: ", num_elements_page
+                        print " page: ", page
+                        print " qfilter: ", qfilter
+                        print
+                        print ' demo list filtered and pagination', ajson
 
-		except Exception as ex:
-			print "edit_demo: ",ex
-			test_passed = False
+                except Exception as ex:
+                        print "edit_demo: ",ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , edit demo')
+                self.failUnless(test_passed, 'failure , edit demo')
 
 
-	def read_states(self):
-		test_passed = True
-		try:
+        def read_states(self):
+                test_passed = True
+                try:
 
-			stateslist = self.demoinfo.read_states()
-			print "stateslist json: ",stateslist
+                        stateslist = self.demoinfo.read_states()
+                        print "stateslist json: ",stateslist
 
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , reading states ')
+                self.failUnless(test_passed, 'failure , reading states ')
 
 
-	def read_delete_author(self):
-		test_passed = True
-		try:
+        def read_delete_author(self):
+                test_passed = True
+                try:
 
-			#
-			# name='Author Name3'
-			# mail = 'authoremail3@gmail.com'
-			# a3=self.demoinfo.add_author(name, mail)
-			# print " author created",a3
-			#
+                        #
+                        # name='Author Name3'
+                        # mail = 'authoremail3@gmail.com'
+                        # a3=self.demoinfo.add_author(name, mail)
+                        # print " author created",a3
+                        #
 
 
 
-			demoid = 1
-			authorid = 3
+                        demoid = 1
+                        authorid = 3
 
-			a3 = self.demoinfo.read_author(authorid)
-			print " author: %d : "%(authorid)
-			print a3
-			print
+                        a3 = self.demoinfo.read_author(authorid)
+                        print " author: %d : "%(authorid)
+                        print a3
+                        print
 
-			self.demoinfo.add_author_to_demo(demoid ,authorid)
-			print " author: %d added to demo: %d "%(authorid,demoid)
-			print
+                        self.demoinfo.add_author_to_demo(demoid ,authorid)
+                        print " author: %d added to demo: %d "%(authorid,demoid)
+                        print
 
-			dl = self.demoinfo.demo_get_authors_list(demoid)
-			print " author list for demo: %d "%(demoid)
-			print
-			print dl
+                        dl = self.demoinfo.demo_get_authors_list(demoid)
+                        print " author list for demo: %d "%(demoid)
+                        print
+                        print dl
 
-			self.demoinfo.remove_author(authorid)
-			print
-			print " author: %d removed from demo: %d "%(authorid,demoid)
-			print
+                        self.demoinfo.remove_author(authorid)
+                        print
+                        print " author: %d removed from demo: %d "%(authorid,demoid)
+                        print
 
-			dl = self.demoinfo.demo_get_authors_list(demoid)
-			print " author list for demo: %d "%(demoid)
-			print
-			print dl
-			print
+                        dl = self.demoinfo.demo_get_authors_list(demoid)
+                        print " author list for demo: %d "%(demoid)
+                        print
+                        print dl
+                        print
 
-			al = self.demoinfo.author_list()
-			print " complete author list:  "
-			print
-			print al
-			print
+                        al = self.demoinfo.author_list()
+                        print " complete author list:  "
+                        print
+                        print al
+                        print
 
-			self.demoinfo.add_author_to_demo(demoid ,authorid)
-			print " author: %d added to demo: %d "%(authorid,demoid)
-			print
+                        self.demoinfo.add_author_to_demo(demoid ,authorid)
+                        print " author: %d added to demo: %d "%(authorid,demoid)
+                        print
 
-			dl = self.demoinfo.demo_get_authors_list(demoid)
-			print " error if try to add inexistent author to demo"
+                        dl = self.demoinfo.demo_get_authors_list(demoid)
+                        print " error if try to add inexistent author to demo"
 
-			print " author list for demo: %d "%(demoid)
-			print
-			print dl
+                        print " author list for demo: %d "%(demoid)
+                        print
+                        print dl
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
+                self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
 
 
-	def read_delete_editor(self):
-		test_passed = True
-		try:
+        def read_delete_editor(self):
+                test_passed = True
+                try:
 
-			# name='editor Name3'
-			# mail = 'editoremail3@gmail.com'
-			# e3=self.demoinfo.add_editor(name, mail)
-			# print " editor created ",e3
+                        # name='editor Name3'
+                        # mail = 'editoremail3@gmail.com'
+                        # e3=self.demoinfo.add_editor(name, mail)
+                        # print " editor created ",e3
 
-			demoid = 1
-			editorid = 3
+                        demoid = 1
+                        editorid = 3
 
-			e3 = self.demoinfo.read_editor(editorid)
-			print " editor: %d : "%(editorid)
-			print e3
-			print
+                        e3 = self.demoinfo.read_editor(editorid)
+                        print " editor: %d : "%(editorid)
+                        print e3
+                        print
 
-			self.demoinfo.add_editor_to_demo(demoid ,editorid)
-			print " editor: %d added to demo: %d "%(editorid,demoid)
-			print
+                        self.demoinfo.add_editor_to_demo(demoid ,editorid)
+                        print " editor: %d added to demo: %d "%(editorid,demoid)
+                        print
 
-			dl = self.demoinfo.demo_get_editors_list(demoid)
-			print " editor list for demo: %d "%(demoid)
-			print
-			print dl
+                        dl = self.demoinfo.demo_get_editors_list(demoid)
+                        print " editor list for demo: %d "%(demoid)
+                        print
+                        print dl
 
-			self.demoinfo.remove_editor(editorid)
-			print
-			print " editor: %d removed from demo: %d "%(editorid,demoid)
-			print
+                        self.demoinfo.remove_editor(editorid)
+                        print
+                        print " editor: %d removed from demo: %d "%(editorid,demoid)
+                        print
 
-			dl = self.demoinfo.demo_get_editors_list(demoid)
-			print " editor list for demo: %d "%(demoid)
-			print
-			print dl
-			print
+                        dl = self.demoinfo.demo_get_editors_list(demoid)
+                        print " editor list for demo: %d "%(demoid)
+                        print
+                        print dl
+                        print
 
-			el = self.demoinfo.editor_list()
-			print " complete editor list:  "
-			print
-			print el
+                        el = self.demoinfo.editor_list()
+                        print " complete editor list:  "
+                        print
+                        print el
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
+                self.failUnless(test_passed, 'failure , delete_author_3 Failed ')
 
-	def test_author_list_pagination_and_filter(self):
-		test_passed = True
-		try:
+        def test_author_list_pagination_and_filter(self):
+                test_passed = True
+                try:
 
-			print "test_author_list_pagination_and_filter"
-			print
+                        print "test_author_list_pagination_and_filter"
+                        print
 
-			num_elements_page=1
-			page = 1
+                        num_elements_page=1
+                        page = 1
 
-			p1 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
+                        p1 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p1
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p1
+                        print
 
 
-			page = 2
-			p2 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
+                        page = 2
+                        p2 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page)
 
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p2
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p2
+                        print
 
-			qfilter='demo'
-			p3 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        qfilter='demo'
+                        p3 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p3
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p3
+                        print
 
-			qfilter='Name1_updated'
-			p4 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        qfilter='Name1_updated'
+                        p4 = self.demoinfo.author_list_pagination_and_filter(num_elements_page,page,qfilter)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p4
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p4
+                        print
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , test_author_list_pagination_and_filter Failed ')
+                self.failUnless(test_passed, 'failure , test_author_list_pagination_and_filter Failed ')
 
-	def test_editor_list_pagination_and_filter(self):
-		test_passed = True
-		try:
+        def test_editor_list_pagination_and_filter(self):
+                test_passed = True
+                try:
 
-			print "test_editor_list_pagination_and_filter"
-			print
+                        print "test_editor_list_pagination_and_filter"
+                        print
 
-			num_elements_page=1
-			page = 1
+                        num_elements_page=1
+                        page = 1
 
-			p1 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
+                        p1 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p1
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p1
+                        print
 
 
-			page = 2
-			p2 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
+                        page = 2
+                        p2 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page)
 
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p2
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p2
+                        print
 
-			qfilter='demo'
-			p3 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        qfilter='demo'
+                        p3 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p3
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p3
+                        print
 
-			qfilter='Name1_updated'
-			p4 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
+                        qfilter='Name1_updated'
+                        p4 = self.demoinfo.editor_list_pagination_and_filter(num_elements_page,page,qfilter)
 
-			print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
-			print p4
-			print
+                        print " page: %d, num_elements_page:%d   "%(page,num_elements_page)
+                        print p4
+                        print
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+                self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
 
-	def test_demo_get_available_author_list(self):
-		test_passed = True
-		try:
+        def test_demo_get_available_author_list(self):
+                test_passed = True
+                try:
 
-			print "test_demo_get_available_author_list"
-			print
+                        print "test_demo_get_available_author_list"
+                        print
 
-			demoid = 1
+                        demoid = 1
 
-			al = self.demoinfo.demo_get_available_authors_list(demoid)
+                        al = self.demoinfo.demo_get_available_authors_list(demoid)
 
-			print al
+                        print al
 
 
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+                self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
 
-	def test_demo_get_available_editors_list(self):
-		test_passed = True
-		try:
+        def test_demo_get_available_editors_list(self):
+                test_passed = True
+                try:
 
-			print "test_demo_get_available_editor_list"
-			print
+                        print "test_demo_get_available_editor_list"
+                        print
 
 
-			demoid = 1
+                        demoid = 1
 
-			el = self.demoinfo.demo_get_available_editors_list(demoid)
+                        el = self.demoinfo.demo_get_available_editors_list(demoid)
 
-			print el
+                        print el
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
+                self.failUnless(test_passed, 'failure , test_editor_list_pagination_and_filter Failed ')
 
-	def test_demo_list_by_demoeditorid(self):
-		test_passed = True
-		try:
+        def test_demo_list_by_demoeditorid(self):
+                test_passed = True
+                try:
 
-			print "test_demo_list_by_demoeditorid"
-			print
+                        print "test_demo_list_by_demoeditorid"
+                        print
 
 
-			editorsdemoid_list = [26]
-			editorsdemoid_list = json.dumps(editorsdemoid_list)
-			# remeber that demo_list_by_demoeditorid expects a JSON list , then it will load it into a python list
+                        editorsdemoid_list = [26]
+                        editorsdemoid_list = json.dumps(editorsdemoid_list)
+                        # remeber that demo_list_by_demoeditorid expects a JSON list , then it will load it into a python list
 
-			dl = self.demoinfo.demo_list_by_demoeditorid(editorsdemoid_list)
+                        dl = self.demoinfo.demo_list_by_demoeditorid(editorsdemoid_list)
 
-			print dl
+                        print dl
 
-		except Exception as ex:
-			print ex
-			test_passed = False
+                except Exception as ex:
+                        print ex
+                        test_passed = False
 
-		self.failUnless(test_passed, 'failure , test_demo_list_by_demoeditorid Failed ')
+                self.failUnless(test_passed, 'failure , test_demo_list_by_demoeditorid Failed ')
 
 
 
-	##########################
-	# run all tests in order #
-	##########################
+        ##########################
+        # run all tests in order #
+        ##########################
 
-	def test_steps(self):
-		#run in order all tests
-		try:
+        def test_steps(self):
+                #run in order all tests
+                try:
 
-			print
-			print(" Monolithic Test Started")
-			print(" From the initialized Db, with no demos,authors o editors, create them and manipulate them using the WS provided by demoInfo module")
-			print(" Every WEBSERVICE you expose MUST have its test, or be part of at least one test")
-			print(" run with ../tests$ python -m unittest discover")
-
-
-			print " ---0"
-			print
-			self.add_demo_description_1()
-			print
-			print " ---1"
-			print
-			self.add_demo_1()
-			print
-			print " ---2"
-			print
-			self.add_duplicated_demo()
-			print
-			print " ---3"
-			print
-			self.add_author_1()
-			print
-			print " ---4"
-			print
-			self.add_duplicated_author()
-			print
-			print " ---5"
-			print
-			self.add_editor_1()
-			print
-			print " ---6"
-			print
-			self.add_duplicated_editor()
-			print
-			print " ---7"
-			print
-			self.add_authors_and_editors_to_demo_1()
-			print
-			print " ---8"
-			print
-			self.add_duplicated_authors_to_demo()
-			print
-			print " ---9"
-			print
-			self.add_duplicated_editors_to_demo()
-			print
-			print " ---10"
-			print
-			self.remove_authors_and_editors_to_demo_1()
-			print
-			print " ---11"
-			print
-			self.edit_demo()
-			print
-			print " ---12"
-			print
-			self.edit_author()
-			print
-			print " ---13"
-			print
-			self.edit_editor()
-			print
-			print " ---14"
-			print
-			self.read_demo()
-			print
-			print " ---15"
-			print
-			self.add_ddl_history_to_demo()
-			print
-			print " ---16"
-			print
-			self.remove_demo()
-			print
-			print " ---17"
-			print
-			self.read_states()
-			print
-			print " ---18"
-			print
-			self.read_by_editordemoid()
-			print " ---19"
-			print
-			self.list_demos_pagination_filter()
-			print
-			print " ---20"
-			print
-			self.read_delete_author()
-			print
-			print " ---21"
-			print
-			self.read_delete_editor()
-			print
-			print
-			print " ---22"
-			print
-			self.test_author_list_pagination_and_filter()
-			print
-			print
-			print " ---23"
-			print
-			self.test_editor_list_pagination_and_filter()
-			print
-			print
-			print " ---24"
-			print
-			self.test_demo_get_available_author_list()
-			print
-			print
-			print " ---25"
-			print
-			self.test_demo_get_available_editors_list()
-			print
-			print
-			print " ---26"
-			print
-			self.test_demo_list_by_demoeditorid()
-			print
-			print
-			print " ---27 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
-			#app demoinfo must be running ! works with the NOT TEST database
-			# for testing ws that get the json from the the data, not params
-			self.special_test()
-			print
-			print " ---cleanup"
-			self.delete_db()
-			print(" Monolithic Test Ended")
-
-		except Exception as ex:
-			print " ---cleanup"
-			self.delete_db()
-			raise ex
+                        print
+                        print(" Monolithic Test Started")
+                        print(" From the initialized Db, with no demos,authors o editors, create them and manipulate them using the WS provided by demoInfo module")
+                        print(" Every WEBSERVICE you expose MUST have its test, or be part of at least one test")
+                        print(" run with ../tests$ python -m unittest discover")
+
+
+                        print " ---0"
+                        print
+                        self.add_demo_description_1()
+                        print
+                        print " ---1"
+                        print
+                        self.add_demo_1()
+                        print
+                        print " ---2"
+                        print
+                        self.add_duplicated_demo()
+                        print
+                        print " ---3"
+                        print
+                        self.add_author_1()
+                        print
+                        print " ---4"
+                        print
+                        self.add_duplicated_author()
+                        print
+                        print " ---5"
+                        print
+                        self.add_editor_1()
+                        print
+                        print " ---6"
+                        print
+                        self.add_duplicated_editor()
+                        print
+                        print " ---7"
+                        print
+                        self.add_authors_and_editors_to_demo_1()
+                        print
+                        print " ---8"
+                        print
+                        self.add_duplicated_authors_to_demo()
+                        print
+                        print " ---9"
+                        print
+                        self.add_duplicated_editors_to_demo()
+                        print
+                        print " ---10"
+                        print
+                        self.remove_authors_and_editors_to_demo_1()
+                        print
+                        print " ---11"
+                        print
+                        self.edit_demo()
+                        print
+                        print " ---12"
+                        print
+                        self.edit_author()
+                        print
+                        print " ---13"
+                        print
+                        self.edit_editor()
+                        print
+                        print " ---14"
+                        print
+                        self.read_demo()
+                        print
+                        print " ---15"
+                        print
+                        self.add_ddl_history_to_demo()
+                        print
+                        print " ---16"
+                        print
+                        self.remove_demo()
+                        print
+                        print " ---17"
+                        print
+                        self.read_states()
+                        print
+                        print " ---18"
+                        print
+                        self.read_by_editordemoid()
+                        print " ---19"
+                        print
+                        self.list_demos_pagination_filter()
+                        print
+                        print " ---20"
+                        print
+                        self.read_delete_author()
+                        print
+                        print " ---21"
+                        print
+                        self.read_delete_editor()
+                        print
+                        print
+                        print " ---22"
+                        print
+                        self.test_author_list_pagination_and_filter()
+                        print
+                        print
+                        print " ---23"
+                        print
+                        self.test_editor_list_pagination_and_filter()
+                        print
+                        print
+                        print " ---24"
+                        print
+                        self.test_demo_get_available_author_list()
+                        print
+                        print
+                        print " ---25"
+                        print
+                        self.test_demo_get_available_editors_list()
+                        print
+                        print
+                        print " ---26"
+                        print
+                        self.test_demo_list_by_demoeditorid()
+                        print
+                        print
+                        print " ---27 SPECIAL TEST, DEMOINFO MODULE MUST BE RUNNING, (it inserts stuff in the 'real' DB...)"
+                        #app demoinfo must be running ! works with the NOT TEST database
+                        # for testing ws that get the json from the the data, not params
+                        self.special_test()
+                        print
+                        print " ---cleanup"
+                        self.delete_db()
+                        print(" Monolithic Test Ended")
+
+                except Exception as ex:
+                        print " ---cleanup"
+                        self.delete_db()
+                        raise ex
 
 
 def main():
-	unittest.main()
+        unittest.main()
 
 
 if __name__ == '__main__':
-	main()
+        main()
