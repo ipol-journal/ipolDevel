@@ -553,7 +553,7 @@ class   Blobs(object):
         dic["delete"] = ""
         
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws")
+        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws" + str(cherrypy.request.headers))
         
         
         
@@ -748,7 +748,7 @@ class   Blobs(object):
         res = use_web_service('/delete_blob_ws', data)
         
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo")
+        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo - " + str(cherrypy.request.headers))
         
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])

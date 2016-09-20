@@ -40,7 +40,7 @@ class   Database(object):
             sys.exit("Initialisation of database failed. Check the logs.")
         
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is in init of database.py")
+        self.logger.info("-- IP: " + ip + " is in init of database.py - " + str(cherrypy.request.headers))
         
         self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
@@ -572,7 +572,7 @@ class   Database(object):
         """
         self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database")
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database - " + str(cherrypy.request.headers))
         
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
@@ -622,7 +622,7 @@ class   Database(object):
         self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
         
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob")
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob - " + str(cherrypy.request.headers))
         
         if blob_demo_count == 0:
             try:
@@ -737,7 +737,7 @@ class   Database(object):
         :rtype: boolean
         """
         ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo")
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo - " + str(cherrypy.request.headers))
         
         
         try:
