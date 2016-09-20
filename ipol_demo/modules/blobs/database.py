@@ -13,6 +13,8 @@ import sqlite3 as lite
 from error import DatabaseInsertError, DatabaseSelectError, \
 DatabaseDeleteError, DatabaseError
 
+import cherrypy
+
 class   Database(object):
     """
     This class implements database management
@@ -37,6 +39,8 @@ class   Database(object):
         if not self.status:
             sys.exit("Initialisation of database failed. Check the logs.")
         
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is in init of database.py")
         
         self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
@@ -567,6 +571,9 @@ class   Database(object):
         :type demo_blobcount: tuple or None
         """
         self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database")
+        
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
         except self.database.Error as e:
@@ -611,7 +618,12 @@ class   Database(object):
         :param blob_demo_count: tuple of integer
         :type blob_demo_count: tuple or None
         """
+        
         self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
+        
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob")
+        
         if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
@@ -724,6 +736,10 @@ class   Database(object):
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo")
+        
+        
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob

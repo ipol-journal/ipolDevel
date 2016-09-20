@@ -7,6 +7,8 @@ It implements Blob object and manages web page and web service
 """
 
 import cherrypy
+
+
 import magic
 import tempfile
 import shutil
@@ -128,7 +130,11 @@ class   Blobs(object):
             self.database_name = cherrypy.config.get("database_name")
         except:
             self.logger.exception("failed to get database_name config")
-            
+        
+        ip = cherrypy.request.remote.ip
+        print ip
+        self.logger.info("---- IP connecting ---> " + ip)
+        
 
     #---------------------------------------------------------------------------
     def init_logging(self):
@@ -546,6 +552,11 @@ class   Blobs(object):
         dic = {}
         dic["delete"] = ""
         
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws")
+        
+        
+        
         # wait for the lock until timeout in seconds is reach
         # if it can lock, locks and returns True
         # otherwise returns False
@@ -735,7 +746,10 @@ class   Blobs(object):
         """
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data)
-
+        
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo")
+        
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
