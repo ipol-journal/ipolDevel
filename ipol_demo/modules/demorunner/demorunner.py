@@ -119,7 +119,7 @@ class DemoRunner(object):
         self.mkdir_p(self.main_log_dir)
         
         self.logger = self.init_logging()
-        
+
         if not os.path.isdir(self.share_running_dir):
             error_message = "There not exist the folder: " + self.share_running_dir
             print error_message
@@ -219,7 +219,7 @@ class DemoRunner(object):
         print "make download archive"
         # get the latest source archive
         try:
-            build.download(ddl_build['url'], tgz_file)
+            build.download(ddl_build['urla'], tgz_file)
         except Exception as ex:
             self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
             
@@ -232,21 +232,29 @@ class DemoRunner(object):
                 print "build ", program
                 # use first binary name to check time
                 prog_filename = program[1]
-                prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
-                if os.path.basename(prog_filename)=='' and len(program)==3:
-                    prog_file = path.join(bin_dir,program[2])
-                if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
-                    rebuild_needed = True
+                
+#####################################################	try..execp -> La ruta puede ser incorrecta y no guardar el binario
+                try:
+                    prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
+                    if os.path.basename(prog_filename)=='' and len(program)==3:
+                        prog_file = path.join(bin_dir,program[2])
+                    if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
+                        rebuild_needed = True
+                except Exception as ex:
+                    self.logger.exception("make", str(ex))
         
         # test timestamp for scripts too
         if 'scripts' in ddl_build.keys():
             for script in ddl_build['scripts']:
-                script_file = path.join(scripts_dir, script[1])
-                if os.path.basename(script[1])=='' and len(script)==3:
-                    script_file = path.join(scripts_dir,script[1],script[2])
-                if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
-                    rebuild_needed = True
-
+#####################################################	try..catch -> si la ruta es incorrecta
+                try:
+                    script_file = path.join(scripts_dir, script[1])
+                    if os.path.basename(script[1])=='' and len(script)==3:
+                        script_file = path.join(scripts_dir,script[1],script[2])
+                    if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
+                        rebuild_needed = True
+                except Exception as ex:
+                    self.logger.exception("make", str(ex))
         #--- build
         if not(rebuild_needed):
             make_info += "no rebuild needed "
@@ -255,11 +263,11 @@ class DemoRunner(object):
             
             print "extracting archive"
             # extract the archive
-            start = time.time()
+            start = time.time()#040404
             
             if clean_previous and path.isdir(src_dir): 
                 shutil.rmtree(src_dir)
-            
+
             self.mkdir_p(src_dir)
             build.extract(tgz_file, src_dir)
             make_info += "extracting archive: " + tgz_file + " sec.; ".format(time.time()-start)
@@ -268,13 +276,13 @@ class DemoRunner(object):
             print "creating bin_dir"
             if clean_previous and path.isdir(bin_dir): 
                 shutil.rmtree(bin_dir)
-                
+
             self.mkdir_p(bin_dir)
             
             print "creating scripts dir"
             if clean_previous and path.isdir(scripts_dir): 
                 shutil.rmtree(scripts_dir)
-                
+
             self.mkdir_p(scripts_dir)
             
                     
@@ -315,7 +323,7 @@ class DemoRunner(object):
                     if os.path.isdir(bin_path):
                         print "copying all files in bin dir"
                         # copy all files to bin dir
-                        src_files = os.listdir(bin_path)
+                        #src_files = os.listdir(bin_path)
                         for file_name in src_files:
                             full_file_name = os.path.join(bin_path, file_name)
                         if (os.path.isfile(full_file_name)):
@@ -420,7 +428,7 @@ class DemoRunner(object):
             builds = [ ddl_build ]
         else:
             builds = ddl_build
-        
+
         first_build = True
         for build_params in builds:
             cherrypy.log("building", context='SETUP/%s' % demo_id, traceback=False)
@@ -434,6 +442,8 @@ class DemoRunner(object):
             except Exception as e:
                 print "Build failed with exception ",e
                 cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
+#####################################################   añadir los self.error_log
+                self.logger.exception("ensure_compilation", str(ex))
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 return json.dumps(data)
             
@@ -471,7 +481,9 @@ class DemoRunner(object):
         try:
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
                 json.dump(params,resfile)
-        except Exception:
+        except Exception as ex:
+#####################################################   añadir log
+            self.logger.exception("exec_and_wait", str(ex))
             print "Failed to save params.json file"
             raise
           
@@ -488,6 +500,7 @@ class DemoRunner(object):
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
+#####################################################   el KO es inecesario (creo)
             res_data['error'] = 'timeout'
         except RuntimeError as e:
             res_data['algo_info']['status']   = 'failure'
@@ -500,8 +513,10 @@ class DemoRunner(object):
         try:
             with open(os.path.join(work_dir,"params.json")) as resfile:
                 res_data['params'] = json.load(resfile)
-        except Exception:
+        except Exception as ex:
             print "Failed to read params.json file"
+#####################################################   añadir logs
+            self.error_log("exec_and_wait", str(ex))
             raise
         
         # check if new config fields
@@ -522,6 +537,8 @@ class DemoRunner(object):
                         res_data['algo_info'][info] = new_string
                         f.close()
                     except Exception as e:
+#####################################################   añadir logs
+                        self.error_log("exec_and_wait", str(e))
                         print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
                         print "Exception ",e
         
@@ -538,19 +555,23 @@ class DemoRunner(object):
         the core algo runner
         """
         print "\n\n----- run_algo begin -----\n\n"
-        rd = run_demo_base.RunDemoBase(bin_path, work_dir)
-        rd.set_logger(cherrypy.log)
-        rd.set_algo_params(params)
-        rd.set_algo_info  (res_data['algo_info'])
-        rd.set_algo_meta  (res_data['algo_meta'])
-        #rd.set_MATLAB_path(self.get_MATLAB_path())  ---> We have to deal with MATLAB in the future
-        rd.set_demo_id(demo_id)
-        rd.set_commands(ddl_run)
-        
-        rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-        rd.run_algo()
-        
+        try:
+            rd = run_demo_base.RunDemoBase(bin_path, work_dir)
+            rd.set_logger(cherrypy.log)
+            rd.set_algo_params(params)
+            rd.set_algo_info  (res_data['algo_info'])
+            rd.set_algo_meta  (res_data['algo_meta'])
+            #rd.set_MATLAB_path(self.get_MATLAB_path())  ---> We have to deal with MATLAB in the future
+            rd.set_demo_id(demo_id)
+            rd.set_commands(ddl_run)
+            
+            rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
+            rd.run_algo()
+        except Exception as e:
+            self.logg
+#####################################################	try..catch -> Todo el bloque  porque lee de varios sitios       
         ## take into account possible changes in parameters
+        
         res_data['params']      = rd.get_algo_params()
         res_data['algo_info']   = rd.get_algo_info()
         res_data['algo_meta']   = rd.get_algo_meta()
