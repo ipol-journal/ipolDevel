@@ -219,7 +219,7 @@ class DemoRunner(object):
         print "make download archive"
         # get the latest source archive
         try:
-            build.download(ddl_build['urla'], tgz_file)
+            build.download(ddl_build['url'], tgz_file)
         except Exception as ex:
             self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
             
