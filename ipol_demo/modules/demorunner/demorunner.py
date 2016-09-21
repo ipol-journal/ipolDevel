@@ -231,9 +231,7 @@ class DemoRunner(object):
             for program in programs:
                 print "build ", program
                 # use first binary name to check time
-                prog_filename = program[1]
-                
-#####################################################	try..execp -> La ruta puede ser incorrecta y no guardar el binario
+                prog_filename = program[1]                
                 try:
                     prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
                     if os.path.basename(prog_filename)=='' and len(program)==3:
@@ -241,12 +239,10 @@ class DemoRunner(object):
                     if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
                         rebuild_needed = True
                 except Exception as ex:
-                    self.logger.exception("make", str(ex))
-        
+                    self.logger.exception("make", str(ex))        
         # test timestamp for scripts too
         if 'scripts' in ddl_build.keys():
             for script in ddl_build['scripts']:
-#####################################################	try..catch -> si la ruta es incorrecta
                 try:
                     script_file = path.join(scripts_dir, script[1])
                     if os.path.basename(script[1])=='' and len(script)==3:
@@ -442,8 +438,7 @@ class DemoRunner(object):
             except Exception as e:
                 print "Build failed with exception ",e
                 cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
-#####################################################   añadir los self.error_log
-                self.logger.exception("ensure_compilation", str(ex))
+                self.error_log("ensure_compilation", "timeout")
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 return json.dumps(data)
             
@@ -482,7 +477,6 @@ class DemoRunner(object):
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
                 json.dump(params,resfile)
         except Exception as ex:
-#####################################################   añadir log
             self.logger.exception("exec_and_wait", str(ex))
             print "Failed to save params.json file"
             raise
@@ -500,13 +494,14 @@ class DemoRunner(object):
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
-#####################################################   el KO es inecesario (creo)
             res_data['error'] = 'timeout'
+            self.error_log("exec_and_wait", "timeout")
         except RuntimeError as e:
             res_data['algo_info']['status']   = 'failure'
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
             res_data['error']    = str(e)
+            self.error_log("exec_and_wait", "timeout")
         
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -515,8 +510,7 @@ class DemoRunner(object):
                 res_data['params'] = json.load(resfile)
         except Exception as ex:
             print "Failed to read params.json file"
-#####################################################   añadir logs
-            self.error_log("exec_and_wait", str(ex))
+            self.logger.exception("exec_and_wait", str(ex))
             raise
         
         # check if new config fields
@@ -537,8 +531,7 @@ class DemoRunner(object):
                         res_data['algo_info'][info] = new_string
                         f.close()
                     except Exception as e:
-#####################################################   añadir logs
-                        self.error_log("exec_and_wait", str(e))
+                        self.error_log("exec_and_wait", "timeout")
                         print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
                         print "Exception ",e
         
@@ -568,8 +561,7 @@ class DemoRunner(object):
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
             rd.run_algo()
         except Exception as e:
-            self.logg
-#####################################################	try..catch -> Todo el bloque  porque lee de varios sitios       
+            self.logger.exception("run_algo", str(e))
         ## take into account possible changes in parameters
         
         res_data['params']      = rd.get_algo_params()
