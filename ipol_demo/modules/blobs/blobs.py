@@ -672,6 +672,12 @@ class   Blobs(object):
         :return: 'OK' if not error else 'KO'
         :rtype: dictionnary
         """
+        
+        dic = {}
+        dic["status"] = "KO"
+        dic["message"] = "You are blocked!!!"
+        return json.dumps(dic)
+        
         data = self.instance_database()
         cherrypy.response.headers['Content-Type'] = "application/json"
 
@@ -699,6 +705,12 @@ class   Blobs(object):
         :return: mako templated html page (refer to edit_blob.html)
         :rtype: mako.lookup.TemplatedLookup
         """
+        dic = {}
+        dic["status"] = "KO"
+        dic["message"] = "You are blocked!!!"
+        return json.dumps(dic)
+        
+        
         data = {"tag_id": tag_id, "blob_id": blob_id}
         res = use_web_service("/remove_tag_from_blob_ws", data)
         return self.edit_blob(blob_id, demo_id)
@@ -744,6 +756,12 @@ class   Blobs(object):
         :return: mako templated html page (refer to edit_demo_blobs.html)
         :rtype: mako.lookup.TemplatedLookup
         """
+        dic = {}
+        dic["status"] = "KO"
+        dic["message"] = "You are blocked!!!"
+        return json.dumps(dic)
+        
+        
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data)
         
@@ -1021,6 +1039,12 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
+        
+        dic = {}
+        dic["status"] = "KO"
+        return json.dumps(dic)
+        
+        
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         data = self.instance_database()
@@ -1064,6 +1088,11 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
+        dic = {}
+        dic["status"] = "KO"
+        return json.dumps(dic)
+        
+        
         data = {"demo_id": demo_id}
         resul = use_web_service('/op_remove_demo_ws', data)
         data = {}
