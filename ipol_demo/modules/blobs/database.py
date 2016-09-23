@@ -573,10 +573,6 @@ class   Database(object):
         ip = cherrypy.request.remote.ip
         self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database - " + str(cherrypy.request.headers))
         
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
         
         self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
         
@@ -626,11 +622,7 @@ class   Database(object):
         """
         ip = cherrypy.request.remote.ip
         self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob - " + str(cherrypy.request.headers))
-        
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
+
         
         self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
         
@@ -675,10 +667,7 @@ class   Database(object):
         :param tag_is_reducible: tag is empty (not associated to any blob)
         :type tag_is_reducible: integer
         """
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
+
         
         if tag_is_reducible[0] == 0:
             try:
@@ -753,11 +742,7 @@ class   Database(object):
         """
         ip = cherrypy.request.remote.ip
         self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo - " + str(cherrypy.request.headers))
-        
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
+
         
         try:
             result = self.cursor.execute('''
@@ -977,10 +962,6 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
         
         
         try:
@@ -1003,10 +984,7 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
+
         
         
         something = None
@@ -1056,10 +1034,6 @@ class   Database(object):
         :param demo_id: id demo
         :type demo_id: integer
         """
-        dic = {}
-        dic["status"] = "KO"
-        dic["message"] = "You are blocked!!!"
-        return json.dumps(dic)
         
         print "database remove_demo({0})".format(demo_id)
         try:
