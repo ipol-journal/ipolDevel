@@ -18,6 +18,9 @@ ipol_demo/modules/archive/blobs_thumbs/*
 # Files containing private data
 ci_tests/send_to.txt
 
+# Test reports
+pylint_report.txt
+
 # Applications (to be moved to demoDispatcher/demoRunner!)
 app/
 
