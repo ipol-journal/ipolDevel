@@ -8,9 +8,7 @@ base cherrypy launcher for the IPOL demo app
 import cherrypy
 import sys
 
-
 import shutil
-from lib import base_app
 
 import json     
 
@@ -27,8 +25,10 @@ from   datetime import datetime
 from   random   import random
 import glob
 
-from   misc     import prod
+from misc import prod
+
 from image import thumbnail, image
+
 import magic
 from PIL import Image,ImageDraw
 import mimetypes
@@ -40,26 +40,7 @@ import tarfile, zipfile
 
 from sendarchive import SendArchive
 
-#-------------------------------------------------------------------------------
-def CORS(): 
-  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
 
-#-------------------------------------------------------------------------------
-def err_tb():
-    """
-    replace the default error response
-    with an cgitb HTML traceback
-    """
-    import cgitb, sys
-    tb = cgitb.html(sys.exc_info())
-    def set_tb():
-        """ set the traceback output """
-        cherrypy.response.body = tb
-        cherrypy.response.headers['Content-Length'] = None
-    cherrypy.request.hooks.attach('after_error_response', set_tb)
-
-
-#-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 class demo_index(object):
     """
@@ -104,9 +85,6 @@ class demo_index(object):
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
             
-            print self.logs_dir
-            print self.logs_name
-            
             # Configure
             self.logger = self.init_logging()
             self.demoExtrasFilename = "DemoExtras.tar.gz"
@@ -149,27 +127,43 @@ class demo_index(object):
         userdata = {"module": "demoinfo", "service": "demo_list"}
         resp = requests.post(self.proxy_server, data=userdata)
         response = resp.json() 
+        status = response['status'] 
+        
+        cherrypy.response.headers['Content-Type'] = 'text/html'
+        if status == 'KO':
+            string = """
+                 <!DOCTYPE html>
+                 <html lang="en">
+                 <head>
+                 <meta charset="utf-8">
+                 <title>IPOL demos</title>
+                 </head>
+                 <body>
+                 <h2>Please, report to the administrators of IPOL that the system is down.</h2><br>
+                 </body>
+                 </html>
+                 """
+            return string
+        
         demo_list = response['demo_list']
-
         demos_string = ""
         for demo in demo_list:
             demos_string += "Demo #{}: <a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
             
         string = """
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>IPOL demos</title>
-  </head>
-  <body>
-    <h2>List of demos</h2><br>
-    {}
-  </body>
-</html>
-""".format(demos_string)
+                 <!DOCTYPE html>
+                 <html lang="en">
+                 <head>
+                 <meta charset="utf-8">
+                 <title>IPOL demos</title>
+                 </head>
+                 <body>
+                 <h2>List of demos</h2><br>
+                 {}
+                 </body>
+                 </html>
+                 """.format(demos_string)
             
-        cherrypy.response.headers['Content-Type'] = 'text/html'
         return string
 
     @cherrypy.expose
@@ -802,19 +796,13 @@ class demo_index(object):
         # For example:
         # crop_info = kwargs.get('crop_info', None)
         # 
-        # Nelson Response:
-        # The system needs more information for the copy blobs.
-        # The JQuery returns as input_type when using the 
         
         
         if 'input_type' in kwargs:
-            input_type = kwargs['input_type']
-            print input_type
-            input_type2 = kwargs.get('input_type', None)
-            print input_type2
+            input_type = kwargs.get('input_type', None)
         
         if 'params' in kwargs:
-            params = kwargs['params']
+            params = kwargs.get('params', None)
         
         if 'original' in kwargs:
             original_exp = kwargs['original']
@@ -984,26 +972,5 @@ class demo_index(object):
 
 
 
-#-------------------------------------------------------------------------------
-if __name__ == '__main__':
-
-    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
-
-    # config file and location settings
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    conf_file = os.path.join(base_dir, 'demo.conf')
-    #conf_file_example = os.path.join(base_dir, 'demo.conf.example')
-    cherrypy.log("app base_dir: %s" % base_dir,
-                 context='SETUP', traceback=False)
-
-    if not os.path.isfile(conf_file):
-        cherrypy.log("warning: the conf file is missing, " \
-                         "copying the example conf",
-                     context='SETUP', traceback=False)
-    
-    cherrypy.config.update(conf_file)
-    cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
-    # start the server give to demo_index the current object (self)
-    cherrypy.quickstart(demo_index(), config=conf_file)
     
       

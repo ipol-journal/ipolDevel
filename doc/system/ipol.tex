@@ -189,7 +189,7 @@ For example, to run the backup script once per week at 3:00h, add this line:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-- Cleanup. The script {\tt ipolDevel/sysadmin/backup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+- Cleanup. The script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
 
 {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
 

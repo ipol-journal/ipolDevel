@@ -7,6 +7,8 @@ It implements Blob object and manages web page and web service
 """
 
 import cherrypy
+
+
 import magic
 import tempfile
 import shutil
@@ -28,13 +30,34 @@ import ConfigParser as configparser
 import threading
 import logging
 import time
+import base64
 
 from database import Database
 from error import DatabaseError
 from collections import defaultdict
 from mako.lookup import TemplateLookup
+from cherrypy.lib import auth_basic
+
+#Get the server socket_host from conf file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONF_FILE = os.path.join(BASE_DIR, 'blobs.conf')
+cherrypy.config.update(CONF_FILE)
+REALM = cherrypy.config['server.socket_host']
+
+#Get username and password from file
+auth_file = open('auth', 'r')
+username,passwd = auth_file.read().strip().split(':')
 
 
+def validate_password(realm, username, password):
+    """
+    Validates the username and the password given
+    """
+    USER = {username: passwd}
+    if username in USER and USER[username] == password:
+        return True
+    return False
+    
 def get_new_path( filename, create_dir=True, depth=2):
     """
     This method creates a new fullpath for a given file path,
@@ -86,7 +109,6 @@ class   Blobs(object):
         """
         Initialize Blob class
         """
-
         # control the concurrent access to the blobs instance
         self.blobs_lock = threading.Lock()
         
@@ -101,7 +123,7 @@ class   Blobs(object):
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
-        
+        self.server = cherrypy.config['server.socket_host']
         self.database_dir = "db"
         self.database_name = "blob.db"
         
@@ -128,7 +150,11 @@ class   Blobs(object):
             self.database_name = cherrypy.config.get("database_name")
         except:
             self.logger.exception("failed to get database_name config")
-            
+        
+        ip = cherrypy.request.remote.ip
+        print ip
+        self.logger.info("---- IP connecting ---> " + ip)
+        
 
     #---------------------------------------------------------------------------
     def init_logging(self):
@@ -185,6 +211,7 @@ class   Blobs(object):
         """
         data = {}
         res = use_web_service('/demos_ws', data)
+        print res
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
@@ -530,6 +557,7 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)   
     def delete_blob_ws(self, demo_id, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
@@ -545,6 +573,10 @@ class   Blobs(object):
         """
         dic = {}
         dic["delete"] = ""
+       # return json.dump(dic)
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws" + str(cherrypy.request.headers))
+
         
         # wait for the lock until timeout in seconds is reach
         # if it can lock, locks and returns True
@@ -722,6 +754,7 @@ class   Blobs(object):
         #return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
         """
         Delete one blob from demo
@@ -734,8 +767,11 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
-        res = use_web_service('/delete_blob_ws', data)
-
+        res = use_web_service('/delete_blob_ws', data,'authenticated')
+        
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo - " + str(cherrypy.request.headers))
+        
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
             path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
@@ -998,6 +1034,7 @@ class   Blobs(object):
     #---------------------------------------------------------------------------
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_demo_ws(self, demo_id):
         """
         Web service used to remove demo from id demo
@@ -1041,6 +1078,7 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_demo(self, demo_id):
         """
         Web page used to remove a demo from id
@@ -1051,7 +1089,7 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"demo_id": demo_id}
-        resul = use_web_service('/op_remove_demo_ws', data)
+        resul = use_web_service('/op_remove_demo_ws', data, 'authenticated')
         data = {}
         res = use_web_service('/demos_ws', data)
 
@@ -1222,19 +1260,22 @@ class   Blobs(object):
                             ": Cannot add item in database")
     
     #---------------------------------------------------------------------------
+
+        
     @cherrypy.expose
     def ping(self):
         """
         Ping pong.
         :rtype: JSON formatted string
-        """
+        """        
         data = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         data["status"] = "OK"
         data["ping"] = "pong"
-        return json.dumps(data)
-
+        return json.dumps(data)    
+    
+        
     @cherrypy.expose
     def shutdown(self):
         """
@@ -1270,7 +1311,7 @@ def create_tmp_file(blob, path):
         shutil.copyfileobj(blob.file, the_file)
     return filename
 
-def use_web_service(req, data):
+def use_web_service(req, data, auth=None):
     """
     Call get function with urllib2
 
@@ -1282,11 +1323,14 @@ def use_web_service(req, data):
     :rtype: list
     """
     #cherrypy.response.headers['Content-Type'] = "application/json"
-
     urls_values = urllib.urlencode(data, True)
     url = cherrypy.server.base() + req + '?' + urls_values
+    request = urllib2.Request(url)
+    if auth == 'authenticated':
+        base64string = base64.encodestring('%s:%s' % (username, passwd)).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64string)
+    res = urllib2.urlopen(request)
     print "url=",url
-    res = urllib2.urlopen(url)
     tmp = res.read()
     return json.loads(tmp)
 

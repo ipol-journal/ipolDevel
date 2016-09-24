@@ -1,7 +1,7 @@
 
 # don't rewrite the deployed conf file
-demo.conf
-demo.*.log
+core.conf
+core.*.log
 
 # compiled Python code
 *.pyc
@@ -14,6 +14,12 @@ ipol_demo/modules/archive/blobs_thumbs/*
 # Database
 *.db
 *.sqlite3
+
+# Files containing private data
+ci_tests/send_to.txt
+
+# Test reports
+pylint_report.txt
 
 # Applications (to be moved to demoDispatcher/demoRunner!)
 app/

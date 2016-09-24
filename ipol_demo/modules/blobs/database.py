@@ -13,6 +13,8 @@ import sqlite3 as lite
 from error import DatabaseInsertError, DatabaseSelectError, \
 DatabaseDeleteError, DatabaseError
 
+import cherrypy
+
 class   Database(object):
     """
     This class implements database management
@@ -37,6 +39,8 @@ class   Database(object):
         if not self.status:
             sys.exit("Initialisation of database failed. Check the logs.")
         
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is in init of database.py - " + str(cherrypy.request.headers))
         
         self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
@@ -566,7 +570,12 @@ class   Database(object):
         :param demo_blobcount: tuple of integer
         :type demo_blobcount: tuple or None
         """
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database - " + str(cherrypy.request.headers))
+        
+        
         self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
+        
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
         except self.database.Error as e:
@@ -611,7 +620,12 @@ class   Database(object):
         :param blob_demo_count: tuple of integer
         :type blob_demo_count: tuple or None
         """
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob - " + str(cherrypy.request.headers))
+
+        
         self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
+        
         if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
@@ -653,6 +667,8 @@ class   Database(object):
         :param tag_is_reducible: tag is empty (not associated to any blob)
         :type tag_is_reducible: integer
         """
+
+        
         if tag_is_reducible[0] == 0:
             try:
                 self.cursor.execute('''
@@ -724,6 +740,10 @@ class   Database(object):
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
+        ip = cherrypy.request.remote.ip
+        self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo - " + str(cherrypy.request.headers))
+
+        
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob
@@ -942,6 +962,8 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
+        
+        
         try:
             self.cursor.execute('''
             DELETE FROM blob_tag
@@ -962,6 +984,9 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
+
+        
+        
         something = None
         try:
             self.cursor.execute('''
@@ -1009,6 +1034,7 @@ class   Database(object):
         :param demo_id: id demo
         :type demo_id: integer
         """
+        
         print "database remove_demo({0})".format(demo_id)
         try:
             # use get_blobs_of_demo() to simplify the code

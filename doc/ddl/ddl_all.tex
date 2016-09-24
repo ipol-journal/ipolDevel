@@ -1181,7 +1181,7 @@ The file "ipol\_demo.html" contains the page template, where the main displayed 
 The different scripts are included, together with their CSS stylesheets:
 
 \lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, 
-basicstyle=\scriptsize]{../../ipol_demo/static/JQueryApp/ipol_demo.html}
+basicstyle=\scriptsize]{../../ipol_demo/static/clientApp/ipol_demo.html}
 
 You will notice the use of the following external modules:
 \begin{itemize}
@@ -1217,17 +1217,17 @@ Language (DDL) file in JSON format.
 
 \lstinputlisting[language=HTML, firstnumber=111,
 linerange={111-123}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol_demo.html}
+../../ipol_demo/static/clientApp/ipol_demo.html}
 $\cdots$
 \lstinputlisting[language=HTML, firstnumber=241,
 linerange={241-248}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol_demo.html}
+../../ipol_demo/static/clientApp/ipol_demo.html}
 
 Additionally, when the user enters the 'Archive' tab, the archive information
 is automatically updated and the last archive page is displayed:
 \lstinputlisting[language=JavaScript, firstnumber=523,
 linerange={523-538}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol.js}
+../../ipol_demo/static/clientApp/ipol.js}
 To obtain the demo id, we first get the demo list stored within the "demo-select"
 HTML element (using the jquery data() function), then we obtain the demo id 
 (editordemoid) from the current position of the demo selection widget.
@@ -1240,7 +1240,7 @@ and the modal dialog to upload data.
 The modal dialog is then initialized by the following code:
 \lstinputlisting[language=JavaScript, firstnumber=581,
 linerange={581-599}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol.js}
+../../ipol_demo/static/clientApp/ipol.js}
 and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
 \subsubsection{Step 1: input demo selection}
@@ -1256,7 +1256,7 @@ The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\
 of the "demoinfo" module using ipol.utils.ModuleService():
 \lstinputlisting[language=JavaScript, firstnumber=317,
 linerange={317-321}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol.js}
+../../ipol_demo/static/clientApp/ipol.js}
 
 Once the demo description is returned, it runs the following steps:
 \begin{itemize}
@@ -1295,7 +1295,7 @@ trigger the creation of a DrawInputs instance with the string "blobset" as origi
 load the input blobset and prepare for running the demo:
 \lstinputlisting[language=JavaScript, firstnumber=333,
 linerange={333-353}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol.drawblobs.js}
+../../ipol_demo/static/clientApp/ipol.drawblobs.js}
 
 \paragraph{Data upload:}
 
@@ -1318,7 +1318,7 @@ instances of the DrawInputs and RunDemo classes are created within the
 ipol.upload.ManageLocalData() function:
 \lstinputlisting[language=JavaScript, firstnumber=160,
 linerange={160-185}, basicstyle=\scriptsize]{
-../../ipol_demo/static/JQueryApp/ipol.upload.js}
+../../ipol_demo/static/clientApp/ipol.upload.js}
 
 \subsubsection{Step 4: Display selected blobset}
 Once the user has selected a blobset, it is displayed in the inputs fieldset
