@@ -86,12 +86,14 @@ class Core(object):
             
             
             self.main_shared_folder  = os.path.join(self.main_shared_folder, self.shared_folder)
-            core_dir = os.getcwd()
             
             #Create shared folder if not exist
-            os.chdir(self.main_shared_folder)
             self.mkdir_p(self.main_shared_folder)
             
+            core_dir = os.getcwd()
+            os.chdir(self.main_shared_folder)
+            
+            #create running dir and demoextras dirs
             self.mkdir_p(self.share_run_dir)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
