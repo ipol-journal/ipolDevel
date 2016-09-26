@@ -16,6 +16,8 @@ shared_folder/
 #demoextras in demoinfo
 ipol_demo/modules/demoinfo/demoExtras/*
 
+#Binaries in demorunner
+ipol_demo/modules/demorunner/binaries/
 
 # Database
 *.db
