@@ -28,6 +28,8 @@ LOGNAME = "demoinfo_log"
 
 
 class DemoInfo(object):
+    
+    
     def __init__(self, configfile=None):
 
         # Cherrypy Conf
@@ -197,9 +199,8 @@ class DemoInfo(object):
                     data["code"] = "0"
         except Exception as ex:
             data['status'] = 'KO'
-        
-        print data
-        
+            self.error_log("Failure in get_file_updated_state ",str(ex))
+            
         return json.dumps(data)
 
     #todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py

@@ -10,6 +10,14 @@ core.*.log
 ipol_demo/modules/archive/blobs/*
 ipol_demo/modules/archive/blobs_thumbs/*
 
+#shared_folder
+shared_folder/
+
+#demoextras in demoinfo
+ipol_demo/modules/demoinfo/demoExtras/*
+
+#Binaries in demorunner
+ipol_demo/modules/demorunner/binaries/
 
 # Database
 *.db

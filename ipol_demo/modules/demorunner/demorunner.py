@@ -216,12 +216,13 @@ class DemoRunner(object):
         self.mkdir_p(dl_dir)
         tgz_file  = path.join(dl_dir, zip_filename)
         
-        print "make download archive"
+        print "Initing the make in ",path_for_the_compilation
         # get the latest source archive
         try:
             build.download(ddl_build['url'], tgz_file)
         except Exception as ex:
             self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
+            raise
             
         rebuild_needed = False
 
@@ -239,7 +240,9 @@ class DemoRunner(object):
                     if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
                         rebuild_needed = True
                 except Exception as ex:
-                    self.logger.exception("make", str(ex))        
+                    self.logger.exception("make", str(ex))
+                    raise
+
         # test timestamp for scripts too
         if 'scripts' in ddl_build.keys():
             for script in ddl_build['scripts']:
@@ -251,13 +254,15 @@ class DemoRunner(object):
                         rebuild_needed = True
                 except Exception as ex:
                     self.logger.exception("make", str(ex))
+                    raise
+
         #--- build
         if not(rebuild_needed):
             make_info += "no rebuild needed "
-            print "no rebuild needed ",
+            print "no rebuild needed for demo ",path_for_the_compilation
         else:
             
-            print "extracting archive"
+            print "Extracting code for demo ",path_for_the_compilation
             # extract the archive
             start = time.time()#040404
             
@@ -409,15 +414,19 @@ class DemoRunner(object):
         """
             Ensure compilation in the demorunner
         """
+        print "\n\nDEMO ID " + demo_id + " is in ensure_compilation\n\n"
+        
         data = {}
         data['status'] = 'KO'
         
         ddl_build = json.loads(ddl_build)
         
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
-        
-        print path_for_the_compilation
         self.mkdir_p(path_for_the_compilation)
+        
+        if demo_id == '1000031':
+            ddl_build = [{ "build_type" : "cmake", "url" : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", "srcdir" : "MissStereo/src", "prepare_cmake" : "sed -i 's/-Werror//g' */CMakeLists.txt",
+                         "binaries": [["bin", "homography"], ["bin", "orsa"], ["bin", "rectify"], ["bin", "sift"], ["bin", "size"], ["bin", "showRect"]], "flags": "-j4"}]
         
         #we should have a dict or a list of dict
         if isinstance(ddl_build,dict):
@@ -436,9 +445,9 @@ class DemoRunner(object):
                 data['message'] = "Build for demo {0} checked".format(demo_id)
                 data['info']    = make_info
             except Exception as e:
-                print "Build failed with exception ",e
+                print "Build failed with exception " + e + " in demo " + demo_id
                 cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
-                self.error_log("ensure_compilation", "timeout")
+                self.error_log("ensure_compilation", str(e))
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 return json.dumps(data)
             
@@ -486,6 +495,18 @@ class DemoRunner(object):
             run_time = time.time()
             
             print "Demoid: ",demo_id
+            
+            if demo_id == '1000031':
+               ddl_run = ["$demoextras/scripts/Rectify.sh input_0.png input_1.png >stdout.txt 2>&1",\
+                        "mv input_0.png_input_1.png_pairs_orsa.txt  orsa.txt",\
+                        "mv input_0.png_h.txt                       output_0.txt",\
+                        "mv input_1.png_h.txt                       output_1.txt",\
+                        "mv H_input_0.png                           output_0.png",\
+                        "mv H_input_1.png                           output_1.png",\
+                        "mv show_H_input_0.png                      output_0_annotated.png",\
+                        "mv show_H_input_1.png                      output_1_annotated.png"]      
+            
+            print ddl_run
             
             self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data)
 
@@ -559,7 +580,7 @@ class DemoRunner(object):
             rd.set_commands(ddl_run)
             
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-            rd.run_algo()
+            rd.run_algorithm()
         except Exception as e:
             self.logger.exception("run_algo", str(e))
         ## take into account possible changes in parameters

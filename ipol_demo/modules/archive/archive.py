@@ -101,7 +101,7 @@ class Archive(object):
                 with open(os.path.join(self.database_dir, "test"), "w+") as the_file:
                         self.echo_database(the_file)
 
-        def __init__(self, option,conf_file):
+        def __init__(self, option, conf_file):
                 """
                 Initialize Archive class.
                 Attribute status should be checked after each initialisation.

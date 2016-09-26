@@ -124,8 +124,6 @@ class   Blobs(object):
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
         self.server = cherrypy.config['server.socket_host']
-        self.database_dir = "db"
-        self.database_name = "blob.db"
         
         self.logs_dir = cherrypy.config.get("logs_dir")
         try:

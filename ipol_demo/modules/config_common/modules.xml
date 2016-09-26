@@ -44,7 +44,7 @@
   <module name="core">
     <url>http://ipolcore.ipol.im:8080/</url>
     <server>ipol_core</server>
-    <path>~/ipolDevel/ipol_demo/</path>
+    <path>~/ipolDevel/ipol_demo/modules/core/</path>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
