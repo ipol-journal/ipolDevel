@@ -39,14 +39,14 @@ class RunDemoBase:
     self.work_dir    = work_dir
     
     self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
-    self.bin_dir     = os.path.join(self.base_dir,'bin/')
-    self.scripts_dir = os.path.join(self.base_dir,'scripts/')
-    self.python_dir  = os.path.join(self.base_dir,'python/')
-    self.dl_dir      = os.path.join(self.base_dir,'dl/')
-    self.log_file    = os.path.join(self.base_dir, "build.log")
-    self.logger      = None
-    self.MATLAB_path = None
-    self.demo_id     = None
+    self.bin_dir      = os.path.join(base_dir,'bin/')
+    self.scripts_dir  = os.path.join(base_dir,'scripts/')
+    self.python_dir   = os.path.join(base_dir,'python/')
+    self.dl_dir       = os.path.join(base_dir,'dl/')
+    self.log_file     = os.path.join(base_dir, "build.log")
+    self.logger       = None
+    self.MATLAB_path  = None
+    self.demo_id      = None
   
   #-----------------------------------------------------------------------------
   # set the running commands as a dictionnary (usually read from JSON file)
@@ -54,8 +54,8 @@ class RunDemoBase:
     self.commands=commands
 
   #-----------------------------------------------------------------------------
-  def set_demo_id(self,id):
-    self.demo_id = id
+  def set_demo_id(self, demo_id):
+    self.demo_id = demo_id
 
   #-----------------------------------------------------------------------------
   def get_demo_id(self):
@@ -122,11 +122,12 @@ class RunDemoBase:
       return self.main_demoExtras_Folder  
 
   #-----------------------------------------------------------------------------
-  def run_algo(self, timeout=False):
+  def run_algorithm(self, timeout=False):
     """
     the core algo runner
     could also be called by a batch processor
     """
+    
     current_working_dir = os.getcwd()
     os.chdir(self.work_dir)
     
@@ -137,8 +138,9 @@ class RunDemoBase:
     for _k_ in self.algo_meta:
       exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
     
-    demoextras = self.get_demoExtras_main_folder()
-    scriptsCommon = self.ipol_scripts
+    
+    demoextras    = self.get_demoExtras_main_folder()
+    #scriptsCommon = self.ipol_scripts
     
     ## there is a problem in Python, seems that locals() should not be modified
     ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
@@ -147,6 +149,8 @@ class RunDemoBase:
     
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
+    
+    
     
     # saving all shell commands in a text file
     shell_cmds = open(self.work_dir+"shell_cmds.txt", "w")
@@ -295,6 +299,7 @@ class RunDemoBase:
         print "failed to get back parameter ",_k_
       
     shell_cmds.close()
+    
     # set back previous working directory
     os.chdir(current_working_dir)
   
@@ -311,8 +316,8 @@ class RunDemoBase:
     newenv.update(env)
     
     demoExtras = {}
-    demoExtras['scriptsCommon'] = self.ipol_scripts
     demoExtras['demoextras']    = self.get_demoExtras_main_folder()
+    #demoExtras['scriptsCommon'] = self.ipol_scripts
     newenv.update(demoExtras)
 
     # TODO clear the PATH, hard-rewrite the exec arg0
@@ -321,14 +326,14 @@ class RunDemoBase:
     # Add PATH in configuration
     path = self.bin_dir
     path +=":/bin:/usr/bin:/usr/local/bin"
+    path += ":" + self.ipol_scripts #scripts of PythonTools
+    
     
     ###TODO: Remove these lines when the DDL's are correct 
     # We are only using these for the moment
     # We do not want to break the old system yet...
     path += ":" + self.scripts_dir
     path += ":" + self.python_dir #Scripts of the demo
-    path += ":" + self.ipol_scripts #scripts of PythonTools
-    ### ---------------------------------------------------
     
     
     # Check if there are extra paths

@@ -21,12 +21,12 @@ if __name__ == '__main__':
 
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
 
-    if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
-        conf_file = sys.argv[1]
-    else:
-        conf_file ="demorunner.conf"
+    CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "demorunner.conf"
 
-    cherrypy.config.update(conf_file)    
+    BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+    CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
+    
+    cherrypy.config.update(CONF_FILE_ABS)    
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
-    cherrypy.quickstart(DemoRunner(), config=conf_file)
+    cherrypy.quickstart(DemoRunner(), config=CONF_FILE_ABS)
 
