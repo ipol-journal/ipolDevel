@@ -1,0 +1,207 @@
+{ 
+  "general": { 
+    "demo_title"            : "Roussos-Maragos Tensor-Driven Diffusion for Image Interpolation",
+    "input_description"     : [
+      "<p>",
+      "The image interpolation method by Roussos and Maragos using a ",
+      "tensor-driven diffusion equation.",
+      "</p>"
+      ],
+    "param_description"     : [
+        "<b>Scale factor.</b>",
+        " Determines the dimensions of the interpolated image:",
+        " for example, interpolation with scale factor of 4 increases a ",
+        "100&times;100 image to 400&times;400.<br/>",
+        "<b>Maximal allowed input dimension</b>",
+            " input image is constrained in both width and height to limit computation time, so that maximal scaled image is 800&times;800.<br/>",
+        "<b>Deconvolution strength&nbsp;<i>&sigma;<sub>h</sub></i>.</b>",
+            " The interpolation finds an image satisfying the degradation model",
+            " <span style='color:blue'><i>input</i>&nbsp;=&nbsp;&darr;",
+            "(<i>h</i>&nbsp;&lowast;&nbsp;<i>interpolation</i>)",
+            "</span>, ",
+            " where &darr;(&sdot;) denotes subsampling and <i>h</i> is a Gaussian ",
+            "with standard deviation <i>&sigma;<sub>h</sub></i> in units of ",
+            "input pixels.  The <i>&sigma;<sub>h</sub></i> parameter ",
+            "controls the deconvolution stength of the interpolation.  Set ", 
+            "<i>&sigma;<sub>h</sub></i>&nbsp;=&nbsp;0 ",
+            "for no deconvolution.<br/>",
+        "<b>&nbsp;The algorithm can run in two different ways:</b><br/>",
+            "<div style='float:left; text-align:center; padding-bottom:15px; ",
+                        "padding-left:50px; padding-right:50px'>",
+                "<img src='http://www.ipol.im/pub/algo/g_image_interpolation_with_contour_stencils/demo-1.png' ",
+                    "width='109' height='55' style='padding-bottom:25px' alt='' /><br />",
+                "<i>Interpolate image</i>",
+            "</div>",
+            "<div style='float:left; text-align:center;'>",
+                "<img src='http://www.ipol.im/pub/algo/g_image_interpolation_with_contour_stencils/demo-2.png' width='148' height='80' alt='' /><br />",
+                "<i>Coarsen, interpolate, and compare</i>",
+            "</div>",
+            "<div style='clear:both'>",
+                "<b>Interpolate image</b> directly interpolates the selected image.",
+                "With <b>Coarsen, interpolate, and compare</b> the image is ",
+                "coarsened to create the input image according to <i>input</i>&nbsp;=&nbsp;&darr;",
+                "(<i>h</i>&nbsp;&lowast;&nbsp;<i>original</i>).The coarsened image is ",
+                "then interpolated and compared with the original image.",
+            "</div>"
+     ],
+    "crop_maxsize"          : "Math.floor(800/$('#range_scalefactor').val())",
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_rmdi/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/g_rmdi/src.tar.gz", 
+      "srcdir"        : "tdinterp-src",
+      "prepare_make"  : "sed -i -e 's/$(LDFLAGS) $(TDINTERP_OBJECTS) -o $@/$(TDINTERP_OBJECTS) -o $@ $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(IMCOARSEN_OBJECTS) -o $@/$(IMCOARSEN_OBJECTS) -o $@ $(LDFLAGS)/g'  -e 's/$(LDFLAGS) $(IMDIFF_OBJECTS) -o $@/$(IMDIFF_OBJECTS) -o $@ $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(NNINTERP_OBJECTS) -o $@/$(NNINTERP_OBJECTS) -o $@ $(LDFLAGS)/g' makefile.gcc ",
+      "binaries"      : [ [".","tdinterp"], [".","imcoarsen"], 
+                          [".","imdiff"], [".","nninterp"] ],
+      "flags"         : "-j --makefile=makefile.gcc"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : 160000,
+          "max_weight"      : "3 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "scalefactor",
+      "type"          : "range", 
+      "label"         : "Scale factor",
+      "values"        : { "min":2, "max":6, "step":1, "default": 4 }
+    },
+    {
+      "id"             : "maxdim",
+      "type"           : "readonly", 
+      "label"          : "Maximal allowed input dimension",
+      "value_expr"     : [ "Math.floor(800/$('#range_scalefactor').val())" ]
+    },
+    {
+      "id"            : "psfsigma",
+      "type"          : "range",
+      "label"         :  "Deconvolution strength&nbsp;<i>&sigma;<sub>h</sub></i>",
+      "values"        : { "min":0.15, "max":0.75, "step":0.01, "default": 0.35 }
+    },
+    {
+      "id"            : "run_mode",
+      "type"          : "selection_collapsed",
+      "label"         : "Mode",
+      "values"        : { "Interpolate image":"Interpolate", 
+                          "Coarsen, interpolate, and compare":"Coarsen_interpolate_compare" },
+      "default_value" :"Interpolate"
+    }
+  ]
+  ,
+  "run": [ 
+      "python:sizeX=x1-x0",
+      "python:sizeY=y1-y0",
+      [ "run_mode=='Interpolate'",
+
+          "echo 'If the image dimensions are small, zoom the displayed results.'",
+          "python:displayzoom = int(math.ceil(400.0/(scalefactor*max(sizeX, sizeY))))",
+
+          "echo 'Perform the actual contour stencil interpolation'",
+          "tdinterp -x $scalefactor -p $psfsigma  input_0.sel.png interpolated.png >stdout.txt",
+
+          "echo 'Interpolate with Fourier'",
+          "tdinterp -N0 -x $scalefactor -p $psfsigma input_0.sel.png fourier.png >>stdout.txt",
+
+          "echo 'For display, create a nearest neighbor zoomed version of the input'",
+          "nninterp -g centered -x ${scalefactor*displayzoom} input_0.sel.png input_0_zoom.png >>stdout.txt",
+
+          "nninterp -g centered -x $displayzoom interpolated.png interpolated_zoom.png >>stdout.txt",
+          "nninterp -g centered -x $displayzoom fourier.png fourier_zoom.png >>stdout.txt"
+      ],
+      [ "run_mode=='Coarsen_interpolate_compare'",
+
+          "echo 'If the image dimensions are small, zoom the displayed results.'",
+          "python:displayzoom = int(math.ceil(350.0/max(sizeX, sizeY)))",
+
+          "echo 'Coarsen the image'",
+          "imcoarsen -g topleft -x $scalefactor -p $psfsigma  input_0.sel.png coarsened.png >stdout.txt",
+          "nninterp -g centered -x $displayzoom input_0.sel.png input_0.sel_zoom.png >>stdout.txt",
+
+          "echo 'Perform the actual interpolation'",
+          "tdinterp  -x $scalefactor -p $psfsigma coarsened.png interpolated.png >>stdout.txt",
+
+          "echo 'Interpolate with Fourier'",
+          "tdinterp -N0 -x $scalefactor -p $psfsigma coarsened.png fourier.png >>stdout.txt",
+
+          "echo 'For display, create a nearest neighbor zoomed version of the coarsened image'",
+          "nninterp -g topleft -x $scalefactor coarsened.png coarsened_zoom.png >>stdout.txt",
+
+          "echo 'Ensure same size'",
+          "python:img=image('coarsened_zoom.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('coarsened_zoom.png')",
+          "python:img=image('interpolated.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('interpolated.png')",
+          "python:img=image('fourier.png')",
+          "python:if (sizeX,sizeY)!= img.size: img.crop((0,0,sizeX,sizeY));img.save('fourier.png')",
+
+          "echo 'Generate difference image'",
+          "imdiff input_0.sel.png interpolated.png  difference.png",
+          "imdiff input_0.sel.png fourier.png       fdifference.png",
+
+          "echo 'Compute maximum difference, PSNR, and MSSIM'",
+          "imdiff input_0.sel.png interpolated.png >>stdout.txt",
+
+          "nninterp -g centered -x $displayzoom coarsened_zoom.png  coarsened_zoom.png >>stdout.txt",
+          "nninterp -g centered -x $displayzoom interpolated.png    interpolated_zoom.png >>stdout.txt",
+          "nninterp -g centered -x $displayzoom fourier.png         fourier_zoom.png >>stdout.txt",
+          "nninterp -g centered -x $displayzoom difference.png      difference_zoom.png >>stdout.txt",
+          "nninterp -g centered -x $displayzoom fdifference.png     fdifference_zoom.png >>stdout.txt"
+      ]
+   ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                  "input_0.png"       : "input",
+                  "input_0.sel.png"   : "selected subimage",
+                  "interpolated.png"  : "Roussos-Maragos interpolation",
+                  "fourier.png"       : "Fourier interpolation",
+                  "difference.png"    : "Difference image"
+                },
+      "params" : [ "scalefactor", "psfsigma", "run_mode" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "contents"          : { 
+        "params.run_mode=='Interpolate'?Input"                                     : "input_0_zoom.png", 
+        "params.run_mode=='Coarsen_interpolate_compare'?Coarsened"                 : "coarsened_zoom.png",
+        "Fourier "         : "fourier_zoom.png",
+        "Roussos-Maragos " : "interpolated_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Exact"                     : "input_0.sel_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Fourier Difference"        : "fdifference_zoom.png",
+        "params.run_mode=='Coarsen_interpolate_compare'?Roussos-Maragos Difference": "difference_zoom.png"
+      },
+      "options"       : { "minheight": 200 }
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<b>Download:</b>",
+      "contents"      : { "input"                       : "input_0.sel.png", 
+                          "coarsened"                   : "coarsened.png",
+                          "Fourier"                     : "fourier.png",
+                          "Roussos-Maragos"             : "interpolated.png",
+                          "exact"                       : "input_0.sel.png",
+                          "Fourier difference"          : "fdifference.png",
+                          "Roussos-Maragos difference"  : "difference.png"
+                        }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Output</b><br/>",
+      "contents"      : "stdout.txt",
+      "style"         : "''"
+    }
+  ]
+
+}

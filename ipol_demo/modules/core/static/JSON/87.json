@@ -1,0 +1,227 @@
+{ 
+  "general": { 
+    "demo_title"            :  "A Survey of Gaussian Convolution Algorithms",
+    "input_description"     : "",
+    "param_description"     : [""],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/87/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url*previous"  : "http://www.ipol.im/pub/art/2013/87/gaussian_20131215.tgz", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/87/gaussian_20131215.tgz", 
+      "srcdir"        : "gaussian_20131215",
+      "binaries"      : [ [".","gaussian_demo"] , [".","imdiff"]],
+      "flags"         : "-j4  --makefile=makefile.gcc",
+      "scripts"       : [ [ "demo_scripts", "run_algorithms.py"] ]
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700 * 700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "sigma",
+      "type"          : "range", 
+      "label"         : "<i>&sigma;</i>, Gaussian standard deviation",
+      "values"        : { "min":0.5, "max":30, "step":0.01, "default":5 }
+    },
+    {
+      "id"            : "algo",
+      "type"          : "checkboxes", 
+      "label"         : "Algorithms",
+      "values"        : [ 
+                { "fir"       :"FIR, <i>tol</i>=10<sup>&minus;2</sup>"  }, 
+                { "dct"       :"DCT"  }, 
+                {},
+                {
+                  "box_3"     :"<span style='display:inline-block;width:13em;'> Box, <i>K</i>=3</span>", 
+                  "box_4"     :"<i>K</i>=4", 
+                  "box_5"     :"<i>K</i>=5"
+                }, 
+                {
+                  "ebox_3"    :"<span style='display:inline-block;width:13em'> Extended box, <i>K</i>=3</span>",
+                  "ebox_4"    :"<i>K</i>=4",
+                  "ebox_5"    :"<i>K</i>=5"
+                },
+                { 
+                  "sii_3"     :"<span style='display:inline-block;width:13em'> SII, <i>K</i>=3</span>",
+                  "sii_4"     :"<i>K</i>=4",
+                  "sii_5"     :"<i>K</i>=5"
+                },
+                {},
+                {
+                  "am_3"      :"<span style='display:inline-block;width:13em'> Alvarez&ndash;Mazorra, <i>K</i>=3</span>",
+                  "am_4"      :"<i>K</i>=4",
+                  "am_5"      :"<i>K</i>=5"
+                },
+                {
+                  "deriche_2" :"<span style='display:inline-block;width:13em'> Deriche, <i>K</i>=2</span>",
+                  "deriche_3" :"<i>K</i>=3",
+                  "deriche_4" :"<i>K</i>=4"
+                },
+                {
+                  "vyv_3"     :"<span style='display:inline-block;width:13em'> Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3</span>",
+                  "vyv_4"     :"<i>K</i>=4",
+                  "vyv_5"     :"<i>K</i>=5"
+                }
+                        ],
+      "default"       : [ "fir", "dct"]
+    }
+  ],
+  "run": [ 
+        "python:import json",
+        "python:fp =  open('params.json', 'w')",
+        "python:json.dump(self.algo_params, fp)",
+        "python:fp.close()",
+        "run_algorithms.py"  
+  ]
+  ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"      : "uploaded image",
+                  "input_0.sel.png"       : "selected subimage",
+                  "output-fir.png"        :"output fir",
+                  "output-dct.png"        :"output dct",
+                  "output-box_3.png"      :"output box_3",
+                  "output-box_4.png"      :"output box_4",
+                  "output-box_5.png"      :"output box_5",
+                  "output-ebox_3.png"     :"output ebox_3",
+                  "output-ebox_4.png"     :"output ebox_4",
+                  "output-ebox_5.png"     :"output ebox_5",
+                  "output-sii_3.png"      :"output sii_3",
+                  "output-sii_4.png"      :"output sii_4",
+                  "output-sii_5.png"      :"output sii_5",
+                  "output-am_3.png"       :"output am_3",
+                  "output-am_4.png"       :"output am_4",
+                  "output-am_5.png"       :"output am_5",
+                  "output-deriche_2.png"  :"output deriche_2",
+                  "output-deriche_3.png"  :"output deriche_3",
+                  "output-deriche_4.png"  :"output deriche_4",
+                  "output-vyv_3.png"      :"output vyv_3",
+                  "output-vyv_4.png"      :"output vyv_4",
+                  "output-vyv_5.png"      :"output vyv_5"
+                },
+      "params" :  [ "sigma", 
+                    "fir", "dct", 
+                    "box_3", "box_4", "box_5",
+                    "ebox_3", "ebox_4", "ebox_5",
+                    "sii_3", "sii_4", "sii_5",
+                    "am_3", "am_4", "am_5",
+                    "deriche_2", "deriche_3", "deriche_4",
+                    "vyv_3", "vyv_4", "vyv_5"]
+    }
+  ,
+  "config":
+    {
+      "info_from_file": {
+        "metrics_fir"       : "metrics_fir.txt",
+        "metrics_dct"       : "metrics_dct.txt",
+        "metrics_box_3"     : "metrics_box_3.txt",
+        "metrics_box_4"     : "metrics_box_4.txt",
+        "metrics_box_5"     : "metrics_box_5.txt",
+        "metrics_ebox_3"    : "metrics_ebox_3.txt",
+        "metrics_ebox_4"    : "metrics_ebox_4.txt",
+        "metrics_ebox_5"    : "metrics_ebox_5.txt",
+        "metrics_sii_3"     : "metrics_sii_3.txt",
+        "metrics_sii_4"     : "metrics_sii_4.txt",
+        "metrics_sii_5"     : "metrics_sii_5.txt",
+        "metrics_am_3"      : "metrics_am_3.txt",
+        "metrics_am_4"      : "metrics_am_4.txt",
+        "metrics_am_5"      : "metrics_am_5.txt",
+        "metrics_deriche_2" : "metrics_deriche_2.txt",
+        "metrics_deriche_3" : "metrics_deriche_3.txt",
+        "metrics_deriche_4" : "metrics_deriche_4.txt",
+        "metrics_vyv_3"     : "metrics_vyv_3.txt",
+        "metrics_vyv_4"     : "metrics_vyv_4.txt",
+        "metrics_vyv_5"     : "metrics_vyv_5.txt"
+      }
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "Images:",
+      "contents"      : { 
+          "Input"                                 : "input_0.sel.png",
+          "params.algo_fir?FIR, <i>tol</i>=10<sup>&minus;2</sup>" : "output-fir.png",
+          "params.algo_dct?DCT"                                   : "output-dct.png",
+          "params.algo_box_3?Box, <i>K</i>=3"                       : "output-box_3.png", 
+          "params.algo_box_4?Box, <i>K</i>=4"                       : "output-box_4.png", 
+          "params.algo_box_5?Box, <i>K</i>=5"                       : "output-box_5.png",
+          "params.algo_ebox_3?Extended box, <i>K</i>=3"              : "output-ebox_3.png", 
+          "params.algo_ebox_4?Extended box, <i>K</i>=4"              : "output-ebox_4.png", 
+          "params.algo_ebox_5?Extended box, <i>K</i>=5"              : "output-ebox_5.png",
+          "params.algo_sii_3?SII, <i>K</i>=3"                       : "output-sii_3.png", 
+          "params.algo_sii_4?SII, <i>K</i>=4"                       : "output-sii_4.png", 
+          "params.algo_sii_5?SII, <i>K</i>=5"                       : "output-sii_5.png",
+          "params.algo_am_3?Alvarez&ndash;Mazorra, <i>K</i>=3"     : "output-am_3.png", 
+          "params.algo_am_4?Alvarez&ndash;Mazorra, <i>K</i>=4"     : "output-am_4.png", 
+          "params.algo_am_5?Alvarez&ndash;Mazorra, <i>K</i>=5"     : "output-am_5.png",
+          "params.algo_deriche_2?Deriche, <i>K</i>=2"                   : "output-deriche_2.png", 
+          "params.algo_deriche_3?Deriche, <i>K</i>=3"                   : "output-deriche_3.png", 
+          "params.algo_deriche_4?Deriche, <i>K</i>=4"                   : "output-deriche_4.png",
+          "params.algo_vyv_3?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=3" : "output-vyv_3.png",
+          "params.algo_vyv_4?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=4" : "output-vyv_4.png",
+          "params.algo_vyv_5?Vliet&ndash;Young&ndash;Verbeek, <i>K</i>=5" : "output-vyv_5.png",
+          "Exact*"                                       : "output-exact.png"
+      }
+    },
+    {
+      "type"          : "html_text", 
+      "contents"      : [
+          "'<p style=\"font-size:85%\">* &ldquo;Exact&rdquo; is computed with FIR, ",
+          "<i>tol</i>=10<sup>&minus;15</sup>, for &sigma;&nbsp;&le;&nbsp;2 and ",
+          "DCT for &sigma;&nbsp;&gt;&nbsp;2 ",
+          "(using '+(params.sigma<=2?'FIR':'DCT')+' for this experiment).</p>'"
+        ]
+    },
+    {
+      "type"          : "html_text", 
+      "contents"      : [
+        "'';",
+        "var alg={ 'fir':'FIR, <i>tol</i>=10<sup>&minus;2</sup>',",
+                "'dct':'DCT',",
+                "'box':'Box',",
+                "'ebox':'Extended box',",
+                "'sii':'SII',",
+                "'deriche':'Deriche' ,",
+                "'vyv':'Vliet&ndash;Young&ndash;Verbeek', ",
+                "'am':'Alvarez&ndash;Mazorra' };",
+        "var res='<b>Accuracy</b>: <br/>",
+            "<table style=\"margin:0px;margin-top:10px;text-align:center\">",
+            "<tr>",
+                "<th>Method</th>",
+                "<th>&nbsp;Max Diff&nbsp;</th>",
+                "<th>&nbsp;RMSE&nbsp;</th>",
+                "<th>&nbsp;PSNR&nbsp;</th>",
+            "</tr>';",
+          "$.each(info, function(k,v) {",
+            "if (k.indexOf('metrics_')>-1) {",
+                "res+='<tr>';",
+                "res+='<td>';",
+                "res += alg[k.substr(8).split('_')[0]];",
+                "if (k.substr(8).split('_').length>1) {", 
+                    " res+= ', <i>K</i>= '+ k.substr(8).split('_')[1];",
+                "}",
+                "res+='</td>';",
+                "var format = function(n,d) { return Number(Number(n).toFixed(d)); };",
+                "res+='<td>'+ format(v.split('|')[0].split(':')[1],2) + '</td>';",
+                "res+='<td>'+ format(v.split('|')[1].split(':')[1],4) + '</td>';",
+                "res+='<td>'+ format(v.split('|')[2].split(':')[1],2) + '</td>';",
+                "res+= '</tr>';",
+            "}",
+          "});",
+        "res += '</table>';"
+      ]
+    }
+  ]
+
+}

@@ -1,0 +1,71 @@
+{ 
+  "general": { 
+    "demo_title"            : "Screened Poisson Equation for Image Contrast Enhancement",
+    "input_description"     : [ "" ],
+    "param_description"     : [ "" ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2014/84/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2014/84/screened_poisson.tgz", 
+      "srcdir"        : "screened_poisson",
+      "binaries"      : [ [".","screened_poisson"] ],
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "l",
+      "type"          : "range_scientific",
+      "label"         : "<i>&lambda;</i> ",
+      "comments"      : "Tradeoff parameter. It can't be zero because in this case the algorithm would just perform a simplest color balance.",
+      "values"        : { "min":1e-6, "max":0.1, "digits":1, "default": 1e-4 }
+    },
+    {
+      "id"            : "s",
+      "type"          : "range", 
+      "label"         : "s ",
+      "comments"      : "Percentage of saturation for the simplest color balance. We apply a simplest color balance to the input image to stretch as much as possible the range of the image before processing it. Finally we apply a simplest color balance to the output of the algorithm.",
+      "values"        : { "min":0.0, "max":1.0, "step":0.1, "default": 0.1 }
+    }
+    ],
+  "run": [ 
+    "screened_poisson $l input_0.sel.png inputSimplest.png output.png $s",
+    "image_histogram.py input_0.sel.png inputSimplest.png output.png"
+  ]
+  ,
+  "archive":
+    {
+        "files" : { 
+                  "input_0.orig.png"      : "uploaded image",
+                  "input_0.sel.png"       : "original image",
+                  "inputSimplest.png"     : "original (simplest)",
+                  "output.png"            : "result image"
+                },
+        "params": [ "l", "s" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : {
+        "input"             : ["input_0.sel.png",   "input_0.sel_hist.png" ],
+        "input (simplest)"  : ["inputSimplest.png", "inputSimplest_hist.png" ],
+        "output"            : ["output.png",        "output_hist.png"        ]
+      }
+    }
+  ]
+
+}

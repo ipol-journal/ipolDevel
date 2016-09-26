@@ -1,0 +1,173 @@
+{ 
+  "general": { 
+    "demo_title"            : "A Near-Linear Time Guaranteed Algorithm for Digital Curve Simplification Under the Fr&eacute;chet Distance",
+    "input_description"     : [ 
+      "<p>",
+        "This demonstration applies the curve simplification algorithm based on the Fr&eacute;chet Distance.",
+        "The algorithm uses as input the discrete contours extracted from the input image.",
+      "</p>"
+      ],
+    "param_description"     : [
+      "<p>",
+        "You can set the parameters to extract the image contours: the image",
+        "thresholds <font color=blue> <i>tmin</i> </font>, <font color=blue> <i>tmax</i> </font>",
+        "and the minimal contour size <font color=blue> <i>m</i> </font> that you",
+        "want to extract.  The contours extracted will be used as input of the",
+        "Frechet algorithm.",
+        "<br/>",
+        "<b>More important</b> you can set the parameter associated to the",
+        "simplification algorithm <font color=red> <i>e</i> </font> (used in the Fr&eacute;chet or",
+        "width based algorithm) and <font color=red> <i>w</i></font> to apply the width based algorithm.",
+      "</p>"
+    ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2014/70/"
+  }, 
+  "build": [
+      {
+      "build_type"    : "cmake",
+      "url"           : "http://www.ipol.im/pub/art/2014/70/FrechetAndConnectedCompDemo.tgz", 
+      "srcdir"        : "FrechetAndConnectedCompDemo",
+      "cmake_flags"   : "-DBUILD_EXAMPLES=false -DDGTAL_BUILD_TESTING=false",
+      "binaries"      : [ 
+                          ["demoIPOL_FrechetSimplification","frechetSimplification"],
+                          ["demoIPOL_ExtrConnectedReg","pgm2freeman"],
+                          ["demoIPOL_ExtrConnectedReg","displayContours"],
+                          ["src","libDGtal.so"],
+                          ["src","libDGtalIO.so"]
+                        ],
+      "flags"         : "-j4",
+      "scripts"       : [ ["demoIPOL_FrechetSimplification","convert.sh"]  ]
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : 500000,
+          "max_weight"      : "1 * 2048 * 2048",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "type"          : "label",
+      "label"         : "Step 1 (optional): set the contour extraction threshold parameters:"
+    },
+    {
+      "id"            : "threshold_type",
+      "type"          : "selection_collapsed", 
+      "label"         : "Threshold type",
+      "values"        : { "automatic (Otsu, starting from 0)"   :"auto", 
+                          "manual"  :"manual"  },
+      "default_value" : "auto"
+    },
+    {
+      "id"            : "tmin",
+      "type"          : "range",
+      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;<font color=blue><i>tmin</i></font>",
+      "comments"      : "Minimal threshold value",
+      "values"        : { "min":0, "max":255, "step":1, "default": 0 }
+    },
+    {
+      "id"            : "tmax",
+      "type"          : "range",
+      "label"         :  "&nbsp;&nbsp;&nbsp;&nbsp;<font color=blue><i>tmax</i></font>",
+      "comments"      : "Maximal threshold value",
+      "values"        : { "min":0, "max":255, "step":1, "default": 128 }
+    },
+    {
+      "id"            : "min_c",
+      "type"          : "range",
+      "label"         :  "<font color=blue> <i> m</i> </font>",
+      "comments"      : "Minimal contour size",
+      "values"        : { "min":0, "max":10000, "step":1, "default": 128 }
+    },
+    {
+      "type"          : "label",
+      "label"         : "Step 2: set the algorithm parameters:"
+    },
+    {
+      "id"            : "e",
+      "type"          : "range",
+      "label"         :  "<font color=red> <i>e </i></font>",
+      "comments"      : "Maximal error",
+      "values"        : { "min":0, "max":100, "step":0.5, "default": 1 }
+    },
+    {
+      "id"            : "w",
+      "type"          : "checkbox",
+      "label"         : "Use width only <font color=red>w</font>",
+      "default_value" : true
+    }
+  ]
+  ,
+  "run": [ 
+      "convert input_0.sel.png inputNG.pgm",
+      [ "threshold_type=='manual'", 
+          "pgm2freeman -min_size $min_c -image inputNG.pgm -outputSDPAll -maxThreshold $tmax -minThreshold $tmin >inputPolygon.txt 2>algoLog.txt"
+      ],
+      [ "threshold_type=='auto'",   
+          "pgm2freeman -min_size $min_c -image inputNG.pgm -outputSDPAll >inputPolygon.txt 2>algoLog.txt",
+          "python:fInfo = open('algoLog.txt', 'r')",
+          "python:lines = fInfo.readlines()",
+          "python:line_cases = lines[0].replace(')', ' ').split();",
+          "python:tmax = int(line_cases[17])"
+      ],
+      "python:contoursList = open ('inputPolygon1.txt', 'w')",
+      "python:contoursList.write('# Polygon contour obtained from the pgm2freeman program with the following options: \\n# {0} \\n# Each line corresponds to an resulting polygon. All vertices (xi yi) are given in the same line:  x0 y0 x1 y1 ... xn yn \\n'.format(last_shell_cmd))",
+      "python:index=0",
+      "python:f = open('inputPolygon.txt', 'r')",
+      "python:for contour in f: contoursList.write('# contour number: {0}\\n{1}\\n'.format(index,contour));index+=1",
+      "python:f.close();contoursList.close()",
+      [ "not(w_checked)", "frechetSimplification -imageSize ${x1-x0} ${y1-y0} -error $e -sdp inputPolygon.txt -allContours" ],
+      [ "w_checked",      "frechetSimplification -imageSize ${x1-x0} ${y1-y0} -error $e -sdp inputPolygon.txt -allContours -w" ],
+      "python:contoursList = open ('outputPolygon.txt', 'w')",
+      "python:contoursList.write('# Set of resulting polygons obtained from the frechetSimplification algorithm. \\n# Each line corresponds to an resulting polygon. All vertices (xi yi) are given in the same line:  x0 y0 x1 y1 ... xn yn \\n# Command to reproduce the result of the algorithm:\\n# {0}\\n'.format(last_shell_cmd))",
+      "python:index=0",
+      "python:f = open('output.txt', 'r')",
+      "python:for line in f: contoursList.write('# contour number: {0}\\n{1}\\n'.format(index,line));index+=1",
+      "python:f.close();contoursList.close()",
+      "convert -background #FFFFFF -flatten output.eps output.png"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                  "input_0.png"   : "uploaded image",
+                  "output.png"    : "result",
+                  "commands.txt"  : "commands",
+                  "inputPolygon.txt"  : "input polygons",
+                  "outputPolygon.txt" : "output polygons"
+                },
+      "params" :  [ "threshold_type", "tmin", "tmax", "min_c", "e", "w" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : { 
+        "Input"     : "input_0.sel.png", 
+        "Output"    : "output.png"
+      }
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<b>Download images</b>",
+      "contents"      : 
+        { 
+          "input polygons (text)"    : "inputPolygon1.txt", 
+          "output polygons (text)"   : "outputPolygon.txt",
+          "result (eps)"             : "output.eps"
+        }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Additional Information:</b> <p style='width:55em'>The algorithm ran with the following shell commands:<p>",
+      "contents"      : "shell_cmds.txt",
+      "style"         : "''"
+    }
+  ]
+
+}

@@ -1,0 +1,210 @@
+{ 
+  "general": { 
+    "demo_title"            : "Analysis and Extension of the Percentile Method, Estimating a Noise Curve from a Single Image",
+    "input_description"     : [
+      "This algoritm estimates the amount of noise (standard deviation) of the given image.<br/><br/>",
+        "The test images are divided into three groups:<br/>",
+            "<br/>",
+            "<ul>",
+                "<li>Raw images with white balance and gamma correction, downscaled by 2 ",
+                    "to have one raw value (R, G, B) at each pixel. In the list, they are ",
+                    "refered to as <b>WB+TC</b>.</li>",
+                "<li>High SNR raw images, downscaled by 8 and the color channels averaged, ",
+                    "so they are nearly noiseless. In the list, they are refered to as ",
+                    "<b>no noise</b>.</li>",
+                "<li>JPEG images, being denoised by JPEG at the first scales. In the list, ",
+                    "they are refered to as <b>JPEG</b>.</li>",
+            "</ul>" ],
+    "param_description"     : [
+            "<p> Percentile Signal-dependent Noise Estimation Algorithm.</p> " 
+        ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/90/"
+  }, 
+  "build": [
+    {
+      "build_type": "make",
+      "url"       : "http://www.ipol.im/pub/art/2013/90/percentile_v1.zip", 
+      "url_deprecated" : "http://151.80.24.28:8080/DemoSource/90/percentile_v1.tgz", 
+      "srcdir"        : "percentile_v1/",
+      "binaries"      : [ ["fnoise","fnoise"], ["subscale","subscale"], ["percentile","percentile"] ],
+      "flags"         : "-j4",
+      "scripts"       : [   [ "scripts","writeNoiseCurve.sh"], 
+                            [ "percentile","per_corrections/", "per_corr_w15_p0.0001_f0.txt"]]
+    },
+    {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/90/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","run_algo.py"] ]
+    }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "5000 * 5000",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "percentile",
+      "type"          : "selection_collapsed", 
+      "label"         : "Percentile",
+      "values"        : { "0.01%":"0.0001", 
+                          "0.1%":"0.001", 
+                          "0.5%":"0.005", 
+                          "5%":"0.05", 
+                          "10%":"0.1", 
+                          "50%":"0.5"},
+      "default_value" : "0.005"
+    },
+    {
+      "id"            : "operator",
+      "type"          : "selection_collapsed", 
+      "label"         : "Pre-filter operator",
+      "comment"       : "add 'Directional derivative':'0' possible value once the bug is fixed",
+      "values"        : { "Identity (without prefiltering)":"8", 
+                          "Laplacian"               :"1", 
+                          "Laplacian, 2 iterations" :"2", 
+                          "Laplacian, 3 iterations" :"3", 
+                          "Laplacian, 4 iterations" :"4",
+                          "DCT with support 7x7"    :"5",
+                          "DCT with support 5x5"    :"6",
+                          "DCT with support 3x3"    :"7",
+                          "FNVE article"            :"9"
+                        },
+      "default_value" : "5"
+    },
+    {
+      "id"            : "block",
+      "type"          : "selection_collapsed", 
+      "label"         : "Block size",
+      "values"        : {
+                            "3 x 3":"3", 
+                            "7 x 7":"7", 
+                            "8 x 8":"8", 
+                            "15 x 15":"15", 
+                            "21 x 21":"21"},
+      "default_value" : "21"
+    },
+    {
+      "id"            : "curvefilter",
+      "type"          : "selection_collapsed", 
+      "label"         : "Curve filter iterations",
+      "values"        : {"None":"0", "1 iteration":"1", "2 iterations":"2", "3 iterations":"3", "4 iterations":"4", "5 iterations":"5", "6 iterations":"6", "7 iterations":"7"},    
+      "default_value" : "5"
+    },
+    {
+      "id"            : "removeequals",
+      "type"          : "selection_collapsed", 
+      "label"         : "Treatment of groups (2x2) of equal pixels",
+      "values"        : {"Use all the pixels in the image":"0", "Ignore that kind of pixels":"1"},
+      "default_value" : "1"
+    },
+    {
+      "id"            : "bins",
+      "type"          : "range", 
+      "label"         : "Number of bins (0 = automatic selection)",
+      "values"        : { "min":0, "max":150, "step":1, "default":0 }
+    },
+    {
+      "id"            : "correction",
+      "type"          : "selection_collapsed", 
+      "label"         : "Correction",
+      "values"        : {"None":"0", "Percentile compensation":"1"},
+      "default_value" : "1"
+    },
+    {
+      "type"          : "label", 
+      "label"         : " <label> Noise variance (<i>A</i>+<i>B</i><b>u</b>, where <b>u</b> is the input noisy image. Set <i>B</i>=0 for uniform noise) </label>"
+    },
+    {
+      "id"            : "anoise",
+      "type"          : "range", 
+      "label"         : "A",
+      "values"        : { "min":0, "max":10000, "step":0.1, "default":0 }
+    },
+    {
+      "id"            : "bnoise",
+      "type"          : "range", 
+      "label"         : "B",
+      "values"        : { "min":0, "max":39, "step":0.1, "default":0 }
+    }
+  ],
+  
+  "run": [
+    "fnoise -A $anoise -B $bnoise input_0.sel.png scale_s0.rgb",
+    "fnoise -A $anoise -B $bnoise -t input_0.sel.png scale_s0.png",
+    "run_algo.py"
+  ],
+  "archive":
+    {
+      "files" : { "input_0.orig.png"        : "uploaded image",
+                  "input_0.sel.png"         : "selected subimage",
+                  "input_1.png"             : "noisy image",
+                  "output_1.png"            : "denoised image",
+                  "output_2.png"            : "difference image"
+                },
+      "params" :  [ "sigma" ]
+    },
+  "results": [
+    {
+      "type"          : "warning", 
+      "visible"       : "sizeX * sizeY < 42000",
+      "contents"      : "Image too small: the input image needs to be at least 42000 pixels to get a reliable estimate<br/> Forced to use one bin for the estimation."
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "Input image:",
+      "contents"      : { "Input" : "scale_s0.png" }
+    },
+    {
+      "type"          : "html_text", 
+      "contents"      : [
+          "'Additional noise of variance = '+params.anoise+' + '+params.bnoise+'u.<br/>",
+          "Note that here the image may be showed with a size different from ",
+          "the original to help looking at the results.<br/>'"
+        ]
+    },
+    {
+      "type"          : "repeat_gallery",
+      "repeat"        : "params.scales",
+      "label"         : "<h3> Noise Curves </h3>",
+      "contents"      : [ "'Scale S'+idx+':'", "'curve_s'+idx+'.png'"]
+    },
+    {
+        "type"          : "html_text", 
+        "visible"       : "params.rmses!=''",
+
+
+        "contents"      : [
+            "'';",
+            "var res='",
+                "<table border=\"1\" style=\"margin:0px;margin-top:10px;text-align:center\">",
+                "<tr>",
+                    "<th>Scale</th>",
+                    "<th>RMSE</th>",
+                "</tr>';",
+            "$.each(params.rmses.split(\",\"), function(index,rmse) {",
+                "if (rmse!=='') {",
+                    "res+='<tr>';",
+                    "res+='<td>'+index+'</td>';",
+                    "res+='<td>'+rmse+'</td>';",
+                    "res+='</tr>';",
+                "}",
+            "});",
+            "res += '</table>';"
+        ]
+    },
+    {
+      "repeat"        : "params.scales",
+      "type"          : "file_download", 
+      "label"         : "'Estimations at scale '+idx+' (gnuplot compatible)'",
+      "contents"      : "'estimation_s'+idx+'.txt'"
+    }
+  ]
+}

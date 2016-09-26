@@ -1,0 +1,185 @@
+{ 
+  "general": { 
+    "demo_title"            : "Total Variation Deconvolution using Split Bregman",
+    "input_description"     : "",
+    "param_description"     : [ 
+      "<div style='border:#ccccff 1px solid;padding-left:1ex;padding-right:1ex'>",
+        "<p><b>&bull;&nbsp;Kernel <i>&phi;</i>.</b>",
+          "The input image is deconvolved such that <i>&phi;</i>&lowast;",
+          "<i>output</i>&nbsp;&asymp;&nbsp;<i>input</i>.",
+          "Either a disk-shaped kernel or Gaussian kernel may be selected ",
+          "(please download the source code below to run with other kernels).  ",
+          "The &ldquo;size&rdquo; parameter is the radius of the disk-shaped ",
+          "kernel or twice the standard deviation of the Gaussian kernel.</p>",
+        "<p><b>&bull;&nbsp;Noise level.</b> The noise level specifies the ",
+          "standard deviation of the additive Gaussian noise.</p>",
+        "<p>The fidelity stength <i>&lambda;</i> is computed from the kernel ",
+          "size and noise level using the empirical formula described in the article.</p>",
+        "<p><b>&bull;&nbsp;The algorithm can run in two different ways:</b></p>",
+        "<ol>",
+          "<li>&ldquo;<b>Deconvolve</b>&rdquo; directly deconvolves the selected",
+          "image.  No noise is added to the image.  The noise level specifies ",
+          "how much noise is in the selected image.",
+          "</li>",
+          "<li>With &ldquo;<b>Convolve, add noise, then deconvolve</b>,&rdquo; ",
+          "the image is first convolved with <i>&phi;</i>, then white Gaussian ",
+          "noise is added, then the algorithm is applied to deconvolve the ",
+          "blurry and noisy image.",
+          "</li>",
+        "</ol>",
+        "<p>Note that in either case, the image is quantized to 8-bit ",
+          "precision before deconvolution.  Thus there is quantization noise ",
+          "even when a noise level of zero is selected.</p>",
+      "</div>" ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-tvdc/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url*previous"  : "http://www.ipol.im/pub/art/2012/g-tvdc/tvdeconv_20120607.tar.gz", 
+      "url"           : "http://151.80.24.28:8080/DemoSource/1000001/tvdeconv_20120607.tar.gz", 
+      "srcdir"        : "tvdeconv_20120607",
+      "prepare_make"  : "sed -i -e 's/CPNG=-DUSE_LIBPNG/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DUSE_LIBPNG/g' -e 's/lpng/lpng12/g' makefile.gcc",
+      "binaries"      : [ [".","tvdeconv"],[".","imblur"],[".","imdiff"]  ],
+      "flags"         : "-f makefile.gcc -j4",
+      "scripts"       : [ [ "demo_scripts", "run_algo.py"] ]
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700 * 700",
+          "max_weight"      : "10*1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "kernel",
+      "type"          : "selection_collapsed", 
+      "label"         : "Kernel shape",
+      "values"        : {"disk":"disk", "Gaussian":"Gaussian"},
+      "default_value" : "disk"
+    },
+    {
+      "id"            : "kernelsize",
+      "type"          : "range", 
+      "label"         : "Kernel size",
+      "values"        : { "min":0, "max":20, "step":0.1, "default": 2 }
+    },
+    {
+      "id"            : "noiselevel",
+      "type"          : "range", 
+      "label"         : "Noise level",
+      "values"        : { "min":0, "max":10, "step":0.1, "default": 2 }
+    },
+    {
+      "id"            : "run_mode",
+      "type"          : "selection_collapsed", 
+      "label"         : "select mode",
+      "values"        : {"Deconvolve":"0", "Convolve, add noise, then deconvolve":"1"},
+      "default_value" : "0"
+    }
+  ]
+  ,
+  "run": [ 
+        "python:r = float(kernelsize)",
+        "python:s = max(1.0/3, float(noiselevel))",
+        [ "kernel == 'disk'",
+            "python:Kopt = 'disk:' + str(r)",
+            "python:_lambda = r*(427.9/s + 466.4/(s*s))"
+        ],
+        [ "kernel != 'disk'",
+            "python:Kopt = 'gaussian:' + str(r/2)",
+            "python:_lambda = r*(117.0/s + 4226.3/(s*s))"
+        ],
+        "# save _lambda parameter",
+        "python:self.algo_info['lambda']=_lambda",
+        "# run_mode: 0 deconvolve, 1: convolve, add noise then deconvolve",
+        [ "str(run_mode) == str(0)",
+            "tvdeconv K:$Kopt lambda:$_lambda input_0.sel.png tvdeconv.png tvdeconv.png >output.txt 2>&1"
+        ],
+        [ "str(run_mode) != str(0)",
+            "imblur   K:$Kopt noise:gaussian:$noiselevel  input_0.sel.png blurry.png",
+            "tvdeconv K:$Kopt lambda:$_lambda blurry.png tvdeconv.png >output.txt 2>&1",
+            "imdiff -mpsnr  input_0.sel.png blurry.png    >psnr_blurry.txt",
+            "imdiff -mpsnr  input_0.sel.png tvdeconv.png  >psnr_tvdeconv.txt",
+            "imdiff -D40    input_0.sel.png blurry.png   diff_blurry.png   >diff_blurry.txt",
+            "imdiff -D40    input_0.sel.png tvdeconv.png diff_tvdeconv.png >diff_tvdeconv.txt"
+        ]
+    ]
+  ,
+  "config":
+    {
+      "info_from_file": {  
+        "psnr_blurry"   : "psnr_blurry.txt",
+        "psnr_tvdeconv" : "psnr_tvdeconv.txt"
+      }
+    }
+  ,
+  "archive":
+    {
+      "files" : { "input_0.sel.png"    : "exact image",
+                  "blurry.png"         : "input",
+                  "tvdeconv.png"       : "deconvolved",
+                  "diff_blurry.png"    : "input difference",
+                  "diff_tvdeconv.png"  : "deconvolved difference"
+                },
+      "params" :  [ "kernel", "kernelsize", "noiselevel", "run_mode" ],
+      "info"   : {  "lambda"        : "lambda computed parameter",
+                    "psnr_blurry"   : "input PSNR",  
+                    "psnr_tvdeconv" : "deconvolved PSNR"
+                  }
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "contents"      : { 
+          "Input"               : "input_0.sel.png", 
+          "params.run_mode=='1'?'Blurred input PSNR:'+Number(info.psnr_blurry).toPrecision(4)"    : "blurry.png", 
+          "params.run_mode=='1'?'Deconvolved PSNR:'  +Number(info.psnr_tvdeconv).toPrecision(4)"  : "tvdeconv.png", 
+          "params.run_mode=='0'?'Deconvolved'"      : "tvdeconv.png", 
+          "params.run_mode=='1'?Diff. input"        : "diff_blurry.png",
+          "params.run_mode=='1'?Diff. deconvolved"  : "diff_tvdeconv.png"
+      }
+    },
+    {
+      "type"      :"html_text",
+      "contents"  : [
+        "'<p>Computed lambda value is <i>&lambda;</i>&nbsp;= '+info.lambda.toPrecision(5)+'",
+        "<p>'"
+      ]
+    },
+    {
+      "type"      :"html_text",
+      "visible"   : "params.run_mode!=0",
+      "contents"  : [
+        "<div style='width:80em'>",
+          " The error range [&minus;40,40] is linearly transformed to [0,255] ",
+            "for visualization. <br>",
+            "Errors outside this range are saturated to 0 ",
+            "and 255 respectively.",
+        "</div>"]
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<b>Download images:</b>",
+      "contents"      : 
+        { 
+          "input"           : "input_0.sel.png", 
+          "blurry"          : "blurry.png",
+          "deconvolved"     : "tvdeconv.png"
+        }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Output</b><br/>",
+      "contents"      : "output.txt",
+      "style"         : "''"
+    }
+  ]
+
+}

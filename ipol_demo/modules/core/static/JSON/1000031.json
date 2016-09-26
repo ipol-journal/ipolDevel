@@ -1,0 +1,106 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Quasi-Euclidean Epipolar Rectification",
+    "input_description"     : "Please select or upload the image pair to rectify. Both images must have the same size.",
+    "param_description"     : "",
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/m_qer/",
+    "input_condition"       : [ "input_size[0]==input_size[1]",
+                                "badparams",
+                                "The images must have the same size" ]
+  }, 
+  "build": [
+    {
+      "build_type"    : "cmake",
+      "url"           : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", 
+      "srcdir"        : "MissStereo/src",
+      "prepare_cmake" : "sed -i 's/-Werror//g' */CMakeLists.txt",
+      "binaries"      : [ ["bin","homography"],["bin","orsa"],["bin","rectify"],
+                          ["bin","sift"],["bin","size"],["bin","showRect"] ],
+      "flags"         : "-j4",
+      "scripts"       : [ ["../scripts","MissStereo.sh"], 
+                          ["../scripts","Rectify.sh"]  ]
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "first input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "second input",
+          "max_pixels"      : "1024 * 1024",
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ]
+  ,
+  "params": [  ],
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h3>Rectified Images</h3>",
+      "contents"      : {   "first image"  : "output_0_annotated.png", 
+                            "second image" : "output_1_annotated.png" }
+    },
+    {
+      "type"          : "file_download", 
+      "label"         : "<b>Download files:</b>",
+      "contents": {
+        "Correspondences": "orsa.txt",
+        "Homography 1st image": "output_0.txt",
+        "Homography 2nd image": "output_1.txt",
+        "Rectified images (without annotations) 1st image": "output_0.png",
+        "Rectified images (without annotations) 2nd image": "output_1.png"
+      }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Program Output<b><br/>",
+      "contents"      : "stdout.txt",
+      "style"         : "''"
+    }
+  ],
+  "run": [
+      "Rectify.sh input_0.png input_1.png >stdout.txt 2>&1",
+      "mv input_0.png_input_1.png_pairs_orsa.txt  orsa.txt",
+      "mv input_0.png_h.txt                       output_0.txt",
+      "mv input_1.png_h.txt                       output_1.txt",
+      "mv H_input_0.png                           output_0.png",
+      "mv H_input_1.png                           output_1.png",
+      "mv show_H_input_0.png                      output_0_annotated.png",
+      "mv show_H_input_1.png                      output_1_annotated.png"
+  ]
+  ,
+  "config":
+    {
+      "info_from_file": {  "homography_1" : "output_0.txt",
+                           "homography_2" : "output_1.txt"
+                        }
+    }
+  ,
+  "archive":
+    {
+      "files" : { "input_0.orig.png"        : "uploaded #1",
+                  "input_1.orig.png"        : "uploaded #2",
+                  "input_0.png"             : "input #1",
+                  "input_1.png"             : "input #2",
+                  "output_0_annotated.png"  : "output #1, annotated",
+                  "output_1_annotated.png"  : "output #2, annotated",
+                  "output_0.png"            : "output #1",
+                  "output_1.png"            : "output #2"
+                },
+      "compressed_files" : {
+                  "orsa.txt"                : ""
+                },
+      "params" :  [ ],
+      "info"   : {  "homography_1": "homography #1",  
+                    "homography_2": "homography #2"
+                  }
+    }
+}

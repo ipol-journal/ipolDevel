@@ -1,0 +1,18 @@
+{
+  "name": "JsImageCrop",
+  "version": "1.0.0",
+  "homepage": "https://github.com/jonny2779/JsImageCrop",
+  "authors": [
+    "Jonathan ODonnell <jonathan.carl.odonnell@gmail.com>"
+  ],
+  "description": "Crop images with as a square, rectangle or circle and scale them. Based on https://github.com/alexk111/ngImgCrop with some improvements from https://github.com/chirgwin",
+  "main": "ng-img-crop.js",
+  "keywords": [
+    "angular",
+    "image",
+    "crop",
+    "ngImgCrop",
+    "javascript"
+  ],
+  "license": "MIT"
+}
