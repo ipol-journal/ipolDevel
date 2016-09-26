@@ -15,24 +15,22 @@
 """
 Main function.
 """
-
 import cherrypy
+import sys, os
 from demoinfo import DemoInfo
-
-#todo This should not be hardcoded
-CONFIGFILE = "./demoinfo.conf"
 
 def CORS(): 
     cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
 
 if __name__ == '__main__':
+    
+    CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "demoinfo.conf"
+
+    BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+    CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
+    
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
-    cherrypy.quickstart(DemoInfo(CONFIGFILE), '', config="demoinfo.conf")
-
-    # cherrypy.tree.mount(DemoInfo(None), '/', config="demoinfo.conf")
-    # cherrypy.engine.start()
-    # cherrypy.engine.block()
-
+    cherrypy.quickstart(DemoInfo(CONF_FILE_ABS), '', config=CONF_FILE_ABS)
 
 
 
