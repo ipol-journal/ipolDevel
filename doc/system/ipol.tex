@@ -185,6 +185,8 @@ Nelson Monzón
 - Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
 Cron controls it. To add the cron line, use {\tt crontab -e} as root.
 
+The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
+
 For example, to run the backup script once per week at 3:00h, add this line:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
@@ -192,6 +194,13 @@ For example, to run the backup script once per week at 3:00h, add this line:
 - Cleanup. The script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
 
 {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
+
+- PyLint report. The script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
+
+To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 15 * * 2 /home/ipol/ipolDevel/ci\_tests/pylint.sh}
+
 
 
 \subsection{GitHub deploy key}
