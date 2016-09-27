@@ -445,7 +445,7 @@ class DemoRunner(object):
                 data['message'] = "Build for demo {0} checked".format(demo_id)
                 data['info']    = make_info
             except Exception as e:
-                print "Build failed with exception " + e + " in demo " + demo_id
+                print "Build failed with exception " + str(e) + " in demo " + demo_id
                 cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
                 self.error_log("ensure_compilation", str(e))
                 data['message'] = "Build for demo {0} failed".format(demo_id)
@@ -495,18 +495,6 @@ class DemoRunner(object):
             run_time = time.time()
             
             print "Demoid: ",demo_id
-            
-            if demo_id == '1000031':
-               ddl_run = ["$demoextras/scripts/Rectify.sh input_0.png input_1.png >stdout.txt 2>&1",\
-                        "mv input_0.png_input_1.png_pairs_orsa.txt  orsa.txt",\
-                        "mv input_0.png_h.txt                       output_0.txt",\
-                        "mv input_1.png_h.txt                       output_1.txt",\
-                        "mv H_input_0.png                           output_0.png",\
-                        "mv H_input_1.png                           output_1.png",\
-                        "mv show_H_input_0.png                      output_0_annotated.png",\
-                        "mv show_H_input_1.png                      output_1_annotated.png"]      
-            
-            print ddl_run
             
             self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data)
 
