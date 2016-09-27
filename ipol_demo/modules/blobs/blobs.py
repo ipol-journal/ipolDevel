@@ -149,9 +149,6 @@ class   Blobs(object):
         except:
             self.logger.exception("failed to get database_name config")
         
-        ip = cherrypy.request.remote.ip
-        print ip
-        self.logger.info("---- IP connecting ---> " + ip)
         
 
     #---------------------------------------------------------------------------
@@ -547,7 +544,6 @@ class   Blobs(object):
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
-        self.logger.info("tmp_directory = "+tmp_directory)
         path = create_tmp_file(the_archive, tmp_directory)
         self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
 
@@ -571,11 +567,7 @@ class   Blobs(object):
         """
         dic = {}
         dic["delete"] = ""
-       # return json.dump(dic)
-        ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws" + str(cherrypy.request.headers))
-
-        
+        # return json.dump(dic)
         # wait for the lock until timeout in seconds is reach
         # if it can lock, locks and returns True
         # otherwise returns False
@@ -766,9 +758,6 @@ class   Blobs(object):
         """
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data,'authenticated')
-        
-        ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo - " + str(cherrypy.request.headers))
         
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
@@ -1053,7 +1042,6 @@ class   Blobs(object):
             
             # remove from disk unused blobs
             for blobfilename in blobfilenames_to_delete:
-                self.logger.debug("blobfilename to delete ="+blobfilename)
                 path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
                 path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
                 # process paths
@@ -1061,10 +1049,8 @@ class   Blobs(object):
                 path_thumb = get_new_path(path_thumb)
                 # remove blob
                 if os.path.isfile(path_file) :  
-                    self.logger.info("removing "+path_file)
                     os.remove(path_file)
                 if os.path.isfile(path_thumb): 
-                    self.logger.info("removing "+path_thumb)
                     os.remove(path_thumb)
             
         except DatabaseError:
@@ -1133,7 +1119,6 @@ class   Blobs(object):
         file_dest = get_new_path(file_dest)
         name = "thumbnail_" + name
         fil_format = file_format(src)
-        self.logger.info( "creating "+file_dest)
         try:
             if fil_format == 'image':
                 try:
@@ -1190,7 +1175,6 @@ class   Blobs(object):
                     has_image_representation = True
                   if _file and _file in files:
                       title = buff.get(section, 'title')
-                      self.logger.debug("processing:"+title)
                       try:
                         credit = buff.get(section, 'credit')
                       except:
@@ -1209,14 +1193,11 @@ class   Blobs(object):
                               "ext": ext, "blob_set": section, 
                               "blob_pos_in_set": file_id, "title": title,
                               "credit": credit}
-                      self.logger.debug("add_blob_ws data = {0}".format(data))
                       res = use_web_service('/add_blob_ws/', data)
                       
                       # add the tags
                       
                       #res = use_web_service('/add_tag_to_blob_ws/', data)
-                      
-                      self.logger.debug(" return = "+ res["status"])
                       the_hash = res["the_hash"]
                       if the_hash != -1 and res["status"] == "OK":
                         file_dest = self.move_to_input_directory(tmp_path,
@@ -1237,7 +1218,6 @@ class   Blobs(object):
                                     "ext": image_ext, "blob_set": section, 
                                     "blob_pos_in_set": file_id, "title": title,
                                     "credit": credit}
-                            self.logger.debug("add_blob_ws data = {0}".format(data))
                             res = use_web_service('/add_blob_ws/', data)
                             the_hash = res["the_hash"]
 
