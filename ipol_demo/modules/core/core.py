@@ -645,7 +645,7 @@ class Core(object):
                
                 userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
-                userdata["time_of_file_in_core"] = str(file_state.st_mtime)
+                userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
                 
                 resp = requests.post(self.proxy_server, data=userdata)

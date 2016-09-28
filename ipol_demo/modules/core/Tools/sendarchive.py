@@ -66,8 +66,6 @@ class SendArchive:
         blobs = {}
         if 'files' in desc.keys():
             
-          # append results.json file
-          desc['files']["results.json"]="results from experiment"
           
           for filename in desc['files']:
             file_complete_route = os.path.join(work_dir, filename)
