@@ -31,7 +31,7 @@ import threading
 import logging
 import time
 import base64
-
+import sqlite3 as lite
 from database import Database
 from error import DatabaseError
 from collections import defaultdict
@@ -141,14 +141,14 @@ class   Blobs(object):
                 
         try:
             self.database_dir = cherrypy.config.get("database_dir")
-        except:
-            self.logger.exception("failed to get database_dir config")
-        
-        try:
             self.database_name = cherrypy.config.get("database_name")
+            self.database_file = os.path.join(self.database_dir, self.database_name)
         except:
-            self.logger.exception("failed to get database_name config")
-        
+            self.logger.exception("failed to get database config")
+            
+        self.status = self.init_database()
+        if not self.status:
+                sys.exit("Initialisation of database failed. Check the logs.")
         
 
     #---------------------------------------------------------------------------
@@ -166,7 +166,60 @@ class   Blobs(object):
         logger.addHandler(handler)
         return logger
 
+    #---------------------------------------------------------------------------
+    def init_database(self):
+        """
+            Initialize the database used by the module if it doesn't exist. 
+            If the file is empty, the system delete it and create a new one.
+            :return: False if there was an error. True otherwise.
+            :rtype: bool
+        """
+
+        status = True
         
+        if os.path.isfile(self.database_file):
+                
+            file_info = os.stat(self.database_file)
+                
+            if file_info.st_size == 0:
+                try:
+                    os.remove(self.database_file)
+                except Exception as ex:
+                    self.logger.exception( "init_database", str(ex))
+                    status = False
+                    return status
+
+        if not os.path.isfile(self.database_file):
+            try:
+                conn = lite.connect(self.database_file)
+                cursor_db = conn.cursor()
+                
+                sql_buffer = ""
+                
+                with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
+                    for line in sql_file:
+                            
+                        sql_buffer += line
+                        if lite.complete_statement(sql_buffer):         
+                            sql_buffer = sql_buffer.strip()
+                            cursor_db.execute(sql_buffer)
+                            sql_buffer = ""
+                
+                conn.commit()
+                conn.close()  
+
+            except Exception as ex:
+                self.logger.exception( "init_database", (str(ex)))
+                
+                if os.path.isfile(self.database_file):
+                    try:
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.logger.exception( "init_database", str(ex))
+                        status = False
+        
+        return status
+
     #---------------------------------------------------------------------------
     def instance_database(self):
         """
