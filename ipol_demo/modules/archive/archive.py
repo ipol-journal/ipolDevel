@@ -537,16 +537,9 @@ class Archive(object):
                 for row in all_rows:
                     
                     path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
+                    path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
+                    list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
                     
-                    if row[2]=="results from experiment":
-                        # load the json file
-                        with open(path_file) as data_file:
-                            results_json = json.load(data_file)
-                        dict_exp["results"]=results_json
-                    else:
-                        path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
-                        list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
-
                 dict_exp["id"] = id_exp
                 dict_exp["date"] = date
                 dict_exp["parameters"] = json.loads(parameters)

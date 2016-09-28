@@ -645,7 +645,7 @@ class Core(object):
                
                 userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
-                userdata["time_of_file_in_core"] = str(file_state.st_mtime)
+                userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
                 
                 resp = requests.post(self.proxy_server, data=userdata)
@@ -940,15 +940,6 @@ class Core(object):
                                                             demo_id,\
                                                             key) + '/'
                 print "resp ",json_response
-                
-                # save res_data as a results.json file
-                try:
-                    with open(os.path.join(work_dir,"results.json"),"w") as resfile:
-                        json.dump(json_response,resfile)
-                except Exception:
-                    print "Failed to save results.json file in demo = ",demo_id
-                    self.logger.exception("Failed to save results.json file")
-                    return json.dumps(json_response)
                 
                 
                 status = json_response['status']
