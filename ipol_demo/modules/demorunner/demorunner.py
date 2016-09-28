@@ -414,7 +414,7 @@ class DemoRunner(object):
         """
             Ensure compilation in the demorunner
         """
-        print "\n\nDEMO ID " + demo_id + " is in ensure_compilation\n\n"
+        print "\nDEMO ID " + demo_id + " is in ensure_compilation\n"
         
         data = {}
         data['status'] = 'KO'
@@ -424,9 +424,6 @@ class DemoRunner(object):
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
         self.mkdir_p(path_for_the_compilation)
         
-        if demo_id == '1000031':
-            ddl_build = [{ "build_type" : "cmake", "url" : "http://www.ipol.im/pub/art/2011/m_qer/MissStereo.tar.gz", "srcdir" : "MissStereo/src", "prepare_cmake" : "sed -i 's/-Werror//g' */CMakeLists.txt",
-                         "binaries": [["bin", "homography"], ["bin", "orsa"], ["bin", "rectify"], ["bin", "sift"], ["bin", "size"], ["bin", "showRect"]], "flags": "-j4"}]
         
         #we should have a dict or a list of dict
         if isinstance(ddl_build,dict):
