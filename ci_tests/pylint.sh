@@ -3,6 +3,9 @@
 # Pylint report
 # Miguel Colom, 2016
 
+# Change to non-privileged ipol user
+su ipol
+
 modulesDir="ipolDevel/ipol_demo/modules/"
 modules="core archive blobs demoinfo demorunner proxy"
 report="pylint_report.txt"
