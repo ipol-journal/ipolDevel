@@ -10,7 +10,7 @@ modules="core archive blobs demoinfo demorunner proxy"
 
 #truncate -s 0 ${report}
 today=$(date)
-echo "IPOL PyLint report on ${date}" > ${report}
+echo "IPOL PyLint report on ${today}" > ${report}
 echo >> ${report}
 
 # PyLint test on each IPOL module
