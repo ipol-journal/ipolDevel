@@ -756,6 +756,8 @@ class   Blobs(object):
             # process paths
             path_file  = get_new_path(path_file)
             path_thumb = get_new_path(path_thumb)
+            # thumbnail extension is jpg
+            path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
             # remove blob
             if os.path.isfile(path_file) :  os.remove(path_file)
             if os.path.isfile(path_thumb):  os.remove(path_thumb)
@@ -879,7 +881,8 @@ class   Blobs(object):
                 b_name = b["hash"]+b["extension"]
                 b["physical_location"]  = os.path.join( self.current_directory, self.final_dir, b_name)
                 b["url"]                = self.server_address+"/blob_directory/" + b_name
-                b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b_name
+                b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
+
                 # process paths
                 b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
                 b["url"]                = get_new_path(blob_set[idx]["url"],False)
@@ -893,7 +896,7 @@ class   Blobs(object):
             b_name = b["hash"]+b["extension"]
             b["physical_location"]  = os.path.join(self.current_directory,self.final_dir,b_name)
             b["url"]                = self.server_address+"/blob_directory/" +b_name
-            b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b_name
+            b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
             # process paths
             b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
             b["url"]                = get_new_path(blob_set[idx]["url"],False)
@@ -928,7 +931,7 @@ class   Blobs(object):
                                                     self.final_dir,
                                                     b_name)
             res["url"]        = self.server_address+"/blob_directory/" + b_name
-            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + b_name
+            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
             res["tags"]       = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"]  = get_new_path(res["physical_location"],False)
@@ -1035,6 +1038,7 @@ class   Blobs(object):
                 self.logger.debug("blobfilename to delete ="+blobfilename)
                 path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
                 path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
+                path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
                 # process paths
                 path_file  = get_new_path(path_file)
                 path_thumb = get_new_path(path_thumb)
@@ -1107,9 +1111,9 @@ class   Blobs(object):
         if not os.path.exists(file_directory):
             os.makedirs(file_directory)
         name = os.path.basename(src)
-        file_dest = os.path.join(file_directory, ('thumbnail_' + name))
+        # force thumbnail extension to be .jpg
+        file_dest = os.path.join(file_directory, ('thumbnail_' + os.path.splitext(name)[0]+'.jpg'))
         file_dest = get_new_path(file_dest)
-        name = "thumbnail_" + name
         fil_format = file_format(src)
         self.logger.info( "creating "+file_dest)
         try:
