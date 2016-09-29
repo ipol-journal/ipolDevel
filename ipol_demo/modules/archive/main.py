@@ -28,36 +28,11 @@ if __name__ == '__main__':
     
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
     
-    if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
-        VALUE = sys.argv[1]
-    else:
-        VALUE="archive.conf"
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    CONF_FILE = os.path.join(BASE_DIR, VALUE)
-    
-    #if "--test" in sys.argv:
-        #cherrypy.quickstart(Archive('test',CONF_FILE), config=CONF_FILE)
-    #cherrypy.quickstart(Archive(None,CONF_FILE), config=CONF_FILE)
+    CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "archive.conf"
 
-    cherrypy.config.update(CONF_FILE)
+    BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+    CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
     
-    CONF = {
-        '/' : {
-            'tools.staticdir.root': os.getcwd(),
-            'tools.CORS.on': True
-        },
-        '/blobs_thumbs': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "blobs_thumbs"
-        },
-        '/blobs': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "blobs"
-        }
-    }
-
-    APP = cherrypy.tree.mount(Archive(None,CONF_FILE), '/', CONF)
-    APP.merge(CONF_FILE)
+    cherrypy.config.update(CONF_FILE_ABS)
+    cherrypy.quickstart(Archive(None,CONF_FILE_ABS), config=CONF_FILE_ABS)
     
-    cherrypy.engine.start()
-    cherrypy.engine.block()

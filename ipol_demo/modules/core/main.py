@@ -17,7 +17,7 @@ Main function.
 
 import cherrypy
 import sys, os
-from core import demo_index
+from core import Core
 
 
 #-------------------------------------------------------------------------------
@@ -44,20 +44,20 @@ if __name__ == '__main__':
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
 
     ## config file and location settings
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    cherrypy.log("app base_dir: %s" % base_dir,
-                 context='SETUP', traceback=False)
     
-    if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
-        conf_file = sys.argv[1]
-    else:
-        conf_file = "core.conf"
+    CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "core.conf"
+
+    BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+    CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
     
-    if not os.path.isfile(conf_file):
+    cherrypy.log("core base_dir: %s" % BASE_DIR,
+                 context='MAIN', traceback=False)
+    
+    if not os.path.isfile(CONF_FILE_ABS):
         cherrypy.log("warning: the conf file is missing, " \
                          "copying the example conf",
                      context='SETUP', traceback=False)
     
-    cherrypy.config.update(conf_file)
+    cherrypy.config.update(CONF_FILE_ABS)    
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
-    cherrypy.quickstart(demo_index(), config=conf_file)
+    cherrypy.quickstart(Core(), config=CONF_FILE_ABS)

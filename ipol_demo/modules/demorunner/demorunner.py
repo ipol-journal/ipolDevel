@@ -216,12 +216,13 @@ class DemoRunner(object):
         self.mkdir_p(dl_dir)
         tgz_file  = path.join(dl_dir, zip_filename)
         
-        print "make download archive"
+        print "Initing the make in ",path_for_the_compilation
         # get the latest source archive
         try:
             build.download(ddl_build['url'], tgz_file)
         except Exception as ex:
             self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
+            raise
             
         rebuild_needed = False
 
@@ -239,7 +240,9 @@ class DemoRunner(object):
                     if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
                         rebuild_needed = True
                 except Exception as ex:
-                    self.logger.exception("make", str(ex))        
+                    self.logger.exception("make", str(ex))
+                    raise
+
         # test timestamp for scripts too
         if 'scripts' in ddl_build.keys():
             for script in ddl_build['scripts']:
@@ -251,13 +254,15 @@ class DemoRunner(object):
                         rebuild_needed = True
                 except Exception as ex:
                     self.logger.exception("make", str(ex))
+                    raise
+
         #--- build
         if not(rebuild_needed):
             make_info += "no rebuild needed "
-            print "no rebuild needed ",
+            print "no rebuild needed for demo ",path_for_the_compilation
         else:
             
-            print "extracting archive"
+            print "Extracting code for demo ",path_for_the_compilation
             # extract the archive
             start = time.time()#040404
             
@@ -409,15 +414,16 @@ class DemoRunner(object):
         """
             Ensure compilation in the demorunner
         """
+        print "\nDEMO ID " + demo_id + " is in ensure_compilation\n"
+        
         data = {}
         data['status'] = 'KO'
         
         ddl_build = json.loads(ddl_build)
         
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
-        
-        print path_for_the_compilation
         self.mkdir_p(path_for_the_compilation)
+        
         
         #we should have a dict or a list of dict
         if isinstance(ddl_build,dict):
@@ -436,9 +442,9 @@ class DemoRunner(object):
                 data['message'] = "Build for demo {0} checked".format(demo_id)
                 data['info']    = make_info
             except Exception as e:
-                print "Build failed with exception ",e
+                print "Build failed with exception " + str(e) + " in demo " + demo_id
                 cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
-                self.error_log("ensure_compilation", "timeout")
+                self.error_log("ensure_compilation", str(e))
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 return json.dumps(data)
             
@@ -559,7 +565,7 @@ class DemoRunner(object):
             rd.set_commands(ddl_run)
             
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-            rd.run_algo()
+            rd.run_algorithm()
         except Exception as e:
             self.logger.exception("run_algo", str(e))
         ## take into account possible changes in parameters

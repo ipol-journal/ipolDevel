@@ -28,6 +28,8 @@ LOGNAME = "demoinfo_log"
 
 
 class DemoInfo(object):
+    
+    
     def __init__(self, configfile=None):
 
         # Cherrypy Conf
@@ -144,22 +146,25 @@ class DemoInfo(object):
         :return:        dictionary with the url or failure if file does not exist
         """
         data = {}
-        data['status']= "KO"     ### Talk with Miguel which is the exeption for the KO        
+        data['status']= "OK"
         
         extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
         compressed_file = os.path.join(extras_folder, self.demoExtrasFilename)
         
-        if os.path.isfile(compressed_file):
+        try:
+            if os.path.isfile(compressed_file):
                 
-            url_compressed_file  = self.server_address + "/" + self.dl_extras_dir
-            url_compressed_file += demo_id  + "/" + self.demoExtrasFilename
-            data['url_compressed_file'] = url_compressed_file
-            data['code'] = "2"
-            data['status'] = "OK"
-        
-        else:
-            data['code'] = "1"
-            data['status'] = "OK"
+                data['url_compressed_file'] = os.path.join(self.server_address,\
+                                                   self.dl_extras_dir, \
+                                                   demo_id,\
+                                                   self.demoExtrasFilename)
+                data['code'] = "2"
+            else:
+                data['code'] = "1"
+
+        except Exception as ex:
+            data['status'] = 'KO'
+            self.error_log("Failure in get_compressed_file_url ",str(ex))
         
         return data
 
@@ -181,7 +186,9 @@ class DemoInfo(object):
         print "Entering in get_file_updated_state"
         
         data = self.get_compressed_file_url(demo_id)
-        if data['code'] == '1': #The compressed_file does not exist...
+        
+        #The compressed_file does not exist or KO
+        if data['code'] == '1' or data['status'] == 'KO':
             return json.dumps(data)      
         
         try:
@@ -197,9 +204,8 @@ class DemoInfo(object):
                     data["code"] = "0"
         except Exception as ex:
             data['status'] = 'KO'
-        
-        print data
-        
+            self.error_log("Failure in get_file_updated_state ",str(ex))
+            
         return json.dumps(data)
 
     #todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py

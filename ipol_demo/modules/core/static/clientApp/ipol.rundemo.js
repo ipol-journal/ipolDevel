@@ -335,7 +335,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @private
      * @fires core:run 
      */
-    var _sendRunForm = function( form_data) {
+    var _sendRunForm = function(form_data) {
         // We need to use ajax POST directly 
         // with global variable servers.demorunner_old since
         // it does not work with the proxy for the moment

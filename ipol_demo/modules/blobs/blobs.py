@@ -30,13 +30,34 @@ import ConfigParser as configparser
 import threading
 import logging
 import time
-
+import base64
+import sqlite3 as lite
 from database import Database
 from error import DatabaseError
 from collections import defaultdict
 from mako.lookup import TemplateLookup
+from cherrypy.lib import auth_basic
+
+#Get the server socket_host from conf file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONF_FILE = os.path.join(BASE_DIR, 'blobs.conf')
+cherrypy.config.update(CONF_FILE)
+REALM = cherrypy.config['server.socket_host']
+
+#Get username and password from file
+auth_file = open('auth', 'r')
+username,passwd = auth_file.read().strip().split(':')
 
 
+def validate_password(realm, username, password):
+    """
+    Validates the username and the password given
+    """
+    USER = {username: passwd}
+    if username in USER and USER[username] == password:
+        return True
+    return False
+    
 def get_new_path( filename, create_dir=True, depth=2):
     """
     This method creates a new fullpath for a given file path,
@@ -88,7 +109,6 @@ class   Blobs(object):
         """
         Initialize Blob class
         """
-
         # control the concurrent access to the blobs instance
         self.blobs_lock = threading.Lock()
         
@@ -103,9 +123,7 @@ class   Blobs(object):
         self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
-        
-        self.database_dir = "db"
-        self.database_name = "blob.db"
+        self.server = cherrypy.config['server.socket_host']
         
         self.logs_dir = cherrypy.config.get("logs_dir")
         try:
@@ -123,17 +141,14 @@ class   Blobs(object):
                 
         try:
             self.database_dir = cherrypy.config.get("database_dir")
-        except:
-            self.logger.exception("failed to get database_dir config")
-        
-        try:
             self.database_name = cherrypy.config.get("database_name")
+            self.database_file = os.path.join(self.database_dir, self.database_name)
         except:
-            self.logger.exception("failed to get database_name config")
-        
-        ip = cherrypy.request.remote.ip
-        print ip
-        self.logger.info("---- IP connecting ---> " + ip)
+            self.logger.exception("failed to get database config")
+            
+        self.status = self.init_database()
+        if not self.status:
+                sys.exit("Initialisation of database failed. Check the logs.")
         
 
     #---------------------------------------------------------------------------
@@ -151,7 +166,60 @@ class   Blobs(object):
         logger.addHandler(handler)
         return logger
 
+    #---------------------------------------------------------------------------
+    def init_database(self):
+        """
+            Initialize the database used by the module if it doesn't exist. 
+            If the file is empty, the system delete it and create a new one.
+            :return: False if there was an error. True otherwise.
+            :rtype: bool
+        """
+
+        status = True
         
+        if os.path.isfile(self.database_file):
+                
+            file_info = os.stat(self.database_file)
+                
+            if file_info.st_size == 0:
+                try:
+                    os.remove(self.database_file)
+                except Exception as ex:
+                    self.logger.exception( "init_database", str(ex))
+                    status = False
+                    return status
+
+        if not os.path.isfile(self.database_file):
+            try:
+                conn = lite.connect(self.database_file)
+                cursor_db = conn.cursor()
+                
+                sql_buffer = ""
+                
+                with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
+                    for line in sql_file:
+                            
+                        sql_buffer += line
+                        if lite.complete_statement(sql_buffer):         
+                            sql_buffer = sql_buffer.strip()
+                            cursor_db.execute(sql_buffer)
+                            sql_buffer = ""
+                
+                conn.commit()
+                conn.close()  
+
+            except Exception as ex:
+                self.logger.exception( "init_database", (str(ex)))
+                
+                if os.path.isfile(self.database_file):
+                    try:
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.logger.exception( "init_database", str(ex))
+                        status = False
+        
+        return status
+
     #---------------------------------------------------------------------------
     def instance_database(self):
         """
@@ -191,6 +259,7 @@ class   Blobs(object):
         """
         data = {}
         res = use_web_service('/demos_ws', data)
+        print res
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
@@ -528,7 +597,6 @@ class   Blobs(object):
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
-        self.logger.info("tmp_directory = "+tmp_directory)
         path = create_tmp_file(the_archive, tmp_directory)
         self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
 
@@ -536,6 +604,7 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)   
     def delete_blob_ws(self, demo_id, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
@@ -551,12 +620,7 @@ class   Blobs(object):
         """
         dic = {}
         dic["delete"] = ""
-        
-        ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in delete_blob_ws" + str(cherrypy.request.headers))
-        
-        
-        
+        # return json.dump(dic)
         # wait for the lock until timeout in seconds is reach
         # if it can lock, locks and returns True
         # otherwise returns False
@@ -733,6 +797,7 @@ class   Blobs(object):
         #return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
         """
         Delete one blob from demo
@@ -745,10 +810,7 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
-        res = use_web_service('/delete_blob_ws', data)
-        
-        ip = cherrypy.request.remote.ip
-        self.logger.info("-- IP: " + ip + " is removing blobs in op_remove_blob_from_demo - " + str(cherrypy.request.headers))
+        res = use_web_service('/delete_blob_ws', data,'authenticated')
         
         if (res["status"] == "OK" and res["delete"]):
             path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
@@ -1015,6 +1077,7 @@ class   Blobs(object):
     #---------------------------------------------------------------------------
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_demo_ws(self, demo_id):
         """
         Web service used to remove demo from id demo
@@ -1035,7 +1098,6 @@ class   Blobs(object):
             
             # remove from disk unused blobs
             for blobfilename in blobfilenames_to_delete:
-                self.logger.debug("blobfilename to delete ="+blobfilename)
                 path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
                 path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
                 path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
@@ -1044,10 +1106,8 @@ class   Blobs(object):
                 path_thumb = get_new_path(path_thumb)
                 # remove blob
                 if os.path.isfile(path_file) :  
-                    self.logger.info("removing "+path_file)
                     os.remove(path_file)
                 if os.path.isfile(path_thumb): 
-                    self.logger.info("removing "+path_thumb)
                     os.remove(path_thumb)
             
         except DatabaseError:
@@ -1059,6 +1119,7 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
     def op_remove_demo(self, demo_id):
         """
         Web page used to remove a demo from id
@@ -1069,7 +1130,7 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"demo_id": demo_id}
-        resul = use_web_service('/op_remove_demo_ws', data)
+        resul = use_web_service('/op_remove_demo_ws', data, 'authenticated')
         data = {}
         res = use_web_service('/demos_ws', data)
 
@@ -1115,7 +1176,6 @@ class   Blobs(object):
         file_dest = os.path.join(file_directory, ('thumbnail_' + os.path.splitext(name)[0]+'.jpg'))
         file_dest = get_new_path(file_dest)
         fil_format = file_format(src)
-        self.logger.info( "creating "+file_dest)
         try:
             if fil_format == 'image':
                 try:
@@ -1172,7 +1232,6 @@ class   Blobs(object):
                     has_image_representation = True
                   if _file and _file in files:
                       title = buff.get(section, 'title')
-                      self.logger.debug("processing:"+title)
                       try:
                         credit = buff.get(section, 'credit')
                       except:
@@ -1191,14 +1250,11 @@ class   Blobs(object):
                               "ext": ext, "blob_set": section, 
                               "blob_pos_in_set": file_id, "title": title,
                               "credit": credit}
-                      self.logger.debug("add_blob_ws data = {0}".format(data))
                       res = use_web_service('/add_blob_ws/', data)
                       
                       # add the tags
                       
                       #res = use_web_service('/add_tag_to_blob_ws/', data)
-                      
-                      self.logger.debug(" return = "+ res["status"])
                       the_hash = res["the_hash"]
                       if the_hash != -1 and res["status"] == "OK":
                         file_dest = self.move_to_input_directory(tmp_path,
@@ -1219,7 +1275,6 @@ class   Blobs(object):
                                     "ext": image_ext, "blob_set": section, 
                                     "blob_pos_in_set": file_id, "title": title,
                                     "credit": credit}
-                            self.logger.debug("add_blob_ws data = {0}".format(data))
                             res = use_web_service('/add_blob_ws/', data)
                             the_hash = res["the_hash"]
 
@@ -1240,19 +1295,22 @@ class   Blobs(object):
                             ": Cannot add item in database")
     
     #---------------------------------------------------------------------------
+
+        
     @cherrypy.expose
     def ping(self):
         """
         Ping pong.
         :rtype: JSON formatted string
-        """
+        """        
         data = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
 
         data["status"] = "OK"
         data["ping"] = "pong"
-        return json.dumps(data)
-
+        return json.dumps(data)    
+    
+        
     @cherrypy.expose
     def shutdown(self):
         """
@@ -1288,7 +1346,7 @@ def create_tmp_file(blob, path):
         shutil.copyfileobj(blob.file, the_file)
     return filename
 
-def use_web_service(req, data):
+def use_web_service(req, data, auth=None):
     """
     Call get function with urllib2
 
@@ -1300,11 +1358,14 @@ def use_web_service(req, data):
     :rtype: list
     """
     #cherrypy.response.headers['Content-Type'] = "application/json"
-
     urls_values = urllib.urlencode(data, True)
     url = cherrypy.server.base() + req + '?' + urls_values
+    request = urllib2.Request(url)
+    if auth == 'authenticated':
+        base64string = base64.encodestring('%s:%s' % (username, passwd)).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64string)
+    res = urllib2.urlopen(request)
     print "url=",url
-    res = urllib2.urlopen(url)
     tmp = res.read()
     return json.loads(tmp)
 

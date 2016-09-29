@@ -7,9 +7,7 @@ base cherrypy launcher for the IPOL demo app
 
 import cherrypy
 import sys
-
 import shutil
-
 import json     
 
 import errno
@@ -25,10 +23,6 @@ from   datetime import datetime
 from   random   import random
 import glob
 
-from misc import prod
-
-from image import thumbnail, image
-
 import magic
 from PIL import Image,ImageDraw
 import mimetypes
@@ -36,21 +30,24 @@ import mimetypes
 import time
 from   timeit   import default_timer as timer
 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
+from misc import prod
+from image import thumbnail, image
 import tarfile, zipfile
-
 from sendarchive import SendArchive
 
 
 #-------------------------------------------------------------------------------
-class demo_index(object):
+class Core(object):
     """
-    demo index used as the root app
+    Core index used as the root app
     """
+    
     def init_logging(self):
         """
         Initialize the error logs of the module.
         """
-        logger = logging.getLogger("core_log")
+        logger = logging.getLogger(self.logs_dir)
         logger.setLevel(logging.ERROR)
         handler = logging.FileHandler(os.path.join(self.logs_dir, self.logs_name))
         formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -65,6 +62,7 @@ class demo_index(object):
         error_string = function_name + ": " + error
         self.logger.error(error_string)
     
+    
     def __init__(self):
         
         try:
@@ -75,28 +73,43 @@ class demo_index(object):
             # Read configuration file
             self.logs_dir = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
-            self.share_run_dir = cherrypy.config.get("running.dir")
-            self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
+            self.mkdir_p(self.logs_dir)
+            self.logger = self.init_logging()
+            
+            
+            self.main_shared_folder  = cherrypy.config.get("main_shared_folder")
+            self.shared_folder       = cherrypy.config.get("shared_folder")
+            self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
+            self.share_run_dir     = cherrypy.config.get("running.dir")
+            self.dl_extras_dir     = cherrypy.config.get("dl_extras_dir")
             self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
             
-            # Create directories
-            self.mkdir_p(self.logs_dir)
+            
+            self.main_shared_folder  = os.path.join(self.main_shared_folder, self.shared_folder)
+            
+            #Create shared folder if not exist
+            self.mkdir_p(self.main_shared_folder)
+            
+            core_dir = os.getcwd()
+            os.chdir(self.main_shared_folder)
+            
+            #create running dir and demoextras dirs
             self.mkdir_p(self.share_run_dir)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
             
+            #return to core
+            os.chdir(core_dir)
+            
             # Configure
-            self.logger = self.init_logging()
-            self.demoExtrasFilename = "DemoExtras.tar.gz"
             self.png_compresslevel=1
 
                         
             self.proxy_server = cherrypy.config.get("demo.proxy_server")
-            self.stack_depth = 0 ### Maybe we should quit this. It's for JQuery Message I think....
             
             cherrypy.log("IPOL Core system Initialized" , context='__init__', traceback=False)
             print "IPOL CORE system Initialized"
-        
+                        
         except Exception as ex:
             self.error_log("__init__", str(ex))
         
@@ -210,11 +223,9 @@ class demo_index(object):
         '''
         # [ToDo] It's not clear to me what stack_depth is used for.
         # In any case, it seems that probably we have here a typical race condition.
-        self.stack_depth+=1
         start = timer()
         im.save(fullpath, compresslevel=self.png_compresslevel)
         end=timer()
-        self.stack_depth-=1
         
 
     #---------------------------------------------------------------------------
@@ -243,7 +254,6 @@ class demo_index(object):
         Convert and resize an image object
         '''
         msg=""
-        self.stack_depth+=1
         start = timer()
         if self.need_convert(im,input_info):
             im.convert(input_info['dtype'])
@@ -261,7 +271,6 @@ class demo_index(object):
             print "msg",msg
         
         end=timer()
-        self.stack_depth-=1
         
         return msg
     ###--------------------------------------------------------------------------
@@ -282,7 +291,6 @@ class demo_index(object):
         """
         print "#### crop_input ####"
         # for the moment, we can only crop the first image
-        self.stack_depth += 1
         crop_start = timer()
         res_data = {}
         res_data['info'] = ""
@@ -331,14 +339,12 @@ class demo_index(object):
         else:
             res_data["status"]  = "KO"
             res_data['info'] += " no cropping area selected;"
-            self.stack_depth -= 1
             return res_data
         
         res_data["status"] = "OK"
         end=timer()
         res_data["info"]   += " crop_input took: {0} seconds;".format(end-crop_start)
         print " crop_input took: {0} seconds;".format(end-crop_start)
-        self.stack_depth -= 1
         
         return res_data
 
@@ -350,7 +356,6 @@ class demo_index(object):
         of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
         print "#####  Entering process_inputs...  #####"
-        self.stack_depth += 1
         start = timer()
         msg = ""
         max_width = 0
@@ -523,8 +528,6 @@ class demo_index(object):
         """
         print "#### input_select_and_crop begin ####"
         start = timer()
-        self.stack_depth=0
-        self.stack_depth+=1
         
         res_data = {}
         res_data['info'] = ''
@@ -626,6 +629,9 @@ class demo_index(object):
         """
         print "### Ensuring demo extras... ##"
         
+        core_dir = os.getcwd()
+        os.chdir(self.main_shared_folder)
+        
         ddl_extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
         compressed_file = os.path.join(ddl_extras_folder, self.demoExtrasFilename)
 
@@ -639,7 +645,7 @@ class demo_index(object):
                
                 userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
-                userdata["time_of_file_in_core"] = str(file_state.st_mtime)
+                userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
                 
                 resp = requests.post(self.proxy_server, data=userdata)
@@ -674,7 +680,8 @@ class demo_index(object):
                 
                 else:
                     print "Failure requesting the demo_extras file from demoinfo. Failure code -> " + response['code'] 
-                    return response # In a near future we will raise an exception
+                    os.chdir(core_dir)
+                    return response 
             else:
                 download_compressed_file = True
         else:
@@ -709,7 +716,9 @@ class demo_index(object):
                     self.extract(compressed_file, demoExtrasFolder)
 
                 else:
-                    print "Failure downloading the demo_extras from demoinfo. Faiulure code -> " + response['code']        
+                    print "Failure downloading the demo_extras from demoinfo. Failure code -> " + response['code']        
+        
+        os.chdir(core_dir)
         
         return response
 
@@ -771,7 +780,7 @@ class demo_index(object):
         :param demo_id:   id demo
         :param run_folder: key 
         """
-        demo_path = os.path.join(os.getcwd(),\
+        demo_path = os.path.join(self.main_shared_folder,\
                                  self.share_run_dir,\
                                  demo_id,\
                                   key)
@@ -782,45 +791,43 @@ class demo_index(object):
     @cherrypy.expose
     def run(self, demo_id, internal_demoid,  **kwargs):
         """
-        Check if a demo is already compiled, if not compiles it
+         Run a demo. The presentation layer request the core to execute a demo.
+         Thus, the running process begin.
         :param demo_id:   id demo
-        :param ddl_build: build section of the ddl json 
+        :param internal_demoid: id_demo stored in demoinfo module given a demo_id 
+        :param kawrgs: Parameters sent by the presentation layer 
         """
         print "### RUN in CORE ####"
         print "demo_id =",demo_id, " internal_demoid=", internal_demoid
         print "kwargs=",kwargs
         
-        # [ToDo] There's a better way to get from a dic and to have a
-        # default value.
-        #
-        # For example:
-        # crop_info = kwargs.get('crop_info', None)
-        # 
-        
-        
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
+        else:            
+            response = {}
+            response["status"] = "KO"
+            self.error_log("run","There is not input_type in run function.")
+            return json.dumps(response)
         
+            
         if 'params' in kwargs:
             params = kwargs.get('params', None)
         
         if 'original' in kwargs:
-            original_exp = kwargs['original']
+            original_exp = kwargs.get('original', None)
         
         if 'crop_info' in kwargs:
-            crop_info = kwargs['crop_info']
+            crop_info = kwargs.get('crop_info', None)
         else:
             crop_info=None
         
         if 'meta' in kwargs:
-            meta = kwargs['meta']
+            meta = kwargs.get('meta', None)
         else:
             meta = {}
         
+        
         blobs = {}
-        # [ToDo] Here you are accessing input_type, but from the code
-        # above it's clear that the variable might not exist when you
-        # arrive here. Please fix.
         if input_type == 'upload':
             i = 0
             while "file_{0}".format(i) in kwargs:
@@ -875,9 +882,11 @@ class demo_index(object):
                 meta["original"]   = original_exp
                 
             except Exception as ex:
-                print "FAILURE IN COPY_BLOBS"
-                print str(ex)
-                self.logger.exception("Failure in copy_blobs")
+                print "FAILURE IN COPY_BLOBS in demo = ",demo_id
+                res_data = {}
+                res_data['info'] = 'Faiure in copy_blobs in CORE'
+                res_data['status'] = 'KO'
+                self.logger.exception("Failure in copy_blobs", str(ex))
                 return json.dumps(res_data)
         else:
             res_data = {}
@@ -897,15 +906,13 @@ class demo_index(object):
         dr_winner = 'demorunner' ## In the future, the demo_dispatcher request will be included here.
                         
         try:
-            print "Entering dr.ensure_compilation()"
             
+            print "Entering dr.ensure_compilation()"
             userdata = {"module":dr_winner, "service":"ensure_compilation", "demo_id":demo_id, "ddl_build":json.dumps(ddl_build)}
             resp = requests.post(self.proxy_server, data=userdata)
             json_response = resp.json() 
-            
             status = json_response['status']
-            
-            print "ensure_compilation response --> " + status
+            print "ensure_compilation response --> " + status + " in demo = " + demo_id
             
             if status == 'OK':
                 
@@ -928,6 +935,7 @@ class demo_index(object):
                 resp = requests.post(self.proxy_server, data=userdata)
                 json_response = resp.json() 
                 json_response['work_url'] =  os.path.join(self.server_address,\
+                                                            self.shared_folder, \
                                                             self.share_run_dir,\
                                                             demo_id,\
                                                             key) + '/'
@@ -938,7 +946,7 @@ class demo_index(object):
                     with open(os.path.join(work_dir,"results.json"),"w") as resfile:
                         json.dump(json_response,resfile)
                 except Exception:
-                    print "Failed to save results.json file"
+                    print "Failed to save results.json file in demo = ",demo_id
                     self.logger.exception("Failed to save results.json file")
                     return json.dumps(json_response)
                 
@@ -952,22 +960,25 @@ class demo_index(object):
                         print ddl_archive
                         result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
                 else:
-                    print "FAIL RUNNING"
-                    self.logger.exception("Failed running in the demorunner: " + dr_winner + " module")
+                    print "FAIL RUNNING in demo = ",demo_id
+                    self.error_log("dr.exec_and_wait()", "Failed running in the demorunner: " + dr_winner + " module")
                     return json.dumps(json_response)
 
             else:
-                print "FAILURE IN THE COMPILATION"
-                self.error_log("run", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
+                print "FAILURE IN THE COMPILATION in demo = ",demo_id
+                self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
                 return json.dumps(json_response)
                 
         except Exception as ex:
-                print "Failure in the run function of the CORE"
-                print str(ex)
+                print "Failure in the run function of the CORE in demo = ",demo_id
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_winner + ' module'
                 res_data["status"]  = "KO"
+                self.error_log("Failure in the run function of the CORE",str(ex))
                 return json.dumps(json_response)
-            
+        
+        print "Run successfull in demo = ",demo_id
+        cherrypy.log("run successfull", context='RUN/%s' % demo_id, traceback=False)
+        
         return json.dumps(json_response)
 
 

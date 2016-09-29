@@ -100,8 +100,7 @@ class Proxy(object):
         self.logger.error(error_string)
 
 
-    def __init__(self, option):
-        cherrypy.config.update("./proxy.conf")
+    def __init__(self):
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.mkdir_p(self.logs_dir)
         self.logger = self.init_logging()
@@ -342,7 +341,6 @@ class Proxy(object):
         http://docs.python-requests.org/en/latest/user/quickstart/
         Instead of encoding the dict yourself, you can also pass it directly using the json parameter (added in version 2.4.2) and it will be encoded automatically:
         """
-
         error_json = {}
         error_json["status"] = "KO"
         #validate params and set default params
