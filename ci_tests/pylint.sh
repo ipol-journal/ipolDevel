@@ -22,4 +22,4 @@ done
 
 # Send report by email
 sendTo=$(cat /home/ipol/ipolDevel/ci_tests/send_to.txt)
-echo "PyLint report" | ipol mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
+echo "PyLint report" | mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
