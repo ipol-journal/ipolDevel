@@ -265,7 +265,10 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                              +  '           vertical-align:middle; margin:3px"'
                              +  '   src="'+_demoblobs.url_thumb+'/'
                              +  ipol.utils.blobhash_subdir(blobset[idx].hash)
-                             + 'thumbnail_'+blobset[idx].hash+blobset[idx].extension+'" '
+                             + 'thumbnail_'+blobset[idx].hash
+//                              + blobset[idx].extension
+                             +'.jpg'
+                             +'" '
                              +  '   alt='   +blobset[idx].title
                              +  '   title="'+blobset[idx].title
                              +      ' (credits: '+blobset[idx].credit
@@ -371,7 +374,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 var tester=new Image();
                 tester.src= _demoblobs.url_thumb+'/'+
                             ipol.utils.blobhash_subdir(blobset[idx].hash)+
-                            'thumbnail_'+blobset[idx].hash+blobset[idx].extension;
+                            'thumbnail_'+blobset[idx].hash+
+//                             blobset[idx].extension;
+                            '.jpg';
                 tester.onload = function() {
                     _max_ratio = Math.min(Math.max(_max_ratio,this.height/this.width),1);
                     processed_images++;
