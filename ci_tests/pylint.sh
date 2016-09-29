@@ -17,7 +17,7 @@ echo >> ${report}
 for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
-    pylint ~/${modulesDir}${module}/*.py >> ${report}
+    pylint ${modulesDir}${module}/*.py >> ${report}
 done
 
 # Send report by email
