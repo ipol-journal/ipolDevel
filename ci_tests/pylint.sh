@@ -4,7 +4,7 @@
 # Miguel Colom, 2016
 
 modulesDir="ipolDevel/ipol_demo/modules/"
-modules="archive blobs demoinfo demorunner proxy"
+modules="core archive blobs demoinfo demorunner proxy"
 report="pylint_report.txt"
 
 #truncate -s 0 ${report}
@@ -19,13 +19,6 @@ do
     pylint ~/${modulesDir}${module}/*.py >> ${report}
 done
 
-# Core (just for now, since it's not a real module yet)
-pylint ~/ipolDevel/ipol_demo/demo.py ~/ipolDevel/ipol_demo/lib/*.py >> ${report}
-
 # Send report by email
-host=$(hostname)
 sendTo=$(cat send_to.txt)
-echo $sendTo
-exit
-
-echo "PyLint report from ${host}" | mutt -a ${report} -s "[ipolDevel] CI test: PyLint report" -- ${sendTo}
+echo "PyLint report" | mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
