@@ -993,7 +993,7 @@ class   Blobs(object):
                                                     self.final_dir,
                                                     b_name)
             res["url"]        = self.server_address+"/blob_directory/" + b_name
-            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
+            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + res["hash"]+".jpg"
             res["tags"]       = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"]  = get_new_path(res["physical_location"],False)
