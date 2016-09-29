@@ -3,9 +3,10 @@
 # Pylint report
 # Miguel Colom, 2016
 
-modulesDir="ipolDevel/ipol_demo/modules/"
+modulesDir="/home/ipol/ipolDevel/ipol_demo/modules/"
+report="/home/ipol/ipolDevel/ci_tests/pylint_report.txt"
 modules="core archive blobs demoinfo demorunner proxy"
-report="pylint_report.txt"
+
 
 #truncate -s 0 ${report}
 today=$(date)
@@ -16,9 +17,9 @@ echo >> ${report}
 for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
-    sudo -u ipol pylint ~/${modulesDir}${module}/*.py >> ${report}
+    pylint ~/${modulesDir}${module}/*.py >> ${report}
 done
 
 # Send report by email
 sendTo=$(cat /home/ipol/ipolDevel/ci_tests/send_to.txt)
-echo "PyLint report" | sudo -u ipol mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
+echo "PyLint report" | ipol mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
