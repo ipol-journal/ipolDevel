@@ -3,9 +3,6 @@
 # Pylint report
 # Miguel Colom, 2016
 
-# Change to non-privileged ipol user
-su ipol
-
 modulesDir="ipolDevel/ipol_demo/modules/"
 modules="core archive blobs demoinfo demorunner proxy"
 report="pylint_report.txt"
@@ -19,9 +16,9 @@ echo >> ${report}
 for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
-    pylint ~/${modulesDir}${module}/*.py >> ${report}
+    sudo -u ipol pylint ~/${modulesDir}${module}/*.py >> ${report}
 done
 
 # Send report by email
 sendTo=$(cat /home/ipol/ipolDevel/ci_tests/send_to.txt)
-echo "PyLint report" | mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
+echo "PyLint report" | sudo -u ipol mutt -a ${report} -s "[ipolDevel] CI test: PyLint" -- ${sendTo}
