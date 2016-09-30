@@ -75,8 +75,8 @@
       <div id="header">
         <div id="motto">
             <a href="http://www.ipol.im/">
-<!--                    <img src="http://www.ipol.im/static/IPOL-header-logo.png"
-                alt="IPOL" width="50" height="64" />-->
+                    <img src="http://www.ipol.im/static/IPOL-header-logo.png"
+                alt="IPOL" width="50" height="64" />
             IPOL Journal &middot; Image Processing On Line
             </a>
         </div> <!-- #motto -->
@@ -107,21 +107,78 @@
       </div> <!-- #header -->
     </div> <!-- .pageheader -->
 
+<div id="main" class="demo">
+    <div id="pagetitle"> Demo title
+    </div> <!-- #pagetitle -->
 
+<style>
+#tabs-nohdr {
+  padding: 1px 4px;
+  background: none;
+  border-width: 0px;
+  font-family:Arial,Helvetica,Tahoma,sans-serif;
+  font-size:1em;
+}
+#tabs-nohdr .ui-tabs-nav {
+  background: transparent;
+  border-width: 0px 0px 1px 0px;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0px;
+}
 
+#tabs-nohdr  .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default
+{
+   background: #d4c9e9;
+   font-weight: normal;
+   color: White;
+}
 
-<div id="tabs">
-    <ul>
-        <li>
-            <a href="#tabs-run">Demo</a>
+#tabs-nohdr  .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active
+{
+   background: none;
+   font-weight: normal;
+   color: white;
+}
+</style>
+
+<div id="tabs-nohdr">
+
+<!--    <ul id="xlinks">
+        <li class="algo">     <a href="">               article </a>
         </li>
-        <li>
-            <a href="#tabs-archive">Archive</a>
+        <li class="demo">     <a href="#tabs-run">      demo    </a>
         </li>
-        <li>
+        <li class="archive">  <a href="#tabs-archive">  archive </a>
+        </li>
+        <li id="tabs_ddl">
             <a href="#tabs-ddl">DDL</a>
         </li>
+    </ul>-->
+
+
+    <ul style="padding-top:1px; padding-right:2em; padding-bottom:0; padding-left:2em; margin-left:0; margin-top: 0.8em;margin-right:0;margin-bottom: 0.8em;">
+        <li class="algo" style="padding-bottom:0">     
+            <a style="padding:0.1em 0.3em;"  href="#tabs-article"> article </a>
+        </li>
+        <li >
+            <a style="padding:0.1em 0.3em;" href="#tabs-run">demo</a>
+        </li>
+        <li id="tabs_archive" >
+            <a style="padding:0.1em 0.3em;" href="#tabs-archive">archive</a>
+        </li >
+        <li id="tabs_ddl" >
+            <a style="padding:0.1em 0.3em;" href="#tabs-ddl">DDL</a>
+        </li>
     </ul>
+
+<div id="citation">
+  Please cite <a href="${app.xlink_article}">the reference article</a> if you
+  publish results obtained with this online demo.
+</div>
+
+    <div id="tabs-article">
+    </div>
     <div id="tabs-run">
 
         <span id="demo-select">demos infomation</span>
@@ -247,6 +304,35 @@
     <div id="tabs-ddl">
         <pre style="width:92%;white-space:pre;">Content for Tab 4</pre>
     </div>
+</div>
+
+</div>
+
+<div id="footer">
+<ul class="noprint">
+<li><a href="http://www.ipol.im/meta/feeds/">feeds &amp; twitter</a></li>
+<li><a href="http://www.ipol.im/meta/sitemap/" rel="sitemap">sitemap</a></li>
+<li><a href="http://www.ipol.im/meta/contact/">contact</a></li>
+<li><a href="http://www.ipol.im/meta/privacy/">privacy policy</a></li>
+<li>ISSN:&nbsp;<a href="http://www.worldcat.org/issn/2105-1232">2105-1232</a></li>
+<li>DOI:&nbsp;<a href="http://dx.doi.org/10.5201/ipol">10.5201/ipol</a></li>
+</ul><br>
+<ul>
+IPOL and its contributors acknowledge support from September 2010 to August 2015 by
+ the European Research Council (advanced grant Twelve Labours n°246961).
+</ul><br>
+<ul>
+IPOL is also supported by ONR grant N00014-14-1-0023, CNES (MISS project), FUI 18 Plein Phare project, and ANR-DGA project ANR-12-ASTR-0035.
+</ul><br>
+<ul>
+IPOL is maintained by <a href="http://www.cmla.ens-cachan.fr/">CMLA</a>, <a href="http://www.ens-cachan.fr/">ENS Cachan</a>, 
+<a href="http://dmi.uib.es/">DMI</a>, <a href="http://www.uib.es/">Universitat de les Illes Balears</a>, 
+and <a href="http://www.fing.edu.uy/">Fing</a>, <a href="http://www.universidad.edu.uy/">Universidad de la República</a>.
+</ul><br>
+<ul>
+<li><a href="http://www.ipol.im/meta/copyright/" rel="copyright">©&nbsp;2009-2015,
+    IPOL Image Processing On Line &amp; the authors&nbsp;<img src="http://www.ipol.im/static/badges/open-access.png" alt="Open Access">&nbsp;<img src="http://www.ipol.im/static/badges/open-source.png" alt="Open Source">&nbsp;<img src="http://www.ipol.im/static/badges/open-data.png" alt="Open Data">&nbsp;<img src="http://www.ipol.im/static/badges/ipol.png" alt="IPOL"></a></li>
+</ul>
 </div>
 
 </body>
