@@ -16,19 +16,24 @@
         "url"           : "http://www.ipol.im/pub/art/2013/20/phs_3.tar.gz", 
         "srcdir"        : "phs_3",
         "binaries"      : [ [".","horn_schunck_pyramidal"] ],
-        "flags"         : "-j4"
+        "flags"         : "-j4",
+        "post_build"    : "cp ../../bin/horn_schunck_pyramidal ../../bin/phs"
       },
       {
         "build_type"    : "make",
         "url*previous"  : "http://www.ipol.im/pub/art/2013/20/imscript_dec2011.tar.gz", 
-        "url"           : "http://151.80.24.28:8080/DemoSource/20/imscript_dec2011.tgz", 
         "srcdir"        : "imscript",
         "binaries"      : [ [".","bin/", "plambda"] ],
-        "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'",
-        "scripts"       : [ ["demo_scripts", "run_method_noview.sh"],  
-                            ["demo_scripts", "hs_uniform.sh"],
-                            ["demo_scripts", "view_method.sh"],
-                            ["demo_scripts", "colorwheel.tiff"] ]
+        "flags"          : "-j CFLAGS=-O3 IIOFLAGS='-lpng -ltiff -ljpeg -lm'"
+      },
+      {
+        "build_type": "script",
+        "url"       : "http://151.80.24.28:8080/DemoSource/20/demo_scripts.tgz",
+        "srcdir"    : "demo_scripts",
+        "scripts"   : [ [".", "run_method_noview.sh"],
+                        [".", "hs_uniform.sh"],
+                        [".", "view_method.sh"],
+                        [".", "colorwheel.tiff"] ]
       }
     ]
   ,
@@ -67,7 +72,6 @@
       }
     ],
   "run": [
-      "cp ../../bin/horn_schunck_pyramidal ../../bin/phs",
       "run_method_noview.sh 4 $alpha 0.01 150 5 6 0.65 >stdout.txt",
       "view_method.sh ipoln  1",
       "view_method.sh ipol   1",
