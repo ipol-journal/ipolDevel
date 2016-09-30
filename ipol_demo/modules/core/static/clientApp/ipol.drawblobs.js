@@ -387,6 +387,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
+                        console.info("***");
+                        // resize displayed blobs
+                        $("#displayblobs").resize();
                     }
                 }; 
                 tester.onerror = function(i,idx) { return function() {
@@ -400,6 +403,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
+                        // resize displayed blobs
+                        console.info("***");
+                        $("#displayblobs").resize();
                     }
                 }; }(i,idx);
             } 
