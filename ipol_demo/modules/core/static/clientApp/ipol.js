@@ -350,10 +350,12 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                 $("#pagetitle").html(ddl_json.general.demo_title);
                 // article link
 //                 $("#xlinks .algo").html("<a href='"+ddl_json.general.xlink_article+"'>article</a>")
-                $("#tabs-nohdr .algo").html("<a style='padding:0.1em 0.3em;' href='"+ddl_json.general.xlink_article+"'>article</a>")
+                $("#tabs-nohdr .algo").html("<a style='padding:0.1em 0.3em;' href='"+ddl_json.general.xlink_article+"'>article</a>");
+                // update article link
+                $("#citation a").attr("href", ddl_json.general.xlink_article);
                 // for convenience, add demo_id and internal_demoid fields to the json DDL 
-                ddl_json['demo_id']         = demo_id
-                ddl_json['internal_demoid'] = internal_demoid
+                ddl_json['demo_id']         = demo_id;
+                ddl_json['internal_demoid'] = internal_demoid;
                 ipol.preprocessDemo(ddl_json);
                 
                 // hide parameters if none
