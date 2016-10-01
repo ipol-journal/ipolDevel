@@ -224,11 +224,6 @@ ipol.ArchiveDisplay = function()
         
         // need to have id=content for CSS compatibility ...
         html += '<div id="content">';
-        html += ' <div id="citation">'+
-                ' Please cite <a href="${app.xlink_article}">the reference article</a>'+
-                ' if you publish results obtained with this online demo.'+
-                '</div>';
-
         html += '<div class="archive_index" >';
         html += '<p>';
         html += nb_experiments+' public experiments since '+first_date+'.<br />';

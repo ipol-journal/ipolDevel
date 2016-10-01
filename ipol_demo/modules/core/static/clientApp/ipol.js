@@ -147,6 +147,7 @@ ipol.onDemoInfoDemoList = function(demolist)
         html_selection += '</option>'
     }
     html_selection += "</select>";
+    
     $("#demo-select").html(html_selection);
     
     if (demo_pos!=-1) {
@@ -166,6 +167,10 @@ ipol.onDemoInfoDemoList = function(demolist)
                         ipol.demo_origin.select_widget
                         );
         });
+
+    if (servers.in_production) {
+        $("#demo-select").hide();
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -306,7 +311,9 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
  * @fires archive:get_experiment
  */
 ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
-    
+
+    $('#tabs-nohdr').tabs('option', 'active', 1);
+
     if (origin===undefined) {
         origin=ipol.demo_origin.select_widget;
     }
@@ -339,10 +346,17 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                 // update document title
                 //$(document).attr("title","IPOL Journal &middot; "+ddl_json.general.demo_title);
                 $('title').html("IPOL Journal &middot; "+ddl_json.general.demo_title);
-
+                // set title on top of the page
+                $("#pagetitle").html(ddl_json.general.demo_title);
+                // article link
+//                 $("#xlinks .algo").html("<a href='"+ddl_json.general.xlink_article+"'>article</a>")
+                $("#tabs-nohdr .algo").html("<a style='display:block' "+
+                                            "  href='"+ddl_json.general.xlink_article+"'>article</a>");
+                // update article link
+                $("#citation a").attr("href", ddl_json.general.xlink_article);
                 // for convenience, add demo_id and internal_demoid fields to the json DDL 
-                ddl_json['demo_id']         = demo_id
-                ddl_json['internal_demoid'] = internal_demoid
+                ddl_json['demo_id']         = demo_id;
+                ddl_json['internal_demoid'] = internal_demoid;
                 ipol.preprocessDemo(ddl_json);
                 
                 // hide parameters if none
@@ -519,7 +533,7 @@ ipol.documentReady = function () {
         };
     }
 
-    $("#tabs").tabs({
+    $("#tabs-nohdr").tabs({
             // update archive tab when selected
             beforeActivate: function(event, ui) {
                 if (ui.newPanel.is("#tabs-archive")) {
@@ -535,6 +549,10 @@ ipol.documentReady = function () {
             }
         }
     );
+
+    if (servers.in_production) {
+        $("#tabs_ddl").hide();
+    }
 
     $( "#progressbar" ).progressbar({ value:100 });
     $(".progress-label").text( "Waiting for input selection" );
