@@ -912,6 +912,11 @@ ipol.DrawInputs = function(ddl_json) {
                         height: (crop_area.height *ratio)};
         _infoMessage("box=",box);
         $("#inputimage").cropper('setCropBoxData',box);
+        // set crop information directly to avoid waiting for the event
+        _crop_info.x = crop_area.x;
+        _crop_info.y = crop_area.y;
+        _crop_info.w = crop_area.width;
+        _crop_info.h = crop_area.height;
         _infoMessage('setCrop end');
     }
 
