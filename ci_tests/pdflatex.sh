@@ -15,7 +15,7 @@ today=$(date)
 echo "IPOL pdflatex test on ${today}" > ${report}
 echo >> ${report}
 
-# PyLint test on each IPOL module
+# Compile each folder of the documentation
 for file in ${files}
     do
     cd $(dirname ${docsDir}/${file})
