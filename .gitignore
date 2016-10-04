@@ -23,11 +23,8 @@ ipol_demo/modules/demorunner/binaries/
 *.db
 *.sqlite3
 
-# Files containing private data
-ci_tests/send_to.txt
-
-# Test reports
-pylint_report.txt
+# Testing
+ci_tests/*.txt
 
 # Applications (to be moved to demoDispatcher/demoRunner!)
 app/
