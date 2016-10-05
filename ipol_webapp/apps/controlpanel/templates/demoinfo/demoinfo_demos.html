@@ -130,6 +130,9 @@
                                     {#  btn Edit demo's EDITORS #}
                                     <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_editors' demo.id %}">{% trans 'EDITORS' %}</a>
 
+                                    {#  btn Edit demo's DEMO EXTRAS #}
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demo_extras' demo.editorsdemoid %}">{% trans 'DEMO EXTRAS' %}</a>
+
                                 </div>
                             </div>
                         </div>

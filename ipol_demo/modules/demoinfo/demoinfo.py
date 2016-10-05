@@ -18,6 +18,7 @@ import cherrypy
 import sys
 import errno
 import logging
+import shutil
 from math import ceil
 
 from model import *
@@ -174,6 +175,28 @@ class DemoInfo(object):
         WS for obtaining the url for the compressed file with the demoExtras
         """
         return json.dumps(self.get_compressed_file_url(demo_id))
+        
+    @cherrypy.expose
+    def delete_compressed_file_ws(self,demo_id):
+        """
+        WS for deleting the compressed demo extra file of a demo
+        """
+        """
+        :param demo_id: demo id integer
+        :return status
+        """
+        data = {}
+        data['status']= "OK"
+        
+        extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
+        
+        try:
+            shutil.rmtree(extras_folder)
+        except Exception as ex:
+            data['status']= "KO"
+            self.error_log("Failure in delete_compressed_file_ws ",str(ex))
+        return json.dumps(data)
+
   
     
     @cherrypy.expose
@@ -1877,4 +1900,3 @@ class DemoInfo(object):
             data["error"] = error_string
 
         return json.dumps(data)
-

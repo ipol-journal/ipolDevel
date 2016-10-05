@@ -159,7 +159,11 @@ demoinfo_ws_url_add_editor_to_demo =  'add_editor_to_demo'
 demoinfo_ws_url_delete_editor_from_demo =  'remove_editor_from_demo'
 # param demo_id,editor_id
 
-
+#DEMO EXTRAS
+demoinfo_ws_url_demo_extras_list_for_demo = 'get_compressed_file_url_ws'
+#param demo_id returns JSON {"status" : "OK", "code" : "2", "url_compressed_file" : "ruta/DemoExtras.tar.gz"}
+demoinfo_ws_url_delete_demo_extras_from_demo = 'delete_compressed_file_ws'
+#method: POST param demo_id
 
 ####################
 #  ARCHIVE MODULE  #

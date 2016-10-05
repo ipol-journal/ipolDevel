@@ -14,7 +14,8 @@ from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoA
 	DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView, DemoinfoAddExistingAuthorToDemoView, \
 	DemoinfoAddNewAuthorToDemoView, DemoinfoDeleteEditorView, DemoinfoGetEditorView, DemoinfoSaveEditorView, \
 	DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, DemoinfoAddExistingEditorToDemoView, \
-	DemoinfoDeleteEditorFromDemoView
+	DemoinfoDeleteEditorFromDemoView, DemoinfoGetDemoExtrasView, DemoinfoDeleteDemoExtrasView
+
 
 __author__ = 'josearrecio'
 
@@ -77,6 +78,12 @@ urlpatterns = [
     url(r'^ajax_add_demoinfo_new_editor_to_demo/', DemoinfoAddNewEditorToDemoView.as_view(), name="ipol.cp.demoinfo.add_new_editor_to_demo"),
 	#deletes editor from demo, but does not delete the editor itself
     url(r'^ajax_delete_demoinfo_editor_from_demo/(?P<demo_id>\d+)/(?P<editor_id>\d+)/$', DemoinfoDeleteEditorFromDemoView.as_view(), name="ipol.cp.demoinfo.delete_editor_from_demo"),
+
+	#DEMO EXTRAS
+    #Demo extras list
+    url(r'^demo_extras_of_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoExtrasView.as_view(), name="ipol.cp.demoinfo.get_demo_extras"),
+    #Delete demo extra
+    url(r'^ajax_delete_demo_extra_from_demo/(?P<demo_id>\d+)/$', DemoinfoDeleteDemoExtrasView.as_view(), name="ipol.cp.demoinfo.delete_demo_extra_from_demo"),
 
 
 

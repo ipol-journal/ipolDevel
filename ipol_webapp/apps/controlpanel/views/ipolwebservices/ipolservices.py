@@ -19,8 +19,8 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_delete_author_from_demo, demoinfo_ws_url_editor_list, demoinfo_ws_url_editor_list_for_demo, \
 	demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
 	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
-	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo, \
-	demoinfo_ws_url_demo_list_by_demoeditorid, proxy_ws_url_stats, proxy_ws_url_service_call
+	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_list_for_demo, \
+	demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, proxy_ws_url_stats, proxy_ws_url_service_call
 
 logger = logging.getLogger(__name__)
 
@@ -617,6 +617,31 @@ def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 	servicejson = None
 	proxyparams = {'module': "demoinfo",'service': service_name,'servicehttpmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
 	return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+#DEMO EXTRAS
+
+def demoinfo_demo_extras_list_for_demo(demo_id):
+
+	service_name = demoinfo_ws_url_demo_extras_list_for_demo
+
+	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+	serviceparams = {'demo_id': demo_id}
+	serviceparams = json.dumps(serviceparams)
+	servicejson = None
+	proxyparams = {'module': "demoinfo",'service': service_name,'servicehttpmethod': "GET",'params': serviceparams,'jsonparam': servicejson}
+	return get_JSON_from_webservice(proxywsurl,params=proxyparams)
+
+def demoinfo_delete_demo_extras_from_demo(demo_id):
+
+	service_name = demoinfo_ws_url_delete_demo_extras_from_demo
+
+	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+	serviceparams = {'demo_id': demo_id}
+	serviceparams = json.dumps(serviceparams)
+	servicejson = None
+	proxyparams = {'module': "demoinfo",'service': service_name,'servicehttpmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
+	return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
+
 
 
 

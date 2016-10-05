@@ -12,7 +12,7 @@ from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
 	get_demoinfo_available_editor_list, get_demoinfo_module_states
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
-	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList
+	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList,DeserializeDemoinfoDemoExtrasList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
@@ -27,6 +27,7 @@ __author__ = 'josearrecio'
 PAGINATION_ITEMS_PER_PAGE_DEMO_LIST = 4
 PAGINATION_ITEMS_PER_PAGE_AUTHOR_LIST = 4
 PAGINATION_ITEMS_PER_PAGE_EDITOR_LIST = 4
+PAGINATION_ITEMS_PER_PAGE_DEMO_EXTRAS_LIST = 4
 
 
 # demos
@@ -1642,4 +1643,59 @@ class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
 		return HttpResponse(result, content_type='application/json')
 
 
+#Demo Extras
+class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
+	template_name = "demoinfo/manage_demo_extras_for_demo.html"
+
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoGetDemoExtrasView, self).dispatch(*args, **kwargs)
+
+	# no need for filtering and pagination
+	def list_demo_extras_for_demo(self):
+		result = None
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_demo_extras_for_demo %s"%e
+				print(msg)
+				pass
+
+			page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
+			result = DeserializeDemoinfoDemoExtrasList(page_json)
+
+		except Exception as e:
+			msg="Error list_demo_extras_for_demo %s"%e
+			logger.error(msg)
+			print(msg)
+
+		return result
+
+class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoDeleteDemoExtrasView, self).dispatch(*args, **kwargs)
+
+
+	def post(self, request, *args, **kwargs):
+
+		try:
+			demo_id = int(self.kwargs['demo_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+
+		result = ipolservices.demoinfo_delete_demo_extras_from_demo(demo_id)
+		if result == None:
+			msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		print result
+
+		return HttpResponse(result, content_type='application/json')

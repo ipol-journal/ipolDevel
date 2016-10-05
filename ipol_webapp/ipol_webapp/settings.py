@@ -44,7 +44,7 @@ ALLOWED_HOSTS = []
 USE_MEMCACHED = False
 
 hostname = socket.gethostname()
-local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local']
+local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu']
 dev_machines_hostname = ['ipol.im','smartalgo']
 dev_machines = ['.ipol.im','.ns3018037.ip-151-80-24.eu']
 production_machines = ['my_production_hostname']
@@ -86,9 +86,9 @@ if hostname in local_machines:
 	#            IPOL WS               #
 	####################################
 	#Local ENV
-	IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+	IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
-	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.0.1:9003/%s'
+	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
 	#urls to access the modules by proxy
 	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
 	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
@@ -457,7 +457,7 @@ print(STATICFILES_DIRS)
 print("MEDIA_ROOT:")
 print(MEDIA_ROOT)
 print("TEMPLATE_CONTEXT_PROCESSORS:")
-print(global_settings.TEMPLATE_CONTEXT_PROCESSORS)
+#~ print(global_settings.TEMPLATE_CONTEXT_PROCESSORS)
 print("BASE_DIR:")
 print(BASE_DIR)
 print("STATIC_ROOT:")

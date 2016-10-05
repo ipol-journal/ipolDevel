@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+	{% trans "Manage Demo Extras" %}
+{% endblock %}
+
+{% block cssfiles %}
+
+	<style type="text/css">
+		.ststsok {
+			color:green;
+		}
+		.ststsnok {
+			color:red;
+		}
+		.extra{
+			border: 1px solid black;
+			margin: 20px;
+			padding: 10px;
+			width: 35%;
+		}
+		.container{
+			margin: 20px;
+			padding: 10px;
+		}
+		.griditem{
+			padding: 5px
+		}
+	</style>
+
+{% endblock %}
+
+
+{#{% block topmenu %}#}
+{##}
+{#    <!-- topmenu Section for demoinfo   -->#}
+{#    {% include 'demoinfo/demoinfo_menu.html' %}#}
+{##}
+{#{% endblock %}#}
+
+
+{% block content %}
+
+
+	<div class="container">
+
+		<h2> {% blocktrans %} Manage demo extras from demo {{ demo_id }} {%  endblocktrans %}</h2>
+
+		{#  Search bar #}
+{#        {% with searchurl='ipol.cp.demoinfo.demo_extras' %}#}
+{#            {% include 'demoinfo/searchbar.html' %}#}
+{#        {% endwith %}#}
+
+		{% with data=view.list_demo_extras_for_demo %}
+			{#  Add Demo Extras btn #}
+			<div class="container">
+				{% if data.code == "2" %}
+					<a class="btn btn-primary" onclick="" >{% blocktrans %}Change Demo Extra{%  endblocktrans %}</a>
+					<!--<input type="file" class="btn btn-primary">-->
+				{% else %}
+					<a class="btn btn-primary" onclick="" >{% blocktrans %}Add New Demo Extra{%  endblocktrans %}</a>
+				{% endif %}
+				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
+			</div>
+
+
+			{% if data.status == "OK" %}
+				{% if data.code == "2" %}
+					<div class="extra" id="demo_extra_{{ data.code }}" >
+						<p class="griditem col-sm-7">{{ data.name }} </p>
+						<a class="btn btn-info" onclick="window.open('{{ data.url_compressed_file }}')" target="_self"> Download</a>
+                        <a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
+
+					</div>
+				{% else %}
+					<p class="ststsnok"> {% blocktrans %}No Demo Extras available{%  endblocktrans %}</p>
+				{% endif %}
+			{% endif %}
+		{% endwith %}
+
+	</div>
+
+{% endblock %}
+
+
+<!-- autocomplete js includes  -->
+{% include 'autocomplete_light/static.html' %}
+<!-- end autocomplete js includes  -->
+
+{#TODO js en archivo separado y minimized#}
+
+{% block functionsjs %}
+
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script>
+
+		{#  secure AJAX POST to ws ,from django docs  #}
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie != '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$(document).ready(function(){
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				}
+			});
+		});
+
+
+		{#  delete demo extra  #}
+		function send_delete_demo_extra_request(wsurl, demo_id) {
+			var delextra = confirm('delete the demo extra from demo: ' + demo_id);
+			if (delextra == true) {
+				$.ajax({
+					type: 'POST',
+						url: wsurl,
+						dataType: 'json',
+						success: function(data) {
+							window.location.reload(true);
+
+						},
+						error: function(data){
+							alert("Fallo con error: "+data.status)
+						}
+					});
+			}
+		}
+
+
+	</script>
+
+{% endblock %}
+
