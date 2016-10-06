@@ -20,7 +20,6 @@ do
     echo "**** MODULE: ${module}" >> ${report}
     pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc ${modulesDir}${module}/*.py >> ${report}
 done
-exit
 
 # Send report by email
 sendTo=$(cat /home/ipol/ipolDevel/ci_tests/send_to.txt)
