@@ -1,0 +1,243 @@
+\section{System administration}
+\ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
+
+- Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
+Cron controls it. To add the cron line, use {\tt crontab -e} as root.
+
+The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
+
+For example, to run the backup script once per week at 3:00h, add this line:
+
+{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+
+- Cleanup. The script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
+
+- PyLint report. The script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
+
+To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pylint.sh}
+
+- pdflatex report. The script {\tt ipolDevel/ci\_tests/pdflatex.sh} checks if the Latex documentation of the project compiles and sends and email otherwise.
+
+To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
+
+
+
+\subsection{GitHub deploy key}
+The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
+
+For example:
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+\end{verbatim}
+
+\vspace{0.15cm}
+
+\begin{verbatim}
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+host github_deploy
+      hostname github.com
+      user git
+      identityfile ~/.ssh/id_rsa
+
+ipol@smartalgo:~/ipolDevel$ cat .git/config 
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	#url = https://github.com/mcolom/ipolDevel
+	url = git@github_deploy:mcolom/ipolDevel.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+\end{verbatim}
+
+We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
+
+\subsection{Setup of a new machine}
+When a new machine is added to the IPOL infrastructure, the following needs to be done:
+- Create the {\tt ipol} user in a new machine: {\tt adduser --disabled-password ipol}
+
+- Install bash-completion {\tt apt-get install bash-completion}
+
+- Install cron-apt: {\tt apt-get install cron-apt}
+
+And edit /etc/cron-apt/config:
+\begin{verbatim}
+APTCOMMAND=/usr/bin/apt-get
+OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/sources.list"
+SYSLOGON="always"
+\end{verbatim}
+
+- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
+
+Install mail with {\tt apt-get install mailutils}
+
+To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
+
+
+- Setup priorities and memory limits to the processes of the users.
+
+Added this to /etc/security/limits.conf:
+\begin{verbatim}
+*               soft     priority            17
+ipol            soft     priority            0
+\end{verbatim}
+
+We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
+
+
+%To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
+%
+%More info:
+%
+%\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
+%
+%\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
+
+\subsection{Control Panel}
+To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are required for this purpose. The first one will work as the application server, while the second is a reverse proxy which allows to serve the static files of the site. This is to avoid using Python's RUNSERVER command, due to security reasons.
+
+\subsubsection{Gunicorn: installation}
+
+Install from console:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ pip install gunicorn
+\end{lstlisting}
+
+\subsubsection{Gunicorn: configuration}
+In order to manage the gunicorn service we will use a script, which is in charge of:
+\begin{itemize}
+\item Open the virtual environment, if used. If not, comment the line with \#
+\item Collect the static files.
+\item Start the web server.
+\end{itemize}
+
+In this guide we will use the following path/name for the mentioned script:
+\begin{lstlisting}[language=Bash]
+ipolDevel/gunicorn_start.sh
+\end{lstlisting}
+
+Open the script and configure the parameters:
+\begin{itemize}
+\item NAME: Name of the application.
+\item DJANGODIR: Django project directory path (absolute).
+\item SOCKFILE: Gunicorn socket path (absolute).
+\item VENV: Virtual environment name (if used).
+\item USER, GROUP: User and group names, to run the server as. Both names must be valid at the current server.
+\item NUM\_WORKERS: Gunicorn worker processes number.
+\item DJANGO\_SETTINGS\_MODULE: Django settings name.
+\item DJANGO\_WSGI\_MODULE: Django WSGI module name.
+\item Gunicorn port number. In this guide we will use port 8001. Consider that this is NOT the port used to access the final site, because it will not serve the static files (DEBUG = False in settings.py). Another port will be configured in Nginx for that purpose.
+\item Finally, add execution permissions to the script.
+\end{itemize}
+
+\subsubsection{Gunicorn: management}
+\begin{itemize}
+\item Start service by executing the script:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ ./gunicorn_start.sh
+\end{lstlisting}
+
+\item Stop service: Ctrl + C
+\end{itemize}
+
+
+\subsubsection{Nginx: installation}
+
+Install from Debian repositories:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ apt-get install nginx
+\end{lstlisting}
+
+\subsubsection{Nginx: configuration}
+To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
+\begin{lstlisting}[language=Bash]
+/etc/nginx/sites-available
+/etc/nginx/sites-enabled
+\end{lstlisting}
+
+\begin{enumerate}
+\item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http section:
+\begin{lstlisting}[language=Bash]
+include /etc/nginx/sites-enabled/*;
+\end{lstlisting}
+\item Edit the site configuration file: sites-available/default, configuring the sections:
+\begin{enumerate}
+\item Upstream
+\begin{enumerate}
+\item Upstream name. E.g.: ipol\_webapp\_server
+\item Gunicorn socket file absolute location.
+\end{enumerate}
+\item Server
+\begin{enumerate}
+\item Listening port. The port to serve the site with static files. E.g.: 8000
+\item Server name. E.g.: ipolcore.ipol.im
+\item Access log absolute location.
+\item Static files absolute location.
+\item Proxy pass, using upstream name configured previously.
+E.g.:
+\begin{lstlisting}[language=Bash]
+proxy_pass http://ipol_webapp_server;
+\end{lstlisting}
+
+\end{enumerate}
+\end{enumerate}
+\item Enable the site by creating a symbolic link to default configuration:
+\begin{lstlisting}[language=Bash]
+ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
+\end{lstlisting}
+\item Check Nginx configuration
+\begin{lstlisting}[language=Bash]
+
+\end{lstlisting}
+\end{enumerate}
+
+\subsubsection{Nginx: management}
+\begin{itemize}
+\item Start service:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ sudo nginx
+\end{lstlisting}
+\item Stop service:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ sudo nginx -s stop
+\end{lstlisting}
+\item Check configuration:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ sudo nginx -t
+\end{lstlisting}
+\end{itemize}
+
+\subsubsection{Serving the site}
+In order to serve the site using the installed dependencies, please follow the steps as detailed:
+\begin{enumerate}
+\item Start Nginx
+\item Start Gunicorn
+\item Start modules
+\item Test all is working
+\end{enumerate}
+
+\subsubsection{Accessing Control Panel}
+To access the Control Panel the user will need to access the specified URL, and login with the following credentials:
+
+\begin{itemize}
+\item URL: \url{http://ipolcore.ipol.im:8000}
+
+\item User: ipolcpadmin
+
+\item Password: gy54g7x2 \miguel{Do we really want to write password in the public doc?}
+\end{itemize}
