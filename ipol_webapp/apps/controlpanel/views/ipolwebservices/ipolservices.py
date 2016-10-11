@@ -327,14 +327,14 @@ def demoinfo_read_demo(demo_id):
 
 
 
-def demoinfo_update_demo(demo):
+def demoinfo_update_demo(demo,old_editor_demoid):
 
 	service_name = demoinfo_ws_url_update_demo
 
 	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
 	#proxy can be called by GET or POST, prefer POST if submiting data to server
 	module = "demoinfo"
-	serviceparams = {'demo': json.dumps(demo)}
+	serviceparams = {'demo': json.dumps(demo),'old_editor_demoid':old_editor_demoid}
 	#send as string to proxy, proxy will load this into a dict for the request lib call
 	serviceparams = json.dumps(serviceparams)
 	servicehttpmethod = "POST"

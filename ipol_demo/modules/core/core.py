@@ -787,18 +787,18 @@ class Core(object):
         self.mkdir_p(demo_path)
         
         return demo_path
-    
+
+
     @cherrypy.expose
-    def run(self, demo_id, internal_demoid,  **kwargs):
+    def run(self, demo_id,  **kwargs):
         """
          Run a demo. The presentation layer request the core to execute a demo.
          Thus, the running process begin.
         :param demo_id:   id demo
-        :param internal_demoid: id_demo stored in demoinfo module given a demo_id 
         :param kawrgs: Parameters sent by the presentation layer 
         """
         print "### RUN in CORE ####"
-        print "demo_id =",demo_id, " internal_demoid=", internal_demoid
+        print "demo_id =",demo_id
         print "kwargs=",kwargs
         
         if 'input_type' in kwargs:
@@ -841,16 +841,12 @@ class Core(object):
         try:
             
             userdata = {"module":"demoinfo", "service":"read_last_demodescription_from_demo"}
-            userdata['demo_id'] = internal_demoid
+            userdata['demo_id']=demo_id
             userdata['returnjsons'] = 'True'
-            
             resp = requests.post(self.proxy_server, data=userdata)
-            response = resp.json() 
-            
+            response = resp.json()
             last_demodescription = response['last_demodescription']
-            
             ddl_json = json.loads(json.loads(last_demodescription['json']))
-            
             if 'build' in ddl_json:
                 ddl_build   = ddl_json['build']
             if 'inputs' in ddl_json:

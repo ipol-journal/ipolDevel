@@ -394,7 +394,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             // fill form data to upload
             var form_data = new FormData();
             form_data.append("demo_id",         _ddl_json.demo_id);
-            form_data.append("internal_demoid", _ddl_json.internal_demoid);
+            //form_data.append("internal_demoid", _ddl_json.internal_demoid);
             form_data.append("original",        _input_origin==="localfiles");
 
             // create parameters

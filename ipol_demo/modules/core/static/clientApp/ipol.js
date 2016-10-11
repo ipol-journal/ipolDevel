@@ -153,7 +153,6 @@ ipol.onDemoInfoDemoList = function(demolist)
     if (demo_pos!=-1) {
         $("#demo_selection").val(demo_pos);
         ipol.setDemoPage(dl.demo_list[demo_pos].editorsdemoid,
-                        dl.demo_list[demo_pos].id,
                         ipol.demo_origin.url
                     );
     }
@@ -163,7 +162,6 @@ ipol.onDemoInfoDemoList = function(demolist)
         function() {
             var pos =$( "#demo-select option:selected" ).val();
             ipol.setDemoPage(dl.demo_list[pos].editorsdemoid,
-                        dl.demo_list[pos].id,
                         ipol.demo_origin.select_widget
                         );
         });
@@ -303,27 +301,24 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
 /**
  * Starts everything needed for demo input tab.
  * @param {number} demo_id the demo id
- * @param {number} internal_demoid the internal demo id for demoinfo module
  * @param {ipol.demo_origin} origin of enum type demo_origin
  * @param {callback} func
  * @fires demoinfo:read_last_demodescription_from_demo
  * @fires blobs:get_blobs_of_demo_by_name_ws
  * @fires archive:get_experiment
  */
-ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
+ipol.setDemoPage = function (demo_id,origin,func) {
 
     $('#tabs-nohdr').tabs('option', 'active', 1);
 
     if (origin===undefined) {
         origin=ipol.demo_origin.select_widget;
     }
-
-    // console.info("internal demo id = ", internal_demoid);
-    if (internal_demoid > 0) {
+    if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
             'read_last_demodescription_from_demo',
-            'demo_id=' + internal_demoid + '&returnjsons=True',
+            'demo_id=' + demo_id + '&returnjsons=True',
             function(demo_ddl) {
                 //console.info("read demo ddl status = ", demo_ddl.status);
                 
@@ -354,9 +349,8 @@ ipol.setDemoPage = function (demo_id,internal_demoid,origin,func) {
                                             "  href='"+ddl_json.general.xlink_article+"'>article</a>");
                 // update article link
                 $("#citation a").attr("href", ddl_json.general.xlink_article);
-                // for convenience, add demo_id and internal_demoid fields to the json DDL 
+                // for convenience, add demo_id to the json DDL
                 ddl_json['demo_id']         = demo_id;
-                ddl_json['internal_demoid'] = internal_demoid;
                 ipol.preprocessDemo(ddl_json);
                 
                 // hide parameters if none

@@ -33,7 +33,7 @@ class Demo(object):
         zipURL = None
         active = None
         stateID = None
-        id = None
+        #id = None
         creation = None
         modification = None
 
@@ -44,11 +44,11 @@ class Demo(object):
                    zipurl=inst(basestring),
                    active=typ(int),
                    stateid=typ(int),
-                   id= Or(typ(int) , inst(basestring) ),
+                   #id= Or(typ(int) , inst(basestring) ),
                    creation= Or(typ(datetime.datetime) , inst(basestring) ),
                    modification= Or(typ(datetime.datetime) , inst(basestring) )
                    )
-        def __init__(self, editorsdemoid, title, abstract, zipurl, active, stateid, id=None, creation=None, modification=None ):
+        def __init__(self, editorsdemoid, title, abstract, zipurl, active, stateid, creation=None, modification=None ):
 
                 self.editorsdemoid = editorsdemoid
                 self.title = title
@@ -57,8 +57,8 @@ class Demo(object):
                 self.active = active
                 self.stateID = stateid
 
-                if id:
-                        self.id = id
+                # if id:
+                #         self.id = id
                 if creation:
                         self.creation = creation
                 else:
@@ -184,10 +184,10 @@ class DemoDescriptionDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def read(self, id):
+        def read(self, demo_description_id):
                 result = None
                 try:
-                        self.cursor.execute('''SELECT  json,inproduction  FROM demodescription WHERE id=?''',(int(id),))
+                        self.cursor.execute('''SELECT  json,inproduction  FROM demodescription WHERE id=?''',(int(demo_description_id),))
                         self.conn.commit()
                         row = self.cursor.fetchone()
                         if row:
@@ -225,16 +225,16 @@ class DemoDAO(object):
                                             (
                                             demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL,  demo.active, demo.stateID,))
                         self.conn.commit()
-                        return self.cursor.lastrowid
+                        return demo.editorsdemoid
                 except Exception as ex:
                         error_string = (" DAO add_demo e:%s" % (str(ex)))
                         print (error_string)
                         raise ValueError(error_string)
 
         @validates(typ(int))
-        def delete(self, demo_id):
+        def delete(self, editor_demo_id):
                 try:
-                        self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (int(demo_id),))
+                        self.cursor.execute("DELETE FROM demo WHERE demo.editor_demo_id=?", (int(editor_demo_id),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("delete_demo  e:%s" % (str(ex)))
@@ -243,21 +243,21 @@ class DemoDAO(object):
 
 
         @validates(typ(int), And(typ(int), between(0, 1, True, True)))
-        def set_active_flag(self, demo_id, active_flag):
+        def set_active_flag(self, editor_demo_id, active_flag):
 
                 nowtmstmp = datetime.datetime.now()
                 try:
                         self.cursor.execute('''
-                        UPDATE demo SET active=?,modification=? WHERE demo.id=?''',
-                                            (active_flag, nowtmstmp, demo_id))
+                        UPDATE demo SET active=?,modification=? WHERE demo.editor_demo_id=?''',
+                                            (active_flag, nowtmstmp, editor_demo_id))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("set_active_flag  e:%s" % (str(ex)))
                         print (error_string)
                         raise Exception(error_string)
 
-        @validates(inst(Demo))
-        def update(self, demo):
+        @validates(inst(Demo), And(typ(int)))
+        def update(self, demo,old_editor_demo_id):
 
                 try:
 
@@ -271,17 +271,18 @@ class DemoDAO(object):
                         # nowtmstmp=demo.creation
                         # print nowtmstmp
                         # datetime.strptime('2015-02-25T12:58:01.548Z', '%Y-%m-%dT%H:%M:%S.%fZ')
+                        print demo.title
 
                         if demo.creation:
 
                                 self.cursor.execute('''
-                                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,stateID=?,modification=?,creation=? WHERE demo.id=?''',
-                                                    (demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL, demo.active, demo.stateID ,nowtmstmp,demo.creation, demo.id))
+                                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
+                                                    (demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL, demo.active, demo.stateID ,nowtmstmp,demo.creation, old_editor_demo_id))
 
                         else:
                                 self.cursor.execute('''
-                                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,stateID=?,modification=?,creation=? WHERE demo.id=?''',
-                                                    (demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL, demo.active,demo.stateID,nowtmstmp, demo.creation, demo.id))
+                                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
+                                                    (demo.editorsdemoid, demo.title, demo.abstract, demo.zipURL, demo.active,demo.stateID,nowtmstmp, demo.creation, old_editor_demo_id))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("update_demo  e:%s" % (str(ex)))
@@ -289,17 +290,17 @@ class DemoDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def read(self, id):
+        def read(self, editor_demo_id):
                 result = None
                 try:
                         self.cursor.execute(
-                                '''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE demo.id=?''',
-                                (int(id),))
+                                '''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID, creation, modification  FROM demo WHERE demo.editor_demo_id=?''',
+                                (int(editor_demo_id),))
 
                         self.conn.commit()
                         row = self.cursor.fetchone()
                         if row:
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
                                 result = d
                 except Exception as ex:
                         error_string = ("read_demo  e:%s" % (str(ex)))
@@ -307,24 +308,9 @@ class DemoDAO(object):
                 return result
 
         @validates(typ(int))
-        def read_by_editordemoid(self, editordemoid):
-
-                # print "editordemoid: ",editordemoid
-                result = None
-                try:
-                        self.cursor.execute(
-                                '''SELECT  editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE demo.editor_demo_id=?''',
-                                (int(editordemoid),))
-
-                        self.conn.commit()
-                        row = self.cursor.fetchone()
-                        if row:
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
-                                result = d
-                except Exception as ex:
-                        error_string = ("read_by_editordemoid  e:%s" % (str(ex)))
-                        print (error_string)
-                return result
+        def read_by_editordemoid(self, editor_demo_id):
+                #All calls to this function must be changed to read(editor_demo_id)
+                self.read(editor_demo_id)
 
         def list(self, is_active=True):
 
@@ -332,13 +318,13 @@ class DemoDAO(object):
                 try:
                         if is_active:
                                 self.cursor.execute(
-                                        '''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 1 ORDER BY editor_demo_id DESC ''')
+                                        '''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, creation, modification  FROM demo WHERE active = 1 ORDER BY editor_demo_id DESC ''')
                         else:
                                 self.cursor.execute(
-                                        '''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, id, creation, modification  FROM demo WHERE active = 0 ORDER BY editor_demo_id DESC ''')
+                                        '''SELECT editor_demo_id, title, abstract, zipURL, active, stateID, creation, modification  FROM demo WHERE active = 0 ORDER BY editor_demo_id DESC ''')
                         self.conn.commit()
                         for row in self.cursor.fetchall():
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5],row[6], row[7])
                                 demo_list.append(d)
 
                 except Exception as ex:
@@ -359,12 +345,14 @@ class DemoDemoDescriptionDAO(object):
         # conn.close()
 
         @validates(typ(int), typ(int))
-        def add(self, demoid, demodescriptionid):
+        def add(self, editorsdemoid, demodescriptionid):
                 try:
-
                         self.cursor.execute('''
-                        INSERT INTO demo_demodescription(demoID, demodescriptionID) VALUES(?,?)''',
-                                            (int(demoid), int(demodescriptionid),))
+                        INSERT INTO demo_demodescription(demodescriptionID,demoID)
+                        VALUES(?,(SELECT ID
+                                FROM demo
+                                WHERE demo.editor_demo_id=?))''',
+                                            (int(demodescriptionid), int(editorsdemoid),))
                         self.conn.commit()
 
                 except Exception as ex:
@@ -373,9 +361,15 @@ class DemoDemoDescriptionDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def delete(self, id):
+        def delete(self, editorsdemoid):
                 try:
-                        self.cursor.execute("DELETE FROM demo_demodescription WHERE id=?", (int(id),))
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demo_demodescription
+                        WHERE id=(SELECT ID
+                                FROM demo
+                                where demo.editor_demo_id=?)''',
+                                            (int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("delete_demo_demodescription  e:%s" % (str(ex)))
@@ -383,11 +377,20 @@ class DemoDemoDescriptionDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def delete_all_demodescriptions_for_demo(self, demoid):
+        def delete_all_demodescriptions_for_demo(self, editorsdemoid):
                 try:
                         #self.cursor.execute("DELETE FROM demo_demodescription WHERE demoID=?", (int(demoid),))
                         #self.cursor.execute("DELETE FROM demodescription WHERE demoID=?", (int(demoid),))
-                        self.cursor.execute("DELETE FROM demodescription WHERE ID in (select demodescriptionid from demo_demodescription where demoID=?)", (int(demoid),))
+
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demodescription
+                        WHERE ID in (SELECT demodescriptionid
+                                    FROM demo_demodescription
+                                    WHERE demoID=(SELECT ID
+                                                    FROM demo
+                                                    WHERE demo.editor_demo_id=?))''',
+                                            (int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("delete_all_demodescriptions_for_demo  e:%s" % (str(ex)))
@@ -396,9 +399,16 @@ class DemoDemoDescriptionDAO(object):
 
 
         @validates(typ(int), typ(int))
-        def remove_demodescription_from_demo(self, demoid, demodescriptionid):
+        def remove_demodescription_from_demo(self, editorsdemoid, demodescriptionid):
                 try:
-                        self.cursor.execute("DELETE FROM demo_demodescription WHERE demoID=? AND demodescriptionID=?", (int(demoid), int(demodescriptionid),))
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demo_demodescription
+                        WHERE demodescriptionID=?
+                        AND demoID=(SELECT ID
+                                    FROM demo
+                                    WHERE demo.editor_demo_id =?)''',
+                                            (int(demodescriptionid), int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("remove_editor_from_demo  e:%s" % (str(ex)))
@@ -407,15 +417,20 @@ class DemoDemoDescriptionDAO(object):
 
 
         @validates(typ(int))
-        def read(self, id):
+        def read(self, editorsdemoid):
 
                 result = None
                 try:
-                        self.cursor.execute('''SELECT id,demoID,demodescriptionID FROM demo_demodescription WHERE id=?''', (int(id),))
+                        self.cursor.execute('''
+                        SELECT demo.editor_demo_id,demodescriptionID
+                        FROM demo_demodescription , demo
+                        WHERE demo.ID=demo_demodescription.demoID
+                        AND demo.editor_demo_id=?''',
+                                            (int(editorsdemoid),))
                         self.conn.commit()
                         row = self.cursor.fetchone()
                         if row:
-                                result = {'id': row[0], 'demoID': row[1], 'editorId': row[2]}
+                                result = {'editorsDemoID': row[0], 'editorId': row[1]}
 
                 except Exception as ex:
                         error_string = ("read_demo_editor  e:%s" % (str(ex)))
@@ -424,7 +439,7 @@ class DemoDemoDescriptionDAO(object):
 
 
         @validates(typ(int))
-        def read_last_demodescription_from_demo(self, demoid,returnjsons=None):
+        def read_last_demodescription_from_demo(self, editorsdemoid,returnjsons=None):
 
                 result = None
                 # print
@@ -435,18 +450,26 @@ class DemoDemoDescriptionDAO(object):
                         if returnjsons == True or returnjsons == 'True':
 
                                 self.cursor.execute(
-                                        '''SELECT ddl.ID,ddl.inproduction,dd.creation,ddl.JSON FROM demo_demodescription as dd, demodescription as ddl
-                                        WHERE  dd.demodescriptionID=ddl.ID and dd.demoID=? ORDER BY ddl.ID DESC LIMIT 1''',
-                                        (int(demoid),))
+                                        '''SELECT ddl.inproduction,dd.creation,ddl.JSON
+                                        FROM demodescription as ddl
+                                        INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
+                                        INNER JOIN demo ON  demo.ID = dd.demoId
+                                        WHERE editor_demo_id = ?
+                                        ORDER BY dd.creation DESC LIMIT 1''',
+                                        (int(editorsdemoid),))
                                 self.conn.commit()
                                 row = self.cursor.fetchone()
                                 if row:
-                                        result = {'id': row[0], 'inproduction': row[1], 'creation': row[2], 'json': row[3]}
+                                        result = {'inproduction': row[0], 'creation': row[1], 'json': row[2]}
                         else:
                                 self.cursor.execute(
-                                        '''SELECT ddl.ID,ddl.inproduction,dd.creation FROM demo_demodescription as dd, demodescription as ddl
-                                        WHERE  dd.demodescriptionID=ddl.ID and dd.demoID=? ORDER BY ddl.ID DESC LIMIT 1''',
-                                        (int(demoid),))
+                                        '''SELECT ddl.inproduction,dd.creation,ddl.JSON
+                                        FROM demodescription as ddl
+                                        INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
+                                        INNER JOIN demo ON  demo.ID = dd.demoId
+                                        WHERE editor_demo_id = ?
+                                        ORDER BY dd.creation DESC LIMIT 1''',
+                                        (int(editorsdemoid),))
                                 self.conn.commit()
                                 row = self.cursor.fetchone()
                                 if row:
@@ -463,11 +486,11 @@ class DemoDemoDescriptionDAO(object):
                 #todo only one or more then one?
                 demo_list = list()
                 try:
-                        self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, d.stateID, d.id, d.creation, d.modification
+                        self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, d.stateID, d.creation, d.modification
                                 FROM demo as d, demo_demodescription as dd WHERE d.id=dd.demoId and dd.demodescriptionID=?''', (int(demodescriptionid),))
                         self.conn.commit()
                         for row in self.cursor.fetchall():
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
                                 demo_list.append(d)
 
                 except Exception as ex:
@@ -477,25 +500,33 @@ class DemoDemoDescriptionDAO(object):
 
 
         @validates(typ(int))
-        def read_demo_demodescriptions(self, demoid, returnjsons=None):
+        def read_demo_demodescriptions(self, editorsdemoid, returnjsons=None):
                 #returns ordered list, by default does not return jsons
 
                 demodescription_list = list()
                 try:
                         if returnjsons == True or returnjsons == 'True':
-                                self.cursor.execute(
-                                        '''SELECT ddl.ID,ddl.inproduction,dd.creation,ddl.JSON FROM demo_demodescription as dd, demodescription as ddl
-                                        WHERE  dd.demodescriptionID=ddl.ID and dd.demoID=? ORDER BY ddl.ID DESC''',
-                                        (int(demoid),))
+                                self.cursor.execute('''
+                                SELECT ddl.ID,ddl.inproduction,dd.creation,ddl.JSON
+                                FROM demo_demodescription as dd, demodescription as ddl, demo as d
+                                WHERE  dd.demodescriptionID=ddl.ID
+                                AND dd.demoID= d.ID
+                                AND d.editor_demo_id=?
+                                ORDER BY ddl.ID DESC''',
+                                        (int(editorsdemoid),))
                                 self.conn.commit()
                                 for row in self.cursor.fetchall():
                                         ddl = (row[0], row[1], row[2], row[3])
                                         demodescription_list.append(ddl)
                         else:
-                                self.cursor.execute(
-                                        '''SELECT ddl.ID,ddl.inproduction,dd.creation FROM demo_demodescription as dd, demodescription as ddl
-                                        WHERE  dd.demodescriptionID=ddl.ID and dd.demoID=? ORDER BY ddl.ID DESC''',
-                                        (int(demoid),))
+                                self.cursor.execute('''
+                                SELECT ddl.ID,ddl.inproduction,dd.creation
+                                FROM demo_demodescription as dd, demodescription as ddl, demo as d
+                                WHERE  dd.demodescriptionID=ddl.ID
+                                AND dd.demoID= d.ID
+                                AND d.editor_demo_id=?
+                                ORDER BY ddl.ID DESC''',
+                                        (int(editorsdemoid),))
                                 self.conn.commit()
                                 for row in self.cursor.fetchall():
                                         ddl = (row[0], row[1], row[2])
@@ -614,11 +645,14 @@ class DemoAuthorDAO(object):
         # conn.close()
 
         @validates(typ(int), typ(int))
-        def add(self, demoid, authorid):
+        def add(self, editorsdemoid, authorid):
                 try:
                         self.cursor.execute('''
-                        INSERT INTO demo_author(demoID, authorId) VALUES(?,?)''',
-                                            (int(demoid), int(authorid),))
+                        INSERT INTO demo_author(authorId,demoID)
+                        VALUES(?,(SELECT ID
+                                FROM demo
+                                WHERE demo.editor_demo_id=?))''',
+                                            (int(authorid), int(editorsdemoid),))
                         self.conn.commit()
 
                 except Exception as ex:
@@ -637,9 +671,15 @@ class DemoAuthorDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def delete_all_authors_for_demo(self, demoid):
+        def delete_all_authors_for_demo(self, editorsdemoid):
                 try:
-                        self.cursor.execute("DELETE FROM demo_author WHERE demoID=?", (int(demoid),))
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demo_author
+                        WHERE demoID=(SELECT ID
+                                        FROM demo
+                                        WHERE demo.editor_demo_id=?)''',
+                                            (int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("delete_all_authors_for_demo  e:%s" % (str(ex)))
@@ -647,9 +687,16 @@ class DemoAuthorDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int), typ(int))
-        def remove_author_from_demo(self, demoid, authorid):
+        def remove_author_from_demo(self, editorsdemoid, authorid):
                 try:
-                        self.cursor.execute("DELETE FROM demo_author WHERE demoID=? AND authorId=?", (int(demoid), int(authorid),))
+
+                        self.cursor.execute('''DELETE
+                                                FROM demo_author
+                                                where demo_author.authorId=?
+                                                AND demo_author.demoID IN ( SELECT ID
+                                                                        FROM demo
+                                                                        WHERE demo.editor_demo_id = ?)''',
+                                            (int(authorid),int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("remove_author_from_demo  e:%s" % (str(ex)))
@@ -660,11 +707,15 @@ class DemoAuthorDAO(object):
         def read(self, id):
                 result = None
                 try:
-                        self.cursor.execute('''SELECT id,demoID, authorId FROM demo_author WHERE id=?''', (int(id),))
+                        self.cursor.execute('''
+                        SELECT demo.editor_demo_id, demo_author.ID, demo_author.authorId
+                        FROM demo_author, demo
+                        WHERE demo.ID = demo_author.demoID
+                        AND demo_author.id=?''', (int(id),))
                         self.conn.commit()
                         row = self.cursor.fetchone()
                         if row:
-                                result = {'id': row[0], 'demoID': row[1], 'authorId': row[2]}
+                                result = {'id': row[0], 'editorsDemoID': row[1], 'authorId': row[2]}
 
                 except Exception as ex:
                         error_string = ("read_demo_author  e:%s" % (str(ex)))
@@ -675,11 +726,11 @@ class DemoAuthorDAO(object):
         def read_author_demos(self, authorid):
                 demo_list = list()
                 try:
-                        self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, d.stateID, d.id, d.creation, d.modification
+                        self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, d.stateID, d.creation, d.modification
                                 FROM demo as d, demo_author as da WHERE d.id=da.demoId and da.authorId=?''', (int(authorid),))
                         self.conn.commit()
                         for row in self.cursor.fetchall():
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
                                 demo_list.append(d)
 
                 except Exception as ex:
@@ -688,12 +739,16 @@ class DemoAuthorDAO(object):
                 return demo_list
 
         @validates(typ(int))
-        def read_demo_authors(self, demoid):
+        def read_demo_authors(self, editordemoid):
                 author_list = list()
                 try:
-                        self.cursor.execute(
-                                '''SELECT a.name, a.mail,a.id, a.creation FROM author as a, demo_author as da WHERE a.id=da.authorId and da.demoID=?''',
-                                (int(demoid),))
+                        self.cursor.execute('''
+                        SELECT a.name, a.mail,a.id, a.creation
+                        FROM author as a, demo_author as da , demo as d
+                        WHERE a.id=da.authorId
+                        AND da.demoID= d.ID
+                        AND d.editor_demo_id=?''',
+                                (int(editordemoid),))
                         self.conn.commit()
                         for row in self.cursor.fetchall():
                                 a = Author(row[0], row[1], row[2], row[3])
@@ -803,12 +858,14 @@ class DemoEditorDAO(object):
         # conn.close()
 
         @validates(typ(int), typ(int))
-        def add(self, demoid, editorid):
+        def add(self, editorsdemoid, editorid):
                 try:
-
                         self.cursor.execute('''
-                        INSERT INTO demo_editor(demoID, editorId) VALUES(?,?)''',
-                                            (int(demoid), int(editorid),))
+                        INSERT INTO demo_editor(editorId,demoID)
+                        VALUES(?,(SELECT ID
+                                FROM demo
+                                WHERE demo.editor_demo_id=?))''',
+                                            (int(editorid), int(editorsdemoid),))
                         self.conn.commit()
 
                 except Exception as ex:
@@ -827,9 +884,15 @@ class DemoEditorDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int))
-        def delete_all_editors_for_demo(self, demoid):
+        def delete_all_editors_for_demo(self, editorsdemoid):
                 try:
-                        self.cursor.execute("DELETE FROM demo_editor WHERE demoID=?", (int(demoid),))
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demo_editor
+                        WHERE demoID=(SELECT ID
+                                        FROM demo
+                                        WHERE demo.editor_demo_id=?)''',
+                                            (int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("delete_all_editors_for_demo  e:%s" % (str(ex)))
@@ -837,9 +900,17 @@ class DemoEditorDAO(object):
                         raise Exception(error_string)
 
         @validates(typ(int), typ(int))
-        def remove_editor_from_demo(self, demoid, editorid):
+        def remove_editor_from_demo(self, editorsdemoid, editorid):
+                print"db1"
                 try:
-                        self.cursor.execute("DELETE FROM demo_editor WHERE demoID=? AND editorId=?", (int(demoid), int(editorid),))
+                        self.cursor.execute('''
+                        DELETE
+                        FROM demo_editor
+                        WHERE editorId=?
+                        AND demoID=(SELECT ID
+                                    FROM demo
+                                    WHERE demo.editor_demo_id=?)''',
+                                            (int(editorid), int(editorsdemoid),))
                         self.conn.commit()
                 except Exception as ex:
                         error_string = ("remove_editor_from_demo  e:%s" % (str(ex)))
@@ -851,11 +922,15 @@ class DemoEditorDAO(object):
 
                 result = None
                 try:
-                        self.cursor.execute('''SELECT id,demoID, editorId FROM demo_editor WHERE id=?''', (int(id),))
+                        self.cursor.execute('''
+                        SELECT demo_editor.ID,demo.editor_demo_id, demo_editor.editorId
+                        FROM demo_editor , demo
+                        WHERE demo_editor.demoID=demo.ID
+                        AND demo_editor.ID=?''', (int(id),))
                         self.conn.commit()
                         row = self.cursor.fetchone()
                         if row:
-                                result = {'id': row[0], 'demoID': row[1], 'editorId': row[2]}
+                                result = {'id': row[0], 'editorDemoID': row[1], 'editorId': row[2]}
 
                 except Exception as ex:
                         error_string = ("read_demo_editor  e:%s" % (str(ex)))
@@ -870,7 +945,7 @@ class DemoEditorDAO(object):
                                 FROM demo as d, demo_editor as de WHERE d.id=de.demoId and de.editorId=?''', (int(editorid),))
                         self.conn.commit()
                         for row in self.cursor.fetchall():
-                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
                                 demo_list.append(d)
 
                 except Exception as ex:
@@ -879,13 +954,18 @@ class DemoEditorDAO(object):
                 return demo_list
 
         @validates(typ(int))
-        def read_demo_editors(self, demoid):
+        def read_demo_editors(self, editordemoid):
                 editor_list = list()
                 try:
                         # self.cursor.execute('''SELECT id,demoID, editorId FROM demo_editor WHERE demoID=?''', (int(demoid),))
                         self.cursor.execute(
-                                '''SELECT e.name, e.mail,e.id, e.active,e.creation FROM editor as e, demo_editor as de WHERE e.id=de.editorId and de.demoID=?''',
-                                (int(demoid),))
+                                '''
+                                SELECT e.name, e.mail,e.id, e.active,e.creation
+                                FROM editor as e, demo_editor as de , demo as d
+                                WHERE e.id=de.editorId
+                                AND de.demoID= d.ID
+                                AND d.editor_demo_id=?''',
+                                (int(editordemoid),))
                         self.conn.commit()
                         for row in self.cursor.fetchall():
                                 e = Editor(row[0], row[1], row[2], row[3], row[4])

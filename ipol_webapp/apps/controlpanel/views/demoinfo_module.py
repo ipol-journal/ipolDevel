@@ -113,7 +113,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 
 			list_demos = result.demo_list
 
-			#print "list_demos",list_demos
+			print "list_demos",list_demos
 			status = result.status
 
 			#pagination of result
@@ -357,6 +357,7 @@ class DemoinfoGetDemoView(NavbarReusableMixinMF,TemplateView):
 				logger.error(msg)
 				raise ValueError(msg)
 
+			print "La demo id es:",demo_id
 			result= ipolservices.demoinfo_read_demo(demo_id)
 			if result == None:
 				msg="DemoinfoGetDemoView: Something went wrong using demoinfo WS"
@@ -366,7 +367,7 @@ class DemoinfoGetDemoView(NavbarReusableMixinMF,TemplateView):
 
 			# print "Demoinfo  DemoinfoGetDemoView result: ",result
 			# print "result type: ",type(result)
-
+			print "la respuesta es ",HttpResponse(result,content_type='application/json')
 			return HttpResponse(result,content_type='application/json')
 
 
@@ -404,9 +405,8 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 			# modification = None
 			# if form has id field set, I must update, if not, create a new demo
 			try:
-				id = form.cleaned_data['id']
-				id = int(id)
-				print " id ",id
+				old_editor_demoid = form.cleaned_data['id']
+				old_editor_demoid = int(old_editor_demoid)
 			except Exception :
 				pass
 
@@ -434,7 +434,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
 			#  send info to be saved in demoinfo module
 			# save
-			if id is None :
+			if old_editor_demoid is None :
 
 				try:
 					# print (" create demo")
@@ -462,12 +462,12 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 								"editorsdemoid": editorsdemoid,
 								"active": active,
 								"stateID": stateID,
-								"id": id,
+								# "id": id,
 								"zipURL": zipURL,
 								# "creation": creation,
 								# "modification": modification
 					}
-					jsonresult = ipolservices.demoinfo_update_demo(demojson)
+					jsonresult = ipolservices.demoinfo_update_demo(demojson,old_editor_demoid)
 					status,error = get_status_and_error_from_json(jsonresult)
 					jres['status'] = status
 					if error is not None:

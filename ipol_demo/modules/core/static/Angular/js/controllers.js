@@ -16,8 +16,6 @@ IPOLDemoControllers.controller('DemoIndexCtrl',
   [ '$scope','$timeout', '$http', 'proxy_server', 
     function($scope,$timeout, $http, proxy_server) 
     {
-      
-      $scope.internal_demoid = -1;
       $scope.demo_list = undefined;
     
       // Get demo list from server to find the internal demo id
@@ -47,18 +45,14 @@ function($scope, $sce, $http, demo_id, proxy_server, Demo, Params ) {
 //         } );
     
     console.info("get demo list from server");
-    $scope.internal_demoid = -1
-    
+
     // Get demo list from server to find the internal demo id
     $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
     .success(function(demolist) {
         console.info("demolist", demolist);
-        angular.forEach(demolist.demo_list, function(dinfo) {
-            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
-        });
-        if ($scope.internal_demoid>0) {
+        if ($scope.demo_id>0) {
             // Get demo DDL from server
-            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.demo_id+'&returnjsons=True')
             .success(function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
                 if (demo_ddl.status=="OK") {
@@ -218,18 +212,14 @@ IPOLDemoControllers.controller('DemoParamCtrl',
 
 
       console.info("get demo list from server");
-      $scope.internal_demoid = -1
     
       // Get demo list from server to find the internal demo id
       $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
       .success(function(demolist) {
         console.info("demolist", demolist);
-        angular.forEach(demolist.demo_list, function(dinfo) {
-            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
-        });
-        if ($scope.internal_demoid>0) {
+        if ($scope.demo_id>0) {
             // Get demo DDL from server
-            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.demo_id+'&returnjsons=True')
             .success(function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
                 if (demo_ddl.status=="OK") {
@@ -318,18 +308,14 @@ IPOLDemoControllers.controller('DemoWaitCtrl',
 //       );
       
       console.info("get demo list from server ", demo_id);
-      $scope.internal_demoid = -1
     
       // Get demo list from server to find the internal demo id
       $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
       .success(function(demolist) {
         console.info("demolist", demolist)
-        angular.forEach(demolist.demo_list, function(dinfo) {
-            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
-        });
-        if ($scope.internal_demoid>0) {
+        if ($scope.demo_id>0) {
             // Get demo DDL from server
-            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.demo_id+'&returnjsons=True')
             .success(function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
                 if (demo_ddl.status=="OK") {
@@ -405,19 +391,14 @@ IPOLDemoControllers.controller('DemoResultCtrl',
 
 
       console.info("get demo list from server");
-      $scope.internal_demoid = -1
-    
+
       // Get demo list from server to find the internal demo id
       $http.get(proxy_server+'/?module=demoinfo&service=demo_list')
       .success(function(demolist) {
         console.info("demolist", demolist);
-        angular.forEach(demolist.demo_list, function(dinfo) {
-            if (dinfo.editorsdemoid==demo_id) $scope.internal_demoid = dinfo.id;
-        });
-        
-        if ($scope.internal_demoid>0) {
+        if ($scope.demo_id>0) {
             // Get demo DDL from server
-            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.internal_demoid+'&returnjsons=True')
+            $http.get(proxy_server+'/?module=demoinfo&service=read_last_demodescription_from_demo&demo_id='+$scope.demo_id+'&returnjsons=True')
             .success(function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
                 if (demo_ddl.status=="OK") {

@@ -62,16 +62,15 @@
 
         {#  Demo list #}
         {% with data=list_demos %}
-
             {% if status == "OK" %}
 
                 {% if data %}
                     {% for demo in data %}
 
-                        <div class="demo" id="demo_info_{{ demo.id }}" >
+                        <div class="demo" id="demo_info_{{ demo.editorsdemoid }}" >
 
                             <div class="row">
-                                {#  <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.id }}</span> </div>#}
+                                {#  <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.editorsdemoid }}</span> </div>#}
                                 <div class="col-sm-4">
                                     <div class="griditem">
                                         {% trans 'id' %}:<span class="badge">{{ demo.editorsdemoid }}</span>
@@ -108,10 +107,10 @@
 
                                 <div class=" col-sm-4">
                                     {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.id %}',{{ demo.id }} ,{{ demo.editorsdemoid }} ,'{{ demo.title }}' )">{% trans 'Delete' %}</a>
+                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.editorsdemoid %}',{{ demo.editorsdemoid }} ,{{ demo.editorsdemoid }} ,'{{ demo.title }}' )">{% trans 'Delete' %}</a>
 
                                     {#  btn Edit demo #}
-                                    <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.id %}', {{ demo.id }}  )">{% trans 'Edit' %}</a>
+                                    <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.editorsdemoid %}', {{ demo.editorsdemoid }}  )">{% trans 'Edit' %}</a>
 
                                 </div>
 
@@ -122,13 +121,13 @@
 
 
                                     {#  btn Edit demo's DDL #}
-                                    <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.id %}', {{ demo.id }} )">{% trans 'DDL' %}</a>
+                                    <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.editorsdemoid %}', {{ demo.editorsdemoid }} )">{% trans 'DDL' %}</a>
 
                                     {#  btn Edit demo's AUTHORS #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.id %}">{% trans 'AUTHORS' %}</a>
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.editorsdemoid %}">{% trans 'AUTHORS' %}</a>
 
                                     {#  btn Edit demo's EDITORS #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_editors' demo.id %}">{% trans 'EDITORS' %}</a>
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_editors' demo.editorsdemoid %}">{% trans 'EDITORS' %}</a>
 
                                     {#  btn Edit demo's DEMO EXTRAS #}
                                     <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demo_extras' demo.editorsdemoid %}">{% trans 'DEMO EXTRAS' %}</a>
@@ -522,17 +521,17 @@
 
 
         {#  show/edit Demo modal  #}
-        function send_get_demo_request(wsurl,demo_id){
+        function send_get_demo_request(wsurl,editor_demo_id){
             console.log(wsurl);
-            console.log(demo_id);
+            console.log(editor_demo_id);
 
-            if (demo_id === undefined) {
-                console.log("send_get_demo_request  demo_id === undefined");
-                // demo_id was not passed, just open create modal
+            if (editor_demo_id === undefined) {
+                console.log("send_get_demo_request  editor_demo_id === undefined");
+                // editor_demo_id was not passed, just open create modal
                 $($modal_demo_header).html('<h3>New Demo data</h3>');
                 //clear data
                 $($modal_demo_msg_div).html('');
-                $($form_demo_field_demo_id).get(0).value = '';
+                <!--$($form_demo_field_demo_id).get(0).value = '';-->
                 $($form_demo_field_editorsdemo_id).get(0).value = '';
                 $($form_demo_field_title_id).get(0).value = '';
                 $($form_demo_field_abstract_id).get(0).value = '';
@@ -551,13 +550,12 @@
                     success: function(data) {
 
                         console.log(data.status);
-
                         if (data.status=='OK'){
                             //clear modal  error
                             $($modal_demo_msg_div).html('');
 
                             //edit/show demo
-                            if ( data.id ){
+                            if ( data.editorsdemoid ){
 
                                 console.log(" GEt form demo data");
                                 //Load ddl data in form
@@ -569,7 +567,7 @@
                                 {#  $($form_ddl_field_demo_id).get(0).value = demo_id;#}
                                 {#  $($form_ddl_field_ddl_id).get(0).value = data.last_demodescription.id;#}
                                 {#  $($form_ddl_field_ddljson).get(0).value = $.parseJSON(data.last_demodescription.json);#}
-                                $($form_demo_field_demo_id).get(0).value = data.id;
+                                $($form_demo_field_demo_id).get(0).value = data.editorsdemoid;
                                 $($form_demo_field_editorsdemo_id).get(0).value = data.editorsdemoid;
                                 $($form_demo_field_title_id).get(0).value = data.title;
                                 $($form_demo_field_abstract_id).get(0).value = data.abstract;

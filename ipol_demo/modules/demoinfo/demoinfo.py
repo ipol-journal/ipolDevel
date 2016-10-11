@@ -236,26 +236,25 @@ class DemoInfo(object):
     def demo_list(self):
         data = {}
         data["status"] = "KO"
-        demo_list=list()
+        demo_list = list()
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             for d in demo_dao.list():
-                #convert to Demo class to json
+                # convert to Demo class to json
                 demo_list.append(d.__dict__)
-            
             data["demo_list"] = demo_list
             data["status"] = "OK"
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_list",error_string)
+            self.error_log("demo_list", error_string)
             try:
                 conn.close()
             except Exception as ex:
                 pass
-            #raise Exception
+            # raise Exception
             data["error"] = error_string
 
         return json.dumps(data)
@@ -403,7 +402,6 @@ class DemoInfo(object):
                 pass
             #raise Exception
             data["error"] = error_string
-
         return json.dumps(data)
 
 
@@ -586,9 +584,7 @@ class DemoInfo(object):
 
 
     def read_demo(self, demoid):
-        print
-        print "demoid", demoid
-        print
+
         demo=None
         try:
             id =int(demoid)
@@ -627,15 +623,12 @@ class DemoInfo(object):
     def read_demo_metainfo(self, demoid):
         data = dict()
         data["status"] = "KO"
-        print "params ",demoid
-        print "params ",type(demoid)
-
         try:
 
             demo = self.read_demo(demoid)
             if demo is None:
                 raise ValueError("No demo retrieved for this id")
-            data["id"] = demo.id
+            # data["id"] = demo.id
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
             data["abstract"] = demo.abstract
@@ -671,7 +664,7 @@ class DemoInfo(object):
             if demo is None:
                 raise ValueError("No demo retrieved for this id")
 
-            data["id"] = demo.id
+            #data["id"] = demo.id
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
             data["abstract"] = demo.abstract
@@ -708,7 +701,6 @@ class DemoInfo(object):
         data = {}
         data["status"] = "KO"
 
-
         try:
 
             active = convert_str_to_bool(active)
@@ -723,23 +715,22 @@ class DemoInfo(object):
                 dddao = DemoDescriptionDAO(conn)
                 demodescriptionID = dddao.add(demodescriptionJson)
                 d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
-                demoid=dao.add(d)
+                editorsdemoid=dao.add(d)
                 dddao=DemoDemoDescriptionDAO(conn)
-                dddao.add(int(demoid),int(demodescriptionID))
+                dddao.add(int(editorsdemoid),int(demodescriptionID))
 
             elif demodescriptionID:
                 # print "demodescriptionID"
                 #asigns to demo an existing demodescription
                 d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
-                demoid = dao.add(d)
+                editorsdemoid = dao.add(d)
                 ddddao=DemoDemoDescriptionDAO(conn)
-                ddddao.add(int(demoid),int(demodescriptionID))
+                ddddao.add(int(editorsdemoid),int(demodescriptionID))
 
             else:
                 #demo created without demodescription
                 #careful with Demo init method's validation!
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract, zipurl=zipURL, active=int(active), stateid=int(stateID))
-                print "aki"
                 demoid = dao.add(d)
 
             conn.close()
@@ -789,7 +780,6 @@ class DemoInfo(object):
 
 
             #print "hard_delete",hard_delete
-
             if hard_delete:
 
                 demo_dao = DemoDAO(conn)
@@ -797,7 +787,8 @@ class DemoInfo(object):
                 demo = demo_dao.read(int(demo_id))
 
                 dd_dao = DemoDemoDescriptionDAO(conn)
-
+                print "demo id", demo_id
+                print "demo", demo.editorsdemoid
                 #read demo_demodescription
                 # demo_ddl_list = dd_dao.read_demo_demodescriptions(int(demo_id))
                 # print
@@ -838,37 +829,32 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def update_demo(self,demo):
+    def update_demo(self,demo,old_editor_demoid):
         data = {}
         data["status"] = "KO"
         #get payload from json object
         p = Payload(demo)
-
         # print
         # print "update_demo"
         # print "p.active" ,p.active
         # print "p " ,p
         # print "p type" ,type(p)
         # print
-
         #convert payload to Demo object
         if hasattr(p, 'creation'):
             #update creatio ndate
 
-
-
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id, p.creation)
+            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.creation)
         else:
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID, p.id)
+            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.active, p.stateID)
 
         #update Demo
         try:
 
 
-
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
-            dao.update(d)
+            dao.update(d,int(old_editor_demoid))
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
@@ -880,7 +866,6 @@ class DemoInfo(object):
                 pass
             #raise Exception
             data["error"] = error_string
-
 
 
         return json.dumps(data)
@@ -1077,8 +1062,6 @@ class DemoInfo(object):
     def add_author(self,name, mail):
         data = {}
         data["status"] = "KO"
-
-        print "demoinfo add_author "
         try:
             a = Author( name, mail)
             conn = lite.connect(self.database_file)
@@ -1164,7 +1147,7 @@ class DemoInfo(object):
             if demolist:
                 #remove author from demos
                 for demo in demolist:
-                    dadao.remove_author_from_demo(demo.id,authorid)
+                    dadao.remove_author_from_demo(demo.editorsdemoid,authorid)
 
             #deletes the author
             adao = AuthorDAO(conn)
@@ -1487,7 +1470,6 @@ class DemoInfo(object):
         try:
 
             editorid=int(editor_id)
-
             conn = lite.connect(self.database_file)
             dedao = DemoEditorDAO(conn)
             #deletes the author relation with its demos
@@ -1495,12 +1477,10 @@ class DemoInfo(object):
             if demolist:
                 #remove editor from demos
                 for demo in demolist:
-                    dedao.remove_editor_from_demo(demo.id,editorid)
-
+                    dedao.remove_editor_from_demo(demo.editorsdemoid,editorid)
             #deletes the editor
             edao = EditorDAO(conn)
             edao.delete(editorid)
-
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
@@ -1613,7 +1593,6 @@ class DemoInfo(object):
             else:
                 last_demodescription= dd_dao.read_last_demodescription_from_demo(int(demo_id),returnjsons=returnjsons)
 
-            print "last:",last_demodescription
             data["last_demodescription"] = last_demodescription
             data["status"] = "OK"
             conn.close()
