@@ -149,10 +149,13 @@ Miguel Colom - \url{http://mcolom.info}
 \listoffigures
 \newpage
 
-% The Archive module
+% Introduction
 \input{introduction/introduction.tex}
 
-% The Core
+% Project management and development methodology
+\input{methodology/methodology.tex}
+
+% The Core module
 \input{core/core.tex}
 
 % The Proxy module
@@ -304,53 +307,7 @@ sonFlickrFeed({
 
 - A way to get images from the browser in a smartphone with HTML5: \url{http://don.github.io/html-cam/}
 
-
 \ToDo{Keep adding!}
-
-\subsection{Git branches}
-There are two git branches:
-
-\begin{itemize}
-  \item \textbf{master}: development
-  \item \textbf{prod}: production
-\end{itemize}
-
-The {\tt master} branch is the default, where all development contributions are made. The testing server is configured to fetch this branch.
-
-The {\tt prod} branch is for production. It is merged with {\tt master} only when the master is stable and one wants to integrate the changes in production. The production servers fetch this branch.
-
-The {\tt prod} branch was created with:
-\begin{verbatim}
-git checkout -b prod
-git push --set-upstream origin prod
-\end{verbatim}
-
-The .git/config ends up as:
-
-\begin{verbatim}
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	url = git@github.com:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-[branch "prod"]
-	remote = origin
-	merge = refs/heads/prod
-\end{verbatim}
-
-To merge {\tt prod} with {\tt master:}
-\begin{verbatim}
-git checkout prod
-git merge master
-git push
-git checkout master
-\end{verbatim}
 
 
 \section{To Do}
