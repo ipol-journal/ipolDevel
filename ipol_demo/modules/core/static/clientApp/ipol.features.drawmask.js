@@ -103,12 +103,12 @@ ipol.features.DrawMask = function() {
         
     //--------------------------------------------------------------------------
     /**
-     * Create random text as mask
+     * Create random points as mask
      * @function _bernoulli
      * @memberOf ipol.features.DrawMask~
      * @private
      */
-    var _bernoulli = function(){
+    var _bernoulli = function( probability){
         var height = $("#colors_sketch").height();
         var width  = $("#colors_sketch").width();
 
@@ -116,7 +116,7 @@ ipol.features.DrawMask = function() {
         
         for(var y = 0; y < height; y++){
             for(var x = 0; x < width;  x++){
-                if(Math.round(Math.random()*100000)%2 == 1){
+                if(Math.round(Math.random()*100000)/100000 < probability){
                     ctx.fillRect(x,y,1,1);
                 }
             }
@@ -351,6 +351,12 @@ ipol.features.DrawMask = function() {
 //                     limits + ' >'+
                     '</div>';
                     
+        var bernouilli_html =
+                '<div>Bernouilli probability <input  style="width:3em"  type="number" id="bernouilli_prob"'+
+                    limits + ' >'+
+                '<div  style="width:8em;display:inline-block;" id="bernouilli_range" ></div>'+
+                    '</div>';
+
         html += '<table id="drawmask_table" ">'+
                     '<tr>'+
                     //'</tr>'+
@@ -375,6 +381,7 @@ ipol.features.DrawMask = function() {
                             '<div class="drawmask_random" style="padding:2px"> '+
                                 '<button id="drawmask_random_text" style="margin:2px;">Random text</button>'+
                                 '<button id="drawmask_bernouilli" style="margin:2px;">Bernouilli</button>'+
+                                bernouilli_html +
                             '</div>'+
                         '</td>'+
                         '<td>'+
@@ -514,6 +521,24 @@ ipol.features.DrawMask = function() {
             _updateMask();
         }.bind(this));
         
+        // Bernouilli probability
+        $('#bernouilli_range').slider(
+        {
+            value:0.8,
+            min:  0.01,
+            max:  1,
+            step: 0.01,
+            slide: function( event, ui ) {
+                $('#bernouilli_prob').val($('#bernouilli_range').slider('value'));
+            },
+            change: function( event, ui ) {
+                $('#bernouilli_prob').val($('#bernouilli_range').slider('value'));
+            }
+        });
+        $('#bernouilli_prob').on('input', function(){
+            $('#bernouilli_range').slider('value',$('#bernouilli_prob').val());
+        });
+        
         // Set marker tool
         $('#drawmask_marker').click( function() {
             $(".drawmask_tools").css("border","");
@@ -546,7 +571,7 @@ ipol.features.DrawMask = function() {
             $("#colors_sketch").data().sketch.redraw();
             var sketch = $("#colors_sketch").data().sketch;
             sketch.context.fillStyle=sketch.color;
-            _bernoulli();
+            _bernoulli($('#bernouilli_prob').val());
             _updateMask();
         });
     }
