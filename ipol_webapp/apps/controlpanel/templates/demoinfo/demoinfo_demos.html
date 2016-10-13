@@ -303,7 +303,7 @@
         $form_ddl_id='#DDLform';
         //hidden
         $form_ddl_field_demo_id="#DDLform #id_demoid";
-        $form_ddl_field_ddl_id="#DDLform #id_ddlid";
+
         //normal
         $form_ddl_field_ddljson="#DDLform #id_ddlJSON";
         var $ddlform = $($form_ddl_id);
@@ -419,7 +419,6 @@
                                 //console.log(data.last_demodescription);
                                 $($modal_ddl_header).html('<h3>Edit DDL data</h3>');
                                 $($form_ddl_field_demo_id).get(0).value = demo_id;
-                                $($form_ddl_field_ddl_id).get(0).value = data.last_demodescription.id;
                                 //gets json str (result of retrieving str from db)
                                 $($form_ddl_field_ddljson).get(0).value = $.parseJSON(data.last_demodescription.json);
                                 $($modal_ddl_id).modal('show');
@@ -431,7 +430,6 @@
                                 //Reset Form
                                 $($modal_ddl_header).html('<h3>New DDL data</h3>');
                                 $($form_ddl_field_demo_id).get(0).value = demo_id;
-                                $($form_ddl_field_ddl_id).get(0).value = '';
                                 $($form_ddl_field_ddljson).get(0).value = '';
                                 $($modal_ddl_id).modal('show');
                                 $ddlform.show();
@@ -467,7 +465,6 @@
                 {# dataType: "json",#}
                 data: $serializedData,
                 success: function(data) {
-
                     console.log("AJAX CALL status: "+data.status);
                     if (data.status == "OK") {
                         $($modal_ddl_msg_div).html('DDL saved').show();
@@ -531,7 +528,7 @@
                 $($modal_demo_header).html('<h3>New Demo data</h3>');
                 //clear data
                 $($modal_demo_msg_div).html('');
-                <!--$($form_demo_field_demo_id).get(0).value = '';-->
+                $($form_demo_field_demo_id).get(0).value = '';
                 $($form_demo_field_editorsdemo_id).get(0).value = '';
                 $($form_demo_field_title_id).get(0).value = '';
                 $($form_demo_field_abstract_id).get(0).value = '';

@@ -159,6 +159,7 @@ class DemoInfo(object):
                                                    self.dl_extras_dir, \
                                                    demo_id,\
                                                    self.demoExtrasFilename)
+                print data['url_compressed_file']
                 data['code'] = "2"
             else:
                 data['code'] = "1"
@@ -195,6 +196,41 @@ class DemoInfo(object):
         except Exception as ex:
             data['status']= "KO"
             self.error_log("Failure in delete_compressed_file_ws ",str(ex))
+        return json.dumps(data)
+
+
+    @cherrypy.expose
+    def add_compressed_file_ws(self, demo_id,**kwargs):
+        """
+        WS for deleting the compressed demo extra file of a demo
+        """
+        """
+        :param demo_id: demo id integer
+        :return status
+        """
+        data = {}
+        data['status'] = "OK"
+        file = None
+        try:
+            file = kwargs['file']
+            assert isinstance(file, cherrypy._cpreqbody.Part)
+            extras_folder = os.path.join(self.dl_extras_dir, demo_id)
+            if(file is not None):
+                name, ext = os.path.splitext(file.filename)
+                data['name'] = name
+                data['ext'] = ext
+                if not os.path.exists(extras_folder):
+                    os.makedirs(extras_folder)
+                print"hola"
+
+                with open(file.filename, 'wb') as the_file:
+                    shutil.copyfileobj(file.file, the_file)
+            else:
+                data['status'] = "KO"
+        except Exception as ex:
+            data['status'] = "KO"
+            # data['error'] = ex
+
         return json.dumps(data)
 
   
@@ -1637,66 +1673,52 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def add_demo_description(self,demoid=None,inproduction=None):
-        #def add_demo_description(self, demojson):
+    def save_demo_description(self,demoid):
+        #def save_demo_description(self, demoid):
         #recieves a valid json as a string AS POST DATA
         #http://stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
 
+        inproduction = 1 #This shouldn't be necessary in the demoDescription and should be removed
         data = {}
         data["status"] = "KO"
 
         cl = cherrypy.request.headers['Content-Length']
-        rawbody = cherrypy.request.body.read(int(cl))
-        # print
-        # print "++++ rawbody",rawbody
-        # print "++++ is_json",is_json(rawbody)
-        # print "++++ rawbody type: ",type(rawbody) #json str
-        # print
-        # demojson = json.loads(rawbody)
-        # print
-        # print "++++ demojson: ",demojson
-        # print "++++ is_json: ",is_json(demojson)
-        # print "++++ demojson type: ",type(demojson) #dict unicode
-        # print
-        # #http://stackoverflow.com/questions/956867/how-to-get-string-objects-instead-of-unicode-ones-from-json-in-python
-        # import yaml
-        # demojson = yaml.safe_load(rawbody)
-        # print
-        # print "++++ demojson: ",demojson
-        # print "++++ is_json: ",is_json(demojson)
-        # print "++++ demojson type: ",type(demojson) #dict, not unicode
-        # print
+        demojson = cherrypy.request.body.read(int(cl))
 
-        demojson=rawbody
         if not is_json(demojson):
             print
-            print "add_demo_description demojson is not a valid json "
+            print "save_demo_description demojson is not a valid json "
             print "+++++ demojson: ",demojson
             print "+++++ demojson type: ",type(demojson)
             raise Exception
 
         try:
             conn = lite.connect(self.database_file)
-            dao = DemoDescriptionDAO(conn)
+            demo_dao = DemoDAO(conn)
+            state = demo_dao.read(int(demoid)).stateID
+            print "El estado de esta demo es: ", state
+            if (state==3): #If the demo is inactive the DDL is overwritten
+                dao = DemoDemoDescriptionDAO(conn)
+                demodescription_id = dao.read_last_demodescription_from_demo(int(demoid))['demodescriptionId']
+                dao = DemoDescriptionDAO(conn)
+                dao.update(int(demodescription_id),demojson)
 
-            demodescription_id = dao.add(demojson,inproduction=inproduction)
-
-            data["demo_description_id"] = demodescription_id
-
-            if demoid:
+            else:           #Otherwise it's create a new one
+                dao = DemoDescriptionDAO(conn)
+                demodescription_id = dao.add(demojson,inproduction=inproduction)
                 dao = DemoDemoDescriptionDAO(conn)
                 dao.add(int(demoid),int(demodescription_id))
-                data["added_to_demo_id"] = demoid
+
+            data["added_to_demo_id"] = demoid
 
             conn.close()
             #return id
             data["status"] = "OK"
 
-
         except Exception as ex:
-            error_string = "demoinfo add_demo_description error %s" % str(ex)
+            error_string = "demoinfo save_demo_description error %s" % str(ex)
             print error_string
-            self.error_log("add_demo_description",error_string)
+            self.error_log("save_demo_description",error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1744,48 +1766,6 @@ class DemoInfo(object):
             raise Exception
 
         return json.dumps(data)
-
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def update_demo_description(self, demodescriptionID):
-
-        data = {}
-        data["status"] = "KO"
-
-        cl = cherrypy.request.headers['Content-Length']
-        rawbody = cherrypy.request.body.read(int(cl))
-        demojson = rawbody
-        # print
-        # print "ddl type: ",type(demojson)
-        # type is str
-        # print "ddl: ",demojson
-        # print
-
-        if not is_json(demojson):
-            msg= "add_demo_description demojson is not a valid json "
-            raise ValueError(msg)
-
-        try:
-            conn = lite.connect(self.database_file)
-            dao = DemoDescriptionDAO(conn)
-            dao.update(int(demodescriptionID),demojson)
-            conn.close()
-            data["status"] = "OK"
-
-        except Exception as ex:
-            error_string = "demoinfo update_demo_description error %s" % str(ex)
-            print error_string
-            self.error_log("update_demo_description",error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            #raise Exception
-            data["error"] = error_string
-
-        return json.dumps(data)
-
 
     # MISCELLANEA
 

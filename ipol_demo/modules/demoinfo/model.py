@@ -450,7 +450,7 @@ class DemoDemoDescriptionDAO(object):
                         if returnjsons == True or returnjsons == 'True':
 
                                 self.cursor.execute(
-                                        '''SELECT ddl.inproduction,dd.creation,ddl.JSON
+                                        '''SELECT ddl.inproduction,dd.creation,ddl.JSON, ddl.id
                                         FROM demodescription as ddl
                                         INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
                                         INNER JOIN demo ON  demo.ID = dd.demoId
@@ -460,10 +460,10 @@ class DemoDemoDescriptionDAO(object):
                                 self.conn.commit()
                                 row = self.cursor.fetchone()
                                 if row:
-                                        result = {'inproduction': row[0], 'creation': row[1], 'json': row[2]}
+                                        result = {'inproduction': row[0], 'creation': row[1], 'json': row[2], 'demodescriptionId':row[3]}
                         else:
                                 self.cursor.execute(
-                                        '''SELECT ddl.inproduction,dd.creation,ddl.JSON
+                                        '''SELECT ddl.inproduction,dd.creation, ddl.id
                                         FROM demodescription as ddl
                                         INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
                                         INNER JOIN demo ON  demo.ID = dd.demoId
@@ -473,13 +473,12 @@ class DemoDemoDescriptionDAO(object):
                                 self.conn.commit()
                                 row = self.cursor.fetchone()
                                 if row:
-                                        result = {'id': row[0], 'inproduction': row[1], 'creation': row[2]}
+                                        result = {'inproduction': row[0], 'creation': row[1], 'demodescriptionId':row[2]}
 
                 except Exception as ex:
                         error_string = ("read_last_demodescription_from_demo  e:%s" % (str(ex)))
                         print (error_string)
                 return result
-
 
         @validates(typ(int))
         def read_demodescrption_demos(self, demodescriptionid):

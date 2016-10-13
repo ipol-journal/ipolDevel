@@ -5,13 +5,15 @@ from ipol_webapp.settings import IPOL_SERVICES_MODULE_PROXY, IPOL_SERVICES_MODUL
 __author__ = 'josearrecio'
 import json
 import requests
+# from poster.encode import MultipartParam
+from django.core.files.base import ContentFile
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
 	archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
 	archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
 	demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
-	demoinfo_ws_url_last_demodescription_from_demo,demoinfo_ws_url_update_demo_description, \
-	demoinfo_ws_url_add_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
+	demoinfo_ws_url_last_demodescription_from_demo, \
+	demoinfo_ws_url_save_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
 	demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
 	demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
 	demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo, \
@@ -20,7 +22,8 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
 	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
 	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_list_for_demo, \
-	demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, proxy_ws_url_stats, proxy_ws_url_service_call
+	demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
+	proxy_ws_url_stats, proxy_ws_url_service_call,demoinfo_ws_url_add_demo_extra_to_demo
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ def is_json(myjson):
 	return True
 
 #todo add param for html verb, get post etc
-def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
+def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None, files=None):
 	"""
 
 	:param ws_url:
@@ -52,7 +55,8 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 
 	"""
 	#todo if needeed insert schema validation here
-	result = None
+	# result = None
+	# ws_url="http://127.0.1.1:9003/proxy_post"
 	# print
 	# print "SEND WS, get_JSON_from_webservice"
 	# print
@@ -63,14 +67,20 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None):
 	# print "METHOD",type(METHOD)
 	# print
 	try:
-
+		print "ws_url={}, METHOD={}, params={},json={}, files={}" .format(ws_url,METHOD, params,json, files)
 		if not METHOD or METHOD=='GET':
 			response = requests.get(ws_url,params=params)
 		elif METHOD=='POST':
 			if json is not None:
-				response = requests.post(ws_url,params=params, json=json)
+				if file is not None:
+					response = requests.post(ws_url, params=params, json=json, files=files)
+				else:
+					response = requests.post(ws_url,params=params, json=json)
 			else:
-				response = requests.post(ws_url,params=params)
+				if file is not None:
+					response = requests.post(ws_url, params=params, files=files)
+				else:
+					response = requests.post(ws_url,params=params)
 		else:
 			msg="get_JSON_from_webservice: Not valid METHOD: %s" % result
 			logger.error(msg)
@@ -183,44 +193,14 @@ def demoinfo_read_demo_description(demo_descp_id):
 
 
 
+def demoinfo_save_demo_description(pjson,demoid):
 
-def demoinfo_update_demo_description(demodescriptionID,pjson=None):
-
-	#pjson is unicode str, directly returned from form cleaned data, its is sent as the body of the post request
-	# to demoinfo update_demo_description (no need to json dump, this would result in doubly-encoding JSON strings)
-
-	# print
-	# print "demoinfo_update_demo_description"
-	# print
-
-	service_name = demoinfo_ws_url_update_demo_description
+	service_name = demoinfo_ws_url_save_demo_description
 
 	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
 	#proxy can be called by GET or POST, prefer POST if submiting data to server
 	module = "demoinfo"
-	serviceparams = {'demodescriptionID': demodescriptionID}
-	#send as string to proxy, proxy will load this into a dict for the request lib call
-	serviceparams = json.dumps(serviceparams)
-	servicehttpmethod = "POST"
-	servicejson = pjson
-	proxyparams = {'module': module,'service': service_name ,'servicehttpmethod':servicehttpmethod ,'params': serviceparams,'jsonparam': servicejson}
-	return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
-
-
-
-def demoinfo_add_demo_description(pjson,demoid=None,inproduction=None):
-
-	service_name = demoinfo_ws_url_add_demo_description
-
-	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
-	#proxy can be called by GET or POST, prefer POST if submiting data to server
-	module = "demoinfo"
-	if demoid is not None and inproduction is not None:
-		serviceparams = {'demoid': demoid,'inproduction':inproduction}
-	elif demoid is not None:
-		serviceparams = {'demoid': demoid}
-	elif inproduction is not None:
-		serviceparams = {'inproduction':inproduction}
+	serviceparams = {'demoid': demoid}
 	#send as string to proxy, proxy will load this into a dict for the request lib call
 	serviceparams = json.dumps(serviceparams)
 	servicehttpmethod = "POST"
@@ -642,7 +622,31 @@ def demoinfo_delete_demo_extras_from_demo(demo_id):
 	proxyparams = {'module': "demoinfo",'service': service_name,'servicehttpmethod': "POST",'params': serviceparams,'jsonparam': servicejson}
 	return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
 
+def demoinfo_add_demo_extra_to_demo(demo_id, request):
 
+	service_name = demoinfo_ws_url_add_demo_extra_to_demo
+	files=None
+
+	try:
+		# files["file"] = MultipartParam("file", filename=myfile.name, filetype=myfile.content_type, fileobj=myfile.file)
+		myfile = request.FILES['myfile']
+		print "1El fichero seleccionado es",myfile.name
+		print "2El fichero seleccionado es",myfile.content_type
+		print "3El fichero seleccionado es",myfile.file
+		# print "44El fichero seleccionado es", myfile.fileno()
+		# myfile = ContentFile(myfile.read())
+
+		files = {'file_0': myfile.file}
+
+	except Exception as ex:
+		print "hola", str(ex)
+
+	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+	serviceparams = {'demo_id': demo_id}
+	serviceparams = json.dumps(serviceparams)
+	servicejson = None
+	proxyparams = {'module': "demoinfo", 'service': service_name, 'servicehttpmethod': "POST", 'params': serviceparams,'jsonparam': servicejson}
+	return get_JSON_from_webservice(proxywsurl, 'POST', params=proxyparams,files=files)
 
 
 ####################

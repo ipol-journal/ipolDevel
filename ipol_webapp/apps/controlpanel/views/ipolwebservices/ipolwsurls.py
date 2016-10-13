@@ -66,10 +66,7 @@ demoinfo_ws_url_read_demo_description =  'read_demo_description'
 demoinfo_ws_url_last_demodescription_from_demo =  'read_last_demodescription_from_demo'
 # params  demoid,returnjsons=False, result = {'id': row[0], 'inproduction': row[1], 'creation': row[2], 'json': row[3]}
 
-demoinfo_ws_url_update_demo_description =  'update_demo_description'
-# params demodescriptionID  returns data["status"] = "OK"
-
-demoinfo_ws_url_add_demo_description =  'add_demo_description'
+demoinfo_ws_url_save_demo_description =  'save_demo_description'
 # params demoid=None result: ["demo_description_id"] = demodescription_id ["added_to_demo_id"] = demoid ["status"] = "OK"
 
 demoinfo_ws_url_read_states =  'read_states'
@@ -163,6 +160,8 @@ demoinfo_ws_url_delete_editor_from_demo =  'remove_editor_from_demo'
 demoinfo_ws_url_demo_extras_list_for_demo = 'get_compressed_file_url_ws'
 #param demo_id returns JSON {"status" : "OK", "code" : "2", "url_compressed_file" : "ruta/DemoExtras.tar.gz"}
 demoinfo_ws_url_delete_demo_extras_from_demo = 'delete_compressed_file_ws'
+#method: POST param demo_id
+demoinfo_ws_url_add_demo_extra_to_demo = 'add_compressed_file_ws'
 #method: POST param demo_id
 
 ####################

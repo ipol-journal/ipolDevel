@@ -58,15 +58,12 @@
 		{% with data=view.list_demo_extras_for_demo %}
 			{#  Add Demo Extras btn #}
 			<div class="container">
-				{% if data.code == "2" %}
-					<a class="btn btn-primary" onclick="" >{% blocktrans %}Change Demo Extra{%  endblocktrans %}</a>
-					<!--<input type="file" class="btn btn-primary">-->
-				{% else %}
-					<a class="btn btn-primary" onclick="" >{% blocktrans %}Add New Demo Extra{%  endblocktrans %}</a>
-				{% endif %}
+				<form id="frm" action="{% url 'ipol.cp.demoinfo.add_demo_extra_to_demo'  demo_id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+					<input type="file" id="file" name="myfile" />
+					<!--<input type="submit" value="Upload" />-->
+				</form>
 				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
 			</div>
-
 
 			{% if data.status == "OK" %}
 				{% if data.code == "2" %}
@@ -96,7 +93,10 @@
 {% block functionsjs %}
 
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script src="~/Scripts/js/jquery.validate.js"></script>
+	<script src="http://jquery.bassistance.de/validate/additional-methods.js"></script>
 	<script>
+
 
 		{#  secure AJAX POST to ws ,from django docs  #}
 		function getCookie(name) {
@@ -148,6 +148,7 @@
 					});
 			}
 		}
+
 
 
 	</script>
