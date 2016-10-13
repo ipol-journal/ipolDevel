@@ -120,7 +120,7 @@ elif hostname in dev_machines_hostname:
 	# testing ENV 2
 	IPOL_SERVICES_MODULE_DEMO = None
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
-	IPOL_SERVICES_MODULE_PROXY = 'http://ipolcore.ipol.im:9003/%s'
+	IPOL_SERVICES_MODULE_PROXY = 'http://integration.ipol.im:9003/%s'
 	# 	#urls to access the modules by proxy
 	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
 	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
@@ -148,7 +148,7 @@ elif hostname in production_machines:
 	#            IPOL WS               #
 	####################################
 	IPOL_SERVICES_MODULE_DEMO = None
-	IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
+	IPOL_SERVICES_MODULE_PROXY = 'http://ipolcore.ipol.im:9003/%s'
 	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
 	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
 	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
