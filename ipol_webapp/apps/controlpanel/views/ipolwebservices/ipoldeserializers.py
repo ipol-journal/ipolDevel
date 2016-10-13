@@ -134,14 +134,13 @@ def DeserializeDemoinfoDemoList(jsonresult):
 	#demodescriptionID is optional a demo may not have one yet!
 
 	class Demo(object):
-		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, id, creation, modification):
+		def __init__(self, editorsdemoid, title, abstract, zipURL, active, stateID, creation, modification):
 			self.editorsdemoid = editorsdemoid
 			self.title = title
 			self.abstract = abstract
 			self.zipURL = zipURL
 			self.active = active
 			self.stateID = stateID
-			self.id = id
 			self.creation = creation
 			self.modification = modification
 
@@ -168,7 +167,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
 		active = serializers.IntegerField()
 		stateID = serializers.IntegerField()
 		#demodescriptionID = serializers.IntegerField(required=False)
-		id = serializers.IntegerField()
 		creation = serializers.DateTimeField()
 		modification = serializers.DateTimeField()
 
@@ -447,7 +445,42 @@ def DeserializeDemoinfoEditorList(jsonresult):
 
 	return myel
 
+#DEMO EXTRAS
 
+def DeserializeDemoinfoDemoExtrasList(jsonresult):
+
+	class DemoExtra(object):
+		def __init__(self, status,code,url_compressed_file,name):
+			self.status = status
+			self.code = code
+			self.name = name
+			self.url_compressed_file = url_compressed_file
+
+
+	#Using data from WS
+	jsondata = jsonresult
+	import json
+	#Deserialization.
+	myel = None
+	try:
+
+		stream = BytesIO(jsondata)
+		data = JSONParser().parse(stream)
+		if data['status'] == "OK":
+			if data['code'] == "2":
+				url = data['url_compressed_file']
+				name = url.split("/")
+				myel = DemoExtra(data['status'],data['code'], url,name[len(name)-1])
+			else:
+				myel = DemoExtra(data['status'],data['code'], "","")
+
+	except Exception,e:
+		msg="Error DeserializeEditorinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
+		logger.error(msg)
+		print(msg)
+		#logger.error(serializer.errors)
+
+	return myel
 
 
 ####################

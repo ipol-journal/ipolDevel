@@ -33,7 +33,7 @@ ipol.ImageGallery = function(galleryid)  {
      * @memberOf ipol.ArchiveDisplay~
      * @private
      */
-    var _verbose=true;
+    var _verbose=false;
 
     //--------------------------------------------------------------------------
      /**

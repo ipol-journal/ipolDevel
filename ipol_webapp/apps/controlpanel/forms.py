@@ -22,7 +22,6 @@ class DDLform(forms.Form):
 
 	#hidden
 	demoid = forms.IntegerField(label='demoid',required=True)
-	ddlid = forms.IntegerField(label='ddlid',required=False)
 	#normal
 	ddlJSON = forms.CharField(label='ddlJSON',widget=forms.Textarea)
 
@@ -34,7 +33,6 @@ class DDLform(forms.Form):
 
 	helper.layout = Layout(
 		Field('demoid', type='hidden'),
-		Field('ddlid', type='hidden'),
 		Field('ddlJSON', rows="8", css_class='form-control'),
 		FormActions(
 			Submit('save_ddl', 'Save', css_class="btn-primary"),

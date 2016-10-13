@@ -3,8 +3,9 @@
 # Pylint report
 # Miguel Colom, 2016
 
-modulesDir="/home/ipol/ipolDevel/ipol_demo/modules/"
-report="/home/ipol/ipolDevel/ci_tests/pylint_report.txt"
+me=$(whoami)
+modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
+report="/home/${me}/ipolDevel/ci_tests/pylint_report.txt"
 modules="core archive blobs demoinfo demorunner proxy"
 
 
@@ -17,7 +18,7 @@ echo >> ${report}
 for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
-    pylint ${modulesDir}${module}/*.py >> ${report}
+    pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc ${modulesDir}${module}/*.py >> ${report}
 done
 
 # Send report by email

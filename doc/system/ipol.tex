@@ -79,6 +79,7 @@
       {]}{{{\color{delim}{]}}}}{1},
 }
 
+\lstset{language=Bash, basicstyle=\color{gray}}
 
 \newcommand{\ToDo}[1]{\textcolor{magenta}{\textbf{[ToDo]} \textbf{#1}}}
 \newcommand{\miguel}[1]{\textcolor{magenta}{\textbf{[Miguel]} \textbf{#1}}}
@@ -120,8 +121,6 @@ José Arrecio
 
 Miguel Colom
 
-Joan Duran
-
 Carlos Escobar
 
 Vincent Firmin
@@ -150,10 +149,13 @@ Miguel Colom - \url{http://mcolom.info}
 \listoffigures
 \newpage
 
-% The Archive module
+% Introduction
 \input{introduction/introduction.tex}
 
-% The Core
+% Project management and development methodology
+\input{methodology/methodology.tex}
+
+% The Core module
 \input{core/core.tex}
 
 % The Proxy module
@@ -167,7 +169,6 @@ Miguel Colom - \url{http://mcolom.info}
 
 % The Demo Info module
 \input{demo_info/demo_info.tex}
-\ToDo{Secure access to Ws, oauth perhaps?}
 
 % The Demo Dispatcher module
 \input{demo_dispatcher/demo_dispatcher.tex}
@@ -178,114 +179,10 @@ Miguel Colom - \url{http://mcolom.info}
 % The Control Terminal 
 \input{terminal/terminal.tex}
 
+% System administration
+\input{sysadmin/sysadmin.tex}
 
-
-\section{System administration}
-\ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
-
-- Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
-Cron controls it. To add the cron line, use {\tt crontab -e} as root.
-
-The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
-
-For example, to run the backup script once per week at 3:00h, add this line:
-
-{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
-
-- Cleanup. The script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
-
-{\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
-
-- PyLint report. The script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
-
-To execute each month, the following line needs to be added with {\tt crontab -e} as root.
-
-{\tt 0 15 * * 2 /home/ipol/ipolDevel/ci\_tests/pylint.sh}
-
-
-
-\subsection{GitHub deploy key}
-The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
-
-For example:
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-\end{verbatim}
-
-\vspace{0.15cm}
-
-\begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
-host github_deploy
-      hostname github.com
-      user git
-      identityfile ~/.ssh/id_rsa
-
-ipol@smartalgo:~/ipolDevel$ cat .git/config 
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	#url = https://github.com/mcolom/ipolDevel
-	url = git@github_deploy:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-\end{verbatim}
-
-We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH connection.
-
-\subsection{Setup of a new machine}
-When a new machine is added to the IPOL infrastructure, the following needs to be done:
-- Create the {\tt ipol} user in a new machine: {\tt adduser --disabled-password ipol}
-
-- Install bash-completion {\tt apt-get install bash-completion}
-
-- Install cron-apt: {\tt apt-get install cron-apt}
-
-And edit /etc/cron-apt/config:
-\begin{verbatim}
-APTCOMMAND=/usr/bin/apt-get
-OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/sources.list"
-SYSLOGON="always"
-\end{verbatim}
-
-- Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
-
-Install mail with {\tt apt-get install mailutils}
-
-To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
-
-
-- Setup priorities and memory limits to the processes of the users.
-
-Added this to /etc/security/limits.conf:
-\begin{verbatim}
-*               soft     priority            17
-ipol            soft     priority            0
-\end{verbatim}
-
-We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
-
-
-%To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
-%
-%More info:
-%
-%\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
-%
-%\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
-
-
-
+% General notes
 \section{General notes}
 In this section we add general comments on the projects, parts which still neeed to be written or coded. In general, information which needs to be documented but has not still found its place in the document. It works as a reminder not to forget.
 
@@ -301,17 +198,20 @@ In this section we add general comments on the projects, parts which still neeed
 \item python2.7
 \item wget: to download files
 \item cmake: to create a multiplatform Makefile easily
-\item libtiff5-dev, libtiff-tools, libjpeg-dev, libpng-dev: open and write TIFF, JPEG, PNG files
+\item libtiff5-dev libtiff-tools libjpeg-dev libpng-dev: open and write TIFF, JPEG, PNG files
 \item libfftw3-dev: fast DFT operations
-\item libgsl0-dev, libeigen3-dev, liblapack-dev, libblas-dev: linear algebra
-\item python, python-dev, python-cherrypy3, python-mako, python-jsonschema: Python language, Python headers, webserver, web templating, JSON
-\item gnuplot, gnuplot-nox: to draw figures
+\item libgsl0-dev libeigen3-dev liblapack-dev libblas-dev: linear algebra
+\item python python3 python-dev python3-dev python-cherrypy3 python-mako python-jsonschema: Python language, Python headers, webserver, web templating, JSON
+\item gnuplot gnuplot-nox: to draw figures
 \item python-pip: to install python packages
 \item python-yaml: for parsing
 \item libpq-dev: PostgreSQL headers
+\item texlive-full: compilation of the LaTeX documentation
 \item libmagic-dev: needed to install python-magic with pip
 \item libav-tools: audio/video tools for demos with these data types
+\item libgsl2 libgsl-dev libgsl-dbg  libblas-dev libblas3 liblapack-dev liblapack: numerical computations with GSL, BLAS, LAPACK
 \end{itemize}
+
 Packages to be installed with pip install:
 \begin{itemize}
 \item python-magic
@@ -407,53 +307,7 @@ sonFlickrFeed({
 
 - A way to get images from the browser in a smartphone with HTML5: \url{http://don.github.io/html-cam/}
 
-
 \ToDo{Keep adding!}
-
-\subsection{Git branches}
-There are two git branches:
-
-\begin{itemize}
-  \item \textbf{master}: development
-  \item \textbf{prod}: production
-\end{itemize}
-
-The {\tt master} branch is the default, where all development contributions are made. The testing server is configured to fetch this branch.
-
-The {\tt prod} branch is for production. It is merged with {\tt master} only when the master is stable and one wants to integrate the changes in production. The production servers fetch this branch.
-
-The {\tt prod} branch was created with:
-\begin{verbatim}
-git checkout -b prod
-git push --set-upstream origin prod
-\end{verbatim}
-
-The .git/config ends up as:
-
-\begin{verbatim}
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	url = git@github.com:mcolom/ipolDevel.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-[branch "prod"]
-	remote = origin
-	merge = refs/heads/prod
-\end{verbatim}
-
-To merge {\tt prod} with {\tt master:}
-\begin{verbatim}
-git checkout prod
-git merge master
-git push
-git checkout master
-\end{verbatim}
 
 
 \section{To Do}
@@ -497,22 +351,6 @@ The idea behind the DDL is to \emph{describe} the demo, not to specify the opera
 In the current system another use of the {\tt params.json} file is to store the lines drawn by the user. It's correct that this data is considered as a parameter, and it's true that perhaps it's too big to be passed as a text string. In any case, if we adopt the solution of keeping the {\tt params.json} file in the run directory, it has to be written by the Core, never by DemoRunner.
 
 - DemoRunner is writing a {\tt results.json} file. Exactly the same bad design issue as in the previous point. That's totally out of the scope of DemoRunner and it should be the Core who eventually would write that file.
-
-- The Archive module has a special case where it reads a JSON file containing results. The task of the archive is to store and serve blobs. It can't be used as a placeholder to store a JSON file with extra data.
-
-It has already a field {\tt params} in its {\tt experiments} table. If we need to have the results too, the way to do it is to add an extra field in that table, not to store a file.
-
-Example of code in the Archive:
-\begin{verbatim}
-   if row[2]=="results from experiment":
-       # load the json file
-       with open(path_file) as data_file:
-	   results_json = json.load(data_file)
-\end{verbatim}
-
-However, within the archive database I wasn't able to find the {\tt results from experiment} text in the {\tt type} column. This needs to be investigated.
-
-
 
 
 \bibliographystyle{plain}

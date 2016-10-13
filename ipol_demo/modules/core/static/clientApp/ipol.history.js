@@ -103,19 +103,21 @@ ipol.history.SetPageState = function( page_state) {
                 di.unsetUploadPageState();
                 di.createHTML();
                 $("#id_cropinput").prop('checked',crop_checked);
-                di.onCropBuilt( function() {
-                    console.info("OnCropBuilt callback");
-                    di.onCropBuilt( undefined);
-                    if (crop_checked) {
+                if (crop_checked) {
+                    di.onCropBuilt( function() {
+                        console.info("OnCropBuilt callback");
+                        di.onCropBuilt( undefined);
                         // does not work yet
                         console.info("crop_area is ", crop_area);
                         di.setCrop(crop_area);
-                    }
-                });
-                di.onLoadImages( function() {
-                    console.info("**** OnLoadImages callback");
-                    onload_callback();
-                });
+                        onload_callback();
+                    });
+                } else {
+                    di.onLoadImages( function() {
+                        console.info("**** OnLoadImages callback");
+                        onload_callback();
+                    });
+                }
                 di.loadDataFromBlobSet();
             } else {
                 console.info("5");
@@ -126,7 +128,10 @@ ipol.history.SetPageState = function( page_state) {
                         di.onCropBuilt( function() { 
                             di.setCrop(crop_area); 
                             di.onCropBuilt(undefined); 
+                            onload_callback();
                         });
+                    } else {
+                        onload_callback();
                     }
                     $("#id_cropinput").prop('checked',crop_checked);
                     console.info('trigger croinput change');
@@ -137,16 +142,9 @@ ipol.history.SetPageState = function( page_state) {
                         console.info("crop_area is ", crop_area);
                         di.setCrop(crop_area);
                     }
+                    onload_callback();
                 }
-                onload_callback();
             }
-            var run = new ipol.RunDemo(ddl_json,
-                                       di.getInputOrigin(),
-                                       di.getCropInfo(),
-                                       di.getBlobSet(), 
-                                       di.getDrawFeature()
-                                      );
-            run.setRunEvent();
         }
         if (upload_state) {
             console.info("10");
@@ -157,20 +155,18 @@ ipol.history.SetPageState = function( page_state) {
                 if (upload_res==0) {
                     di.createHTML();
                     $("#id_cropinput").prop('checked',crop_checked);
-                    di.onCropBuilt( function() {
-                        console.info("OnCropBuilt callback");
-                        di.onCropBuilt( undefined);
-                        if (crop_checked) {
-                            console.info("crop_area is ", crop_area);
+                    if (crop_checked) {
+                        di.onCropBuilt( function() {
+                            console.info("OnCropBuilt callback");
+                            di.onCropBuilt( undefined);
                             di.setCrop(crop_area);
-                        }
-                    });
-                    di.onLoadImages( function() {
-                        console.info("OnLoadImages callback");
-                        // we set the parameters once all images are loaded
-                        SetParamsState(page_state.res.params);
-                        onload_callback();
-                    });
+                            onload_callback();
+                        });
+                    } else {
+                        di.onLoadImages( function() {
+                            onload_callback();
+                        });
+                    }
                     di.loadDataFromLocalFiles();
                 } else {
                     // data alread loaded, setting crop
@@ -180,7 +176,10 @@ ipol.history.SetPageState = function( page_state) {
                             di.onCropBuilt( function() { 
                                 di.setCrop(crop_area); 
                                 di.onCropBuilt(undefined); 
+                                onload_callback();
                             });
+                        } else {
+                            onload_callback();
                         }
                         $("#id_cropinput").prop('checked',crop_checked);
                         console.info('trigger croinput change');
@@ -189,17 +188,10 @@ ipol.history.SetPageState = function( page_state) {
                         if (crop_checked) {
                             console.info("crop_area is ", crop_area);
                             di.setCrop(crop_area);
+                            onload_callback();
                         }
                     }
-                    onload_callback();
                 }
-                var run = new ipol.RunDemo(ddl_json,
-                                           di.getInputOrigin(),
-                                           di.getCropInfo(),
-                                           di.getBlobSet(), 
-                                           di.getDrawFeature()
-                                          );
-                run.setRunEvent();
             } else {
                 $("#DrawInputs").empty();
                 $("#DrawInputs").removeData();
@@ -259,6 +251,9 @@ ipol.history.SetPageState = function( page_state) {
             // disable it 
             console.info("dr=",dr);
             // dr.onloadall_callback=undefined;
+            // Set Progress information
+            ipol.RunDemo.staticSetProgress(res);
+            
         });
         dr.create();
         //$("#progressbar").get(0).scrollIntoView();
@@ -281,19 +276,27 @@ ipol.history.SetPageState = function( page_state) {
                         page_state.res.params,
                         page_state.crop_checked,
                         function() {
+                            
+                            // Create RunDemo instance
+                            var di = $("#DrawInputs").data("draw_inputs");
+                            var run = new ipol.RunDemo( page_state.ddl_json,
+                                                        di.getInputOrigin(),
+                                                        di.getCropInfo(),
+                                                        di.getBlobSet(), 
+                                                        di.getDrawFeature()
+                                                        );
+                            run.setRunEvent();
+                            
                             // update parameters once the inputs
                             // are loaded
                             SetDrawFeatureState(  page_state.feature_state);
                             SetParamsState(       page_state.res.params);
+                            SetResultsState(      page_state.res,
+                                                  page_state.ddl_json.results,
+                                                  page_state.scrolltop);
                         }
                     );
                     
-                    // Set Progress information
-                    ipol.RunDemo.staticSetProgress(page_state.res);
-                    
-                    SetResultsState(page_state.res,
-                                    page_state.ddl_json.results,
-                                    page_state.scrolltop);
                     break;
                 // state 1: after demo selection
                 case 1:

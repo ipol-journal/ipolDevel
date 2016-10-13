@@ -199,8 +199,8 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             _starttime = new Date().getTime();
             val=start;
         }
-        _progressbar.progressbar( "value", val + 2 );
-        if ( val < 99 ) {
+        if (val+2<=100) {
+            _progressbar.progressbar( "value", val + 2 );
             var current_time = new Date().getTime();
             var elapsed = current_time-_starttime;
             // if less than 2 sec, show progress every 1/10 sec
@@ -394,7 +394,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             // fill form data to upload
             var form_data = new FormData();
             form_data.append("demo_id",         _ddl_json.demo_id);
-            form_data.append("internal_demoid", _ddl_json.internal_demoid);
+            //form_data.append("internal_demoid", _ddl_json.internal_demoid);
             form_data.append("original",        _input_origin==="localfiles");
 
             // create parameters

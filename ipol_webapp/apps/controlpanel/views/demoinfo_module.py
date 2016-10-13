@@ -12,10 +12,11 @@ from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
 	get_demoinfo_available_editor_list, get_demoinfo_module_states
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
-	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList
+	DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList,DeserializeDemoinfoDemoExtrasList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
+from django import forms
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ __author__ = 'josearrecio'
 PAGINATION_ITEMS_PER_PAGE_DEMO_LIST = 4
 PAGINATION_ITEMS_PER_PAGE_AUTHOR_LIST = 4
 PAGINATION_ITEMS_PER_PAGE_EDITOR_LIST = 4
+PAGINATION_ITEMS_PER_PAGE_DEMO_EXTRAS_LIST = 4
 
 
 # demos
@@ -112,7 +114,7 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 
 			list_demos = result.demo_list
 
-			#print "list_demos",list_demos
+			print "list_demos",list_demos
 			status = result.status
 
 			#pagination of result
@@ -236,29 +238,17 @@ class DemoinfoSaveDDLView(NavbarReusableMixinMF,FormView):
 		"""
 		jres=dict()
 		jres['status'] = 'KO'
-
 		if self.request.is_ajax():
 
 			print "valid ajax form"
 
 			# get form fields and send info to be saved in demoinfo
 			demoid = None
-			ddlid = None
 			ddlJSON = None
-			try:
-				ddlid = form.cleaned_data['ddlid']
-				ddlid = int(ddlid)
-				# print " ddlid ",ddlid
-				#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
-			except Exception:
-				ddlid = None
 			try:
 				demoid = form.cleaned_data['demoid']
 				demoid = int(demoid)
 				ddlJSON = form.cleaned_data['ddlJSON']
-				# print " demoid ",demoid
-				# print " ddlJSON ",ddlJSON[-50:]
-				#print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
 			except Exception as e:
 				msg = "DemoinfoSaveDDLView form: %s" % e
 				print msg
@@ -269,32 +259,18 @@ class DemoinfoSaveDDLView(NavbarReusableMixinMF,FormView):
 
 				print "is_json(ddlJSON)",is_json(ddlJSON)
 				if is_json(ddlJSON):
+					try:
+						jsonresult = ipolservices.demoinfo_save_demo_description(pjson=ddlJSON, demoid=demoid)
+						status, error = get_status_and_error_from_json(jsonresult)
+						jres['status'] = status
+						if error is not None:
+							jres['error'] = error
 
-					if ddlid is None :
-						try:
-							# print (" create ddl")
-							jsonresult = ipolservices.demoinfo_add_demo_description(pjson=ddlJSON,demoid=demoid)
-							status,error = get_status_and_error_from_json(jsonresult)
-							jres['status'] = status
-							if error is not None:
-									jres['error'] = error
+					except Exception as e:
+						msg = "update ddl error: %s" % e
+						logger.error(msg)
+						print msg
 
-						except Exception as e:
-							msg = "update ddl error: %s" % e
-							logger.error(msg)
-							print msg
-					else:
-						try:
-							# print (" update ddl ")
-							jsonresult= ipolservices.demoinfo_update_demo_description(ddlid,pjson=ddlJSON)
-							status,error = get_status_and_error_from_json(jsonresult)
-							jres['status'] = status
-							if error is not None:
-									jres['error'] = error
-						except Exception as e:
-							msg = "update ddl error: %s" % e
-							logger.error(msg)
-							print msg
 				else:
 					msg='DemoinfoSaveDDLView invalid json'
 					logger.warning(msg)
@@ -315,9 +291,10 @@ class DemoinfoSaveDDLView(NavbarReusableMixinMF,FormView):
 
 	def form_invalid(self, form):
 		"""
-		We haz errors in the form. If ajax, return them as json.
+		We have errors in the form. If ajax, return them as json.
 		Otherwise, proceed as normal.
 		"""
+
 		jres = dict()
 		if self.request.is_ajax():
 
@@ -356,6 +333,7 @@ class DemoinfoGetDemoView(NavbarReusableMixinMF,TemplateView):
 				logger.error(msg)
 				raise ValueError(msg)
 
+			print "La demo id es:",demo_id
 			result= ipolservices.demoinfo_read_demo(demo_id)
 			if result == None:
 				msg="DemoinfoGetDemoView: Something went wrong using demoinfo WS"
@@ -365,7 +343,7 @@ class DemoinfoGetDemoView(NavbarReusableMixinMF,TemplateView):
 
 			# print "Demoinfo  DemoinfoGetDemoView result: ",result
 			# print "result type: ",type(result)
-
+			print "la respuesta es ",HttpResponse(result,content_type='application/json')
 			return HttpResponse(result,content_type='application/json')
 
 
@@ -403,9 +381,8 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 			# modification = None
 			# if form has id field set, I must update, if not, create a new demo
 			try:
-				id = form.cleaned_data['id']
-				id = int(id)
-				print " id ",id
+				old_editor_demoid = form.cleaned_data['id']
+				old_editor_demoid = int(old_editor_demoid)
 			except Exception :
 				pass
 
@@ -433,7 +410,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
 			#  send info to be saved in demoinfo module
 			# save
-			if id is None :
+			if old_editor_demoid is None :
 
 				try:
 					# print (" create demo")
@@ -461,12 +438,12 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 								"editorsdemoid": editorsdemoid,
 								"active": active,
 								"stateID": stateID,
-								"id": id,
+								# "id": id,
 								"zipURL": zipURL,
 								# "creation": creation,
 								# "modification": modification
 					}
-					jsonresult = ipolservices.demoinfo_update_demo(demojson)
+					jsonresult = ipolservices.demoinfo_update_demo(demojson,old_editor_demoid)
 					status,error = get_status_and_error_from_json(jsonresult)
 					jres['status'] = status
 					if error is not None:
@@ -1642,4 +1619,90 @@ class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
 		return HttpResponse(result, content_type='application/json')
 
 
+#Demo Extras
+class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
+	template_name = "demoinfo/manage_demo_extras_for_demo.html"
+
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoGetDemoExtrasView, self).dispatch(*args, **kwargs)
+
+	# no need for filtering and pagination
+	def list_demo_extras_for_demo(self):
+		result = None
+		try:
+			try:
+				demo_id = self.kwargs['demo_id']
+				demo_id = int(demo_id)
+			except Exception as e:
+				msg="Error getting param for list_demo_extras_for_demo %s"%e
+				print(msg)
+				pass
+
+			page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
+			print "page: ", page_json
+			result = DeserializeDemoinfoDemoExtrasList(page_json)
+
+		except Exception as e:
+			msg="Error list_demo_extras_for_demo %s"%e
+			logger.error(msg)
+			print(msg)
+
+		return result
+
+class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
+
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoDeleteDemoExtrasView, self).dispatch(*args, **kwargs)
+
+
+	def post(self, request, *args, **kwargs):
+
+		try:
+			demo_id = int(self.kwargs['demo_id'])
+		except ValueError:
+			msg= "Id is not an integer"
+			logger.error(msg)
+
+		result = ipolservices.demoinfo_delete_demo_extras_from_demo(demo_id)
+		if result == None:
+			msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		print result
+
+		return HttpResponse(result, content_type='application/json')
+
+class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
+
+	# template_name = "demoinfo/manage_demo_extras_for_demo.html"
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super(DemoinfoAddDemoExtrasView, self).dispatch(*args, **kwargs)
+
+	def post(self, request, *args, **kwargs):
+
+		try:
+			demo_id = int(self.kwargs['demo_id'])
+			myfile = request.FILES['myfile']
+		except ValueError:
+			msg = "Id is not an integer"
+			logger.error(msg)
+
+		result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
+		# result = DeserializeDemoinfoDemoExtrasList(page_json)
+		# page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
+		# print "page: ",page_json
+		# result = DeserializeDemoinfoDemoExtrasList(page_json)
+		if result == None:
+			msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
+			logger.error(msg)
+			raise ValueError(msg)
+
+		print result
+
+		return HttpResponse(result, content_type='application/json')

@@ -27,7 +27,7 @@ def forward(apps, schema_editor):
 
 	s = site()
 	s.pk=2
-	s.domain='127.0.0.1:8000'
+	s.domain='127.0.1.1:8000'
 	s.name='localhost'
 	s.save()
 
