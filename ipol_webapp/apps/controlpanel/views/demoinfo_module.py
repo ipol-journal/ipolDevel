@@ -1,7 +1,7 @@
 # from crispy_forms.utils import render_crispy_form
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from apps.controlpanel.forms import DDLform, Demoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
 	DemoEditorform, ChooseEditorForDemoform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
@@ -1642,14 +1642,12 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 				pass
 
 			page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
-			print "page: ", page_json
 			result = DeserializeDemoinfoDemoExtrasList(page_json)
 
 		except Exception as e:
 			msg="Error list_demo_extras_for_demo %s"%e
 			logger.error(msg)
 			print(msg)
-
 		return result
 
 class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
@@ -1679,13 +1677,14 @@ class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
 class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
 
-	# template_name = "demoinfo/manage_demo_extras_for_demo.html"
+	template_name = "demoinfo/manage_demo_extras_for_demo.html"
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
 		return super(DemoinfoAddDemoExtrasView, self).dispatch(*args, **kwargs)
 
 	def post(self, request, *args, **kwargs):
 
+		url=request.META.get('HTTP_REFERER')
 		try:
 			demo_id = int(self.kwargs['demo_id'])
 			myfile = request.FILES['myfile']
@@ -1694,15 +1693,10 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
 			logger.error(msg)
 
 		result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
-		# result = DeserializeDemoinfoDemoExtrasList(page_json)
-		# page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
-		# print "page: ",page_json
-		# result = DeserializeDemoinfoDemoExtrasList(page_json)
+
 		if result == None:
 			msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
 			logger.error(msg)
 			raise ValueError(msg)
 
-		print result
-
-		return HttpResponse(result, content_type='application/json')
+		return HttpResponseRedirect(url)

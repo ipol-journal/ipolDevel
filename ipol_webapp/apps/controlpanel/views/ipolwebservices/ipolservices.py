@@ -67,17 +67,16 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None, files=No
 	# print "METHOD",type(METHOD)
 	# print
 	try:
-		print "ws_url={}, METHOD={}, params={},json={}, files={}" .format(ws_url,METHOD, params,json, files)
 		if not METHOD or METHOD=='GET':
 			response = requests.get(ws_url,params=params)
 		elif METHOD=='POST':
 			if json is not None:
-				if file is not None:
+				if files is not None:
 					response = requests.post(ws_url, params=params, json=json, files=files)
 				else:
 					response = requests.post(ws_url,params=params, json=json)
 			else:
-				if file is not None:
+				if files is not None:
 					response = requests.post(ws_url, params=params, files=files)
 				else:
 					response = requests.post(ws_url,params=params)
@@ -101,6 +100,18 @@ def get_JSON_from_webservice(ws_url,METHOD=None, params=None,json=None, files=No
 		logger.error(msg)
 	return result
 
+
+
+def get_JSON_from_webservice2(ws_url,METHOD=None, params=None,json=None, files=None):
+	# This function does the same as get_JSON_from_webservice but calling proxy_post instead of proxy_service_call
+	# This is called just in demoinfo_add_demo_extra_to_demo
+	try:
+		ws_url = "http://127.0.1.1:9003/proxy_post"
+		response = requests.post(ws_url, params=params, files=files)
+	except Exception as e:
+		msg = " get_JSON_from_webservice: error=%s" % (e)
+		print msg
+	return response.content
 
 
 
@@ -623,30 +634,17 @@ def demoinfo_delete_demo_extras_from_demo(demo_id):
 	return get_JSON_from_webservice(proxywsurl,'POST',params=proxyparams)
 
 def demoinfo_add_demo_extra_to_demo(demo_id, request):
-
 	service_name = demoinfo_ws_url_add_demo_extra_to_demo
 	files=None
-
 	try:
-		# files["file"] = MultipartParam("file", filename=myfile.name, filetype=myfile.content_type, fileobj=myfile.file)
 		myfile = request.FILES['myfile']
-		print "1El fichero seleccionado es",myfile.name
-		print "2El fichero seleccionado es",myfile.content_type
-		print "3El fichero seleccionado es",myfile.file
-		# print "44El fichero seleccionado es", myfile.fileno()
-		# myfile = ContentFile(myfile.read())
-
 		files = {'file_0': myfile.file}
-
 	except Exception as ex:
-		print "hola", str(ex)
-
+		print ex
 	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
-	serviceparams = {'demo_id': demo_id}
-	serviceparams = json.dumps(serviceparams)
 	servicejson = None
-	proxyparams = {'module': "demoinfo", 'service': service_name, 'servicehttpmethod': "POST", 'params': serviceparams,'jsonparam': servicejson}
-	return get_JSON_from_webservice(proxywsurl, 'POST', params=proxyparams,files=files)
+	proxyparams = {'module': "demoinfo", 'service': service_name, 'demo_id': demo_id}
+	return get_JSON_from_webservice2(proxywsurl, 'POST', params=proxyparams,files=files)
 
 
 ####################
