@@ -181,17 +181,14 @@ class DemoInfo(object):
     def delete_compressed_file_ws(self,demo_id):
         """
         WS for deleting the compressed demo extra file of a demo
-        """
-        """
         :param demo_id: demo id integer
         :return status
         """
         data = {}
         data['status']= "OK"
         
-        extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
-        
         try:
+            extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
             shutil.rmtree(extras_folder)
         except Exception as ex:
             data['status']= "KO"
@@ -202,34 +199,31 @@ class DemoInfo(object):
     @cherrypy.expose
     def add_compressed_file_ws(self, demo_id,**kwargs):
         """
-        WS for deleting the compressed demo extra file of a demo
-        """
-        """
-        :param demo_id: demo id integer
+        WS for add a new compressed demo extra file to a demo
+        :param demo_id: demo id integer file_0: file
         :return status
         """
         data = {}
-        data['status'] = "OK"
+        data['status'] = "KO"
         file = None
         try:
-            file = kwargs['file']
-            assert isinstance(file, cherrypy._cpreqbody.Part)
-            extras_folder = os.path.join(self.dl_extras_dir, demo_id)
-            if(file is not None):
-                name, ext = os.path.splitext(file.filename)
-                data['name'] = name
-                data['ext'] = ext
-                if not os.path.exists(extras_folder):
-                    os.makedirs(extras_folder)
-                print"hola"
+            file = kwargs['file_0']
+            extra_folder = os.path.join(self.dl_extras_dir, demo_id)
 
+            if(file is not None):
+                if os.path.exists(extra_folder):
+                    shutil.rmtree(extra_folder)
+
+                os.makedirs(extra_folder)
                 with open(file.filename, 'wb') as the_file:
                     shutil.copyfileobj(file.file, the_file)
+                    os.rename('file_0', "DemoExtras.tar.gz")
+                    shutil.move('DemoExtras.tar.gz',extra_folder)
+                data['status'] = "OK"
             else:
-                data['status'] = "KO"
+                print "File not found"
         except Exception as ex:
-            data['status'] = "KO"
-            # data['error'] = ex
+            print ex
 
         return json.dumps(data)
 
