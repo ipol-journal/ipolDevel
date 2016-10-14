@@ -23,7 +23,7 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
 	demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
 	demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_list_for_demo, \
 	demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
-	proxy_ws_url_stats, proxy_ws_url_service_call,demoinfo_ws_url_add_demo_extra_to_demo
+	proxy_ws_url_stats, proxy_ws_url_service_call, proxy_ws_url_service_call2,demoinfo_ws_url_add_demo_extra_to_demo
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,6 @@ def get_JSON_from_webservice2(ws_url,METHOD=None, params=None,json=None, files=N
 	# This function does the same as get_JSON_from_webservice but calling proxy_post instead of proxy_service_call
 	# This is called just in demoinfo_add_demo_extra_to_demo
 	try:
-		ws_url = "http://127.0.1.1:9003/proxy_post"
 		response = requests.post(ws_url, params=params, files=files)
 	except Exception as e:
 		msg = " get_JSON_from_webservice: error=%s" % (e)
@@ -641,7 +640,7 @@ def demoinfo_add_demo_extra_to_demo(demo_id, request):
 		files = {'file_0': myfile.file}
 	except Exception as ex:
 		print ex
-	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call
+	proxywsurl = IPOL_SERVICES_MODULE_PROXY % proxy_ws_url_service_call2
 	servicejson = None
 	proxyparams = {'module': "demoinfo", 'service': service_name, 'demo_id': demo_id}
 	return get_JSON_from_webservice2(proxywsurl, 'POST', params=proxyparams,files=files)
