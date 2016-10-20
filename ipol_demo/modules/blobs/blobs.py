@@ -84,6 +84,7 @@ def get_new_path( filename, create_dir=True, depth=2):
     subdirs = '/'.join(list(fname[:l])) 
     new_dname = dname + '/' + subdirs + '/'
     if create_dir and not(os.path.isdir(new_dname)): os.makedirs(new_dname)
+    print "La ruta es: new Dname: ",new_dname," Prefix: ", prefix, " Bname: ", bname
     return new_dname + prefix + bname
 
 class MyFieldStorage(cherrypy._cpreqbody.Part):
@@ -875,8 +876,8 @@ class   Blobs(object):
             demo_id                  = dic.keys()[0]
             dic["use_template"]      = data.demo_use_template(demo_id)
             dic["blobs"]             = data.get_blobs_of_demo(demo_id)
-            dic["url"]               = self.server_address+"/blob_directory/"
-            dic["url_thumb"]         = self.server_address+"/thumbnail/"
+            dic["url"]               = self.server_address+"/"+self.final_dir+"/"
+            dic["url_thumb"]         = self.server_address+"/"+self.thumb_dir+"/"
             dic["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir)
             dic["status"]            = "OK"
@@ -942,8 +943,8 @@ class   Blobs(object):
                 b = blob_set[idx]
                 b_name = b["hash"]+b["extension"]
                 b["physical_location"]  = os.path.join( self.current_directory, self.final_dir, b_name)
-                b["url"]                = self.server_address+"/blob_directory/" + b_name
-                b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
+                b["url"]                = self.server_address+"/"+self.final_dir+"/"+b_name
+                b["url_thumb"]          = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + b["hash"]+".jpg"
 
                 # process paths
                 b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
@@ -957,8 +958,8 @@ class   Blobs(object):
             b = blob_set[idx]
             b_name = b["hash"]+b["extension"]
             b["physical_location"]  = os.path.join(self.current_directory,self.final_dir,b_name)
-            b["url"]                = self.server_address+"/blob_directory/" +b_name
-            b["url_thumb"]          = self.server_address+"/thumbnail/thumbnail_" + b["hash"]+".jpg"
+            b["url"]                = self.server_address+"/"+self.final_dir+"/"+b_name
+            b["url_thumb"]          = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + b["hash"]+".jpg"
             # process paths
             b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
             b["url"]                = get_new_path(blob_set[idx]["url"],False)
@@ -992,8 +993,8 @@ class   Blobs(object):
             res["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir,
                                                     b_name)
-            res["url"]        = self.server_address+"/blob_directory/" + b_name
-            res["url_thumb"]  = self.server_address+"/thumbnail/thumbnail_" + res["hash"]+".jpg"
+            res["url"]        = self.server_address+"/"+self.final_dir+"/"+b_name
+            res["url_thumb"]  = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + res["hash"]+".jpg"
             res["tags"]       = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"]  = get_new_path(res["physical_location"],False)

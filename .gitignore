@@ -70,8 +70,12 @@ ddl.pdf
 
 ipol.pdf
 
+#staticData
+staticData/
+
 
 # other
 ipol_demo/modules/blobs/blobs_nelson.conf
 changes*.txt
 ipol_demo/app_new/
+
