@@ -45,8 +45,8 @@ USE_MEMCACHED = False
 
 hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu']
-dev_machines_hostname = ['ipol.im','smartalgo']
-dev_machines = ['.ns3018037.ip-151-80-24.eu']
+dev_machines_hostname = ['integration.ipol.im']
+dev_machines = ['.ipol.im']
 production_machines = ['ipol_core', 'ipolcore.ipol.im']
 
 #alluth control for allowing logins in the app

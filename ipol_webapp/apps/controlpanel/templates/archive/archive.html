@@ -83,15 +83,15 @@
 
                     {% for demo in data.0.demo_list%}
 
-                        <div class="demo" id="demo_info_{{ demo.id }}" >
+                        <div class="demo" id="demo_info_{{ demo.editorsdemoid }}" >
                             <p style="padding-left: 20px">demo_id:{{ demo.editorsdemoid }} </p>
-                            <a  href="{% url 'ipol.cp.archive.page' demo.id %}">
+                            <a  href="{% url 'ipol.cp.archive.page' demo.editorsdemoid %}">
                                 <p style="padding-left: 20px">title: {{ demo.title }} </p>
                             </a>
 
                             {#  boton Delete demo#}
                             <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.id  %}',{{ demo.id  }} )">Delete</a>
+                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.editorsdemoid  %}',{{ demo.editorsdemoid  }} )">Delete</a>
                             </div>
 
                         </div>

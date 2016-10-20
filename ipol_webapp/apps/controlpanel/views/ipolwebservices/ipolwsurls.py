@@ -21,6 +21,7 @@ __author__ = 'josearrecio'
 
 
 proxy_ws_url_service_call = 'proxy_service_call'
+proxy_ws_url_service_call2 = 'proxy_post'
 proxy_ws_url_stats =  'ping'
 
 
