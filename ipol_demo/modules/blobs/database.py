@@ -40,7 +40,6 @@ class   Database(object):
             sys.exit("Initialisation of database failed. Check the logs.")
         
         ip = cherrypy.request.remote.ip
-        # tooMuchLogging self.logger.info("-- IP: " + ip + " is in init of database.py - " + str(cherrypy.request.headers))
         
         self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
@@ -69,8 +68,6 @@ class   Database(object):
                     status = False
                     return status
                         
-                # tooMuchLogging self.logger.info( "Creating a correct new database")
-            
         if not os.path.isfile(self.database_file):
                     
             try:
@@ -80,7 +77,6 @@ class   Database(object):
                 sql_buffer = ""
                     
                 with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
-                    # tooMuchLogging self.logger.info("Creating a new database")
                     for line in sql_file:
                                 
                         sql_buffer += line
@@ -153,7 +149,6 @@ class   Database(object):
         :param blobid: if blobid is omitted (= -1), then add blob
         (hash and format) to database else do not add, integer
         """
-        # tooMuchLogging self.logger.info("add_blob_in_database")
         if blobid == -1:
             try:
                 self.cursor.execute('''
@@ -564,7 +559,6 @@ class   Database(object):
         :type demo_blobcount: tuple or None
         """
         ip = cherrypy.request.remote.ip
-        # tooMuchLogging self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> remove_demo_from_database - " + str(cherrypy.request.headers))
         
         
         self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
@@ -584,7 +578,6 @@ class   Database(object):
         :return: number of blob present in database
         :rtype: tuple of integer
         """
-        # tooMuchLogging self.logger.info("database.py blob_democount({0})".format(blob_id))
         democount = None
         try:
             self.cursor.execute('''
@@ -614,10 +607,7 @@ class   Database(object):
         :type blob_demo_count: tuple or None
         """
         ip = cherrypy.request.remote.ip
-        # tooMuchLogging self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob - " + str(cherrypy.request.headers))
 
-        
-        # tooMuchLogging self.logger.info("database.py delete_blob({0},{1})".format(blob_id,blob_demo_count))
         
         if blob_demo_count == 0:
             try:
@@ -734,7 +724,6 @@ class   Database(object):
         :rtype: boolean
         """
         ip = cherrypy.request.remote.ip
-        # tooMuchLogging self.logger.info("-- IP: " + ip + " is removing blobs in database.py --> delete_blob_from_demo - " + str(cherrypy.request.headers))
 
         
         try:
@@ -751,7 +740,6 @@ class   Database(object):
         for item in result:
             value = (item[0], item[1], item[2])
             if value:
-                # tooMuchLogging self.logger.info("deleting from database: {0}".format(value))
                 try:
                     self.cursor.execute('''
                     DELETE FROM demo_blob

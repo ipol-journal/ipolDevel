@@ -170,8 +170,6 @@ class   Blobs(object):
         else:
             self.logger   = self.init_logging()
 
-        # tooMuchLogging self.logger.info("----- starting blobs module -----")
-
         try:
             self.database_dir = cherrypy.config.get("database_dir")
             self.database_name = cherrypy.config.get("database_name")
@@ -348,22 +346,15 @@ class   Blobs(object):
         #hash_tmp = -1
         dic = {}
         dic["the_hash"] = blob_hash
-        # data = self.instance_database()
+
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
 
             try:
                 data.start_transaction()
                 blobid = -1
             
-                ### tooMuchLogging #########
-                # if not data.blob_is_in_database(blob_hash):
-                #     self.logger.info( "not in database, format: "+ fileformat)
-                # else:
-                #     blobid = data.blob_id(blob_hash)
-                ############################
                 if data.blob_is_in_database(blob_hash):
                     blobid = data.blob_id(blob_hash)
-                ############################
                 
                 data.add_blob_in_database(demo_id, blob_hash, fileformat,
                                           ext, tag, blob_set, blob_pos_in_set,
@@ -457,7 +448,6 @@ class   Blobs(object):
         :return: list of demos (dictionnary)
         :rtype: json format
         """
-        #data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
@@ -481,7 +471,6 @@ class   Blobs(object):
         :return: list of template (dictionnary)
         :rtype: json format
         """
-        #data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
@@ -525,7 +514,6 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
-        #data = self.instance_database()
         dic = {}
         
         cherrypy.response.headers['Content-Type'] = "application/json"
@@ -578,7 +566,6 @@ class   Blobs(object):
         :return: "OK" if not error else "KO" (dictionnary)
         :rtype: json format
         """
-        #data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
@@ -689,7 +676,6 @@ class   Blobs(object):
         # try to acquire lock during 3 seconds
         if waitLock(self.blobs_lock,3):
             
-            #data = self.instance_database()
             with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
 
                 try:
@@ -729,7 +715,6 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: dictionnary
         """
-        #data = self.instance_database() 
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
@@ -783,7 +768,6 @@ class   Blobs(object):
         :return: 'OK' if not error else 'KO'
         :rtype: dictionnary
         """
-#        data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
@@ -888,7 +872,6 @@ class   Blobs(object):
         dic = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        #data = self.instance_database()
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 template_id = data.demo_id(template)
@@ -918,7 +901,6 @@ class   Blobs(object):
         cherrypy.response.headers['Content-Type'] = "application/json"
         dic["status"] = "KO"
 
-        #data = self.instance_database()
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 dic                  = data.get_demo_info_from_name(demo_name)
@@ -1089,7 +1071,6 @@ class   Blobs(object):
         :return: extension, id, hash, credit of blob
         :rtype: dictionnary
         """
-        # data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"            
@@ -1118,7 +1099,6 @@ class   Blobs(object):
         lis = []
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        #data = self.instance_database()
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 lis = data.get_tags_of_blob(blob_id)
@@ -1141,7 +1121,6 @@ class   Blobs(object):
         """
         cherrypy.response.headers['Content-Type'] = "application/json"
 
-        # data = self.instance_database()
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
