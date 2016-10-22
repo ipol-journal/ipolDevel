@@ -1,281 +1,118 @@
 \section{The Blobs module}
 
-\ToDo{[Miguel]: the English at this section is bad, and some parts are vage or difficult to follow. It needs a rewrite.}
+Note : For it is easy to get confused about such matter, we refer as modules of the IPOL system as ``modules'' and python module (files containing python code) as ``python module''
 
 \subsection{Introduction}
-\label{sec:blobs_introduction}
-\ToDo{[Miguel]: this should be moved to a more general section, about the current system.}
-Necessarily, management of this part is very important. Nowadays, each demo owns images.
-Even if they are not heavy (minus 1 MB),
-when there are fifty different demos on system and each demo is downloaded using
-\emph{GitHub} \cite{GitHub} then the compilation of system takes too much time.
-Knowing that each
-demo details a mathematic theory with complex calculations and several demos use
-same images, it will be preferable to create a system to manage theses images. \\
-\setlength{\parindent}{0cm}
+Each demos of IPOL can be presented to the user with a set of defaults blobs. Thus, the user isn't forced to supply their own files for seeing the executions of the algorithms in the browser. These defaults blobs can be tagged and linked to differents demos. That way, blobs with interesting features (like blur or noise) can be grouped together, and the user will be free to see the differences between multiple algorithms applications on the same blobs. All of this mecanism is implemented by the blobs module, making it a critical part of the system.
 
-Before specifing this abstract system, it must be known with precision how the actual system
-works.\\
-\setlength{\parindent}{0cm}
+\subsection{Composition}
+The blobs module is composed of several pythons modules implementing different functionalities. It is composed of the same technical stack as the rest of the back-end architecture of the IPOL webapp : written in Python2.7, using the cherrypy web framework, and SQLite as database engine, and using the Mako templates for generating HTML responses for webservices destinated to humans.
+\ToDo{[Alexis]: information about the technical stack is redundant with the archive section, since this is the same stack. Maybe we should move that in a more general section.}
 
-According to the provided UML (\ref{img:IPOL_diagram_class}), one class "image" implements
-functions changing image characteristics. To do it, it uses \emph{PIL} \cite{PIL}.
-Images have two formats: thumbnail and an input image. Thumbnail allows the user visualize
-and select an input image on client side. Input image is which use to apply algorithm on it,
-algorithm specific to the demo. This part is made in the implementation of demo.
-Moreover, configuration file allows to customize the default input files.
-The images are stored in a directory ("/input"). When using client side of the demo to test
-it, new images are generated and stored in a temporary directory in ("/tmp").\\
-\setlength{\parindent}{0cm}
+\subsubsection{Main python module}
+The main module is called by ``start.sh'', the script called by the control terminal to get modules running on different servers over ssh. It consist of setting up some variables used by cherrypy, as well as mounting the blobs class at the root of the used server.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=20.0cm, angle=90]{blobs/images/IPOL_diagram_class.pdf}
-  \caption{UML diagram class of current system. \ToDo{[Miguel]: this should be moved to a more general section.}}
-  \label{img:IPOL_diagram_class}
-\end{figure}
+\subsubsection{Error python module}
+This module describe the errors used by the Blobs module and add color to the error messages printed in the terminal. Since the module implement logging, it is very likely to be outdated and should be refactored soon.
 
-To conclude this part, images are result of demo and the management of these is important
-for the project.
+\subsubsection{Database and database python module}
+The first and most important design constraint of the blobs module was that data shouldn't be duplicated where the module is deployed. All blobs referenced by multiple demos should exist in only one directory. This is addressed by establishment of one relational database, referencing the demos, the blobs, and the relations between them. This database also permit to tag some text on blobs, as well as organise them in named sets. In the big picture, the database python module (we also talk about it below) a implement a simple CRUD interface for manipulating the database. Blobs can be managed individually, and upon the deletion of a demo, the blobs related to this demo will be deleted from disk if and only if they were uniquely linked to this demo. Blobs are referenced via their hashes a lot, making easy to verify if a blob is already in the database, even under another filename.\\
 
-\subsection{Demo}
-\ToDo{[Miguel]: this should be moved to a more general section, about the current system.}
-During introduction, demo system will claim like "God Object". It is excessive term in
-order to represent the system with a metaphor. It is just a complex object.
-In this section, it will detail functionalities to clarify objective thereof and
-look how it is possible to improve it.\\
-\setlength{\parindent}{0cm}
+The schema of the database is constituted of these tables : \\
 
-Firstly, this object introduce here (\ref{img:IPOL_diagram_class}), has many ways to
-interact with user. It implements all features of project. For example, it manages
-interaction with client side. To do so, it is a part of webserver developed in
-\emph{CherryPy} \cite{CherryPy}.
-Communication between the client and the server is done using an
-\emph{HTTP} \cite{HTTP}. Indeed, when users call a functionality,
-this object allows to search the expected result. For example, when users call an algorithm,
-it runs the corresponding binary in "bin/" file, manage images archiving the result
-and call the HTTP response using the \emph{Mako Template Library} \cite{Mako}.
-Knowing these possibilities, it is very difficult to add new functionalities to this object.
-\\
-\setlength{\parindent}{0cm}
+demo : 
 
-To conclude this part, the demo is a powerful object but to go further, it needs to create
-separate module which communicate with the core system.
-
-\subsection{Solution}
-\setlength{\parindent}{1cm}
-\hspace{1cm}
-
-Since the problematic have been detailled, it will be necessary to solve it. In this part,
-it will present to you \textbf{MVC pattern}, \textbf{Factory pattern}, \textbf{Database}.
-\ToDo{[Miguel]: the Factory pattern is not used, but it can be discussed why.}
-
-\subsubsection{MVC pattern}
-\setlength{\parindent}{1cm}
-\hspace{1cm}
-
-\ToDo{[Miguel]: this should be moved to a more general section.}
-
-MVC, alias Model-View-Controller, is architectural pattern used in interface implementation.
-It consists of create three separates parts. The model manage database and it is observable
-object. The aim of view is to update data from model and to notify event, which by user,
-to controler. The controler receive notification from view and update the model.
-\setlength{\parindent}{0cm}
-In our case, the model will be protocol used to interact with database of images.
-The view is client side which look by users using them browser.
-It will be updates in the control of the web page on client side.
-The controler will be the code used to manage new module implementing functionalities.
-
-
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=3.5in]{blobs/images/MVC-Process}
-  \caption{The MVC pattern}
-  \label{img:MVC-Process}
-\end{figure}
-
-\begin{comment}
-\subsubsection{Factory pattern}
-\setlength{\parindent}{1cm}
-\hspace{1cm}
-\ToDo{[Miguel] The factory pattern is not used in the new system, since finally
-backwards compatibility needs not to be ensure. 
-This section should be removed.}
-
-Factory is a \textbf{design pattern\footnote{\cite{GoF}}} allowing to create other objects.
-In order to explain the Factory pattern, it must know what is an inheritance.
-In inheritance based on object-oriented
-programming, it is possible to create an interface (or abstract class) which two different
-classes inherit. The most famous example should be the interface Animal which is defined that
-Animal could have and it must have to be animal. Dog and Cat are two different classes
-inheriting each one from Animal class.
-Factory, in this case, could be Farm class. In function to the type of animal which you want
-to create (ex: 1 for Cat and 2 for Dog), the Farm will instantiated one of two ways like
-Animal class. To do that, it can use implicit or specific cast, it depends of language of
-programming.
-\bigbreak
-\setlength{\parindent}{0cm}
-In our case, it will have two versions of demos. The first one like it is nowadays, and the
-second one which will be interact with new module. The aim factory is to create just one
-object instantiating one of two ways. Consequently, it will be easier to make it work both
-version on the same system.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=5in]{blobs/images/Example_Factory_Pattern}
-  \caption{An example of Factory pattern}
-  \label{img:Example_Factory_Pattern}
-\end{figure}
-\end{comment}
-
-\subsubsection{Database}
-\ToDo{[Miguel] Check that the database information in this section is correct and up to date}
-
-\ToDo{[Miguel] It seems that we should have a foreign key in the table \emph{demo} for field \emph{template\_id}. Without it, it could be possible to have a demo which uses the blobs of a non-existing demo.}
-
-We use a SQL database to help managing blobs, that can contain images or other 
-type of data needed as inputs for the demos.
-It will use a back-end and will be created with \emph{SQLite} \cite{SQLite}.
-Figure \ref{img:images_bdd} depicts the different tables, their contents and their
-relations.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{blobs/images/images_bdd_vertabelo}
-  \caption{Database schema for the Blobs module. \ToDo{[Miguel] This diagram was made with Verbatelo. Is there any free software and automatic tool to use instead? It needs to be a vectorial graphic, not raster. In general, using an automatic tool which creates automatically the diagram is a very good idea. Also: missing \emph{name} inside table \emph{tag}. An automatic tool will avoid that we forget to add fields, since the diagram will be generated automatically.}}
-  %\footnotesize
-  %\caption*{Realized with MySQL Workbench}
-  \label{img:images_bdd}
-\end{figure}
-
-
-\subsection{Remarks}
-\subsubsection{Concurrent accesses}
-\setlength{\parindent}{1cm}
-\hspace{1cm}
-\ToDo{[Miguel]: this should be moved to a more general section, because it applies to all modules.}
-The library used to insert, select or update database is
-\emph{SQLite} \cite{SQLite}. This thereof manages, internally,
-the concurrent access to database. Indeed, when two people want to
-access to the database: the first one will do his request while
-the other will be locked by mutex. This principle is also used by transactions
-(BEGIN or END/COMMIT).
-Therefore, at the beginning of development, it was thought only need a
-connection to the database.\\
-The problem of the concurrent accesses has been raised during errors occured.
-Indeed, when errors occured, the program throws exception and call "roll back"
-database's function. Imagine that some people try access to the same data and to
-modify it, but some successed it and some failed. The problem of using a only
-connection is how to know what changes have been taken into account knowing
-that for certain, the database rolled back.\\
-Therefore for each request requiring the database,
-a new instance (new connection) is used. Thus, the problems
-of "roll back" are avoided. Nevertheless, it would be preferable to use a decorator
-to avoid the redundance of the code.
-
-\subsubsection{Consistency check}
-\ToDo{[Miguel]: this should be moved to a more general section.}
-
-The consistency check in database management system (DBMS) is the fact
-to verify the consistency between the information present on hard disk and
-those present on database.\\
-There are two ways to do this: running database consistency check manually and
-automatically. The program uses consistency check manually in order to
-having the control on the error occuring.\\
-That is why, when the program uses the action database (SELECT, DELETE, UPDATE),
-each information is checked. If errors occurs, an database's exception is caught
-and custom exception is throwed to called function.
-The consistency check manually is also used because the design databse
-has some constraints like: "DELETE CASCADE" and "UPDATE RESTRICT".
-
-\subsubsection{Reference of the module services}
-\ToDo{Some of the information here is inconsistent with the actual API implemented in the module. Fix it.}
-\ToDo{Think of a better way to describe the webservice API, rather than a table. We need to have homogeneity in the documentation. The format of the Archive module seems better.}
-
-\begin{flushleft}
-\begin{longtable}
-                   {|C{\dimexpr 0.2\linewidth-2\tabcolsep}
-                    L{\dimexpr 0.8\linewidth-2\tabcolsep}|}
-% {|C{\dimexpr 0.30\linewidth-2\tabcolsep}||
-%                     C{\dimexpr 0.20\linewidth-2\tabcolsep}|
-%                     C{\dimexpr 0.18\linewidth-2\tabcolsep}|
-%                     C{\dimexpr 0.32\linewidth-2\tabcolsep}|}
-%   \hline
-%   {\bf Function Name} & {\bf Description} & {\bf Param.} & {\bf Return} \tabularnewline
+\begin{tabular}{ | l | l | l | l | }
   \hline
-  \multicolumn{2}{|l|}{\textbf{add\_blob\_ws}(demo\_id, path, tag, ext, the\_set, title, credit)} \\ 
-                  & add blob to database \\
-                  & {\{  return:OK or KO, the\_hash: ...  \}} \\
+  id & name & is\_template & template\_id \\
   \hline
-  \multicolumn{2}{|l|}{\textbf{add\_demo\_ws}(name, is\_template, template)} \\ 
-                  & add demo to database \\
-                  & { \{ return:OK or KO \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{add\_tag\_to\_blob\_ws}(blob\_id, tag)} \\ 
-                  & add tag to database \\
-                  & { \{ return:OK or KO \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{delete\_blob\_ws}(demo\_id, blob\_id)} \\ 
-                  & delete blob from id demo and id blob \\
-                  & { \{ return:OK or KO, delete: (hash, extension) \}} \\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{demos\_ws}()} \\ 
-                  & list demos present  in database \\
-                  & {\{ status:OK or KO,
-                        list\_demos:  \{ id:int, mame:str, is\_template:int, template\_id:int \} \}} \\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_blob\_ws}(blob\_id)} \\ 
-                  & return blob information from id \\
-                  &  {\{ return:OK or KO,
-                        \{id, hash,  extension, credit \} \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_blob\_url\_ws}(blob\_hash, blob\_ext)} \\ 
-                  & return the url link of the blob based on its hash and extension \\
-                  &  \{ blob\_url: string that contains the url link of the blob \} \\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_blobs\_from\_template\_ws}(template)} \\ 
-                  & list blobs from name template \\
-                  & { \{ return:OK or KO,
-                        blobs: \{id, hash,  extension, format \} \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_blobs\_of\_demo\_by\_name\_ws}(demo\_name)} \\ 
-                  & list blobs from demo name \\
-                  & { \{ return:OK or KO,
-                        blobs: \{id, hash,  extension, format \},
-                        use\_template: \{id: name, is\_template, id\_template\}\},
-                        url: 'blob path url',
-                        url\_thumb: 'blob thumb path url',
-                        physical\_location : 'blob path physical location'
-                    }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_blobs\_of\_demo\_ws}(demo)} \\ 
-                  & list blobs from demo id \\
-                  & { \{ return:OK or KO,
-                        blobs: \{id, hash,  extension, format \},
-                        use\_template: \{id: name, is\_template, id\_template\}\}}\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_tags\_ws}(blob\_id)} \\ 
-                  & return list tags from blob id \\
-                  & { \{ \{id: name\} \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{get\_template\_demo\_ws}()} \\ 
-                  & return list demos templated \\
-                  &  {\{ return:OK or KO, list\_template: \{id: name\} \}} \\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{op\_remove\_demo\_ws}(demo\_id)} \\ 
-                  & remove demo from id demo  \\
-                  & { \{ return:OK or KO \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{remove\_tag\_from\_blob\_ws}(id, tag\_id, blob\_id)} \\ 
-                  & remove tag for a blob from id tag and id blob  \\
-                  & { \{ return:OK or KO \} }\\
-  \hline
-  \multicolumn{2}{|l|}{\textbf{set\_template\_ws}(demo\_id, id, name)} \\ 
-                  & change the current template used by a demo \\
-                  & { \{ return:OK or KO \} }\\
-  \hline
-\end{longtable}
-\end{flushleft}
+\end{tabular}\\
 
+blob :
 
+\begin{tabular}{ | l | l | l | l | l | l | }
+  \hline
+  id & hash & format & extension & title & credit \\
+  \hline
+\end{tabular}\\
+
+tag :
+
+\begin{tabular}{ | l | l | }
+  \hline
+  id & name \\
+  \hline
+\end{tabular}\\
+
+blob\_tag :
+
+\begin{tabular}{ | l | l | }
+  \hline
+  blob\_id & tag\_id \\
+  \hline
+\end{tabular}\\
+On this junction table, both fields are foreign keys, referencing primary keys in the blob and tag tables.\\
+
+demo\_blob :
+
+\begin{tabular}{ | l | l | l | l | l | }
+  \hline
+  id & blob\_id & demo\_id & blob\_set & blob\_pos\_in\_set \\
+  \hline
+\end{tabular}\\
+Blob\_id and demo\_id are foreign keys, referencing primary keys in the blob and demo tables. This is a junction table, referencing which blobs and which demos are associated. It allow us to organize the blobs in sets linked to demos.\\
+
+As we can see, the design of the database is fairly simple, with the tables demo, blob and tag storing the information about the system and two junction tables linking this information.
+
+\paragraph{The database python module\\}
+This module offer us an interface for accessing the database. One object of the class Database should be instanciated for each operation modifying it. Even if it has function for connecting and closing, they should not be used as such, for flow control issues (for example, an exception leaving a connection open). A very simple abstraction, the DatabaseConnection class is present in the blobs python module for it, and allow safe connection to the database, ensuring they will always be closed no matter what. \\
+
+Otherwise, this python module offer us a wide variety of simple methods for interacting with the database, or obtaining metrics of it, such as the total number of blobs. They generally return the information asked if such case apply. For the format of the responses and the different function, we refer the reader to the code of the module itself. It is worth noting that one webservice, delete\_blob\_from\_demo, recompute the positions of the blobs in a set in which a blob was deleted. If this function is accessed concurrently by multiple threads (the most likely case is if a werbservice calling this function is accessed several times in a very short span), the blobs can end up with miscalculated positions. Non-concurrential access should be enforced by locking the scope where this webservice is called, as it is done in the blobs python module. \\
+
+\subsubsection{Blobs module}
+
+The blobs python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utilitary function. \\
+
+The Blobs class implement all the microservices constituting this module, both those transmitting JSON to other modules, and those generating HTML via mako templates for humans (albeit, the control panel didn't exist when these microservices were implemented and this possible that they will be moved to it soon). An instance of the Blobs class should possess information about the storage of blobs and the networking parameters cherrypy use, such as a port number. A cherrypy configuration file, named ``blobs.conf'', should describe some of these informations. \\
+
+The webservices of the module access the database via instanciations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utilitary function use\_web\_service is used several times. \\
+
+Currently, logging is utilised as a mean to retrieve the errors occuring in the system. The logger implemented in the blobs python module handle all the errors of the module. It is passed to each Database object instanciation.\\
+
+Here is a list of all the webservices implemented by the blobs module : \\
+
+\begin{itemize}
+\item default : The service invoked when asked for non-existing service.
+\item index : web page at the root of where the module is mounted in cherrypy.
+\item blob : web page used to upload one blob to one demo.
+\item archive : Used to upload one zip file of compressed blobs to one demo.
+\item add\_blob\_ws : service checking that the given blobs do not exist in the database. If this is the case, add it.
+\item add\_blob : implement the add\_blob page.
+\item demos\_ws : return the list of demos from the database.
+\item get\_template\_demos\_ws : return the list of template demos from the database
+\item demos : web page used to add a demo to the database.
+\item set\_template\_ws : webservice used to change the template used by a demo.
+\item use\_template : web page used to change the template used by a demo.
+\item add\_demo\_ws : web service used to add a demo to the database.
+\item add\_demo : web page used to add a demo to the database.
+\item add\_from\_archive : webservice used to upload a zip file of compressed blobs to one demo.
+\item add\_tag\_to\_blob\_ws : webservice used to add a tag to a blob.
+\item op\_add\_tag\_to\_blob : web page used to add a tag to a blob.
+\item remove\_tag\_to\_blob\_ws : webservice used to remove a tag from a blob.
+\item op\_remove\_tag\_to\_blob : web page used to remove a tag from a blob.
+\item op\_remove\_blob\_from\_demo : web page used to remove a blob from a demo.
+\item get\_blobs\_from\_template\_ws : webservice used to get the list of blobs from templated demo.
+\item get\_blobs\_of\_demo\_by\_name\_ws : webservice returning a list of the hashes of the blobs owned by given demo name.
+\item get\_blobs\_of\_demo\_ws : same as the precedent, but with the demo id.
+\item get\_blobs\_of\_demo : web page used to display blobs owned by a given demo.
+\item edit\_blob : web page showing the thumbnail of a demo with the possibility to add or remove tags.
+\item get\_blob\_ws : webservice returning information about a blob from its id.
+\item get\_tags\_ws : webservice returning tags of a blob from its id.
+\item op\_remove\_demo\_ws : webservice removing a demo from its id.
+\item op\_remove\_demo : web page used for removing a demo.
+\item ping : used by the terminal for checking module status.
+\item shutdown : used by the terminal for turning off the module at distance.
+  
+  It is worth noting that 2 services unreferenced above, get\_blobs\_of\_demo\_by\_name\_ws, get\_blobs\_of\_demo\_ws, are called by the ``get\_hash'' webservice, which is not in this module.
+  
+\end{itemize}
