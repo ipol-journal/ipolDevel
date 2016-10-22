@@ -1391,7 +1391,7 @@ def use_web_service(req, data, auth=None):
     url = cherrypy.server.base() + req + '?' + urls_values
     request = urllib2.Request(url)
     if auth == 'authenticated':
-        base64string = base64.encodestring('%s:%s' % (username, passwd)).replace('\n', '')
+        base64string = base64.encodestring('%s:%s' % (user_name, passwd)).replace('\n', '')
         request.add_header("Authorization", "Basic %s" % base64string)
     res = urllib2.urlopen(request)
     tmp = res.read()
