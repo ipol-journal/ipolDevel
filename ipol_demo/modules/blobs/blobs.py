@@ -1249,75 +1249,75 @@ class   Blobs(object):
                 the_files = buff.get(section, "files")
                 list_file = the_files.split()
                 for _file in list_file:
-                  # to associate a blob image representation, use
-                  # 2 files separated by a comma
-                  has_image_representation = False
-                  # use the in the list position as the input number
-                  file_id = list_file.index(_file)
-                  if ',' in _file:
-                    pos = _file.find(',')
-                    _file_image = _file[pos+1:]
-                    _file       = _file[:pos]
-                    has_image_representation = True
-                  if _file and _file in files:
-                      title = buff.get(section, 'title')
-                      try:
-                        credit = buff.get(section, 'credit')
-                      except:
-                        credit = ""
-                      try:
-                        tags = buff.get(section, 'tag')
-                      except:
-                        tags = ""
-                      src.extract(_file, path=tmp_directory)
-                      tmp_path = os.path.join(tmp_directory, _file)
-                      _, ext = os.path.splitext(tmp_path)
+                    # to associate a blob image representation, use
+                    # 2 files separated by a comma
+                    has_image_representation = False
+                    # use the in the list position as the input number
+                    file_id = list_file.index(_file)
+                    if ',' in _file:
+                        pos = _file.find(',')
+                        _file_image = _file[pos+1:]
+                        _file       = _file[:pos]
+                        has_image_representation = True
+                    if _file and _file in files:
+                        title = buff.get(section, 'title')
+                        try:
+                            credit = buff.get(section, 'credit')
+                        except:
+                            credit = ""
+                        try:
+                            tags = buff.get(section, 'tag')
+                        except:
+                            tags = ""
+                        src.extract(_file, path=tmp_directory)
+                        tmp_path = os.path.join(tmp_directory, _file)
+                        _, ext = os.path.splitext(tmp_path)
 
 
-                      data = {"demo_id": demo_id, "path": tmp_path,
-                              "tag":tags,
-                              "ext": ext, "blob_set": section,
-                              "blob_pos_in_set": file_id, "title": title,
-                              "credit": credit}
-                      res = use_web_service('/add_blob_ws/', data)
+                        data = {"demo_id": demo_id, "path": tmp_path,
+                                "tag":tags,
+                                "ext": ext, "blob_set": section,
+                                "blob_pos_in_set": file_id, "title": title,
+                                "credit": credit}
+                        res = use_web_service('/add_blob_ws/', data)
 
-                      # add the tags
+                        # add the tags
+                        
+                        #res = use_web_service('/add_tag_to_blob_ws/', data)
+                        the_hash = res["the_hash"]
+                        if the_hash != -1 and res["status"] == "OK":
+                            file_dest = self.move_to_input_directory(tmp_path,
+                                                                     the_hash,
+                                                                     ext)
+                            # in case of blob image representation, process it too
+                            if has_image_representation:
+                                src.extract(_file_image, path=tmp_directory)
+                                tmp_image_path = os.path.join(tmp_directory, _file_image)
+                                _, image_ext = os.path.splitext(tmp_image_path)
+                                # TODO: force image representation to be PNG? ,
+                                # do a conversion if needed?
+                                
+                                # according to Miguel, don´t add a blob image representation
+                                # as a blob item
+                                data = {"demo_id": demo_id, "path": tmp_image_path,
+                                        "tag":tags,
+                                        "ext": image_ext, "blob_set": section,
+                                        "blob_pos_in_set": file_id, "title": title,
+                                        "credit": credit}
+                                res = use_web_service('/add_blob_ws/', data)
+                                the_hash = res["the_hash"]
 
-                      #res = use_web_service('/add_tag_to_blob_ws/', data)
-                      the_hash = res["the_hash"]
-                      if the_hash != -1 and res["status"] == "OK":
-                        file_dest = self.move_to_input_directory(tmp_path,
-                                                                the_hash,
-                                                                ext)
-                        # in case of blob image representation, process it too
-                        if has_image_representation:
-                            src.extract(_file_image, path=tmp_directory)
-                            tmp_image_path = os.path.join(tmp_directory, _file_image)
-                            _, image_ext = os.path.splitext(tmp_image_path)
-                            # TODO: force image representation to be PNG? ,
-                            # do a conversion if needed?
-
-                            # according to Miguel, don´t add a blob image representation
-                            # as a blob item
-                            data = {"demo_id": demo_id, "path": tmp_image_path,
-                                    "tag":tags,
-                                    "ext": image_ext, "blob_set": section,
-                                    "blob_pos_in_set": file_id, "title": title,
-                                    "credit": credit}
-                            res = use_web_service('/add_blob_ws/', data)
-                            the_hash = res["the_hash"]
-
-                            file_image_dest = self.move_to_input_directory(
-                                tmp_image_path,
-                                the_hash,
-                                image_ext)
-                            self.create_thumbnail(file_image_dest)
+                                file_image_dest = self.move_to_input_directory(
+                                    tmp_image_path,
+                                    the_hash,
+                                    image_ext)
+                                self.create_thumbnail(file_image_dest)
+                            else:
+                                self.create_thumbnail(file_dest)
                         else:
-                            self.create_thumbnail(file_dest)
-                      else:
-                          os.remove(tmp_path)
-                  else:
-                      pass
+                            os.remove(tmp_path)
+                    else:
+                        pass
         else:
             self.logger.exception(
                             "ZipError: index.cfg missing in " + the_archive +
