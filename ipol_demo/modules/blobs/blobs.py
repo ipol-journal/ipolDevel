@@ -6,10 +6,6 @@ This file implements the system core of the server
 It implements Blob object and manages web page and web service
 """
 
-import cherrypy
-
-
-import magic
 import tempfile
 import shutil
 import urllib
@@ -19,12 +15,8 @@ import urllib2
 import os
 import os.path
 import sys
-import yaml
 import tarfile
 import zipfile
-import PIL.Image
-import inspect
-import string
 import re
 import ConfigParser as configparser
 import threading
@@ -32,11 +24,12 @@ import logging
 import time
 import base64
 import sqlite3 as lite
+import PIL.Image
+import magic
+import cherrypy
 from database import Database
 from error import DatabaseError
-from collections import defaultdict
 from mako.lookup import TemplateLookup
-from cherrypy.lib import auth_basic
 
 #Get the server socket_host from conf file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -46,16 +39,19 @@ REALM = cherrypy.config['server.socket_host']
 
 #Get username and password from file
 auth_file = open('auth', 'r')
-username,passwd = auth_file.read().strip().split(':')
+user_name,passwd = auth_file.read().strip().split(':')
 
 class   DatabaseConnection(object):
-
+    """
+    Class implementing a safe abstraction for database access.
+    
+    with DatabaseConnection(...) as db:
+    db.do_stuff()
+    """
+    
     def __init__(self, database_dir, database_name, logger):
         """
-        Class implementing a safe abstraction for database access.
-
-        with DatabaseConnection(...) as db:
-            db.do_stuff()
+        Initiating the Database object to be used.
         """
         try:
             self.db = Database(database_dir, database_name, logger)
@@ -70,7 +66,7 @@ class   DatabaseConnection(object):
         """
         return self.db
 
-    def __exit__(self, _0, _1, _2):
+    def __exit__(self, _type, _value, _traceback):
         """
         Try to automatically close the connection when leaving the
         safe context, if not already done.
@@ -81,11 +77,13 @@ class   DatabaseConnection(object):
             pass
 
 
-def validate_password(realm, username, password):
+def validate_password(_realm, username, password):
     """
     Validates the username and the password given
     """
-    USER = {username: passwd}
+    global user_name
+    global passwd
+    USER = {user_name: passwd}
     if username in USER and USER[username] == password:
         return True
     return False
@@ -116,7 +114,6 @@ def get_new_path( filename, create_dir=True, depth=2):
     subdirs = '/'.join(list(fname[:l]))
     new_dname = dname + '/' + subdirs + '/'
     if create_dir and not(os.path.isdir(new_dname)): os.makedirs(new_dname)
-    print "La ruta es: new Dname: ",new_dname," Prefix: ", prefix, " Bname: ", bname
     return new_dname + prefix + bname
 
 class MyFieldStorage(cherrypy._cpreqbody.Part):
@@ -216,7 +213,7 @@ class   Blobs(object):
                 try:
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.logger.exception( "init_database", str(ex))
+                    self.logger.exception("init_database : " + str(ex))
                     status = False
                     return status
 
@@ -240,13 +237,13 @@ class   Blobs(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception( "init_database", (str(ex)))
+                self.logger.exception("init_database" + (str(ex)))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception( "init_database", str(ex))
+                        self.logger.exception("init_database" + str(ex))
                         status = False
 
         return status
@@ -290,7 +287,7 @@ class   Blobs(object):
         """
         data = {}
         res = use_web_service('/demos_ws', data)
-        print res
+        
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
@@ -1397,7 +1394,6 @@ def use_web_service(req, data, auth=None):
         base64string = base64.encodestring('%s:%s' % (username, passwd)).replace('\n', '')
         request.add_header("Authorization", "Basic %s" % base64string)
     res = urllib2.urlopen(request)
-    print "url=",url
     tmp = res.read()
     return json.loads(tmp)
 

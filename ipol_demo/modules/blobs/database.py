@@ -7,11 +7,11 @@ This file implements database class
 
 import os
 import os.path
+import sys
 
-import inspect
 import sqlite3 as lite
 from error import DatabaseInsertError, DatabaseSelectError, \
-DatabaseDeleteError, DatabaseError
+DatabaseDeleteError, DatabaseError, DatabaseUpdateError
 
 import cherrypy
 
@@ -364,45 +364,45 @@ class   Database(object):
         """
         # 
         try:
-          self.cursor.execute('''
+            self.cursor.execute('''
             SELECT  blob_set, GROUP_CONCAT(blob_id)  FROM demo_blob
             INNER JOIN demo ON demo_blob.demo_id=demo.id
             INNER JOIN blob ON demo_blob.blob_id=blob.id
             WHERE demo.id=? GROUP BY blob_set ''', (demo_id,))
         except self.database.Error as e:
-          raise DatabaseSelectError(e)
+            raise DatabaseSelectError(e)
 
         blobsets_list = self.cursor.fetchall()
         
         blobset_list = []
         for blobset in blobsets_list:
-          try:
-            self.cursor.execute('''
-              SELECT  blob.id, demo_blob.blob_pos_in_set,
-                      blob.hash, blob.extension, blob.format, 
-                      blob.title, blob.credit FROM demo_blob
-              INNER JOIN demo ON demo_blob.demo_id=demo.id
-              INNER JOIN blob ON demo_blob.blob_id=blob.id
-              WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
-          except self.database.Error as e:
-            raise DatabaseSelectError(e)
-          
-          blobset_blobs = self.cursor.fetchall()
-          blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
-          for b in  blobset_blobs:
-            # get blob tags
-            tags = self.get_tags_of_blob( b[0])
+            try:
+                self.cursor.execute('''
+                SELECT  blob.id, demo_blob.blob_pos_in_set,
+                blob.hash, blob.extension, blob.format, 
+                blob.title, blob.credit FROM demo_blob
+                INNER JOIN demo ON demo_blob.demo_id=demo.id
+                INNER JOIN blob ON demo_blob.blob_id=blob.id
+                WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
+            except self.database.Error as e:
+                raise DatabaseSelectError(e)
+        
+            blobset_blobs = self.cursor.fetchall()
+            blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
+            for b in  blobset_blobs:
+                # get blob tags
+                tags = self.get_tags_of_blob( b[0])
             
-            tag_str = ''
-            for tid in tags:
-                tag_str += ", "+tags[tid]
+                tag_str = ''
+                for tid in tags:
+                    tag_str += ", "+tags[tid]
 
-            # now get blobs of each set
-            blob_list.append(
-                        { "id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
-                          "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
-                      )
-          blobset_list.append(blob_list)
+                # now get blobs of each set
+                blob_list.append(
+                    { "id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
+                      "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
+                )
+            blobset_list.append(blob_list)
 
         return blobset_list
 
@@ -539,7 +539,7 @@ class   Database(object):
             WHERE demo.id=?''', \
             (demo_id,))
             count = self.cursor.fetchone()
-            if count==None:
+            if count is None:
                 return 0
             else:
                 return count[0]
