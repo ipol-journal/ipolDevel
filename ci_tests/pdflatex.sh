@@ -3,7 +3,7 @@
 # pdflatex compilation report
 # Miguel Colom, 2016
 
-me=$(whoami)
+me=ipol #$(whoami)
 docsDir="/home/${me}/ipolDevel/doc"
 report="/home/${me}/ipolDevel/ci_tests/pdflatex_report.txt"
 files="control_panel/control_panel.tex ddl/ddl.tex system/ipol.tex"
