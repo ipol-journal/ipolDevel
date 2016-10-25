@@ -13,8 +13,6 @@ import sqlite3 as lite
 from error import DatabaseInsertError, DatabaseSelectError, \
 DatabaseDeleteError, DatabaseError, DatabaseUpdateError
 
-import cherrypy
-
 class   Database(object):
     """
     This class implements database management
@@ -31,32 +29,30 @@ class   Database(object):
         """
         self.logger = logger
         self.formats = ('audio', 'image', 'video')
-        
+
         self.database_dir = database_dir
-        
+
         self.database_file = os.path.join(database_dir, database_name)
         self.status = self.init_database()
         if not self.status:
             sys.exit("Initialisation of database failed. Check the logs.")
-        
-        ip = cherrypy.request.remote.ip
-        
+
         self.database = lite.connect(self.database_file, check_same_thread=False)
         self.cursor = self.database.cursor()
         self.init_tag_column()
-    
+
     def init_database(self):
         """
-        Initialize the database used by the module if it doesn't exist. 
+        Initialize the database used by the module if it doesn't exist.
         If the file is empty, the system delete it and create a new one.
         :return: False if there was an error. True otherwise.
         :rtype: bool
         """
         status = True
         if os.path.isfile(self.database_file):
-                   
+
             file_info = os.stat(self.database_file)
-                   
+
             if file_info.st_size == 0:
                 self.logger.warning( str(self.database_file) + \
                                      ' is empty. Removing the file...')
@@ -67,39 +63,39 @@ class   Database(object):
                     self.logger.exception(str(ex))
                     status = False
                     return status
-                        
+
         if not os.path.isfile(self.database_file):
-                    
+
             try:
                 conn = lite.connect(self.database_file)
                 cursor_db = conn.cursor()
-            
+
                 sql_buffer = ""
-                    
+
                 with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
                     for line in sql_file:
-                                
+
                         sql_buffer += line
-                        if lite.complete_statement(sql_buffer):         
+                        if lite.complete_statement(sql_buffer):
                             sql_buffer = sql_buffer.strip()
                             cursor_db.execute(sql_buffer)
                             sql_buffer = ""
-                                
+
                 conn.commit()
-                conn.close()  
-                    
+                conn.close()
+
             except Exception as ex:
                 self.logger.exception( (str(ex)))
-                        
+
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
                         self.logger.exception( str(ex))
                         status = False
-                
-        return status    
-    
+
+        return status
+
     def add_demo_in_database(self, demo, is_template, template_id):
         """
         Add name demo in demo column in database
@@ -114,7 +110,7 @@ class   Database(object):
         try:
             if not self.demo_is_in_database(demo):
                 if is_template == '0':
-                    if template_id == None:
+                    if template_id is None:
                         self.cursor.execute('''
                         INSERT INTO demo(name)
                         VALUES(?)''', (demo,))
@@ -362,7 +358,7 @@ class   Database(object):
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
-        # 
+        #
         try:
             self.cursor.execute('''
             SELECT  blob_set, GROUP_CONCAT(blob_id)  FROM demo_blob
@@ -373,26 +369,26 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         blobsets_list = self.cursor.fetchall()
-        
+
         blobset_list = []
         for blobset in blobsets_list:
             try:
                 self.cursor.execute('''
                 SELECT  blob.id, demo_blob.blob_pos_in_set,
-                blob.hash, blob.extension, blob.format, 
+                blob.hash, blob.extension, blob.format,
                 blob.title, blob.credit FROM demo_blob
                 INNER JOIN demo ON demo_blob.demo_id=demo.id
                 INNER JOIN blob ON demo_blob.blob_id=blob.id
                 WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
             except self.database.Error as e:
                 raise DatabaseSelectError(e)
-        
+
             blobset_blobs = self.cursor.fetchall()
             blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
             for b in  blobset_blobs:
                 # get blob tags
                 tags = self.get_tags_of_blob( b[0])
-            
+
                 tag_str = ''
                 for tid in tags:
                     tag_str += ", "+tags[tid]
@@ -433,7 +429,7 @@ class   Database(object):
 
     def get_demo_info_from_name(self, demo_name):
         """
-        Return name of the demo info: name, is_template, template_id from the 
+        Return name of the demo info: name, is_template, template_id from the
         demo name
 
         :param demo_name: demo name
@@ -558,11 +554,7 @@ class   Database(object):
         :param demo_blobcount: tuple of integer
         :type demo_blobcount: tuple or None
         """
-        ip = cherrypy.request.remote.ip
-        
-        
-        self.logger.info("database.py remove_demo_from_database({0})".format(demo_id))
-        
+
         try:
             self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
         except self.database.Error as e:
@@ -586,13 +578,13 @@ class   Database(object):
             WHERE blob.id=?''', \
             (blob_id,))
             democount = self.cursor.fetchone()
-            if democount==None:
+            if democount is None:
                 democount=0
             else:
                 democount = democount[0]
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        if democount==None:
+        if democount is None:
             democount=0
         return democount
 
@@ -606,9 +598,7 @@ class   Database(object):
         :param blob_demo_count: tuple of integer
         :type blob_demo_count: tuple or None
         """
-        ip = cherrypy.request.remote.ip
 
-        
         if blob_demo_count == 0:
             try:
                 self.cursor.execute('''
@@ -651,7 +641,7 @@ class   Database(object):
         :type tag_is_reducible: integer
         """
 
-        
+
         if tag_is_reducible[0] == 0:
             try:
                 self.cursor.execute('''
@@ -715,7 +705,7 @@ class   Database(object):
         Delete demo row named by name demo if demo has no blob
         Delete tag row associated to blob if tag has no blob
         Delete blob row named by hash blob if blob has no demo
-        
+
         :param demo_id: id demo
         :type demo_id: integer
         :param blob_id: id blob
@@ -723,9 +713,7 @@ class   Database(object):
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
-        ip = cherrypy.request.remote.ip
 
-        
         try:
             result = self.cursor.execute('''
             SELECT blob_id, demo_id, blob_set FROM demo_blob
@@ -747,7 +735,7 @@ class   Database(object):
                     (value[0], value[1],value[2]))
                 except self.database.Error as e:
                     raise DatabaseDeleteError(e)
-                
+
         # recompute blob positions in set
         try:
             print "recompute blob positions"
@@ -778,7 +766,7 @@ class   Database(object):
                 raise DatabaseSelectError(e)
             prev_pos = val[1]
             blobpos=blobpos+1
-         
+
 
         #---- here
         self.delete_all_tag(blob_id)
@@ -888,8 +876,8 @@ class   Database(object):
             #print item[0]
             #print blobsets_list
             length= len(blob_sets.fetchall())
-            
-            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } ) 
+
+            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } )
         return lis
 
     #---------------------------------------------------------------------------
@@ -951,8 +939,8 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
-        
-        
+
+
         try:
             self.cursor.execute('''
             DELETE FROM blob_tag
@@ -974,8 +962,8 @@ class   Database(object):
         :type blob_id: integer
         """
 
-        
-        
+
+
         something = None
         try:
             self.cursor.execute('''
@@ -1023,7 +1011,7 @@ class   Database(object):
         :param demo_id: id demo
         :type demo_id: integer
         """
-        
+
         print "database remove_demo({0})".format(demo_id)
         try:
             # use get_blobs_of_demo() to simplify the code
@@ -1035,7 +1023,7 @@ class   Database(object):
                 print "removing blobset '{0}'".format(blobset_id)
                 for i in range(blobs[0]["size"]):
                     can_delete = self.delete_blob_from_demo(demo_id, blobset_id,blobs[i+1]["id"])
-                    if can_delete: 
+                    if can_delete:
                         blobfilenames_to_delete.append(blobs[i+1]["hash"]+blobs[i+1]["extension"])
             demo_blobcount = self.blobcount(demo_id)
             print "demo blobcount = ", demo_blobcount
@@ -1044,7 +1032,7 @@ class   Database(object):
         except self.database.Error, e:
             raise DatabaseDeleteError(e)
         return blobfilenames_to_delete
-        
+
 
     #---------------------------------------------------------------------------
     def demo_use_template(self, demo_id):

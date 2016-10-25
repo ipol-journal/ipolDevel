@@ -64,4 +64,3 @@ def print_usage_function(executable):
     mess += "[Usage]: " + executable + " file.conf"
 
     print >> sys.stderr, mess
-

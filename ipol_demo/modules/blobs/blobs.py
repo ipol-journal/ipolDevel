@@ -44,11 +44,11 @@ user_name,passwd = auth_file.read().strip().split(':')
 class   DatabaseConnection(object):
     """
     Class implementing a safe abstraction for database access.
-    
+
     with DatabaseConnection(...) as db:
     db.do_stuff()
     """
-    
+
     def __init__(self, database_dir, database_name, logger):
         """
         Initiating the Database object to be used.
@@ -77,14 +77,14 @@ class   DatabaseConnection(object):
             pass
 
 
-def validate_password(_realm, username, password):
+def validate_password(dummy, username, password):
     """
     Validates the username and the password given
     """
     global user_name
     global passwd
-    USER = {user_name: passwd}
-    if username in USER and USER[username] == password:
+    credentials = {user_name: passwd}
+    if username in credentials and credentials[username] == password:
         return True
     return False
 
@@ -264,9 +264,9 @@ class   Blobs(object):
             self.logger.exception("Cannot instantiate Database Object")
             sys.exit(1)
 
-
+    @staticmethod
     @cherrypy.expose
-    def default(self, attr):
+    def default(attr):
         """
         Default method invoked when asked for non-existing service.
         """
@@ -287,7 +287,7 @@ class   Blobs(object):
         """
         data = {}
         res = use_web_service('/demos_ws', data)
-        
+
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
@@ -349,10 +349,10 @@ class   Blobs(object):
             try:
                 data.start_transaction()
                 blobid = -1
-            
+
                 if data.blob_is_in_database(blob_hash):
                     blobid = data.blob_id(blob_hash)
-                
+
                 data.add_blob_in_database(demo_id, blob_hash, fileformat,
                                           ext, tag, blob_set, blob_pos_in_set,
                                           title, credit, blobid)
@@ -387,7 +387,7 @@ class   Blobs(object):
         title     = kwargs['blob[title]']
         credit    = kwargs['blob[credit]']
 
-        pattern = re.compile("^\s+|\s*,\s*|\s+$")
+        pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
 
         if not list_tag:
@@ -456,7 +456,7 @@ class   Blobs(object):
             except DatabaseError:
                 self.logger.exception("Cannot have the list of demos")
                 dic["status"] = "KO"
-                
+
         return json.dumps(dic)
 
     @cherrypy.expose
@@ -471,7 +471,7 @@ class   Blobs(object):
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
-            
+
 
             dic["template_list"] = {}
             try:
@@ -512,7 +512,7 @@ class   Blobs(object):
         :rtype: json format
         """
         dic = {}
-        
+
         cherrypy.response.headers['Content-Type'] = "application/json"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
@@ -658,7 +658,11 @@ class   Blobs(object):
         # another option is to use Queue:
         # http://stackoverflow.com/questions/35149889/lock-with-timeout-in-
         # python2-7
-        def waitLock(lock,timeout):
+        def waitLock(lock, timeout):
+            """
+            This function start to acquire the given lock
+            during timeout amount of time.
+            """
             current_time = start_time = time.time()
             while current_time < start_time + timeout:
                 if lock.acquire(False):
@@ -672,7 +676,7 @@ class   Blobs(object):
         # prevent simultaneous calls
         # try to acquire lock during 3 seconds
         if waitLock(self.blobs_lock,3):
-            
+
             with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
 
                 try:
@@ -741,7 +745,7 @@ class   Blobs(object):
         tag = kwargs['tag']
         blob_id = kwargs['blob_id']
         demo_id = kwargs['demo_id']
-        pattern = re.compile("^\s+|\s*,\s*|\s+$")
+        pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
 
         if not list_tag:
@@ -1070,7 +1074,7 @@ class   Blobs(object):
         """
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"            
+            cherrypy.response.headers['Content-Type'] = "application/json"
 
             try:
                 dic = data.get_blob(blob_id)
@@ -1263,11 +1267,11 @@ class   Blobs(object):
                         title = buff.get(section, 'title')
                         try:
                             credit = buff.get(section, 'credit')
-                        except:
+                        except Exception as dummy:
                             credit = ""
                         try:
                             tags = buff.get(section, 'tag')
-                        except:
+                        except Exception as dummy:
                             tags = ""
                         src.extract(_file, path=tmp_directory)
                         tmp_path = os.path.join(tmp_directory, _file)
@@ -1282,7 +1286,7 @@ class   Blobs(object):
                         res = use_web_service('/add_blob_ws/', data)
 
                         # add the tags
-                        
+
                         #res = use_web_service('/add_tag_to_blob_ws/', data)
                         the_hash = res["the_hash"]
                         if the_hash != -1 and res["status"] == "OK":
@@ -1296,7 +1300,7 @@ class   Blobs(object):
                                 _, image_ext = os.path.splitext(tmp_image_path)
                                 # TODO: force image representation to be PNG? ,
                                 # do a conversion if needed?
-                                
+
                                 # according to Miguel, don´t add a blob image representation
                                 # as a blob item
                                 data = {"demo_id": demo_id, "path": tmp_image_path,
@@ -1325,9 +1329,9 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
 
-
+    @staticmethod
     @cherrypy.expose
-    def ping(self):
+    def ping():
         """
         Ping pong.
         :rtype: JSON formatted string
