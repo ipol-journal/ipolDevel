@@ -1,0 +1,117 @@
+{ 
+  "general": { 
+    "demo_title"            :  "An Iterative Optimization Algorithm for Lens Distortion Correction Using Two-Parameter Models",
+    "input_description"     : "",
+    "param_description"     : "",
+    "xlink_article"         : "http://www.ipol.im/pub/pre/130/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/pre/130/ldm_pq2p_io.zip", 
+      "srcdir"        : "",
+      "binaries"      : [ [".","lens_distortion_correction_2p_iterative_optimization"] ],
+      "flags"         : "-j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : 1024000,
+          "max_weight"      : 5242880,
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "high_threshold_canny",
+      "type"          : "range", 
+      "label"         : "Canny high threshold:",
+      "values"        : { "min":0.7, "max":1.9, "step":0.05, "default":0.8 }
+    },
+    {
+      "id"            : "initial_distortion_parameter",
+      "type"          : "range", 
+      "label"         : "Minimum distortion parameter value:",
+      "values"        : { "min":-0.5, "max":4.0, "step":0.1, "default":0.0 }
+    },
+    {
+      "id"            : "final_distortion_parameter",
+      "type"          : "range", 
+      "label"         : "Maximum distortion parameter value:",
+      "values"        : { "min":0.0, "max":4.0, "step":0.1, "default":3.0 }
+    },
+    {
+      "id"            : "distance_point_line_max_hough",
+      "type"          : "range", 
+      "label"         : "Max distance lines and associated points:",
+      "values"        : { "min":0.0, "max":10.0, "step":0.1, "default":4.0 }
+    },
+    {
+      "id"            : "angle_point_orientation_max_difference",
+      "type"          : "range", 
+      "label"         : "Max orientation difference edge point and line (in degrees):",
+      "values"        : { "min":0.0, "max":45.0, "step":1.0, "default":10.0 }
+    },
+    {
+      "id"            : "ldm_type",
+      "type"          : "selection_radio", 
+      "label"         : "Type of the lens distortion model to apply:",
+      "values"        : { "Polynomial":"pol", "Division":"div" },
+      "default_value" : "div"
+    },
+    {
+      "id"            : "center_optimization",
+      "type"          : "checkbox", 
+      "label"         : "Optimization of the center of the lens distortion model:",
+      "default_value" : true
+    }
+  ],
+  "run": [ 
+    "lens_distortion_correction_2p_iterative_optimization input_0.sel.png output_canny.png output_hough.png output_corrected_image.png $high_threshold_canny $initial_distortion_parameter $final_distortion_parameter $distance_point_line_max_hough $angle_point_orientation_max_difference $ldm_type $center_optimization primitives.txt >stdout.txt 2>&1"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"           : "Input",
+                  "output_canny.png"          : "Canny",
+                  "output_hough.png"          : "Hough",
+                  "output_corrected_image.png": "Output"
+                },
+      "compressed_files" : { "primitives.txt":"Primitives"},
+      "params" :  [ "high_threshold_canny", "initial_distortion_parameter", "final_distortion_parameter", "distance_point_line_max_hough", "angle_point_orientation_max_difference", "ldm_type", "center_optimization" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : { 
+        "Canny"    : "output_canny.png",
+        "Hough"    : "output_hough.png",
+        "Output"   : "output_corrected_image.png",
+        "Input"    : "input_0.sel.png"
+      }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Additional Info</b><br>",
+      "contents"      : "stdout.txt",
+      "style"         : "''"
+    },
+    {
+      "type"  : "file_download",
+      "label"         : "<br/><b>You can download the files:</b> ",
+      "contents"      : 
+        { 
+          "Canny"       : "output_canny.png", 
+          "Hough"       : "output_hough.png",
+          "Output"      : "output_corrected_image.png",
+          "Primitives"  : "primitives.txt"
+        }
+    }
+  ]
+
+}

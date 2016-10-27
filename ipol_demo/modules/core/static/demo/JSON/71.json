@@ -1,0 +1,99 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Interactive Segmentation Based on Component-trees",
+    "input_description"     : "",
+    "param_description"     : "",
+    "drawmask"              : true,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2014/71/",
+    "input_condition"       : [ "input_size[0]==input_size[1]",
+                                "badparams",
+                                "The images must have the same size" ]
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2014/71/ctseg.tgz", 
+        "srcdir"        : "ctseg",
+        "binaries"      : [ [".","./","ctseg"] ],
+        "flags"         : "-j4",
+        "scripts"       : [ 
+                            [".","convert.sh"],
+                            [".","applyCT.sh"]
+                          ]
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input",
+          "max_pixels"      : "2048 * 2048",
+          "max_weight"      : "10 * 2048 * 2048",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Mask",
+          "max_pixels"      : "2048 * 2048",
+          "max_weight"      : "10 * 2048 * 2048",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      }
+    ],
+  "params": 
+    [
+      {
+        "id"            : "_lambda",
+        "type"          : "range_scientific", 
+        "label"         : "<i>&lambda;</i>",
+        "values"        : { "min":1e-4, "max":1e0, "digits":0, "default": 1e-1 }
+      },
+      {
+        "id"            : "negate",
+        "type"          : "checkbox", 
+        "label"         : "Negate the source image (recommanded to extract dark objects on bright background)",
+        "default"       : false
+      }
+    ],
+  "run": [
+    "convert.sh input_0.png input_0.pgm",
+    "convert.sh input_1.png mask.pgm",
+    [ "negate",       "ctseg input_0.pgm mask.pgm $_lambda negate >stdout.txt 2>&1" ],
+    [ "not(negate)",  "ctseg input_0.pgm mask.pgm $_lambda  >stdout.txt 2>&1" ],
+    "convert result.pgm result.png"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_0.png"             : "original image",
+                    "input_1.png"             : "mask image",
+                    "composite.png"           : "input",
+                    "inpainted.png"           : "inpainting result"
+                },
+      "params" :  [ "_lambda", "negate" ]
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Resulting images</h2>",
+      "contents"      : 
+        { 
+            "Segmentation"  : "result.png",
+            "Original"      : "input_0.png", 
+            "Marker"        : "input_1.png"
+        },
+      "options"       : { "minheight": 350 }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Running commands</b><br/>",
+      "contents"      : "shell_cmds.txt",
+      "style"         : "''"
+    }
+
+  ]
+}

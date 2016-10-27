@@ -1,0 +1,164 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Zhang-Wu Directional LMMSE Image Demosaicking",
+    "input_description"     : "<p>A demosaicking method performing a directional linear minimum mean square error estimation strategy in the green channel.</p>",
+    "param_description"     : [
+        "<p> The algorithm runs in 2 steps:",
+        "<ol>",
+            "<li> a Bayer pattern mosaic is extracted from the input image;</li>",
+            "<li> the demosaicking algorithm is used to reconstruct the original image.</li>",
+        "</ol>",
+        "</p>",
+        "Mosaicing patterns <br/>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>  G</td>",
+            "<td style='color:white;background-color:blue'>B</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:red'>  R</td>",
+            "<td style='color:white;background-color:green'>G</td>",
+          "</tr>",
+        "</table>",
+        "<table style='float:left;margin:5px;border:2px solid black'>",
+          "<tr>",
+            "<td style='color:white;background-color:blue'>B</td>",
+            "<td style='color:white;background-color:green'>  G</td>",
+          "</tr>",
+          "<tr>",
+            "<td style='color:white;background-color:green'>G</td>",
+            "<td style='color:white;background-color:red'>  R</td>",
+          "</tr>",
+        "</table> <div style='clear:both'><br/>"
+    ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/g_zwld/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2011/g_zwld/src.tar.gz", 
+      "srcdir"        : "src",
+      "binaries"      : [   [".","dmzhangwu"],
+                            [".","dmbilinear"],
+                            [".","mosaic"],
+                            [".","imdiff"]],
+      "flags"         : " --makefile=makefile.gcc -j4"
+    } ]
+  ,
+  "inputs": [  
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10 * 1024 * 1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"            : "pattern",
+      "type"          : "selection_collapsed",
+      "label"         : "Mosaicing pattern",
+      "values"        : { "RGGB":"RGGB", "GRBG":"GRBG", "GBRB":"GBRG", "BGGR":"BGGR" },
+      "default_value" : "RGGB"
+    }
+  ],
+  "run": [ 
+    "#--- Mosaic image",
+    "mosaic     -p $pattern input_0.sel.png mosaiced.png >stdout.txt 2>&1",
+    "#--- Demosaic image",
+    "dmzhangwu  -p $pattern mosaiced.png dmzhangwu.png   >stdout.txt 2>&1",
+    "dmbilinear -p $pattern mosaiced.png bilinear.png    >stdout.txt 2>&1",
+    "#--- Compute image differences",
+    "imdiff input_0.sel.png dmzhangwu.png diffdmzhangwu.png",
+    "imdiff input_0.sel.png bilinear.png  diffbilinear.png",
+    "#--- Resize for visualization (new size of the smallest dimension = 200)",
+    "python:(sizeX, sizeY) = image('input_0.sel.png').size",
+    "python:zoomfactor = max(1, int(math.ceil(200.0/min(sizeX, sizeY))))",
+    "python:(sizeX, sizeY) = (zoomfactor*sizeX, zoomfactor*sizeY)",
+    "convert -filter point -resize ${sizeX}x${sizeY} input_0.sel.png    input_0.sel_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} mosaiced.png       mosaiced_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} dmzhangwu.png      dmzhangwu_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} bilinear.png       bilinear_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffdmzhangwu.png  diffdmzhangwu_zoom.png",
+    "convert -filter point -resize ${sizeX}x${sizeY} diffbilinear.png   diffbilinear_zoom.png",
+    "#--- save algorithm information",
+    "python:self.algo_info['displayheight'] = sizeY",
+    "python:self.algo_info['zoomfactor']    = zoomfactor"
+  ],
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"   : "selected subimage",
+                  "mosaiced.png"      : "mosaiced image",
+                  "dmzhangwu.png"     : "Zhang-Wu demosaiced image",
+                  "diffdmzhangwu.png" : "difference image for Zhang-Wu",
+                  "bilinear.png"      : "bilinear demosaiced image",
+                  "diffbilinear.png"  : "difference image for bilinear"
+                },
+      "params" :  [ "pattern" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "contents"      : 
+        {
+            "Mosaick"                       : "mosaiced_zoom.png",
+            "Bilinear demosaiced"           : "bilinear_zoom.png",
+            "Zhang-Wu demosaiced"           : "dmzhangwu_zoom.png",
+            "Original"                      : "input_0.sel_zoom.png",
+            "Bilinear difference"           : "diffbilinear_zoom.png",
+            "Zhang-Wu difference"           : "diffdmzhangwu_zoom.png"
+        }
+    },
+    {
+        "type"      : "file_download",
+        "label"     : "<p>Results at native resolution can be downloaded here:</p>",
+        "contents"  : {
+                "mosaic"                  : "mosaiced.png",
+                "bilinear demosaic"       : "bilinear.png",
+                "Zhang-Wu demosaic"       : "dmzhangwu.png",
+                "original"                : "input_0.sel.png",
+                "bilinear difference"     : "diffbilinear.png",
+                "Zhang-Wu difference"     : "diffdmzhangwu.png"
+            }
+    },
+    {
+        "type"    : "html_text",
+        "contents"      : [
+            "<p>In the difference images, the error range [&minus;20,20] is linearly transformed to [0,255] for visualization purposes. Errors outside this range are saturated to 0 and 255 respectively.</p>",
+            "<p>",
+            "The displayed error is:",
+            "<ul>",
+                "<li> 0 if the error is under &minus;20</li>",
+                "<li> 128 + 128/20 * error if the error is between &minus;20 and 20 </li>",
+                "<li> 255 if the error is over 20 </li>",
+            "</ul>",
+            "</p>"
+      ]
+    }
+  ]
+
+}

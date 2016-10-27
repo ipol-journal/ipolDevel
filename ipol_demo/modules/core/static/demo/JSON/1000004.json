@@ -1,0 +1,114 @@
+{ 
+  "general": { 
+    "demo_title"            : "Automatic Color Enhancement (ACE) and its Fast Implementation",
+    "input_description"     : [ "" ],
+    "param_description"     : [ "" ],
+    "xlink_article"         : "http://www.ipol.im/pub/art/2012/g-ace/"
+  }, 
+  "build": [
+    {
+      "build_type"    : "make",
+      "url"           : "http://www.ipol.im/pub/art/2012/g-ace/ace_20121029.tar.gz", 
+      "srcdir"        : "ace_20121029",
+      "binaries"      : [ [".","ace"], [".","histeq"]],
+      "prepare_make"  : "sed -i -e 's/CPNG=-DUSE_LIBPNG/CPNG=-I\\\/usr\\\/include\\\/libpng12 -DUSE_LIBPNG/g' -e 's/lpng/lpng12/g' makefile.gcc",
+      "flags"         : "--makefile=makefile.gcc -j4"
+    } ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "input",
+          "max_pixels"      : "700*700",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      }
+    ],
+  "params": [
+    {
+      "id"           : "alpha",
+      "label"        : "&alpha;, enhancement strength",
+      "type"         : "range",
+      "values"       : { "min":1, "max":8, "step":0.5, "default": 5 }
+    },
+    {
+      "id"            : "omega",
+      "type"          : "selection_radio",
+      "label"         : "&omega;, spatial weighting",
+      "values"        : { "1":"1", "1/<i>r</i>":"1/r", "Gaussian":"G" },
+      "default_value" : "1/r",
+      "vertical"      : true
+    },
+    {
+      "id"           : "gaussianstd",
+      "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Gaussian, standard deviation",
+      "type"         : "range",
+      "values"       : { "min":20, "max":100, "step":1, "default": 25 },
+      "visible"      : "params.omega==='G'"
+    },
+    {
+      "id"            : "method",
+      "type"          : "selection_radio",
+      "label"         : "method",
+      "values"        : {   "Level interpolation":"interp", 
+                            "Polynomial <i>s<sub>&alpha;</sub></i>":"poly" },
+      "default_value" : "interp",
+      "vertical"      : true
+    },
+    {
+      "id"           : "numlevels",
+      "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Level interpolation, # levels:",
+      "type"         : "range",
+      "values"       : { "min":4, "max":32, "step":1, "default": 8 },
+      "visible"      : "params.method==='interp'"
+    },
+    {
+      "id"           : "degree",
+      "label"        : "&nbsp;&nbsp;&nbsp;&nbsp;- Polynomial <i>s<sub>&alpha;</sub></i>, degree:",
+      "type"         : "range",
+      "values"       : { "min":3, "max":11, "step":2, "default": 9 },
+      "visible"      : "params.method==='poly'"
+    }
+  ]
+  ,
+  "run": [ 
+    "python:omega_string=omega",
+    "python:if omega_string=='G': omega_string += ':'+str(gaussianstd)",
+    "python:if method=='poly'  : method_string = 'poly:'  +str(degree)",
+    "python:if method=='interp': method_string = 'interp:'+str(numlevels)",
+    "ace -a $alpha -w $omega_string -m $method_string input_0.sel.png ace.png >stdout.txt 2>&1",
+    "histeq input_0.sel.png he.png 2>>stdout.txt"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                  "input_0.sel.png"     : "selected subimage",
+                  "ace.png"             : "ACE enhanced",
+                  "he.png"              : "Histogram equalization"
+                },
+      "params" :  [ "alpha" , "omega", "gaussianstd", 
+                    "method", "degree", "numlevels" ]
+    }
+  ,
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "",
+      "contents"      : {
+        "Input"                     : "input_0.sel.png",
+        "ACE"                       : "ace.png", 
+        "Histogram Equalization"    : "he.png"
+      },
+      "options"       : { "minheight": 200 }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<h3>Program output<h3>",
+      "contents"      : "stdout.txt",
+      "style"         : "''"
+    }
+  ]
+
+}

@@ -1,0 +1,118 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Combined First and Second Order Total Variation Inpainting Using Split Bregman",
+    "input_description"     : "",
+    "param_description"     : "",
+    "drawmask"              : true,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2013/40/",
+    "input_condition"       : [ "input_size[0]==input_size[1]",
+                                "badparams",
+                                "The images must have the same size" ]
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2013/40/fstv_1.3.tgz", 
+        "srcdir"        : "fstv_1.3",
+        "binaries"      : [ [".","fstv"], [".","random_mask"] ],
+        "prepare_make"  : "sed -i -e 's/$(LDFLAGS) $(FSRC:.c=.o) -o $(FBIN)/$(FSRC:.c=.o) -o $(FBIN) $(LDFLAGS)/g' -e 's/$(LDFLAGS) $(RSRC:.c=.o) -o $(RBIN)/$(RSRC:.c=.o) -o $(RBIN) $(LDFLAGS)/g' Makefile",
+        "flags"         : "-j4"
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input",
+          "max_pixels"      : "500*500",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png"
+      },
+      {
+          "type"            : "image", 
+          "description"     : "Mask",
+          "max_pixels"      : "500*500",
+          "max_weight"      : "10*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".png",
+          "required"        : false
+      }
+    ],
+  "params": 
+    [
+      {
+        "id"            : "alpha",
+        "type"          : "range_scientific", 
+        "label"         : "<i>&alpha;</i>",
+        "values"        : { "min":1e-5, "max":1e-2, "digits":0, "default": 1e-3 }
+      },
+      {
+        "id"            : "beta",
+        "type"          : "range_scientific", 
+        "label"         : "<i>&beta;</i>",
+        "values"        : { "min":1e-5, "max":1e-2, "digits":0, "default": 1e-3 }
+      }
+    ],
+  "run": [
+    "python:# Open image and inpainting domain mask",
+    "python:img = PIL.Image.open('input_0.png').convert('RGB')",
+    "python:mask = PIL.Image.open('input_1.png')",
+    
+    "python:# Extract alpha: alpha is already used as param so use _alpha",
+    "python:_alpha = mask.copy()",
+    "python:_alpha.convert('L').putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:_alpha = _alpha.convert('L')",
+    
+    "python:# Extract mask palette for display",
+    "python:lut = mask.resize((256, 1))",
+    "python:lut.putdata(range(256))",
+    "python:lut = lut.convert('RGB').getdata()",
+    
+    "python:# Save binary PNG version of the mask",
+    "python:mask.convert('L').putpalette([0, 0, 0] * 255 + [255, 255, 255])",
+    "python:mask.save('mask.png')",
+    
+    "python:# Save image + mask composited version for display",
+    "python:img.paste(lut[255], _alpha)",
+    "python:img.save('composite.png')",
+    
+    "python:# Save another composite where mask is gray for computation",
+    "python:img.paste((128, 128, 128), _alpha)",
+    "python:img.save('u0.png')",
+
+    "fstv u0.png mask.png inpainted.png $alpha $beta"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_0.png"             : "original image",
+                    "input_1.png"             : "mask image",
+                    "composite.png"           : "input",
+                    "inpainted.png"           : "inpainting result"
+                },
+      "params" :  [ "alpha", "beta" ]
+    },
+  "results": [
+    {
+      "type"          : "file_download",
+      "label"         : "The images can be downloaded here:",
+      "contents"      : { "input"     : "composite.png", 
+                          "inpainted" : "inpainted.png",
+                          "original"  : "input_0.png"
+                        }
+    },
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : 
+        {   "Input"        : "composite.png", 
+            "Inpainted"    : "inpainted.png",
+            "Original"     : "input_0.png"
+        },
+      "options"       : { "minheight": 350 }
+    }
+  ]
+}

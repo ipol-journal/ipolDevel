@@ -1,0 +1,116 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Algebraic Lens Distortion Model Estimation",
+    "input_description"     : "",
+    "param_description"     : "",
+    "drawlines"             : true,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2011/ags-alde/"
+  },
+  "build":
+    [
+      {
+        "build_type"    : "make",
+        "url"           : "http://www.ipol.im/pub/art/2011/ags-alde/algebraic_lens_distortion_model_estimation_basic_march_2012.tar.gz", 
+        "srcdir"        : "algebraic_lens_distortion_model_estimation_basic",
+        "binaries"      : [ [".","lens_distortion_estimation"] ],
+        "prepare_make"  : "sed -i -e 's/-Wall//g' makefile",
+        "flags"         : "-j4  --makefile=makefile"
+      },
+      {
+        "build_type": "script",
+        "url": "http://151.80.24.28:8080/DemoSource/1000003/demo_scripts.tgz",
+        "srcdir": "demo_scripts",
+        "scripts": [ [".","write_line_parameters.py"] ]
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "image", 
+          "description"     : "Input",
+          "max_pixels"      : "1048576",
+          "max_weight"      : "3*1024*1024",
+          "dtype"           : "3x8i",
+          "ext"             : ".bmp"
+      }
+    ],
+  "params": 
+    [
+      {
+        "id"            : "use_image_center",
+        "type"          : "checkbox", 
+        "label"         : "Image center",
+        "comments"      : "Use image center as the center of distortion",
+        "default_value" : true
+      },
+      {
+        "visible"       : "!params.use_image_center",
+        "id"            : "x_center",
+        "type"          : "range", 
+        "label"         : "<i>X</i>",
+        "comments"      : "Distortion center coordinates", 
+        "values"        : { "min":0, "max":2000, "step":1, "default": 256 }
+      },
+      {
+        "visible"       : "!params.use_image_center",
+        "id"            : "y_center",
+        "type"          : "range", 
+        "label"         : "<i>Y</i>",
+        "comments"      : "Distortion center coordinates", 
+        "values"        : { "min":0, "max":2000, "step":1, "default": 256 }
+      },
+      {
+        "id"            : "center_optimization",
+        "type"          : "checkbox", 
+        "label"         : "Optimize",
+        "comments"      : "Center optimization",
+        "default_value" : false
+      }
+    ],
+  "run": [
+    ["use_image_center",
+        "python:x_center=(x1-x0)/2.0",
+        "python:y_center=(y1-y0)/2.0"
+    ],
+    "# use Python to convert since using convert leads to problems",
+    "# probably due to conception error in the source code",
+    "# convert input_0.png input_0.bmp",
+    "python:img=PIL.Image.open('input_0.png')",
+    "python:img.save('input_0.bmp')",
+    "write_line_parameters.py",
+    "# convert boolean to 1/0 values",
+    "python:center_optimization=1 if center_optimization else 0",
+    "lens_distortion_estimation input_0.bmp output_0.bmp line_primitives.dat output_0.dat $x_center $y_center $center_optimization >stdout.txt 2>&1",
+    "convert output_0.bmp output_0.png"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_0.png" : "Input Image",
+                    "output_0.png" : "Output Image",
+                    "line_primitives.dat" : "Selected lines",
+                    "output_0.dat" : "Output data"
+                },
+      "params" :  [ "x_center", "y_center", "center_optimization" ]
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"         : "<h2>Images</h2>",
+      "contents"      : 
+        {   "Input"      : "input_0.png", 
+            "Output"     : "output_0.png"
+        },
+      "options"       : { "minheight": 350 }
+    },
+    {
+      "type"          : "file_download",
+      "label"         : "The images can be downloaded here:",
+      "contents"      : { "Distortion model coefficient parameter estimation"     : "output_0.dat", 
+                          "output" : "output_0.png",
+                          "input"  : "input_0.png"
+                        }
+    }
+  ]
+}

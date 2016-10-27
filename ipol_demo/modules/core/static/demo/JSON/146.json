@@ -1,0 +1,159 @@
+{ 
+  "general": { 
+    "demo_title"            :  "Attitude Refinement for Orbiting Pushbroom Cameras",
+    "input_description"     : "",
+    "param_description"     : "",
+    "drawpoints"            : true,
+    "xlink_article"         : "http://www.ipol.im/pub/art/2015/146/"
+  },
+  "build":
+    [
+      {
+        "build_type"    : "script",
+        "url"           : "http://www.ipol.im/pub/art/2015/146/pushbroom_attitude_refinement_20151203.tar.gz", 
+        "srcdir"        : "pushbroom_attitude_refinement_20151203",
+        "scripts"       : [ 
+                            [".","pushbroom_simulator.py"],
+                            [".","run_attitude_refinement_simulation.py"],
+                            [".","attitude_refinement_from_gcp.py"],
+                            [".","utils.py"]
+                          ],
+        "**dependencies**"  : ["numpy>=1.9.0","cvxopt>=1.1.7"]
+      }
+    ]
+  ,
+  "inputs": [ 
+      {
+          "type"            : "2dpoints", 
+          "description"     : "List of input points",
+          "max_weight"      : "20000",
+          "ext"             : ".txt"
+      }
+    ],
+  "params": 
+    [ 
+        {
+            "id"      : "camera_type",
+            "type"    : "selection_radio",
+            "label"   : "Cam",
+            "comments": "Camera type",
+            "values"  : {   "Pleiades"    : "pleiades", 
+                            "WorldView-1" : "wv1",
+                            "WorldView-2" : "wv2",
+                            "WorldView-3" : "wv3"},
+            "vertical"      : true,
+            "default_value" : "pleiades"
+        },
+        {
+            "id"      : "psi_x",
+            "type"    : "range",
+            "label"   : "&Psi;<sub>x</sub> &nbsp;",
+            "comments": "Initial pointing angles: roll (deg)",
+            "values"  : { "min":-20, "max":20, "step":1, "default":0 }
+        },
+        {
+            "id"      : "psi_y",
+            "type"    : "range",
+            "label"   : "&Psi;<sub>y</sub> &nbsp;",
+            "comments": "Initial pointing angles: pitch (deg)",
+            "values"  : { "min":-20, "max":20, "step":1, "default":0 }
+        },
+        {
+            "id"      : "gamma",
+            "type"    : "range",
+            "label"   : "&gamma; &nbsp;",
+            "comments": "Heading (deg)",
+            "values"  : { "min":162, "max":222, "step":2, "default":192 }
+        },
+        {
+            "id"      : "perturbation_degree",
+            "type"    : "range",
+            "label"   : "<i>d</i>",
+            "comments": "Attitude perturbations: degree",
+            "values"  : { "min":0, "max":3, "step":1, "default":3 }
+        },
+        {
+            "id"      : "perturbation_amplitude",
+            "type"    : "range",
+            "label"   : "<i>a</i>",
+            "comments": "Attitude perturbations: amplitude  (&mu;rad)",
+            "values"  : { "min":0, "max":100, "step":1, "default":40 }
+        },
+        {
+            "id"      : "sigma_pixels",
+            "type"    : "range",
+            "label"   : "&sigma;<sub>img</sub>",
+            "comments": "to the image",
+            "values"  : { "min":0, "max":2, "step":0.1, "default":0.2 }
+        },
+        {
+            "id"      : "sigma_meters",
+            "type"    : "range",
+            "label"   : "&sigma;<sub>xyz</sub> &nbsp;",
+            "comments": "to the 3-space coordinates",
+            "values"  : { "min":0, "max":5, "step":0.1, "default":0.1 }
+        }
+    ],
+  "params_layout": [
+        [ "Pushbroom camera parameters:", [ 0,1,2,3,4,5]  ],
+        [ "Perturbate coordinates (add zero-mean Gaussian noise)", [6,7] ]
+    ],
+  "run": [
+    "# check and possibly install required package using pip install --user",
+    "pip install --user numpy==1.9.2",
+    "pip install --user cvxopt==1.1.7",
+    "# need to create the input json file in the required format",
+    "python:import json",
+    "python:points = [ p[0] for p in drawpoints ]",
+    "python:input_params = {}",
+    "python:input_params['camera'] = {}",
+    "python:input_params['camera']['instrument']  = camera_type",
+    "python:input_params['camera']['orbit']       = camera_type",
+    "python:input_params['camera']['view']        = {}",
+    "python:input_params['camera']['view']['psi_x'] = psi_x",
+    "python:input_params['camera']['view']['psi_y'] = psi_y",
+    "python:input_params['camera']['view']['gamma'] = gamma",
+    "python:input_params['perturbation_amplitude']  = 1e-6*perturbation_amplitude",
+    "python:input_params['perturbation_degree']     = int(perturbation_degree)",
+    "python:input_params['points']                  = points",
+    "python:input_params['normalized_points']       = True",
+    "python:input_params['sigma']                   = [ sigma_pixels, sigma_meters]",
+    "# write to json file",
+    "python:f = open('input_params.json', 'w')",
+    "python:json.dump(input_params, f)",
+    "python:f.close()",
+    "run_attitude_refinement_simulation.py input_params.json gcp.txt >stdout.txt 2>stderr.txt"
+  ]
+  ,
+  "archive":
+    {
+      "files" : { 
+                    "input_params.json"  :  "input parameters and point coordinates",
+                    "gcp.txt"  :  "list of (row, col, alt, lon, lat)  correspondences actually used (ie after noise addition) to estimate the attitudes",
+                    "stdout.txt"  :  "algo output",
+                    "points.png"  :  "input points PNG",
+                    "attitude_residuals.png"  :  "attitude errors",
+                    "attitude_estimated_vs_measured_vs_truth.png"  :  "attitudes (estimated, measured and true)"
+                },
+        "params": [ "sigma_pixels", "sigma_meters"]
+    },
+  "results": [
+    {
+      "type"          : "gallery",
+      "label"  : [
+        "The <font color='red'>red curves</font> show the errors made when using the model with perturbed attitudes. The <font  color='blue'>blue curves</font> show the errors made when using the model  estimated from the ground control points. The <font color='blue'>blue  dots</font> indicate the errors of the roll and pitch samples computed from  each ground control point, as explained in the paper."
+      ],
+      "contents"      : { 
+        "Localization errors" : "localization_errors.png",
+        "Attitude residuals"  : "attitude_residuals.png"
+      }
+    },
+    {
+      "type"          : "text_file", 
+      "label"         : "<b>Output</b><br/>",
+      "contents"      : "stdout.txt",
+      "style"         : "''"
+    }
+
+  ]
+}
