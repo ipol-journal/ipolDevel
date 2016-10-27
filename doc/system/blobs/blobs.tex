@@ -1,86 +1,45 @@
 \section{The Blobs module}
 
-\miguel{You don't need to end each like with a double slash.}
-
-Note: to avoid confusion, we refer the modules of the IPOL system as ``modules'' and python modules (files containing Python code) as ``Python modules''.
+Note: to avoid confusion, we refer the modules of the IPOL system as ``ipol modules'' and Python modules (files containing Python code) as ``Python modules''.
 
 \subsection{Introduction}
-Each demo of IPOL offers the user a set of defaults blobs. Thus, the users aren't \miguel{avoid contractions} forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
+Each demo of IPOL offers the user a set of defaults blobs. Thus, the users are not forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
 
 \subsection{Composition}
-The blobs module is composed of several python \miguel{write Python in capital letters} modules. It is composed of the same technical stack as the rest of the back-end architecture of the IPOL webapp : \miguel{avoid adding extra spaces after : and ?, as it's done in French. Also you talk about the ``IPOL webapp", but the only thing that could be called that way is the CP, and we shouldn't call it Te IPOL webapp neither. Refer to the rest of the modules instead} written in Python2.7 \miguel{These kind of details shouldn't be documented, since if we move to Python 3 we'll have to change the docs, and it actually says nothing about the module functionality itself}, using the cherrypy web framework, and SQLite as database engine, and using the Mako templates for generating HTML responses for webservices destinated to humans. \miguel{Same comment here. You need to say that we use a web server and a database, but not how they're implemented.}
-\ToDo{[Alexis]: information about the technical stack is redundant with the archive section, since this is the same stack. Maybe we should move that in a more general section.}
+The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, using a web server, a database, and using templates for generating HTML responses for webservices destinated to humans.
 
-\subsubsection{Main python module}
+\subsubsection{Main Python module}
 The main module is called by ``start.sh'', the script called by the control terminal to get modules running on different servers over ssh. It consist of setting up some variables used by cherrypy, as well as mounting the blobs class at the root of the used server.
 
-\subsubsection{Error python module}
-This module describe \miguel{describes} the errors used \miguel{issued} by the Blobs module and add \miguel{adds} color to the error messages printed in the terminal. Since the module implement \miguel{implements} logging, it is very likely to be outdated and should be refactored soon. \miguel{Do not make guesses about what will be done in the future. Instead document objectively what we have. Also, the sentence doesn't seem to make sense: we need to refactor since it does logging?}
+\subsubsection{Error Python module}
+This module describes the errors issued by the Blobs IPOL module and adds color to the error messages printed in the terminal.
 
-\subsubsection{Database and database python module}
-The first and most important design constraint of the blobs module was that data shouldn't be duplicated. All blobs referenced by multiple demos should exist in only one directory. This is addressed by establishment of one relational database, referencing the demos, the blobs, and the relations \miguel{relationship} between them. This database also permit \miguel{permits} to tag some text on blobs, as well as organize them in named sets. In the big picture, the database python module a implement a simple CRUD\footnote{xxxxxxxxxxxxxxxxx...}\miguel{Add a footnote} interface for manipulating the database. Blobs can be managed individually, and upon the deletion of a demo, the blobs related to this demo will be deleted from disk if and only if they were uniquely linked to this demo. Blobs are referenced via their hashes a lot\miguel{remove this 'a lot'}, making \miguel{it} easy to verify if a blob is already in the database, even under another filename.\\
+\subsubsection{Database and database Python module}
+The first and most important design constraint of the Blobs IPOL module was that data shouldn't be duplicated. All blobs referenced by multiple demos should exist in only one directory. This is addressed by establishment of one relational database, referencing the demos, the blobs, and the relationship between them. This database also permits to tag some text on blobs, as well as organize them in named sets. In the big picture, the database Python module a implement a simple CRUD\footnote{Acronym for Create, Read, Update, Delete. These operations allows the total manipulation and the persistancy of data inside a data structure.} interface for manipulating the database. Blobs can be managed individually, and upon the deletion of a demo, the blobs related to this demo will be deleted from disk if and only if they were uniquely linked to this demo. Blobs are referenced via their hashes, making it easy to verify if a blob is already in the database, even under another f
+ilename.
 
-The schema of the database is constituted of these tables: \miguel{No, this is exactly what we do not want. Do not give a detailed description of the actual fields of each table, but instead explain what tables we have and how they are related, using a diagram. Only the PKs and FKs should appear.} \\
+The database is organised as such:
 
-demo : 
+\includegraphics[scale=0.75]{blobs/images/blobs_database.png}
 
-\begin{tabular}{ | l | l | l | l | }
-  \hline
-  id & name & is\_template & template\_id \\
-  \hline
-\end{tabular}\\
+On this diagram, id fields are the primary keys (it is worth noting that the primary key of a blob\_tag entry is the combination of the foreign keys it contains), the other fields are foreign keys, and the arrows indicate which primary keys are referenced by which foreign keys. 
+Three tables, demo, blob and tag, contains the information about referenced demos, blobs, and tags relating to blobs. Two junction tables link this information together, referencing the blobs standards to a demo, and the tags owned by each blobs.
 
-blob :
+\paragraph{The database Python module\\}
+This module offers an interface for accessing the database. One object of the class Database should be instanciated for each operation modifying it. Even if it has function for connecting and closing, they should not be used as such, for flow control issues (for example, an exception leaving a connection open). A very simple abstraction, the DatabaseConnection class is present in the blobs Python module for it, and allow safe connection to the database, ensuring they will always be closed no matter what.
 
-\begin{tabular}{ | l | l | l | l | l | l | }
-  \hline
-  id & hash & format & extension & title & credit \\
-  \hline
-\end{tabular}\\
-
-tag :
-
-\begin{tabular}{ | l | l | }
-  \hline
-  id & name \\
-  \hline
-\end{tabular}\\
-
-blob\_tag :
-
-\begin{tabular}{ | l | l | }
-  \hline
-  blob\_id & tag\_id \\
-  \hline
-\end{tabular}\\
-On this junction table, both fields are foreign keys, referencing primary keys in the blob and tag tables.\\
-
-demo\_blob :
-
-\begin{tabular}{ | l | l | l | l | l | }
-  \hline
-  id & blob\_id & demo\_id & blob\_set & blob\_pos\_in\_set \\
-  \hline
-\end{tabular}\\
-Blob\_id and demo\_id are foreign keys, referencing primary keys in the blob and demo tables. This is a junction table, referencing which blobs and which demos are associated. It allow us to organize the blobs in sets linked to demos.\\
-
-As we can see, the design of the database is fairly simple \miguel{Avoid these subjetive affirmations. Describe what we have, that's all}, with the tables demo, blob, and tag storing the information about the system and two junction tables linking this information.
-
-\paragraph{The database python module\\}
-This module offers an interface for accessing the database. One object of the class Database should be instanciated for each operation modifying it. Even if it has function for connecting and closing, they should not be used as such, for flow control issues (for example, an exception leaving a connection open). A very simple abstraction, the DatabaseConnection class is present in the blobs python module for it, and allow safe connection to the database, ensuring they will always be closed no matter what. \\
-
-Otherwise, this python module offer us a wide variety of simple methods for interacting with the database, or obtaining metrics of it, such as the total number of blobs. They generally return the information asked if such case apply. For the format of the responses and the different function, we refer the reader to the code of the module itself. It is worth noting that one webservice, delete\_blob\_from\_demo, recompute the positions of the blobs in a set in which a blob was deleted. If this function is accessed concurrently by multiple threads (the most likely case is if a werbservice calling this function is accessed several times in a very short span), the blobs can end up with miscalculated positions. Non-concurrential access should be enforced by locking the scope where this webservice is called, as it is done in the blobs \miguel{blobs? your're documenting blobs, but it seems that you write about other module} Python module. \\
+Otherwise, this Python module offer us a wide variety of simple methods for interacting with the database, or obtaining metrics of it, such as the total number of blobs. They generally return the information asked if such case apply. For the format of the responses and the different function, we refer the reader to the code of the module itself. It is worth noting that one webservice, delete\_blob\_from\_demo, recompute the positions of the blobs in a set in which a blob was deleted. If this function is accessed concurrently by multiple threads (the most likely case is if a werbservice calling this function is accessed several times in a very short span), the blobs can end up with miscalculated positions. Non-concurrential access should be enforced by locking the scope where this webservice is called. Such a lock is used in the delete\_blob\_ws webservice in the blobs Python module.
 
 \subsubsection{Blobs module}
-The blobs python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utilitary function. \\
+The blobs Python module is the core of this. It implement three classes, DatabaseConnection as referenced earlier in the present documentation, and MyFieldStorage, for intermediate storage of the uploaded blobs in the /tmp/ directory, and Blobs as an encapsulation of the webservices and the data they use. It also has some utilitary function.
 
-The Blobs class implement \miguel{implements} all the microservices constituting this module, both those transmitting JSON to other modules, and those generating HTML \miguel{OK, but don't call them micro-services, since they're not} via mako templates \miguel{Do not give details on the library for templating} for humans (albeit, the control panel didn't exist when these microservices were implemented and this possible that they will be moved to it soon \miguel{Do not use words such as soon, since first its a guess, it's inaccurate, and it's a subjetive appreciation. Document only what you have, do not make guesses on the future}). An instance of the Blobs class should possess information about the storage of blobs and the networking parameters cherrypy use, such as a port number. A cherrypy configuration file, named ``blobs.conf'', should describe \miguel{'should describe' is subjective. Explain its use or document what we have.} some of these informations. \\
+The Blobs class implements all the webservices constituting this module, both those transmitting JSON to other modules, and those generating HTML via templates for humans. An instance of the Blobs class should possess information about the storage of blobs and the networking parameters cherrypy use, such as a port number. A cherrypy configuration file, named ``blobs.conf'' contains the informations one might need to change to run the module on another server, without changing the code, such as the directories where the blobs can be found, the port used by the cherrypy engine, or the path to the database.
 
-The webservices of the module access the database via instanciations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utilitary function use\_web\_service is used.\\
+The webservices of the module access the database via instanciations of Database objects managed by the DatabaseConnection class. Some read information, and some modify the database by adding or removing information. For handling a webservice automatically and charging his JSON response as a Python object, the utilitary function use\_web\_service is used.
 
-Currently \miguel{Not currently, but always. Remove 'currently'.}, logging is utilized as a mean to retrieve the errors occuring in the system. The logger implemented in the blobs python module handle all the errors of the module. It is passed to each Database object instanciation.\\
+Logging is utilized as a mean to retrieve the errors occuring in the system. The logger implemented in the blobs Python module handle all the errors of the module. It is passed to each Database object instanciation.
 
-Here is a list of all the webservices implemented by the blobs module : \\
+Here is a list of all the webservices implemented by the blobs module :
 
 \begin{itemize}
 \item default : The service invoked when asked for non-existing service.
@@ -113,7 +72,5 @@ Here is a list of all the webservices implemented by the blobs module : \\
 \item op\_remove\_demo : web page used for removing a demo.
 \item ping : used by the terminal for checking module status.
 \item shutdown : used by the terminal for turning off the module at distance.
-  
-It is worth noting that 2 services unreferenced above, get\_blobs\_of\_demo\_by\_name\_ws, get\_blobs\_of\_demo\_ws, are called by the ``get\_hash'' webservice, which is not in this module. \miguel{I don't see what you mean. get\_hash is a method of the object, it's used, and it's not exposed. Please explain and fix the sentence.}
   
 \end{itemize}
