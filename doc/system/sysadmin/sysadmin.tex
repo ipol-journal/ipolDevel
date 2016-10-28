@@ -115,9 +115,9 @@ required for this purpose. The first one will work as the application server, wh
 \begin{itemize}
 \item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers. 
 These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is 
-implemented with NGINX and is used to redirect request from port 80 to the Control Panel listening port.
-\item \textbf{WSGI} is a specification for simple and universal interface between web servers and web applications or frameworks. In this case the
-Gunicorn is the responsible of this purpose.
+implemented with NGINX and is used to redirect requests from port 80 to the Control Panel listening port.
+\item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language. 
+In this case the Gunicorn is the responsible of this purpose.
 \item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this 
 is implemented with Django.
 \end{itemize}
