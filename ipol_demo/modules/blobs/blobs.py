@@ -72,7 +72,7 @@ class   DatabaseConnection(object):
         safe context, if not already done.
         """
         try:
-            db.close()
+            self.db.close()
         except Exception as _:
             pass
 
@@ -81,8 +81,6 @@ def validate_password(dummy, username, password):
     """
     Validates the username and the password given
     """
-    global user_name
-    global passwd
     credentials = {user_name: passwd}
     if username in credentials and credentials[username] == password:
         return True
@@ -172,7 +170,7 @@ class   Blobs(object):
             self.database_dir = cherrypy.config.get("database_dir")
             self.database_name = cherrypy.config.get("database_name")
             self.database_file = os.path.join(self.database_dir, self.database_name)
-        except:
+        except Exception as ex:
             self.logger.exception("failed to get database config")
 
         self.status = self.init_database()
@@ -857,8 +855,10 @@ class   Blobs(object):
             # thumbnail extension is jpg
             path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
             # remove blob
-            if os.path.isfile(path_file): os.remove(path_file)
-            if os.path.isfile(path_thumb): os.remove(path_thumb)
+            if os.path.isfile(path_file):
+                os.remove(path_file)
+            if os.path.isfile(path_thumb):
+                os.remove(path_thumb)
 
         return self.get_blobs_of_demo(demo_id)
 
@@ -1222,7 +1222,7 @@ class   Blobs(object):
             if fil_format == 'image':
                 try:
                     image = PIL.Image.open(src)
-                except:
+                except Exception as ex:
                     self.logger.exception("failed to open image file")
                     return
                 image.thumbnail((256, 256))
