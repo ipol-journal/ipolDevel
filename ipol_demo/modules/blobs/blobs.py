@@ -39,7 +39,7 @@ REALM = cherrypy.config['server.socket_host']
 
 #Get username and password from file
 auth_file = open('auth', 'r')
-user_name,passwd = auth_file.read().strip().split(':')
+user_name, passwd = auth_file.read().strip().split(':')
 
 class   DatabaseConnection(object):
     """
@@ -88,7 +88,7 @@ def validate_password(dummy, username, password):
         return True
     return False
 
-def get_new_path( filename, create_dir=True, depth=2):
+def get_new_path(filename, create_dir=True, depth=2):
     """
     This method creates a new fullpath for a given file path,
     where new directories are created for each 'depth' first letters
@@ -103,17 +103,18 @@ def get_new_path( filename, create_dir=True, depth=2):
       /tmp/thumbnail_abvddff.png will be /tmpl/a/b/v/d/thumbnail_abvddff.png
 
     """
-    prefix=""
+    prefix = ""
     bname = os.path.basename(filename)
     if bname.startswith("thumbnail_"):
-        prefix="thumbnail_"
+        prefix = "thumbnail_"
         bname = bname[len(prefix):]
     dname = os.path.dirname(filename)
     fname = bname.split(".")[0]
-    l = min(len(fname),depth)
+    l = min(len(fname), depth)
     subdirs = '/'.join(list(fname[:l]))
     new_dname = dname + '/' + subdirs + '/'
-    if create_dir and not(os.path.isdir(new_dname)): os.makedirs(new_dname)
+    if create_dir and not os.path.isdir(new_dname):
+        os.makedirs(new_dname)
     return new_dname + prefix + bname
 
 class MyFieldStorage(cherrypy._cpreqbody.Part):
@@ -150,9 +151,9 @@ class   Blobs(object):
         self.current_directory = os.getcwd()
         self.html_dir = os.path.join(self.current_directory,
                                      cherrypy.config['html.dir'])
-        self.server_address=  'http://{0}:{1}'.format(
-                                  cherrypy.config['server.socket_host'],
-                                  cherrypy.config['server.socket_port'])
+        self.server_address = 'http://{0}:{1}'.format(
+            cherrypy.config['server.socket_host'],
+            cherrypy.config['server.socket_port'])
         self.server = cherrypy.config['server.socket_host']
 
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -161,11 +162,11 @@ class   Blobs(object):
                 os.makedirs(self.logs_dir)
         except Exception as e:
             self.logs_dir = os.path.dirname(os.path.realpath(__file__))
-            self.logger   = self.init_logging()
+            self.logger = self.init_logging()
             self.logger.exception(
-                    "Failed to create log dir (using file dir) : %s".format(e))
+                "Failed to create log dir (using file dir) : %s".format(e))
         else:
-            self.logger   = self.init_logging()
+            self.logger = self.init_logging()
 
         try:
             self.database_dir = cherrypy.config.get("database_dir")
@@ -188,7 +189,9 @@ class   Blobs(object):
         # handle all messages for the moment
         logger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
-        formatter = logging.Formatter('%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter(
+            '%(asctime)s; [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
 
         logger.addHandler(handler)
@@ -379,13 +382,13 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo      = kwargs['demo[id]']
-        tag       = kwargs['blob[tag]']
-        blob      = kwargs['blob[file]']
-        blob_set  = kwargs['blob[set]']
-        blob_pos  = kwargs['blob[pos]']
-        title     = kwargs['blob[title]']
-        credit    = kwargs['blob[credit]']
+        demo = kwargs['demo[id]']
+        tag = kwargs['blob[tag]']
+        blob = kwargs['blob[file]']
+        blob_set = kwargs['blob[set]']
+        blob_pos = kwargs['blob[pos]']
+        title = kwargs['blob[title]']
+        credit = kwargs['blob[credit]']
 
         pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
@@ -411,13 +414,13 @@ class   Blobs(object):
                 # check if blob_pos is an existing position
                 # and also compute the maximal exisiting position
                 blob_maxpos = 0
-                for i in range(1,bs[0]['size']+1):
-                    if str(bs[i]['pos_in_set'])==str(blob_pos):
+                for i in range(1, bs[0]['size'] + 1):
+                    if str(bs[i]['pos_in_set']) == str(blob_pos):
                         blob_pos_in_set = blob_pos
                         break
                     else:
-                        blob_maxpos = max(blob_maxpos,bs[i]['pos_in_set'])
-                        blob_pos_in_set = blob_maxpos+1
+                        blob_maxpos = max(blob_maxpos, bs[i]['pos_in_set'])
+                        blob_pos_in_set = blob_maxpos + 1
 
         path = create_tmp_file(blob, tmp_directory)
         data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext,
@@ -616,7 +619,7 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo_id     = kwargs['demo[id]']
+        demo_id = kwargs['demo[id]']
         the_archive = kwargs['archive']
 
         _, ext = os.path.splitext(the_archive.filename)
@@ -633,7 +636,7 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
     def delete_blob_ws(self, demo_id, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
@@ -675,13 +678,13 @@ class   Blobs(object):
 
         # prevent simultaneous calls
         # try to acquire lock during 3 seconds
-        if waitLock(self.blobs_lock,3):
+        if waitLock(self.blobs_lock, 3):
 
             with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
 
                 try:
-                    blob_name     = data.get_blob_filename(blob_id)
-                    has_no_demo   = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
+                    blob_name = data.get_blob_filename(blob_id)
+                    has_no_demo = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
                     data.commit()
                     if has_no_demo:
                         dic["delete"] = blob_name
@@ -696,8 +699,8 @@ class   Blobs(object):
                     self.blobs_lock.release()
 
         else:
-            self.logger.error( "Failed to acquire blobs lock")
-            dic["status"]  = "KO"
+            self.logger.error("Failed to acquire blobs lock")
+            dic["status"] = "KO"
 
         cherrypy.response.headers['Content-Type'] = "application/json"
         return json.dumps(dic)
@@ -829,7 +832,7 @@ class   Blobs(object):
         #return self.get_blobs_of_demo(demo_id)
 
     @cherrypy.expose
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
     def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
         """
         Delete one blob from demo
@@ -842,19 +845,20 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
-        res = use_web_service('/delete_blob_ws', data,'authenticated')
+        res = use_web_service('/delete_blob_ws', data, 'authenticated')
 
-        if (res["status"] == "OK" and res["delete"]):
-            path_file  = os.path.join(self.current_directory, self.final_dir,  res["delete"])
-            path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + res["delete"]))
+        if res["status"] == "OK" and res["delete"]:
+            path_file = os.path.join(self.current_directory, self.final_dir, res["delete"])
+            path_thumb = os.path.join(self.current_directory, self.thumb_dir,
+                                      ("thumbnail_" + res["delete"]))
             # process paths
-            path_file  = get_new_path(path_file)
+            path_file = get_new_path(path_file)
             path_thumb = get_new_path(path_thumb)
             # thumbnail extension is jpg
             path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
             # remove blob
-            if os.path.isfile(path_file) :  os.remove(path_file)
-            if os.path.isfile(path_thumb):  os.remove(path_thumb)
+            if os.path.isfile(path_file): os.remove(path_file)
+            if os.path.isfile(path_thumb): os.remove(path_thumb)
 
         return self.get_blobs_of_demo(demo_id)
 
@@ -898,24 +902,23 @@ class   Blobs(object):
         :return: list of hash blob
         :rtype: json format list
         """
-        dic  = {}
+        dic = {}
         cherrypy.response.headers['Content-Type'] = "application/json"
         dic["status"] = "KO"
 
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
-                dic                  = data.get_demo_info_from_name(demo_name)
-                demo_id                  = dic.keys()[0]
-                dic["use_template"]      = data.demo_use_template(demo_id)
-                dic["blobs"]             = data.get_blobs_of_demo(demo_id)
-                dic["url"]               = self.server_address+"/"+self.final_dir+"/"
-                dic["url_thumb"]         = self.server_address+"/"+self.thumb_dir+"/"
+                dic = data.get_demo_info_from_name(demo_name)
+                demo_id = dic.keys()[0]
+                dic["use_template"] = data.demo_use_template(demo_id)
+                dic["blobs"] = data.get_blobs_of_demo(demo_id)
+                dic["url"] = self.server_address + "/" + self.final_dir + "/"
+                dic["url_thumb"] = self.server_address + "/" + self.thumb_dir + "/"
                 dic["physical_location"] = os.path.join(self.current_directory,
                                                         self.final_dir)
-                dic["status"]            = "OK"
+                dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
-
 
         return json.dumps(dic)
 
@@ -934,14 +937,14 @@ class   Blobs(object):
         :rtype: json format list
         """
         cherrypy.response.headers['Content-Type'] = "application/json"
-        dic  = {}
-        #data = self.instance_database()
+        dic = {}
+
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 dic = data.get_demo_name_from_id(demo)
                 dic["use_template"] = data.demo_use_template(demo)
-                dic["blobs"]        = data.get_blobs_of_demo(demo)
-                dic["status"]       = "OK"
+                dic["blobs"] = data.get_blobs_of_demo(demo)
+                dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
                 dic["status"] = "KO"
@@ -962,7 +965,7 @@ class   Blobs(object):
         """
         demo_blobs = use_web_service('/get_blobs_of_demo_ws', {"demo": demo_id})
         template_list_res = use_web_service('/get_template_demo_ws', {})
-        template_blobs  = {}
+        template_blobs = {}
 
         #--- if the demo uses a template, process its blobs
         if demo_blobs["use_template"]:
@@ -971,40 +974,44 @@ class   Blobs(object):
             template_blobs = template_blobs_res['blobs']
             for blob_set in template_blobs:
                 blob_size = blob_set[0]['size']
-                for idx in range(1,blob_size+1):
+                for idx in range(1, blob_size + 1):
                     b = blob_set[idx]
-                    b_name = b["hash"]+b["extension"]
-                    b["physical_location"]  = os.path.join( self.current_directory, self.final_dir, b_name)
-                    b["url"]                = self.server_address+"/"+self.final_dir+"/"+b_name
-                    b["url_thumb"]          = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + b["hash"]+".jpg"
+                    b_name = b["hash"] + b["extension"]
+                    b["physical_location"] = os.path.join(self.current_directory,
+                                                          self.final_dir, b_name)
+                    b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
+                    b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
+                                      + "/thumbnail_" + b["hash"] + ".jpg")
 
                     # process paths
-                    b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
-                    b["url"]                = get_new_path(blob_set[idx]["url"],False)
-                    b["url_thumb"]          = get_new_path(blob_set[idx]["url_thumb"],False)
+                    b["physical_location"] = get_new_path(blob_set[idx]["physical_location"], False)
+                    b["url"] = get_new_path(blob_set[idx]["url"], False)
+                    b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
 
 
         for blob_set in demo_blobs["blobs"]:
             blob_size = blob_set[0]['size']
-            for idx in range(1,blob_size+1):
+            for idx in range(1, blob_size + 1):
                 b = blob_set[idx]
-                b_name = b["hash"]+b["extension"]
-                b["physical_location"]  = os.path.join(self.current_directory,self.final_dir,b_name)
-                b["url"]                = self.server_address+"/"+self.final_dir+"/"+b_name
-                b["url_thumb"]          = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + b["hash"]+".jpg"
+                b_name = b["hash"] + b["extension"]
+                b["physical_location"] = os.path.join(self.current_directory,
+                                                      self.final_dir, b_name)
+                b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
+                b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
+                                  + "/thumbnail_" + b["hash"] + ".jpg")
                 # process paths
-                b["physical_location"]  = get_new_path(blob_set[idx]["physical_location"],False)
-                b["url"]                = get_new_path(blob_set[idx]["url"],False)
-                b["url_thumb"]          = get_new_path(blob_set[idx]["url_thumb"],False)
+                b["physical_location"] = get_new_path(blob_set[idx]["physical_location"], False)
+                b["url"] = get_new_path(blob_set[idx]["url"], False)
+                b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
 
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
-                blobs_list = demo_blobs["blobs"],
-                demo_id    = demo_id,
-                demo       = demo_blobs,
-                tmpl_list  = template_list_res["template_list"],
-                tmpl_blobs = template_blobs)
+            blobs_list = demo_blobs["blobs"],
+            demo_id = demo_id,
+            demo = demo_blobs,
+            tmpl_list = template_list_res["template_list"],
+            tmpl_blobs = template_blobs)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -1025,13 +1032,13 @@ class   Blobs(object):
             res["physical_location"] = os.path.join(self.current_directory,
                                                     self.final_dir,
                                                     b_name)
-            res["url"]        = self.server_address+"/"+self.final_dir+"/"+b_name
-            res["url_thumb"]  = self.server_address+"/"+self.thumb_dir+"/thumbnail_" + res["hash"]+".jpg"
-            res["tags"]       = use_web_service('/get_tags_ws', data)
+            res["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
+            res["url_thumb"] = self.server_address+"/" + self.thumb_dir + "/thumbnail_" + res["hash"]+".jpg"
+            res["tags"] = use_web_service('/get_tags_ws', data)
             # process paths
-            res["physical_location"]  = get_new_path(res["physical_location"],False)
-            res["url"]                = get_new_path(res["url"],False)
-            res["url_thumb"]          = get_new_path(res["url_thumb"],False)
+            res["physical_location"] = get_new_path(res["physical_location"], False)
+            res["url"] = get_new_path(res["url"], False)
+            res["url_thumb"] = get_new_path(res["url_thumb"], False)
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(blob_info=res,
@@ -1110,7 +1117,7 @@ class   Blobs(object):
     #---------------------------------------------------------------------------
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
     def op_remove_demo_ws(self, demo_id):
         """
         Web service used to remove demo from id demo
@@ -1131,14 +1138,14 @@ class   Blobs(object):
 
                 # remove from disk unused blobs
                 for blobfilename in blobfilenames_to_delete:
-                    path_file  = os.path.join(self.current_directory, self.final_dir,  blobfilename)
+                    path_file = os.path.join(self.current_directory, self.final_dir, blobfilename)
                     path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
                     path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
                     # process paths
-                    path_file  = get_new_path(path_file)
+                    path_file = get_new_path(path_file)
                     path_thumb = get_new_path(path_thumb)
                     # remove blob
-                    if os.path.isfile(path_file) :
+                    if os.path.isfile(path_file):
                         os.remove(path_file)
                     if os.path.isfile(path_thumb):
                         os.remove(path_thumb)
@@ -1152,7 +1159,7 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword = validate_password)
+    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
     def op_remove_demo(self, demo_id):
         """
         Web page used to remove a demo from id
