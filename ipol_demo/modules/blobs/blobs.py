@@ -1007,11 +1007,11 @@ class   Blobs(object):
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
-            blobs_list = demo_blobs["blobs"],
-            demo_id = demo_id,
-            demo = demo_blobs,
-            tmpl_list = template_list_res["template_list"],
-            tmpl_blobs = template_blobs)
+            blobs_list=demo_blobs["blobs"],
+            demo_id=demo_id,
+            demo=demo_blobs,
+            tmpl_list=template_list_res["template_list"],
+            tmpl_blobs=template_blobs)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -1033,7 +1033,8 @@ class   Blobs(object):
                                                     self.final_dir,
                                                     b_name)
             res["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
-            res["url_thumb"] = self.server_address+"/" + self.thumb_dir + "/thumbnail_" + res["hash"]+".jpg"
+            res["url_thumb"] = (self.server_address + "/" + self.thumb_dir
+                                + "/thumbnail_" + res["hash"]+".jpg")
             res["tags"] = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"] = get_new_path(res["physical_location"], False)
@@ -1139,7 +1140,8 @@ class   Blobs(object):
                 # remove from disk unused blobs
                 for blobfilename in blobfilenames_to_delete:
                     path_file = os.path.join(self.current_directory, self.final_dir, blobfilename)
-                    path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
+                    path_thumb = os.path.join(self.current_directory,
+                                              self.thumb_dir, ("thumbnail_" + blobfilename))
                     path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
                     # process paths
                     path_file = get_new_path(path_file)
@@ -1221,7 +1223,7 @@ class   Blobs(object):
                 try:
                     image = PIL.Image.open(src)
                 except:
-                    self.logger.exception( "failed to open image file")
+                    self.logger.exception("failed to open image file")
                     return
                 image.thumbnail((256, 256))
                 image.save(file_dest)
@@ -1268,7 +1270,7 @@ class   Blobs(object):
                     if ',' in _file:
                         pos = _file.find(',')
                         _file_image = _file[pos+1:]
-                        _file       = _file[:pos]
+                        _file = _file[:pos]
                         has_image_representation = True
                     if _file and _file in files:
                         title = buff.get(section, 'title')
@@ -1331,8 +1333,8 @@ class   Blobs(object):
                         pass
         else:
             self.logger.exception(
-                            "ZipError: index.cfg missing in " + the_archive +
-                            ": Cannot add item in database")
+                "ZipError: index.cfg missing in " + the_archive +
+                ": Cannot add item in database")
 
     #---------------------------------------------------------------------------
 
