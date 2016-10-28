@@ -109,9 +109,18 @@ We need to set also limits for the memory usage per user. It'd be great if we co
 %\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
 
 \subsection{Control Panel}
-To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are required for this purpose. The first one will work as the application server, while the second is a reverse proxy which allows to serve the static files of the site. This is to avoid using Python's RUNSERVER command, due to security reasons.
+To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are 
+required for this purpose. The first one will work as the application server, while the second is a reverse proxy. 
 
-\miguel{Carlos: Add here an introduction which explains what is a reverse proxy, what is a WSGI, and what is an application server. And why they are needed, in general.}
+\begin{itemize}
+\item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers. 
+These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is 
+implemented with NGINX and is used to redirect request from port 80 to the Control Panel listening port.
+\item \textbf{WSGI} is a specification for simple and universal interface between web servers and web applications or frameworks. In this case the
+Gunicorn is the responsible of this purpose.
+\item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this 
+is implemented with Django.
+\end{itemize}
 
 \subsubsection{Communication between the Client and Control Panel}
 The communication between the client and the Control Panel varies according to the environment in which it is performed.  
@@ -120,41 +129,40 @@ The differences between them are described below.
 The communication between the client and the Control Panel in local is direct, since the requests go directly to 
 the port where the control panel is running. Django, in which is implemented the Control Panel, is in debug mode, so 
 it is able to respond the requests from the client for the static files, without the need of a WSGI.
-The diagram of this configuration is represented by Figure ~\ref{fi:local_architecture}.\\
+The diagram of this configuration is represented by Figure ~\ref{fig:local_architecture}.
 
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=0.4\columnwidth]{sysadmin/images/local.pdf}
-\caption{Local \miguel{The caption needs to be more informative. For example: The communication between the client and the Django web server is direct in the local case. Also, add a final period at the end of the sentence.}}
-\label{fi:local_architecture}
+\caption{The direct communication between the client and the Django web server in the local server.}
+\label{fig:local_architecture}
 \end{figure}
 
-\miguel{For the image labels, use the 'fig:' prefix, not 'fi:'}
 
 The communication in the integration server adds a reverse proxy to make the redirections. This reverse proxy is implemented with
 NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
 port where Django is running. Just as in local, there is not need for a WSGI because Django is in debug mode and it is able to 
-respond the request for static files. The diagram of this configuration is represented by Figure ~\ref{fi:integration_architecture}.
+respond the request for static files. The diagram of this configuration is represented by Figure ~\ref{fig:integration_architecture}.
 
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=0.7\columnwidth]{sysadmin/images/integration.pdf}
-\caption{Integration \miguel{Add a more explicative caption. Add the final period.}} 
-\label{fi:integration_architecture}
+\caption{The communication between the client and the Django web server with the reverse proxy in the integration server.}
+\label{fig:integration_architecture}
 \end{figure}
 
 In production is where is located the most complete connection. As in the integration server, a reverse proxy is needed to 
 make the redirections to hide to the client in wich port is Django running. In addition, in the production server a WSGI is also
 needed to provide all the static files since Django is not in debug mode and it is unable to do it by itself. This WSGI is 
-implemented with Gunicorn and communicates with the NGINX through an UNIX \miguel{If the word begins with a U, you write 'a', not 'an'} socket. The diagram of this configuration is represented 
-by Figure ~\ref{fi:production_architecture}.
+implemented with Gunicorn and communicates with the NGINX through a UNIX socket. The diagram of this configuration is represented 
+by Figure ~\ref{fig:production_architecture}.
 
 
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=1\columnwidth]{sysadmin/images/production.pdf}
-\caption{Production \miguel{Add a more explicative caption. Add the final period.}}
-\label{fi:production_architecture}
+\caption{The communication between the client and the Django web server with the reverse proxy and the WSGI in the production server.}
+\label{fig:production_architecture}
 \end{figure}
 
 
