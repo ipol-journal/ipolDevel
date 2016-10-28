@@ -170,7 +170,7 @@ class   Blobs(object):
             self.database_dir = cherrypy.config.get("database_dir")
             self.database_name = cherrypy.config.get("database_name")
             self.database_file = os.path.join(self.database_dir, self.database_name)
-        except Exception as ex:
+        except Exception as _:
             self.logger.exception("failed to get database config")
 
         self.status = self.init_database()
@@ -1222,7 +1222,7 @@ class   Blobs(object):
             if fil_format == 'image':
                 try:
                     image = PIL.Image.open(src)
-                except Exception as ex:
+                except Exception as _:
                     self.logger.exception("failed to open image file")
                     return
                 image.thumbnail((256, 256))
