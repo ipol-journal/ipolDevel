@@ -35,6 +35,8 @@ from misc import prod
 from image import thumbnail, image
 import tarfile, zipfile
 from sendarchive import SendArchive
+from urlparse import urlparse
+import webbrowser
 
 
 #-------------------------------------------------------------------------------
@@ -137,6 +139,7 @@ class Core(object):
         """
         Index page
         """
+
         userdata = {"module": "demoinfo", "service": "demo_list"}
         resp = requests.post(self.proxy_server, data=userdata)
         response = resp.json() 
@@ -161,7 +164,9 @@ class Core(object):
         demo_list = response['demo_list']
         demos_string = ""
         for demo in demo_list:
-            demos_string += "Demo #{}: <a href='clientApp/ipol_demo.html?id={}'>{}</a><br>".format(demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
+            demos_string += "Demo #{}: <a href='/demo/clientApp/ipol_demo.html?id={}'>{}</a><br>".format(
+                demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
+
             
         string = """
                  <!DOCTYPE html>
@@ -178,6 +183,12 @@ class Core(object):
                  """.format(demos_string)
             
         return string
+
+    @cherrypy.expose
+    def demo(self):
+        return self.index()
+
+
 
     @cherrypy.expose
     def ping(self):
@@ -980,4 +991,3 @@ class Core(object):
 
 
     
-      

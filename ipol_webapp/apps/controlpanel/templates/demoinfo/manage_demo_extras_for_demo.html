@@ -72,7 +72,7 @@
 					<input type="file" id="file"  style="visibility:hidden;" name="myfile" onchange="fileName()"/>
 					<input type="submit" id="submit" style="visibility:hidden;" value="Upload" />
 				</form>
-				<label class="btn btn-info"for="file"> Select File</label>
+				<label class="btn btn-info" for="file"> Select File</label>
 				<label class="extraFile" id="name" >  File...</label>
 				<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload</label>
 				<p></p>
@@ -107,7 +107,6 @@
 {% block functionsjs %}
 
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
-	<script src="http://jquery.bassistance.de/validate/additional-methods.js"></script>
 	<script>
 
 
@@ -162,12 +161,13 @@
 			}
 		}
 
-		function fileName(){
+		{#  change the name of the submited file  #}
+		window.fileName = function(){
 			var x = document.getElementById("file");
 			if ('files' in x) {
 				txt = x.files[0].name;
 				if (txt.length>24){
-				    txt = txt.substring(0,23);
+				    txt = txt.substring(0,22);
 				    txt += "..."
 				}
 				document.getElementById("name").innerHTML = txt;

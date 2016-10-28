@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+"""
+A little script for renaming files !
+"""
+
 import glob, os
 
 def get_new_path( filename, create_dir=True, depth=2):
@@ -10,22 +14,22 @@ def get_new_path( filename, create_dir=True, depth=2):
       input  is /tmp/abvddff.png
       output is /tmp/a/b/v/d/abvddff.png
       where the full path /tmp/a/b/v/d has been created
-      
+
       if the filename name starts with thumbnail_, use the name without
       'thumbnail_' to define its new path
       for example:
       /tmp/thumbnail_abvddff.png will be /tmpl/a/b/v/d/thumbnail_abvddff.png
-      
+
     """
     prefix=""
     bname = os.path.basename(filename)
     if bname.startswith("thumbnail_"):
         prefix="thumbnail_"
         bname = bname[len(prefix):]
-    dname = os.path.dirname(filename)  
-    fname = bname.split(".")[0] 
+    dname = os.path.dirname(filename)
+    fname = bname.split(".")[0]
     l = min(len(fname),depth)
-    subdirs = '/'.join(list(fname[:l])) 
+    subdirs = '/'.join(list(fname[:l]))
     new_dname = dname + '/' + subdirs + '/'
     if create_dir and not(os.path.isdir(new_dname)): os.makedirs(new_dname)
     return new_dname + prefix + bname

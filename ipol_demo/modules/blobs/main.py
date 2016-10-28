@@ -7,19 +7,22 @@ Load from the blobs configuration file
 Create the cherrypy server
 """
 
-import cherrypy
 import os
 import os.path
 import sys
+import cherrypy
 from blobs import Blobs
-from error import print_usage_function
 
-def CORS(): 
-  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+def CORS():
+    """
+    This function enable CORS (cross origin resource sharing)
+    more info at : http://blog.edutoolbox.de/?p=114
+    """
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to
 
 if __name__ == '__main__':
 
-    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 
     if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]):
         VALUE = sys.argv[1]
@@ -50,7 +53,7 @@ if __name__ == '__main__':
     }
 
     cherrypy.config.update(CONF)
-    
+
     APP = cherrypy.tree.mount(Blobs(), '/', CONF)
     APP.merge(CONF_FILE)
 
