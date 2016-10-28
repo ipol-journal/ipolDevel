@@ -235,9 +235,55 @@ In order to serve the site using the installed dependencies, please follow the s
 To access the Control Panel the user will need to access the specified URL, and login with the following credentials:
 
 \begin{itemize}
-\item URL: \url{http://ipolcore.ipol.im:8000}
+\item URL: \url{http://ipolcore.ipol.im/accounts/login/}
 
 \item User: ipolcpadmin
 
 \item Password: gy54g7x2 \miguel{Do we really want to write password in the public doc?}
 \end{itemize}
+
+
+\subsubsection{Communication between the Client and Control Panel}
+
+The communication between the client and the Control Panel varies according to the environment in which it is performed.  
+The differences between them are described below.
+
+The communication between the client and the Control Panel in local is direct, since the requests go directly to 
+the port where the control panel is running. Django, in which is implemented the Control Panel, is in debug mode, so 
+it is able to respond the requests from the client for the static files, without the need of a WSGI.
+The diagram of this configuration is represented by Figure ~\ref{fi:local_architecture}.\\
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\columnwidth]{sysadmin/images/local.pdf}
+\caption{Local} 
+\label{fi:local_architecture}
+\end{figure}
+
+The communication in the integration server adds a reverse proxy to make the redirections. This reverse proxy is implemented with
+NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
+port where Django is running. Just as in local, there is not need for a WSGI because Django is in debug mode and it is able to 
+respond the request for static files. The diagram of this configuration is represented by Figure ~\ref{fi:integration_architecture}.
+
+
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.7\columnwidth]{sysadmin/images/integration.pdf}
+\caption{Integration} 
+\label{fi:integration_architecture}
+\end{figure}
+
+In production is where is located the most complete connection. As in the integration server, a reverse proxy is needed to 
+make the redirections to hide to the client in wich port is Django running. In addition, in the production server a WSGI is also
+needed to provide all the static files since Django is not in debug mode and it is unable to do it by itself. This WSGI is 
+implemented with Gunicorn and communicates with the NGINX through an UNIX socket. The diagram of this configuration is represented 
+by Figure  ~\ref{fi:production_architecture}.
+
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=1\columnwidth]{sysadmin/images/production.pdf}
+\caption{Production} 
+\label{fi:production_architecture}
+\end{figure}
