@@ -336,7 +336,7 @@ if not os.path.exists(STATIC_ROOT):
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/cp/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
