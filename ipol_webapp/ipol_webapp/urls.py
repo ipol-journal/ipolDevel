@@ -26,7 +26,7 @@ urlpatterns = [
 
     # home
 	# url(r'^$',  Home.as_view(),name="ipol.home"),
-	url(r'^$',  RedirectView.as_view(url=reverse_lazy('account_login'),permanent=True),name="ipol.home"),
+	url(r'^cp/$',  RedirectView.as_view(url=reverse_lazy('account_login'),permanent=True),name="ipol.home"),
 
 	# control panel app
 	url(r'^cp/', include('apps.controlpanel.urls')),
@@ -36,7 +36,7 @@ urlpatterns = [
 	#(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
 
 	# admin
-	url(r'^admin/', include(admin.site.urls)),
+	url(r'^cp/admin/', include(admin.site.urls)),
 
 	#autocomplete_light
 	#http://django-autocomplete-light.readthedocs.org/en/master/
@@ -47,7 +47,7 @@ urlpatterns = [
 ]
 
 # extender allauthviews con mi mixin para navbar,
-if ALLAUTH_GESTS:   #if DEBUG is True it will be served automatically
+# if ALLAUTH_GESTS:   #if DEBUG is True it will be served automatically
 	# #ojo q la url debe ser la definida en settings.STATIC_URL
 
 	# urlpatterns += patterns('',
@@ -58,10 +58,10 @@ if ALLAUTH_GESTS:   #if DEBUG is True it will be served automatically
 	# )
 
 
-	urlpatterns_extra= [
-        #deben estar antes del import de urls de allauth! sino se usarian esas urls.
-		url(r'^accounts/', include('vendor.allauth.urls')),
-		#No se necesario si no uso socialauth (no olvidar migs!)
-		#url(r'^accounts/', include('allauth.urls')),
-	]
-	urlpatterns =urlpatterns + urlpatterns_extra
+	# urlpatterns_extra= [
+     #    #deben estar antes del import de urls de allauth! sino se usarian esas urls.
+	# 	url(r'^cp/', include('vendor.allauth.urls')),
+	# 	#No se necesario si no uso socialauth (no olvidar migs!)
+	# 	#url(r'^accounts/', include('allauth.urls')),
+	# ]
+	# urlpatterns =urlpatterns + urlpatterns_extra
