@@ -865,9 +865,9 @@ class Core(object):
             
         except Exception as ex:
             print "FAIL in DDL"
-            self.logger.exception("The DDL from demoinfo has fail")
+            self.logger.exception("Failure while reading the DDL")
             res_data = {}
-            res_data['info'] = 'The DDL from demoinfo has fail in the CORE'
+            res_data['info'] = 'DDL read demoInfo failed in the Core'
             res_data['status'] = 'KO'
             return json.dump(res_data)
             
@@ -893,7 +893,7 @@ class Core(object):
                 res_data = {}
                 res_data['info'] = 'Faiure in copy_blobs in CORE'
                 res_data['status'] = 'KO'
-                self.logger.exception("Failure in copy_blobs", str(ex))
+                self.logger.exception("copy_blobs FAILED")
                 return json.dumps(res_data)
         else:
             res_data = {}

@@ -214,7 +214,7 @@ class   Blobs(object):
                 try:
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.logger.exception("init_database : " + str(ex))
+                    self.logger.exception("init_database: " + str(ex))
                     status = False
                     return status
 
@@ -238,13 +238,13 @@ class   Blobs(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception("init_database" + (str(ex)))
+                self.logger.exception("init_database - " + (str(ex)))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception("init_database" + str(ex))
+                        self.logger.exception("init_database - " + str(ex))
                         status = False
 
         return status
@@ -262,7 +262,7 @@ class   Blobs(object):
             data = Database(self.database_dir, self.database_name, self.logger)
             return data
         except DatabaseError:
-            self.logger.exception("Cannot instantiate Database Object")
+            self.logger.exception("Cannot instantiate Database object")
             sys.exit(1)
 
     @staticmethod
@@ -1088,7 +1088,7 @@ class   Blobs(object):
                 dic = data.get_blob(blob_id)
                 dic["status"] = "OK"
             except DatabaseError:
-                self.logger.exception("Cannot access to blob from id blob")
+                self.logger.exception("Cannot access to blob from its ID")
                 dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -1112,7 +1112,7 @@ class   Blobs(object):
             try:
                 lis = data.get_tags_of_blob(blob_id)
             except DatabaseError:
-                self.logger.exception("Cannot access to tag from blob")
+                self.logger.exception("Cannot access tag from blob")
         return json.dumps(lis)
 
     #---------------------------------------------------------------------------

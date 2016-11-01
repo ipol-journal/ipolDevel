@@ -85,7 +85,7 @@ class   Database(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception((str(ex)))
+                self.logger.exception(str(ex))
 
                 if os.path.isfile(self.database_file):
                     try:
@@ -450,7 +450,7 @@ class   Database(object):
 
         except self.database.Error as e:
             self.logger.exception("get_demo_info_from_name --> The \
-            database does not have the demo ({0}) ".format(demo_name))
+            database does not have the demo ({0})".format(demo_name))
             raise DatabaseSelectError(e)
 
         return dic
