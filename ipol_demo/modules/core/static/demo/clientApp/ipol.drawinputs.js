@@ -2,7 +2,7 @@
  * @file 
  * this file contains the code that renders the selected input blobs
  * including the option to crop the input image
- * associated with ipol_demo.html and ipol_demo.js
+ * associated with demo.html and ipol_demo.js
  * @author  Karl Krissian
  * @version 0.1
  */

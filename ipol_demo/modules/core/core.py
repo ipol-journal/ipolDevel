@@ -164,7 +164,7 @@ class Core(object):
         demo_list = response['demo_list']
         demos_string = ""
         for demo in demo_list:
-            demos_string += "Demo #{}: <a href='/demo/clientApp/ipol_demo.html?id={}'>{}</a><br>".format(
+            demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                 demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
 
             

@@ -1,7 +1,7 @@
 /**
  * @file 
  * this file contains the code that renders and deals with the demo blobs
- * associated with ipol_demo.html and ipol_demo.js
+ * associated with demo.html and ipol_demo.js
  * @author  Karl Krissian
  * @version 0.1
  */

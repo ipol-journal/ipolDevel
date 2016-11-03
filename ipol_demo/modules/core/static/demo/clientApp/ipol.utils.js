@@ -1,5 +1,5 @@
 /**
- * @file Contains the utility functions associated with ipol_demo.html and
+ * @file Contains the utility functions associated with demo.html and
  * ipol_demo*.js, part of the IPOL journal demo system, CMLA ENS Cachan
  * @author  Karl Krissian
  * @version 0.1
