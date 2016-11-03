@@ -333,7 +333,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                 $("#DrawInputs").removeData();
 
                 // empty results
-                $("#ResultsDisplay").empty();6
+                $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
 
                 if (demo_ddl.status == "OK") {
