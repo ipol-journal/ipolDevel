@@ -309,8 +309,9 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
  */
 ipol.setDemoPage = function (demo_id,origin,func) {
 
-//    var url = window.location.pathname
-    if(window.location.pathname.includes("archive")){
+
+    // If the url contains archive.html the tabs-archive(2) is selected else the tabs-run(1) is selected
+    if(window.location.pathname.includes("archive.html")){
         $('#tabs-nohdr').tabs('option', 'active', 2);
     }else{
         $('#tabs-nohdr').tabs('option', 'active', 1);
@@ -353,6 +354,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 //                 $("#xlinks .algo").html("<a href='"+ddl_json.general.xlink_article+"'>article</a>")
                 $("#tabs-nohdr .algo").html("<a style='display:block' "+
                                             "  href='"+ddl_json.general.xlink_article+"'>article</a>");
+                //The href in the tabs are rewritten to get access to archive.html or demo.html
                 $("#tabs-nohdr .tabs_archive").html("<a style='display:block' "+
                                             "  href='archive.html?id="+demo_id+"'>archive</a>");
                 $("#tabs-nohdr .tabs_run").html("<a style='display:block' "+
@@ -426,8 +428,8 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                 // Create Parameters tab
                 var params = new ipol.DrawParams();
-
-                if(!window.location.pathname.includes("archive")) params.createParams(ddl_json);
+                //Create params is only needed in the demo.html page
+                if(window.location.pathname.includes("demo.html")) params.createParams(ddl_json);
 
                 // Get demo blobs
                 ipol.utils.ModuleService(
@@ -541,7 +543,6 @@ ipol.documentReady = function () {
     $("#tabs-nohdr").tabs({
             // update archive tab when selected
             beforeActivate: function(event, ui) {
-//                alert(ui.newPanel.attr('id'))
                 if (ui.newPanel.is("#tabs-archive")) {
                     var ar = new ipol.ArchiveDisplay();
                     // we need the demo_id here
