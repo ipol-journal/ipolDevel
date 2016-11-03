@@ -72,7 +72,7 @@ class   DatabaseConnection(object):
         safe context, if not already done.
         """
         try:
-            db.close()
+            self.db.close()
         except Exception as _:
             pass
 
@@ -81,8 +81,6 @@ def validate_password(dummy, username, password):
     """
     Validates the username and the password given
     """
-    global user_name
-    global passwd
     credentials = {user_name: passwd}
     if username in credentials and credentials[username] == password:
         return True
@@ -172,7 +170,7 @@ class   Blobs(object):
             self.database_dir = cherrypy.config.get("database_dir")
             self.database_name = cherrypy.config.get("database_name")
             self.database_file = os.path.join(self.database_dir, self.database_name)
-        except:
+        except Exception as _:
             self.logger.exception("failed to get database config")
 
         self.status = self.init_database()
@@ -216,7 +214,7 @@ class   Blobs(object):
                 try:
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.logger.exception("init_database : " + str(ex))
+                    self.logger.exception("init_database: " + str(ex))
                     status = False
                     return status
 
@@ -240,13 +238,13 @@ class   Blobs(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception("init_database" + (str(ex)))
+                self.logger.exception("init_database - " + (str(ex)))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception("init_database" + str(ex))
+                        self.logger.exception("init_database - " + str(ex))
                         status = False
 
         return status
@@ -264,7 +262,7 @@ class   Blobs(object):
             data = Database(self.database_dir, self.database_name, self.logger)
             return data
         except DatabaseError:
-            self.logger.exception("Cannot instantiate Database Object")
+            self.logger.exception("Cannot instantiate Database object")
             sys.exit(1)
 
     @staticmethod
@@ -857,8 +855,10 @@ class   Blobs(object):
             # thumbnail extension is jpg
             path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
             # remove blob
-            if os.path.isfile(path_file): os.remove(path_file)
-            if os.path.isfile(path_thumb): os.remove(path_thumb)
+            if os.path.isfile(path_file):
+                os.remove(path_file)
+            if os.path.isfile(path_thumb):
+                os.remove(path_thumb)
 
         return self.get_blobs_of_demo(demo_id)
 
@@ -1007,11 +1007,11 @@ class   Blobs(object):
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
-            blobs_list = demo_blobs["blobs"],
-            demo_id = demo_id,
-            demo = demo_blobs,
-            tmpl_list = template_list_res["template_list"],
-            tmpl_blobs = template_blobs)
+            blobs_list=demo_blobs["blobs"],
+            demo_id=demo_id,
+            demo=demo_blobs,
+            tmpl_list=template_list_res["template_list"],
+            tmpl_blobs=template_blobs)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -1033,7 +1033,8 @@ class   Blobs(object):
                                                     self.final_dir,
                                                     b_name)
             res["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
-            res["url_thumb"] = self.server_address+"/" + self.thumb_dir + "/thumbnail_" + res["hash"]+".jpg"
+            res["url_thumb"] = (self.server_address + "/" + self.thumb_dir
+                                + "/thumbnail_" + res["hash"]+".jpg")
             res["tags"] = use_web_service('/get_tags_ws', data)
             # process paths
             res["physical_location"] = get_new_path(res["physical_location"], False)
@@ -1087,7 +1088,7 @@ class   Blobs(object):
                 dic = data.get_blob(blob_id)
                 dic["status"] = "OK"
             except DatabaseError:
-                self.logger.exception("Cannot access to blob from id blob")
+                self.logger.exception("Cannot access to blob from its ID")
                 dic["status"] = "KO"
 
         return json.dumps(dic)
@@ -1111,7 +1112,7 @@ class   Blobs(object):
             try:
                 lis = data.get_tags_of_blob(blob_id)
             except DatabaseError:
-                self.logger.exception("Cannot access to tag from blob")
+                self.logger.exception("Cannot access tag from blob")
         return json.dumps(lis)
 
     #---------------------------------------------------------------------------
@@ -1139,7 +1140,8 @@ class   Blobs(object):
                 # remove from disk unused blobs
                 for blobfilename in blobfilenames_to_delete:
                     path_file = os.path.join(self.current_directory, self.final_dir, blobfilename)
-                    path_thumb = os.path.join(self.current_directory, self.thumb_dir, ("thumbnail_" + blobfilename))
+                    path_thumb = os.path.join(self.current_directory,
+                                              self.thumb_dir, ("thumbnail_" + blobfilename))
                     path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
                     # process paths
                     path_file = get_new_path(path_file)
@@ -1220,8 +1222,8 @@ class   Blobs(object):
             if fil_format == 'image':
                 try:
                     image = PIL.Image.open(src)
-                except:
-                    self.logger.exception( "failed to open image file")
+                except Exception as _:
+                    self.logger.exception("failed to open image file")
                     return
                 image.thumbnail((256, 256))
                 image.save(file_dest)
@@ -1268,7 +1270,7 @@ class   Blobs(object):
                     if ',' in _file:
                         pos = _file.find(',')
                         _file_image = _file[pos+1:]
-                        _file       = _file[:pos]
+                        _file = _file[:pos]
                         has_image_representation = True
                     if _file and _file in files:
                         title = buff.get(section, 'title')
@@ -1331,8 +1333,8 @@ class   Blobs(object):
                         pass
         else:
             self.logger.exception(
-                            "ZipError: index.cfg missing in " + the_archive +
-                            ": Cannot add item in database")
+                "ZipError: index.cfg missing in " + the_archive +
+                ": Cannot add item in database")
 
     #---------------------------------------------------------------------------
 

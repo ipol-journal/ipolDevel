@@ -309,11 +309,17 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
  */
 ipol.setDemoPage = function (demo_id,origin,func) {
 
-    $('#tabs-nohdr').tabs('option', 'active', 1);
+//    var url = window.location.pathname
+    if(window.location.pathname.includes("archive")){
+        $('#tabs-nohdr').tabs('option', 'active', 2);
+    }else{
+        $('#tabs-nohdr').tabs('option', 'active', 1);
+    }
 
     if (origin===undefined) {
         origin=ipol.demo_origin.select_widget;
     }
+
     if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
@@ -321,15 +327,15 @@ ipol.setDemoPage = function (demo_id,origin,func) {
             'demo_id=' + demo_id + '&returnjsons=True',
             function(demo_ddl) {
                 //console.info("read demo ddl status = ", demo_ddl.status);
-                
+
                 // empty inputs
                 $("#DrawInputs").empty();
                 $("#DrawInputs").removeData();
-                
+
                 // empty results
-                $("#ResultsDisplay").empty();
+                $("#ResultsDisplay").empty();6
                 $("#ResultsDisplay").removeData();
-                
+
                 if (demo_ddl.status == "OK") {
                     var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.json);
                     var str = JSON.stringify(ddl_json, undefined, 4);
@@ -337,7 +343,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                 } else {
                     console.error(" --- failed to read DDL");
                 }
-                
+
                 // update document title
                 //$(document).attr("title","IPOL Journal &middot; "+ddl_json.general.demo_title);
                 $('title').html("IPOL Journal &middot; "+ddl_json.general.demo_title);
@@ -347,12 +353,16 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 //                 $("#xlinks .algo").html("<a href='"+ddl_json.general.xlink_article+"'>article</a>")
                 $("#tabs-nohdr .algo").html("<a style='display:block' "+
                                             "  href='"+ddl_json.general.xlink_article+"'>article</a>");
+                $("#tabs-nohdr .tabs_archive").html("<a style='display:block' "+
+                                            "  href='archive.html?id="+demo_id+"'>archive</a>");
+                $("#tabs-nohdr .tabs_run").html("<a style='display:block' "+
+                                            "  href='demo.html?id="+demo_id+"'>demo</a>");
                 // update article link
                 $("#citation a").attr("href", ddl_json.general.xlink_article);
                 // for convenience, add demo_id to the json DDL
                 ddl_json['demo_id']         = demo_id;
                 ipol.preprocessDemo(ddl_json);
-                
+
                 // hide parameters if none
                 if ((ddl_json.params===undefined)||
                     (!(ddl_json.params.length>0))) {
@@ -372,10 +382,10 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                 var has_inputs = (ddl_json.inputs!==undefined)&&(ddl_json.inputs.length>0);
                 if (has_inputs) {
-                    // ensure inputs fieldsets are shown 
+                    // ensure inputs fieldsets are shown
                     $("#selectinputs_fieldset").show();
                     $("#inputs_fieldset"      ).show();
-                    
+
                     // disable run
                     $( "#run_button" ).unbind("click").prop("disabled",true);
                     $(".progress-label").text( "Waiting for input selection" );
@@ -393,7 +403,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     } else {
                         $("#description_input").hide();
                     }
-                    // Create local data selection to upload 
+                    // Create local data selection to upload
                     ipol.upload.ManageLocalData(ddl_json);
 
                 } else {
@@ -407,16 +417,17 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     var run = new ipol.RunDemo(ddl_json,
                                                di.getInputOrigin(),
                                                di.getCropInfo(),
-                                               di.getBlobSet(), 
+                                               di.getBlobSet(),
                                                di.getDrawMask(),
                                                di.getDrawLines()
                                               );
                     run.setRunEvent();
                 }
-                
+
                 // Create Parameters tab
                 var params = new ipol.DrawParams();
-                params.createParams(ddl_json);
+
+                if(!window.location.pathname.includes("archive")) params.createParams(ddl_json);
 
                 // Get demo blobs
                 ipol.utils.ModuleService(
@@ -424,7 +435,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     "get_blobs_of_demo_by_name_ws",
                     "demo_name=" + demo_id,
                     ipol.DrawBlobs.staticOnDemoBlobs(ddl_json));
-                
+
                 // Display archive information
                 var ar = new ipol.ArchiveDisplay();
                 // get and display the last archive page
@@ -437,9 +448,9 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                             // !from_url mean the event is from changing the demo id
                             try {
                                 // change url hash
-                                History.pushState({demo_id:demo_id,state:1}, 
+                                History.pushState({demo_id:demo_id,state:1},
                                 "IPOL Journal - "+ddl_json.general.demo_title,
-                                //"IPOLDemos "+demo_id+" inputs", 
+                                //"IPOLDemos "+demo_id+" inputs",
                                 "?id="+demo_id+"&state=1");
                             } catch(err) {
                                 console.error("error:", err.message);
@@ -450,7 +461,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                             // check if result to display
                             // Get the URL parameters
                             var url_params = ipol.getUrlParameters();
-                            
+
                             // set results as url parameters
                             if (url_params["res"]!==undefined) {
                                 var res = JSON.parse(url_params["res"]);
@@ -530,6 +541,7 @@ ipol.documentReady = function () {
     $("#tabs-nohdr").tabs({
             // update archive tab when selected
             beforeActivate: function(event, ui) {
+//                alert(ui.newPanel.attr('id'))
                 if (ui.newPanel.is("#tabs-archive")) {
                     var ar = new ipol.ArchiveDisplay();
                     // we need the demo_id here

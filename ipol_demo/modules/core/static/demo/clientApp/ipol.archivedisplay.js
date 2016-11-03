@@ -1,7 +1,7 @@
 /**
  * @file 
  * this file contains the code that renders and deals with the demo archives
- * associated with ipol_demo.html and ipol_demo.js
+ * associated with demo.html and ipol_demo.js
  * @author  Karl Krissian
  * @version 0.1
  */
@@ -137,7 +137,7 @@ ipol.ArchiveDisplay = function()
             html += '<tr>';
             html += '<th style="text-align:center;vertical-align:middle;">Experiment</th>';
             // todo link to experiment details ...
-            //html += '<td><a href="ipol_demo.html?id='+demo_id+'&exp='+exp.id+
+            //html += '<td><a href="demo.html?id='+demo_id+'&exp='+exp.id+
             //        '"  target="_blank">Experiment '+exp.id+'</a>';
             
             html += '<td>Experiment '+exp.id+'</a>';

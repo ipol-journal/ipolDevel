@@ -54,8 +54,8 @@ class   Database(object):
             file_info = os.stat(self.database_file)
 
             if file_info.st_size == 0:
-                self.logger.warning( str(self.database_file) + \
-                                     ' is empty. Removing the file...')
+                self.logger.warning(str(self.database_file) + \
+                                    ' is empty. Removing the file...')
                 try:
                     self.logger.warning('Database file was empty')
                     os.remove(self.database_file)
@@ -85,13 +85,13 @@ class   Database(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception( (str(ex)))
+                self.logger.exception(str(ex))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception( str(ex))
+                        self.logger.exception(str(ex))
                         status = False
 
         return status
@@ -160,7 +160,7 @@ class   Database(object):
                 '''INSERT OR REPLACE INTO
                 demo_blob(blob_id, demo_id, blob_set,blob_pos_in_set)
                 VALUES(?, ?, ?, ?)''', \
-                (blobid, demoid, blob_set,blob_pos_in_set,))
+                (blobid, demoid, blob_set, blob_pos_in_set,))
 
         except self.database.Error as e:
             raise DatabaseInsertError(e)
@@ -255,7 +255,7 @@ class   Database(object):
         try:
             self.cursor.execute('''
             SELECT hash FROM blob WHERE hash=?''',
-            (hash_blob,))
+                                (hash_blob,))
             something = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
@@ -379,15 +379,15 @@ class   Database(object):
                 blob.title, blob.credit FROM demo_blob
                 INNER JOIN demo ON demo_blob.demo_id=demo.id
                 INNER JOIN blob ON demo_blob.blob_id=blob.id
-                WHERE demo.id=? AND blob_set=?''', (demo_id,blobset[0],))
+                WHERE demo.id=? AND blob_set=?''', (demo_id, blobset[0],))
             except self.database.Error as e:
                 raise DatabaseSelectError(e)
 
             blobset_blobs = self.cursor.fetchall()
-            blob_list = [{ 'set_name':blobset[0], 'size':len(blobset_blobs) } ]
+            blob_list = [{'set_name': blobset[0], 'size': len(blobset_blobs)}]
             for b in  blobset_blobs:
                 # get blob tags
-                tags = self.get_tags_of_blob( b[0])
+                tags = self.get_tags_of_blob(b[0])
 
                 tag_str = ''
                 for tid in tags:
@@ -395,8 +395,8 @@ class   Database(object):
 
                 # now get blobs of each set
                 blob_list.append(
-                    { "id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
-                      "format": b[4], "title":b[5], "credit":b[6], 'tag':tag_str }
+                    {"id": b[0], "pos_in_set": b[1], "hash" : b[2], "extension": b[3],
+                     "format": b[4], "title": b[5], "credit": b[6], 'tag': tag_str}
                 )
             blobset_list.append(blob_list)
 
@@ -449,7 +449,8 @@ class   Database(object):
                                  "template_id": something[3]}
 
         except self.database.Error as e:
-            self.logger.exception("get_demo_info_from_name --> The database does not have the demo ({0}) ".format(demo_name))
+            self.logger.exception("get_demo_info_from_name --> The \
+            database does not have the demo ({0})".format(demo_name))
             raise DatabaseSelectError(e)
 
         return dic
@@ -579,13 +580,13 @@ class   Database(object):
             (blob_id,))
             democount = self.cursor.fetchone()
             if democount is None:
-                democount=0
+                democount = 0
             else:
                 democount = democount[0]
         except self.database.Error as e:
             raise DatabaseSelectError(e)
         if democount is None:
-            democount=0
+            democount = 0
         return democount
 
     #---------------------------------------------------------------------------
@@ -720,7 +721,7 @@ class   Database(object):
             INNER JOIN demo ON demo_blob.demo_id=demo.id
             INNER JOIN blob ON demo_blob.blob_id=blob.id
             WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=? ''',\
-            (demo_id, blob_id,blobset))
+            (demo_id, blob_id, blobset))
         except self.database.Error as e:
             raise DatabaseSelectError(e)
 
@@ -732,7 +733,7 @@ class   Database(object):
                     self.cursor.execute('''
                     DELETE FROM demo_blob
                     WHERE demo_blob.blob_id=? AND demo_blob.demo_id=? AND demo_blob.blob_set=? ''',\
-                    (value[0], value[1],value[2]))
+                    (value[0], value[1], value[2]))
                 except self.database.Error as e:
                     raise DatabaseDeleteError(e)
 
@@ -751,28 +752,28 @@ class   Database(object):
         for item in result:
             values.append((item[0], item[1], item[2]))
         values = sorted(values, key=lambda b: b[1])
-        blobpos=0
-        idx=0
+        blobpos = 0
+        idx = 0
         prev_pos = 0
         for val in values:
-            if blobpos!=0 and prev_pos!=val[1]:
-                idx=idx+1
+            if blobpos != 0 and prev_pos != val[1]:
+                idx = idx + 1
             try:
                 result = self.cursor.execute('''
                     UPDATE demo_blob SET blob_pos_in_set=?
                     WHERE demo_blob.id=? ''',\
-                    (idx,val[2]))
+                    (idx, val[2]))
             except self.database.Error as e:
                 raise DatabaseSelectError(e)
             prev_pos = val[1]
-            blobpos=blobpos+1
+            blobpos = blobpos + 1
 
 
         #---- here
         self.delete_all_tag(blob_id)
         blob_demo_count = self.blob_democount(blob_id)
         self.delete_blob(blob_id, blob_demo_count)
-        return blob_demo_count==0
+        return blob_demo_count == 0
 
     #---------------------------------------------------------------------------
     def commit(self):
@@ -875,9 +876,10 @@ class   Database(object):
             #blobsets_list = self.cursor.fetchall()
             #print item[0]
             #print blobsets_list
-            length= len(blob_sets.fetchall())
+            length = len(blob_sets.fetchall())
 
-            lis.append({"id": item[0], "name": item[1], "is_template": item[2], "template_id": item[3], "length": length } )
+            lis.append({"id": item[0], "name": item[1], "is_template": item[2],
+                        "template_id": item[3], "length": length})
         return lis
 
     #---------------------------------------------------------------------------
@@ -922,7 +924,7 @@ class   Database(object):
             (blob_id,))
             something = self.cursor.fetchone()
             dic = {"id": something[0], "hash": something[1], "extension": something[2],
-               "credit": something[3]}
+                   "credit": something[3]}
         except self.database.Error as e:
             raise DatabaseSelectError(e)
 
@@ -945,7 +947,7 @@ class   Database(object):
             self.cursor.execute('''
             DELETE FROM blob_tag
             WHERE tag_id=? AND blob_id=?''',
-            (tag_id, blob_id))
+                                (tag_id, blob_id))
         except self.database.Error as e:
             raise DatabaseDeleteError(e)
 
@@ -1016,18 +1018,18 @@ class   Database(object):
         try:
             # use get_blobs_of_demo() to simplify the code
             demo_blobsets = self.get_blobs_of_demo(demo_id)
-            print "demo_blobsets=",demo_blobsets
+            print "demo_blobsets=", demo_blobsets
             blobfilenames_to_delete = []
             for blobs in demo_blobsets:
                 blobset_id = blobs[0]["set_name"]
                 print "removing blobset '{0}'".format(blobset_id)
                 for i in range(blobs[0]["size"]):
-                    can_delete = self.delete_blob_from_demo(demo_id, blobset_id,blobs[i+1]["id"])
+                    can_delete = self.delete_blob_from_demo(demo_id, blobset_id, blobs[i + 1]["id"])
                     if can_delete:
                         blobfilenames_to_delete.append(blobs[i+1]["hash"]+blobs[i+1]["extension"])
             demo_blobcount = self.blobcount(demo_id)
             print "demo blobcount = ", demo_blobcount
-            if demo_blobcount==0:
+            if demo_blobcount == 0:
                 self.remove_demo_from_database(demo_id)
         except self.database.Error, e:
             raise DatabaseDeleteError(e)

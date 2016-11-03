@@ -97,7 +97,7 @@
                 </li>
                 {#   allauth   #}
                 <li class="nav-item {% if request.session.menu == 'menu-private-logout' %} active {% endif %}">
-                    <a href="{% url 'account_logout' %}">{% trans 'Logout' %}</a>
+                    <a href="{% url 'account_logout' %}?next=/cp/">{% trans 'Logout' %}</a>
                 </li>
             {% endif %}
                 {#   allauth   #}
@@ -110,7 +110,7 @@
 {#                            <a href="{% url 'photogallery.privategallery' %}">{% trans 'My Wedding' %}</a>#}
 {#                        </li>#}
 {#                        <li class="nav-item {% if request.session.menu == 'menu-private-logout' %} active {% endif %}">#}
-{#                            <a href="{% url 'account_logout' %}">{% trans 'Logout' %}</a>#}
+{#                            <a href="{% url 'account_logout' %}?next=/cp/">{% trans 'Logout' %}</a>#}
 {#                        </li>#}
 {#                    {% else %}#}
 {#                        <li class="nav-item {% if request.session.menu == 'menu-login' %} active {% endif %}">#}

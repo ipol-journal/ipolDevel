@@ -134,7 +134,7 @@ class DemoRunner(object):
         """
         Small index for the demorunner.
         """
-        return ("Welcome to IPOL DemoRunner !")
+        return ("This is the IPOL DemoRunner module")
 
 
     @cherrypy.expose
@@ -240,7 +240,7 @@ class DemoRunner(object):
                     if not(path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
                         rebuild_needed = True
                 except Exception as ex:
-                    self.logger.exception("make", str(ex))
+                    self.logger.exception("make")
                     raise
 
         # test timestamp for scripts too
@@ -253,7 +253,7 @@ class DemoRunner(object):
                     if not(path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
                         rebuild_needed = True
                 except Exception as ex:
-                    self.logger.exception("make", str(ex))
+                    self.logger.exception("make")
                     raise
 
         #--- build
@@ -483,7 +483,7 @@ class DemoRunner(object):
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
                 json.dump(params,resfile)
         except Exception as ex:
-            self.logger.exception("exec_and_wait", str(ex))
+            self.logger.exception("exec_and_wait")
             print "Failed to save params.json file"
             raise
           
@@ -516,7 +516,7 @@ class DemoRunner(object):
                 res_data['params'] = json.load(resfile)
         except Exception as ex:
             print "Failed to read params.json file"
-            self.logger.exception("exec_and_wait", str(ex))
+            self.logger.exception("exec_and_wait")
             raise
         
         # check if new config fields
@@ -567,7 +567,7 @@ class DemoRunner(object):
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
             rd.run_algorithm()
         except Exception as e:
-            self.logger.exception("run_algo", str(e))
+            self.logger.exception("run_algo")
         ## take into account possible changes in parameters
         
         res_data['params']      = rd.get_algo_params()
