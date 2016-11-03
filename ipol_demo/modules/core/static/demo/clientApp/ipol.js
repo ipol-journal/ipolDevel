@@ -309,11 +309,17 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
  */
 ipol.setDemoPage = function (demo_id,origin,func) {
 
-    $('#tabs-nohdr').tabs('option', 'active', 1);
+    var str = window.location.pathname
+    if(str.includes("archive")){
+        $('#tabs-nohdr').tabs('option', 'active', 2);
+    }else{
+        $('#tabs-nohdr').tabs('option', 'active', 1);
+    }
 
     if (origin===undefined) {
         origin=ipol.demo_origin.select_widget;
     }
+
     if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
@@ -327,7 +333,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                 $("#DrawInputs").removeData();
                 
                 // empty results
-                $("#ResultsDisplay").empty();
+                $("#ResultsDisplay").empty();6
                 $("#ResultsDisplay").removeData();
                 
                 if (demo_ddl.status == "OK") {
@@ -347,6 +353,10 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 //                 $("#xlinks .algo").html("<a href='"+ddl_json.general.xlink_article+"'>article</a>")
                 $("#tabs-nohdr .algo").html("<a style='display:block' "+
                                             "  href='"+ddl_json.general.xlink_article+"'>article</a>");
+                $("#tabs-nohdr .tabs_archive").html("<a style='display:block' "+
+                                            "  href='/demo/clientApp/ipol_archive.html?id="+demo_id+"'>archive</a>");
+                $("#tabs-nohdr .tabs_run").html("<a style='display:block' "+
+                                            "  href='/demo/clientApp/ipol_demo.html?id="+demo_id+"'>demo</a>");
                 // update article link
                 $("#citation a").attr("href", ddl_json.general.xlink_article);
                 // for convenience, add demo_id to the json DDL
@@ -530,6 +540,7 @@ ipol.documentReady = function () {
     $("#tabs-nohdr").tabs({
             // update archive tab when selected
             beforeActivate: function(event, ui) {
+//                alert(ui.newPanel.attr('id'))
                 if (ui.newPanel.is("#tabs-archive")) {
                     var ar = new ipol.ArchiveDisplay();
                     // we need the demo_id here
