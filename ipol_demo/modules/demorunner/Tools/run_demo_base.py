@@ -127,8 +127,16 @@ class RunDemoBase:
     the core algo runner
     could also be called by a batch processor
     """
-    
-    current_working_dir = os.getcwd()
+
+    # ToDo
+    # [Miguel]: check if the mechanism used with current_working_dir is
+    # causing a race condition!
+
+    try:
+      current_working_dir = os.getcwd()
+    except:
+      current_working_dir = None
+
     os.chdir(self.work_dir)
     
     # convert parameters to variables
@@ -301,7 +309,8 @@ class RunDemoBase:
     shell_cmds.close()
     
     # set back previous working directory
-    os.chdir(current_working_dir)
+    if current_working_dir is not None:
+        os.chdir(current_working_dir)
   
 
   def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
