@@ -319,7 +319,14 @@ ipol.DrawParams = function() {
                 num_decimals++;
             }
         }
-        slider_options['format']= wNumb({ decimals: num_decimals });
+
+        try {
+            slider_options['format']= wNumb({ decimals: num_decimals });
+        } catch(err) {
+        }
+
+
+        
         
         noUiSlider.create($('#'+range_id)[0], slider_options);
         
