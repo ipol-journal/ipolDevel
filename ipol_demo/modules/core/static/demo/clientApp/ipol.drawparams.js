@@ -310,7 +310,7 @@ ipol.DrawParams = function() {
         // try to set the right decimal values
         var num_decimals = 0;
         var ok = false;
-        while ((!ok)&&(num_decimals<4)) {
+        while ((!ok)&&(num_decimals<15)) {
             ok = (hasdecimals(param.values.min, num_decimals)&&
                   hasdecimals(param.values.max, num_decimals)&&
                   hasdecimals(param.values.step,num_decimals));
