@@ -310,7 +310,7 @@ ipol.DrawParams = function() {
         // try to set the right decimal values
         var num_decimals = 0;
         var ok = false;
-        while ((!ok)&&(num_decimals<15)) {
+        while ((!ok)&&(num_decimals<7)) {
             ok = (hasdecimals(param.values.min, num_decimals)&&
                   hasdecimals(param.values.max, num_decimals)&&
                   hasdecimals(param.values.step,num_decimals));
@@ -319,13 +319,8 @@ ipol.DrawParams = function() {
                 num_decimals++;
             }
         }
-
-        try {
-            slider_options['format']= wNumb({ decimals: num_decimals });
-        } catch(err) {
-        }
-
-
+        //
+        slider_options['format']= wNumb({ decimals: num_decimals });
         
         
         noUiSlider.create($('#'+range_id)[0], slider_options);
