@@ -15,27 +15,25 @@
 """
 Main function.
 """
+import sys
+import os
 import cherrypy
-import sys, os
 from demoinfo import DemoInfo
 
-def CORS(): 
-    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+def CORS():
+    """
+    This function enable CORS (cross origin resource sharing)
+    more info at : http://blog.edutoolbox.de/?p=114
+    """
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*"
+
 
 if __name__ == '__main__':
-    
+
     CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "demoinfo.conf"
 
-    BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
-    
+
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
     cherrypy.quickstart(DemoInfo(CONF_FILE_ABS), '', config=CONF_FILE_ABS)
-
-
-
-
-
-
-
-
