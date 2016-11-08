@@ -37,7 +37,9 @@ import tarfile, zipfile
 from sendarchive import SendArchive
 from urlparse import urlparse
 import webbrowser
-
+import io, base64
+from PIL import Image
+from io import BytesIO
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -224,7 +226,8 @@ class Core(object):
         data["status"] = "KO"
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
-    
+
+
     #---------------------------------------------------------------------------
     # INPUT HANDLING TOOLS (OLD with a few modifications)
     #---------------------------------------------------------------------------
@@ -284,6 +287,26 @@ class Core(object):
         end=timer()
         
         return msg
+
+    @cherrypy.expose
+    def convert(self, img, ext):
+        """
+         Convert image to other extension
+        :param img:   image in Base64
+        :param ext:   returned image extension
+        """
+        data = {}
+        data["status"] = "KO"
+        try:
+            im = Image.open(io.BytesIO(base64.b64decode(img)))
+            output = BytesIO()
+            im.save(output, ext)
+            data["img"] = base64.b64encode(output.getvalue())
+            data["status"] = "OK"
+        except Exception as ex:
+            print "Failed to convert image", ex
+
+        return json.dumps(data)
     ###--------------------------------------------------------------------------
     ##          END BLOCK OF INPUT TOOLS
     ###--------------------------------------------------------------------------
