@@ -38,8 +38,10 @@ from sendarchive import SendArchive
 from urlparse import urlparse
 import webbrowser
 import io, base64
-from PIL import Image
 from io import BytesIO
+import png
+from libtiff import TIFF
+import tempfile
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -190,7 +192,16 @@ class Core(object):
     def demo(self):
         return self.index()
 
-
+    @cherrypy.expose
+    def api(self):
+        """
+        Ping pong.
+        :rtype: JSON formatted string
+        """
+        data = {}
+        data["status"] = "OK"
+        data["api"] = "pong"
+        return json.dumps(data)
 
     @cherrypy.expose
     def ping(self):
@@ -289,24 +300,34 @@ class Core(object):
         return msg
 
     @cherrypy.expose
-    def convert(self, img, ext):
-        """
-         Convert image to other extension
-        :param img:   image in Base64
-        :param ext:   returned image extension
-        """
+    def convert_tiff_to_png(self, img):
         data = {}
         data["status"] = "KO"
         try:
-            im = Image.open(io.BytesIO(base64.b64decode(img)))
-            output = BytesIO()
-            im.save(output, ext)
-            data["img"] = base64.b64encode(output.getvalue())
-            data["status"] = "OK"
+            temp_file=tempfile.NamedTemporaryFile()
+            temp_file.write(base64.b64decode(img))
+            temp_file.seek(0)
+
+            tiffFile = TIFF.open(temp_file.name, mode='r')
+            tiffImage = tiffFile.read_image()
+            Nrow, Ncolumn, Nchannels = tiffImage.shape
+
+            pixelMatrix = tiffImage[:,:,0:3].reshape((Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
+            temp_file = tempfile.SpooledTemporaryFile()
+
+            bitdepth = int(tiffImage.dtype.name.split("uint")[1])
+            writer = png.Writer(Ncolumn, Nrow, bitdepth=bitdepth,greyscale=False)
+
+            writer.write(temp_file, pixelMatrix)
+            temp_file.seek(0)
+            encoded_string = base64.b64encode(temp_file.read())
+
+            data["img"] = encoded_string
+            data["status"] ="OK"
         except Exception as ex:
             print "Failed to convert image", ex
-
         return json.dumps(data)
+
     ###--------------------------------------------------------------------------
     ##          END BLOCK OF INPUT TOOLS
     ###--------------------------------------------------------------------------
@@ -867,6 +888,7 @@ class Core(object):
             while "file_{0}".format(i) in kwargs:
                 fname="file_{0}".format(i)                
                 blobs[fname] = kwargs[fname]
+                print "*********** {}, {} *****".format(fname, blobs[fname])
                 i+=1
         
         elif input_type == 'blobset':

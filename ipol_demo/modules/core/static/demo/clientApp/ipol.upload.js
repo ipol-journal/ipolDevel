@@ -108,24 +108,24 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
                 // read the file, update the preview and the
                 // last_uploaded_files information
                 if (this.files && this.files[0]) {
-                    // use FileReader()
                     var reader = new FileReader();
                     reader.onload = (function(i) { return function (e) {
                         var img_info = String(e.target.result).split(",")[0]
                         var img_data = String(e.target.result).split(",")[1]
                         var img;
-                        //Check for tiff image and convert to png
-                        if(img_info.includes("tiff")){
+                        // Check if it's a TIFF image and convert it to PNG, for
+                        // visualization purposes
+                        if( img_info.includes("image/tiff")) { // MIME type
                             var hostname = window.location.host.split(":")[0];
-                            var port = ":8080" //Core port
-                            var url = "http://"+hostname + port + "/convert";
-                            try{
+                            var port = ":8080" // Core port [ToDo] Use the IPOL API
+                            var url = "http://"+hostname + port + "/convert_tiff_to_png";
+                            try {
                                 jQuery.ajaxSetup({async:false});
-                                $.post(url,{img: img_data, ext: 'PNG'},
+                                $.post(url,{img: img_data},
                                 function(data, status){
                                     img = "data:image/png;base64," + data["img"];
                                 });
-                            }finally{
+                            } finally {
                                 jQuery.ajaxSetup({async:true});
                             }
 
