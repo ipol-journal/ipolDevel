@@ -96,47 +96,68 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
                 var Mb=1024*1024;
                 var file_size     = this.files[0].size/Mb;
                 var allowed_size  = eval(ddl_json.inputs[i].max_weight)/Mb;
-                console.info(" size ok = ", file_size.toPrecision(5), "<", 
+                console.info(" size ok = ", file_size.toPrecision(5), "<",
                              allowed_size.toPrecision(5));
                 if (!size_ok) {
-                    alert("The selected file exceeds the maximal allowed size: "+ 
+                    alert("The selected file exceeds the maximal allowed size: "+
                             file_size.toPrecision(4)+" Mb >"+
                             allowed_size.toPrecision(4)+" Mb");
                     return;
                 }
-                
-                // read the file, update the preview and the 
+
+                // read the file, update the preview and the
                 // last_uploaded_files information
                 if (this.files && this.files[0]) {
-                    // use FileReader()
                     var reader = new FileReader();
                     reader.onload = (function(i) { return function (e) {
+                        var img_info = String(e.target.result).split(",")[0]
+                        var img_data = String(e.target.result).split(",")[1]
+                        var img;
+                        // Check if it's a TIFF image and convert it to PNG, for
+                        // visualization purposes
+                        if( img_info.includes("image/tiff")) { // MIME type
+                            var hostname = window.location.host.split(":")[0];
+                            var port = ":8080" // Core port [ToDo] Use the IPOL API
+                            var url = "http://"+hostname + port + "/convert_tiff_to_png";
+                            try {
+                                jQuery.ajaxSetup({async:false});
+                                $.post(url,{img: img_data},
+                                function(data, status){
+                                    img = "data:image/png;base64," + data["img"];
+                                });
+                            } finally {
+                                jQuery.ajaxSetup({async:true});
+                            }
+
+                        }else{
+                            img = e.target.result;
+                        }
                         console.info("onload ", i, ":",e.target);
-                        $('#localdata_preview_'+i).attr("src", e.target.result);
-                        console.info("size of uploaded file :", 
+                        $('#localdata_preview_'+i).attr("src", img);
+                        console.info("size of uploaded file :",
                                      e.target.result.length/1024/1024, " Mb" );
                         // for browser history purposes:
                         // save the result in the last_upload_files array
                         // at position last_uploaded_files_pos
                         ipol.upload.last_uploaded_files
-                            [ipol.upload.last_uploaded_files_pos] = e.target.result;
+                            [ipol.upload.last_uploaded_files_pos] = img;
                         // stores the position in the HTML element
-                        // this prevents uploading twice the save file while moving 
+                        // this prevents uploading twice the save file while moving
                         // in the browser history
                         $('#localdata_preview_'+i).data("src_pos",
                                                         ipol.upload.last_uploaded_files_pos);
                         // increment the position
                         ipol.upload.last_uploaded_files_pos++;
-                        window.localStorage.setItem("last_uploaded_files_pos", 
+                        window.localStorage.setItem("last_uploaded_files_pos",
                                                     ipol.upload.last_uploaded_files_pos);
                         // avoid filling the memory by releasing old files
-                        // we try to keep the 10 last files 
+                        // we try to keep the 10 last files
                         // (depending on the available cache)
                         if (ipol.upload.last_uploaded_files_pos>=10) {
                             ipol.upload.last_uploaded_files
                                 [ipol.upload.last_uploaded_files_pos-10]=undefined;
                         }
-                        
+
                     } })(i);
                     reader.readAsDataURL(this.files[0]);
                 }
@@ -155,7 +176,7 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
  * @inner
  */
 ipol.upload.ManageLocalData = function(ddl_json) {
-    
+
     ipol.upload.CreateUploadHTML(ddl_json);
     $("#upload-dialog").dialog("option","buttons",{
         Apply: (function(ddl_json) { 
