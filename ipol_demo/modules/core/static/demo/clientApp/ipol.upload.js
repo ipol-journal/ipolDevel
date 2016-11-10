@@ -64,6 +64,8 @@ ipol.upload.CreateUploadHTML = function(ddl_json) {
         html += '</td>';
         html += '<td > <img crossorigin="anonymous"  id="localdata_preview_'+i+
                 '" style="max-height:128px"></td>';
+        html += '<div id="original_media_'+i+'"> </div>';
+
         html += '<td>';
         html += '<font size="-1"><i>';
           if (ddl_json.inputs[i].max_pixels!=undefined) {
@@ -134,6 +136,7 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
                         }
                         console.info("onload ", i, ":",e.target);
                         $('#localdata_preview_'+i).attr("src", img);
+                        $('#original_media_'+i).attr("src", e.target.result);
                         console.info("size of uploaded file :",
                                      e.target.result.length/1024/1024, " Mb" );
                         // for browser history purposes:

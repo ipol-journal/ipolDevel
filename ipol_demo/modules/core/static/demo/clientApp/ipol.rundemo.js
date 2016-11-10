@@ -381,9 +381,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      */
     this.setRunEvent = function() {
         _initProgress();
-        
+
         $( "#run_button" ).unbind("click").prop("disabled",false);
-        $( "#run_button" ).click( 
+        $( "#run_button" ).click(
         function(){
             var ptext=_progresslabel.text();
             // disable future clicks until run is finished
@@ -444,24 +444,31 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                         
                         var inputs  = _ddl_json.inputs;
                         if (inputs.length===1) {
-                            // Upload cropped image to server if the browser 
+                            // Upload cropped image to server if the browser
                             // supports `HTMLCanvasElement.toBlob`
                             var crop_enabled = $("#id_cropinput").is(':checked');
                             if (crop_enabled) {
-                                var cropped_canvas = $("#inputimage").cropper('getCroppedCanvas');
-                                cropped_canvas.toBlob( 
+                                var cropped_canvas = $("#localdata_preview_0").cropper('getCroppedCanvas');
+                                cropped_canvas.toBlob(
                                     function(blob) {
                                         console.info('adding blob (cropped) : ', blob);
                                         form_data.append('file_0', blob);
                                         _sendRunForm(form_data);
                                     }, 'image/png' );
                             } else {
-                                var image_src = $("#inputimage").attr('src');
-                                blobUtil.imgSrcToBlob(image_src).then(
-                                    function(blob) {
-                                        form_data.append('file_0', blob);
-                                        _sendRunForm(form_data);
-                                    }, 'image/png' );
+                                var image_src = $("#original_media_0").attr('src');
+                                var base64str = image_src.split(',')[1];
+                                var content_type = image_src.split('data:')[1].split(';base64')[0];
+                                var binary = atob(base64str.replace(/\s/g, ''));
+                                var len = binary.length;
+                                var buffer = new ArrayBuffer(len);
+                                var view = new Uint8Array(buffer);
+                                for (var i = 0; i < len; i++) {
+                                    view[i] = binary.charCodeAt(i);
+                                }
+                                var blob = new Blob( [view], { type: content_type });
+                                form_data.append('file_0', blob);
+                                _sendRunForm(form_data);
                             }
                         } else {
                             // if several input image, TODO: deal with crop of first image
@@ -469,7 +476,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                             var image_src = [];
                             var nb_uploads = 0;
                             for(var idx=0;idx<inputs.length;idx++) {
-                                var src = $('#localdata_preview_'+idx).attr("src");
+                                var src = $('#original_media_'+idx).attr("src");
                                 // TODO: if image is not optional and src is undefined
                                 // send error
                                 if (src) {
@@ -480,17 +487,24 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                             
                             for(var idx=0;idx<inputs.length;idx++) {
                                 if (image_src[idx]) {
-                                    blobUtil.imgSrcToBlob(image_src[idx]).then(
-                                        function(idx) { return function(blob) {
-                                            console.info('idx=',idx);
-                                            form_data.append('file_'+idx, blob);
-                                            blobs_in_form++;
-                                            console.info('blobs_in_form=',blobs_in_form);
-                                            if(blobs_in_form==nb_uploads) {
-                                                _sendRunForm(form_data);
-                                            }
-                                        }
-                                        }(idx), 'image/png' );
+                                    image_src[idx]
+    //                                var image_src = $("#original_media_0").attr('src');
+                                    var base64str = image_src[idx].split(',')[1];
+                                    var content_type = image_src[idx].split('data:')[1].split(';base64')[0];
+                                    var binary = atob(base64str.replace(/\s/g, ''));
+                                    var len = binary.length;
+                                    var buffer = new ArrayBuffer(len);
+                                    var view = new Uint8Array(buffer);
+                                    for (var i = 0; i < len; i++) {
+                                        view[i] = binary.charCodeAt(i);
+                                    }
+                                    var blob = new Blob( [view], { type: content_type });
+                                    form_data.append('file_'+idx, blob);
+                                    blobs_in_form++;
+                                    console.info('blobs_in_form=',blobs_in_form);
+                                    if(blobs_in_form==nb_uploads) {
+                                        _sendRunForm(form_data);
+                                    }
                                 }
                             }
                         }
