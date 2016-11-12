@@ -42,7 +42,7 @@ urlpatterns = [
 	#http://django-autocomplete-light.readthedocs.org/en/master/
 	#http://django-autocomplete-light.readthedocs.org/en/master/autocomplete.html?highlight=shortcuts#examples
 	#http://django-autocomplete-light.readthedocs.org/en/master/tutorial.html
-	url(r'^autocomplete/', include('autocomplete_light.urls')),
+	url(r'^cp/autocomplete/', include('autocomplete_light.urls')),
 
 ]
 
