@@ -43,6 +43,10 @@ import png
 from libtiff import TIFF
 import tempfile
 
+# To send emails
+import smtplib
+from email.mime.text import MIMEText
+
 #-------------------------------------------------------------------------------
 class Core(object):
     """
@@ -840,8 +844,56 @@ class Core(object):
                                  demo_id,\
                                   key)
         self.mkdir_p(demo_path)
-        
         return demo_path
+        
+    def send_compilation_error_email(self, demo_id):
+        ''' Send email to editor when compilation fails '''
+        print "send_compilation_error_email"
+
+        # Get the list of editors of the demo
+        userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
+        userdata["demo_id"] = demo_id
+        
+        resp = requests.post(self.proxy_server, data=userdata)
+        response = resp.json()     
+        status = response['status']
+        
+        if status != 'OK':
+            return
+        
+        editor_list = response['editor_list']
+        print editor_list
+        
+        if len(editor_list) == 0:
+            return
+            
+        # Get the names and emails of the active editors
+        emails = []
+        for entry in editor_list:
+            if entry['active'] == 1:
+                emails.append((entry['name'], entry['mail']))
+                
+        # Send the email
+        # [ToDo] Use the shared folder to access a DR
+        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
+          format(self.main_shared_folder, demo_id)
+        if not os.path.isfile(buildLog_filename):
+            return
+
+        fp = open(buildLog_filename, 'rb')
+        
+        text = "Compilation failed for demo #{}:\n\n{}".format(demo_id, fp.read())
+        msg = MIMEText(text)
+        fp.close()
+        
+        msg['Subject'] = 'Compilation failure of demo #{}'.format(demo_id)
+        msg['From'] = "tech" + "@ip" + "ol.im"
+        msg['To'] = ",".join([entry[1] for entry in emails])
+        
+        s = smtplib.SMTP('localhost')
+        s.sendmail(msg['From'], msg['To'], msg.as_string())
+        s.quit()
+        
 
 
     @cherrypy.expose
@@ -966,62 +1018,64 @@ class Core(object):
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
             
-            if status == 'OK':
-                
-                print "Entering ensure_extras_updated()"
-                data = self.ensure_extras_updated(demo_id)
-                print "Result in ensure_extras_updated : ",data
-                
-                print "dr.exec_and_wait()"
-                
-                userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
-                
-                if 'run' in ddl_json:
-                    userdata['ddl_run'] = json.dumps(ddl_json['run'])
-                            
-                if 'config' in ddl_json:
-                    userdata['ddl_config'] = json.dumps(ddl_json['config'])
-                
-                userdata['meta'] = json.dumps(meta)
-                
-                resp = requests.post(self.proxy_server, data=userdata)
-                json_response = resp.json() 
-                json_response['work_url'] =  os.path.join(self.server_address,\
-                                                            self.shared_folder, \
-                                                            self.share_run_dir,\
-                                                            demo_id,\
-                                                            key) + '/'
-                print "resp ",json_response
-                
-                # save res_data as a results.json file
-                try:
-                    with open(os.path.join(work_dir,"results.json"),"w") as resfile:
-                        json.dump(json_response,resfile)
-                except Exception:
-                    print "Failed to save results.json file in demo = ",demo_id
-                    self.logger.exception("Failed to save results.json file")
-                    return json.dumps(json_response)
-                
-                
-                status = json_response['status']
-                
-                if status == 'OK':
-                    print "archive.store_experiment()"
-                    if original_exp == 'true':
-                        ddl_archive = ddl_json['archive']
-                        print ddl_archive
-                        result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
-                else:
-                    print "FAIL RUNNING in demo = ",demo_id
-                    self.error_log("dr.exec_and_wait()", "Failed running in the demorunner: " + dr_winner + " module")
-                    return json.dumps(json_response)
-
-            else:
+            if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ",demo_id
                 self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
+                self.send_compilation_error_email(demo_id)
+                return json.dumps(json_response)                
+                
+            print "Entering ensure_extras_updated()"
+            data = self.ensure_extras_updated(demo_id)
+            print "Result in ensure_extras_updated : ",data
+            
+            print "dr.exec_and_wait()"
+            
+            userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
+            
+            if 'run' in ddl_json:
+                userdata['ddl_run'] = json.dumps(ddl_json['run'])
+                        
+            if 'config' in ddl_json:
+                userdata['ddl_config'] = json.dumps(ddl_json['config'])
+            
+            userdata['meta'] = json.dumps(meta)
+            
+            resp = requests.post(self.proxy_server, data=userdata)
+            json_response = resp.json() 
+            json_response['work_url'] =  os.path.join(self.server_address,\
+                                                        self.shared_folder, \
+                                                        self.share_run_dir,\
+                                                        demo_id,\
+                                                        key) + '/'
+            print "resp ",json_response
+            
+            # save res_data as a results.json file
+            try:
+                with open(os.path.join(work_dir,"results.json"),"w") as resfile:
+                    json.dump(json_response,resfile)
+            except Exception:
+                print "Failed to save results.json file in demo = ",demo_id
+                self.logger.exception("Failed to save results.json file")
                 return json.dumps(json_response)
+            
+            
+            status = json_response['status']
+            
+            if status == 'OK':
+                print "archive.store_experiment()"
+                if original_exp == 'true':
+                    ddl_archive = ddl_json['archive']
+                    print ddl_archive
+                    result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
+            else:
+                print "FAIL RUNNING in demo = ",demo_id
+                self.error_log("dr.exec_and_wait()", "Failed running in the demorunner: " + dr_winner + " module")
+                return json.dumps(json_response)
+
+
                 
         except Exception as ex:
+                print str(ex)
                 print "Failure in the run function of the CORE in demo = ",demo_id
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_winner + ' module'
                 res_data["status"]  = "KO"
