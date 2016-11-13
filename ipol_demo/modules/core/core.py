@@ -879,19 +879,27 @@ class Core(object):
         return emails
 
 
-    def send_email(self, subject, text, emails_to):
+    def send_email(self, subject, text, emails):
         '''
         Send an email to the given recipients
         '''
-        msg = MIMEText(text)
-        
-        msg['Subject'] = subject
-        msg['From'] = "te" + "ch" + "@ip" + "ol.im"
-        msg['To'] = emails_to # Comma-separated
-        
-        s = smtplib.SMTP('localhost')
-        s.sendmail(msg['From'], msg['To'], msg.as_string())
-        s.quit()
+        for entry in emails:
+            name = entry[0]
+            email = entry[1]
+
+            self.error_log("send_email", "1")
+            msg = MIMEText(text)
+            
+            msg['Subject'] = subject
+            msg['From'] = "te" + "ch" + "@ip" + "ol.im"
+            msg['To'] = email
+
+            self.error_log("send_email", "2")
+
+            s = smtplib.SMTP('localhost')
+            s.sendmail(msg['From'], email, msg.as_string())
+            self.error_log("send_email", "4")
+            s.quit()
 
 
     def send_compilation_error_email(self, demo_id):
@@ -914,9 +922,7 @@ class Core(object):
         fp.close()
         
         subject = 'Compilation of demo #{} failed'.format(demo_id)
-        emails_to = ",".join([entry[1] for entry in emails])
-
-        self.send_email(subject, text, emails_to)
+        self.send_email(subject, text, emails)
         
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
@@ -943,9 +949,7 @@ class Core(object):
         fp.close()
         
         subject = '[IPOL Core] Execution of demo #{} failed'.format(demo_id)
-        emails_to = ",".join([entry[1] for entry in emails])
-
-        self.send_email(subject, text, emails_to)
+        self.send_email(subject, text, emails)
         
 
 
