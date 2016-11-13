@@ -46,7 +46,10 @@ import tempfile
 # To send emails
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 import socket
+
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -879,24 +882,34 @@ class Core(object):
         return emails
 
 
-    def send_email(self, subject, text, emails):
+    def send_email(self, subject, text, emails, zip_filename=None):
         '''
         Send an email to the given recipients
         '''
-        for entry in emails:
-            name = entry[0]
-            email = entry[1]
-
-            msg = MIMEText(text)
-
-            msg['Subject'] = subject
-            msg['From'] = "te" + "ch" + "@ip" + "ol.im"
-            msg['To'] = email
-
-            s = smtplib.SMTP('localhost')
-            s.sendmail(msg['From'], email, msg.as_string())
-            self.error_log("send_email", "4")
-            s.quit()
+        emails_list = [entry[1] for entry in emails]        
+        emails_str = ", ".join(emails_list)
+        
+        msg = MIMEMultipart(text)
+        
+        msg['Subject'] = subject
+        msg['From'] = "IPOL Core <te" + "ch" + "@ip" + "ol.im>"
+        msg['To'] = emails_str # Must pass only a comma-separated string here
+        msg.preamble = text
+        
+        if zip_filename is not None:
+            with open(zip_filename) as fp:
+                zip_data = MIMEApplication(fp.read())
+                zip_data.add_header('Content-Disposition', 'attachment', filename="experiment.zip")
+            msg.attach(zip_data)
+            
+        text_data = MIMEText(text)
+        msg.attach(text_data)
+        
+        s = smtplib.SMTP('localhost')
+        
+         # Must pass only a list here
+        s.sendmail(msg['From'], emails_list, msg.as_string())
+        s.quit()
 
 
     def send_compilation_error_email(self, demo_id):
@@ -925,34 +938,41 @@ class Core(object):
         
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
-        
+      
+    # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
+    def zipdir(self, path, ziph):
+        ''' Zip a directory '''
+        # ziph is zipfile handle
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                ziph.write(os.path.join(root, file))
+
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
         emails = self.get_demo_editor_list(demo_id)
-            
+        
         # If in production, warn also IPOL Tech and Edit
         if self.serverEnvironment == 'production':
-            emails.add(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
-            emails.add(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+            emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
         if len(emails) == 0:
             return
-
-        # Read stderr and send the email
-        stderr_filename = "{}/run/{}/{}/stderr.txt".\
-          format(self.main_shared_folder, demo_id, key)
-        if not os.path.isfile(stderr_filename):
-            return
-
-        fp = open(stderr_filename, 'rb')
+            
+        # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
-        text = "This is the IPOL Core machine ({}, {}).\nExecution of demo #{} failed. Its stderr follows: \n\n{}".format(hostname, hostbyname, demo_id, fp.read())
-        fp.close()
+        text = "This is the IPOL Core machine ({}, {}).\n\nThe execution with key={} of demo #{} has failed.\nPlease find attached the failed experiment data.".format(hostname, hostbyname, key, demo_id)
         
-        subject = '[IPOL Core] Execution of demo #{} failed'.format(demo_id)
-        self.send_email(subject, text, emails)
+        subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
         
+        # Zip the contents of the tmp/ directory of the failed experiment
+        zip_filename = '/tmp/{}.zip'.format(key)
+        zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
+        self.zipdir("{}/run/{}/{}".format(self.main_shared_folder, demo_id, key), zipf)
+        zipf.close()
+        
+        self.send_email(subject, text, emails, zip_filename=zip_filename)
 
 
     @cherrypy.expose
