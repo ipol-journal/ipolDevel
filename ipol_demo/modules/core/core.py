@@ -879,19 +879,25 @@ class Core(object):
         return emails
 
 
-    def send_email(self, subject, text, emails_to):
+    def send_email(self, subject, text, emails):
         '''
         Send an email to the given recipients
         '''
-        msg = MIMEText(text)
-        
-        msg['Subject'] = subject
-        msg['From'] = "te" + "ch" + "@ip" + "ol.im"
-        msg['To'] = emails_to # Comma-separated
-        
-        s = smtplib.SMTP('localhost')
-        s.sendmail(msg['From'], msg['To'], msg.as_string())
-        s.quit()
+        for entry in emails:
+            name = entry[0]
+            email = entry[1]
+
+            msg = MIMEText(text)
+
+            msg['Subject'] = subject
+            msg['From'] = "te" + "ch" + "@ip" + "ol.im"
+            msg['To'] = email
+
+            s = smtplib.SMTP('localhost')
+            s.sendmail(msg['From'], email, msg.as_string())
+            self.error_log("send_email", "4")
+            s.quit()
+
 
 
     def send_compilation_error_email(self, demo_id):
