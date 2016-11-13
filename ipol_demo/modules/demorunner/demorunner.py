@@ -501,13 +501,13 @@ class DemoRunner(object):
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'timeout'
-            self.error_log("exec_and_wait", "timeout")
+            self.error_log("exec_and_wait", "IPOLTimeoutError")
         except RuntimeError as e:
-            res_data['algo_info']['status']   = 'failure'
-            res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status']   = 'KO'
-            res_data['error']    = str(e)
-            self.error_log("exec_and_wait", "timeout")
+            res_data['algo_info']['status']   = 'IPOLTimeoutError'
+            res_data['algo_info']['run_time'] = time.time() - run_time
+            res_data['error']    = "DR RuntimeError in self.run_algo"
+            self.error_log("exec_and_wait", "IPOLTimeoutError")
         
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -567,6 +567,7 @@ class DemoRunner(object):
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
             rd.run_algorithm()
         except Exception as e:
+            raise RuntimeError(e.message)
             self.logger.exception("run_algo")
         ## take into account possible changes in parameters
         
