@@ -46,6 +46,7 @@ import tempfile
 # To send emails
 import smtplib
 from email.mime.text import MIMEText
+import socket
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -930,8 +931,8 @@ class Core(object):
             return
 
         # Read stderr and send the email
-        stderr_filename = "{}/run/{}/stderr.txt".\
-          format(self.main_shared_folder, demo_id)
+        stderr_filename = "{}/run/{}/{}/stderr.txt".\
+          format(self.main_shared_folder, demo_id, key)
         if not os.path.isfile(stderr_filename):
             return
 
