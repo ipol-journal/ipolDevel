@@ -887,14 +887,11 @@ class Core(object):
             name = entry[0]
             email = entry[1]
 
-            self.error_log("send_email", "1")
             msg = MIMEText(text)
-            
+
             msg['Subject'] = subject
             msg['From'] = "te" + "ch" + "@ip" + "ol.im"
             msg['To'] = email
-
-            self.error_log("send_email", "2")
 
             s = smtplib.SMTP('localhost')
             s.sendmail(msg['From'], email, msg.as_string())
