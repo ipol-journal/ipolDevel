@@ -907,6 +907,11 @@ class Core(object):
         print "send_compilation_error_email"
         
         emails = self.get_demo_editor_list(demo_id)
+        
+        if self.serverEnvironment == 'production':
+            emails.add(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+            emails.add(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+        
         if len(emails) == 0:
             return
 
