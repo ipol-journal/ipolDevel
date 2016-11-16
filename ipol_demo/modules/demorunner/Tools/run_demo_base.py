@@ -293,7 +293,7 @@ class RunDemoBase:
             
           # the files should close automatically with their scope ...
           # but we do it anyway just in case
-          if stderr_file!=None and stderr_file!=stdout_file:
+          if stderr_file!=None:
             stderr_file.close()
           if stdout_file!=None:
             stdout_file.close()

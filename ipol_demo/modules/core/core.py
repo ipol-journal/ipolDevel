@@ -43,6 +43,14 @@ import png
 from libtiff import TIFF
 import tempfile
 
+# To send emails
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+import socket
+
+
 #-------------------------------------------------------------------------------
 class Core(object):
     """
@@ -77,18 +85,20 @@ class Core(object):
                                   cherrypy.config['server.socket_port'])
             
             # Read configuration file
+            self.serverEnvironment = cherrypy.config.get("server.environment").lower()
+            
             self.logs_dir = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.mkdir_p(self.logs_dir)
             self.logger = self.init_logging()
-            
-            
+
             self.main_shared_folder  = cherrypy.config.get("main_shared_folder")
             self.shared_folder       = cherrypy.config.get("shared_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
             self.share_run_dir     = cherrypy.config.get("running.dir")
             self.dl_extras_dir     = cherrypy.config.get("dl_extras_dir")
             self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
+            
             
             
             self.main_shared_folder  = os.path.join(self.main_shared_folder, self.shared_folder)
@@ -246,7 +256,7 @@ class Core(object):
         '''
         Save image object given full path
         '''
-        # [ToDo] It's not clear to me what stack_depth is used for.
+        # [Miguel] It's not clear to me what stack_depth is used for.
         # In any case, it seems that probably we have here a typical race condition.
         start = timer()
         im.save(fullpath, compresslevel=self.png_compresslevel)
@@ -445,7 +455,6 @@ class Core(object):
 
             ##-----------------------------
             ## Save the original file as PNG
-            ## todo: why save original image as PNG??
             ##
             ## Do a check before security attempting copy.
             ## If the check fails, do a save instead
@@ -840,8 +849,130 @@ class Core(object):
                                  demo_id,\
                                   key)
         self.mkdir_p(demo_path)
-        
         return demo_path
+
+
+    def get_demo_editor_list(self, demo_id):
+        '''
+        Get the list of active editors of the given demo
+        '''
+        # Get the list of editors of the demo
+        userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
+        userdata["demo_id"] = demo_id
+        
+        resp = requests.post(self.proxy_server, data=userdata)
+        response = resp.json()     
+        status = response['status']
+        
+        if status != 'OK':
+            # [ToDo]: log this error!
+            return ()
+        
+        editor_list = response['editor_list']
+        
+        if len(editor_list) == 0:
+            return () # No editors given
+            
+        # Get the names and emails of the active editors
+        emails = []
+        for entry in editor_list:
+            if entry['active'] == 1:
+                emails.append((entry['name'], entry['mail']))
+        
+        return emails
+
+
+    def send_email(self, subject, text, emails, zip_filename=None):
+        '''
+        Send an email to the given recipients
+        '''
+        emails_list = [entry[1] for entry in emails]        
+        emails_str = ", ".join(emails_list)
+        
+        msg = MIMEMultipart(text)
+        
+        msg['Subject'] = subject
+        msg['From'] = "IPOL Core <te" + "ch" + "@ip" + "ol.im>"
+        msg['To'] = emails_str # Must pass only a comma-separated string here
+        msg.preamble = text
+        
+        if zip_filename is not None:
+            with open(zip_filename) as fp:
+                zip_data = MIMEApplication(fp.read())
+                zip_data.add_header('Content-Disposition', 'attachment', filename="experiment.zip")
+            msg.attach(zip_data)
+            
+        text_data = MIMEText(text)
+        msg.attach(text_data)
+        
+        s = smtplib.SMTP('localhost')
+        
+         # Must pass only a list here
+        s.sendmail(msg['From'], emails_list, msg.as_string())
+        s.quit()
+
+
+    def send_compilation_error_email(self, demo_id):
+        ''' Send email to editor when compilation fails '''
+        print "send_compilation_error_email"
+        
+        emails = self.get_demo_editor_list(demo_id)
+        
+        if self.serverEnvironment == 'production':
+            emails.add(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+            emails.add(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+        
+        if len(emails) == 0:
+            return
+
+        # Send the email
+        # [ToDo] Use the shared folder to access a DR!
+        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
+          format(self.main_shared_folder, demo_id)
+        if not os.path.isfile(buildLog_filename):
+            return
+
+        fp = open(buildLog_filename, 'rb')        
+        text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
+        fp.close()
+        
+        subject = 'Compilation of demo #{} failed'.format(demo_id)
+        self.send_email(subject, text, emails)
+      
+    # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
+    def zipdir(self, path, ziph):
+        ''' Zip a directory '''
+        # ziph is zipfile handle
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                ziph.write(os.path.join(root, file))
+
+    def send_runtime_error_email(self, demo_id, key):
+        ''' Send email to editor when the execution fails '''
+        emails = self.get_demo_editor_list(demo_id)
+        
+        # If in production, warn also IPOL Tech and Edit
+        if self.serverEnvironment == 'production':
+            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+            emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+
+        if len(emails) == 0:
+            return
+            
+        # Attach experiment in zip file and send the email
+        hostname = socket.gethostname()
+        hostbyname = socket.gethostbyname(hostname)
+        text = "This is the IPOL Core machine ({}, {}).\n\nThe execution with key={} of demo #{} has failed.\nPlease find attached the failed experiment data.".format(hostname, hostbyname, key, demo_id)
+        
+        subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
+        
+        # Zip the contents of the tmp/ directory of the failed experiment
+        zip_filename = '/tmp/{}.zip'.format(key)
+        zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
+        self.zipdir("{}/run/{}/{}".format(self.main_shared_folder, demo_id, key), zipf)
+        zipf.close()
+        
+        self.send_email(subject, text, emails, zip_filename=zip_filename)
 
 
     @cherrypy.expose
@@ -909,7 +1040,7 @@ class Core(object):
                 ddl_inputs  = ddl_json['inputs']
             
         except Exception as ex:
-            print "FAIL in DDL"
+            print "FAIL in DDL - " + str(ex)
             self.logger.exception("Failure while reading the DDL")
             res_data = {}
             res_data['info'] = 'DDL read demoInfo failed in the Core'
@@ -966,73 +1097,69 @@ class Core(object):
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
             
-            if status == 'OK':
-                
-                print "Entering ensure_extras_updated()"
-                data = self.ensure_extras_updated(demo_id)
-                print "Result in ensure_extras_updated : ",data
-                
-                print "dr.exec_and_wait()"
-                
-                userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
-                
-                if 'run' in ddl_json:
-                    userdata['ddl_run'] = json.dumps(ddl_json['run'])
-                            
-                if 'config' in ddl_json:
-                    userdata['ddl_config'] = json.dumps(ddl_json['config'])
-                
-                userdata['meta'] = json.dumps(meta)
-                
-                resp = requests.post(self.proxy_server, data=userdata)
-                json_response = resp.json() 
-                json_response['work_url'] =  os.path.join(self.server_address,\
-                                                            self.shared_folder, \
-                                                            self.share_run_dir,\
-                                                            demo_id,\
-                                                            key) + '/'
-                print "resp ",json_response
-                
-                # save res_data as a results.json file
-                try:
-                    with open(os.path.join(work_dir,"results.json"),"w") as resfile:
-                        json.dump(json_response,resfile)
-                except Exception:
-                    print "Failed to save results.json file in demo = ",demo_id
-                    self.logger.exception("Failed to save results.json file")
-                    return json.dumps(json_response)
-                
-                
-                status = json_response['status']
-                
-                if status == 'OK':
-                    print "archive.store_experiment()"
-                    if original_exp == 'true':
-                        ddl_archive = ddl_json['archive']
-                        print ddl_archive
-                        result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
-                else:
-                    print "FAIL RUNNING in demo = ",demo_id
-                    self.error_log("dr.exec_and_wait()", "Failed running in the demorunner: " + dr_winner + " module")
-                    return json.dumps(json_response)
-
-            else:
+            if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ",demo_id
                 self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
+                self.send_compilation_error_email(demo_id)
                 return json.dumps(json_response)
                 
+            print "Entering ensure_extras_updated()"
+            data = self.ensure_extras_updated(demo_id)
+            print "Result in ensure_extras_updated : ",data
+            
+            print "dr.exec_and_wait()"
+            
+            userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
+
+            if 'run' in ddl_json:
+                userdata['ddl_run'] = json.dumps(ddl_json['run'])
+                        
+            if 'config' in ddl_json:
+                userdata['ddl_config'] = json.dumps(ddl_json['config'])
+            
+            userdata['meta'] = json.dumps(meta)
+            
+            resp = requests.post(self.proxy_server, data=userdata)
+            json_response = resp.json() 
+            json_response['work_url'] =  os.path.join(self.server_address,\
+                                                        self.shared_folder, \
+                                                        self.share_run_dir,\
+                                                        demo_id,\
+                                                        key) + '/'
+            print "resp ",json_response
+            
+            # save res_data as a results.json file
+            try:
+                with open(os.path.join(work_dir,"results.json"),"w") as resfile:
+                    json.dump(json_response,resfile)
+            except Exception:
+                print "Failed to save results.json file for demo #{}".format(demo_id)
+                self.logger.exception("Failed to save results.json file")
+                return json.dumps(json_response)
+
+            if json_response['status'] != 'OK':
+                print "DR answered KO for demo #{}".format(demo_id)
+                self.error_log("dr.exec_and_wait()", "DR returned KO")
+                
+                # Send email to the editors
+                self.send_runtime_error_email(demo_id, key)
+
+                return json.dumps(json_response)
+            
+            print "archive.store_experiment()"
+            if original_exp == 'true':
+                ddl_archive = ddl_json['archive']
+                print ddl_archive
+                result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
+                
         except Exception as ex:
-                print "Failure in the run function of the CORE in demo = ",demo_id
+                print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(e))
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_winner + ' module'
                 res_data["status"]  = "KO"
                 self.error_log("Failure in the run function of the CORE",str(ex))
                 return json.dumps(json_response)
         
-        print "Run successfull in demo = ",demo_id
-        cherrypy.log("run successfull", context='RUN/%s' % demo_id, traceback=False)
+        print "Run successful in demo = ",demo_id
+        cherrypy.log("run successful", context='RUN/%s' % demo_id, traceback=False)
         
         return json.dumps(json_response)
-
-
-
-    
