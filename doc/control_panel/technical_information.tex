@@ -56,7 +56,7 @@ to run on a dev machine,add the hostname of your machine to dev\_machines.
 
 Local and development machines can runn wih debug = True and no cache, and they can use the runserver provided by django
 
-For a production enviroment, you must add the hostname of your machine to the production\_machines list,  DEBUG must be false, the use of memcache is recommended, and you must serve staicfiles properly. A proper server must be provided (apache naginx gunicorn...etc there are many recepies for a django deployment), YOU MUST NEVER USE RUNSERVER for production.
+For a production enviroment, you must add the hostname of your machine to the production\_machines list,  DEBUG must be false, the use of memcache is recommended, and you must serve staicfiles properly. A proper server must be provided (nginx gunicorn...etc there are many recepies for a django deployment), YOU MUST NEVER USE RUNSERVER for production.
  
 
 \item  ipol\_webapp\/urls.py
@@ -143,7 +143,7 @@ Class based views in django - \url{http://ccbv.co.uk/}
 \miguel{This should go into the \emph{Architecture and Installation} section, not here.}
 
 For testing you can run it using runserver as described in ipol\_Webapps docs folder
-But for a production enviroment you should not use runserver. Apache or nginx as a reverse proxy and gunicorn is recomended.
+But for a production enviroment you should not use runserver. Nginx as a reverse proxy and gunicorn as wsgi are used.
 
 This is how a deploymant is made
 
@@ -189,7 +189,7 @@ For the test enviroment you can use the testing server that comes with django.
 
 
 \subsubsection{Production Enviroment}
-The production eviroment requires a secure deployment, yo cannot user runserver. An example could be apache as reverse proxy and for serving static content and gunicorn as application server. Nginx is also a popular application server used for Django apps.
+The production eviroment requires a secure deployment, you cannot user runserver. For this reason we use the reverse proxy nginx and the wsgi gunicorn.
 
 
 Django deployment tutorial:
