@@ -1,5 +1,5 @@
 ##
-# This configuration file should replaced /etc/nginx/sites-available/default
+# This configuration file should replace /etc/nginx/sites-available/default
 ##
 server {
 	listen 80;
@@ -15,7 +15,9 @@ server {
 
 	#DEMOS
 	location /demo/ {
-		add_header X-debug-message "$host" always;
+		# If you want to see the value of a variable, the easiest way is 
+		# adding a header like the example bellow
+		# add_header X-debug-message "$host" always;
 		proxy_pass  http://$host:8080;
 	}
 
