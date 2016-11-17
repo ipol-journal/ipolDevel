@@ -126,43 +126,30 @@ is implemented with Django.
 The communication between the client and the Control Panel varies according to the environment in which it is performed.  
 The differences between them are described below.
 
-The communication between the client and the Control Panel in local is direct, since the requests go directly to 
-the port where the control panel is running. Django, in which is implemented the Control Panel, is in debug mode, so 
-it is able to respond the requests from the client for the static files, without the need of a WSGI.
+
+The communication between the client and the Control Panel in local is stablished by a reverse proxy. This reverse proxy is implemented with
+NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
+port where Django is running. The other purpose of NGINX is to serve the static content and remove that responsability from Django.
 The diagram of this configuration is represented by Figure ~\ref{fig:local_architecture}.
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=0.4\columnwidth]{sysadmin/images/local.pdf}
-\caption{The direct communication between the client and the Django web server in the local server.}
+\includegraphics[width=0.7\columnwidth]{sysadmin/images/local.pdf}
+\caption{The communication between the client and the Django web server with the reverse proxy in the local server.}
 \label{fig:local_architecture}
 \end{figure}
 
-
-The communication in the integration server adds a reverse proxy to make the redirections. This reverse proxy is implemented with
-NGINX and allows the client to do the requests in the 80 port. That request is intercepted by NGINX and send to the 8000
-port where Django is running. Just as in local, there is not need for a WSGI because Django is in debug mode and it is able to 
-respond the request for static files. The diagram of this configuration is represented by Figure ~\ref{fig:integration_architecture}.
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=0.7\columnwidth]{sysadmin/images/integration.pdf}
-\caption{The communication between the client and the Django web server with the reverse proxy in the integration server.}
-\label{fig:integration_architecture}
-\end{figure}
-
-In production is where is located the most complete connection. As in the integration server, a reverse proxy is needed to 
-make the redirections to hide to the client in wich port is Django running. In addition, in the production server a WSGI is also
-needed to provide all the static files since Django is not in debug mode and it is unable to do it by itself. This WSGI is 
-implemented with Gunicorn and communicates with the NGINX through a UNIX socket. The diagram of this configuration is represented 
-by Figure ~\ref{fig:production_architecture}.
+In the production and integration servers is where is located the most complete connection. As in the local server, a reverse proxy is needed to 
+make the redirections to hide to the client in wich port is Django running and to provide all the static files. In addition, in the production 
+and integration servers a WSGI is also needed to receive the http request and send them to Django. This WSGI is implemented with Gunicorn and 
+communicates with the NGINX through a UNIX socket. The diagram of this configuration is represented by Figure ~\ref{fig:prod_int_architecture}.
 
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[width=1\columnwidth]{sysadmin/images/production.pdf}
-\caption{The communication between the client and the Django web server with the reverse proxy and the WSGI in the production server.}
-\label{fig:production_architecture}
+\includegraphics[width=1\columnwidth]{sysadmin/images/prod_int.pdf}
+\caption{The communication between the client and the Django web server with the reverse proxy and the WSGI in the production and integration servers.}
+\label{fig:prod_int_architecture}
 \end{figure}
 
 
@@ -213,10 +200,45 @@ Open the script and configure the parameters:
 
 \subsubsection{Nginx: installation}
 
-Install from Debian repositories:
+\begin{enumerate}
+\item Debian
+
+\begin{enumerate}
+\item Uninstall previous nginx version
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ apt-get remove nginx-common
+\end{lstlisting}
+
+\item Download the key from: \url{http://nginx.org/keys/nginx_signing.key} and execute the following command with it
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ sudo apt-key add nginx_signing.key
+\end{lstlisting}
+
+\item Replace codename with Debian distribution codename, and append the following to the end of the /etc/apt/sources.list file:
+\begin{enumerate}
+\item deb http://nginx.org/packages/debian/ codename nginx
+\item deb-src http://nginx.org/packages/debian/ codename nginx
+\end{enumerate}
+
+\item Update repositories
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ apt-get update
+\end{lstlisting}
+
+\item Install nginx from the repository
 \begin{lstlisting}[language=Bash]
 {prod} ~/ipolDevel$ apt-get install nginx
 \end{lstlisting}
+
+\end{enumerate}
+\item Ubuntu
+\begin{enumerate}
+\item Install nginx from the repository
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ apt-get install nginx
+\end{lstlisting}
+\end{enumerate}
+\end{enumerate}
 
 \subsubsection{Nginx: configuration}
 To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
@@ -241,6 +263,7 @@ include /etc/nginx/sites-enabled/*;
 \begin{enumerate}
 \item Listening port. The port to serve the site with static files. E.g.: 8000
 \item Server name. E.g.: ipolcore.ipol.im
+\item A resolver, necessary to set variables in the configuration. E.g.: 213.186.33.99
 \item Access log absolute location.
 \item Static files absolute location.
 \item Proxy pass, using upstream name configured previously.
@@ -267,6 +290,10 @@ ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 \begin{lstlisting}[language=Bash]
 {prod} ~/ipolDevel$ sudo nginx
 \end{lstlisting}
+\item Reload the configuration file:
+\begin{lstlisting}[language=Bash]
+{prod} ~/ipolDevel$ sudo nginx -s reload
+\end{lstlisting}
 \item Stop service:
 \begin{lstlisting}[language=Bash]
 {prod} ~/ipolDevel$ sudo nginx -s stop
@@ -290,7 +317,7 @@ In order to serve the site using the installed dependencies, please follow the s
 To access the Control Panel the user will need to access the specified URL, and login with the following credentials:
 
 \begin{itemize}
-\item URL: \url{http://ipolcore.ipol.im/accounts/login/}
+\item URL: \url{http://ipolcore.ipol.im/cp/login/}
 
 \item User: ipolcpadmin
 
