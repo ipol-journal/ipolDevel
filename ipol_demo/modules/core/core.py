@@ -892,7 +892,8 @@ class Core(object):
         msg = MIMEMultipart(text)
         
         msg['Subject'] = subject
-        msg['From'] = "IPOL Core <te" + "ch" + "@ip" + "ol.im>"
+        # [ToDo] Move this to the core.conf
+        msg['From'] = "IPOL Core <nor" + "eply" + "@cml" + "a.ens" + "-cac" + "han.fr>"
         msg['To'] = emails_str # Must pass only a comma-separated string here
         msg.preamble = text
         
