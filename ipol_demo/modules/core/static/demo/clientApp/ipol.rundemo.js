@@ -336,13 +336,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @fires core:run 
      */
     var _sendRunForm = function(form_data) {
-        // We need to use ajax POST directly 
-        // with global variable servers.demorunner_old since
-        // it does not work with the proxy for the moment
-        form_data.append("module","core");
-        form_data.append("service","run");
-
-        $.ajax(servers.proxy+"proxy_post",
+        // Send form to run method in core
+        var path = "/api/core/run";
+        $.ajax(path,
         {
             method: "POST",
             data: form_data,
@@ -353,7 +349,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             success: function (res) {
                 _infoMessage('Run success res=',res);
                 _progress_info = "Run success";
-                _onDemoRun(JSON.parse(res));
+                _onDemoRun(res);
             },
             error: function (res) {
                 _infoMessage('Run error res=',res);
@@ -433,7 +429,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                         // crop at the same time
                         form_data.append( "crop_info",
                                 JSON.stringify(_crop_info));
-                        form_data.append( "blobs", 
+                        form_data.append( "blobs",
                                 JSON.stringify(_blobset[0].form_params));
                         form_data.set("input_type","blobset");
                         _sendRunForm(form_data);

@@ -5,14 +5,14 @@
     </head>
     <body>
       <ul>
-	<a href="get_blobs_of_demo?demo_id=${demoid}">return</a>
+	<a href="get_blobs_of_demo?demo_name=${demo_name}">return</a>
 	<h1>Editing blob with ID = ${blob_info["id"]}</h1>
 	<img src="${blob_info["url_thumb"]}"></img>
 	<table>
 	  %for tag_id in blob_info["tags"]:
 	  <tr>
 	    <td>${blob_info["tags"][tag_id]}</td>
-	    <td><a href="op_remove_tag_from_blob?tag_id=${tag_id}&blob_id=${blob_info["id"]}&demo_id=${demoid}">remove</a></td>
+	    <td><a href="op_remove_tag_from_blob?tag_id=${tag_id}&blob_id=${blob_info["id"]}&demo_name=${demo_name}">remove</a></td>
 	  </tr>
 	  %endfor
 	  <br>
@@ -20,7 +20,7 @@
 	<form action="/op_add_tag_to_blob" method="post">
 	  <div>
 	    <input type="hidden" name="blob_id" value="${blob_info["id"]}"/>
-	    <input type="hidden" name="demo_id" value="${demoid}"/>
+	    <input type="hidden" name="demo_name" value="${demo_name}"/>
 	    <input type="text" name="tag" value=""/>
 	    <br>
 	    <input type="submit" value="Add tag">

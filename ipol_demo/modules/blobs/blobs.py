@@ -293,41 +293,41 @@ class   Blobs(object):
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
     @cherrypy.expose
-    def blob(self, demo_id):
+    def blob(self, demo_name):
         """
         Web page used to upload one blob to one demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :return: mako templated html page (refer to demos.html)
         :rtype: mako.lookup.TemplatedLookup
         """
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_blob.html").render(demo_id=demo_id)
+        return tmpl_lookup.get_template("add_blob.html").render(demo_name=demo_name)
 
     @cherrypy.expose
-    def archive(self, demo_id):
+    def archive(self, demo_name):
         """
         Function used for upload zip file to one demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :return: mako templated html page (refer to index.html)
         :rtype: mako.lookup.TemplatedLookup
         """
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_archive.html").render(demo_id=demo_id)
+        return tmpl_lookup.get_template("add_archive.html").render(demo_name=demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, demo_id, path, tag, ext, blob_set, blob_pos_in_set,
+    def add_blob_ws(self, demo_name, path, tag, ext, blob_set, blob_pos_in_set,
                     title, credit):
         """
         This function implements get request (from '/add_blob_ws')
         It allows to check if demo given by name and blob given by hash
         is already in database if not it add its.
 
-        :param demo_id:         demo id integer
+        :param demo_name:         demo id integer
         :param path:            blob path string
         :param tag:             name tag string
         :param ext:             extension of blob string
@@ -354,7 +354,7 @@ class   Blobs(object):
                 if data.blob_is_in_database(blob_hash):
                     blobid = data.blob_id(blob_hash)
 
-                data.add_blob_in_database(demo_id, blob_hash, fileformat,
+                data.add_blob_in_database(demo_name, blob_hash, fileformat,
                                           ext, tag, blob_set, blob_pos_in_set,
                                           title, credit, blobid)
 
@@ -381,6 +381,7 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         demo = kwargs['demo[id]']
+        # demo_name = kwargs['demo[name]']
         tag = kwargs['blob[tag]']
         blob = kwargs['blob[file]']
         blob_set = kwargs['blob[set]']
@@ -406,7 +407,7 @@ class   Blobs(object):
 
         # add blob to the end of the blobset
         # look for the size of the blobset
-        demo_blobs = use_web_service('/get_blobs_of_demo_ws', {"demo": demo})
+        demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo})
         for bs in demo_blobs["blobs"]:
             if bs[0]['set_name'] == blob_set:
                 # check if blob_pos is an existing position
@@ -421,7 +422,7 @@ class   Blobs(object):
                         blob_pos_in_set = blob_maxpos + 1
 
         path = create_tmp_file(blob, tmp_directory)
-        data = {"demo_id": demo, "path": path, "tag": list_tag, "ext": ext,
+        data = {"demo_name": demo, "path": path, "tag": list_tag, "ext": ext,
                 "blob_set": blob_set, "blob_pos_in_set":blob_pos_in_set,
                 "title": title, "credit": credit}
         res = use_web_service('/add_blob_ws/', data)
@@ -433,7 +434,7 @@ class   Blobs(object):
             os.remove(path)
 
         #tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        #return tmpl_lookup.get_template("get_blobs_of_demo.html").render(demo_id=demo)
+        #return tmpl_lookup.get_template("get_blobs_of_demo.html").render(demo_name=demo)
 
         return self.get_blobs_of_demo(demo)
 
@@ -473,7 +474,6 @@ class   Blobs(object):
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
 
-
             dic["template_list"] = {}
             try:
                 dic["template_list"] = data.list_of_template()
@@ -481,7 +481,6 @@ class   Blobs(object):
             except DatabaseError:
                 self.logger.exception("Cannot have the list of templates demos")
                 dic["status"] = "KO"
-
         return json.dumps(dic)
 
     @cherrypy.expose
@@ -500,13 +499,13 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def set_template_ws(self, demo_id, name):
+    def set_template_ws(self, demo_name, name):
         """
         Web service used to change the current template used by a demo
         demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :param name: name of the templated demo selected
         :type name: string
         :return: "OK" if not error else "KO"
@@ -517,10 +516,12 @@ class   Blobs(object):
         cherrypy.response.headers['Content-Type'] = "application/json"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
+                print "Name:",name
+                print "demo name:",demo_name
                 template_id = data.demo_id(name)
                 if name == 'None':
                     template_id = 0
-                data.update_template(demo_id, template_id)
+                data.update_template(demo_name, template_id)
                 data.commit()
                 dic["status"] = "OK"
             except DatabaseError:
@@ -540,14 +541,14 @@ class   Blobs(object):
         :return: mako templated html page (refer to edit_blob.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo_id = kwargs["demo[id]"]
+        demo_name = kwargs["demo[id]"]
         name_tmpl = kwargs["name_template"]
 
-        data = {"demo_id": demo_id, "name": name_tmpl}
+        data = {"demo_name": demo_name, "name": name_tmpl}
 
         use_web_service('/set_template_ws', data)
 
-        return self.get_blobs_of_demo(demo_id)
+        return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -565,11 +566,15 @@ class   Blobs(object):
         :rtype: json format
         """
         dic = {}
+        print "hola"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
+                print 2
                 id_tmpl = 0
+                print 3
                 if template:
                     id_tmpl = data.demo_id(template)
+                print 4
                 data.add_demo_in_database(name, is_template, id_tmpl)
                 data.commit()
                 dic["status"] = "OK"
@@ -617,7 +622,7 @@ class   Blobs(object):
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo_id = kwargs['demo[id]']
+        demo_name = kwargs['demo[id]']
         the_archive = kwargs['archive']
 
         _, ext = os.path.splitext(the_archive.filename)
@@ -628,20 +633,20 @@ class   Blobs(object):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(the_archive, tmp_directory)
-        self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_id)
+        self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_name)
 
-        return self.get_blobs_of_demo(demo_id)
+        return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def delete_blob_ws(self, demo_id, blob_set, blob_id):
+    def delete_blob_ws(self, demo_name, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
         Delete blob from demo name and hash blob in database
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :param blob_id: id blob
         :type blob_id: integer
         return: name of the blob if it is not associated to demo and
@@ -682,7 +687,7 @@ class   Blobs(object):
 
                 try:
                     blob_name = data.get_blob_filename(blob_id)
-                    has_no_demo = data.delete_blob_from_demo(demo_id, blob_set, blob_id)
+                    has_no_demo = data.delete_blob_from_demo(demo_name, blob_set, blob_id)
                     data.commit()
                     if has_no_demo:
                         dic["delete"] = blob_name
@@ -745,7 +750,7 @@ class   Blobs(object):
         """
         tag = kwargs['tag']
         blob_id = kwargs['blob_id']
-        demo_id = kwargs['demo_id']
+        demo_name = kwargs['demo_name']
         pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
         list_tag = [x for x in pattern.split(tag) if x]
 
@@ -755,7 +760,7 @@ class   Blobs(object):
         data = {"blob_id": blob_id, "tag": list_tag}
         use_web_service("/add_tag_to_blob_ws", data)
 
-        return self.edit_blob(blob_id, demo_id)
+        return self.edit_blob(blob_id, demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -785,7 +790,7 @@ class   Blobs(object):
         return json.dumps(dic)
 
     @cherrypy.expose
-    def op_remove_tag_from_blob(self, tag_id, blob_id, demo_id):
+    def op_remove_tag_from_blob(self, tag_id, blob_id, demo_name):
         """
         Remove one tag from blob
 
@@ -798,21 +803,21 @@ class   Blobs(object):
         """
         data = {"tag_id": tag_id, "blob_id": blob_id}
         use_web_service("/remove_tag_from_blob_ws", data)
-        return self.edit_blob(blob_id, demo_id)
+        return self.edit_blob(blob_id, demo_name)
 
     #@cherrypy.expose
-    #def op_remove_blobset_from_demo(self, demo_id, blobset):
+    #def op_remove_blobset_from_demo(self, demo_name, blobset):
         #"""
         #Delete one blobset from demo
 
-        #:param demo_id    : demo id
-        #:type demo_id     : integer
+        #:param demo_name    : demo id
+        #:type demo_name     : integer
         #:param blobset : blobset
         #:type blobset  : string
         #:return           : mako templated html page (refer to edit_demo_blobs.html)
         #:rtype            : mako.lookup.TemplatedLookup
         #"""
-        #data = {"demo_id": demo_id, "blobset": blobset}
+        #data = {"demo_name": demo_name, "blobset": blobset}
         #res = use_web_service('/delete_blobset_ws', data)
 
         #if (res["status"] == "OK" and res["delete"]):
@@ -827,22 +832,22 @@ class   Blobs(object):
             #if os.path.isfile(path_file):     os.remove(path_file)
             #if os.path.isfile(path_thumb):    os.remove(path_thumb)
 
-        #return self.get_blobs_of_demo(demo_id)
+        #return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_blob_from_demo(self, demo_id, blob_set, blob_id):
+    def op_remove_blob_from_demo(self, demo_name, blob_set, blob_id):
         """
         Delete one blob from demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :param blob_id: id blob
         :type blob_id: integer
         :return: mako templated html page (refer to edit_demo_blobs.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = {"demo_id": demo_id, "blob_set": blob_set, "blob_id": blob_id}
+        data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
 
         if res["status"] == "OK" and res["delete"]:
@@ -860,7 +865,7 @@ class   Blobs(object):
             if os.path.isfile(path_thumb):
                 os.remove(path_thumb)
 
-        return self.get_blobs_of_demo(demo_id)
+        return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -879,8 +884,8 @@ class   Blobs(object):
 
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
-                template_id = data.demo_id(template)
-                dic["blobs"] = data.get_blobs_of_demo(template_id)
+                # template_id = data.demo_id(template)
+                dic["blobs"] = data.get_blobs_of_demo(template)
                 dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from template demo")
@@ -909,9 +914,8 @@ class   Blobs(object):
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 dic = data.get_demo_info_from_name(demo_name)
-                demo_id = dic.keys()[0]
-                dic["use_template"] = data.demo_use_template(demo_id)
-                dic["blobs"] = data.get_blobs_of_demo(demo_id)
+                dic["use_template"] = data.demo_use_template(demo_name)
+                dic["blobs"] = data.get_blobs_of_demo(demo_name)
                 dic["url"] = self.server_address + "/" + self.final_dir + "/"
                 dic["url_thumb"] = self.server_address + "/" + self.thumb_dir + "/"
                 dic["physical_location"] = os.path.join(self.current_directory,
@@ -919,51 +923,20 @@ class   Blobs(object):
                 dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
-
-        return json.dumps(dic)
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blobs_of_demo_ws(self, demo):
-        """
-        This function implements get request from '/get_hash' (Web Service)
-        It returns list of hash blob corresponding to demo given in parameter
-        List is empty if not any blob is associated to demo
-
-        :param demo: name demo
-        :type demo: string
-        :return: list of hash blob
-        :rtype: json format list
-        """
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        dic = {}
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                dic = data.get_demo_name_from_id(demo)
-                dic["use_template"] = data.demo_use_template(demo)
-                dic["blobs"] = data.get_blobs_of_demo(demo)
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot access to blob from demo")
-                dic["status"] = "KO"
-
         return json.dumps(dic)
 
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def get_blobs_of_demo(self, demo_id):
+    def get_blobs_of_demo(self, demo_name):
         """
         Web page to show the blobs of the demo from id demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo_name
         :return: mako templated html page (refer to edit_demo_blobs.html)
         :rtype: mako.lookup.TemplatedLookup
         """
-        demo_blobs = use_web_service('/get_blobs_of_demo_ws', {"demo": demo_id})
+        demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo_name})
         template_list_res = use_web_service('/get_template_demo_ws', {})
         template_blobs = {}
 
@@ -1008,14 +981,14 @@ class   Blobs(object):
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
             blobs_list=demo_blobs["blobs"],
-            demo_id=demo_id,
+            demo_name=demo_name,
             demo=demo_blobs,
             tmpl_list=template_list_res["template_list"],
             tmpl_blobs=template_blobs)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def edit_blob(self, blob_id, demo_id):
+    def edit_blob(self, blob_id, demo_name):
         """
         HTML Page : show thumbnail of one blob, add tag or remove tag
 
@@ -1043,7 +1016,7 @@ class   Blobs(object):
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(blob_info=res,
-                                                                 demoid=demo_id)
+                                                                 demoid=demo_name)
 
     #@cherrypy.expose
     #def get_blob_url_ws(self, blob_hash, blob_ext):
@@ -1119,12 +1092,11 @@ class   Blobs(object):
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_demo_ws(self, demo_id):
+    def op_remove_demo_ws(self, demo_name):
         """
         Web service used to remove demo from id demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo name
         :return: "OK" if not error else "KO"
         :rtype: json format
         """
@@ -1133,7 +1105,7 @@ class   Blobs(object):
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
-                blobfilenames_to_delete = data.remove_demo(demo_id)
+                blobfilenames_to_delete = data.remove_demo(demo_name)
                 data.commit()
                 dic["status"] = "OK"
 
@@ -1162,16 +1134,16 @@ class   Blobs(object):
     #---------------------------------------------------------------------------
     @cherrypy.expose
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_demo(self, demo_id):
+    def op_remove_demo(self, demo_name):
         """
         Web page used to remove a demo from id
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: id demo
+        :type demo_name: integer
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
         """
-        data = {"demo_id": demo_id}
+        data = {"demo_name": demo_name}
         use_web_service('/op_remove_demo_ws', data, 'authenticated')
         data = {}
         res = use_web_service('/demos_ws', data)
@@ -1231,7 +1203,7 @@ class   Blobs(object):
             self.logger.exception("Cannot create thumbnail")
 
     #---------------------------------------------------------------------------
-    def parse_archive(self, ext, path, tmp_directory, the_archive, demo_id):
+    def parse_archive(self, ext, path, tmp_directory, the_archive, demo_name):
         """
         Open archive (zip, tar) file
         Extract blob object in function informations in 'index.cfg' file
@@ -1287,7 +1259,7 @@ class   Blobs(object):
                         _, ext = os.path.splitext(tmp_path)
 
 
-                        data = {"demo_id": demo_id, "path": tmp_path,
+                        data = {"demo_name": demo_name, "path": tmp_path,
                                 "tag":tags,
                                 "ext": ext, "blob_set": section,
                                 "blob_pos_in_set": file_id, "title": title,
@@ -1312,7 +1284,7 @@ class   Blobs(object):
 
                                 # according to Miguel, don´t add a blob image representation
                                 # as a blob item
-                                data = {"demo_id": demo_id, "path": tmp_image_path,
+                                data = {"demo_name": demo_name, "path": tmp_image_path,
                                         "tag":tags,
                                         "ext": image_ext, "blob_set": section,
                                         "blob_pos_in_set": file_id, "title": title,
