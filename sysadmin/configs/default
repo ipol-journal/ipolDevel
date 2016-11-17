@@ -1,0 +1,59 @@
+##
+# This configuration file should replaced /etc/nginx/sites-available/default
+##
+server {
+	listen 80;
+
+	#change this variable with your own user name
+	set $my_user carlos;
+
+	# Path of the static content
+	location /cp/static/ {
+		alias  /home/$my_user/ipolDevel/ipol_webapp/apps/controlpanel/controlpanel_static/;
+	}
+
+
+	#DEMOS
+	location /demo/ {
+		add_header X-debug-message "$host" always;
+		proxy_pass  http://$host:8080;
+	}
+
+	# CORE
+	location /api/core/{
+		rewrite ^/api/core/(.*) /$1 break;
+		proxy_pass  http://$host:8080;
+	}
+
+	# BLOBS
+	location /api/blobs/ {
+		rewrite ^/api/blobs/(.*) /$1 break;
+		proxy_pass  http://$host:9001;
+	}
+
+	# ARCHIVE
+	location /api/archive/ {
+		rewrite ^/api/archive/(.*) /$1 break;
+		proxy_pass  http://$host:9000;
+	}
+
+	#DEMOINFO
+	location /api/demoinfo/ {
+		rewrite ^/api/demoinfo/(.*) /$1 break;
+		proxy_pass  http://$host:9002;
+	}
+
+	#CP
+	location /cp/ {
+		add_header X-debug-message "$host" always;
+		proxy_pass http://$host:8000;
+	}
+
+	location /  {
+        	return  301 /demo/;
+        	proxy_pass  http://$host:8080;
+    	}
+
+
+}
+
