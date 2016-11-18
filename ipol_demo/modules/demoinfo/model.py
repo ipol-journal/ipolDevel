@@ -347,7 +347,6 @@ class DemoDAO(object):
             # nowtmstmp=demo.creation
             # print nowtmstmp
             # datetime.strptime('2015-02-25T12:58:01.548Z', '%Y-%m-%dT%H:%M:%S.%fZ')
-            print demo.title
 
             if demo.creation:
 
@@ -365,7 +364,7 @@ class DemoDAO(object):
                                     (demo.editorsdemoid, demo.title, demo.abstract,
                                      demo.zipURL, demo.active, demo.stateID, nowtmstmp,
                                      demo.creation, old_editor_demo_id))
-                self.conn.commit()
+            self.conn.commit()
         except Exception as ex:
             error_string = ("update_demo  e:%s" % (str(ex)))
             print error_string
