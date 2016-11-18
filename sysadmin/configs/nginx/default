@@ -9,7 +9,7 @@ server {
 
 	# Path of the static content
 	location /cp/static/ {
-		alias  /home/$my_user/ipolDevel/ipol_webapp/apps/controlpanel/controlpanel_static/;
+		alias  /home/$my_user/IPOLWEBAPP_STATIC/;
 	}
 
 
