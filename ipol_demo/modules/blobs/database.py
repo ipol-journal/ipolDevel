@@ -124,7 +124,7 @@ class   Database(object):
         except self.database.Error as e:
             raise DatabaseInsertError(e)
 
-    def add_blob_in_database(self, demoid, hash_blob, fileformat,
+    def add_blob_in_database(self, demo_name, hash_blob, fileformat,
                              ext, tag, blob_set, blob_pos_in_set,
                              title, credit, blobid=-1):
         """
@@ -133,7 +133,7 @@ class   Database(object):
         (necesary for many to many in DBMS)
         Add also tag in database : call addTagInDatabase function
 
-        :param demoid: demo id in database integer (primary key autoincrement)
+        :param demo_name: demo_name in database
         :param hash_blob: hash content blob string
         :param fileformat: type format of blob string
         :param ext: extension of blob string
@@ -156,6 +156,12 @@ class   Database(object):
                 raise DatabaseInsertError(e)
 
         try:
+            self.cursor.execute(
+                '''SELECT id
+                FROM demo
+                WHERE name=?
+                ''',(demo_name,));
+            demoid = self.cursor.fetchone()[0]
             self.cursor.execute(
                 '''INSERT OR REPLACE INTO
                 demo_blob(blob_id, demo_id, blob_set,blob_pos_in_set)
@@ -349,12 +355,11 @@ class   Database(object):
         return None if something is None else something[0]
 
     #---------------------------------------------------------------------------
-    def get_blobs_of_demo(self, demo_id):
+    def get_blobs_of_demo(self, demo_name):
         """
         Return list of hash blob associated with demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo name
         :return: blob infos (id, hash, extension, format, title, credit) associated to demo
         :rtype: list of dictionnary
         """
@@ -364,7 +369,7 @@ class   Database(object):
             SELECT  blob_set, GROUP_CONCAT(blob_id)  FROM demo_blob
             INNER JOIN demo ON demo_blob.demo_id=demo.id
             INNER JOIN blob ON demo_blob.blob_id=blob.id
-            WHERE demo.id=? GROUP BY blob_set ''', (demo_id,))
+            WHERE demo.name=? GROUP BY blob_set ''', (demo_name,))
         except self.database.Error as e:
             raise DatabaseSelectError(e)
 
@@ -379,7 +384,7 @@ class   Database(object):
                 blob.title, blob.credit FROM demo_blob
                 INNER JOIN demo ON demo_blob.demo_id=demo.id
                 INNER JOIN blob ON demo_blob.blob_id=blob.id
-                WHERE demo.id=? AND blob_set=?''', (demo_id, blobset[0],))
+                WHERE demo.name=? AND blob_set=?''', (demo_name, blobset[0],))
             except self.database.Error as e:
                 raise DatabaseSelectError(e)
 
@@ -440,13 +445,13 @@ class   Database(object):
         dic = {}
         try:
             self.cursor.execute('''
-            SELECT id, name, is_template, template_id
+            SELECT name, is_template, template_id
             FROM demo
             WHERE demo.name=?''',\
             (demo_name,))
             something = self.cursor.fetchone()
-            dic[something[0]] = {"name": something[1], "is_template": something[2],
-                                 "template_id": something[3]}
+            dic[something[0]] = {"name": something[0], "is_template": something[1],
+                                 "template_id": something[2]}
 
         except self.database.Error as e:
             self.logger.exception("get_demo_info_from_name --> The \
@@ -519,12 +524,11 @@ class   Database(object):
         return tagname
 
     #---------------------------------------------------------------------------
-    def blobcount(self, demo_id):
+    def blobcount(self, demo_name):
         """
         Check if demo is not associated with a blob
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo name
         :return: number of demo present in database
         :rtype: tuple of integer or None
         """
@@ -533,8 +537,8 @@ class   Database(object):
             self.cursor.execute('''
             SELECT COUNT(*) FROM demo_blob
             INNER JOIN demo ON demo_id=demo.id
-            WHERE demo.id=?''', \
-            (demo_id,))
+            WHERE demo.name=?''', \
+            (demo_name,))
             count = self.cursor.fetchone()
             if count is None:
                 return 0
@@ -546,18 +550,17 @@ class   Database(object):
         return count
 
     #---------------------------------------------------------------------------
-    def remove_demo_from_database(self, demo_id):
+    def remove_demo_from_database(self, demo_name):
         """
         If demo is empty, delete row corresponding in demo column
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo name
         :param demo_blobcount: tuple of integer
         :type demo_blobcount: tuple or None
         """
 
         try:
-            self.cursor.execute("DELETE FROM demo WHERE demo.id=?", (demo_id,))
+            self.cursor.execute("DELETE FROM demo WHERE demo.name=?", (demo_name,))
         except self.database.Error as e:
             raise DatabaseDeleteError(e)
 
@@ -699,7 +702,7 @@ class   Database(object):
 
 
     #---------------------------------------------------------------------------
-    def delete_blob_from_demo(self, demo_id, blobset, blob_id):
+    def delete_blob_from_demo(self, demo_name, blobset, blob_id):
         """
         Delete link between demo and hash blob from demo_blob column in database
         Delete link between blob and tag from blob_tag column in database
@@ -707,13 +710,21 @@ class   Database(object):
         Delete tag row associated to blob if tag has no blob
         Delete blob row named by hash blob if blob has no demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo_name
         :param blob_id: id blob
         :type blob_id: integer
         :return: true if and only if the blob is not used anymore
         :rtype: boolean
         """
+        try:
+            self.cursor.execute(
+                '''SELECT id
+                FROM demo
+                WHERE name=?
+                ''', (demo_name,));
+            demo_id = self.cursor.fetchone()[0]
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
 
         try:
             result = self.cursor.execute('''
@@ -1006,43 +1017,42 @@ class   Database(object):
 
 
     #---------------------------------------------------------------------------
-    def remove_demo(self, demo_id):
+    def remove_demo(self, demo_name):
         """
         Remove demo of the database, and blob and tag associated
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo name
         """
 
-        print "database remove_demo({0})".format(demo_id)
+        print "database remove_demo({0})".format(demo_name)
         try:
             # use get_blobs_of_demo() to simplify the code
-            demo_blobsets = self.get_blobs_of_demo(demo_id)
+            demo_blobsets = self.get_blobs_of_demo(demo_name)
             print "demo_blobsets=", demo_blobsets
             blobfilenames_to_delete = []
             for blobs in demo_blobsets:
                 blobset_id = blobs[0]["set_name"]
                 print "removing blobset '{0}'".format(blobset_id)
                 for i in range(blobs[0]["size"]):
-                    can_delete = self.delete_blob_from_demo(demo_id, blobset_id, blobs[i + 1]["id"])
+                    can_delete = self.delete_blob_from_demo(demo_name, blobset_id, blobs[i + 1]["id"])
                     if can_delete:
                         blobfilenames_to_delete.append(blobs[i+1]["hash"]+blobs[i+1]["extension"])
-            demo_blobcount = self.blobcount(demo_id)
+            demo_blobcount = self.blobcount(demo_name)
             print "demo blobcount = ", demo_blobcount
             if demo_blobcount == 0:
-                self.remove_demo_from_database(demo_id)
+                self.remove_demo_from_database(demo_name)
         except self.database.Error, e:
             raise DatabaseDeleteError(e)
         return blobfilenames_to_delete
 
 
     #---------------------------------------------------------------------------
-    def demo_use_template(self, demo_id):
+    def demo_use_template(self, demo_name):
         """
         Return the name of the templated demo used by another demo
 
-        :param demo_id: id demo
-        :type demo_id: integer
+        :param demo_name: demo_name
+        :type demo_name: integer
         :return: name of templated demo used
         :rtype: dictionnary
         """
@@ -1051,8 +1061,8 @@ class   Database(object):
             self.cursor.execute('''
             SELECT is_template, template_id
             FROM demo
-            WHERE demo.id=?''',\
-            (demo_id,))
+            WHERE demo.name=?''',\
+            (demo_name,))
             something = self.cursor.fetchone()
             if something[0] == 0 and something[1] != 0:
                 dic = self.get_demo_name_from_id(something[1])[something[1]]
@@ -1063,35 +1073,18 @@ class   Database(object):
 
 
     #---------------------------------------------------------------------------
-    def update_template(self, demo_id, template_id):
+    def update_template(self, demo_name, template_id):
         """
         Update the template used by another demo
 
-        :param demo_id: id demo (current demo)
-        :type demo_id: integer
+        :param demo_name: id demo (current demo)
         :param template_id: id demo templated used by current demo
         :type template_id: integer
         """
         try:
             self.cursor.execute('''
             UPDATE demo SET template_id=?
-            WHERE demo.id=?''', \
-            (template_id, demo_id,))
-        except DatabaseError as e:
-            raise DatabaseUpdateError(e)
-
-    #---------------------------------------------------------------------------
-    def list_templated_demo_using_from_demo(self, demo_id):
-        """
-        Update id template of demo using templated demo defined by id
-
-        :param demo_id: id demo
-        :type demo_id: integer
-        """
-        try:
-            self.cursor.execute('''
-            UPDATE demo SET template_id=0
-            WHERE template_id=?''',\
-            (demo_id,))
+            WHERE demo.name=?''', \
+            (template_id, demo_name,))
         except DatabaseError as e:
             raise DatabaseUpdateError(e)

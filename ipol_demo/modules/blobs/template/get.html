@@ -6,13 +6,13 @@
     <body>
       <ul>
 	<a href="index">return</a>
-	<h1>List of blobs of ${demo[demo_id]["name"]}</h1>
+	<h1>List of blobs of ${demo[demo_name]["name"]}</h1>
 	This demo is a template:
-	%if demo[demo_id]["is_template"] == 1:
+	%if demo[demo_name]["is_template"] == 1:
 	Yes
 	%else:
 	No
-	%if demo[demo_id]["template_id"] == 0:
+	%if demo[demo_name]["template_id"] == 0:
 	<br>
 	You don't use template.<br>
 	Do you want use a template ?
@@ -22,7 +22,7 @@
 	Do you want to change template used ?
 	%endif
 	<form action="/use_template" method="post">
-	  <input type="hidden" name="demo[id]" value="${demo_id}">
+	  <input type="hidden" name="demo[id]" value="${demo_name}">
 	  <select name="name_template" value="">
 	    <option>None</option>
 	    %for item in tmpl_list:
@@ -34,9 +34,9 @@
 	</form>
 	%endif
 	<br>
-	<a href="blob?demo_id=${demo_id}">add blob</a><br>
-	<a href="zip?demo_id=${demo_id}">add zip</a><br>
-	<a href="op_remove_demo?demo_id=${demo_id}">remove this demo</a><br><br>
+	<a href="blob?demo_name=${demo_name}">add blob</a><br>
+	<a href="zip?demo_name=${demo_name}">add zip</a><br>
+	<a href="op_remove_demo?demo_name=${demo_name}">remove this demo</a><br><br>
 	%if len(blobs_list):
     <h1>List of blob of this demo</h1>
     %for blob_set in blobs_list:
@@ -44,7 +44,7 @@
         <tr>
         %for idx in range(1,blob_set[0]['size']+1):
             <td>
-            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_id=${demo_id}">
+            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_name=${demo_name}">
             <img src="${blob_set[idx]["url_thumb"]}"> </img></a>
             </td>
         %endfor
@@ -52,7 +52,7 @@
         <tr>
             <td colspan="2" align="center">
             ${blob_set[1]['title']}
-            <a href="op_remove_blob_from_demo?demo_id=${demo_id}&blob_id=${blob_set[idx]["id"]}">
+            <a href="op_remove_blob_from_demo?demo_name=${demo_name}&blob_id=${blob_set[idx]["id"]}">
                 delete
             </a>
             </td>
@@ -69,7 +69,7 @@
         <tr>
         %for idx in range(1,blob_set[0]['size']+1):
             <td>
-            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_id=${demo_id}">
+            <a href="edit_blob?blob_id=${blob_set[idx]["id"]}&demo_name=${demo_name}">
             <img src="${blob_set[idx]["url_thumb"]}"> </img></a>
             </td>
         %endfor

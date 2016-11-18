@@ -1,13 +1,14 @@
 <!DOCTYPE html PUBLIC>
 <html>
     <head>
-        <title> Add blob for demo ${demo_id} </title>
+        <title> Add blob for demo ${demo_name} </title>
       <meta charset="utf-8" />
     </head>
     <body>
-    <h1> Add blob for demo ${demo_id}</h1>
+    <p></p>
+    <h1> Add blob for demo ${demo_name}</h1>
       <form action="/add_blob" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="demo[id]" value="${demo_id}">
+        <input type="hidden" name="demo[id]" value="${demo_name}">
         <table style="border:1px solid black">
             <tr>
                 <td style="margin:2px;padding:2px;" >The set </td>
