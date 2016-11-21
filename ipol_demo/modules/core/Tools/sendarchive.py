@@ -53,7 +53,7 @@ class SendArchive:
 
     #---------------------------------------------------------------------------
     @staticmethod
-    def prepare_archive(demo_id, work_dir, ddl_archive, res_data, proxy_server):
+    def prepare_archive(demo_id, work_dir, ddl_archive, res_data, host_name):
         """
             prepares everything to archive the inputs/results/parameters
             puts the information in res_data['archive_blobs'] and 
@@ -125,8 +125,13 @@ class SendArchive:
                parameters[desc['info'][i]] = res_data['algo_info'][i]
         
         try:
-            userdata = {"module":"archive", "service":"add_experiment", "demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters) }
-            resp = requests.post(proxy_server, data=userdata)
+            userdata = {"demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters) }
+            url = '{0}/api/{1}/{2}'.format(
+                host_name,
+                'archive',
+                'add_experiment'
+            )
+            resp = requests.post(url, data=userdata)
             json_response = resp.json() 
             print json_response
             status = json_response['status']

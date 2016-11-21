@@ -87,15 +87,14 @@ ipol.utils.DeserializeJSON = function(json_str)
  */
 ipol.utils.ModuleService = function(module,service,params,func)
 {
-    var link =  servers.proxy + 
-                '/?module='+ module +
-                '&service='+ service +
-                '&'+params;
+    var link = '/api/'+module+"/"+service+"?"+params;
+//    var link =  servers.proxy +
+//                '/?module='+ module +
+//                '&service='+ service +
+//                '&'+params;
     var params_str = ""+params;
-                
-    console.info("--- ModuleService() --- "+ module + " -- "+ service+ " -- "+ 
+    console.info("--- ModuleService() --- "+ module + " -- "+ service+ " -- "+
                      params_str.slice(0,40) +(params_str.length>40?"...":""));
-
     return $.getJSON(link).done(func);
 }
 

@@ -146,8 +146,8 @@ class   Blobs(object):
         self.thumb_dir = cherrypy.config['thumbnail.dir']
         self.test_dir = cherrypy.config['test.dir']
 
-        self.current_directory = os.getcwd()
-        self.html_dir = os.path.join(self.current_directory,
+        self.base_directory = os.getcwd()
+        self.html_dir = os.path.join(self.base_directory,
                                      cherrypy.config['html.dir'])
         self.server_address = 'http://{0}:{1}'.format(
             cherrypy.config['server.socket_host'],
@@ -398,7 +398,7 @@ class   Blobs(object):
         _, ext = os.path.splitext(blob.filename)
         assert isinstance(blob, cherrypy._cpreqbody.Part)
 
-        tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
+        tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
@@ -628,7 +628,7 @@ class   Blobs(object):
         _, ext = os.path.splitext(the_archive.filename)
         assert isinstance(the_archive, cherrypy._cpreqbody.Part)
 
-        tmp_directory = os.path.join(self.current_directory, self.tmp_dir)
+        tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
@@ -821,9 +821,9 @@ class   Blobs(object):
         #res = use_web_service('/delete_blobset_ws', data)
 
         #if (res["status"] == "OK" and res["delete"]):
-            #path_file = os.path.join(self.current_directory, self.final_dir,
+            #path_file = os.path.join(self.base_directory, self.final_dir,
                                      #res["delete"])
-            #path_thumb = os.path.join(self.current_directory, self.thumb_dir,
+            #path_thumb = os.path.join(self.base_directory, self.thumb_dir,
                                       #("thumbnail_" + res["delete"]))
             ## process paths
             #path_file  = get_new_path(path_file)
@@ -851,8 +851,8 @@ class   Blobs(object):
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
 
         if res["status"] == "OK" and res["delete"]:
-            path_file = os.path.join(self.current_directory, self.final_dir, res["delete"])
-            path_thumb = os.path.join(self.current_directory, self.thumb_dir,
+            path_file = os.path.join(self.base_directory, self.final_dir, res["delete"])
+            path_thumb = os.path.join(self.base_directory, self.thumb_dir,
                                       ("thumbnail_" + res["delete"]))
             # process paths
             path_file = get_new_path(path_file)
@@ -916,10 +916,9 @@ class   Blobs(object):
                 dic = data.get_demo_info_from_name(demo_name)
                 dic["use_template"] = data.demo_use_template(demo_name)
                 dic["blobs"] = data.get_blobs_of_demo(demo_name)
-                dic["url"] = self.server_address + "/" + self.final_dir + "/"
-                dic["url_thumb"] = self.server_address + "/" + self.thumb_dir + "/"
-                dic["physical_location"] = os.path.join(self.current_directory,
-                                                        self.final_dir)
+                dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
+                dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
+                dic["physical_location"] = self.final_dir
                 dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
@@ -950,7 +949,7 @@ class   Blobs(object):
                 for idx in range(1, blob_size + 1):
                     b = blob_set[idx]
                     b_name = b["hash"] + b["extension"]
-                    b["physical_location"] = os.path.join(self.current_directory,
+                    b["physical_location"] = os.path.join(self.base_directory,
                                                           self.final_dir, b_name)
                     b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
                     b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
@@ -967,7 +966,7 @@ class   Blobs(object):
             for idx in range(1, blob_size + 1):
                 b = blob_set[idx]
                 b_name = b["hash"] + b["extension"]
-                b["physical_location"] = os.path.join(self.current_directory,
+                b["physical_location"] = os.path.join(self.base_directory,
                                                       self.final_dir, b_name)
                 b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
                 b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
@@ -1002,7 +1001,7 @@ class   Blobs(object):
 
         if res["status"] == "OK":
             b_name = res["hash"] + res["extension"]
-            res["physical_location"] = os.path.join(self.current_directory,
+            res["physical_location"] = os.path.join(self.base_directory,
                                                     self.final_dir,
                                                     b_name)
             res["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
@@ -1111,8 +1110,8 @@ class   Blobs(object):
 
                 # remove from disk unused blobs
                 for blobfilename in blobfilenames_to_delete:
-                    path_file = os.path.join(self.current_directory, self.final_dir, blobfilename)
-                    path_thumb = os.path.join(self.current_directory,
+                    path_file = os.path.join(self.base_directory, self.final_dir, blobfilename)
+                    path_thumb = os.path.join(self.base_directory,
                                               self.thumb_dir, ("thumbnail_" + blobfilename))
                     path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
                     # process paths
@@ -1165,7 +1164,7 @@ class   Blobs(object):
         :param extension: extension of blob
         :type extension: string
         """
-        file_directory = os.path.join(self.current_directory, self.final_dir)
+        file_directory = os.path.join(self.base_directory, self.final_dir)
         if not os.path.exists(file_directory):
             os.makedirs(file_directory)
         file_dest = os.path.join(file_directory, (the_hash + extension))
@@ -1182,7 +1181,7 @@ class   Blobs(object):
         :param src: source path of the blob
         :type src: string
         """
-        file_directory = os.path.join(self.current_directory, self.thumb_dir)
+        file_directory = os.path.join(self.base_directory, self.thumb_dir)
         if not os.path.exists(file_directory):
             os.makedirs(file_directory)
         name = os.path.basename(src)
