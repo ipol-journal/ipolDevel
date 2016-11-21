@@ -4,7 +4,6 @@ from subprocess import Popen
 import subprocess
 import time
 import re
-import six
 import math
 # importing image for python commands in DDL scripts
 from image import image
