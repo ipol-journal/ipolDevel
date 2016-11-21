@@ -604,16 +604,11 @@ class Core(object):
         for index,blob in blobs.items():
             original_blob_path = os.path.join(self.blobs_folder ,blob_physical_location,blob[0])
             extension = blob[0].split('.')
-            # blob_link =  blob_url +'/'+ blob[0]
-            # print blob_link
             try:
-                print "Original path",original_blob_path
-                print "Lugar a donde se copia ",os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1]))
                 shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
             except Exception as ex:
-                print "Fallo! - ",ex
-            # blobfile.retrieve(blob_link, os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
-        
+                print ex
+
         return res_data
 
     ##---------------
