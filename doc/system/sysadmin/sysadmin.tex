@@ -208,6 +208,7 @@ Open the script and configure the parameters:
 
 
 \subsubsection{Nginx: installation}
+\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
 
 \begin{enumerate}
 \item Debian
@@ -250,6 +251,8 @@ Open the script and configure the parameters:
 \end{enumerate}
 
 \subsubsection{Nginx: configuration}
+\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
+
 To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
 \begin{lstlisting}[language=Bash]
 /etc/nginx/sites-available
@@ -294,6 +297,8 @@ ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 \end{enumerate}
 
 \subsubsection{Nginx: management}
+\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
+
 \begin{itemize}
 \item Start service:
 \begin{lstlisting}[language=Bash]
