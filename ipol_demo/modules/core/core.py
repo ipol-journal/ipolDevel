@@ -815,6 +815,12 @@ class Core(object):
             res_data = self.input_select_and_crop(work_dir, blob_physical_location, blobs, crop_info)
         
         msg = self.process_inputs(work_dir, ddl_inputs, crop_info, res_data)
+
+        # [ToDo] [Miguel]: this method is not a service. Composing these
+        # messages should be the responsibility of the method which will
+        # create the JSON response.
+        # Here just return a boolean value, or simply raise an exception if
+        # something goes wrong.
         res_data["status"]  = "OK"
         res_data["message"] = "input files copied to the local path"
         res_data['process_inputs_msg'] = msg
