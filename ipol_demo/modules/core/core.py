@@ -904,7 +904,7 @@ class Core(object):
         emails_list = [entry[1] for entry in emails]        
         emails_str = ", ".join(emails_list)
         
-        msg = MIMEMultipart(text)
+        msg = MIMEMultipart()
         
         msg['Subject'] = subject
         # [ToDo] Move this to the core.conf
