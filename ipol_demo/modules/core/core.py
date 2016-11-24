@@ -715,7 +715,7 @@ class Core(object):
                 userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
 
-                self.post('demoinfo','get_file_updated_state',userdata)
+                resp = self.post('demoinfo','get_file_updated_state',userdata)
                 # resp = requests.post(self.proxy_server, data=userdata)
                 response = resp.json() 
             
