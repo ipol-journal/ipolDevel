@@ -25,6 +25,9 @@ ipol_demo/modules/demorunner/binaries/
 
 # Testing
 ci_tests/*.txt
+#
+# Sysadmin
+sysadmin/*.txt
 
 # Applications (to be moved to demoDispatcher/demoRunner!)
 app/
@@ -61,8 +64,10 @@ ddl.pdf
 
 #
 # ignore kile files
-#
 *.kilepr
+#
+# ignore Pycharm files
+.idea
 
 #
 # ignore generated pdf docs

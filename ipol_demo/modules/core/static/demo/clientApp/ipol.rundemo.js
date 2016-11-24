@@ -421,7 +421,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                                                                 form_data, 
                                                                 _sendRunForm);
             }
-            
+
             if (!submitted_feature) {
                 switch (_input_origin) {
                     case "blobset":

@@ -146,7 +146,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information, sets each blobset form_params
-     * value containing the links of all the blob urls in the blobset
+     * value containing the links of all the blob urls and physical_location in the blobset
      * @function _preprocessDemoFormParam
      * @memberOf ipol.DrawBlobs~
      * @private
@@ -163,6 +163,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             var blobset = blobs[i];
             blobset[0].form_params = {};
             blobset[0].form_params["url"] = _demoblobs.url;
+            blobset[0].form_params["physical_location"] = _demoblobs.physical_location;
                 // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
@@ -483,7 +484,7 @@ ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
         
 //        console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
 //         console.info("ddl_json=",ddl_json);
-        
+
         if (demoblobs.status=="KO") {
             $("#displayblobs").html("Failed to read demo blobs");
             // empty results

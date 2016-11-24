@@ -80,6 +80,7 @@ class Core(object):
     def __init__(self):
         
         try:
+            self.host_name='http://{}'.format(cherrypy.config['server.socket_host'])
             self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
@@ -93,6 +94,7 @@ class Core(object):
             self.logger = self.init_logging()
 
             self.main_shared_folder  = cherrypy.config.get("main_shared_folder")
+            self.blobs_folder      = cherrypy.config.get("blobs_folder")
             self.shared_folder       = cherrypy.config.get("shared_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
             self.share_run_dir     = cherrypy.config.get("running.dir")
@@ -154,8 +156,9 @@ class Core(object):
         Index page
         """
 
-        userdata = {"module": "demoinfo", "service": "demo_list"}
-        resp = requests.post(self.proxy_server, data=userdata)
+        resp = self.post('demoinfo','demo_list')
+        # userdata = {"module": "demoinfo", "service": "demo_list"}
+        # resp = requests.post(self.proxy_server, data=userdata)
         response = resp.json() 
         status = response['status'] 
         
@@ -584,7 +587,7 @@ class Core(object):
         
         return res_data
     
-    def input_select_and_crop(self, work_dir, blob_url, blobs, crop_info=None):
+    def input_select_and_crop(self, work_dir, blob_physical_location, blobs, crop_info=None):
         """
         use the selected available input images
         input parameters:
@@ -592,21 +595,20 @@ class Core(object):
         """
         print "#### input_select_and_crop begin ####"
         start = timer()
-        
+
         res_data = {}
         res_data['info'] = ''
         nb_inputs = len(blobs)
-        
         # copy to work_dir
         blobfile = urllib.URLopener()
-        print blobs
         for index,blob in blobs.items():
-            print blob[0]
+            original_blob_path = os.path.join(self.blobs_folder ,blob_physical_location,blob[0])
             extension = blob[0].split('.')
-            blob_link =  blob_url +'/'+ blob[0]
-            print blob_link
-            blobfile.retrieve(blob_link, os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
-        
+            try:
+                shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
+            except Exception as ex:
+                print ex
+
         return res_data
 
     ##---------------
@@ -707,12 +709,14 @@ class Core(object):
                 
                 file_state = os.stat(compressed_file)
                
-                userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
+                userdata = {}
+                # userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
                 userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
-                
-                resp = requests.post(self.proxy_server, data=userdata)
+
+                self.post('demoinfo','get_file_updated_state',userdata)
+                # resp = requests.post(self.proxy_server, data=userdata)
                 response = resp.json() 
             
                 status = response['status']
@@ -755,8 +759,10 @@ class Core(object):
         
         if download_compressed_file:
             
-            userdata = {"module":"demoinfo", "service":"get_compressed_file_url_ws", "demo_id":demo_id}
-            resp = requests.post(self.proxy_server, data=userdata)
+            userdata = {"demo_id":demo_id}
+            # userdata = {"module":"demoinfo", "service":"get_compressed_file_url_ws", "demo_id":demo_id}
+            resp = self.post('demoinfo','get_compressed_file_url_ws',userdata)
+            # resp = requests.post(self.proxy_server, data=userdata)
             response = resp.json()
             
             status = response['status']
@@ -802,11 +808,19 @@ class Core(object):
                 return res_data
 
         elif input_type == 'blobset':
-            blob_url = blobs['url']
+
+            # blob_url = blobs['url']
+            blob_physical_location = blobs['physical_location']
             del blobs['url']
-            res_data = self.input_select_and_crop(work_dir, blob_url, blobs, crop_info)
+            res_data = self.input_select_and_crop(work_dir, blob_physical_location, blobs, crop_info)
         
         msg = self.process_inputs(work_dir, ddl_inputs, crop_info, res_data)
+
+        # [ToDo] [Miguel]: this method is not a service. Composing these
+        # messages should be the responsibility of the method which will
+        # create the JSON response.
+        # Here just return a boolean value, or simply raise an exception if
+        # something goes wrong.
         res_data["status"]  = "OK"
         res_data["message"] = "input files copied to the local path"
         res_data['process_inputs_msg'] = msg
@@ -857,10 +871,11 @@ class Core(object):
         Get the list of active editors of the given demo
         '''
         # Get the list of editors of the demo
-        userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
-        userdata["demo_id"] = demo_id
-        
-        resp = requests.post(self.proxy_server, data=userdata)
+        # userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
+        # userdata["demo_id"] = demo_id
+        userdata = {"demo_id": demo_id}
+        resp = self.post('demoinfo','demo_get_editors_list',userdata)
+        # resp = requests.post(self.proxy_server, data=userdata)
         response = resp.json()     
         status = response['status']
         
@@ -889,7 +904,7 @@ class Core(object):
         emails_list = [entry[1] for entry in emails]        
         emails_str = ", ".join(emails_list)
         
-        msg = MIMEMultipart(text)
+        msg = MIMEMultipart()
         
         msg['Subject'] = subject
         # [ToDo] Move this to the core.conf
@@ -1028,10 +1043,12 @@ class Core(object):
         
         try:
             
-            userdata = {"module":"demoinfo", "service":"read_last_demodescription_from_demo"}
-            userdata['demo_id']=demo_id
-            userdata['returnjsons'] = 'True'
-            resp = requests.post(self.proxy_server, data=userdata)
+            # userdata = {"module":"demoinfo", "service":"read_last_demodescription_from_demo"}
+            # userdata['demo_id']=demo_id
+            # userdata['returnjsons'] = 'True'
+            userdata = {"demo_id": demo_id, "returnjsons": 'True'}
+            resp = self.post('demoinfo', 'read_last_demodescription_from_demo', userdata)
+            # resp = requests.post(self.proxy_server, data=userdata)
             response = resp.json()
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(json.loads(last_demodescription['json']))
@@ -1151,10 +1168,10 @@ class Core(object):
             if original_exp == 'true':
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
-                result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.proxy_server)
+                result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.host_name)
                 
         except Exception as ex:
-                print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(e))
+                print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_winner + ' module'
                 res_data["status"]  = "KO"
                 self.error_log("Failure in the run function of the CORE",str(ex))
@@ -1164,3 +1181,16 @@ class Core(object):
         cherrypy.log("run successful", context='RUN/%s' % demo_id, traceback=False)
         
         return json.dumps(json_response)
+
+
+    def post(self, module,service,data=None):
+        try:
+            url='{0}/api/{1}/{2}'.format(
+                self.host_name,
+                module,
+                service
+            )
+            return requests.post(url, data=data)
+        except Exception as ex:
+            print "Failure in the post function of the CORE in the call to {} module - {}".format(module, str(ex))
+            self.error_log("Failure in the post function of the CORE", str(ex))
