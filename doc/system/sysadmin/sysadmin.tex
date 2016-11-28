@@ -26,6 +26,10 @@ To execute each month, the following line needs to be added with {\tt crontab -e
 
 {\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
 
+- Reboot. The script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules and nginx on reboot and send an email to inform about the reboot. 
+To execute it, the following line needs to be added with {\tt crontab -e} as root.
+
+{\tt @reboot ipolDevel/sysadmin/on\_reboot.sh}
 
 
 \subsection{GitHub deploy key}

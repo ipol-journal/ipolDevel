@@ -42,6 +42,8 @@ from io import BytesIO
 import png
 from libtiff import TIFF
 import tempfile
+import xml.etree.ElementTree as ET
+import subprocess
 
 # To send emails
 import smtplib
@@ -75,19 +77,19 @@ class Core(object):
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
-    
-    
+
     def __init__(self):
         
         try:
-            self.host_name='http://{}'.format(cherrypy.config['server.socket_host'])
+            self.host_name = cherrypy.config['server.socket_host']
             self.server_address=  'http://{0}:{1}'.format(
                                   cherrypy.config['server.socket_host'],
                                   cherrypy.config['server.socket_port'])
             
             # Read configuration file
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
-            
+
+            self.demorunners_file = cherrypy.config.get("demorunners_file")
             self.logs_dir = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.mkdir_p(self.logs_dir)
@@ -100,22 +102,21 @@ class Core(object):
             self.share_run_dir     = cherrypy.config.get("running.dir")
             self.dl_extras_dir     = cherrypy.config.get("dl_extras_dir")
             self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
-            
-            
-            
+
             self.main_shared_folder  = os.path.join(self.main_shared_folder, self.shared_folder)
-            
+
+            self.load_demorunners()
+
             #Create shared folder if not exist
             self.mkdir_p(self.main_shared_folder)
-            
+
             core_dir = os.getcwd()
             os.chdir(self.main_shared_folder)
-            
+
             #create running dir and demoextras dirs
             self.mkdir_p(self.share_run_dir)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
-            
             #return to core
             os.chdir(core_dir)
             
@@ -123,13 +124,98 @@ class Core(object):
             self.png_compresslevel=1
 
                         
-            self.proxy_server = cherrypy.config.get("demo.proxy_server")
-            
+
             cherrypy.log("IPOL Core system Initialized" , context='__init__', traceback=False)
             print "IPOL CORE system Initialized"
                         
         except Exception as ex:
             self.error_log("__init__", str(ex))
+
+    def load_demorunners(self):
+        """
+        Read demorunners xml
+        """
+        dict_demorunners = {}
+        tree = ET.parse(self.demorunners_file)
+        root = tree.getroot()
+
+        for demorunner in root.findall('demorunner'):
+            dict_tmp = {}
+            list_tmp = []
+
+            for capability in demorunner.findall('capability'):
+                list_tmp.append(capability.text)
+
+            dict_tmp["server"] = demorunner.find('server').text
+            dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
+            dict_tmp["capability"] = list_tmp
+
+            dict_demorunners[demorunner.get('name')] = dict_tmp
+
+        self.demorunners = dict_demorunners
+
+    @cherrypy.expose
+    def refresh_demorunners(self):
+        '''
+        refresh demorunners information and alert the dispatcher module
+        '''
+        data = {}
+        data["status"] = "OK"
+
+        try:
+            # Reload DRs config
+            self.load_demorunners()
+
+            # Ask Dispatcher to reload too
+            self.post(self.host_name, "dispatcher", "refresh_demorunners")
+        except Exception as ex:
+            print ex
+            self.error_log("refresh_demorunners", str(ex))
+            data["status"] = "KO"
+            data["message"] = "Can not load demorunners.xml"
+
+        return json.dumps(data)
+
+    @cherrypy.expose
+    def get_demorunners(self):
+        '''
+        Get the information of the demorunners
+        '''
+        data = {}
+        data["status"] = "OK"
+        try:
+            data["demorunners"] = str(self.demorunners)
+        except Exception as ex:
+            print ex
+            self.logger.exception("get_demorunners")
+            data["status"] = "KO"
+            data["message"] = "Can not get demorunners"
+
+        return json.dumps(data)
+
+    def demorunners_workload(self):
+        '''
+        Get workload of each demorunner
+        '''
+        # [TODO] get real workload
+        try:
+            dr_wl = {}
+            for dr_name in self.demorunners.keys():
+
+                # try:
+                #     cmd = "echo $(cat <(grep 'cpu ' /proc/stat) <(sleep 1 && grep 'cpu ' /proc/stat) | awk -v RS= '{print ($13-$2+$15-$4)*100/($13-$2+$15-$4+$16-$5)}')"
+                #     output, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+                #     print "The machine: {} have a workload of: {}%".format(dr_name,output.split()[0])
+                #     dr_wl[dr_name] = output.split()[0]
+                # except:
+                #     self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
+                dr_wl[dr_name] = 12.3456789
+
+        except Exception as ex:
+            self.logger.exception("demorunners_workload")
+            print "Failed to get demorunners workload - ", ex
+
+        return dr_wl
         
     @staticmethod
     def mkdir_p(path):
@@ -156,10 +242,8 @@ class Core(object):
         Index page
         """
 
-        resp = self.post('demoinfo','demo_list')
-        # userdata = {"module": "demoinfo", "service": "demo_list"}
-        # resp = requests.post(self.proxy_server, data=userdata)
-        response = resp.json() 
+        resp = self.post(self.host_name,'demoinfo','demo_list')
+        response = resp.json()
         status = response['status'] 
         
         cherrypy.response.headers['Content-Type'] = 'text/html'
@@ -314,6 +398,10 @@ class Core(object):
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
+        '''
+        Converts the input TIFF to PNG.
+        This is used by the web interface for visualization purposes
+        '''
         data = {}
         data["status"] = "KO"
         try:
@@ -340,6 +428,7 @@ class Core(object):
         except Exception as ex:
             print "Failed to convert image", ex
         return json.dumps(data)
+
 
     ###--------------------------------------------------------------------------
     ##          END BLOCK OF INPUT TOOLS
@@ -710,14 +799,12 @@ class Core(object):
                 file_state = os.stat(compressed_file)
                
                 userdata = {}
-                # userdata = {"module":"demoinfo", "service":"get_file_updated_state"}
                 userdata["demo_id"] = demo_id
                 userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
 
-                resp = self.post('demoinfo','get_file_updated_state',userdata)
-                # resp = requests.post(self.proxy_server, data=userdata)
-                response = resp.json() 
+                resp = self.post(self.host_name,'demoinfo','get_file_updated_state',userdata)
+                response = resp.json()
             
                 status = response['status']
                 
@@ -760,9 +847,7 @@ class Core(object):
         if download_compressed_file:
             
             userdata = {"demo_id":demo_id}
-            # userdata = {"module":"demoinfo", "service":"get_compressed_file_url_ws", "demo_id":demo_id}
-            resp = self.post('demoinfo','get_compressed_file_url_ws',userdata)
-            # resp = requests.post(self.proxy_server, data=userdata)
+            resp = self.post(self.host_name,'demoinfo','get_compressed_file_url_ws',userdata)
             response = resp.json()
             
             status = response['status']
@@ -872,11 +957,9 @@ class Core(object):
         '''
         # Get the list of editors of the demo
         # userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
-        # userdata["demo_id"] = demo_id
         userdata = {"demo_id": demo_id}
-        resp = self.post('demoinfo','demo_get_editors_list',userdata)
-        # resp = requests.post(self.proxy_server, data=userdata)
-        response = resp.json()     
+        resp = self.post(self.host_name,'demoinfo','demo_get_editors_list',userdata)
+        response = resp.json()
         status = response['status']
         
         if status != 'OK':
@@ -1042,13 +1125,9 @@ class Core(object):
             blobs = json.loads(kwargs['blobs']) 
         
         try:
-            
-            # userdata = {"module":"demoinfo", "service":"read_last_demodescription_from_demo"}
-            # userdata['demo_id']=demo_id
-            # userdata['returnjsons'] = 'True'
+
             userdata = {"demo_id": demo_id, "returnjsons": 'True'}
-            resp = self.post('demoinfo', 'read_last_demodescription_from_demo', userdata)
-            # resp = requests.post(self.proxy_server, data=userdata)
+            resp = self.post(self.host_name, 'demoinfo', 'read_last_demodescription_from_demo', userdata)
             response = resp.json()
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(json.loads(last_demodescription['json']))
@@ -1093,31 +1172,25 @@ class Core(object):
             res_data = {}
             res_data['info'] = ''
             res_data["status"]  = "OK"
-        
-        
-        #try:
-            #request = '?module=demodispatcher&service=wait_demoRunner&demo_id=' + str(demo_id) 
-            #print self.proxy_server + request
-            #json_response = urllib.urlopen(self.proxy_server + request).read()
-            #response = json.loads(json_response)
-            #dr_winner = response['url_of_selected_dr']
-        #except Exception as ex:
-                #pass
-            
-        dr_winner = 'demorunner' ## In the future, the demo_dispatcher request will be included here.
-                        
+
+
         try:
-            
+            demorunners_data = {"demorunners_workload": str(self.demorunners_workload())}
+            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunners_data)
+            dr_name = dispatcher_response.json()['name']
+            dr = self.demorunners[dr_name]['server']
+
+
             print "Entering dr.ensure_compilation()"
-            userdata = {"module":dr_winner, "service":"ensure_compilation", "demo_id":demo_id, "ddl_build":json.dumps(ddl_build)}
-            resp = requests.post(self.proxy_server, data=userdata)
+            userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
+            resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
             json_response = resp.json() 
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
             
             if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ",demo_id
-                self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_winner + " module")
+                self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_name + " module")
                 self.send_compilation_error_email(demo_id)
                 return json.dumps(json_response)
                 
@@ -1126,8 +1199,8 @@ class Core(object):
             print "Result in ensure_extras_updated : ",data
             
             print "dr.exec_and_wait()"
-            
-            userdata = {"module":dr_winner, "service":"exec_and_wait", "demo_id":demo_id, "key":key, "params":params }
+
+            userdata = {"demo_id": demo_id, "key": key, "params": params}
 
             if 'run' in ddl_json:
                 userdata['ddl_run'] = json.dumps(ddl_json['run'])
@@ -1136,8 +1209,9 @@ class Core(object):
                 userdata['ddl_config'] = json.dumps(ddl_json['config'])
             
             userdata['meta'] = json.dumps(meta)
-            
-            resp = requests.post(self.proxy_server, data=userdata)
+
+            resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
+
             json_response = resp.json() 
             json_response['work_url'] =  os.path.join(self.server_address,\
                                                         self.shared_folder, \
@@ -1172,7 +1246,7 @@ class Core(object):
                 
         except Exception as ex:
                 print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
-                res_data['info'] = 'Failure in the run function of the CORE using ' + dr_winner + ' module'
+                res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
                 res_data["status"]  = "KO"
                 self.error_log("Failure in the run function of the CORE",str(ex))
                 return json.dumps(json_response)
@@ -1182,11 +1256,10 @@ class Core(object):
         
         return json.dumps(json_response)
 
-
-    def post(self, module,service,data=None):
+    def post(self, host, module, service, data=None):
         try:
-            url='{0}/api/{1}/{2}'.format(
-                self.host_name,
+            url = 'http://{0}/api/{1}/{2}'.format(
+                host,
                 module,
                 service
             )

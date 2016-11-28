@@ -483,9 +483,12 @@ class DemoRunner(object):
             with open(os.path.join(work_dir,"params.json"),"w") as resfile:
                 json.dump(params,resfile)
         except Exception as ex:
-            self.logger.exception("exec_and_wait")
+            self.logger.exception("Save params.json")
             print "Failed to save params.json file"
-            raise
+            res_data['status'] = 'KO'
+            res_data['error'] = 'Save params.json'
+            return json.dumps(res_data)
+
           
         #run the algorithm
         try:
@@ -501,13 +504,13 @@ class DemoRunner(object):
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'timeout'
-            self.error_log("exec_and_wait", "IPOLTimeoutError")
+            self.logger.exception("exec_and_wait")
         except RuntimeError as e:
             res_data['status']   = 'KO'
             res_data['algo_info']['status']   = 'IPOLTimeoutError'
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['error']    = "DR RuntimeError in self.run_algo"
-            self.error_log("exec_and_wait", "IPOLTimeoutError")
+            self.logger.exception("exec_and_wait")
         
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -517,7 +520,9 @@ class DemoRunner(object):
         except Exception as ex:
             print "Failed to read params.json file"
             self.logger.exception("exec_and_wait")
-            raise
+            res_data['status'] = 'KO'
+            res_data['error'] = 'Read params.json'
+            return json.dumps(res_data)
         
         # check if new config fields
         if ddl_config != None:
@@ -537,7 +542,7 @@ class DemoRunner(object):
                         res_data['algo_info'][info] = new_string
                         f.close()
                     except Exception as e:
-                        self.error_log("exec_and_wait", "timeout")
+                        self.logger.exception("Failed to get info from {}".format(os.path.join(work_dir,filename)))
                         print "failed to get info ",  info, " from file ", os.path.join(work_dir,filename)
                         print "Exception ",e
         

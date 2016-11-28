@@ -1,6 +1,5 @@
 # coding=utf-8
-from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMOINFO, \
-    IPOL_SERVICES_MODULE_PROXY
+from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMOINFO
 
 __author__ = 'josearrecio'
 
@@ -19,9 +18,6 @@ __author__ = 'josearrecio'
 # of and htlm verb arg (get,post...)
 # this is Why i modify proxy, and create a function, proxy_call(proxyhtmlverb, module, service, servicehtmlverb)
 
-
-proxy_ws_url_service_call = 'proxy_service_call'
-proxy_ws_url_service_call2 = 'proxy_post'
 proxy_ws_url_stats =  'ping'
 
 

@@ -2,8 +2,9 @@
 <data>
 
   <module name="archive">
-    <url>http://ipolcore.ipol.im:9000/</url>
-    <server>ipol_core</server>
+    <module>archive</module>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/archive/</path>
     <command>start</command>
     <command>stop</command>
@@ -12,8 +13,9 @@
   </module>
 
   <module name="blobs">
-    <url>http://ipolcore.ipol.im:9001/</url>
-    <server>ipol_core</server>
+    <module>blobs</module>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
     <command>start</command>
     <command>stop</command>
@@ -22,8 +24,9 @@
   </module>
 
   <module name="demoinfo">
-    <url>http://ipolcore.ipol.im:9002/</url>
-    <server>ipol_core</server>
+    <module>demoinfo</module>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
     <command>start</command>
     <command>stop</command>
@@ -31,19 +34,10 @@
     <command>ping</command>
   </module>
 
-  <module name="demorunner">
-    <url>http://ipolcore.ipol.im:9004/</url>
-    <server>ipol_core</server>
-    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
-    <command>start</command>
-    <command>stop</command>
-    <command>restart</command>
-    <command>ping</command>
-  </module>
-
   <module name="core">
-    <url>http://ipolcore.ipol.im:8080/</url>
-    <server>ipol_core</server>
+    <module>core</module>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/core/</path>
     <command>start</command>
     <command>stop</command>
@@ -51,13 +45,15 @@
     <command>ping</command>
   </module>
 
-  <module name="proxy">
-    <url>http://ipolcore.ipol.im:9003/</url>
-    <server>ipol_core</server>
-    <path>~/ipolDevel/ipol_demo/modules/proxy/</path>
+  <module name="dispatcher">
+    <module>dispatcher</module>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/dispatcher/</path>
     <command>start</command>
     <command>stop</command>
     <command>restart</command>
     <command>ping</command>
   </module>
+
 </data>

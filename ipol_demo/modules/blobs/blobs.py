@@ -144,7 +144,6 @@ class   Blobs(object):
         self.tmp_dir = cherrypy.config['tmp.dir']
         self.final_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
-        self.test_dir = cherrypy.config['test.dir']
 
         self.base_directory = os.getcwd()
         self.html_dir = os.path.join(self.base_directory,
