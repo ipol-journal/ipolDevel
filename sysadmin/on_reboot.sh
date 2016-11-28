@@ -4,7 +4,9 @@
 
 me=ipol #$(whoami)
 modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
-modules="core archive blobs demoinfo demorunner proxy"
+
+# File with the modules name
+modules="modules.txt"
 
 today=$(date)
 machine_hostname=$(hostname)
@@ -13,10 +15,12 @@ machine_hostname=$(hostname)
 /usr/sbin/nginx
 
 # Start every IPOL module
-for module in ${modules}
+while read -r module
 do
     sudo -u ${me} ${modulesDir}${module}/start.sh
-done
+done < ${modules}
+
+
 
 # Send report by email
 sendTo=$(cat /home/ipol/ipolDevel/sysadmin/email_tech.txt)
