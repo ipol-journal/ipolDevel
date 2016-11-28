@@ -11,7 +11,7 @@
 
   <demorunner name="dr1">
     <module>demorunner</module>
-    <server>ipolcore.ipol.im</server>
+    <server>ns6659661.ip-5-196-85.eu</server>
     <!--<capability>Matlab</capability>-->
     <serverSSH>ipol_dr1</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
