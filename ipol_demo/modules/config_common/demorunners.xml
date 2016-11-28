@@ -25,4 +25,12 @@
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
 
+  <demorunner name="dr_green">
+    <module>demorunner</module>
+    <server>green.hw.ipol.im</server>
+    <capability>Matlab</capability>
+    <serverSSH>ipol_green_dr</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+  </demorunner>
+
 </data>
