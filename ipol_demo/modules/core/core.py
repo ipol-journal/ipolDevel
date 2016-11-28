@@ -202,14 +202,14 @@ class Core(object):
             dr_wl = {}
             for dr_name in self.demorunners.keys():
 
-                try:
-                    cmd = "echo $(cat <(grep 'cpu ' /proc/stat) <(sleep 1 && grep 'cpu ' /proc/stat) | awk -v RS= '{print ($13-$2+$15-$4)*100/($13-$2+$15-$4+$16-$5)}')"
-                    output, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-                    print "The machine: {} have a workload of: {}%".format(dr_name,output.split()[0])
-                    dr_wl[dr_name] = output.split()[0]
-                except:
-                    self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
-                    dr_wl[dr_name] = 100.0
+                # try:
+                #     cmd = "echo $(cat <(grep 'cpu ' /proc/stat) <(sleep 1 && grep 'cpu ' /proc/stat) | awk -v RS= '{print ($13-$2+$15-$4)*100/($13-$2+$15-$4+$16-$5)}')"
+                #     output, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+                #     print "The machine: {} have a workload of: {}%".format(dr_name,output.split()[0])
+                #     dr_wl[dr_name] = output.split()[0]
+                # except:
+                #     self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
+                dr_wl[dr_name] = 12.3456789
 
         except Exception as ex:
             self.logger.exception("demorunners_workload")
