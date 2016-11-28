@@ -29,8 +29,8 @@ class Terminal(object):
     """
 
 
-    @staticmethod
-    def get_dict_modules():
+
+    def add_modules(self):
         """
         Return a dictionary of the differents IPOL modules as keys, and
         another dictionary as value, containing several keys: a url,
@@ -50,13 +50,40 @@ class Terminal(object):
                 list_tmp.append(command.text)
 
             list_tmp.append("info")
-            dict_tmp["url"] = module.find('url').text
             dict_tmp["server"] = module.find('server').text
+            dict_tmp["module"] = module.find('module').text
+            dict_tmp["serverSSH"] = module.find('serverSSH').text
             dict_tmp["path"] = module.find('path').text
             dict_tmp["commands"] = list_tmp
-            dict_modules[module.get('name')] = dict_tmp
+            self.dict_modules[module.get('name')] = dict_tmp
 
         return dict_modules
+
+    def add_demorunners(self):
+        """
+        Read demorunners xml
+        """
+        dict_demorunners = {}
+        tree = ET.parse("config_common/demorunners.xml")
+        root = tree.getroot()
+
+        list_tmp = []
+        for commands in root.findall('commands'):
+            for command in commands.findall('command'):
+                list_tmp.append(command.text)
+        list_tmp.append("info")
+        for demorunner in root.findall('demorunner'):
+            dict_tmp = {}
+            dict_tmp["server"] = demorunner.find('server').text
+            dict_tmp["module"] = demorunner.find('module').text
+            dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
+            dict_tmp["path"] = demorunner.find('path').text
+            dict_tmp["commands"] = list_tmp
+
+            self.dict_modules[demorunner.get('name')] = dict_tmp
+
+        return dict_demorunners
+
 
     @staticmethod
     def do_nothing(_dummy):
@@ -68,10 +95,16 @@ class Terminal(object):
 
     def __init__(self):
         # Read module's info
-        self.dict_modules = self.get_dict_modules()
-        
-        # Get pull server: the same as the proxy server
-        self.pull_server = self.dict_modules["proxy"]["server"]
+        self.dict_modules = {}
+
+        # Add to dict_modules the information in modules.xml and demorunners.xml
+        self.add_modules()
+        self.add_demorunners()
+
+        # Get pull servers
+        self.pull_servers = set()
+        for module in self.dict_modules.keys():
+            self.pull_servers.add(self.dict_modules[module]["serverSSH"])
 
 
     def get_active_modules(self):
@@ -119,19 +152,23 @@ class Terminal(object):
         if not self.check_module_input("ping", args_array):
             return
 
-        module = args_array[0]
+        name = args_array[0]
         try:
-	    json_response = urllib.urlopen(self.dict_modules[module]["url"] + "ping").read()
+            json_response = urllib.urlopen("http://{}/api/{}/ping".format(
+                self.dict_modules[name]["server"],
+                self.dict_modules[name]["module"]
+            )).read()
+
             response = json.loads(json_response)
             status = response['status']
             
             if status == "OK":
-                print module + "  (" + self.dict_modules[module]["url"] + ")" + ":  Module active, it says PONG!"
+                print name + "  (" + self.dict_modules[name]["server"] + ")" + ":  Module active, it says PONG!"
             else:
-                print module + "  (" + self.dict_modules[module]["url"] + ")" + " : JSON response is KO when making a PING"
+                print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when making a PING"
         
-        except IOError:
-            print module + "  (" + self.dict_modules[module]["url"] + ")" + " : Module unresponsive. "
+        except Exception:
+            print name + "  (" + self.dict_modules[name]["server"] + ")" + " : Module unresponsive. "
 
 
     def ping_all(self, _dummy):
@@ -150,19 +187,22 @@ class Terminal(object):
         if not self.check_module_input("stop", args_array):
             return
 
-        module = args_array[0]
+        name = args_array[0]
         try:
-            json_response = urllib.urlopen(self.dict_modules[module]["url"] + "shutdown").read()
+            json_response = urllib.urlopen("http://{}/api/{}/shutdown".format(
+                self.dict_modules[name]["server"],
+                self.dict_modules[name]["module"]
+            )).read()
             response = json.loads(json_response)
             status = response['status']
             
             if status == "OK":
-                print module + "  (" + self.dict_modules[module]["url"] + ")" + " is shut down."
+                print name + "  (" + self.dict_modules[name]["server"] + ")" + " is shut down."
             else:
-                print module + "  (" + self.dict_modules[module]["url"] + ")" + " : JSON response is KO when shutting down the module"
+                print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when shutting down the module"
 
-        except IOError:
-            print module + "  (" + self.dict_modules[module]["url"] + ")" + " stop : service unreachable. "
+        except Exception:
+            print name + "  (" + self.dict_modules[name]["server"] + ")" + " stop : service unreachable. "
 
 
     def start_module(self, args_array):
@@ -175,7 +215,7 @@ class Terminal(object):
         module = args_array[0]
         try:
             cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
-            os.system("ssh " + self.dict_modules[module]["server"] + cmd + "&")
+            os.system("ssh " + self.dict_modules[module]["serverSSH"] + cmd)
             print module + " started, try to ping it."
         except Exception as ex:
             print ex
@@ -234,15 +274,32 @@ class Terminal(object):
         """
         Help of the terminal
         """
-        print "Please read the documentation."
+        print """List of availables commands:
+    startall          : Start all IPOL modules
+    start <module>    : Start selected module
+    stopall           : Stop all IPOL modules
+    stop <module>     : Stop selected module
+    restart <module>  : Restart selected module
+    pingall           : Ping all IPOL modules
+    ping <module>     : Ping selected module
+    info <module>     : List of the available commands for selected module
+    modules           : List all IPOL modules
+    pull              : Git PULL
+    help              : List available commands
+    exit              : Exit the terminal
+    """
+        print "For more detailed information please read the documentation."
 
 
     def pull(self, _dummy):
         """
-        Ssh into server and pull.
+        Ssh into servers and pull.
         """
-        os.system("ssh {} \"cd ipolDevel && git pull\"".\
-          format(self.pull_server))
+        for server in self.pull_servers:
+            print "\t * Pulling from {}".format(server)
+            os.system("ssh {} \"cd ipolDevel && git pull\"".\
+              format(server))
+            print
 
     def exec_loop(self):
         """

@@ -67,6 +67,7 @@ IPOL_SERVICES_MODULE_PROXY = None
 IPOL_SERVICES_MODULE_ACHIVE = None
 IPOL_SERVICES_MODULE_BLOBS = None
 IPOL_SERVICES_MODULE_DEMOINFO = None
+HOST_NAME = None
 
 if hostname in local_machines:
 	SITE_ID = 2
@@ -85,9 +86,10 @@ if hostname in local_machines:
 	####################################
 	#            IPOL WS               #
 	####################################
+	HOST_NAME = '127.0.1.1'
 	#Local ENV
 	IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
-	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
+	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
 	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
 	#urls to access the modules by proxy
 	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
@@ -117,6 +119,7 @@ elif hostname in dev_machines_hostname:
 	####################################
 	#            IPOL WS               #
 	####################################
+	HOST_NAME = 'ns3018037.ip-151-80-24.eu'
 	# testing ENV 2
 	IPOL_SERVICES_MODULE_DEMO = None
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
@@ -147,6 +150,8 @@ elif hostname in production_machines:
 	####################################
 	#            IPOL WS               #
 	####################################
+	HOST_NAME = 'myproductionurl'
+
 	IPOL_SERVICES_MODULE_DEMO = None
 	IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
 	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
