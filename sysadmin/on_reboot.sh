@@ -7,7 +7,7 @@ modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
 sharedFolder="/home/${me}/ipolDevel/shared_folder"
 
 # File with the modules name
-modules="modules.txt"
+modules="/home/${me}/ipolDevel/sysadmin/modules.txt"
 
 today=$(date)
 machine_hostname=$(hostname)
