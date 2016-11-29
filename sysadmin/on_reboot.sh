@@ -4,6 +4,7 @@
 
 me=ipol #$(whoami)
 modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
+sharedFolder="/home/${me}/ipolDevel/shared_folder"
 
 # File with the modules name
 modules="modules.txt"
@@ -20,6 +21,11 @@ do
     sudo -u ${me} ${modulesDir}${module}/start.sh
 done < ${modules}
 
+# Mount shared folder
+if [ $(hostname) != "ipol_core" ]
+then
+    sudo -u ${me} sshfs ipol_core:$sharedFolder $sharedFolder
+fi
 
 
 # Send report by email
