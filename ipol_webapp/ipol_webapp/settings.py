@@ -150,7 +150,7 @@ elif hostname in production_machines:
 	####################################
 	#            IPOL WS               #
 	####################################
-	HOST_NAME = 'myproductionurl'
+	HOST_NAME = 'ipolcore.ipol.im'
 
 	IPOL_SERVICES_MODULE_DEMO = None
 	IPOL_SERVICES_MODULE_PROXY = 'http://ipolcore.ipol.im:9003/%s'
