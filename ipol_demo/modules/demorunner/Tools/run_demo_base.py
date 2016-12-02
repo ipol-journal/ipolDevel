@@ -1,7 +1,13 @@
 import os
+from os import path
 from subprocess import Popen
+import subprocess
 import time
 import re
+import math
+# importing image for python commands in DDL scripts
+from image import image
+import PIL
 
 #-----------------------------------------------------------------------------
 from threading import Lock
@@ -121,7 +127,10 @@ class RunDemoBase:
   def run_algorithm(self, timeout=False):
     """
     the core algo runner
+    could also be called by a batch processor
     """
+
+    lock = Lock()
 
     # convert parameters to variables
     for _k_ in self.algo_params:
@@ -170,7 +179,9 @@ class RunDemoBase:
           # python commands start with "python:"
           if subcmd.startswith('python:'):
             print "Running python command ",subcmd[7:]
-            exec(subcmd[7:])
+            with lock:
+              os.chdir(self.work_dir)
+              exec(subcmd[7:])
             continue
 
           # get argument list, but keep strings
@@ -252,18 +263,15 @@ class RunDemoBase:
 
           last_shell_cmd = ' '.join(args)
           shell_cmds.write(last_shell_cmd+'\n')
-
           try:
             print "running ",repr(args[:last_arg_pos+1])
             self.log("running %s" % repr(args[:last_arg_pos+1]),
                       context='SETUP/%s' % self.get_demo_id(),
                       traceback=False)
 
-            lock = Lock()
             with lock:
               os.chdir(self.work_dir)
               p = self.run_proc(args[:last_arg_pos+1], stdout=stdout_file, stderr=stderr_file)
-
             self.wait_proc(p)
           except ValueError as e:
             self.log("Error %s" % e,
@@ -296,7 +304,6 @@ class RunDemoBase:
         print "failed to get back parameter ",_k_
 
     shell_cmds.close()
-
 
   def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
     """
