@@ -227,11 +227,12 @@ class Policy(object):
             return demorunners
 
         suitable_demorunners = []
+        requirements = requirements.lower().split(',')
 
         for dr in demorunners:
-            if len(requirements.split(',')) > 0:
-                requirements = requirements.split(',')
-            if all([i in dr.capabilities for i in requirements]):
+            dr_capabilities = [cap.lower().strip() for cap in dr.capabilities]
+
+            if all([req.strip() in dr_capabilities for req in requirements]):
                 suitable_demorunners.append(dr)
 
         return suitable_demorunners
