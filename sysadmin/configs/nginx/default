@@ -3,6 +3,9 @@
 ##
 server {
 	listen 80;
+        proxy_send_timeout          600;
+        proxy_read_timeout          600;
+        send_timeout                600;
 
 	# Change this variable with your own user name
 	set $my_user carlos;
@@ -24,35 +27,47 @@ server {
 	# CORE
 	location /api/core/{
 		rewrite ^/api/core/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
 		proxy_pass  http://$host:8080;
 	}
 
 	# BLOBS
 	location /api/blobs/ {
 		rewrite ^/api/blobs/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
 		proxy_pass  http://$host:9001;
 	}
 
 	# ARCHIVE
 	location /api/archive/ {
 		rewrite ^/api/archive/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
 		proxy_pass  http://$host:9000;
 	}
 
 	# DEMOINFO
 	location /api/demoinfo/ {
 		rewrite ^/api/demoinfo/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
 		proxy_pass  http://$host:9002;
 	}
 
 	# CP
 	location /cp/ {
 		add_header X-debug-message "$host" always;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
 		proxy_pass http://$host:8000;
 	}
 
 	location /  {
         	return  301 /demo/;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
         	proxy_pass  http://$host:8080;
    	}
 }

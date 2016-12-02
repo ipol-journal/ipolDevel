@@ -1,0 +1,11 @@
+\section{Dispatcher module}
+\label{sec:Dispatcher}
+In order to distribute the load in several machines, this module is responsible to assign a demorunner according to a policy and the given requirements. 
+The creation of those policies is made by the Factory Method, allowing the implementation and assignment of new policies in an easy way.
+Until now the implemented policies are:
+
+\begin{itemize}
+\item \textbf{Random Policy:} this policy assigns a random demorunner from the available demorunners list that matches the requirements 
+\item \textbf{Sequential Policy:} this policy iterates from the available demorunners list that matches the requirements 
+\item \textbf{Lowest Workload Policy:} this policy assigns the demorunner with the lowest workload from the available demorunners list that matches the requirements 
+\end{itemize}

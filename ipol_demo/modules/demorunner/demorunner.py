@@ -101,17 +101,15 @@ class DemoRunner(object):
         """
         Initialize DemoRunner
         """
-        self.current_directory = os.getcwd()
+        base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
-        self.main_bin_dir  = os.path.join(self.current_directory, cherrypy.config['main.bin.dir'])
+        self.main_bin_dir  = os.path.join(base_dir, cherrypy.config['main.bin.dir'])
         self.main_log_dir  = cherrypy.config['main.log.dir']
         self.main_log_name = cherrypy.config['main.log.name']
         self.share_demoExtras_dir = cherrypy.config['share.demoExtras.dir']
+        self.MATLAB_path = cherrypy.config['demo.matlab_path']
         self.log_file = os.path.join(self.main_log_dir, self.main_log_name)
-        
-        self.server_address=  'http://{0}:{1}'.format(
-                                  cherrypy.config['server.socket_host'],
-                                  cherrypy.config['server.socket_port'])
+
         self.png_compresslevel=1
         self.stack_depth = 0
         
@@ -505,12 +503,15 @@ class DemoRunner(object):
             res_data['status'] = 'KO'
             res_data['error'] = 'timeout'
             self.logger.exception("exec_and_wait")
+            return json.dumps(res_data)
         except RuntimeError as e:
             res_data['status']   = 'KO'
             res_data['algo_info']['status']   = 'IPOLTimeoutError'
             res_data['algo_info']['run_time'] = time.time() - run_time
-            res_data['error']    = "DR RuntimeError in self.run_algo"
+            res_data['error']    = "DR RuntimeError in run_algo"
             self.logger.exception("exec_and_wait")
+            print res_data
+            return json.dumps(res_data)
         
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -565,7 +566,7 @@ class DemoRunner(object):
             rd.set_algo_params(params)
             rd.set_algo_info  (res_data['algo_info'])
             rd.set_algo_meta  (res_data['algo_meta'])
-            #rd.set_MATLAB_path(self.get_MATLAB_path())  ---> We have to deal with MATLAB in the future
+            rd.set_MATLAB_path(self.MATLAB_path)
             rd.set_demo_id(demo_id)
             rd.set_commands(ddl_run)
             

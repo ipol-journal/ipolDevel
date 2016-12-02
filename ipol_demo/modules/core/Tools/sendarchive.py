@@ -126,7 +126,7 @@ class SendArchive:
         
         try:
             userdata = {"demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters) }
-            url = '{0}/api/{1}/{2}'.format(
+            url = 'http://{}/api/{}/{}'.format(
                 host_name,
                 'archive',
                 'add_experiment'

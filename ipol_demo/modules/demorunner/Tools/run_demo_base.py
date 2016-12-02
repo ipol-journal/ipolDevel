@@ -10,6 +10,9 @@ from image import image
 import PIL
 
 #-----------------------------------------------------------------------------
+from threading import Lock
+
+
 class IPOLTimeoutError(Exception):
   def __init__(self, value=None):
     self.value = value
@@ -36,7 +39,7 @@ class RunDemoBase:
   def __init__(self,base_dir, work_dir):
     self.base_dir    = base_dir
     self.work_dir    = work_dir
-    
+
     self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)),'PythonTools/')
     self.bin_dir      = os.path.join(base_dir,'bin/')
     self.scripts_dir  = os.path.join(base_dir,'scripts/')
@@ -46,7 +49,7 @@ class RunDemoBase:
     self.logger       = None
     self.MATLAB_path  = None
     self.demo_id      = None
-  
+
   #-----------------------------------------------------------------------------
   # set the running commands as a dictionnary (usually read from JSON file)
   def set_commands(self,commands):
@@ -88,17 +91,17 @@ class RunDemoBase:
   #-----------------------------------------------------------------------------
   def set_extra_path(self,p):
     self.extra_path = p
-    
+
   #-----------------------------------------------------------------------------
   def get_extra_path(self):
     try:
       return self.extra_path
     except:
       return None
-    
+
   #-----------------------------------------------------------------------------
   def set_MATLAB_path(self,p):
-    self.MATH_path = p
+    self.MATLAB_path = p
 
   #-----------------------------------------------------------------------------
   def get_MATLAB_path(self):
@@ -107,18 +110,18 @@ class RunDemoBase:
   #-----------------------------------------------------------------------------
   def set_logger(self,logger):
     self.logger = logger
-    
+
   #-----------------------------------------------------------------------------
   def log(self,*args, **kwargs):
     if self.logger!=None:
       return self.logger(*args,**kwargs)
-  
+
   #------------------- demoextras functions ------------------------------------
   def set_share_demoExtras_dirs(self, share_demoExtras_dir, demo_id):
       self.main_demoExtras_Folder = os.path.join(share_demoExtras_dir, demo_id)
-      
+
   def get_demoExtras_main_folder(self):
-      return self.main_demoExtras_Folder  
+      return self.main_demoExtras_Folder
 
   #-----------------------------------------------------------------------------
   def run_algorithm(self, timeout=False):
@@ -127,42 +130,33 @@ class RunDemoBase:
     could also be called by a batch processor
     """
 
-    # ToDo
-    # [Miguel]: check if the mechanism used with current_working_dir is
-    # causing a race condition!
+    lock = Lock()
 
-    try:
-      current_working_dir = os.getcwd()
-    except:
-      current_working_dir = None
-
-    os.chdir(self.work_dir)
-    
     # convert parameters to variables
     for _k_ in self.algo_params:
       exec("{0} = {1}".format(_k_,repr(self.algo_params[_k_])))
     #convert meta info to variables
     for _k_ in self.algo_meta:
       exec("{0} = {1}".format(_k_,repr(self.algo_meta[_k_])))
-    
-    
+
+
     demoextras    = self.get_demoExtras_main_folder()
     #scriptsCommon = self.ipol_scripts
-    
+
     ## there is a problem in Python, seems that locals() should not be modified
     ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
     #locals().update(self.algo_params)
     #locals().update(self.algo_meta)
-    
+
     # if run several commands, is it in series?
     # TODO: deal with timeout for each command
-    
-    
-    
+
+
+
     # saving all shell commands in a text file
     shell_cmds = open(self.work_dir+"shell_cmds.txt", "w")
     last_shell_cmd = ""
-    
+
     for cmd in self.commands:
       # check if command is an array
       run_cmd=True
@@ -173,11 +167,11 @@ class RunDemoBase:
         cmds = cmd[1:]
       else:
         cmds = [ cmd ]
-        
+
       if run_cmd:
         for subcmd in cmds:
           print "subcmd = ", subcmd
-          
+
           # accept # for comments
           if subcmd.startswith('#'):
               continue
@@ -185,9 +179,11 @@ class RunDemoBase:
           # python commands start with "python:"
           if subcmd.startswith('python:'):
             print "Running python command ",subcmd[7:]
-            exec(subcmd[7:])
+            with lock:
+              os.chdir(self.work_dir)
+              exec(subcmd[7:])
             continue
-          
+
           # get argument list, but keep strings
           args = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', subcmd)
           stdout_file = None
@@ -199,7 +195,7 @@ class RunDemoBase:
             print p
             # strip double quotes
             args[i] = p.strip('"')
-            
+
             # 1 replace simple variables
             v = re.search(r'\$\w+',p)
             # more complicate, search all variables and replace them
@@ -213,7 +209,7 @@ class RunDemoBase:
                         break
                     v = re.search(r'\$\w+',p)
                 args[i] = p
-              
+
             # 2 replace more complex expressions, of type ${expression},
             # where expression does not contain '{' or '}' characters
             v = re.search(r'\$\{[^\{\}]*\}',p)
@@ -229,7 +225,7 @@ class RunDemoBase:
                         break
                 args[i] = p
 
-            # output file >filename 
+            # output file >filename
             if p[0]=='>':
               try:
                 if p[1]=='>':
@@ -242,14 +238,14 @@ class RunDemoBase:
                 print "failed"
                 stdout_file = None
               last_arg_pos = min(last_arg_pos,i-1)
-              
+
             # output file >filename finishes also the build command
             if p[:2]=="2>":
               # redirect errors to stdout
               if p=='2>&1':
                 stderr_file = stdout_file
               else:
-                # allow 2>> 
+                # allow 2>>
                 if p[2]=='>':
                     startpos=3
                     openmode='a'
@@ -264,20 +260,22 @@ class RunDemoBase:
                   print "failed"
                   stderr_file = None
                 last_arg_pos = min(last_arg_pos,i-1)
-              
+
           last_shell_cmd = ' '.join(args)
           shell_cmds.write(last_shell_cmd+'\n')
-              
           try:
             print "running ",repr(args[:last_arg_pos+1])
             self.log("running %s" % repr(args[:last_arg_pos+1]),
-                      context='SETUP/%s' % self.get_demo_id(), 
+                      context='SETUP/%s' % self.get_demo_id(),
                       traceback=False)
-            p = self.run_proc(args[:last_arg_pos+1], stdout=stdout_file, stderr=stderr_file)
+
+            with lock:
+              os.chdir(self.work_dir)
+              p = self.run_proc(args[:last_arg_pos+1], stdout=stdout_file, stderr=stderr_file)
             self.wait_proc(p)
           except ValueError as e:
             self.log("Error %s" % e,
-                      context='SETUP/%s' % self.get_demo_id(), 
+                      context='SETUP/%s' % self.get_demo_id(),
                       traceback=False)
           except RuntimeError as e:
             print "**** run_algo: RuntimeError "
@@ -289,28 +287,23 @@ class RunDemoBase:
             else:
               errors= "%s" %e
             raise RuntimeError(errors)
-            
+
           # the files should close automatically with their scope ...
           # but we do it anyway just in case
           if stderr_file!=None:
             stderr_file.close()
           if stdout_file!=None:
             stdout_file.close()
-      
-    # convert back variables to parameters 
+
+    # convert back variables to parameters
     for _k_ in self.algo_params:
       try:
         cmd = "self.algo_params['{0}'] = {0}".format(_k_)
         exec(cmd)
       except:
         print "failed to get back parameter ",_k_
-      
+
     shell_cmds.close()
-    
-    # set back previous working directory
-    if current_working_dir is not None:
-        os.chdir(current_working_dir)
-  
 
   def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
     """
@@ -322,38 +315,34 @@ class RunDemoBase:
     newenv = os.environ.copy()
     # add local environment settings
     newenv.update(env)
-    
-    demoExtras = {}
-    demoExtras['demoextras']    = self.get_demoExtras_main_folder()
-    #demoExtras['scriptsCommon'] = self.ipol_scripts
-    newenv.update(demoExtras)
+
+    newenv.update({'demoextras': self.get_demoExtras_main_folder()})
+    newenv.update({'matlab_path': self.get_MATLAB_path()})
 
     # TODO clear the PATH, hard-rewrite the exec arg0
     # TODO use shell-string execution
 
     # Add PATH in configuration
+    # [Miguel] ToDo it seems that this is useless.
+    # IT should use only self.get_extra_path()
     path = self.bin_dir
     path +=":/bin:/usr/bin:/usr/local/bin"
     path += ":" + self.ipol_scripts #scripts of PythonTools
-    
-    
-    ###TODO: Remove these lines when the DDL's are correct 
+
+
+    ###TODO: Remove these lines when the DDL's are correct
     # We are only using these for the moment
     # We do not want to break the old system yet...
     path += ":" + self.scripts_dir
     path += ":" + self.python_dir #Scripts of the demo
-    
-    
+
+
     # Check if there are extra paths
-    if self.get_extra_path()!=None:
+    if self.get_extra_path() is not None:
       path += ":" + self.get_extra_path()
-      
-    p = self.get_MATLAB_path()
-    if not (p is None):
-      path += ":" + p
-    
-    newenv.update({'PATH' : path, 'LD_LIBRARY_PATH' : self.bin_dir})
-    
+
+    newenv.update({'PATH': path, 'LD_LIBRARY_PATH': self.bin_dir})
+
     # run
     return Popen(args,  stdin=stdin, stdout=stdout, stderr=stderr,
                         env=newenv, cwd=self.work_dir)
@@ -395,7 +384,7 @@ class RunDemoBase:
             pass
         raise IPOLTimeoutError(timeout)
       time.sleep(0.1)
-          
+
     if any([0 != p.returncode for p in process_list]):
       raise RuntimeError
     return
