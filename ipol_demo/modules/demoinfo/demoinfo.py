@@ -33,16 +33,17 @@ LOGNAME = "demoinfo_log"
 
 class DemoInfo(object):
     """
-    Implement the demoinfo web pages and webservices.
+    Implement the demoinfo webservices.
     """
 
     def __init__(self, configfile=None):
         """
-        Initialization function.
+        Constructor.
         """
 
         # Cherrypy Conf
         if not configfile:
+            sys.stderr.write("Config file not found, terminating.")
             sys.exit(1)
         else:
             cherrypy.config.update(configfile)
@@ -106,7 +107,6 @@ class DemoInfo(object):
     def check_config():
         """
         Check if needed datas exist correctly in the config of cherrypy.
-        :rtype: bool
         """
         if not (cherrypy.config.has_key("database_dir") and
                 cherrypy.config.has_key("database_name") and
@@ -133,7 +133,7 @@ class DemoInfo(object):
 
     def error_log(self, function_name, error):
         """
-        Write an error log in the logs_dir defined in archive.conf
+        Write a message to the error log.
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
@@ -153,8 +153,7 @@ class DemoInfo(object):
 
     def get_compressed_file_url(self, demo_id):
         """
-        :param demo_id: demo id integer
-        :return:        dictionary with the url or failure if file does not exist
+        Get url of compressed file for given demo_id.
         """
         data = {}
         data['status'] = "OK"
@@ -191,8 +190,6 @@ class DemoInfo(object):
     def delete_compressed_file_ws(self, demo_id):
         """
         WS for deleting the compressed demo extra file of a demo
-        :param demo_id: demo id integer
-        :return status
         """
         data = {}
         data['status'] = "OK"
@@ -210,8 +207,6 @@ class DemoInfo(object):
     def add_compressed_file_ws(self, demo_id, **kwargs):
         """
         WS for add a new compressed demo extra file to a demo
-        :param demo_id: demo id integer file_0: file
-        :return status
         """
         data = {}
         data['status'] = "KO"
@@ -242,11 +237,8 @@ class DemoInfo(object):
     @cherrypy.expose
     def get_file_updated_state(self, demo_id, time_of_file_in_core, size_of_file_in_core):
         """
-        :param demo_id:              demo id integer
-        :param time_of_file_in_core
-        :return:        dictionary with the url or failure if file does not exist
+        Webservice returning state of compressed file.
         """
-        print "Entering in get_file_updated_state"
 
         data = self.get_compressed_file_url(demo_id)
 
@@ -276,7 +268,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_list(self):
         """
-        return the list of the demos of the db
+        Return the list of the demos of the module.
         """
         data = {}
         data["status"] = "KO"
@@ -307,9 +299,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_list_by_demoeditorid(self, demoeditorid_list):
         """
-        demoeditorid_list is a list of demo_editor_id's IN JSON FORMAT,
-        the unique id that identifies demos across all modules
-        , given this list of ids, return the demo's metinfo
+        return demo metainformation from list of demo editor id.
         """
 
         data = {}
@@ -456,7 +446,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_get_authors_list(self, demo_id):
         """
-        return the author list of a demo
+        return the list of authors of a given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -489,7 +479,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_get_available_authors_list(self, demo_id):
         """
-        list all authors that are not currently assigned to a demo
+        return the list of all authors that are not currently assigned to a given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -531,7 +521,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_get_editors_list(self, demo_id):
         """
-        webservice listing editors of a given demo.
+        return the editors of a given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -564,7 +554,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_get_available_editors_list(self, demo_id):
         """
-        webservice listing all editors that are not currently assigned to a demo
+        return all editors that are not currently assigned to a given demo
         """
         data = {}
         data["status"] = "KO"
@@ -605,7 +595,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def demo_get_demodescriptions_list(self, demo_id, returnjsons=None):
         """
-        webservice returning descriptions
+        return the descriptions of a given demo id.
         """
         data = {}
         data["status"] = "KO"
@@ -641,7 +631,7 @@ class DemoInfo(object):
 
     def read_demo(self, demoid):
         """
-        get demo DAO by id in demo table.
+        Return DAO for given demo.
         """
         demo = None
         try:
@@ -661,7 +651,7 @@ class DemoInfo(object):
 
     def read_demo_by_editordemoid(self, editor_demo_id):
         """
-        get demo DAO by id in editor_demo junction table.
+        return the demo DAO from a given association between editor and demo.
         """
         demo = None
         try:
@@ -682,7 +672,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def read_demo_metainfo(self, demoid):
         """
-        webservice returning metainfo of demo.
+        return metainfo of given demo.
         """
         data = dict()
         data["status"] = "KO"
@@ -719,7 +709,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def read_demo_metainfo_by_editordemoid(self, editordemoid):
         """
-        webservice returning metainfo of demo.
+        return metainfo of a demo from a given association between an editor and a demo.
         """
         data = dict()
         data["status"] = "KO"
@@ -825,7 +815,7 @@ class DemoInfo(object):
     @cherrypy.tools.allow(methods=['POST']) #allow only post
     def delete_demo(self, demo_id, hard_delete=False):
         """
-        webservice deleting demo from demo_id
+        webservice deleting given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -1894,7 +1884,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def ping():
         """
-        answer pong if the module is up.
+        Return a simple information. Meant to check if the module is running.
         """
         data = {}
         data["status"] = "OK"
@@ -1957,7 +1947,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def read_states(self):
         """
-        get the id of the demos and their states.
+        Returns the list of defined demo states.
         """
         data = {}
         state_list = list()
