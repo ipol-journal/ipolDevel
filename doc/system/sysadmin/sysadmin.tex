@@ -26,8 +26,8 @@ To execute each month, the following line needs to be added with {\tt crontab -e
 
 {\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
 
-- Reboot. The script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules and nginx on reboot and send an email to inform about the reboot. 
-To execute it, the following line needs to be added with {\tt crontab -e} as root.
+- Reboot. The script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules, nginx and the shared folder if is not in the core machine
+ on reboot and send an email to inform about the reboot. To execute it, the following line needs to be added with {\tt crontab -e} as root.
 
 {\tt @reboot ipolDevel/sysadmin/on\_reboot.sh}
 
@@ -279,9 +279,30 @@ include /etc/nginx/sites-enabled/*;
 \begin{enumerate}
 \item Listening port. The port to serve the site with static files. E.g.: 8000
 \item Server name. E.g.: ipolcore.ipol.im
-\item A resolver, necessary to set variables in the configuration. E.g.: 213.186.33.99
+\item A resolver, necessary to set variables in the configuration for Debian distributions.
+\begin{lstlisting}[language=Bash]
+resolver 213.186.33.99;
+\end{lstlisting}
+\item Increase timeout for send and receive requests.
+\begin{lstlisting}[language=Bash]
+proxy_send_timeout	600;
+proxy_read_timeout	600;
+send_timeout		600;
+\end{lstlisting}
 \item Access log absolute location.
+\item A location for each module.
+\begin{lstlisting}[language=Bash]
+location /api/<module>/ {
+  rewrite ^/api/<module>/(.*) /$1 break;
+  proxy_pass  http://$host:<port>;
+}
+\end{lstlisting}
 \item Static files absolute location.
+\begin{lstlisting}[language=Bash]
+location /cp/static/ {
+  alias  /home/<user>/IPOLWEBAPP_STATIC/;
+}
+\end{lstlisting}
 \item Proxy pass, using upstream name configured previously.
 E.g.:
 \begin{lstlisting}[language=Bash]

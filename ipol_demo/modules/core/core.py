@@ -58,14 +58,16 @@ class Core(object):
     """
     Core index used as the root app
     """
-    
+
     def init_logging(self):
         """
         Initialize the error logs of the module.
         """
-        logger = logging.getLogger(self.logs_dir)
+        logs_dir_abs = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.logs_dir_rel)
+        self.mkdir_p(logs_dir_abs)
+        logger = logging.getLogger(logs_dir_abs)
         logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler(os.path.join(self.logs_dir, self.logs_name))
+        handler = logging.FileHandler(os.path.join(logs_dir_abs, self.logs_name))
         formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -79,46 +81,40 @@ class Core(object):
         self.logger.error(error_string)
 
     def __init__(self):
-        
+
         try:
             self.host_name = cherrypy.config['server.socket_host']
-            self.server_address=  'http://{0}:{1}'.format(
-                                  cherrypy.config['server.socket_host'],
-                                  cherrypy.config['server.socket_port'])
-            
+
+
             # Read configuration file
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
-            self.logs_dir = cherrypy.config.get("logs.dir")
+            self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
-            self.mkdir_p(self.logs_dir)
             self.logger = self.init_logging()
 
-            self.main_shared_folder  = cherrypy.config.get("main_shared_folder")
+            self.project_folder  = cherrypy.config.get("project_folder")
             self.blobs_folder      = cherrypy.config.get("blobs_folder")
-            self.shared_folder       = cherrypy.config.get("shared_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
-            self.share_run_dir     = cherrypy.config.get("running.dir")
-            self.dl_extras_dir     = cherrypy.config.get("dl_extras_dir")
-            self.demoExtrasMainDir = cherrypy.config.get("demoExtrasDir")
 
-            self.main_shared_folder  = os.path.join(self.main_shared_folder, self.shared_folder)
+            self.shared_folder_rel  = cherrypy.config.get("shared_folder")
+            self.shared_folder_abs  = os.path.join(self.project_folder, self.shared_folder_rel)
+            self.demoExtrasMainDir = os.path.join(self.shared_folder_abs, cherrypy.config.get("demoExtrasDir"))
+            self.dl_extras_dir     = os.path.join(self.shared_folder_abs, cherrypy.config.get("dl_extras_dir"))
+            self.share_run_dir_rel     = cherrypy.config.get("running.dir")
+            self.share_run_dir_abs     = os.path.join(self.shared_folder_abs, self.share_run_dir_rel)
 
             self.load_demorunners()
 
             #Create shared folder if not exist
-            self.mkdir_p(self.main_shared_folder)
-
-            core_dir = os.getcwd()
-            os.chdir(self.main_shared_folder)
+            self.mkdir_p(self.shared_folder_abs)
 
             #create running dir and demoextras dirs
-            self.mkdir_p(self.share_run_dir)
+            self.mkdir_p(self.share_run_dir_abs)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
             #return to core
-            os.chdir(core_dir)
             
             # Configure
             self.png_compresslevel=1
@@ -449,15 +445,11 @@ class Core(object):
         print "#### crop_input ####"
         # for the moment, we can only crop the first image
         crop_start = timer()
-        res_data = {}
-        res_data['info'] = ""
         
         if idx!=0:
-            res_data["status"] = "KO"
-            return res_data
+            return False, None
         
-        cropped_filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
-        res_data['filename'] = cropped_filename
+        filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
 
         print "crop_info = {0}".format(crop_info)
         crop_info = json.loads(crop_info)
@@ -474,7 +466,6 @@ class Core(object):
                 max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
-                start=timer()
                 img.crop((x0, y0, x1, y1))
                 print " img.crop took: {0} seconds;".format(timer()-start)
                 # resize if cropped image is too big
@@ -485,25 +476,12 @@ class Core(object):
                 self.save_image(img,cropped_filename)
 
             except ValueError as e:
-                traceback.print_exc()
-                res_data["status"] = "KO"
-                res_data['info'] += " cropping failed with exception;"
-                # TODO deal with errors in a clean way
-                raise cherrypy.HTTPError(400, # Bad Request
-                                            "Incorrect parameters, " +
-                                            "image cropping failed.")
-                return res_data
+                return False, None
+
         else:
-            res_data["status"]  = "KO"
-            res_data['info'] += " no cropping area selected;"
-            return res_data
+            return False, None
         
-        res_data["status"] = "OK"
-        end=timer()
-        res_data["info"]   += " crop_input took: {0} seconds;".format(end-crop_start)
-        print " crop_input took: {0} seconds;".format(end-crop_start)
-        
-        return res_data
+        return True, filename
 
     
     def process_inputs(self, work_dir, inputs_desc, crop_info=None, res_data=None):
@@ -565,11 +543,10 @@ class Core(object):
             ##-----------------------------
             ## convert to the expected input format: TODO: do it if needed ...
             if crop_info!=None:
-                crop_res = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
-                res_data['info'] += crop_res['info']
+                status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
                 
-                if crop_res['status']=="OK":
-                    im_converted = image(crop_res['filename'])
+                if status:
+                    im_converted = image(filename)
                     im_converted_filename = 'input_%i.crop.png' % i
                 else:
                     im_converted = im.clone()
@@ -614,12 +591,7 @@ class Core(object):
         # for compatibility with previous system, create input_0.sel.png
         # as symbolic link
         os.symlink('input_0.png', os.path.join(work_dir,'input_0.sel.png'))
-        res_data["info"] += " process_inputs() "
-        
-        res_data["max_width"]  = max_width
-        res_data["max_height"] = max_height
-        
-        return msg
+
 
     
     def input_upload(self, work_dir, blobs, inputs_desc, crop_info=None, **kwargs):
@@ -629,8 +601,6 @@ class Core(object):
         ddl_input is the input section of the demo description
         """
         print "#### input_upload ####"
-        res_data = {}
-        res_data['info'] = ''
         
         print "inputs_desc = ",inputs_desc
         nb_inputs = len(inputs_desc)
@@ -662,19 +632,13 @@ class Core(object):
             size += len(data)
             if 'max_weight' in inputs_desc[i] and size > eval(str(inputs_desc[i]['max_weight'])):
                 # file too heavy
-                res_data['status'] = 'KO'
-                res_data['info'] = "File too large, resize or use better compression"
                 raise cherrypy.HTTPError(400, # Bad Request
                                           "File too large, " +
                                           "resize or use better compression")
-                return res_data
             
             file_save.write(data)
           file_save.close()
-        
-        res_data['status'] = 'OK'
-        
-        return res_data
+
     
     def input_select_and_crop(self, work_dir, blob_physical_location, blobs, crop_info=None):
         """
@@ -685,8 +649,6 @@ class Core(object):
         print "#### input_select_and_crop begin ####"
         start = timer()
 
-        res_data = {}
-        res_data['info'] = ''
         nb_inputs = len(blobs)
         # copy to work_dir
         blobfile = urllib.URLopener()
@@ -697,8 +659,6 @@ class Core(object):
                 shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
             except Exception as ex:
                 print ex
-
-        return res_data
 
     ##---------------
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
@@ -784,9 +744,6 @@ class Core(object):
         """
         print "### Ensuring demo extras... ##"
         
-        core_dir = os.getcwd()
-        os.chdir(self.main_shared_folder)
-        
         ddl_extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
         compressed_file = os.path.join(ddl_extras_folder, self.demoExtrasFilename)
 
@@ -835,12 +792,13 @@ class Core(object):
                 
                 else:
                     print "Failure requesting the demo_extras file from demoinfo. Failure code -> " + response['code'] 
-                    os.chdir(core_dir)
-                    return response 
+                    return response
             else:
                 download_compressed_file = True
         else:
+            print ddl_extras_folder
             self.mkdir_p(ddl_extras_folder)
+
             download_compressed_file = True
             
         
@@ -873,8 +831,7 @@ class Core(object):
                 else:
                     print "Failure downloading the demo_extras from demoinfo. Failure code -> " + response['code']        
         
-        os.chdir(core_dir)
-        
+
         return response
 
 
@@ -887,30 +844,14 @@ class Core(object):
         res_data = {}
         
         if input_type == 'upload':
-            res_data = self.input_upload(work_dir, blobs, ddl_inputs, crop_info) 
-            
-            if res_data['status'] == 'KO':
-                return res_data
-
+            res_data = self.input_upload(work_dir, blobs, ddl_inputs, crop_info)
         elif input_type == 'blobset':
-
-            # blob_url = blobs['url']
             blob_physical_location = blobs['physical_location']
             del blobs['url']
-            res_data = self.input_select_and_crop(work_dir, blob_physical_location, blobs, crop_info)
+            self.input_select_and_crop(work_dir, blob_physical_location, blobs, crop_info)
         
-        msg = self.process_inputs(work_dir, ddl_inputs, crop_info, res_data)
+        self.process_inputs(work_dir, ddl_inputs, crop_info, res_data)
 
-        # [ToDo] [Miguel]: this method is not a service. Composing these
-        # messages should be the responsibility of the method which will
-        # create the JSON response.
-        # Here just return a boolean value, or simply raise an exception if
-        # something goes wrong.
-        res_data["status"]  = "OK"
-        res_data["message"] = "input files copied to the local path"
-        res_data['process_inputs_msg'] = msg
-        
-        return res_data
     
     def get_new_key(self, demo_id, key=None):
         """
@@ -943,10 +884,10 @@ class Core(object):
         :param demo_id:   id demo
         :param run_folder: key 
         """
-        demo_path = os.path.join(self.main_shared_folder,\
-                                 self.share_run_dir,\
-                                 demo_id,\
-                                  key)
+        demo_path = os.path.join(self.shared_folder_abs, \
+                                 self.share_run_dir_abs, \
+                                 demo_id, \
+                                 key)
         self.mkdir_p(demo_path)
         return demo_path
 
@@ -1027,7 +968,7 @@ class Core(object):
         # Send the email
         # [ToDo] Use the shared folder to access a DR!
         buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
-          format(self.main_shared_folder, demo_id)
+          format(self.shared_folder_abs, demo_id)
         if not os.path.isfile(buildLog_filename):
             return
 
@@ -1068,11 +1009,31 @@ class Core(object):
         # Zip the contents of the tmp/ directory of the failed experiment
         zip_filename = '/tmp/{}.zip'.format(key)
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
-        self.zipdir("{}/run/{}/{}".format(self.main_shared_folder, demo_id, key), zipf)
+        self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
         
         self.send_email(subject, text, emails, zip_filename=zip_filename)
 
+    def send_demorunner_unresponsive_email(self,unresponsive_demorunners):
+        '''
+        Send email to editor when the demorruner is down
+        '''
+        emails = []
+        if self.serverEnvironment == 'production':
+            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+        if len(emails) == 0:
+            return
+
+        hostname = socket.gethostname()
+        hostbyname = socket.gethostbyname(hostname)
+
+        unresponsive_demorunners_list=",".join(unresponsive_demorunners)
+
+        text = "This is the IPOL Core machine ({}, {}).\n\nThe list of demorunners unresponsive is: {}.".format(
+            hostname, hostbyname, unresponsive_demorunners_list)
+        print text
+        subject = '[IPOL Core] Demorunner unresponsive'
+        self.send_email(subject, text, emails)
 
     @cherrypy.expose
     def run(self, demo_id,  **kwargs):
@@ -1152,15 +1113,8 @@ class Core(object):
         
         if input_type != 'noinputs':
             try:
-                res_data = self.copy_blobs(work_dir, input_type, blobs, ddl_inputs, crop_info)
-                
-                if res_data["process_inputs_msg"] != "":
-                     meta["process_inputs_msg"] = res_data["process_inputs_msg"]
-                meta["max_width"]  = res_data["max_width"]
-                meta["max_height"] = res_data["max_height"]
-                meta["nb_inputs"]  = len(blobs)
-                meta["original"]   = original_exp
-                
+                self.copy_blobs(work_dir, input_type, blobs, ddl_inputs, crop_info)
+
             except Exception as ex:
                 print "FAILURE IN COPY_BLOBS in demo = ",demo_id
                 res_data = {}
@@ -1175,16 +1129,15 @@ class Core(object):
 
 
         try:
-            demorunners_data = {"demorunners_workload": str(self.demorunners_workload())}
-            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunners_data)
-            dr_name = dispatcher_response.json()['name']
-            dr = self.demorunners[dr_name]['server']
+            requirements = ddl_json['general']['requirements'] \
+                if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
+            dr = self.get_demorunner(self.demorunners_workload(),requirements)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
-            json_response = resp.json() 
+            json_response = resp.json()
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
             
@@ -1204,20 +1157,26 @@ class Core(object):
 
             if 'run' in ddl_json:
                 userdata['ddl_run'] = json.dumps(ddl_json['run'])
-                        
+
             if 'config' in ddl_json:
                 userdata['ddl_config'] = json.dumps(ddl_json['config'])
-            
-            userdata['meta'] = json.dumps(meta)
 
+            userdata['meta'] = json.dumps(meta)
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
-            json_response = resp.json() 
-            json_response['work_url'] =  os.path.join(self.server_address,\
-                                                        self.shared_folder, \
-                                                        self.share_run_dir,\
-                                                        demo_id,\
-                                                        key) + '/'
+            json_response = resp.json()
+
+            if json_response['status'] != 'OK':
+                raise RuntimeError(json_response['error'])
+
+            json_response['work_url'] =  os.path.join("http://{}/api/core/".format(self.host_name), \
+                                                      self.shared_folder_rel, \
+                                                      self.share_run_dir_rel, \
+                                                      demo_id, \
+                                                      key) + '/'
+            json_response['algo_meta'] = {}
+
+
             print "resp ",json_response
             
             # save res_data as a results.json file
@@ -1243,18 +1202,61 @@ class Core(object):
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.host_name)
-                
+
         except Exception as ex:
+                self.logger.exception("Failure in the run function of the CORE")
                 print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
                 res_data["status"]  = "KO"
-                self.error_log("Failure in the run function of the CORE",str(ex))
                 return json.dumps(json_response)
         
         print "Run successful in demo = ",demo_id
         cherrypy.log("run successful", context='RUN/%s' % demo_id, traceback=False)
         
         return json.dumps(json_response)
+
+    def get_demorunner(self, demorunners_workload, requirements=None):
+        '''
+        Return an active demorunner for the requirements
+        '''
+        demorunner_data = {"demorunners_workload": str(demorunners_workload),"requirements":requirements}
+        unresponsive_demorunners = set()
+        # Try twice the length of the DR list before raising an exception
+        for i in range(len(self.demorunners)*2):
+            # Get a demorunner for the requirements
+            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
+            if not dispatcher_response.ok:
+                raise Exception("Dispatcher unresponsive")
+
+            # Check if there is a DR for the requirements
+            if dispatcher_response.json()['status'] != 'OK':
+                raise Exception(dispatcher_response.json()['message'])
+
+            dr_name = dispatcher_response.json()['name']
+            dr_server = self.demorunners[dr_name]['server']
+
+            # Check if the DR is up. Otherwise add it to the
+            # list of unresponsive DRs
+            demorunner_response = self.post(dr_server,'demorunner','ping')
+            if demorunner_response.ok:
+                if len(unresponsive_demorunners) > 0:
+                    self.send_demorunner_unresponsive_email(unresponsive_demorunners)
+                return dr_server
+            else:
+                self.error_log("get_demorunner","Module {} unresponsive".format(dr_name))
+                print "Module {} unresponsive".format(dr_name)
+                unresponsive_demorunners.add(dr_name)
+
+            # At half of the tries wait 5 secs and try again
+            if i == len(self.demorunners)-1:
+                time.sleep(5)
+
+        # If there is no demorrunner active send an email with all the unresponsive DRs
+        self.send_demorunner_unresponsive_email(unresponsive_demorunners)
+        raise Exception("No DR available after many tries")
+
+
+
 
     def post(self, host, module, service, data=None):
         try:
