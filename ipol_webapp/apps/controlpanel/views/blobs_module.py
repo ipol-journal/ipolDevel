@@ -13,33 +13,33 @@ __author__ = 'josearrecio'
 # TODO NOT MUCH IMPLEMENTED YET
 
 class BlobsDemosView(NavbarReusableMixinMF,TemplateView):
-	template_name = "blobs/blobs.html"
+        template_name = "blobs/blobs.html"
 
-	@method_decorator(login_required)
-	def dispatch(self, *args, **kwargs):
-		# para las pestanas
-		#self.request.session['menu'] = 'menu-'
+        @method_decorator(login_required)
+        def dispatch(self, *args, **kwargs):
+                # para las pestanas
+                #self.request.session['menu'] = 'menu-'
 
-		self.request.session['menu'] = 'menu-blob'
-		return super(BlobsDemosView, self).dispatch(*args, **kwargs)
-
-
-	#http://reinout.vanrees.org/weblog/2014/05/19/context.html
-	def result(self):
-		result = None
-		try:
-			#result = ipolservices.get_demo_list()
-			# se ordenan en el admin. order no es necesario
+                self.request.session['menu'] = 'menu-blob'
+                return super(BlobsDemosView, self).dispatch(*args, **kwargs)
 
 
-			page_json = ipolservices.get_blobs_demo_list()
-			result = DeserializeDemoList(page_json)
-			#result = page_json
+        #http://reinout.vanrees.org/weblog/2014/05/19/context.html
+        def result(self):
+                result = None
+                try:
+                        #result = ipolservices.get_demo_list()
+                        # se ordenan en el admin. order no es necesario
 
 
-		except Exception as e:
-			msg="Error %s"%e
-			logger.error(msg)
-			print(msg)
+                        page_json = ipolservices.get_blobs_demo_list()
+                        result = DeserializeDemoList(page_json)
+                        #result = page_json
 
-		return result
+
+                except Exception as e:
+                        msg="Error %s"%e
+                        logger.error(msg)
+                        print(msg)
+
+                return result

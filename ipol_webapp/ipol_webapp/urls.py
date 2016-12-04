@@ -25,43 +25,43 @@ urlpatterns = [
 
 
     # home
-	# url(r'^$',  Home.as_view(),name="ipol.home"),
-	url(r'^cp/$',  RedirectView.as_view(url=reverse_lazy('account_login'),permanent=True),name="ipol.home"),
+        # url(r'^$',  Home.as_view(),name="ipol.home"),
+        url(r'^cp/$',  RedirectView.as_view(url=reverse_lazy('account_login'),permanent=True),name="ipol.home"),
 
-	# control panel app
-	url(r'^cp/', include('apps.controlpanel.urls')),
-	#url(r'^cp/', urls),
+        # control panel app
+        url(r'^cp/', include('apps.controlpanel.urls')),
+        #url(r'^cp/', urls),
 
-	# media  No media is stored in this app!
-	#(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
+        # media  No media is stored in this app!
+        #(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
 
-	# admin
-	url(r'^cp/admin/', include(admin.site.urls)),
+        # admin
+        url(r'^cp/admin/', include(admin.site.urls)),
 
-	#autocomplete_light
-	#http://django-autocomplete-light.readthedocs.org/en/master/
-	#http://django-autocomplete-light.readthedocs.org/en/master/autocomplete.html?highlight=shortcuts#examples
-	#http://django-autocomplete-light.readthedocs.org/en/master/tutorial.html
-	url(r'^cp/autocomplete/', include('autocomplete_light.urls')),
+        #autocomplete_light
+        #http://django-autocomplete-light.readthedocs.org/en/master/
+        #http://django-autocomplete-light.readthedocs.org/en/master/autocomplete.html?highlight=shortcuts#examples
+        #http://django-autocomplete-light.readthedocs.org/en/master/tutorial.html
+        url(r'^cp/autocomplete/', include('autocomplete_light.urls')),
 
 ]
 
 # extender allauthviews con mi mixin para navbar,
 # if ALLAUTH_GESTS:   #if DEBUG is True it will be served automatically
-	# #ojo q la url debe ser la definida en settings.STATIC_URL
+        # #ojo q la url debe ser la definida en settings.STATIC_URL
 
-	# urlpatterns += patterns('',
+        # urlpatterns += patterns('',
      #    #deben estar antes del import de urls de allauth! sino se usarian esas urls.
-	# 	url(r'^accounts/', include('vendor.allauth.urls')),
-	# 	#No se necesario si no uso socialauth (no olvidar migs!)
-	# 	#url(r'^accounts/', include('allauth.urls')),
-	# )
+        #         url(r'^accounts/', include('vendor.allauth.urls')),
+        #         #No se necesario si no uso socialauth (no olvidar migs!)
+        #         #url(r'^accounts/', include('allauth.urls')),
+        # )
 
 
-	# urlpatterns_extra= [
+        # urlpatterns_extra= [
      #    #deben estar antes del import de urls de allauth! sino se usarian esas urls.
-	# 	url(r'^cp/', include('vendor.allauth.urls')),
-	# 	#No se necesario si no uso socialauth (no olvidar migs!)
-	# 	#url(r'^accounts/', include('allauth.urls')),
-	# ]
-	# urlpatterns =urlpatterns + urlpatterns_extra
+        #         url(r'^cp/', include('vendor.allauth.urls')),
+        #         #No se necesario si no uso socialauth (no olvidar migs!)
+        #         #url(r'^accounts/', include('allauth.urls')),
+        # ]
+        # urlpatterns =urlpatterns + urlpatterns_extra

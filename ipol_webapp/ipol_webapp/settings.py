@@ -44,9 +44,13 @@ ALLOWED_HOSTS = []
 USE_MEMCACHED = False
 
 hostname = socket.gethostname()
-local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu']
-dev_machines_hostname = ['integration.ipol.im']
+local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis']
+#dev_machines_hostname = ['integration.ipol.im']
+#dev_machines = ['.ipol.im']
+
+dev_machines_hostname = ['127.0.1.1']
 dev_machines = ['.ipol.im']
+
 production_machines = ['my_production_hostname']
 
 #alluth control for allowing logins in the app
@@ -70,95 +74,95 @@ IPOL_SERVICES_MODULE_DEMOINFO = None
 HOST_NAME = None
 
 if hostname in local_machines:
-	SITE_ID = 2
+        SITE_ID = 2
 
-	HOST = 'local'
-	DEBUG = True
-	# to serve staticfiles from STATIC_ROOT folder (pruebas)
-	# #DEBUG = False
-	TEMPLATEDEBUG = True
-	DBHOST = 'localhost'
-	DBUSER = ''
-	DBPSSWD = ''
-	ALLOWED_HOSTS = []
-	HTTPS = False
+        HOST = 'local'
+        DEBUG = True
+        # to serve staticfiles from STATIC_ROOT folder (pruebas)
+        # #DEBUG = False
+        TEMPLATEDEBUG = True
+        DBHOST = 'localhost'
+        DBUSER = ''
+        DBPSSWD = ''
+        ALLOWED_HOSTS = []
+        HTTPS = False
 
-	####################################
-	#            IPOL WS               #
-	####################################
-	HOST_NAME = '127.0.1.1'
-	#Local ENV
-	IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
-	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
-	IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
-	#urls to access the modules by proxy
-	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+        ####################################
+        #            IPOL WS               #
+        ####################################
+        HOST_NAME = '127.0.1.1'
+        #Local ENV
+        IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
+        # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
+        IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
+        #urls to access the modules by proxy
+        IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
 
 
 elif hostname in dev_machines_hostname:
-	SITE_ID = 3
-	# PRO USA APACHE
-	HOST = 'development'
-	#asi evito python manage.py collectstatic y servir con apache
-	DEBUG = True
-	TEMPLATEDEBUG = True
-	DBHOST = 'localhost'
-	DBUSER = ''
-	DBPSSWD = ''
-	HTTPS = False
-	# permite modo debug False
-	DOMAIN_NAME = 'localhost'
-	ADMINS = (('JAK', 'josearrecio@gmail.com'))
-	# dominio y subdominios , ojo por ip no funciona.
-	ALLOWED_HOSTS = dev_machines
-	MANAGERS = ADMINS
-	USE_MEMCACHED = False
-	####################################
-	#            IPOL WS               #
-	####################################
-	HOST_NAME = 'ns3018037.ip-151-80-24.eu'
-	# testing ENV 2
-	IPOL_SERVICES_MODULE_DEMO = None
-	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
-	IPOL_SERVICES_MODULE_PROXY = 'http://ns3018037.ip-151-80-24.eu:9003/%s'
-	# 	#urls to access the modules by proxy
-	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+        SITE_ID = 3
+        # PRO USA APACHE
+        HOST = 'development'
+        #asi evito python manage.py collectstatic y servir con apache
+        DEBUG = True
+        TEMPLATEDEBUG = True
+        DBHOST = 'localhost'
+        DBUSER = ''
+        DBPSSWD = ''
+        HTTPS = False
+        # permite modo debug False
+        DOMAIN_NAME = 'localhost'
+        ADMINS = (('JAK', 'josearrecio@gmail.com'))
+        # dominio y subdominios , ojo por ip no funciona.
+        ALLOWED_HOSTS = dev_machines
+        MANAGERS = ADMINS
+        USE_MEMCACHED = False
+        ####################################
+        #            IPOL WS               #
+        ####################################
+        HOST_NAME = 'ns3018037.ip-151-80-24.eu'
+        # testing ENV 2
+        IPOL_SERVICES_MODULE_DEMO = None
+        # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
+        IPOL_SERVICES_MODULE_PROXY = 'http://ns3018037.ip-151-80-24.eu:9003/%s'
+        #         #urls to access the modules by proxy
+        IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
 elif hostname in production_machines:
-	SITE_ID = 3
-	# PRO USA APACHE
-	HOST = 'produccion'
-	#asi evito python manage.py collectstatic y servir con apache
-	DEBUG = False
-	TEMPLATEDEBUG = False
-	DBHOST = 'localhost'
-	DBUSER = ''
-	DBPSSWD = ''
-	HTTPS = False
-	# permite modo debug False
-	DOMAIN_NAME = 'localhost'
-	ADMINS = (('JAK', 'josearrecio@gmail.com'))
-	# dominio y subdominios , ojo por ip no funciona.
-	ALLOWED_HOSTS = dev_machines
-	MANAGERS = ADMINS
-	USE_MEMCACHED = False
-	####################################
-	#            IPOL WS               #
-	####################################
-	HOST_NAME = 'myproductionurl'
+        SITE_ID = 3
+        # PRO USA APACHE
+        HOST = 'produccion'
+        #asi evito python manage.py collectstatic y servir con apache
+        DEBUG = False
+        TEMPLATEDEBUG = False
+        DBHOST = 'localhost'
+        DBUSER = ''
+        DBPSSWD = ''
+        HTTPS = False
+        # permite modo debug False
+        DOMAIN_NAME = 'localhost'
+        ADMINS = (('JAK', 'josearrecio@gmail.com'))
+        # dominio y subdominios , ojo por ip no funciona.
+        ALLOWED_HOSTS = dev_machines
+        MANAGERS = ADMINS
+        USE_MEMCACHED = False
+        ####################################
+        #            IPOL WS               #
+        ####################################
+        HOST_NAME = 'myproductionurl'
 
-	IPOL_SERVICES_MODULE_DEMO = None
-	IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
-	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_DEMO = None
+        IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
+        IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+        IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 else:
-	print("ERROR: invalid hostname")
+        print("ERROR: invalid hostname")
 
 
 
@@ -167,7 +171,7 @@ else:
 ####################################
 
 INSTALLED_APPS = (
-	'autocomplete_light',
+        'autocomplete_light',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -177,13 +181,13 @@ INSTALLED_APPS = (
     'apps.controlpanel',
     'django.contrib.humanize',
     'rest_framework',
-	'django.contrib.sites',
-	'allauth',
-	'allauth.account',
-	'allauth.socialaccount',
-	'crispy_forms',
+        'django.contrib.sites',
+        'allauth',
+        'allauth.account',
+        'allauth.socialaccount',
+        'crispy_forms',
 
-	# 'allauth.socialaccount.providers.linkedin',
+        # 'allauth.socialaccount.providers.linkedin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -205,9 +209,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-	        #os.path.join(BASE_DIR, 'templates'),
-	        os.path.join(BASE_DIR, 'apps/controlpanel/templates'),
-	        os.path.join(BASE_DIR, 'vendor/allauth/templates'),
+                #os.path.join(BASE_DIR, 'templates'),
+                os.path.join(BASE_DIR, 'apps/controlpanel/templates'),
+                os.path.join(BASE_DIR, 'vendor/allauth/templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -217,7 +221,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-	        'debug': [
+                'debug': [
                 TEMPLATEDEBUG,
             ]
         },
@@ -239,10 +243,10 @@ ACCOUNT_AUTHENTICATION_METHOD = "username"
 LOGIN_REDIRECT_URL = reverse_lazy('ipol.cp.status')
 ACCOUNT_ADAPTER = 'vendor.allauth.myadapter.accountadapter.AccountAdapter'
 AUTHENTICATION_BACKENDS = (
-	# Needed to login by username in Django admin, regardless of `allauth`
-	'django.contrib.auth.backends.ModelBackend',
-	# `allauth` specific authentication methods, such as login by e-mail
-	'allauth.account.auth_backends.AuthenticationBackend',
+        # Needed to login by username in Django admin, regardless of `allauth`
+        'django.contrib.auth.backends.ModelBackend',
+        # `allauth` specific authentication methods, such as login by e-mail
+        'allauth.account.auth_backends.AuthenticationBackend',
 
 )
 
@@ -251,31 +255,31 @@ AUTHENTICATION_BACKENDS = (
 #####################
 
 if USE_MEMCACHED:
-	CACHES = {
-		'default': {
-			'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-			'LOCATION': '127.0.0.1:11211',
-		}
-	}
+        CACHES = {
+                'default': {
+                        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                        'LOCATION': '127.0.0.1:11211',
+                }
+        }
 
-	MIDDLEWARE_CLASSES = (
-		'django.middleware.cache.UpdateCacheMiddleware',
-		'django.contrib.sessions.middleware.SessionMiddleware',
-		'django.middleware.locale.LocaleMiddleware',
-		'django.middleware.common.CommonMiddleware',
-		'django.middleware.csrf.CsrfViewMiddleware',
-		'django.contrib.auth.middleware.AuthenticationMiddleware',
-		'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-		'django.contrib.messages.middleware.MessageMiddleware',
-		'django.middleware.clickjacking.XFrameOptionsMiddleware',
-		'django.middleware.cache.FetchFromCacheMiddleware',
-	)
-	# cache settings
-	CACHE_MIDDLEWARE_ALIAS = 'default'
-	CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 1  # 1h
-	CACHE_MIDDLEWARE_KEY_PREFIX = "IPOLCPCACHE"
-	# only anonymous requests (i.e., not those made by a logged-in user) will be cached.
-	CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+        MIDDLEWARE_CLASSES = (
+                'django.middleware.cache.UpdateCacheMiddleware',
+                'django.contrib.sessions.middleware.SessionMiddleware',
+                'django.middleware.locale.LocaleMiddleware',
+                'django.middleware.common.CommonMiddleware',
+                'django.middleware.csrf.CsrfViewMiddleware',
+                'django.contrib.auth.middleware.AuthenticationMiddleware',
+                'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+                'django.contrib.messages.middleware.MessageMiddleware',
+                'django.middleware.clickjacking.XFrameOptionsMiddleware',
+                'django.middleware.cache.FetchFromCacheMiddleware',
+        )
+        # cache settings
+        CACHE_MIDDLEWARE_ALIAS = 'default'
+        CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 1  # 1h
+        CACHE_MIDDLEWARE_KEY_PREFIX = "IPOLCPCACHE"
+        # only anonymous requests (i.e., not those made by a logged-in user) will be cached.
+        CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 ########################
 #       DATABASES      #
@@ -297,15 +301,15 @@ DATABASES = {
 
 #Postgtress
 # DATABASES = {
-# 	'default': {
-# 		'ENGINE': 'django.db.backends.postgresql_psycopg2',
-# 		# Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-# 		'NAME': 'ipolwebapp',  # Or path to database file if using sqlite3.
-# 		'USER': DBUSER,
-# 		'PASSWORD': DBPSSWD,
-# 		'HOST': DBHOST,  # Empty for localhost through domain sockets or   127.0.0.1' for localhost through TCP.
-# 		'PORT': '5432',  # Set to empty string for default.
-# 	}
+#         'default': {
+#                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#                 # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+#                 'NAME': 'ipolwebapp',  # Or path to database file if using sqlite3.
+#                 'USER': DBUSER,
+#                 'PASSWORD': DBPSSWD,
+#                 'HOST': DBHOST,  # Empty for localhost through domain sockets or   127.0.0.1' for localhost through TCP.
+#                 'PORT': '5432',  # Set to empty string for default.
+#         }
 # }
 
 
@@ -336,8 +340,8 @@ USE_TZ = True
 # debe estar fuera del proyecto
 STATIC_ROOT = os.path.join(OUTER_DIR, 'IPOLWEBAPP_STATIC')
 if not os.path.exists(STATIC_ROOT):
-	os.makedirs(STATIC_ROOT)
-	print("********* Directorio creado: " + str(STATIC_ROOT))
+        os.makedirs(STATIC_ROOT)
+        print("********* Directorio creado: " + str(STATIC_ROOT))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
@@ -345,25 +349,25 @@ STATIC_URL = '/cp/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-	# Put strings here, like "/home/html/static" or "C:/www/django/static".
-	# Always use forward slashes, even on Windows.
-	# Don't forget to use absolute paths, not relative paths.
-	os.path.join(BASE_DIR, 'apps/controlpanel/controlpanel_static/'),
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        os.path.join(BASE_DIR, 'apps/controlpanel/controlpanel_static/'),
 )
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
-	'django.contrib.staticfiles.finders.FileSystemFinder',
-	'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        'django.contrib.staticfiles.finders.FileSystemFinder',
+        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = os.path.normpath(os.path.join(OUTER_DIR, 'IPOLWEBAPP_MEDIA'))
 if not os.path.exists(MEDIA_ROOT):
-	os.makedirs(MEDIA_ROOT)
-	print("********* Directorio creado: " + str(MEDIA_ROOT))
+        os.makedirs(MEDIA_ROOT)
+        print("********* Directorio creado: " + str(MEDIA_ROOT))
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
@@ -374,8 +378,8 @@ MEDIA_URL = '/media/'
 #####################
 RUTALOG = os.path.normpath(os.path.join(BASE_DIR, 'logs/'))
 if not os.path.exists(RUTALOG):
-	os.makedirs(RUTALOG)
-	print("********* Directorio creado: " + str(RUTALOG))
+        os.makedirs(RUTALOG)
+        print("********* Directorio creado: " + str(RUTALOG))
 
 DJANGO_PW_LOG = RUTALOG + "/ipolwebapp.log"
 DJANGO_PW_REQUEST_LOG = RUTALOG + "/ipolwebapp_request.log"
@@ -386,44 +390,44 @@ DISABLE_GUNICOR_LOGUER = False
 
 
 LOGGING = {
-	'version': 1,
-	'disable_existing_loggers': DISABLE_GUNICOR_LOGUER,
-	'formatters': {
-		'standard': {
-			'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-		},
-	},
-	'handlers': {
+        'version': 1,
+        'disable_existing_loggers': DISABLE_GUNICOR_LOGUER,
+        'formatters': {
+                'standard': {
+                        'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+                },
+        },
+        'handlers': {
 
-		'default': {
-			'level': LOG_LEVEL,
-			'class': 'logging.handlers.RotatingFileHandler',
-			'filename': DJANGO_PW_LOG,
-			'maxBytes': 1024 * 1024 * 5,  # 5 MB
-			'backupCount': 5,
-			'formatter': 'standard',
-		},
-		'request_handler': {
-			'level': LOG_LEVEL,
-			'class': 'logging.handlers.RotatingFileHandler',
-			'filename': DJANGO_PW_REQUEST_LOG,
-			'maxBytes': 1024 * 1024 * 5,  # 5 MB
-			'backupCount': 5,
-			'formatter': 'standard',
-		},
-	},
-	'root': {
-		'handlers': ['default'],
-		'level': LOG_LEVEL,
-		'propagate': True
-	},
-	'loggers': {
-		'django.request': {
-			'handlers': ['request_handler'],
-			'level': LOG_LEVEL,
-			'propagate': False
-		},
-	}
+                'default': {
+                        'level': LOG_LEVEL,
+                        'class': 'logging.handlers.RotatingFileHandler',
+                        'filename': DJANGO_PW_LOG,
+                        'maxBytes': 1024 * 1024 * 5,  # 5 MB
+                        'backupCount': 5,
+                        'formatter': 'standard',
+                },
+                'request_handler': {
+                        'level': LOG_LEVEL,
+                        'class': 'logging.handlers.RotatingFileHandler',
+                        'filename': DJANGO_PW_REQUEST_LOG,
+                        'maxBytes': 1024 * 1024 * 5,  # 5 MB
+                        'backupCount': 5,
+                        'formatter': 'standard',
+                },
+        },
+        'root': {
+                'handlers': ['default'],
+                'level': LOG_LEVEL,
+                'propagate': True
+        },
+        'loggers': {
+                'django.request': {
+                        'handlers': ['request_handler'],
+                        'level': LOG_LEVEL,
+                        'propagate': False
+                },
+        }
 }
 
 #####################
