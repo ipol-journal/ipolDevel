@@ -222,8 +222,8 @@ class DemoInfo(object):
                 os.makedirs(extra_folder)
                 with open(given_file.filename, 'wb') as the_file:
                     shutil.copyfileobj(given_file.file, the_file)
-                    os.rename('file_0', "DemoExtras.tar.gz")
-                    shutil.move('DemoExtras.tar.gz', extra_folder)
+                    os.rename(given_file.name, self.demoExtrasFilename )
+                    shutil.move(self.demoExtrasFilename, extra_folder)
                 data['status'] = "OK"
             else:
                 print "File not found"
