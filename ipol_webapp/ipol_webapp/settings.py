@@ -45,10 +45,7 @@ USE_MEMCACHED = False
 
 hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis']
-#dev_machines_hostname = ['integration.ipol.im']
-#dev_machines = ['.ipol.im']
-
-dev_machines_hostname = ['127.0.1.1']
+dev_machines_hostname = ['integration.ipol.im']
 dev_machines = ['.ipol.im']
 
 production_machines = ['my_production_hostname']
