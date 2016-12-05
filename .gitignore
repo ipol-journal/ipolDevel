@@ -1,8 +1,3 @@
-
-# don't rewrite the deployed conf file
-core.conf
-core.*.log
-
 # compiled Python code
 *.pyc
 
