@@ -193,24 +193,35 @@ class Core(object):
         '''
         Get workload of each demorunner
         '''
-        # [TODO] get real workload
-        try:
-            dr_wl = {}
-            for dr_name in self.demorunners.keys():
+        dr_wl = {}
+        user = "ipol"
+        for dr_name in self.demorunners.keys():
+            # Command to obtain the workload for a specific user
+            cmd = "ps -eo %U,%C| grep {} | cut -d \",\" -f2".format(user)
+            try:
+                # Get the workload of each process from a demorunner
+                processes, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &",
+                                                 shell=True,
+                                                 executable="/bin/bash",
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE).communicate()
+                # Get the number of cores
+                nproc, error = subprocess.Popen("ssh " + self.demorunners[dr_name]['serverSSH'] + " nproc &",
+                                                 shell=True,
+                                                 executable="/bin/bash",
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE).communicate()
+                total = 0.0
 
-                # try:
-                #     cmd = "echo $(cat <(grep 'cpu ' /proc/stat) <(sleep 1 && grep 'cpu ' /proc/stat) | awk -v RS= '{print ($13-$2+$15-$4)*100/($13-$2+$15-$4+$16-$5)}')"
-                #     output, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-                #     print "The machine: {} have a workload of: {}%".format(dr_name,output.split()[0])
-                #     dr_wl[dr_name] = output.split()[0]
-                # except:
-                #     self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
-                dr_wl[dr_name] = 12.3456789
-
-        except Exception as ex:
-            self.logger.exception("demorunners_workload")
-            print "Failed to get demorunners workload - ", ex
-
+                # Get the total workload
+                for process in processes.split("\n"):
+                    if process != "":
+                        total += float(process)
+                dr_wl[dr_name] = total/float(nproc)
+            except Exception as ex:
+                total = sys.maxint
+                self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
+                print "Error when trying to obtain the workload of '{}' - {}".format(dr_name,ex)
         return dr_wl
         
     @staticmethod

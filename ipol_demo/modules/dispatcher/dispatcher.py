@@ -293,9 +293,9 @@ class SequentialPolicy(Policy):
 class LowestWorkloadPolicy(Policy):
 
     def execute(self, demorunners, demorunners_workload, requirements=None):
-        '''
+        """
         Chooses the DemoRunner with the lowest workload that matches the requirements
-        '''
+        """
 
         try:
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
@@ -305,10 +305,9 @@ class LowestWorkloadPolicy(Policy):
 
             # Adds the workload of each demorunner to a dict
             dict_dr_wl = json.loads(demorunners_workload.replace('\'', '\"'))
-            print dict_dr_wl
 
-            # This number must be the highest workload posible
-            workload = 100
+            # This number must be the highest workload possible
+            workload = 100.0
 
             lowest_workload_dr = None
             for dr in suitable_dr:
@@ -317,7 +316,6 @@ class LowestWorkloadPolicy(Policy):
                     workload = dict_dr_wl[dr.name]
                     lowest_workload_dr = dr
 
-            print lowest_workload_dr.name
             return lowest_workload_dr
 
         except Exception as ex:
