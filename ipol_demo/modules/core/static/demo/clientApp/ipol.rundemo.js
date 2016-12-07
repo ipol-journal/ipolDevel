@@ -390,7 +390,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             // fill form data to upload
             var form_data = new FormData();
             form_data.append("demo_id",         _ddl_json.demo_id);
-            //form_data.append("internal_demoid", _ddl_json.internal_demoid);
             form_data.append("original",        _input_origin==="localfiles");
 
             // create parameters
@@ -416,9 +415,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             
             var submitted_feature = false;
             if (_drawfeature && _drawfeature.submitDrawing) {
-                form_data.set("input_type","upload");
-                submitted_feature = _drawfeature.submitDrawing( _ddl_json, 
-                                                                form_data, 
+                form_data.append("input_type","upload");
+                submitted_feature = _drawfeature.submitDrawing( _ddl_json,
+                                                                form_data,
                                                                 _sendRunForm);
             }
 
@@ -431,13 +430,13 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                                 JSON.stringify(_crop_info));
                         form_data.append( "blobs",
                                 JSON.stringify(_blobset[0].form_params));
-                        form_data.set("input_type","blobset");
+                        form_data.append("input_type","blobset");
                         _sendRunForm(form_data);
                         break;
 
                     case "localfiles":
-                        form_data.set("input_type","upload");
-                        
+                        form_data.append("input_type","upload");
+
                         var inputs  = _ddl_json.inputs;
                         if (inputs.length===1) {
                             // Upload cropped image to server if the browser
@@ -449,6 +448,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                                     function(blob) {
                                         console.info('adding blob (cropped) : ', blob);
                                         form_data.append('file_0', blob);
+                                        form_data.append( "crop_info",JSON.stringify(_crop_info));
                                         _sendRunForm(form_data);
                                     }, 'image/png' );
                             } else {
@@ -507,7 +507,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                         break;
                         
                     case "noinputs":
-                        form_data.set("input_type","noinputs");
+                        form_data.append("input_type","noinputs");
                         _sendRunForm(form_data);
                         break;
                 } // end switch input_origin

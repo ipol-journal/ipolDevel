@@ -55,7 +55,7 @@ class Demo(object):
     def __init__(self, editorsdemoid, title, abstract, zipurl,
                  active, stateid, creation=None, modification=None):
         """
-        Initialization of the object.
+        Constructor.
         """
 
         self.editorsdemoid = editorsdemoid
@@ -100,7 +100,7 @@ class Author(object):
         )
     def __init__(self, name, mail, the_id=None, creation=None):
         """
-        Initialization function.
+        Constructor.
         """
         self.id = the_id
         self.name = name
@@ -140,7 +140,7 @@ class Editor(object):
         )
     def __init__(self, name, mail, the_id=None, active=None, creation=None):
         """
-        Initialization function.
+        Constructor.
         """
         self.name = name
         self.mail = mail
@@ -167,7 +167,7 @@ class DemoDescriptionDAO(object):
     """
     def __init__(self, conn):
         """
-        Initialization function.
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -255,7 +255,7 @@ class DemoDAO(object):
 
     def __init__(self, conn):
         """
-        Initialization function.
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -425,7 +425,7 @@ class DemoDemoDescriptionDAO(object):
     """
     def __init__(self, conn):
         """
-        initialization function.
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -545,6 +545,7 @@ class DemoDemoDescriptionDAO(object):
     @validates(typ(int))
     def read_last_demodescription_from_demo(self, editorsdemoid, returnjsons=None):
         """
+        return last demo description entered for editorsdemoid.
         """
         result = None
         # print
@@ -587,6 +588,7 @@ class DemoDemoDescriptionDAO(object):
     @validates(typ(int))
     def read_demodescrption_demos(self, demodescriptionid):
         """
+        Return demo description from given description id 
         """
         #todo only one or more then one?
         demo_list = list()
@@ -609,6 +611,7 @@ class DemoDemoDescriptionDAO(object):
     @validates(typ(int))
     def read_demo_demodescriptions(self, editorsdemoid, returnjsons=None):
         """
+        return list of demo descriptions from given editor.
         """
         #returns ordered list, by default does not return jsons
 
@@ -650,7 +653,7 @@ class AuthorDAO(object):
     """
     def __init__(self, conn):
         """
-        Init
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -758,7 +761,7 @@ class DemoAuthorDAO(object):
 
     def __init__(self, conn):
         """
-        initialisation function.
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -843,6 +846,7 @@ class DemoAuthorDAO(object):
     @validates(typ(int))
     def read(self, the_id):
         """
+        return information on a given author/demo association.
         """
         result = None
         try:
@@ -911,7 +915,7 @@ class EditorDAO(object):
     """
     def __init__(self, conn):
         """
-        init function.
+        Constructor.
         """
         
         self.conn = conn
@@ -1023,7 +1027,7 @@ class DemoEditorDAO(object):
     """
     def __init__(self, conn):
         """
-        init function.
+        Constructor.
         """
         self.conn = conn
         self.cursor = conn.cursor()
@@ -1181,9 +1185,6 @@ class DemoEditorDAO(object):
 def createDb(database_name):
     """
     Initialize the database used by the module if it doesn't exist.
-
-    :return: False if there was an error. True otherwise.
-    :rtype: bool
     """
     status = True
     dbname = database_name
