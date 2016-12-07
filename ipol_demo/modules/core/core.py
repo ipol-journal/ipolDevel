@@ -455,7 +455,6 @@ class Core(object):
         """
         print "#### crop_input ####"
         # for the moment, we can only crop the first image
-        crop_start = timer()
         
         if idx!=0:
             return False, None
@@ -478,14 +477,11 @@ class Core(object):
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
                 img.crop((x0, y0, x1, y1))
-                print " img.crop took: {0} seconds;".format(timer()-start)
                 # resize if cropped image is too big
                 if max_pixels and prod(img.size) > max_pixels:
-                    start=timer()
                     img.resize(max_pixels, method="antialias")
                 # save result
-                self.save_image(img,cropped_filename)
-
+                self.save_image(img,filename)
             except ValueError as e:
                 return False, None
 
@@ -495,7 +491,7 @@ class Core(object):
         return True, filename
 
     
-    def process_inputs(self, work_dir, inputs_desc, crop_info=None, res_data=None):
+    def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         """
         pre-process the input data
         we suppose that config has been initialized, and save the dimensions
@@ -555,7 +551,7 @@ class Core(object):
             ## convert to the expected input format: TODO: do it if needed ...
             if crop_info!=None:
                 status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
-                
+
                 if status:
                     im_converted = image(filename)
                     im_converted_filename = 'input_%i.crop.png' % i
@@ -597,15 +593,10 @@ class Core(object):
               # the number of input files should be 2...
               # for the moment, only check for png file
               png_file = os.path.join(work_dir,'input_%i.png' % i)
-              
-        
-        # for compatibility with previous system, create input_0.sel.png
-        # as symbolic link
-        os.symlink('input_0.png', os.path.join(work_dir,'input_0.sel.png'))
 
 
     
-    def input_upload(self, work_dir, blobs, inputs_desc, crop_info=None, **kwargs):
+    def input_upload(self, work_dir, blobs, inputs_desc, **kwargs):
         """
         use the uploaded input files
         file_0, file_1, ... are the input files
@@ -651,7 +642,7 @@ class Core(object):
           file_save.close()
 
     
-    def input_select_and_crop(self, work_dir, blob_physical_location, blobs, crop_info=None):
+    def copy_blobset_from_physical_location(self, work_dir, blob_physical_location, blobs):
         """
         use the selected available input images
         input parameters:
@@ -662,13 +653,13 @@ class Core(object):
 
         nb_inputs = len(blobs)
         # copy to work_dir
-        blobfile = urllib.URLopener()
         for index,blob in blobs.items():
-            original_blob_path = os.path.join(self.blobs_folder ,blob_physical_location,blob[0])
+            original_blob_path = os.path.join(self.blobs_folder, blob_physical_location, blob[0])
             extension = blob[0].split('.')
             try:
                 shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
             except Exception as ex:
+                self.logger.exception("Copy blobs to physical location")
                 print ex
 
     ##---------------
@@ -846,7 +837,7 @@ class Core(object):
         return response
 
 
-    def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs, crop_info=None):
+    def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
         copy the blobs in the run path. 
         The blobs can be uploaded by post method or a blobs from blob module
@@ -855,13 +846,12 @@ class Core(object):
         res_data = {}
         
         if input_type == 'upload':
-            res_data = self.input_upload(work_dir, blobs, ddl_inputs, crop_info)
+            res_data = self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
             blob_physical_location = blobs['physical_location']
             del blobs['url']
-            self.input_select_and_crop(work_dir, blob_physical_location, blobs, crop_info)
-        
-        self.process_inputs(work_dir, ddl_inputs, crop_info, res_data)
+            self.copy_blobset_from_physical_location(work_dir, blob_physical_location, blobs)
+
 
     
     def get_new_key(self, demo_id, key=None):
@@ -1090,7 +1080,6 @@ class Core(object):
             while "file_{0}".format(i) in kwargs:
                 fname="file_{0}".format(i)                
                 blobs[fname] = kwargs[fname]
-                print "*********** {}, {} *****".format(fname, blobs[fname])
                 i+=1
         
         elif input_type == 'blobset':
@@ -1124,19 +1113,16 @@ class Core(object):
         
         if input_type != 'noinputs':
             try:
-                self.copy_blobs(work_dir, input_type, blobs, ddl_inputs, crop_info)
+                self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
+                self.process_inputs(work_dir, ddl_inputs, crop_info)
 
             except Exception as ex:
-                print "FAILURE IN COPY_BLOBS in demo = ",demo_id
+                print "FAILURE IN copy_blobs/process_inputs in demo = ",demo_id
                 res_data = {}
-                res_data['info'] = 'Faiure in copy_blobs in CORE'
+                res_data['info'] = 'Failure in copy_blobs/process_inputs in CORE'
                 res_data['status'] = 'KO'
-                self.logger.exception("copy_blobs FAILED")
+                self.logger.exception("copy_blobs/process_inputs FAILED")
                 return json.dumps(res_data)
-        else:
-            res_data = {}
-            res_data['info'] = ''
-            res_data["status"]  = "OK"
 
 
         try:
@@ -1176,6 +1162,8 @@ class Core(object):
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
             json_response = resp.json()
+            print userdata
+            print json_response
 
             if json_response['status'] != 'OK':
                 raise RuntimeError(json_response['error'])
@@ -1217,13 +1205,16 @@ class Core(object):
         except Exception as ex:
                 self.logger.exception("Failure in the run function of the CORE")
                 print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
+                res_data = {}
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
                 res_data["status"]  = "KO"
                 return json.dumps(json_response)
-        
-        print "Run successful in demo = ",demo_id
-        cherrypy.log("run successful", context='RUN/%s' % demo_id, traceback=False)
-        
+
+        res_data = {}
+        res_data['info'] = 'Run successful'
+        res_data["status"] = "OK"
+
+        print "Run successful in demo = ", demo_id
         return json.dumps(json_response)
 
     def get_demorunner(self, demorunners_workload, requirements=None):

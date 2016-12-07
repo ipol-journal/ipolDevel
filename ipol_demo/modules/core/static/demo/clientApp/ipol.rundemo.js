@@ -416,8 +416,8 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             var submitted_feature = false;
             if (_drawfeature && _drawfeature.submitDrawing) {
                 form_data.append("input_type","upload");
-                submitted_feature = _drawfeature.submitDrawing( _ddl_json, 
-                                                                form_data, 
+                submitted_feature = _drawfeature.submitDrawing( _ddl_json,
+                                                                form_data,
                                                                 _sendRunForm);
             }
 
@@ -436,7 +436,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
 
                     case "localfiles":
                         form_data.append("input_type","upload");
-                        
+
                         var inputs  = _ddl_json.inputs;
                         if (inputs.length===1) {
                             // Upload cropped image to server if the browser
@@ -448,6 +448,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                                     function(blob) {
                                         console.info('adding blob (cropped) : ', blob);
                                         form_data.append('file_0', blob);
+                                        form_data.append( "crop_info",JSON.stringify(_crop_info));
                                         _sendRunForm(form_data);
                                     }, 'image/png' );
                             } else {
