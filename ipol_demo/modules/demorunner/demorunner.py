@@ -190,6 +190,42 @@ class DemoRunner(object):
 
     
     #-----------------------------------------------------------------------------
+    @cherrypy.expose
+    def get_workload(self):
+        """
+        Return the workload from this DR
+        """
+        data = {}
+        data["status"] = "OK"
+        # Command to obtain the workload for a specific user
+        cmd = "ps -eo %U,%C| grep carlos | cut -d \",\" -f2"
+        try:
+            # Get the workload
+            processes, error = subprocess.Popen(cmd + " &",
+                                                shell=True,
+                                                executable="/bin/bash",
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE).communicate()
+            # Get the number of cores
+            nproc, error = subprocess.Popen("nproc &",
+                                            shell=True,
+                                            executable="/bin/bash",
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE).communicate()
+            total = 0.0
+            # Get the total workload
+            for process in processes.split("\n"):
+                if process != "":
+                    total += float(process)
+            data['workload'] = total/float(nproc)
+        except Exception as ex:
+            data["status"] = "KO"
+            self.logger.exception("Could not get workload from the DR")
+            print "Could not get workload from the DR -",ex
+
+        return json.dumps(data)
+
+
     def make(self, path_for_the_compilation, ddl_build, clean_previous=True):
         """
         program build/update
