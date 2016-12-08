@@ -32,6 +32,12 @@ def do_write(args):
     '''
     print "write"
     print args
+    
+def do_read_all():
+    '''
+    Write a DDL
+    '''
+    print "do_read_all"
 
 # Parse program arguments
 parser = optparse.OptionParser()
@@ -45,9 +51,11 @@ if len(args) < 1:
 command = args[0].lower()
 print command
 
-if command == 'read' or command == 'get':
+if command == 'readall' or command == 'getall':
+    do_read_all()
+elif command == 'read' or command == 'get':
     do_read(args[1:])
-if command == 'write' or command == 'put':
+elif command == 'write' or command == 'put':
     do_write(args[1:])
 else:
     print "Unknown command '{}'".format(command)
