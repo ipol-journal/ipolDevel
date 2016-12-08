@@ -199,104 +199,6 @@ ipol.demo_origin =  {
     browser_history:2
 };
 
-
-//------------------------------------------------------------------------------
-/**
- * set the demo page based on the archive experiment information
- * @param {object} ddl_json demo description (DDL)
- * @param {object} experiment contains the experiment files and results
- */
-ipol.setArchiveExperiment = function (ddl_json, experiment) {
-    
-    // do as if data is being uploaded
-    // fill upload areas with image sources
-    // look for input files 
-    var archive_input_description = [];
-    var archive_input_url         = [];
-    var found_inputs=0;
-    var nb_inputs = ddl_json.inputs.length;
-    
-    for(var i=0;i<nb_inputs;i++) {
-        // check input_XX.ext
-        // check filename to look for in archive description
-        var filename = "input_"+i+ddl_json.inputs[i].ext;
-        archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
-            filename, ddl_json.archive.files, experiment.files);
-        // check input_XX.orig.ext
-        if (!archive_input_url[i]) {
-            // check filename to look for in archive description
-            var filename = "input_"+i+'.orig.png';
-            archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
-                filename, ddl_json.archive.files, experiment.files);
-        }
-        // check input_XX.sel.ext
-        // TODO: if we choose .sel then the possible crop is already applied ...
-        if (!archive_input_url[i]) {
-            // check filename to look for in archive description
-            var filename = "input_"+i+'.sel.png';
-            archive_input_url[i] = ipol.ArchiveDisplay.staticFindArchiveUrl(
-                filename, ddl_json.archive.files, experiment.files);
-        }
-        if (archive_input_url[i]||(ddl_json.inputs[i].required===false)) {
-            // count it as found this it is not required
-            found_inputs++;
-        }
-    }
-    
-    // on everything loaded, set the inputs
-    function SetInputs() {
-        var di = new ipol.DrawInputs(ddl_json);
-        console.info("apply_local_data ", ddl_json);
-        di.setBlobSet(null);
-        di.createHTML();
-        di.loadDataFromLocalFiles();
-        var run = new ipol.RunDemo(ddl_json,
-                                   di.getInputOrigin(),
-                                   di.getCropInfo(),
-                                   di.getBlobSet(), 
-                                   di.getDrawFeature()
-                                  );
-        run.setRunEvent();
-    }
-    
-    if (found_inputs==nb_inputs) {
-        var total_loaded_images = 0;
-        // set uploaded files
-        for(var i=0;i<nb_inputs;i++) {
-            if (archive_input_url[i]) {
-                var im = new Image();
-                im.crossOrigin = "Anonymous";
-                im.onload = function() { 
-                    total_loaded_images++;
-                    if (total_loaded_images==nb_inputs) {
-                        SetInputs();
-                    }
-                };
-                im.src = archive_input_url[i];
-                $('#localdata_preview_'+i).attr("src", im.src);
-            } else {
-                // optional inputs, counted as loaded
-                total_loaded_images++;
-                if (total_loaded_images==nb_inputs) {
-                    SetInputs();
-                }
-            }
-        }
-    }
-        
-    // Set parameter values
-    ipol.DrawParams.staticSetParamValues(experiment.results.params);
-    
-    // Set Progress information
-    ipol.RunDemo.staticSetProgress(experiment.results);
-    // Draw results
-    var dr = new ipol.DrawResults( experiment.results, ddl_json.results );
-    // Telling the DrawResults object that we are drawing results from 
-    // an experiment so it can search the urls from archive
-    dr.setExperiment(experiment,ddl_json.archive);
-    dr.create();
-}
-
 //------------------------------------------------------------------------------
 /**
  * Starts everything needed for demo input tab.
@@ -310,12 +212,7 @@ ipol.setArchiveExperiment = function (ddl_json, experiment) {
 ipol.setDemoPage = function (demo_id,origin,func) {
 
 
-    // If the url contains archive.html the tabs-archive(2) is selected else the tabs-run(1) is selected
-    if(window.location.pathname.includes("archive.html")){
-        $('#tabs-nohdr').tabs('option', 'active', 2);
-    }else{
-        $('#tabs-nohdr').tabs('option', 'active', 1);
-    }
+    $('#tabs-nohdr').tabs('option', 'active', 1);
 
     if (origin===undefined) {
         origin=ipol.demo_origin.select_widget;
@@ -439,11 +336,12 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     ipol.DrawBlobs.staticOnDemoBlobs(ddl_json));
 
                 // Display archive information
-                var ar = new ipol.ArchiveDisplay();
+//                var ar = new ipol.ArchiveDisplay();
                 // get and display the last archive page
-                ar.getArchive(demo_id,-1);
+//                ar.getArchive(demo_id,-1);
 
                 if (demo_ddl.status == "OK") {
+
                     switch(origin) {
                         // user selection from the widget
                         case ipol.demo_origin.select_widget:
@@ -476,20 +374,6 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                                 var dr = new ipol.DrawResults( res, ddl_json.results );
                                 dr.create();
                                 //$("#progressbar").get(0).scrollIntoView();
-                            }
-                            // set experiment id as url parameter
-                            if (url_params["exp"]!=undefined) {
-                                var exp_id = url_params["exp"][0];
-                                console.info("demo experiment = ", exp_id);
-                                // ask archive about this experiment
-                                var url_params =    'demo_id='    + demo_id + '&id_experiment='+exp_id;
-                                ipol.utils.ModuleService("archive","get_experiment",url_params,
-                                    function(res) {
-                                        console.info("archive get_experiment result : ",res);
-                                        if (res['status']==='OK') {
-                                            ipol.setArchiveExperiment(ddl_json, res.experiment);
-                                        }
-                                    }.bind(this));
                             }
                             break;
                         // demo selection from moving in the browser history
@@ -540,22 +424,7 @@ ipol.documentReady = function () {
         };
     }
 
-    $("#tabs-nohdr").tabs({
-            // update archive tab when selected
-            beforeActivate: function(event, ui) {
-                if (ui.newPanel.is("#tabs-archive")) {
-                    var ar = new ipol.ArchiveDisplay();
-                    // we need the demo_id here
-                    var demo_list = $("#demo-select").data("demo_list");
-                    if (demo_list) {
-                        var pos =$( "#demo-select option:selected" ).val();
-                        // get and display the last archive page
-                        ar.getArchive(demo_list[pos].editorsdemoid,-1);
-                    }
-                }
-            }
-        }
-    );
+    $("#tabs-nohdr").tabs();
 
     if (servers.in_production) {
         $("#tabs_ddl").hide();
