@@ -201,6 +201,7 @@ class Core(object):
                 if response['status'] == 'OK':
                     dr_wl[dr_name] = response['workload']
                 else:
+                    self.error_log("get_workload returned KO for DR='{}'".format(dr_name))
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
                 self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
