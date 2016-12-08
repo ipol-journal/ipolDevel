@@ -26,8 +26,8 @@ class Dispatcher(object):
         self.host_name = cherrypy.config.get("server.socket_host")
         self.demorunners = None
 
-        # Default policy: sequential
-        self.policy=Policy.factory('sequential')
+        # Default policy: lowest_workload
+        self.policy=Policy.factory('lowest_workload')
 
         try:
             if not os.path.exists(self.logs_dir):
