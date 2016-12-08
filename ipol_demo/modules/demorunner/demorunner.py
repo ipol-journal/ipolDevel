@@ -198,7 +198,7 @@ class DemoRunner(object):
         data = {}
         data["status"] = "OK"
         # Command to obtain the workload for a specific user
-        cmd = "ps -eo %U,%C| grep carlos | cut -d \",\" -f2"
+        cmd = "ps -eo %U,%C| grep ipol | cut -d \",\" -f2"
         try:
             # Get the workload
             processes, error = subprocess.Popen(cmd + " &",
