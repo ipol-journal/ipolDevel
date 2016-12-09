@@ -190,36 +190,20 @@ class Core(object):
         return json.dumps(data)
 
     def demorunners_workload(self):
-        '''
+        """
         Get workload of each demorunner
-        '''
+        """
         dr_wl = {}
-        user = "ipol"
         for dr_name in self.demorunners.keys():
-            # Command to obtain the workload for a specific user
-            cmd = "ps -eo %U,%C| grep {} | cut -d \",\" -f2".format(user)
             try:
-                # Get the workload of each process from a demorunner
-                processes, error = subprocess.Popen("ssh "+self.demorunners[dr_name]['serverSSH']+" "+cmd+" &",
-                                                 shell=True,
-                                                 executable="/bin/bash",
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.PIPE).communicate()
-                # Get the number of cores
-                nproc, error = subprocess.Popen("ssh " + self.demorunners[dr_name]['serverSSH'] + " nproc &",
-                                                 shell=True,
-                                                 executable="/bin/bash",
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.PIPE).communicate()
-                total = 0.0
-
-                # Get the total workload
-                for process in processes.split("\n"):
-                    if process != "":
-                        total += float(process)
-                dr_wl[dr_name] = total/float(nproc)
+                resp = self.post(self.demorunners[dr_name]['server'],'demorunner','get_workload')
+                response = resp.json()
+                if response['status'] == 'OK':
+                    dr_wl[dr_name] = response['workload']
+                else:
+                    self.error_log("get_workload returned KO for DR='{}'".format(dr_name))
+                    dr_wl[dr_name] = 100.0
             except Exception as ex:
-                total = sys.maxint
                 self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
                 print "Error when trying to obtain the workload of '{}' - {}".format(dr_name,ex)
         return dr_wl
