@@ -52,6 +52,7 @@ ipol_demo/modules/archive/logs/error.log
 doc/system/ipol.pdf
 doc/control_panel/control_panel.pdf
 doc/ddl/ddl.pdf
+doc/sysadmin/sysadmin.pdf
 ddl.pdf
 *.lof
 *.toc

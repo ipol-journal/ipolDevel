@@ -282,7 +282,7 @@ ipol.ImageGallery = function(galleryid)  {
         
         var titles = Object.keys(this.contents);
         
-        var title_style = "border:0;padding:0;margin:0;background-color:#FFFFFF;"
+        var title_style = "border-spacing:0;background-color:#FFFFFF;"
         
         html += "<tr "+style+">";
         html +=   "<td style='vertical-align:top;"+title_style+"'>";
