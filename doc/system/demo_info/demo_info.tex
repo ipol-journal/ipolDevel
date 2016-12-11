@@ -37,7 +37,6 @@ The model of this module id made of the following tables:
 Note that states is the table for the demo's state (published, preprint, \dots)
 The Demodescription table is where the DDL of each demo is stored.
 A demo may be created without a DDL (but you will need to provide one so you can run it)
-Ddlschema is not used at the moment, but it has been created so that a schema validation can be done to the DDL of each demo, if a user provides a valid json for the DDL but this json is not a valid DDL, we should be able to detect this and return an error.
 
 \subsection{Web services available}
 This module provides a set of webservices, those that return data can be called with GET or other HTML methods, those that delete,create or update data can be called only by POST.
