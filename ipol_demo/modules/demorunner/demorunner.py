@@ -467,7 +467,6 @@ class DemoRunner(object):
 
         first_build = True
         for build_params in builds:
-            cherrypy.log("building", context='SETUP/%s' % demo_id, traceback=False)
             try:
                 make_info = self.make(path_for_the_compilation, build_params, first_build)
                 print make_info
@@ -477,8 +476,7 @@ class DemoRunner(object):
                 data['info']    = make_info
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
-                cherrypy.log("build failed (see the build log)", context='SETUP/%s' % demo_id, traceback=False)
-                self.error_log("ensure_compilation", str(e))
+                self.logger.exception("ensure_compilation")
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 return json.dumps(data)
             
@@ -598,7 +596,6 @@ class DemoRunner(object):
         print "\n\n----- run_algo begin -----\n\n"
         try:
             rd = run_demo_base.RunDemoBase(bin_path, work_dir)
-            rd.set_logger(cherrypy.log)
             rd.set_algo_params(params)
             rd.set_algo_info  (res_data['algo_info'])
             rd.set_algo_meta  (res_data['algo_meta'])

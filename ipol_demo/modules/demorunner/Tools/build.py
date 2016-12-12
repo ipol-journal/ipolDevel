@@ -22,8 +22,6 @@ def download(url, fname):
 
     @return: the file name
     """
-    cherrypy.log("retrieving: %s" % url, context='BUILD',
-                 traceback=False)
 
     # create the folder if needed
     if not os.path.isdir(os.path.dirname(fname)):
@@ -37,8 +35,6 @@ def download(url, fname):
         file_handle = open(fname, 'w')
         file_handle.write(url_handle.read())
         file_handle.close()
-        cherrypy.log("retrieved", context='BUILD',
-                     traceback=False)
     else:
         # only retrieve if a newer version is available
         url_ctime = time.strptime(url_handle.info()['last-modified'],
@@ -52,12 +48,9 @@ def download(url, fname):
             file_handle = open(fname, 'w')
             file_handle.write(url_handle.read())
             file_handle.close()
-            cherrypy.log("retrieved", context='BUILD',
-                         traceback=False)
+            print "Retrieved"
         else:
-            cherrypy.log("not retrieved (local file is newer)",
-                         context='BUILD', traceback=False)
-        url_handle.close()
+            print "Not retrieved (local file is newer)"
     return fname
 
 def extract(fname, target):
@@ -110,9 +103,6 @@ def extract(fname, target):
                 f.write(ar.read(member))
                 f.close()
 
-    cherrypy.log("extracted: %s" % fname, context='BUILD',
-                 traceback=False)
-
     return content
 
 def run(command, stdout, cwd=None, env=None):
@@ -139,8 +129,6 @@ def run(command, stdout, cwd=None, env=None):
     logfile = open(stdout, 'a')
     process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
                     cwd=cwd, env=env)
-    cherrypy.log("running: %s" % command, context='BUILD',
-                 traceback=False)
     process.wait()
     logfile.close()
     if 0 != process.returncode:

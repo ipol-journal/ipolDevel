@@ -49,14 +49,11 @@ if __name__ == '__main__':
 
     BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
-    
-    cherrypy.log("core base_dir: %s" % BASE_DIR,
-                 context='MAIN', traceback=False)
+
     
     if not os.path.isfile(CONF_FILE_ABS):
-        cherrypy.log("warning: the conf file is missing, " \
-                         "copying the example conf",
-                     context='SETUP', traceback=False)
+        print "Error: the conf file is missing, "
+        sys.exit(-1)
     
     cherrypy.config.update(CONF_FILE_ABS)    
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
