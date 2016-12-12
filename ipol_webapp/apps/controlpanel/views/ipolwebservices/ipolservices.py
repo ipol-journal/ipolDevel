@@ -63,9 +63,9 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
                 elif METHOD=='POST':
                         if json is not None:
                                 if files is not None:
-                                        response = requests.post(url, params=params, json=json, files=files)
+                                        response = requests.post(url, params=params, data=json, files=files)
                                 else:
-                                        response = requests.post(url, params=params, json=json)
+                                        response = requests.post(url, params=params, data=json)
                         else:
                                 if files is not None:
                                         response = requests.post(url, params=params, files=files)

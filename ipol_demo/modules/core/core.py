@@ -1068,7 +1068,7 @@ class Core(object):
             resp = self.post(self.host_name, 'demoinfo', 'read_last_demodescription_from_demo', userdata)
             response = resp.json()
             last_demodescription = response['last_demodescription']
-            ddl_json = json.loads(json.loads(last_demodescription['json']))
+            ddl_json = json.loads(last_demodescription['json'])
             if 'build' in ddl_json:
                 ddl_build   = ddl_json['build']
             if 'inputs' in ddl_json:
