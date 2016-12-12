@@ -1,0 +1,101 @@
+# Default server configuration
+#
+
+upstream ipol_webapp_server {
+  # fail_timeout=0 means we always retry an upstream even if it failed
+  # to return a good HTTP response (in case the Unicorn master nukes a
+  # single worker for timing out).
+
+  server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
+}
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	client_max_body_size        5m;
+
+	root /var/www/html;
+
+	# Add index.php to the list if you are using PHP
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	# DEMOS
+        location /demo/  {
+		resolver 213.186.33.99;
+                proxy_pass   http://$host:8080;
+        }
+
+	location /cp/static/ {
+		alias  /home/ipol/IPOLWEBAPP_STATIC/;
+	}
+
+	# CP
+	location /cp/ {
+		resolver 213.186.33.99;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	        proxy_set_header Host $http_host;
+	        
+		if (!-f $request_filename) {
+	            proxy_pass http://ipol_webapp_server;
+        	    break;
+	        }
+
+		proxy_pass http://$host:8001;
+	}
+	
+	# SMARTALGO
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+                proxy_pass http://smartalgo.cmla.fr:7777;
+	}
+
+	# CORE
+	location /api/core/{
+		rewrite ^/api/core/(.*) /$1 break;
+		resolver 213.186.33.99;
+		proxy_pass   http://$host:8080;
+	}
+	
+
+        # BLOBS
+        location /api/blobs/ {
+                rewrite ^/api/blobs/(.*) /$1 break;
+		resolver 213.186.33.99;
+                proxy_pass   http://$host:9001;
+        }
+
+
+	# ARCHIVE
+	location /api/archive/ {
+		rewrite ^/api/archive/(.*) /$1 break;
+		resolver 213.186.33.99;
+		proxy_pass   http://$host:9000;
+	}
+
+	# DEMOINFO
+	location /api/demoinfo/ {
+		rewrite ^/api/demoinfo/(.*) /$1 break;
+		resolver 213.186.33.99;
+		proxy_pass   http://$host:9002;
+	}
+
+        # DISPATCHER
+        location /api/dispatcher/ {
+                rewrite ^/api/dispatcher/(.*) /$1 break;
+                resolver 213.186.33.99;
+                proxy_pass   http://$host:9005;
+        }
+
+        # DEMORUNNER
+        location /api/demorunner/ {
+                rewrite ^/api/demorunner/(.*) /$1 break;
+                resolver 213.186.33.99;
+                proxy_pass   http://$host:9004;
+        }
+
+
+}
+
