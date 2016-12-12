@@ -119,13 +119,10 @@ class Core(object):
             # Configure
             self.png_compresslevel=1
 
-                        
-
-            cherrypy.log("IPOL Core system Initialized" , context='__init__', traceback=False)
-            print "IPOL CORE system Initialized"
+            print "IPOL Core module started"
                         
         except Exception as ex:
-            self.error_log("__init__", str(ex))
+            self.logger.exception("__init__", str(ex))
 
     def load_demorunners(self):
         """
@@ -166,7 +163,7 @@ class Core(object):
             self.post(self.host_name, "dispatcher", "refresh_demorunners")
         except Exception as ex:
             print ex
-            self.error_log("refresh_demorunners", str(ex))
+            self.logger.exception("refresh_demorunners")
             data["status"] = "KO"
             data["message"] = "Can not load demorunners.xml"
 
@@ -205,7 +202,7 @@ class Core(object):
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
                 self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
-                print "Error when trying to obtain the workload of '{}' - {}".format(dr_name,ex)
+                print "Error when trying to obtain the workload of '{}' - {}".format(dr_name, ex)
         return dr_wl
         
     @staticmethod
@@ -313,7 +310,7 @@ class Core(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.error_log("shutdown", str(ex))
+            self.logger.exception("shutdown")
         return json.dumps(data)
 
     @cherrypy.expose
@@ -376,7 +373,6 @@ class Core(object):
         resize = prod(im.size) > max_pixels
         
         if resize:
-            cherrypy.log("input resize")
             im.resize(max_pixels)
             if msg!= "":
                 msg += "&"
@@ -417,7 +413,8 @@ class Core(object):
             data["img"] = encoded_string
             data["status"] ="OK"
         except Exception as ex:
-            print "Failed to convert image", ex
+            print "Failed to convert image from tiff to png", ex
+            self.logger.exception("Failed to convert image from tiff to png")
         return json.dumps(data)
 
 
@@ -659,17 +656,15 @@ class Core(object):
  
         @return: successfull process
         """
-        cherrypy.log("retrieving: %s" % url_file, context='ensure_extras_updated', traceback=False)
-        
+
         try:
             url_handle = urllib.urlopen(url_file)
             file_handle = open(filename, 'w')
             file_handle.write(url_handle.read())
             file_handle.close()
-            cherrypy.log("retrieved", context='ensure_extras_updated', traceback=False)
-            success=0  
+            success = 0
         except Exception as ex:
-            success=1
+            success = 1
         
         return success    
 
@@ -717,8 +712,6 @@ class Core(object):
                     f.write(ar.read(member))
                     f.close()
 
-        cherrypy.log("extracted: %s" % filename,  context='ensure_extras_updated', traceback=False)
- 
         return content
         
     
@@ -1245,6 +1238,9 @@ class Core(object):
 
 
     def post(self, host, module, service, data=None):
+        """
+        Do a POST via api
+        """
         try:
             url = 'http://{0}/api/{1}/{2}'.format(
                 host,
@@ -1254,4 +1250,4 @@ class Core(object):
             return requests.post(url, data=data)
         except Exception as ex:
             print "Failure in the post function of the CORE in the call to {} module - {}".format(module, str(ex))
-            self.error_log("Failure in the post function of the CORE", str(ex))
+            self.logger.exception("Failure in the post function of the CORE")

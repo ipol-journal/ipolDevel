@@ -11,6 +11,9 @@ shared_folder/
 #demoextras in demoinfo
 ipol_demo/modules/demoinfo/demoExtras/*
 
+#DDLs from the ddl tool
+tools/DDL/DDLs
+
 #Binaries in demorunner
 ipol_demo/modules/demorunner/binaries/
 

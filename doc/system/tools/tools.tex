@@ -4,4 +4,33 @@ This section describes the tools available for system administrators, developers
 
 \subsection{DDL tool}
 \label{sec:ddl_tool}
-\ToDo{Document the DDL tool}
+This script is a tool that allows the user to read and write the DDLs from each demo. There are three functionalities for this script:
+\begin{itemize}
+
+\item Read the specified demos:
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py read <demo> <demo> ...
+\end{lstlisting}
+or
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py get <demo> <demo> ...
+\end{lstlisting}
+
+\item Read all the demos:
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py readall
+\end{lstlisting}
+or
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py getall
+\end{lstlisting}
+
+\item Write the specified demos:
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py write <demo> <demo> ...
+\end{lstlisting}
+or
+\begin{lstlisting}[language=Bash]
+~/ipolDevel/tools/DDL/$ ./ddl.py put <demo> <demo> ...
+\end{lstlisting}
+\end{itemize}
