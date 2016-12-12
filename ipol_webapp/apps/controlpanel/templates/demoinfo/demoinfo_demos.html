@@ -420,7 +420,7 @@
                                 $($modal_ddl_header).html('<h3>Edit DDL data</h3>');
                                 $($form_ddl_field_demo_id).get(0).value = demo_id;
                                 //gets json str (result of retrieving str from db)
-                                $($form_ddl_field_ddljson).get(0).value = $.parseJSON(data.last_demodescription.json);
+                                $($form_ddl_field_ddljson).get(0).value = data.last_demodescription.json;
                                 $($modal_ddl_id).modal('show');
                                 $ddlform.show();
 

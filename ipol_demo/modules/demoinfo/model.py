@@ -1205,16 +1205,6 @@ def createDb(database_name):
                 );"""
             )
             cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "ddlschema" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                active INTEGER(1) DEFAULT 1,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                schema BLOB
-                );"""
-            )
-
-            cursor_db.execute(
                 """CREATE TABLE IF NOT EXISTS "demodescription" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 inproduction INTEGER(1) DEFAULT 1,

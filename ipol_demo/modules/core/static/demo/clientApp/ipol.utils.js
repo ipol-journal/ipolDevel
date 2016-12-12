@@ -68,10 +68,7 @@ ipol.utils.syntaxHighlight = function(json) {
  */
 ipol.utils.DeserializeJSON = function(json_str)
 {
-    // need to deserialize twice: TODO: fix this problem
-    var json_obj = jQuery.parseJSON(json_str);
-    json_obj = jQuery.parseJSON(json_obj);
-    return json_obj
+    return jQuery.parseJSON(json_str);
 }
 
 

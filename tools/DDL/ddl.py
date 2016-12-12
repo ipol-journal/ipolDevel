@@ -31,17 +31,16 @@ def post(service, params=None, json=None):
             HOST,
             service
         )
-        # print "JSON - ",json
-        return requests.post(url, params=params, json=json)
+        return requests.post(url, params=params, data=json)
     except Exception as ex:
         print "ERROR: Failure in the post function - {}".format(str(ex))
 
 
-def do_read(args):
+def do_read(demos):
     '''
     Read a DDL
     '''
-    for editorsdemoid in args:
+    for editorsdemoid in demos:
         try:
             resp = post('read_last_demodescription_from_demo', params={"demo_id": editorsdemoid, "returnjsons": True})
             response = resp.json()
@@ -49,13 +48,14 @@ def do_read(args):
                 print "ERROR: read_last_demodescription_from_demo returned KO for demo {}".format(editorsdemoid)
                 continue
             last_demodescription = response['last_demodescription']
-            ddl_json = json.loads(json.loads(last_demodescription['json']))
+            ddl_json = last_demodescription['json']
 
             file = open("DDLs/" + str(editorsdemoid) + ".json", "wb")
-            file.write(json.dumps(ddl_json, indent=4, sort_keys=True))
-            file.close()
+            file.write(ddl_json)
         except Exception as ex:
             print "ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex)
+        finally:
+            file.close()
 
 
 def do_read_all():
@@ -79,11 +79,11 @@ def do_write(demos):
     '''
     for editorsdemoid in demos:
         try:
-            file = open("DDLs/" + str(editorsdemoid) + ".json", "r").read()
+            ddl_json = open("DDLs/" + str(editorsdemoid) + ".json", "r").read()
             # Check if is a valid JSON
-            json.loads(file)
+            json.loads(ddl_json)
 
-            resp = post('save_demo_description', params={"demoid": editorsdemoid}, json=file)
+            resp = post('save_demo_description', params={"demoid": editorsdemoid}, json=ddl_json)
             response = resp.json()
             if response['status'] != 'OK':
                 print "ERROR: save_demo_description returned KO for demo {}".format(editorsdemoid)
@@ -91,6 +91,7 @@ def do_write(demos):
             print "ERROR: Invalid JSON for demo {}".format(editorsdemoid)
         except Exception as ex:
             print "ERROR: Could not write DDL for demo {} - {}".format(editorsdemoid, ex)
+
 
 def do_write_all():
     '''
@@ -129,7 +130,7 @@ elif command == 'read' or command == 'get':
     do_read(args[1:])
 elif command == 'write' or command == 'put':
     do_write(args[1:])
-# elif command == 'writeall' or command == 'putall':
-#     do_write_all()
+elif command == 'writeall' or command == 'putall':
+    do_write_all()
 else:
     print "Unknown command '{}'".format(command)
