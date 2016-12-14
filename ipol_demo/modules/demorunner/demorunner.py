@@ -394,8 +394,6 @@ class DemoRunner(object):
                     for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
-                        destination_path = path.join(bin_dir, os.path.dirname(file_to_move))
-                        self.mkdir_p(destination_path)
                         shutil.move(path.join(src_dir,file_to_move), path.join(bin_dir, os.path.basename(file_to_move)))
 
             except Exception:
