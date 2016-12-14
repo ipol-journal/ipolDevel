@@ -8,16 +8,16 @@ which takes care of running an IPOL demo using web services
 
 # add lib path for import
 import os.path, sys
-
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
+
 
 import hashlib
 from   datetime import datetime
 
 import urllib
-from   timeit import default_timer as timer
-from   image import thumbnail, image
-from   misc import prod
+from   timeit   import default_timer as timer
+from   image    import thumbnail, image
+from   misc     import prod
 import PIL.ImageDraw
 
 import threading
@@ -28,15 +28,17 @@ import glob
 import shutil
 import time
 
-import run_demo_base
+import  run_demo_base
 from    run_demo_base import RunDemoBase
 from    run_demo_base import IPOLTimeoutError
 
 import traceback
 
+
 import subprocess
 import errno
 import logging
+
 
 import urlparse
 import os, shutil
@@ -53,12 +55,10 @@ import build
 import tempfile
 import time
 
-
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
     """
-
     @staticmethod
     def mkdir_p(path):
         """
@@ -95,6 +95,7 @@ class DemoRunner(object):
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
+
 
     def __init__(self):
         """
@@ -224,7 +225,7 @@ class DemoRunner(object):
 
         return json.dumps(data)
 
-    def make(self, path_for_the_compilation, ddl_build, clean_previous=True):
+    def make(self, path_for_the_compilation, ddl_build):
         """
         program build/update
         """
@@ -233,7 +234,6 @@ class DemoRunner(object):
         total_start = time.time()
         make_info = ""
 
-        print "make(clean_previous={0})".format(clean_previous)
         zip_filename = urlparse.urlsplit(ddl_build['url']).path.split('/')[-1]
         src_dir_name = ddl_build['srcdir']
 
@@ -297,157 +297,44 @@ class DemoRunner(object):
             # extract the archive
             start = time.time()  # 040404
 
-            if clean_previous and path.isdir(src_dir):
+            if path.isdir(src_dir):
                 shutil.rmtree(src_dir)
-
             self.mkdir_p(src_dir)
+
             build.extract(tgz_file, src_dir)
             make_info += "extracting archive: " + tgz_file + " sec.; ".format(time.time() - start)
             print make_info
 
             print "creating bin_dir"
-            if clean_previous and path.isdir(bin_dir):
+            if path.isdir(bin_dir):
                 shutil.rmtree(bin_dir)
-
             self.mkdir_p(bin_dir)
 
             print "creating scripts dir"
-            if clean_previous and path.isdir(scripts_dir):
+            if path.isdir(scripts_dir):
                 shutil.rmtree(scripts_dir)
-
             self.mkdir_p(scripts_dir)
 
-            ##----- CMAKE build
+            ## Execute make or cmake
             start = time.time()
-            print "creating bin_dir"
-            if ('build_type' in ddl_build.keys()) and \
-                    (ddl_build['build_type'].upper() == 'cmake'.upper()):
 
-                print "using CMAKE"
-                # Run cmake first:
-                # create temporary build dir IPOL_xxx_build
-                build_dir = path.join(src_path, "__IPOL_build__")
-                self.mkdir_p(build_dir)
-
-                # prepare_cmake can fix some options before configuration
-                if ('prepare_cmake' in ddl_build.keys()):
-                    print 'prepare_cmake :', ddl_build['prepare_cmake']
-                    build.run(ddl_build['prepare_cmake'], stdout=log_file, cwd=src_path)
-
-                print "..."
-                # set release mode by default, other options could be added
-                if ('cmake_flags' in ddl_build.keys()):
-                    cmake_flags = ddl_build['cmake_flags']
-                else:
-                    cmake_flags = ''
-
-                build.run("cmake -D CMAKE_BUILD_TYPE:string=Release " + cmake_flags + " " + src_path,
-                          stdout=log_file, cwd=build_dir)
-                # build
-                build.run("make %s " % (ddl_build['flags']), stdout=log_file, cwd=build_dir)
-
-                ## copy binaries
-                for program in programs:
-                    prog_path = path.join(build_dir, program[0])
-                    target = path.join(prog_path, program[1])
-
-                    if os.path.isdir(target):
-                        print "copying all files in bin dir"
-                        # copy all files to bin dir
-                        # src_files = os.listdir(target)
-                        for file_name in src_files:
-                            full_file_name = os.path.join(target, file_name)
-                        if (os.path.isfile(full_file_name)):
-                            print "{0}; ".format(file_name),
-                            shutil.copy(full_file_name, bin_dir)
-                        print ''
-                    else:
-                        # copy binary to bin dir
-                        print "{0}-->{1}".format(target, bin_dir)
-                        shutil.copy(target, bin_dir)
+            if ('build1' in ddl_build.keys()):
+                self.do_new_build()
             else:
                 if ('build_type' in ddl_build.keys()) and \
-                        (ddl_build['build_type'].upper() == 'make'.upper()):
-                    # ----- MAKE build
-                    print "using MAKE"
+                        (ddl_build['build_type'].upper() == 'cmake'.upper()):
+                    self.do_cmake(bin_dir, ddl_build, log_file, programs, src_path)
+                else:
+                    self.do_make(bin_dir, ddl_build, log_file, programs, src_path)
 
-                    # prepare_cmake can fix some options before configuration
-                    if ('prepare_make' in ddl_build.keys()):
-                        print 'prepare_make :', ddl_build['prepare_make']
-                        build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
+                # if build_type is 'script', just execute this part
+                if 'scripts' in ddl_build.keys():
+                    self.do_scripts(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
 
-                    print "..."
-
-                    moves = []
-
-                    # build the programs for make
-                    for program in programs:
-                        target = program[1]
-                        make_C_dir = path.join(src_path, program[0])
-                        target_path = path.join(make_C_dir, target)
-                        bins_to_move = program[1:] if len(program) >= 2 else [target]
-
-                        # build
-                        if os.path.isdir(target_path):
-                            cmd = "make %s -C %s" % (ddl_build['flags'], make_C_dir)
-                            print "CASO 1, cmd={}".format(cmd)
-                        else:
-                            cmd = "make %s -C %s %s" % (ddl_build['flags'], make_C_dir, target)
-                            print "CASO 2, cmd={}".format(cmd)
-
-                        print cmd
-                        build.run(cmd, stdout=log_file)
-
-                        if os.path.isdir(target_path):
-                            print "copying all files in bin dir from:", target_path
-                            # copy all files to bin dir
-                            for file_name in os.listdir(target_path):
-                                full_file_name = os.path.join(target_path, file_name)
-                                if (os.path.isfile(full_file_name)):
-                                    print "{0}; ".format(file_name),
-                                    shutil.copy(full_file_name, bin_dir)
-                        else:
-                            # copy binary to bin dir
-                            print "{0}-->{1}".format(target_path, bin_dir)
-
-                            # shutil.copy(target_path, bin_dir)
-                            for bin_to_move in bins_to_move:
-                                print "\n\n*******************"
-                                print "target={}".format(target)
-                                print "make_C_dir={}".format(make_C_dir)
-                                print "target_path=", target_path
-                                print "bin_to_move=", bin_to_move
-                                print "*******************\n\n"
-                                moves.append((os.path.join(make_C_dir, bin_to_move), bin_dir))
-                                # shutil.copy(file_from, bin_dir)
-
-                    for move in moves:
-                        print "COPY {} --> {}".format(move[0], move[1])
-                        shutil.copy(move[0], move[1])
-
-                        # if build_type is 'script', just execute this part
-            if 'scripts' in ddl_build.keys():
-                print ddl_build['scripts']
-                # Move scripts to the scripts dir
-                for script in ddl_build['scripts']:
-                    print "moving ", path.join(src_path, script[0], script[1]), " to ", scripts_dir
-                    new_file = path.join(scripts_dir, script[1])
-
-                    if os.path.exists(new_file):
-                        if path.isfile(new_file):
-                            os.remove(new_file)
-                        else:
-                            os.chmod(new_file, stat.S_IRWXU)
-                            shutil.rmtree(new_file)
-                    shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
-                    # Give exec permission to the script
-                    os.chmod(new_file, stat.S_IREAD | stat.S_IEXEC)
-
-            # prepare_cmake can fix some options before configuration
-            if ('post_build' in ddl_build.keys()):
-                print 'post_build command:', ddl_build['post_build']
-                build.run(ddl_build['post_build'],
-                          stdout=log_file, cwd=src_path)
+                if ('post_build' in ddl_build.keys()):
+                    print 'post_build command:', ddl_build['post_build']
+                    build.run(ddl_build['post_build'],
+                              stdout=log_file, cwd=src_path)
 
             # cleanup the source dir
             shutil.rmtree(src_dir)
@@ -457,6 +344,123 @@ class DemoRunner(object):
         print "make end"
 
         return make_info
+
+    def do_scripts(self, ddl_build, scripts_dir, src_path):
+        print ddl_build['scripts']
+        # Move scripts to the scripts dir
+        for script in ddl_build['scripts']:
+            print "moving ", path.join(src_path, script[0], script[1]), " to ", scripts_dir
+            new_file = path.join(scripts_dir, script[1])
+
+            if os.path.exists(new_file):
+                if path.isfile(new_file):
+                    os.remove(new_file)
+                else:
+                    os.chmod(new_file, stat.S_IRWXU)
+                    shutil.rmtree(new_file)
+            shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
+            # Give exec permission to the script
+            os.chmod(new_file, stat.S_IREAD | stat.S_IEXEC)
+
+    def do_make(self, bin_dir, ddl_build, log_file, programs, src_path):
+        if ('build_type' in ddl_build.keys()) and \
+                (ddl_build['build_type'].upper() == 'make'.upper()):
+            # ----- MAKE build
+            print "using MAKE"
+
+            # prepare_cmake can fix some options before configuration
+            if ('prepare_make' in ddl_build.keys()):
+                print 'prepare_make :', ddl_build['prepare_make']
+                build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
+
+            print "..."
+
+            moves = []
+
+            # build the programs for make
+            for program in programs:
+                target = program[1]
+                make_C_dir = path.join(src_path, program[0])
+                target_path = path.join(make_C_dir, target)
+                bins_to_move = program[1:] if len(program) >= 2 else [target]
+
+                # build
+                if os.path.isdir(target_path):
+                    cmd = "make %s -C %s" % (ddl_build['flags'], make_C_dir)
+                    print "CASO 1, cmd={}".format(cmd)
+                else:
+                    cmd = "make %s -C %s %s" % (ddl_build['flags'], make_C_dir, target)
+                    print "CASO 2, cmd={}".format(cmd)
+
+                print cmd
+                build.run(cmd, stdout=log_file)
+
+                if os.path.isdir(target_path):
+                    print "copying all files in bin dir from:", target_path
+                    # copy all files to bin dir
+                    for file_name in os.listdir(target_path):
+                        full_file_name = os.path.join(target_path, file_name)
+                        if (os.path.isfile(full_file_name)):
+                            print "{0}; ".format(file_name),
+                            shutil.copy(full_file_name, bin_dir)
+                else:
+                    # copy binary to bin dir
+                    print "{0}-->{1}".format(target_path, bin_dir)
+
+                    # shutil.copy(target_path, bin_dir)
+                    for bin_to_move in bins_to_move:
+                        print "\n\n*******************"
+                        print "target={}".format(target)
+                        print "make_C_dir={}".format(make_C_dir)
+                        print "target_path=", target_path
+                        print "bin_to_move=", bin_to_move
+                        print "*******************\n\n"
+                        moves.append((os.path.join(make_C_dir, bin_to_move), bin_dir))
+                        # shutil.copy(file_from, bin_dir)
+
+            for move in moves:
+                print "COPY {} --> {}".format(move[0], move[1])
+                shutil.copy(move[0], move[1])
+
+    def do_cmake(self, bin_dir, ddl_build, log_file, programs, src_path):
+        print "using CMAKE"
+        # Run cmake first:
+        # create temporary build dir IPOL_xxx_build
+        build_dir = path.join(src_path, "__IPOL_build__")
+        self.mkdir_p(build_dir)
+        # prepare_cmake can fix some options before configuration
+        if ('prepare_cmake' in ddl_build.keys()):
+            print 'prepare_cmake :', ddl_build['prepare_cmake']
+            build.run(ddl_build['prepare_cmake'], stdout=log_file, cwd=src_path)
+        print "..."
+        # set release mode by default, other options could be added
+        if ('cmake_flags' in ddl_build.keys()):
+            cmake_flags = ddl_build['cmake_flags']
+        else:
+            cmake_flags = ''
+        build.run("cmake -D CMAKE_BUILD_TYPE:string=Release " + cmake_flags + " " + src_path,
+                  stdout=log_file, cwd=build_dir)
+        # build
+        build.run("make %s " % (ddl_build['flags']), stdout=log_file, cwd=build_dir)
+        ## copy binaries
+        for program in programs:
+            prog_path = path.join(build_dir, program[0])
+            target = path.join(prog_path, program[1])
+
+            if os.path.isdir(target):
+                print "copying all files in bin dir"
+                # copy all files to bin dir
+                # src_files = os.listdir(target)
+                for file_name in src_files:
+                    full_file_name = os.path.join(target, file_name)
+                if (os.path.isfile(full_file_name)):
+                    print "{0}; ".format(file_name),
+                    shutil.copy(full_file_name, bin_dir)
+                print ''
+            else:
+                # copy binary to bin dir
+                print "{0}-->{1}".format(target, bin_dir)
+                shutil.copy(target, bin_dir)
 
     @cherrypy.expose
     def ensure_compilation(self, demo_id, ddl_build):
@@ -479,12 +483,10 @@ class DemoRunner(object):
         else:
             builds = ddl_build
 
-        first_build = True
         for build_params in builds:
             try:
-                make_info = self.make(path_for_the_compilation, build_params, first_build)
+                make_info = self.make(path_for_the_compilation, build_params)
                 print make_info
-                first_build = False
                 data['status'] = "OK"
                 data['message'] = "Build for demo {0} checked".format(demo_id)
                 data['info'] = make_info
