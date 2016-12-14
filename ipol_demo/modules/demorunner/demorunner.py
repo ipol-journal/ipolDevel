@@ -225,7 +225,7 @@ class DemoRunner(object):
 
         return json.dumps(data)
 
-    def make(self, path_for_the_compilation, ddl_build):
+    def make_karl(self, path_for_the_compilation, ddl_build):
         """
         program build/update
         """
@@ -318,23 +318,20 @@ class DemoRunner(object):
             ## Execute make or cmake
             start = time.time()
 
-            if ('build1' in ddl_build.keys()):
-                self.do_new_build()
+            if ('build_type' in ddl_build.keys()) and \
+                    (ddl_build['build_type'].upper() == 'cmake'.upper()):
+                self.do_cmake(bin_dir, ddl_build, log_file, programs, src_path)
             else:
-                if ('build_type' in ddl_build.keys()) and \
-                        (ddl_build['build_type'].upper() == 'cmake'.upper()):
-                    self.do_cmake(bin_dir, ddl_build, log_file, programs, src_path)
-                else:
-                    self.do_make(bin_dir, ddl_build, log_file, programs, src_path)
+                self.do_make(bin_dir, ddl_build, log_file, programs, src_path)
 
-                # if build_type is 'script', just execute this part
-                if 'scripts' in ddl_build.keys():
-                    self.do_scripts(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
+            # if build_type is 'script', just execute this part
+            if 'scripts' in ddl_build.keys():
+                self.do_scripts(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
 
-                if ('post_build' in ddl_build.keys()):
-                    print 'post_build command:', ddl_build['post_build']
-                    build.run(ddl_build['post_build'],
-                              stdout=log_file, cwd=src_path)
+            if ('post_build' in ddl_build.keys()):
+                print 'post_build command:', ddl_build['post_build']
+                build.run(ddl_build['post_build'],
+                          stdout=log_file, cwd=src_path)
 
             # cleanup the source dir
             shutil.rmtree(src_dir)
@@ -344,6 +341,74 @@ class DemoRunner(object):
         print "make end"
 
         return make_info
+
+    def make_new(self, path_for_the_compilation, ddl_builds):
+        """
+        program build/update
+        """
+        dl_dir = os.path.join(path_for_the_compilation, 'dl/')
+        src_dir = os.path.join(path_for_the_compilation, 'src/')
+        bin_dir = os.path.join(path_for_the_compilation, 'bin/')
+        log_file = os.path.join(path_for_the_compilation, 'build.log')
+
+        try:
+            # Clear src/ folder
+            if os.path.isdir(src_dir):
+                shutil.rmtree(src_dir)
+            self.mkdir_p(src_dir)
+            self.mkdir_p(dl_dir)
+            self.mkdir_p(bin_dir)
+        except Exception:
+            self.logger.exception("Directory operation failed")
+            raise
+
+        for build_item in ddl_builds.items():
+            build_item = build_item[1]
+            # Read DDL
+            url = build_item['url']
+            files_to_move = build_item['move']
+            construct = build_item['construct'] if 'construct' in build_item else None
+
+            zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
+            tgz_file = path.join(dl_dir, zip_filename)
+
+            # Get files to move path
+            files_path = []
+            for file in files_to_move.split(","):
+                files_path.append(path.join(bin_dir,os.path.basename(file.strip())))
+
+            try:
+                # Download
+                extract_needed = build.download(url, tgz_file)
+
+                # Check if a rebuild is nedded
+                if extract_needed or not self.all_files_exist(files_path):
+                    # Extract source code
+                    build.extract(tgz_file, src_dir)
+
+                    if construct is not None:
+                        # Execute the construct
+                        build.run(construct, log_file, cwd=src_dir)
+
+                    # Move files
+                    for file_to_move in files_to_move.split(","):
+                        # Remove possible white spaces
+                        file_to_move = file_to_move.strip()
+                        destination_path = path.join(bin_dir, os.path.dirname(file_to_move))
+                        self.mkdir_p(destination_path)
+                        shutil.move(path.join(src_dir,file_to_move), path.join(bin_dir, os.path.basename(file_to_move)))
+
+            except Exception:
+                self.logger.exception("Build failed")
+                raise
+
+
+    def all_files_exist(self, files):
+        for file in files:
+            if not os.path.isfile(file): return False
+        return True
+
+
 
     def do_scripts(self, ddl_build, scripts_dir, src_path):
         print ddl_build['scripts']
@@ -373,8 +438,6 @@ class DemoRunner(object):
                 print 'prepare_make :', ddl_build['prepare_make']
                 build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
 
-            print "..."
-
             moves = []
 
             # build the programs for make
@@ -387,10 +450,10 @@ class DemoRunner(object):
                 # build
                 if os.path.isdir(target_path):
                     cmd = "make %s -C %s" % (ddl_build['flags'], make_C_dir)
-                    print "CASO 1, cmd={}".format(cmd)
+                    # print "CASO 1, cmd={}".format(cmd)
                 else:
                     cmd = "make %s -C %s %s" % (ddl_build['flags'], make_C_dir, target)
-                    print "CASO 2, cmd={}".format(cmd)
+                    # print "CASO 2, cmd={}".format(cmd)
 
                 print cmd
                 build.run(cmd, stdout=log_file)
@@ -409,12 +472,12 @@ class DemoRunner(object):
 
                     # shutil.copy(target_path, bin_dir)
                     for bin_to_move in bins_to_move:
-                        print "\n\n*******************"
-                        print "target={}".format(target)
-                        print "make_C_dir={}".format(make_C_dir)
-                        print "target_path=", target_path
-                        print "bin_to_move=", bin_to_move
-                        print "*******************\n\n"
+                        # print "\n\n*******************"
+                        # print "target={}".format(target)
+                        # print "make_C_dir={}".format(make_C_dir)
+                        # print "target_path=", target_path
+                        # print "bin_to_move=", bin_to_move
+                        # print "*******************\n\n"
                         moves.append((os.path.join(make_C_dir, bin_to_move), bin_dir))
                         # shutil.copy(file_from, bin_dir)
 
@@ -485,7 +548,12 @@ class DemoRunner(object):
 
         for build_params in builds:
             try:
-                make_info = self.make(path_for_the_compilation, build_params)
+                print ddl_build
+                print type(ddl_build)
+                if 'build1' in ddl_build:
+                    make_info = self.make_new(path_for_the_compilation, build_params)
+                else:
+                    make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
                 data['status'] = "OK"
                 data['message'] = "Build for demo {0} checked".format(demo_id)
@@ -618,8 +686,8 @@ class DemoRunner(object):
             rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
             rd.run_algorithm()
         except Exception as e:
-            raise RuntimeError(e.message)
             self.logger.exception("run_algo")
+            raise RuntimeError(e.message)
         ## take into account possible changes in parameters
 
         res_data['params'] = rd.get_algo_params()

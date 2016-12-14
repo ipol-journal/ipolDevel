@@ -49,9 +49,10 @@ def download(url, fname):
             file_handle.write(url_handle.read())
             file_handle.close()
             print "Retrieved"
+            return True
         else:
             print "Not retrieved (local file is newer)"
-    return fname
+            return False
 
 def extract(fname, target):
     """
