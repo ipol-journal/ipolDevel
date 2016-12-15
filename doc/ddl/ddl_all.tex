@@ -1052,7 +1052,7 @@ ipol\_demo/\-static/\-JQuery\-App directory:
 
  \item \emph{ipol.utils.js}: contains Javascript/JQuery convenient functions.
 
- \item \emph{ipol.js}: this file contains the DocumentReady() function,
+ \item \emph{demo.js}: this file contains the DocumentReady() function,
   and deals with the initial interactions of the main page: enable page tabu\-lations,
   set events for several buttons, set events for input description and parameters
   description modal windows, for upload modal window, set event for browser history,
@@ -1227,7 +1227,7 @@ Additionally, when the user enters the 'Archive' tab, the archive information
 is automatically updated and the last archive page is displayed:
 \lstinputlisting[language=JavaScript, firstnumber=523,
 linerange={523-538}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/ipol.js}
+../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 To obtain the demo id, we first get the demo list stored within the "demo-select"
 HTML element (using the jquery data() function), then we obtain the demo id 
 (editordemoid) from the current position of the demo selection widget.
@@ -1240,7 +1240,7 @@ and the modal dialog to upload data.
 The modal dialog is then initialized by the following code:
 \lstinputlisting[language=JavaScript, firstnumber=581,
 linerange={581-599}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/ipol.js}
+../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
 \subsubsection{Step 1: input demo selection}
@@ -1256,7 +1256,7 @@ The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\
 of the "demoinfo" module using ipol.utils.ModuleService():
 \lstinputlisting[language=JavaScript, firstnumber=317,
 linerange={317-321}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/ipol.js}
+../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 
 Once the demo description is returned, it runs the following steps:
 \begin{itemize}
