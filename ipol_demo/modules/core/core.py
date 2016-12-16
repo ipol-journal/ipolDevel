@@ -1181,7 +1181,7 @@ class Core(object):
                 result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.host_name)
 
         except Exception as ex:
-                self.logger.exception("Failure in the run function of the CORE")
+                self.logger.exception("Failure in the run function of the CORE in demo #{}".format(demo_id))
                 print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
                 res_data = {}
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
