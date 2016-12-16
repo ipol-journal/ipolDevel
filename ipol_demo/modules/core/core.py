@@ -640,7 +640,7 @@ class Core(object):
             try:
                 shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
             except Exception as ex:
-                self.logger.exception("Copy blobs to physical location, work_dir=".format(work_dir))
+                self.logger.exception("Copy blobs to physical location, work_dir={}, original_blob_path={}".format(work_dir, original_blob_path))
                 print ex
 
     ##---------------
