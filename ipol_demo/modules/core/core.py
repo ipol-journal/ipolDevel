@@ -623,7 +623,7 @@ class Core(object):
           file_save.close()
 
     
-    def copy_blobset_from_physical_location(self, work_dir, blob_physical_location, blobs):
+    def copy_blobset_from_physical_location(self, work_dir, blobs):
         """
         use the selected available input images
         input parameters:
@@ -632,7 +632,10 @@ class Core(object):
         print "#### input_select_and_crop begin ####"
         start = timer()
 
-        nb_inputs = len(blobs)
+        blob_physical_location = blobs['physical_location']
+        del blobs['physical_location']
+        del blobs['url']
+        
         # copy to work_dir
         for index,blob in blobs.items():
             original_blob_path = os.path.join(self.blobs_folder, blob_physical_location, blob[0])
@@ -825,9 +828,7 @@ class Core(object):
         if input_type == 'upload':
             res_data = self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-            blob_physical_location = blobs['physical_location']
-            del blobs['url']
-            self.copy_blobset_from_physical_location(work_dir, blob_physical_location, blobs)
+            self.copy_blobset_from_physical_location(work_dir, blobs)
 
 
     
