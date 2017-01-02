@@ -1144,7 +1144,12 @@ class Core(object):
             print json_response
 
             if json_response['status'] != 'OK':
-                raise RuntimeError(json_response['error'])
+                print "DR answered KO for demo #{}".format(demo_id)
+                self.error_log("dr.exec_and_wait()", "DR returned KO")
+
+                # Send email to the editors
+                self.send_runtime_error_email(demo_id, key)
+                return json.dumps(json_response)
 
             json_response['work_url'] =  os.path.join("http://{}/api/core/".format(self.host_name), \
                                                       self.shared_folder_rel, \
@@ -1163,15 +1168,6 @@ class Core(object):
             except Exception:
                 print "Failed to save results.json file for demo #{}".format(demo_id)
                 self.logger.exception("Failed to save results.json file")
-                return json.dumps(json_response)
-
-            if json_response['status'] != 'OK':
-                print "DR answered KO for demo #{}".format(demo_id)
-                self.error_log("dr.exec_and_wait()", "DR returned KO")
-                
-                # Send email to the editors
-                self.send_runtime_error_email(demo_id, key)
-
                 return json.dumps(json_response)
             
             print "archive.store_experiment()"
