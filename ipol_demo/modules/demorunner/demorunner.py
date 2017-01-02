@@ -615,17 +615,22 @@ class DemoRunner(object):
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
-            res_data['error'] = 'timeout'
+            res_data['error'] = 'IPOLTimeoutError'
             self.logger.exception("exec_and_wait")
             return json.dumps(res_data)
         except RuntimeError as e:
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = 'IPOLTimeoutError'
-            res_data['algo_info']['run_time'] = time.time() - run_time
-            res_data['error'] = "DR RuntimeError in run_algo"
+            res_data['algo_info']['status'] = 'RuntimeError'
+            res_data['error'] = str(e)
             self.logger.exception("exec_and_wait")
             print res_data
             return json.dumps(res_data)
+        except Exception as e:
+            res_data['status'] = 'KO'
+            res_data['error'] = 'Error: {}'.format(e)
+            self.logger.exception("IPOL internal error in exec_and_wait")
+            return json.dumps(res_data)
+
 
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -672,25 +677,19 @@ class DemoRunner(object):
         the core algo runner
         """
         print "\n\n----- run_algo begin -----\n\n"
-        try:
-            rd = run_demo_base.RunDemoBase(bin_path, work_dir)
-            rd.set_algo_params(params)
-            rd.set_algo_info(res_data['algo_info'])
-            rd.set_algo_meta(res_data['algo_meta'])
-            rd.set_MATLAB_path(self.MATLAB_path)
-            rd.set_demo_id(demo_id)
-            rd.set_commands(ddl_run)
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir)
+        rd.set_algo_params(params)
+        rd.set_algo_info(res_data['algo_info'])
+        rd.set_algo_meta(res_data['algo_meta'])
+        rd.set_MATLAB_path(self.MATLAB_path)
+        rd.set_demo_id(demo_id)
+        rd.set_commands(ddl_run)
 
-            rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-            rd.run_algorithm()
-        except Exception as e:
-            self.logger.exception("run_algo")
-            raise RuntimeError(e.message)
-        ## take into account possible changes in parameters
+        rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
+        rd.run_algorithm()
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
         res_data['algo_meta'] = rd.get_algo_meta()
         print "----- run_algo end -----"
-        return
 

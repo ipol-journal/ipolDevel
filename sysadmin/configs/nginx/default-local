@@ -9,7 +9,7 @@ server {
 	client_max_body_size        5m;
 
 	# Change this variable with your own user name
-	set $my_user carlos;
+	set $my_user miguel;
 
 	# Path of the static content
 	location /cp/static/ {
@@ -23,6 +23,14 @@ server {
 		# adding a header like the example below
 		# add_header X-debug-message "$host" always;
 		proxy_pass  http://$host:8080;
+	}
+
+	# CP
+	location /cp/ {
+		add_header X-debug-message "$host" always;
+		# If the distribution is Debian you need the resolver
+		# resolver 213.186.33.99;
+		proxy_pass http://$host:8000;
 	}
 
 	# CORE
@@ -57,13 +65,22 @@ server {
 		proxy_pass  http://$host:9002;
 	}
 
-	# CP
-	location /cp/ {
-		add_header X-debug-message "$host" always;
+        # DISPATCHER
+        location /api/dispatcher/ {
+                rewrite ^/api/dispatcher/(.*) /$1 break;
 		# If the distribution is Debian you need the resolver		
 		# resolver 213.186.33.99;
-		proxy_pass http://$host:8000;
-	}
+                proxy_pass   http://$host:9005;
+        }
+
+        # DEMORUNNER
+        location /api/demorunner/ {
+                rewrite ^/api/demorunner/(.*) /$1 break;
+		# If the distribution is Debian you need the resolver		
+		# resolver 213.186.33.99;
+                proxy_pass   http://$host:9004;
+        }
+
 
 	location /  {
         	return  301 /demo/;
@@ -72,4 +89,3 @@ server {
         	proxy_pass  http://$host:8080;
    	}
 }
-

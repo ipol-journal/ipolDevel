@@ -623,7 +623,7 @@ class Core(object):
           file_save.close()
 
     
-    def copy_blobset_from_physical_location(self, work_dir, blob_physical_location, blobs):
+    def copy_blobset_from_physical_location(self, work_dir, blobs):
         """
         use the selected available input images
         input parameters:
@@ -632,7 +632,10 @@ class Core(object):
         print "#### input_select_and_crop begin ####"
         start = timer()
 
-        nb_inputs = len(blobs)
+        blob_physical_location = blobs['physical_location']
+        del blobs['physical_location']
+        del blobs['url']
+        
         # copy to work_dir
         for index,blob in blobs.items():
             original_blob_path = os.path.join(self.blobs_folder, blob_physical_location, blob[0])
@@ -640,7 +643,7 @@ class Core(object):
             try:
                 shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
             except Exception as ex:
-                self.logger.exception("Copy blobs to physical location")
+                self.logger.exception("Copy blobs to physical location, work_dir={}, original_blob_path={}".format(work_dir, original_blob_path))
                 print ex
 
     ##---------------
@@ -825,9 +828,7 @@ class Core(object):
         if input_type == 'upload':
             res_data = self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-            blob_physical_location = blobs['physical_location']
-            del blobs['url']
-            self.copy_blobset_from_physical_location(work_dir, blob_physical_location, blobs)
+            self.copy_blobset_from_physical_location(work_dir, blobs)
 
 
     
@@ -1180,7 +1181,7 @@ class Core(object):
                 result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.host_name)
 
         except Exception as ex:
-                self.logger.exception("Failure in the run function of the CORE")
+                self.logger.exception("Failure in the run function of the CORE in demo #{}".format(demo_id))
                 print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
                 res_data = {}
                 res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
