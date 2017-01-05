@@ -1014,7 +1014,7 @@ class   Blobs(object):
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(\
-          blob_id=blob_id, blob_info=res, demoid=demo_name)
+          blob_id=blob_id, blob_info=res, demo_id=demo_name)
 
     #@cherrypy.expose
     #def get_blob_url_ws(self, blob_hash, blob_ext):
