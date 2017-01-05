@@ -5,14 +5,14 @@
     </head>
     <body>
       <ul>
-	<a href="get_blobs_of_demo?demo_name=${demo_name}">return</a>
+	<a href="get_blobs_of_demo?demo_name=${demo_id}">return</a>
 	<h1>Editing blob with ID = ${blob_info["id"]}</h1>
 	<img src="${blob_info["url_thumb"]}"></img>
 	<table>
 	  %for tag_id in blob_info["tags"]:
 	  <tr>
 	    <td>${blob_info["tags"][tag_id]}</td>
-	    <td><a href="op_remove_tag_from_blob?tag_id=${tag_id}&blob_id=${blob_info["id"]}&demo_name=${demo_name}">remove</a></td>
+	    <td><a href="op_remove_tag_from_blob?tag_id=${tag_id}&blob_id=${blob_info["id"]}&demo_name=${demo_id}">remove</a></td>
 	  </tr>
 	  %endfor
 	  <br>
