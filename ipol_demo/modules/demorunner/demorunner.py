@@ -229,6 +229,8 @@ class DemoRunner(object):
         """
         program build/update
         """
+        self.error_log("make_karl", \
+          "Using deprecated make_karl function to compile")
 
         print "make begin"
         total_start = time.time()
