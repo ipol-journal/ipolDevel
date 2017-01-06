@@ -229,6 +229,9 @@ class DemoRunner(object):
         """
         program build/update
         """
+        self.error_log("make_karl", \
+          "Using deprecated make_karl function to compile - {}".\
+            format(path_for_the_compilation))
 
         print "make begin"
         total_start = time.time()
@@ -567,8 +570,35 @@ class DemoRunner(object):
         return json.dumps(data)
 
     # ---------------------------------------------------------------------------
+    # Algorithm runner
+    # ---------------------------------------------------------------------------
+    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data):
+        """
+        the core algo runner
+        """
+        print "\n\n----- run_algo begin -----\n\n"
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir)
+        rd.set_algo_params(params)
+        rd.set_algo_info(res_data['algo_info'])
+        rd.set_algo_meta(res_data['algo_meta'])
+        rd.set_MATLAB_path(self.MATLAB_path)
+        rd.set_demo_id(demo_id)
+        rd.set_commands(ddl_run)
+
+        rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
+        rd.run_algorithm()
+
+        res_data['params'] = rd.get_algo_params()
+        res_data['algo_info'] = rd.get_algo_info()
+        res_data['algo_meta'] = rd.get_algo_meta()
+        print "----- run_algo end -----"
+        
+
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None):
+        '''
+        Called by the web interface to run the algorithm
+        '''        
         print "#### run demo ####"
         print "demo_id = ", demo_id
         ddl_run = json.loads(ddl_run)
@@ -596,7 +626,7 @@ class DemoRunner(object):
             with open(os.path.join(work_dir, "params.json"), "w") as resfile:
                 json.dump(params, resfile)
         except Exception as ex:
-            self.logger.exception("Save params.json")
+            self.logger.exception("Save params.json, demo_id={}".format(demo_id))
             print "Failed to save params.json file"
             res_data['status'] = 'KO'
             res_data['error'] = 'Save params.json'
@@ -615,17 +645,22 @@ class DemoRunner(object):
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
-            res_data['error'] = 'timeout'
-            self.logger.exception("exec_and_wait")
+            res_data['error'] = 'IPOLTimeoutError'
+            self.logger.exception("exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id))
             return json.dumps(res_data)
         except RuntimeError as e:
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = 'IPOLTimeoutError'
-            res_data['algo_info']['run_time'] = time.time() - run_time
-            res_data['error'] = "DR RuntimeError in run_algo"
-            self.logger.exception("exec_and_wait")
+            res_data['algo_info']['status'] = 'RuntimeError'
+            res_data['error'] = str(e)
+            self.logger.exception("exec_and_wait RuntimeError, demo_id={}".format(demo_id))
             print res_data
             return json.dumps(res_data)
+        except Exception as e:
+            res_data['status'] = 'KO'
+            res_data['error'] = 'Error: {}'.format(e)
+            self.logger.exception("IPOL internal error in exec_and_wait, demo_id={}".format(demo_id))
+            return json.dumps(res_data)
+
 
         # TODO:this code will be moved to the CORE
         # get back parameters
@@ -634,7 +669,7 @@ class DemoRunner(object):
                 res_data['params'] = json.load(resfile)
         except Exception as ex:
             print "Failed to read params.json file"
-            self.logger.exception("exec_and_wait")
+            self.logger.exception("exec_and_wait can't read params.json, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'Read params.json'
             return json.dumps(res_data)
@@ -657,40 +692,9 @@ class DemoRunner(object):
                         res_data['algo_info'][info] = new_string
                         f.close()
                     except Exception as e:
-                        self.logger.exception("Failed to get info from {}".format(os.path.join(work_dir, filename)))
+                        self.logger.exception("DDL - Failed to get info from {}".format(os.path.join(work_dir, filename)))
                         print "failed to get info ", info, " from file ", os.path.join(work_dir, filename)
                         print "Exception ", e
 
         print res_data
         return json.dumps(res_data)
-
-    # ---------------------------------------------------------------------------
-    # Core algorithm runner
-    # ---------------------------------------------------------------------------
-    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data):
-        """
-        the core algo runner
-        """
-        print "\n\n----- run_algo begin -----\n\n"
-        try:
-            rd = run_demo_base.RunDemoBase(bin_path, work_dir)
-            rd.set_algo_params(params)
-            rd.set_algo_info(res_data['algo_info'])
-            rd.set_algo_meta(res_data['algo_meta'])
-            rd.set_MATLAB_path(self.MATLAB_path)
-            rd.set_demo_id(demo_id)
-            rd.set_commands(ddl_run)
-
-            rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-            rd.run_algorithm()
-        except Exception as e:
-            self.logger.exception("run_algo")
-            raise RuntimeError(e.message)
-        ## take into account possible changes in parameters
-
-        res_data['params'] = rd.get_algo_params()
-        res_data['algo_info'] = rd.get_algo_info()
-        res_data['algo_meta'] = rd.get_algo_meta()
-        print "----- run_algo end -----"
-        return
-

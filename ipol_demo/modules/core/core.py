@@ -1,14 +1,12 @@
 #! /usr/bin/python
+
 """
-base cherrypy launcher for the IPOL demo app
+IPOL Core module
 """
 
-#TODO: blacklist from config file
-
-import cherrypy
 import sys
 import shutil
-import json     
+import json
 
 import errno
 import logging
@@ -16,34 +14,24 @@ import os
 import os.path
 
 import urllib
-import requests
 
 import hashlib
 from   datetime import datetime
 from   random   import random
 import glob
-
-import magic
-from PIL import Image,ImageDraw
-import mimetypes
-
 import time
-from   timeit   import default_timer as timer
+
+import tarfile
+import zipfile
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
 from misc import prod
-from image import thumbnail, image
-import tarfile, zipfile
+from image import image
 from sendarchive import SendArchive
-from urlparse import urlparse
-import webbrowser
-import io, base64
-from io import BytesIO
-import png
-from libtiff import TIFF
+import base64
 import tempfile
+
 import xml.etree.ElementTree as ET
-import subprocess
 
 # To send emails
 import smtplib
@@ -52,6 +40,11 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import socket
 
+from libtiff import TIFF
+import png
+
+import requests
+import cherrypy
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -68,7 +61,9 @@ class Core(object):
         logger = logging.getLogger(logs_dir_abs)
         logger.setLevel(logging.ERROR)
         handler = logging.FileHandler(os.path.join(logs_dir_abs, self.logs_name))
-        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter(\
+          '%(asctime)s ERROR in %(message)s',\
+          datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
@@ -94,16 +89,20 @@ class Core(object):
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
 
-            self.project_folder  = cherrypy.config.get("project_folder")
-            self.blobs_folder      = cherrypy.config.get("blobs_folder")
+            self.project_folder = cherrypy.config.get("project_folder")
+            self.blobs_folder = cherrypy.config.get("blobs_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
 
-            self.shared_folder_rel  = cherrypy.config.get("shared_folder")
-            self.shared_folder_abs  = os.path.join(self.project_folder, self.shared_folder_rel)
-            self.demoExtrasMainDir = os.path.join(self.shared_folder_abs, cherrypy.config.get("demoExtrasDir"))
-            self.dl_extras_dir     = os.path.join(self.shared_folder_abs, cherrypy.config.get("dl_extras_dir"))
-            self.share_run_dir_rel     = cherrypy.config.get("running.dir")
-            self.share_run_dir_abs     = os.path.join(self.shared_folder_abs, self.share_run_dir_rel)
+            self.shared_folder_rel = cherrypy.config.get("shared_folder")
+            self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
+            self.demoExtrasMainDir = os.path.join(\
+              self.shared_folder_abs, \
+              cherrypy.config.get("demoExtrasDir"))
+            self.dl_extras_dir = os.path.join(self.shared_folder_abs, \
+              cherrypy.config.get("dl_extras_dir"))
+            self.share_run_dir_rel = cherrypy.config.get("running.dir")
+            self.share_run_dir_abs = os.path.join(\
+              self.shared_folder_abs, self.share_run_dir_rel)
 
             self.load_demorunners()
 
@@ -115,12 +114,12 @@ class Core(object):
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
             #return to core
-            
+
             # Configure
-            self.png_compresslevel=1
+            self.png_compresslevel = 1
 
             print "IPOL Core module started"
-                        
+
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
 
@@ -193,18 +192,23 @@ class Core(object):
         dr_wl = {}
         for dr_name in self.demorunners.keys():
             try:
-                resp = self.post(self.demorunners[dr_name]['server'],'demorunner','get_workload')
+                resp = self.post(self.demorunners[dr_name]['server'],\
+                  'demorunner', 'get_workload')
                 response = resp.json()
                 if response['status'] == 'OK':
                     dr_wl[dr_name] = response['workload']
                 else:
-                    self.error_log("get_workload returned KO for DR='{}'".format(dr_name))
+                    self.error_log("demorunners_workload", \
+                      "get_workload returned KO for DR='{}'".\
+                      format(dr_name))
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
-                self.logger.exception("Error when trying to obtain the workload of '{}'".format(dr_name))
+                s = "Error when trying to obtain the \
+workload of '{}'".format(dr_name)
+                self.logger.exception(s)
                 print "Error when trying to obtain the workload of '{}' - {}".format(dr_name, ex)
         return dr_wl
-        
+
     @staticmethod
     def mkdir_p(path):
         """
@@ -221,7 +225,7 @@ class Core(object):
                 pass
             else:
                 raise
-        
+
         return created
 
     @cherrypy.expose
@@ -230,10 +234,10 @@ class Core(object):
         Index page
         """
 
-        resp = self.post(self.host_name,'demoinfo','demo_list')
+        resp = self.post(self.host_name, 'demoinfo', 'demo_list')
         response = resp.json()
-        status = response['status'] 
-        
+        status = response['status']
+
         cherrypy.response.headers['Content-Type'] = 'text/html'
         if status == 'KO':
             string = """
@@ -249,14 +253,14 @@ class Core(object):
                  </html>
                  """
             return string
-        
+
         demo_list = response['demo_list']
         demos_string = ""
         for demo in demo_list:
             demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                 demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
 
-            
+
         string = """
                  <!DOCTYPE html>
                  <html lang="en">
@@ -270,29 +274,21 @@ class Core(object):
                  </body>
                  </html>
                  """.format(demos_string)
-            
+
         return string
 
     @cherrypy.expose
     def demo(self):
+        '''
+        Return a HTML page with the list of demos.
+        '''
         return self.index()
 
-    @cherrypy.expose
-    def api(self):
-        """
-        Ping pong.
-        :rtype: JSON formatted string
-        """
-        data = {}
-        data["status"] = "OK"
-        data["api"] = "pong"
-        return json.dumps(data)
 
     @cherrypy.expose
     def ping(self):
         """
-        Ping pong.
-        :rtype: JSON formatted string
+        Ping service: answer with a PONG.
         """
         data = {}
         data["status"] = "OK"
@@ -309,7 +305,7 @@ class Core(object):
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
-        except Exception as ex:
+        except Exception:
             self.logger.exception("shutdown")
         return json.dumps(data)
 
@@ -333,21 +329,19 @@ class Core(object):
         '''
         # [Miguel] It's not clear to me what stack_depth is used for.
         # In any case, it seems that probably we have here a typical race condition.
-        start = timer()
         im.save(fullpath, compresslevel=self.png_compresslevel)
-        end=timer()
-        
+
 
     #---------------------------------------------------------------------------
     def need_convert(self, im, input_info):
         '''
         check if input image needs convertion
         '''
-        mode_kw = {'1x8i' : 'L',
-                    '3x8i' : 'RGB'}
+        mode_kw = {'1x8i' : 'L',\
+                   '3x8i' : 'RGB'}
         # check max size
         return  im.im.mode != mode_kw[input_info['dtype']]
-            
+
     #---------------------------------------------------------------------------
     def need_convert_or_resize(self, im, input_info):
         '''
@@ -355,32 +349,28 @@ class Core(object):
         '''
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
-        return  self.need_convert(im,input_info) or \
-                prod(im.size) > max_pixels
+        return self.need_convert(im, input_info) or \
+               prod(im.size) > max_pixels
 
     #---------------------------------------------------------------------------
     def convert_and_resize(self, im, input_info):
         '''
         Convert and resize an image object
         '''
-        msg=""
-        start = timer()
-        if self.need_convert(im,input_info):
+        msg = ""
+        if self.need_convert(im, input_info):
             im.convert(input_info['dtype'])
             msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
-        
+
         if resize:
             im.resize(max_pixels)
-            if msg!= "":
+            if msg != "":
                 msg += "&"
             msg += " resized to {0}px ".format(max_pixels)
-            print "msg",msg
-        
-        end=timer()
-        
+            print "msg", msg
         return msg
 
     @cherrypy.expose
@@ -392,7 +382,7 @@ class Core(object):
         data = {}
         data["status"] = "KO"
         try:
-            temp_file=tempfile.NamedTemporaryFile()
+            temp_file = tempfile.NamedTemporaryFile()
             temp_file.write(base64.b64decode(img))
             temp_file.seek(0)
 
@@ -400,18 +390,20 @@ class Core(object):
             tiffImage = tiffFile.read_image()
             Nrow, Ncolumn, Nchannels = tiffImage.shape
 
-            pixelMatrix = tiffImage[:,:,0:3].reshape((Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
-            temp_file = tempfile.SpooledTemporaryFile()
+            pixelMatrix = tiffImage[:, :, 0:3].reshape(\
+              (Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
+            tmp_file = tempfile.SpooledTemporaryFile()
 
             bitdepth = int(tiffImage.dtype.name.split("uint")[1])
-            writer = png.Writer(Ncolumn, Nrow, bitdepth=bitdepth,greyscale=False)
+            writer = png.Writer(Ncolumn, Nrow, \
+              bitdepth=bitdepth, greyscale=False)
 
-            writer.write(temp_file, pixelMatrix)
-            temp_file.seek(0)
-            encoded_string = base64.b64encode(temp_file.read())
+            writer.write(tmp_file, pixelMatrix)
+            tmp_file.seek(0)
+            encoded_string = base64.b64encode(tmp_file.read())
 
             data["img"] = encoded_string
-            data["status"] ="OK"
+            data["status"] = "OK"
         except Exception as ex:
             print "Failed to convert image from tiff to png", ex
             self.logger.exception("Failed to convert image from tiff to png")
@@ -421,7 +413,7 @@ class Core(object):
     ###--------------------------------------------------------------------------
     ##          END BLOCK OF INPUT TOOLS
     ###--------------------------------------------------------------------------
-    
+
     ##----------------------------
     #   OLD FUNCTIONS  - In the future, they should be refactored
     ##-----------------------------
@@ -436,15 +428,16 @@ class Core(object):
         """
         print "#### crop_input ####"
         # for the moment, we can only crop the first image
-        
-        if idx!=0:
+
+        if idx != 0:
             return False, None
-        
-        filename = os.path.join(work_dir,'input_{0}.crop.png'.format(idx))
+
+        filename = os.path.join(work_dir, \
+          'input_{0}.crop.png'.format(idx))
 
         print "crop_info = {0}".format(crop_info)
         crop_info = json.loads(crop_info)
-        
+
         if crop_info["enabled"]:
             # define x0,y0,x1,y1
             x0 = int(round(crop_info['x']))
@@ -453,8 +446,9 @@ class Core(object):
             y1 = int(round(crop_info['y']+crop_info['h']))
             #save parameters
             try:
-                ## TODO: get rid of eval()
-                max_pixels  = eval(str(inputs_desc[0]['max_pixels']))
+                ## [Miguel][ToDo]
+                ## TODO: get rid of ALL eval/exec!!!
+                max_pixels = eval(str(inputs_desc[0]['max_pixels']))
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
                 img.crop((x0, y0, x1, y1))
@@ -462,16 +456,16 @@ class Core(object):
                 if max_pixels and prod(img.size) > max_pixels:
                     img.resize(max_pixels, method="antialias")
                 # save result
-                self.save_image(img,filename)
+                self.save_image(img, filename)
             except ValueError as e:
                 return False, None
 
         else:
             return False, None
-        
+
         return True, filename
 
-    
+
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         """
         pre-process the input data
@@ -479,104 +473,111 @@ class Core(object):
         of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
         print "#####  Entering process_inputs...  #####"
-        start = timer()
         msg = ""
         max_width = 0
         max_height = 0
         nb_inputs = len(inputs_desc)
-        
+
         for i in range(nb_inputs):
-          input_msg = ""
-          # check the input type
-          input_desc = inputs_desc[i]
-          # find files starting with input_%
-          input_files = glob.glob(os.path.join(work_dir,'input_%i' % i+'.*'))
-          if input_desc['type']=='image':
+            input_msg = ""
+            # check the input type
+            input_desc = inputs_desc[i]
+            # find files starting with input_%
+            input_files = glob.glob(os.path.join(work_dir, \
+              'input_%i' % i+'.*'))
+            if input_desc['type'] == 'image':
             # we deal with an image, go on ...
-            print "Processing input {0}".format(i)
-            if len(input_files)!=1:
-                if  ('required' in inputs_desc[i].keys()) and \
-                    inputs_desc[i]['required']:
+                print "Processing input {0}".format(i)
+                if len(input_files) != 1:
+                    if  ('required' in inputs_desc[i].keys()) and \
+                        inputs_desc[i]['required']:
                     # problem here
-                    raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                        raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
+                    else:
+                        # optional input missing, end of inputs
+                        break
                 else:
-                    # optional input missing, end of inputs
-                    break
-            else:
-              # open the file as an image
-              try:
-                  im = image(input_files[0])
-              except IOError:
-                print "failed to read image " + input_files[0]
-                raise cherrypy.HTTPError(400, # Bad Request
-                                         "Bad input file")
+                    # open the file as an image
+                    try:
+                        im = image(input_files[0])
+                    except IOError:
+                        print "failed to read image " + input_files[0]
+                        raise cherrypy.HTTPError(400, # Bad Request
+                                                 "Bad input file")
 
-            ##-----------------------------
-            ## Save the original file as PNG
-            ##
-            ## Do a check before security attempting copy.
-            ## If the check fails, do a save instead
-            if  im.im.format != "PNG" or \
-                im.size[0] > 20000 or im.size[1] > 20000 or \
-                len(im.im.getbands()) > 4:
-              # Save as PNG (slow)
-              self.save_image(im, os.path.join(work_dir,'input_%i.orig.png' % i))
-              # delete the original
-              os.remove(input_files[0])
-            else:
-              # Move file (fast)
-              shutil.move(input_files[0],
-                          os.path.join(work_dir,'input_%i.orig.png' % i))
+                ##-----------------------------
+                ## Save the original file as PNG
+                ##
+                ## Do a check before security attempting copy.
+                ## If the check fails, do a save instead
+                if  im.im.format != "PNG" or \
+                    im.size[0] > 20000 or im.size[1] > 20000 or \
+                    len(im.im.getbands()) > 4:
+                    # Save as PNG (slow)
+                    self.save_image(im, os.path.join(work_dir, \
+                      'input_%i.orig.png' % i))
+                    # delete the original
+                    os.remove(input_files[0])
+                else:
+                    # Move file (fast)
+                    shutil.move(input_files[0], \
+                      os.path.join(work_dir, 'input_%i.orig.png' % i))
 
-            ##-----------------------------
-            ## convert to the expected input format: TODO: do it if needed ...
-            if crop_info!=None:
-                status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
+                ##-----------------------------
+                ## convert to the expected input format. TODO: do it if needed ...
+                if crop_info is not None:
+                    status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
 
-                if status:
-                    im_converted = image(filename)
-                    im_converted_filename = 'input_%i.crop.png' % i
+                    if status:
+                        im_converted = image(filename)
+                        im_converted_filename = 'input_%i.crop.png' % i
+                    else:
+                        im_converted = im.clone()
+                        im_converted_filename = 'input_%i.orig.png' % i
                 else:
                     im_converted = im.clone()
                     im_converted_filename = 'input_%i.orig.png' % i
+
+                if self.need_convert_or_resize(im_converted, input_desc):
+                    print "need convertion or resize, input description: ", input_desc
+                    output_msg = self.convert_and_resize(im_converted,\
+                      input_desc)
+                    input_msg += " Input {0}:".format(i)+output_msg+" "
+                    # save a web viewable copy
+                    im_converted.save(os.path.join(work_dir,\
+                      'input_%i.png' % i), \
+                      compresslevel=self.png_compresslevel)
+                else:
+                    # just create a symbolic link
+                    os.symlink(im_converted_filename,\
+                      os.path.join(work_dir, 'input_%i.png' % i))
+
+                if im.size != im_converted.size:
+                    input_msg += " {0} --> {1} ".\
+                      format(im.size, im_converted.size)
+                    print "The image has been resized for a reduced computation time ",
+                    print  "({0} --> {1})".\
+                      format(im.size, im_converted.size)
+                # update maximal dimensions information
+                max_width = max(max_width, im_converted.size[0])
+                max_height = max(max_height, im_converted.size[1])
+                if input_msg != "":
+                    # next line in html
+                    msg += input_msg + "<br/>\n"
+                # end if type is image
             else:
-                im_converted = im.clone()
-                im_converted_filename = 'input_%i.orig.png' % i
-            
-            if self.need_convert_or_resize(im_converted,input_desc):
-                print "need convertion or resize, input description: ", input_desc
-                output_msg = self.convert_and_resize(im_converted,input_desc)
-                input_msg += " Input {0}:".format(i)+output_msg+" "
-                # save a web viewable copy
-                im_converted.save(os.path.join(work_dir,'input_%i.png' % i),
-                                  compresslevel=self.png_compresslevel)
-            else:
-                # just create a symbolic link  
-                os.symlink(im_converted_filename,\
-                           os.path.join(work_dir,'input_%i.png' % i))
-                
-            ext = input_desc['ext']
-            
-            if im.size != im_converted.size:
-                input_msg += " {0} --> {1} ".format(im.size,im_converted.size)
-                print "The image has been resized for a reduced computation time ",
-                print  "({0} --> {1})".format(im.size,im_converted.size)
-            # update maximal dimensions information
-            max_width  = max(max_width,im_converted.size[0])
-            max_height = max(max_height,im_converted.size[1])
-            if input_msg!="":
-                # next line in html
-                msg += input_msg+"<br/>\n"
-            # end if type is image
-          else:
-            # check if we have a representing image to display
-            if len(input_files)>1:
-              # the number of input files should be 2...
-              # for the moment, only check for png file
-              png_file = os.path.join(work_dir,'input_%i.png' % i)
+                # check if we have a representing image to display
+                if len(input_files) > 1:
+                    # the number of input files should be 2...
+                    # for the moment, only check for png file
+                    
+                    # [ToDo] [Miguel] This png_file variable is
+                    # never used!!!
+                    png_file = os.path.join(work_dir,\
+                      'input_%i.png' % i)
 
 
-    
+
     def input_upload(self, work_dir, blobs, inputs_desc, **kwargs):
         """
         use the uploaded input files
@@ -584,76 +585,87 @@ class Core(object):
         ddl_input is the input section of the demo description
         """
         print "#### input_upload ####"
-        
-        print "inputs_desc = ",inputs_desc
+
+        print "inputs_desc = ", inputs_desc
         nb_inputs = len(inputs_desc)
-        
-        
+
+
         for i in range(nb_inputs):
-          file_up = blobs.pop('file_%i' % i,None)
-          
-          if file_up==None or file_up.filename == '':
-            if  not('required' in inputs_desc[i].keys()) or \
-                inputs_desc[i]['required']:
-              ## missing file
-              raise cherrypy.HTTPError(400, # Bad Request
-                                       "Missing input file number {0}".format(i))
-            else:
-                # skip this input
-                continue
+            file_up = blobs.pop('file_%i' % i, None)
 
-          ## suppose than the file is in the correct format for its extension
-          ext = inputs_desc[i]['ext']
-          file_save = file(os.path.join(work_dir,'input_%i' % i + ext), 'wb')
+            if file_up is None or file_up.filename == '':
+                if  not('required' in inputs_desc[i].keys()) or \
+                    inputs_desc[i]['required']:
+                    ## missing file
+                    raise cherrypy.HTTPError(400, # Bad Request
+                                             "Missing input file number {0}".format(i))
+                else:
+                    # skip this input
+                    continue
 
-          size = 0
-          while True:
-            ## TODO larger data size
-            data = file_up.file.read(128)
-            if not data:
-                break
-            size += len(data)
-            if 'max_weight' in inputs_desc[i] and size > eval(str(inputs_desc[i]['max_weight'])):
-                # file too heavy
-                raise cherrypy.HTTPError(400, # Bad Request
-                                          "File too large, " +
-                                          "resize or use better compression")
-            
-            file_save.write(data)
-          file_save.close()
+            ## suppose than the file is in the correct format for its extension
+            ext = inputs_desc[i]['ext']
+            file_save = file(os.path.join(\
+              work_dir, 'input_%i' % i + ext), 'wb')
 
-    
-    def copy_blobset_from_physical_location(self, work_dir, blob_physical_location, blobs):
+            size = 0
+            while True:
+                ## TODO larger data size
+                data = file_up.file.read(128)
+                if not data:
+                    break
+                size += len(data)
+                if 'max_weight' in inputs_desc[i] and\
+                  size > eval(str(inputs_desc[i]['max_weight'])):
+                    # file too heavy
+                    # Bad Request
+                    raise cherrypy.HTTPError(400, \
+                      "File too large, " + \
+                       "resize or compress more")
+
+                file_save.write(data)
+            file_save.close()
+
+
+    def copy_blobset_from_physical_location(self, work_dir, blobs):
         """
         use the selected available input images
         input parameters:
         returns:
         """
         print "#### input_select_and_crop begin ####"
-        start = timer()
 
-        nb_inputs = len(blobs)
+        blob_physical_location = blobs['physical_location']
+        del blobs['physical_location']
+        del blobs['url']
+
         # copy to work_dir
-        for index,blob in blobs.items():
-            original_blob_path = os.path.join(self.blobs_folder, blob_physical_location, blob[0])
+        for index, blob in blobs.items():
+            original_blob_path = os.path.join(self.blobs_folder,\
+              blob_physical_location, blob[0])
             extension = blob[0].split('.')
             try:
-                shutil.copy(original_blob_path,os.path.join(work_dir,'input_{0}.{1}'.format(index,extension[1])))
+                shutil.copy(original_blob_path, os.path.join(\
+                  work_dir, 'input_{0}.{1}'.\
+                  format(index, extension[1])))
             except Exception as ex:
-                self.logger.exception("Copy blobs to physical location")
+                s = "Copy blobs to physical location, \
+work_dir={}, original_blob_path={}".\
+format(work_dir, original_blob_path)
+                self.logger.exception(s)
                 print ex
 
     ##---------------
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
     #--------------
-    
-    
+
+
     def download(self, url_file, filename):
         """
-        Download a file from the network 
+        Download a file from the network
         @param url: source url
         @param fname: destination file name
- 
+
         @return: successfull process
         """
 
@@ -663,18 +675,18 @@ class Core(object):
             file_handle.write(url_handle.read())
             file_handle.close()
             success = 0
-        except Exception as ex:
+        except Exception:
             success = 1
-        
-        return success    
+
+        return success
 
     def extract(self, filename, target):
         """
         extract tar, tgz, tbz and zip archives
- 
+
         @param filename: archive file name
         @param target: target extraction directory
- 
+
         @return: the archive content
         """
         try:
@@ -690,10 +702,10 @@ class Core(object):
         assert not any([os.path.isabs(f) for f in content])
         # no .. in file name
         assert not any([(".." in f) for f in content])
-        
+
         try:
             ar.extractall(target)
-        except IOError, AttributeError:
+        except (IOError, AttributeError):
         # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
         # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
         # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
@@ -702,7 +714,7 @@ class Core(object):
             if os.path.isdir(target):
                 shutil.rmtree(target)
             os.mkdir(target)
-            
+
             # zipfile module < 2.6
             for member in content:
                 if member.endswith(os.path.sep):
@@ -713,64 +725,76 @@ class Core(object):
                     f.close()
 
         return content
-        
-    
-    
+
+
+
+    # [ToDo] [Miguel] The code in this function is
+    # quite spaghetti! --> Refactor
     def ensure_extras_updated(self, demo_id):
         """
-        Ensure that the demo extras of a given demo are updated respect to demoinfo information. 
+        Ensure that the demo extras of a given demo are updated respect to demoinfo information.
         and exists in the core folder.
         """
         print "### Ensuring demo extras... ##"
-        
-        ddl_extras_folder =  os.path.join(self.dl_extras_dir, demo_id)
-        compressed_file = os.path.join(ddl_extras_folder, self.demoExtrasFilename)
+
+        ddl_extras_folder = os.path.join(self.dl_extras_dir, demo_id)
+        compressed_file = os.path.join(ddl_extras_folder, \
+          self.demoExtrasFilename)
 
         download_compressed_file = False
-        
+
         if os.path.isdir(ddl_extras_folder):
-            
+
             if os.path.isfile(compressed_file):
-                
+
                 file_state = os.stat(compressed_file)
-               
+
                 userdata = {}
                 userdata["demo_id"] = demo_id
                 userdata["time_of_file_in_core"] = str(file_state.st_ctime)
                 userdata["size_of_file_in_core"] = str(file_state.st_size)
 
-                resp = self.post(self.host_name,'demoinfo','get_file_updated_state',userdata)
+                resp = self.post(self.host_name, 'demoinfo', \
+                  'get_file_updated_state', userdata)
                 response = resp.json()
-            
+
                 status = response['status']
-                
+
                 if status == 'OK':
-                    
+
                     core_file_is_newer = response['code']
-                    
-                    print "core_file_is_newer (2 = no, 0 = yes)",core_file_is_newer
+
+                    print "core_file_is_newer (2 = no, 0 = yes)", \
+                      core_file_is_newer
+
                     if core_file_is_newer == '2':
-                        
                         print "Deleting the previous file..."
                         os.remove(compressed_file)
-                        compressed_file_url_from_demoinfo = response['url_compressed_file']
-                        
+                        compressed_file_url_from_demoinfo = \
+                          response['url_compressed_file']
+
                         print "Downloading the new file..."
-                        if self.download(compressed_file_url_from_demoinfo, compressed_file) == 1:
+                        if self.download(\
+                             compressed_file_url_from_demoinfo, \
+                             compressed_file) == 1:
                             print "Problem dowloading the compressed_file"
-                            
-                        demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
+
+                        demoExtrasFolder = os.path.join(\
+                          self.demoExtrasMainDir, demo_id)
                         if os.path.isdir(demoExtrasFolder):
-                            print "Cleaning the original " + demoExtrasFolder + " ..."
+                            print "Cleaning the original " + \
+                              demoExtrasFolder + " ..."
                             shutil.rmtree(demoExtrasFolder)
                         else:
-                            self.mkdir_p(demoExtrasFolder)                             
-                        
+                            self.mkdir_p(demoExtrasFolder)
+
                         print "Extracting the new file..."
-                        self.extract(compressed_file, demoExtrasFolder)
-                
+                        self.extract(compressed_file, \
+                          demoExtrasFolder)
+
                 else:
-                    print "Failure requesting the demo_extras file from demoinfo. Failure code -> " + response['code'] 
+                    print \
+"Failure requesting demo extras file. Code:" + response['code']
                     return response
             else:
                 download_compressed_file = True
@@ -779,59 +803,59 @@ class Core(object):
             self.mkdir_p(ddl_extras_folder)
 
             download_compressed_file = True
-            
-        
+
+
         if download_compressed_file:
-            
             userdata = {"demo_id":demo_id}
-            resp = self.post(self.host_name,'demoinfo','get_compressed_file_url_ws',userdata)
+            resp = self.post(self.host_name, 'demoinfo', \
+              'get_compressed_file_url_ws', userdata)
             response = resp.json()
-            
+
             status = response['status']
-            
+
             if status == 'OK':
-                
+
                 code = response['code']
                 if code == '2':
                     compressed_file_url_from_demoinfo = response['url_compressed_file']
-                    
+
                     print "Downloading the new file..."
                     if self.download(compressed_file_url_from_demoinfo, compressed_file) == 1:
                         print "Problem dowloading the compressed_file"
                         response["status"] = 'KO'
                         return response
-                    
+
                     demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
                     print "Creating the " + demoExtrasFolder + " folder..."
                     self.mkdir_p(demoExtrasFolder)
-                    print "Extracting the " + compressed_file + " in " + demoExtrasFolder + " folder..."
+                    # [ToDo] Use .format(...), not "+"
+                    print "Extracting the " + compressed_file + \
+                      " in " + demoExtrasFolder + " folder..."
                     self.extract(compressed_file, demoExtrasFolder)
 
                 else:
-                    print "Failure downloading the demo_extras from demoinfo. Failure code -> " + response['code']        
-        
+                    print "Failure downloading the demo_extras from \
+demoinfo. Failure code -> " + response['code']
+
 
         return response
 
 
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
-        copy the blobs in the run path. 
+        copy the blobs in the run path.
         The blobs can be uploaded by post method or a blobs from blob module
         """
         print "### Entering copy_blobs...  ###"
-        res_data = {}
-        
+
         if input_type == 'upload':
             res_data = self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-            blob_physical_location = blobs['physical_location']
-            del blobs['url']
-            self.copy_blobset_from_physical_location(work_dir, blob_physical_location, blobs)
+            self.copy_blobset_from_physical_location(work_dir, blobs)
 
 
-    
-    def get_new_key(self, demo_id, key=None):
+
+    def get_new_key(self, key=None):
         """
         create a key if needed, and the key-related attributes
         """
@@ -843,7 +867,7 @@ class Core(object):
                      cherrypy.request.remote.port,
                      datetime.now(),
                      random()]
-            
+
             for seed in seeds:
                 keygen.update(str(seed))
             key = keygen.hexdigest().upper()
@@ -860,7 +884,7 @@ class Core(object):
         If it not exist, create a run_dir for a demo
         then, create a folder for the execution
         :param demo_id:   id demo
-        :param run_folder: key 
+        :param run_folder: key
         """
         demo_path = os.path.join(self.shared_folder_abs, \
                                  self.share_run_dir_abs, \
@@ -877,25 +901,26 @@ class Core(object):
         # Get the list of editors of the demo
         # userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
         userdata = {"demo_id": demo_id}
-        resp = self.post(self.host_name,'demoinfo','demo_get_editors_list',userdata)
+        resp = self.post(self.host_name, 'demoinfo', \
+          'demo_get_editors_list', userdata)
         response = resp.json()
         status = response['status']
-        
+
         if status != 'OK':
             # [ToDo]: log this error!
             return ()
-        
+
         editor_list = response['editor_list']
-        
+
         if len(editor_list) == 0:
             return () # No editors given
-            
+
         # Get the names and emails of the active editors
         emails = []
         for entry in editor_list:
             if entry['active'] == 1:
                 emails.append((entry['name'], entry['mail']))
-        
+
         return emails
 
 
@@ -903,28 +928,28 @@ class Core(object):
         '''
         Send an email to the given recipients
         '''
-        emails_list = [entry[1] for entry in emails]        
+        emails_list = [entry[1] for entry in emails]
         emails_str = ", ".join(emails_list)
-        
+
         msg = MIMEMultipart()
-        
+
         msg['Subject'] = subject
         # [ToDo] Move this to the core.conf
         msg['From'] = "IPOL Core <nor" + "eply" + "@cml" + "a.ens" + "-cac" + "han.fr>"
         msg['To'] = emails_str # Must pass only a comma-separated string here
         msg.preamble = text
-        
+
         if zip_filename is not None:
             with open(zip_filename) as fp:
                 zip_data = MIMEApplication(fp.read())
                 zip_data.add_header('Content-Disposition', 'attachment', filename="experiment.zip")
             msg.attach(zip_data)
-            
+
         text_data = MIMEText(text)
         msg.attach(text_data)
-        
+
         s = smtplib.SMTP('localhost')
-        
+
          # Must pass only a list here
         s.sendmail(msg['From'], emails_list, msg.as_string())
         s.quit()
@@ -933,13 +958,13 @@ class Core(object):
     def send_compilation_error_email(self, demo_id):
         ''' Send email to editor when compilation fails '''
         print "send_compilation_error_email"
-        
+
         emails = self.get_demo_editor_list(demo_id)
-        
+
         if self.serverEnvironment == 'production':
-            emails.add(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
-            emails.add(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
-        
+            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+            emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+
         if len(emails) == 0:
             return
 
@@ -950,25 +975,25 @@ class Core(object):
         if not os.path.isfile(buildLog_filename):
             return
 
-        fp = open(buildLog_filename, 'rb')        
+        fp = open(buildLog_filename, 'rb')
         text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
         fp.close()
-        
+
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
-      
+
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     def zipdir(self, path, ziph):
         ''' Zip a directory '''
         # ziph is zipfile handle
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                ziph.write(os.path.join(root, file))
+        for root, _, files in os.walk(path):
+            for f in files:
+                ziph.write(os.path.join(root, f))
 
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
         emails = self.get_demo_editor_list(demo_id)
-        
+
         # If in production, warn also IPOL Tech and Edit
         if self.serverEnvironment == 'production':
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
@@ -976,23 +1001,27 @@ class Core(object):
 
         if len(emails) == 0:
             return
-            
+
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
-        text = "This is the IPOL Core machine ({}, {}).\n\nThe execution with key={} of demo #{} has failed.\nPlease find attached the failed experiment data.".format(hostname, hostbyname, key, demo_id)
-        
+        text = "This is the IPOL Core machine ({}, {}).\n\n\
+The execution with key={} of demo #{} has failed.\nPlease find \
+attached the failed experiment data.".\
+format(hostname, hostbyname, key, demo_id)
+
         subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
-        
+
         # Zip the contents of the tmp/ directory of the failed experiment
         zip_filename = '/tmp/{}.zip'.format(key)
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
-        
+
         self.send_email(subject, text, emails, zip_filename=zip_filename)
 
-    def send_demorunner_unresponsive_email(self,unresponsive_demorunners):
+    def send_demorunner_unresponsive_email(self, \
+      unresponsive_demorunners):
         '''
         Send email to editor when the demorruner is down
         '''
@@ -1005,96 +1034,101 @@ class Core(object):
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
 
-        unresponsive_demorunners_list=",".join(unresponsive_demorunners)
+        unresponsive_demorunners_list = ",".\
+          join(unresponsive_demorunners)
 
-        text = "This is the IPOL Core machine ({}, {}).\n\nThe list of demorunners unresponsive is: {}.".format(
-            hostname, hostbyname, unresponsive_demorunners_list)
+        text = "This is the IPOL Core machine ({}, {}).\n\nThe list \
+of demorunners unresponsive is: {}.".format(\
+hostname, hostbyname, unresponsive_demorunners_list)
         print text
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails)
 
     @cherrypy.expose
-    def run(self, demo_id,  **kwargs):
+    def run(self, demo_id, **kwargs):
         """
-         Run a demo. The presentation layer request the core to execute a demo.
-         Thus, the running process begin.
-        :param demo_id:   id demo
-        :param kawrgs: Parameters sent by the presentation layer 
+        Run a demo. The presentation layer requests the Core to
+        execute a demo.
         """
         print "### RUN in CORE ####"
-        print "demo_id =",demo_id
-        print "kwargs=",kwargs
-        
+        print "demo_id =", demo_id
+        print "kwargs=", kwargs
+
+        # [ToDo] [Miguel] Normally the Core should be agnostic on the
+        # input type. Why are we checking this here???
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
-        else:            
+        else:
             response = {}
             response["status"] = "KO"
-            self.error_log("run","There is not input_type in run function.")
+            self.error_log("run", \
+              "There is not input_type in run function.")
             return json.dumps(response)
-        
-            
+
+
         if 'params' in kwargs:
             params = kwargs.get('params', None)
-        
+
         if 'original' in kwargs:
             original_exp = kwargs.get('original', None)
-        
+
         if 'crop_info' in kwargs:
             crop_info = kwargs.get('crop_info', None)
         else:
-            crop_info=None
-        
+            crop_info = None
+
         if 'meta' in kwargs:
             meta = kwargs.get('meta', None)
         else:
             meta = {}
-        
-        
+
+
         blobs = {}
         if input_type == 'upload':
             i = 0
             while "file_{0}".format(i) in kwargs:
-                fname="file_{0}".format(i)                
+                fname = "file_{0}".format(i)
                 blobs[fname] = kwargs[fname]
-                i+=1
-        
-        elif input_type == 'blobset':
-            blobs = json.loads(kwargs['blobs']) 
-        
-        try:
+                i += 1
 
+        elif input_type == 'blobset':
+            blobs = json.loads(kwargs['blobs'])
+
+        ## Start of block to obtain the DDL
+        try:
             userdata = {"demo_id": demo_id, "returnjsons": 'True'}
-            resp = self.post(self.host_name, 'demoinfo', 'read_last_demodescription_from_demo', userdata)
+            resp = self.post(self.host_name, 'demoinfo', \
+              'read_last_demodescription_from_demo', userdata)
             response = resp.json()
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(last_demodescription['json'])
             if 'build' in ddl_json:
-                ddl_build   = ddl_json['build']
+                ddl_build = ddl_json['build']
             if 'inputs' in ddl_json:
-                ddl_inputs  = ddl_json['inputs']
-            
+                ddl_inputs = ddl_json['inputs']
+
         except Exception as ex:
-            print "FAIL in DDL - " + str(ex)
-            self.logger.exception("Failure while reading the DDL")
+            print "Failed to obtain the DDL of demo {}".format(demo_id)
+            s = "Failed to obtain the DDL of demo {}".format(demo_id)
+            self.logger.exception(s)
             res_data = {}
             res_data['info'] = 'DDL read demoInfo failed in the Core'
             res_data['status'] = 'KO'
             return json.dump(res_data)
-            
-        
-        ## End block for obtain DDL
-        key = self.get_new_key(demo_id)
+        ## End block to obtain the DDL
+
+        key = self.get_new_key()
         work_dir = self.create_run_dir(demo_id, key)
-        print "Run path is ",work_dir
-        
+        print "Run path is ", work_dir
+
         if input_type != 'noinputs':
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
 
             except Exception as ex:
-                print "FAILURE IN copy_blobs/process_inputs in demo = ",demo_id
+                print "FAILURE in copy_blobs/process_inputs. \
+demo_id = ", demo_id
                 res_data = {}
                 res_data['info'] = 'Failure in copy_blobs/process_inputs in CORE'
                 res_data['status'] = 'KO'
@@ -1106,7 +1140,8 @@ class Core(object):
             requirements = ddl_json['general']['requirements'] \
                 if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
-            dr = self.get_demorunner(self.demorunners_workload(),requirements)
+            dr = self.get_demorunner(self.demorunners_workload(), \
+              requirements)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1114,17 +1149,19 @@ class Core(object):
             json_response = resp.json()
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
-            
+
             if status != 'OK':
-                print "FAILURE IN THE COMPILATION in demo = ",demo_id
-                self.error_log("ensure_compilation()", "ensure_compilation functions returns KO in the demorunner: " + dr_name + " module")
+                print "FAILURE IN THE COMPILATION in demo = ", demo_id
+                self.error_log("ensure_compilation()", \
+"ensure_compilation functions returns KO in the demorunner: " + \
+dr + " module")
                 self.send_compilation_error_email(demo_id)
                 return json.dumps(json_response)
-                
+
             print "Entering ensure_extras_updated()"
             data = self.ensure_extras_updated(demo_id)
-            print "Result in ensure_extras_updated : ",data
-            
+            print "Result in ensure_extras_updated : ", data
+
             print "dr.exec_and_wait()"
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
@@ -1143,49 +1180,52 @@ class Core(object):
             print json_response
 
             if json_response['status'] != 'OK':
-                raise RuntimeError(json_response['error'])
+                print "DR answered KO for demo #{}".format(demo_id)
+                self.error_log("dr.exec_and_wait()", "DR returned KO")
 
-            json_response['work_url'] =  os.path.join("http://{}/api/core/".format(self.host_name), \
-                                                      self.shared_folder_rel, \
-                                                      self.share_run_dir_rel, \
-                                                      demo_id, \
-                                                      key) + '/'
+                # Send email to the editors
+                self.send_runtime_error_email(demo_id, key)
+                return json.dumps(json_response)
+
+            json_response['work_url'] = os.path.join(\
+                   "http://{}/api/core/".format(self.host_name), \
+                                        self.shared_folder_rel, \
+                                        self.share_run_dir_rel, \
+                                        demo_id, \
+                                        key) + '/'
             json_response['algo_meta'] = {}
 
 
-            print "resp ",json_response
-            
+            print "resp ", json_response
+
             # save res_data as a results.json file
             try:
-                with open(os.path.join(work_dir,"results.json"),"w") as resfile:
-                    json.dump(json_response,resfile)
+                with open(os.path.join(work_dir, \
+                  "results.json"), "w") as resfile:
+                    json.dump(json_response, resfile)
             except Exception:
                 print "Failed to save results.json file for demo #{}".format(demo_id)
                 self.logger.exception("Failed to save results.json file")
                 return json.dumps(json_response)
 
-            if json_response['status'] != 'OK':
-                print "DR answered KO for demo #{}".format(demo_id)
-                self.error_log("dr.exec_and_wait()", "DR returned KO")
-                
-                # Send email to the editors
-                self.send_runtime_error_email(demo_id, key)
-
-                return json.dumps(json_response)
-            
             print "archive.store_experiment()"
             if original_exp == 'true':
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
-                result_archive = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, json_response, self.host_name)
+                SendArchive.prepare_archive(demo_id, \
+                  work_dir, ddl_archive, json_response, self.host_name)
 
         except Exception as ex:
-                self.logger.exception("Failure in the run function of the CORE")
-                print "Failure in the run function of the CORE in demo #{} - {}".format(demo_id, str(ex))
-                res_data = {}
-                res_data['info'] = 'Failure in the run function of the CORE using ' + dr_name + ' module'
-                res_data["status"]  = "KO"
-                return json.dumps(json_response)
+            s = "Failure in the run function of the \
+CORE in demo #{}".format(demo_id)
+            self.logger.exception(s)
+            print "Failure in the run function of the CORE in \
+demo #{} - {}".format(demo_id, str(ex))
+            res_data = {}
+            res_data['info'] = 'Failure in the run function of the \
+CORE using ' + dr + ' module'
+            res_data["status"] = "KO"
+            return json.dumps(json_response)
 
         res_data = {}
         res_data['info'] = 'Run successful'
@@ -1198,12 +1238,15 @@ class Core(object):
         '''
         Return an active demorunner for the requirements
         '''
-        demorunner_data = {"demorunners_workload": str(demorunners_workload),"requirements":requirements}
+        demorunner_data = {\
+          "demorunners_workload": str(demorunners_workload),\
+          "requirements":requirements}
         unresponsive_demorunners = set()
         # Try twice the length of the DR list before raising an exception
         for i in range(len(self.demorunners)*2):
             # Get a demorunner for the requirements
-            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
+            dispatcher_response = self.post(self.host_name, \
+              'dispatcher', 'get_demorunner', demorunner_data)
             if not dispatcher_response.ok:
                 raise Exception("Dispatcher unresponsive")
 
@@ -1216,13 +1259,15 @@ class Core(object):
 
             # Check if the DR is up. Otherwise add it to the
             # list of unresponsive DRs
-            demorunner_response = self.post(dr_server,'demorunner','ping')
+            demorunner_response = self.post(dr_server, \
+              'demorunner', 'ping')
             if demorunner_response.ok:
                 if len(unresponsive_demorunners) > 0:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
                 return dr_server
             else:
-                self.error_log("get_demorunner","Module {} unresponsive".format(dr_name))
+                self.error_log("get_demorunner", \
+                  "Module {} unresponsive".format(dr_name))
                 print "Module {} unresponsive".format(dr_name)
                 unresponsive_demorunners.add(dr_name)
 
@@ -1245,9 +1290,10 @@ class Core(object):
             url = 'http://{0}/api/{1}/{2}'.format(
                 host,
                 module,
-                service
-            )
+                service)
             return requests.post(url, data=data)
         except Exception as ex:
-            print "Failure in the post function of the CORE in the call to {} module - {}".format(module, str(ex))
-            self.logger.exception("Failure in the post function of the CORE")
+            print "Failure in the post function of the CORE in the call \
+              to {} module - {}".format(module, str(ex))
+            self.logger.exception(\
+              "Failure in the post function of the CORE")

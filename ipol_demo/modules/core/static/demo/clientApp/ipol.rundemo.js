@@ -327,8 +327,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     
     //--------------------------------------------------------------------------
     /**
-     * Uploads the form that contains the input blobs and runs the demo 
-     * through the proxy
+     * Uploads the form that contains the input blobs and runs the demo
      * @function _sendRunForm
      * @memberOf ipol.RunDemo~
      * @param {object} form_data contains the data to send/upload
