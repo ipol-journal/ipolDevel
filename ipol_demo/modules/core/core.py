@@ -570,7 +570,7 @@ workload of '{}'".format(dr_name)
                 if len(input_files) > 1:
                     # the number of input files should be 2...
                     # for the moment, only check for png file
-                    
+
                     # [ToDo] [Miguel] This png_file variable is
                     # never used!!!
                     png_file = os.path.join(work_dir,\
