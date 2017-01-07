@@ -588,7 +588,7 @@ class DemoDemoDescriptionDAO(object):
     @validates(typ(int))
     def read_demodescrption_demos(self, demodescriptionid):
         """
-        Return demo description from given description id 
+        Return demo description from given description id
         """
         #todo only one or more then one?
         demo_list = list()
@@ -917,7 +917,7 @@ class EditorDAO(object):
         """
         Constructor.
         """
-        
+
         self.conn = conn
         self.cursor = conn.cursor()
         self.cursor.execute(""" PRAGMA foreign_keys=ON""")
@@ -1075,7 +1075,7 @@ class DemoEditorDAO(object):
     @validates(typ(int))
     def delete_all_editors_for_demo(self, editorsdemoid):
         """
-        remove editor from demos/editor correspondence. 
+        remove editor from demos/editor correspondence.
         """
         try:
             self.cursor.execute('''
