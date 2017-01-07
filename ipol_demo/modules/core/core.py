@@ -1154,7 +1154,7 @@ demo_id = ", demo_id
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
                 self.error_log("ensure_compilation()", \
 "ensure_compilation functions returns KO in the demorunner: " + \
-dr.name + " module")
+dr + " module")
                 self.send_compilation_error_email(demo_id)
                 return json.dumps(json_response)
 
@@ -1223,7 +1223,7 @@ CORE in demo #{}".format(demo_id)
 demo #{} - {}".format(demo_id, str(ex))
             res_data = {}
             res_data['info'] = 'Failure in the run function of the \
-CORE using ' + dr.name + ' module'
+CORE using ' + dr + ' module'
             res_data["status"] = "KO"
             return json.dumps(json_response)
 
