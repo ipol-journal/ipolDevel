@@ -1,6 +1,6 @@
 from allauth.account.views import LoginView, SignupView, LogoutView, PasswordChangeView, PasswordSetView, \
-	AccountInactiveView, EmailView, EmailVerificationSentView, ConfirmEmailView, PasswordResetView, \
-	PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
+        AccountInactiveView, EmailView, EmailVerificationSentView, ConfirmEmailView, PasswordResetView, \
+        PasswordResetDoneView, PasswordResetFromKeyView, PasswordResetFromKeyDoneView
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 __author__ = 'josearrecio'
@@ -8,48 +8,47 @@ __author__ = 'josearrecio'
 # Necesitaba pasar el mixin a unas clases definidas en allauth
 
 class MyLoginView(NavbarReusableMixinMF,LoginView):
-	def get_context_data(self, **kwargs):
-		context = super(MyLoginView, self).get_context_data(**kwargs)
-		self.request.session['menu'] = 'menu-login'
-		return context
+    def get_context_data(self, **kwargs):
+        context = super(MyLoginView, self).get_context_data(**kwargs)
+        self.request.session['menu'] = 'menu-login'
+        return context
 
 
 class MyLogoutView(NavbarReusableMixinMF,LogoutView):
-	def get_context_data(self, **kwargs):
-		context = super(MyLogoutView, self).get_context_data(**kwargs)
-		self.request.session['menu'] = 'menu-private-logout'
-		return context
+    def get_context_data(self, **kwargs):
+        context = super(MyLogoutView, self).get_context_data(**kwargs)
+        self.request.session['menu'] = 'menu-private-logout'
+        return context
 
 class MySignupView(NavbarReusableMixinMF,SignupView):
-	pass
+    pass
 
 class MyPasswordChangeView(NavbarReusableMixinMF,PasswordChangeView):
-	pass
+    pass
 
 class MyPasswordSetView(NavbarReusableMixinMF,PasswordSetView):
-	pass
+    pass
 
 class MyAccountInactiveView(NavbarReusableMixinMF,AccountInactiveView):
-	pass
+    pass
 
 class MyEmailView(NavbarReusableMixinMF,EmailView):
-	pass
+    pass
 
 class MyEmailVerificationSentView(NavbarReusableMixinMF,EmailVerificationSentView):
-	pass
+    pass
 
 class MyConfirmEmailView(NavbarReusableMixinMF,ConfirmEmailView):
-	pass
+    pass
 
 class MyPasswordResetView(NavbarReusableMixinMF,PasswordResetView):
-	pass
+    pass
 
 class MyPasswordResetDoneView(NavbarReusableMixinMF,PasswordResetDoneView):
-	pass
+    pass
 
 class MyPasswordResetFromKeyView(NavbarReusableMixinMF,PasswordResetFromKeyView):
-	pass
+    pass
 
 class MyPasswordResetFromKeyDoneView(NavbarReusableMixinMF,PasswordResetFromKeyDoneView):
-	pass
-
+    pass

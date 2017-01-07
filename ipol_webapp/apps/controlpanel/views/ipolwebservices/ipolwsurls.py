@@ -52,10 +52,10 @@ demoinfo_ws_url_demo_list_by_demoeditorid =  'demo_list_by_demoeditorid'
 # param demoeditorid_list  , "demo_list": {"status": "OK", "demo_list": [{"creation": "2016-01-12 20:46:38", "stateID": 1, "abstract": "DemoTEST4 Abstract", "title": "DemoTEST4 Title", "editorsdemoid": 26, "active": 1, "id": 4, "zipURL": "https://DemoTEST4.html", "modification": "2016-01-12 20:46:38"}]}[{"c
 demoinfo_ws_url_demo_list_pagination_and_filter =  'demo_list_pagination_and_filter'
 # param num_elements_page, page, qfilter ,
-# result	 demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
-# 	 "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
-# 	 "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
-# 	 "previous_page_number": 1, "number": 2.0}
+# result         demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
+#        "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
+#        "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
+#        "previous_page_number": 1, "number": 2.0}
 
 demoinfo_ws_url_read_demo_description =  'read_demo_description'
 # params  demodescriptionID
@@ -187,4 +187,3 @@ archive_ws_url_add_experiment =  'add_experiment'# param None
 ####################
 #view list of available demos
 blobs_demo_list =  'demos_ws'
-

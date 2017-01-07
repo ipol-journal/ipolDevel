@@ -9,16 +9,16 @@ __author__ = 'josearrecio'
 
 
 class ProfileView(NavbarReusableMixinMF,TemplateView):
-	#ojo, lo encontrara en vendor pq este esta en templates dir en el settings.
-	template_name = "account/profile.html"
+    #ojo, lo encontrara en vendor pq este esta en templates dir en el settings.
+    template_name = "account/profile.html"
 
-	def dispatch(self, *args, **kwargs):
-		return super(ProfileView, self).dispatch(*args, **kwargs)
+    def dispatch(self, *args, **kwargs):
+        return super(ProfileView, self).dispatch(*args, **kwargs)
 
-	def get_context_data(self, **kwargs):
-		# Call the base Test first to get a context
-		context = super(ProfileView, self).get_context_data(**kwargs)
-		#para las pestanas
-		self.request.session['menu'] = 'menu-private-profile'
+    def get_context_data(self, **kwargs):
+        # Call the base Test first to get a context
+        context = super(ProfileView, self).get_context_data(**kwargs)
+        #para las pestanas
+        self.request.session['menu'] = 'menu-private-profile'
 
-		return context
+        return context
