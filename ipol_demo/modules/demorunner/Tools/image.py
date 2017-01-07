@@ -541,9 +541,9 @@ class image(object):
         # or if it is greyscale RGB: it would traverse the whole image
         if self.im.mode == "RGB":
             rgb = self.im.split()
-            if ImageChops.difference(rgb[0],rgb[1]).getextrema()[1]!=0: 
+            if ImageChops.difference(rgb[0],rgb[1]).getextrema()[1]!=0:
                 return False
-            if ImageChops.difference(rgb[0],rgb[2]).getextrema()[1]!=0: 
+            if ImageChops.difference(rgb[0],rgb[2]).getextrema()[1]!=0:
                 return False
         return True
 
@@ -554,5 +554,3 @@ class image(object):
         new_obj = image()
         new_obj.im = self.im.copy()
         return new_obj
-
-

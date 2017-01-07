@@ -592,13 +592,13 @@ class DemoRunner(object):
         res_data['algo_info'] = rd.get_algo_info()
         res_data['algo_meta'] = rd.get_algo_meta()
         print "----- run_algo end -----"
-        
+
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None):
         '''
         Called by the web interface to run the algorithm
-        '''        
+        '''
         print "#### run demo ####"
         print "demo_id = ", demo_id
         ddl_run = json.loads(ddl_run)
