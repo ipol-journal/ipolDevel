@@ -1236,7 +1236,6 @@ def createDb(database_name):
                 creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
                 FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
-                UNIQUE(demoID)
                 );"""
             )
 
