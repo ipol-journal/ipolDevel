@@ -117,7 +117,7 @@ ipol.upload.UploadBlobsEvents = function(ddl_json) {
                         var img;
                         // Check if it's a TIFF image and convert it to PNG, for
                         // visualization purposes
-                        if( img_info.includes("image/tiff")) { // MIME type
+                        if (img_info.indexOf("image/tiff") != -1) { // MIME type
                             var path = "/api/core/convert_tiff_to_png";
                             try {
                                 jQuery.ajaxSetup({async:false});
