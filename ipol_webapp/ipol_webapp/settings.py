@@ -81,7 +81,7 @@ if hostname in local_machines:
     DBHOST = 'localhost'
     DBUSER = ''
     DBPSSWD = ''
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['127.0.1.1']
     HTTPS = False
 
     ####################################
