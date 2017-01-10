@@ -120,7 +120,7 @@ class Terminal(object):
                 modules_up = True
             except IOError:
                 pass
-        
+
         print "\n"
         if not modules_up:
             print "No modules running."
@@ -161,12 +161,12 @@ class Terminal(object):
 
             response = json.loads(json_response)
             status = response['status']
-            
+
             if status == "OK":
                 print name + "  (" + self.dict_modules[name]["server"] + ")" + ":  Module active, it says PONG!"
             else:
                 print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when making a PING"
-        
+
         except Exception:
             print name + "  (" + self.dict_modules[name]["server"] + ")" + " : Module unresponsive. "
 
@@ -195,7 +195,7 @@ class Terminal(object):
             )).read()
             response = json.loads(json_response)
             status = response['status']
-            
+
             if status == "OK":
                 print name + "  (" + self.dict_modules[name]["server"] + ")" + " is shut down."
             else:

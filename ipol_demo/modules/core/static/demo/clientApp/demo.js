@@ -325,8 +325,10 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                 // Create Parameters tab
                 var params = new ipol.DrawParams();
-                //Create params is only needed in the demo.html page
-                if(window.location.pathname.includes("demo.html")) params.createParams(ddl_json);
+                
+                // Create params is only needed in the demo.html page
+                if (window.location.pathname.indexOf("demo.html") != -1)
+                  params.createParams(ddl_json);
 
                 // Get demo blobs
                 ipol.utils.ModuleService(

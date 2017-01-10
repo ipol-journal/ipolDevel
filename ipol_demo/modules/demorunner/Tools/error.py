@@ -112,4 +112,3 @@ def print_exception_zip(name_function, name_zip):
     mess += ": Cannot add item in database" + PrintColors.ENDC
 
     print >> sys.stderr, mess
-

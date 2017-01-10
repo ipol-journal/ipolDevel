@@ -44,7 +44,7 @@ ALLOWED_HOSTS = []
 USE_MEMCACHED = False
 
 hostname = socket.gethostname()
-local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu']
+local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox']
 dev_machines_hostname = ['integration.ipol.im']
 dev_machines = ['.ipol.im']
 production_machines = ['ipol_core', 'ipolcore.ipol.im']
@@ -70,31 +70,31 @@ IPOL_SERVICES_MODULE_DEMOINFO = None
 HOST_NAME = None
 
 if hostname in local_machines:
-        SITE_ID = 2
+    SITE_ID = 2
 
-        HOST = 'local'
-        DEBUG = True
-        # to serve staticfiles from STATIC_ROOT folder (pruebas)
-        # #DEBUG = False
-        TEMPLATEDEBUG = True
-        DBHOST = 'localhost'
-        DBUSER = ''
-        DBPSSWD = ''
-        ALLOWED_HOSTS = []
-        HTTPS = False
+    HOST = 'local'
+    DEBUG = True
+    # to serve staticfiles from STATIC_ROOT folder (pruebas)
+    # #DEBUG = False
+    TEMPLATEDEBUG = True
+    DBHOST = 'localhost'
+    DBUSER = ''
+    DBPSSWD = ''
+    ALLOWED_HOSTS = ['127.0.1.1']
+    HTTPS = False
 
-        ####################################
-        #            IPOL WS               #
-        ####################################
-        HOST_NAME = '127.0.1.1'
-        #Local ENV
-        IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
-        # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
-        IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
-        #urls to access the modules by proxy
-        IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-        IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-        IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+    ####################################
+    #            IPOL WS               #
+    ####################################
+    HOST_NAME = '127.0.1.1'
+    #Local ENV
+    IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
+    # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
+    IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
+    #urls to access the modules by proxy
+    IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+    IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+    IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
 elif hostname in dev_machines_hostname:
 	SITE_ID = 3
@@ -156,7 +156,7 @@ elif hostname in production_machines:
 	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
 	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 else:
-        print("ERROR: invalid hostname")
+    print("ERROR: invalid hostname")
 
 
 
@@ -249,31 +249,31 @@ AUTHENTICATION_BACKENDS = (
 #####################
 
 if USE_MEMCACHED:
-        CACHES = {
-                'default': {
-                        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-                        'LOCATION': '127.0.0.1:11211',
-                }
-        }
+    CACHES = {
+            'default': {
+                    'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                    'LOCATION': '127.0.0.1:11211',
+            }
+    }
 
-        MIDDLEWARE_CLASSES = (
-                'django.middleware.cache.UpdateCacheMiddleware',
-                'django.contrib.sessions.middleware.SessionMiddleware',
-                'django.middleware.locale.LocaleMiddleware',
-                'django.middleware.common.CommonMiddleware',
-                'django.middleware.csrf.CsrfViewMiddleware',
-                'django.contrib.auth.middleware.AuthenticationMiddleware',
-                'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-                'django.contrib.messages.middleware.MessageMiddleware',
-                'django.middleware.clickjacking.XFrameOptionsMiddleware',
-                'django.middleware.cache.FetchFromCacheMiddleware',
-        )
-        # cache settings
-        CACHE_MIDDLEWARE_ALIAS = 'default'
-        CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 1  # 1h
-        CACHE_MIDDLEWARE_KEY_PREFIX = "IPOLCPCACHE"
-        # only anonymous requests (i.e., not those made by a logged-in user) will be cached.
-        CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+    MIDDLEWARE_CLASSES = (
+            'django.middleware.cache.UpdateCacheMiddleware',
+            'django.contrib.sessions.middleware.SessionMiddleware',
+            'django.middleware.locale.LocaleMiddleware',
+            'django.middleware.common.CommonMiddleware',
+            'django.middleware.csrf.CsrfViewMiddleware',
+            'django.contrib.auth.middleware.AuthenticationMiddleware',
+            'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+            'django.contrib.messages.middleware.MessageMiddleware',
+            'django.middleware.clickjacking.XFrameOptionsMiddleware',
+            'django.middleware.cache.FetchFromCacheMiddleware',
+    )
+    # cache settings
+    CACHE_MIDDLEWARE_ALIAS = 'default'
+    CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 1  # 1h
+    CACHE_MIDDLEWARE_KEY_PREFIX = "IPOLCPCACHE"
+    # only anonymous requests (i.e., not those made by a logged-in user) will be cached.
+    CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 ########################
 #       DATABASES      #
@@ -334,8 +334,8 @@ USE_TZ = True
 # debe estar fuera del proyecto
 STATIC_ROOT = os.path.join(OUTER_DIR, 'IPOLWEBAPP_STATIC')
 if not os.path.exists(STATIC_ROOT):
-        os.makedirs(STATIC_ROOT)
-        print("********* Directorio creado: " + str(STATIC_ROOT))
+    os.makedirs(STATIC_ROOT)
+    print("********* Directorio creado: " + str(STATIC_ROOT))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
@@ -360,8 +360,8 @@ STATICFILES_FINDERS = (
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = os.path.normpath(os.path.join(OUTER_DIR, 'IPOLWEBAPP_MEDIA'))
 if not os.path.exists(MEDIA_ROOT):
-        os.makedirs(MEDIA_ROOT)
-        print("********* Directorio creado: " + str(MEDIA_ROOT))
+    os.makedirs(MEDIA_ROOT)
+    print("********* Directorio creado: " + str(MEDIA_ROOT))
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
@@ -372,8 +372,8 @@ MEDIA_URL = '/media/'
 #####################
 RUTALOG = os.path.normpath(os.path.join(BASE_DIR, 'logs/'))
 if not os.path.exists(RUTALOG):
-        os.makedirs(RUTALOG)
-        print("********* Directorio creado: " + str(RUTALOG))
+    os.makedirs(RUTALOG)
+    print("********* Directorio creado: " + str(RUTALOG))
 
 DJANGO_PW_LOG = RUTALOG + "/ipolwebapp.log"
 DJANGO_PW_REQUEST_LOG = RUTALOG + "/ipolwebapp_request.log"

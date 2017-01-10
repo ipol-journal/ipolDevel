@@ -95,4 +95,3 @@ def gunzip(fname_in, fname_out=None, delete=True):
     if delete:
         os.unlink(fname_in)
     return
-

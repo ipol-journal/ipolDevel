@@ -21,8 +21,8 @@ from core import Core
 
 
 #-------------------------------------------------------------------------------
-def CORS(): 
-  cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to 
+def CORS():
+    cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" # mean: CORS to
 
 #-------------------------------------------------------------------------------
 def err_tb():
@@ -41,20 +41,20 @@ def err_tb():
 
 if __name__ == '__main__':
 
-    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS) 
+    cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
 
     ## config file and location settings
-    
+
     CONF_FILE_REL = sys.argv[1] if len(sys.argv) == 2 and os.path.isfile(sys.argv[1]) else "core.conf"
 
     BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
 
-    
+
     if not os.path.isfile(CONF_FILE_ABS):
         print "Error: the conf file is missing, "
         sys.exit(-1)
-    
-    cherrypy.config.update(CONF_FILE_ABS)    
+
+    cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
     cherrypy.quickstart(Core(), config=CONF_FILE_ABS)

@@ -1,12 +1,13 @@
 #!/bin/bash
 
-NAME="ipol_webapp"                                  # Name of the application
-DJANGODIR=/home/ipol/ipolDevel/ipol_webapp             # Django project directory
-SOCKFILE=/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock  # we will communicte using this unix socket
-#VENV=venv                                        # virtual environment directory
-
 USER=ipol                                       # the user to run as
 GROUP=ipol                                     # the group to run as
+
+NAME="ipol_webapp"                                  # Name of the application
+
+DJANGODIR=/home/${USER}/ipolDevel/ipol_webapp             # Django project directory
+SOCKFILE=/home/${USER}/ipolDevel/ipol_webapp/run/gunicorn.sock  # we will communicte using this unix socket
+#VENV=venv                                        # virtual environment directory
 
 NUM_WORKERS=3                                     # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=ipol_webapp.settings             # which settings file should Django use

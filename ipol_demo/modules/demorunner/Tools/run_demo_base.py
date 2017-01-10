@@ -172,6 +172,8 @@ class RunDemoBase:
                 for subcmd in cmds:
                     print "subcmd = ", subcmd
 
+                    # [Miguel] [ToDo] Use a case-insensitive replace
+                    # Perhaps with a regex.
                     subcmd = subcmd.replace("$matlab_path", self.get_MATLAB_path())
                     subcmd = subcmd.replace("${matlab_path}", self.get_MATLAB_path())
                     #
@@ -269,33 +271,18 @@ class RunDemoBase:
 
                     last_shell_cmd = ' '.join(args)
                     shell_cmds.write(last_shell_cmd + '\n')
-                    try:
-                        print "running ", repr(args[:last_arg_pos + 1])
-                        self.log("running %s" % repr(args[:last_arg_pos + 1]),
-                                 context='SETUP/%s' % self.get_demo_id(),
-                                 traceback=False)
 
-                        with lock:
-                            os.chdir(self.work_dir)
-                            p = self.run_proc(args[:last_arg_pos + 1], stdout=stdout_file, stderr=stderr_file)
-                        self.wait_proc(p)
-                    except ValueError as e:
-                        self.log("Error %s" % e,
-                                 context='SETUP/%s' % self.get_demo_id(),
-                                 traceback=False)
-                    except RuntimeError as e:
-                        print "**** run_algo: RuntimeError "
-                        with open(self.work_dir + "stderr.txt", "r") as errfile:
-                            errors = errfile.read()
-                        if errors:
-                            print errors
-                            print "***"
-                        else:
-                            errors = "%s" % e
-                        raise RuntimeError(errors)
+                    print "running ", repr(args[:last_arg_pos + 1])
+                    self.log("running %s" % repr(args[:last_arg_pos + 1]),
+                             context='SETUP/%s' % self.get_demo_id(),
+                             traceback=False)
 
-                    # the files should close automatically with their scope ...
-                    # but we do it anyway just in case
+                    with lock:
+                        os.chdir(self.work_dir)
+                        p = self.run_proc(args[:last_arg_pos + 1], stdout=stdout_file, stderr=stderr_file)
+                    self.wait_proc(p)
+
+                    # Close log files
                     if stderr_file != None:
                         stderr_file.close()
                     if stdout_file != None:
@@ -393,5 +380,3 @@ class RunDemoBase:
         if any([0 != p.returncode for p in process_list]):
             raise RuntimeError
         return
-
-
