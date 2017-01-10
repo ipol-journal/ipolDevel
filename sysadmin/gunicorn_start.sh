@@ -1,7 +1,7 @@
 #!/bin/bash
 
-USER=martin                                       # the user to run as
-GROUP=martin                                     # the group to run as
+USER=ipol                                       # the user to run as
+GROUP=ipol                                     # the group to run as
 
 NAME="ipol_webapp"                                  # Name of the application
 
