@@ -44,7 +44,7 @@ ALLOWED_HOSTS = []
 USE_MEMCACHED = False
 
 hostname = socket.gethostname()
-local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu']
+local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox']
 dev_machines_hostname = ['integration.ipol.im']
 dev_machines = ['.ipol.im']
 
