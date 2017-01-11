@@ -294,12 +294,12 @@ class LowestWorkloadPolicy(Policy):
 
     def execute(self, demorunners, demorunners_workload, requirements=None):
         """
-        Chooses the DemoRunner with the lowest workload that matches the requirements
+        Chooses the DemoRunner with the lowest workload which
+        satisfies the requirements.
         """
-
         try:
-            suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
-            if len(suitable_dr) == 0:
+            suitable_drs = Policy().get_suitable_demorunners(requirements, demorunners)
+            if len(suitable_drs) == 0:
                 print "LowestWorkloadPolicy could not find any DR available"
                 return None
 
@@ -307,13 +307,14 @@ class LowestWorkloadPolicy(Policy):
             dict_dr_wl = json.loads(demorunners_workload.replace('\'', '\"'))
 
             # This number must be the highest workload possible
-            workload = 100.0
+            dr = suitable_drs[0]
 
-            lowest_workload_dr = None
-            for dr in suitable_dr:
-
-                if workload > float(dict_dr_wl[dr.name]):
-                    workload = dict_dr_wl[dr.name]
+            min_workload = dict_dr_wl[dr.name]
+            lowest_workload_dr = dr
+            #
+            for dr in suitable_drs:
+                if float(dict_dr_wl[dr.name]) < min_workload:
+                    min_workload = dict_dr_wl[dr.name]
                     lowest_workload_dr = dr
 
             return lowest_workload_dr
