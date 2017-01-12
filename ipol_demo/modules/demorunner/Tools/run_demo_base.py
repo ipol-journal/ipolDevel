@@ -256,12 +256,12 @@ class RunDemoBase:
 
                     with lock:
                         os.chdir(self.work_dir)
-                        proc_name = args[:last_arg_pos + 1]
+                        proc_name_and_params = args[:last_arg_pos + 1]
                         try:
-                            p = self.run_proc(proc_name, stdout=stdout_file, stderr=stderr_file)
+                            p = self.run_proc(proc_name_and_params, stdout=stdout_file, stderr=stderr_file)
                             self.wait_proc(p)
                         except OSError:
-                            self.logger.exception("OSError when run_proc with proc_name={}".format(proc_name))
+                            self.logger.exception("OSError when run_proc with proc_name_and_params={}".format(proc_name_and_params))
                             raise
                             
                     
