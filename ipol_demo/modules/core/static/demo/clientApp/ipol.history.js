@@ -250,13 +250,9 @@ ipol.history.SetPageState = function( page_state) {
             console.info("onloadall_callback scrolltop=",scrolltop);
             // disable it 
             console.info("dr=",dr);
-            // dr.onloadall_callback=undefined;
-            // Set Progress information
-            ipol.RunDemo.staticSetProgress(res);
             
         });
         dr.create();
-        //$("#progressbar").get(0).scrollIntoView();
     }
     
     //--------------------------------------------------------------------------

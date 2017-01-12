@@ -21,33 +21,22 @@ class IPOLTimeoutError(Exception):
         return repr(self.value)
 
 
-#
-# needs from cherrypy:
-#   log
-#   - config. use:
-#      if 'demo.extra_path' in cherrypy.config:
-#        set_extra_path(cherrypy.config['demo.extra_path'])
-#   TimeoutError
-#   get_MATLAB_path()
-#
-
 # -------------------------------------------------------------------------------
 class RunDemoBase:
     # default timeout to 1 minute
     default_timeout = 60
 
     # -----------------------------------------------------------------------------
-    def __init__(self, base_dir, work_dir):
+    def __init__(self, base_dir, work_dir, logger):
         self.base_dir = base_dir
         self.work_dir = work_dir
+        self.logger = logger
 
         self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PythonTools/')
         self.bin_dir = os.path.join(base_dir, 'bin/')
         self.scripts_dir = os.path.join(base_dir, 'scripts/')
         self.python_dir = os.path.join(base_dir, 'python/')
         self.dl_dir = os.path.join(base_dir, 'dl/')
-        self.log_file = os.path.join(base_dir, "build.log")
-        self.logger = None
         self.MATLAB_path = None
         self.demo_id = None
 
@@ -107,15 +96,6 @@ class RunDemoBase:
     # -----------------------------------------------------------------------------
     def get_MATLAB_path(self):
         return self.MATLAB_path
-
-    # -----------------------------------------------------------------------------
-    def set_logger(self, logger):
-        self.logger = logger
-
-    # -----------------------------------------------------------------------------
-    def log(self, *args, **kwargs):
-        if self.logger != None:
-            return self.logger(*args, **kwargs)
 
     # ------------------- demoextras functions ------------------------------------
     def set_share_demoExtras_dirs(self, share_demoExtras_dir, demo_id):
@@ -273,16 +253,20 @@ class RunDemoBase:
                     shell_cmds.write(last_shell_cmd + '\n')
 
                     print "running ", repr(args[:last_arg_pos + 1])
-                    self.log("running %s" % repr(args[:last_arg_pos + 1]),
-                             context='SETUP/%s' % self.get_demo_id(),
-                             traceback=False)
 
                     with lock:
                         os.chdir(self.work_dir)
-                        p = self.run_proc(args[:last_arg_pos + 1], stdout=stdout_file, stderr=stderr_file)
-                    self.wait_proc(p)
+                        proc_name_and_params = args[:last_arg_pos + 1]
+                        try:
+                            p = self.run_proc(proc_name_and_params, stdout=stdout_file, stderr=stderr_file)
+                            self.wait_proc(p)
+                        except OSError:
+                            self.logger.exception("OSError when run_proc with proc_name_and_params={}".format(proc_name_and_params))
+                            raise
+                            
+                    
 
-                    # Close log files
+                    # Close stderr, stdout files
                     if stderr_file != None:
                         stderr_file.close()
                     if stdout_file != None:

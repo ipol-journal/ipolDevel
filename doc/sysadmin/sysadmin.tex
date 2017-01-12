@@ -52,7 +52,7 @@
 
 \vspace*{0.6in}
 \begin{Large}
-\textbf{The IPOL Demo System 2.0 \\Systeam Administration Documentation} \\
+\textbf{The IPOL Demo System 2.0 \\System Administration Documentation} \\
 \end{Large}
 
 \vspace*{0.6in}
@@ -81,38 +81,36 @@ This document contains System Administration documentation for the IPOL Demo Sys
 
 
 \section{System administration}
-\ToDo{This section is just a stub for the moment. Add all the system administration and configuration stuff here}
 
-- Backups. For the moment we use the very simple script at {\tt ipolDevel/sysadmin/backup.sh}
-Cron controls it. To add the cron line, use {\tt crontab -e} as root.
+\subsection{Crontab scripts}
+The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
 
-The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
+To modify the crontab configuration, the command is {\tt crontab -e}. The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
 
-For example, to run the backup script once per week at 3:00h, add this line:
+\begin{itemize}
+    \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
+Since we do not want to the backup is not done just because some files can not be read because of their permission, we execute the backup script as the root user (use {\tt sudo crontab -e}).
 
-{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+We use the following line to run the backup script once per week at 3:00h:
 
-- Cleanup. The script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month. To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+    {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-{\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
+    \item \textbf{Cleanup}: the script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month.
 
-- PyLint report. The script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
+    {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
 
-To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+    \item \textbf{PyLint report}: the script {\tt ipolDevel/ci\_tests/pylint.sh} uses PyLint to create code quality reports. It executes weekly in the integration server and sends an email to the addresses in the file {\tt send\_to.txt}
 
-{\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pylint.sh}
+    {\tt 0 15 * * 2 /home/ipol/ipolDevel/ci\_tests/pylint.sh}
 
-- pdflatex report. The script {\tt ipolDevel/ci\_tests/pdflatex.sh} checks if the Latex documentation of the project compiles and sends and email otherwise.
+    \item \textbf{pdflatex report}: the script {\tt ipolDevel/ci\_tests/pdflatex.sh} checks if the Latex documentation of the project compiles and sends and email otherwise.
 
-To execute each month, the following line needs to be added with {\tt crontab -e} as root.
+    {\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
 
-{\tt 0 15 * * 2 sudo -u ipol /home/ipol/ipolDevel/ci\_tests/pdflatex.sh}
+    \item \textbf{Reboot}: the script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules, nginx and the shared folder in the production machines, and sends a warning email. To execute it, the following line needs to be added with {\tt crontab -e} as root.
 
-- Reboot. The script {\tt ipolDevel/sysadmin/on\_reboot.sh} starts all IPOL modules, nginx and the shared folder if is not in the core machine
- on reboot and send an email to inform about the reboot. To execute it, the following line needs to be added with {\tt crontab -e} as root.
-
-{\tt @reboot ipolDevel/sysadmin/on\_reboot.sh}
-
+    {\tt @reboot ipolDevel/sysadmin/on\_reboot.sh}
+\end{itemize}
 
 \section{GitHub deploy key}
 The IPOL GitHub repository might be private. Thus, is any server needs to obtain the complete source code of the demo system, a \emph{deploy key} is needed. The deploy key is added to the GitHub configuration and each server needs to get the sources using the deploy key.
@@ -205,8 +203,7 @@ Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDev
 
 \section{Nginx}
 
-\subsection{Nginx: installation}
-\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
+\subsection{Installation}
 
 \begin{enumerate}
 \item Debian
@@ -248,8 +245,7 @@ Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDev
 \end{enumerate}
 \end{enumerate}
 
-\subsection{Nginx: configuration}
-\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
+\subsection{Configuration}
 
 To configure the reverse proxy, we will use the sites-enabled, sites-available directories structure, which are located at:
 \begin{lstlisting}[language=Bash]
@@ -315,8 +311,7 @@ ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 \end{lstlisting}
 \end{enumerate}
 
-\subsection{Nginx: management}
-\miguel{Nginx is used also by the IPOL API and thus it doesn't just belong to the CP. Put it outside.}
+\subsection{Management}
 
 \begin{itemize}
 \item Start service:

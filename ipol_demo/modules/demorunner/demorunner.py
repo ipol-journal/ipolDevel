@@ -577,7 +577,7 @@ class DemoRunner(object):
         the core algo runner
         """
         print "\n\n----- run_algo begin -----\n\n"
-        rd = run_demo_base.RunDemoBase(bin_path, work_dir)
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
         rd.set_algo_meta(res_data['algo_meta'])

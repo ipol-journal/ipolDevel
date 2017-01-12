@@ -85,23 +85,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @private
      */
     var _verbose=true;
-
-    /** 
-     * id=progressbar selector.
-     * @var {object} _progressbar
-     * @memberOf ipol.RunDemo~
-     * @private
-     */
-    var _progressbar   = $("#progressbar");
-
-    /** 
-     * class=progresslabel selector.
-     * @var {object} _progresslabel
-     * @memberOf ipol.RunDemo~
-     * @private
-     */
-    var _progresslabel = $(".progress-label");
-
     
     /** 
      * stores the starting time of execution
@@ -110,15 +93,8 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @private
      */
     var _starttime = 0;
-    
-    /** 
-     * The progress message displayed in the progress bar
-     * @var {boolean} _progress_info
-     * @memberOf ipol.RunDemo~
-     * @private
-     */
-    var _progress_info = "";
-        
+
+
     //--------------------------------------------------------------------------
     /**
      * Displays message in console if verbose is true
@@ -146,77 +122,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
         args.unshift("---- ipol.RunDemo ----");
         console.info.apply(console,args);
     }
-    
-    //--------------------------------------------------------------------------
-    /**
-     * Initializes the progress bar and sets its events
-     * @function _initProgress
-     * @memberOf ipol.RunDemo~
-     * @private
-     */
-    var _initProgress = function() {
-
-        _infoMessage("InitProgress");
-        $( "#run_button" ).unbind("click").prop("disabled",true);
-        
- 
-        _progressbar.progressbar({
-            value: 100,
-            change: function() {
-                var current_time = new Date().getTime();
-                var elapsed = current_time-_starttime;
-                // in the first two seconds, show time every 0.1 sec
-                if (elapsed<2000) {
-                    _progresslabel.text(  _progress_info + " " + 
-                                              Math.round(elapsed/100)/10 + " sec." );
-                } else {
-                    // then show time every sec.
-                    _progresslabel.text(  _progress_info + " " + 
-                                              Math.round(elapsed/1000) + " sec." );
-                }
-            },
-            complete: function() {
-                _progresslabel.text( _progress_info );
-            }
-        });
-        
-        _infoMessage("progresslabel= ", _progresslabel);
-        _progresslabel.text("");
-    }
-    
-    //--------------------------------------------------------------------------
-    /**
-     * Initializes the progress bar and sets its events, sets timeout events
-     * it update itself, unless it has reached 100%
-     * @function _progress
-     * @memberOf ipol.RunDemo~
-     * @param {object} start time, if defined, gets the current time
-     * in the member variable starttime
-     */
-    var _progress = function( start) {
-        var val = _progressbar.progressbar( "value" );
-        if (start!==undefined) {
-            _starttime = new Date().getTime();
-            val=start;
-        }
-        if (val+2<=100) {
-            _progressbar.progressbar( "value", val + 2 );
-            var current_time = new Date().getTime();
-            var elapsed = current_time-_starttime;
-            // if less than 2 sec, show progress every 1/10 sec
-            if (elapsed<2000) {
-                setTimeout( _progress, 100 );
-            } else {
-                // if less than 20 sec, show progress every sec
-                if (elapsed<20000) {
-                    setTimeout( _progress, 1000 );
-                } else {
-                // otherwise show progress every 2 sec.
-                    setTimeout( _progress, 2000 );
-                }
-            }
-        }
-    }
 
     //--------------------------------------------------------------------------
     /**
@@ -230,29 +135,8 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     var _json2Uri = function(json) {
             return encodeURIComponent(JSON.stringify(json));
     }
-        
-    //--------------------------------------------------------------------------
-    /**
-     * This method is public since it is use in the history change event
-     * @function _resultProgress
-     * @memberOf ipol.RunDemo~
-     * @param {object} run_demo_res
-     * @private
-     */
-    var _resultProgress = function(run_demo_res) {
-        if (run_demo_res.status==="KO") {
-            _priorityMessage(" Failure demo run run_demo_res:",run_demo_res);
-            _progress_info = "run_demo:failure";
-            _progress(100);
-        } else {
-            // stop progress
-            _progress_info = " success (ran in "+ 
-                                run_demo_res.algo_info.run_time.toPrecision(2)+
-                                " s)";
-            _progress(100);
-        }
-    }
-    
+
+
     //--------------------------------------------------------------------------
     /**
      * Gets the upload window state for browser history events. Uploaded file
@@ -284,12 +168,16 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @fires History.pushState
      */
     var _onDemoRun = function(run_demo_res) {
-        _resultProgress(run_demo_res);
+        _priorityMessage("MIGUEL | run_demo_res =", run_demo_res);
+
         if ((run_demo_res.status==="KO")&&
             (!_ddl_json.general['show_results_on_error'])) {
+                _priorityMessage("MIGUEL | get out");
                 return;
         }
         _priorityMessage("run_demo run_demo_res=", run_demo_res);
+        
+        _priorityMessage("MIGUEL | P2");
 
         // push history state will trigger result drawing ...
         // Set url state for browser history
@@ -337,6 +225,12 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     var _sendRunForm = function(form_data) {
         // Send form to run method in core
         var path = "/api/core/run";
+        
+        $('#processingCircle').show();
+        
+        $('#execStatus').css('color', 'blue');
+        $("#execStatus").text("Running algorithm...");
+        
         $.ajax(path,
         {
             method: "POST",
@@ -346,14 +240,25 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             //Do not cache the page
             cache: false,
             success: function (res) {
-                _infoMessage('Run success res=',res);
-                _progress_info = "Run success";
+                $('#processingCircle').hide();
+                
+                if (res.status==="OK") {
+                    $('#execStatus').css('color', 'green');
+                    $("#execStatus").text("Execution successful");
+                }
+                else {
+                    $('#execStatus').css('color', 'red');
+                    $("#execStatus").text("Execution failed: " + res.error);
+                }
+                
+                _infoMessage('POST success; res=',res);
                 _onDemoRun(res);
             },
             error: function (res) {
-                _infoMessage('Run error res=',res);
-                _progress_info = "Run failure";
-                _progress(100);
+                $('#processingCircle').hide();
+                $('#execStatus').css('color', 'red');
+                $("#execStatus").text("POST to IPOL run with the API failed");
+                _infoMessage('POST error; res=',res);
             }
         });
     };
@@ -375,17 +280,9 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @public 
      */
     this.setRunEvent = function() {
-        _initProgress();
-
         $( "#run_button" ).unbind("click").prop("disabled",false);
         $( "#run_button" ).click(
         function(){
-            var ptext=_progresslabel.text();
-            // disable future clicks until run is finished
-            _progresslabel.text( "" );
-            _progress(0);
-            _progress_info = "Running demo ...";
-            
             // fill form data to upload
             var form_data = new FormData();
             form_data.append("demo_id",         _ddl_json.demo_id);
@@ -516,30 +413,3 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     }
     
 };
-
-
-/**
- * Set the progress information (running time, success, failure) based on the
- * demo running results
- * @function staticSetProgress
- * @memberOf ipol.RunDemo
- * @param {object} run_demo_res results from running the demo
- * @static
- */
-ipol.RunDemo.staticSetProgress = function(run_demo_res) {
-    var progressbar   = $("#progressbar");
-    var progresslabel = $(".progress-label");
-    if (run_demo_res.status==="KO") {
-        var progress_info = "run_demo:failure";
-    } else {
-        // stop progress
-        var progress_info = "success (ran in "+ 
-                            run_demo_res.algo_info.run_time.toPrecision(2)+
-                            " s)";
-    }
-    progressbar.progressbar( "value", 100 );
-    progresslabel.text(progress_info);
-}
-
-
-
