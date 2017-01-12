@@ -85,15 +85,6 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
      * @private
      */
     var _verbose=true;
-    
-    /** 
-     * stores the starting time of execution
-     * @var {object} _starttime
-     * @memberOf ipol.RunDemo~
-     * @private
-     */
-    var _starttime = 0;
-
 
     //--------------------------------------------------------------------------
     /**
