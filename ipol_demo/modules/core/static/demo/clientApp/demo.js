@@ -287,7 +287,6 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                     // disable run
                     $( "#run_button" ).unbind("click").prop("disabled",true);
-                    $(".progress-label").text( "Waiting for input selection" );
                     if (ddl_json.general.thumbnail_size!==undefined) {
                         $("#ThumbnailSize").val(ddl_json.general.thumbnail_size);
                     } else {
@@ -307,7 +306,6 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                 } else {
                     $( "#run_button" ).unbind("click").prop("disabled",true);
-                    $(".progress-label").text( "Run" );
                     $("#selectinputs_fieldset").hide();
                     $("#inputs_fieldset"      ).hide();
 
@@ -370,12 +368,9 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                                 console.info("***** demo results obtained from url parameters");
                                 // Set parameter values
                                 ipol.DrawParams.staticSetParamValues(res.params);
-                                // Set Progress information
-                                ipol.RunDemo.staticSetProgress(res);
                                 // Draw results
                                 var dr = new ipol.DrawResults( res, ddl_json.results );
                                 dr.create();
-                                //$("#progressbar").get(0).scrollIntoView();
                             }
                             break;
                         // demo selection from moving in the browser history
@@ -431,9 +426,6 @@ ipol.documentReady = function () {
     if (servers.in_production) {
         $("#tabs_ddl").hide();
     }
-
-    $( "#progressbar" ).progressbar({ value:100 });
-    $(".progress-label").text( "Waiting for input selection" );
 
     ipol.setLegendFolding("legend");
     $("#reset_params").unbind();

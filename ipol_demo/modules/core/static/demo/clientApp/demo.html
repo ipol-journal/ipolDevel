@@ -252,37 +252,13 @@
             </div>
         </fieldset>
 
-        <!-- ******** progress bar ****** -->
-        <!-- Progress bar -->
-        <style>
-            .ui-progressbar {
-                position: relative;
-            }
-            .progress-label {
-                position: absolute;
-                text-align: center;
-                left:40%;
-                top: 6px;
-                font-weight: bold;
-                text-shadow: 1px 1px 0 #fff;
-                display: block;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .string { color: green; }
-            .number { color: darkorange; }
-            .boolean { color: blue; }
-            .null { color: magenta; }
-            .key { color: red; }
-        </style>
-
         <br>
 <!--         <div style="display:inline-block;vertical-align:top;"> -->
         <center><button id="run_button" style="left:50%; height:2em; width:5em; margin:3px; background-color:#5d8cb1; color:white; font-size:16px;">Run</button></center>
 
-        <div id="progressbar" style="width:auto;vertical-align:middle;height:2em;margin:3px;">
-            <div class="progress-label" > Select demo and input </div>
-        </div>
+
+        <center><img src="images/running.gif" id="processingCircle" style="display: none"></img> <span id="execStatus"></span></center>
+
 <!--        </div>
         <br>-->
 
