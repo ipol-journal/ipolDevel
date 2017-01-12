@@ -259,11 +259,12 @@ class RunDemoBase:
                         proc_name = args[:last_arg_pos + 1]
                         try:
                             p = self.run_proc(proc_name, stdout=stdout_file, stderr=stderr_file)
+                            self.wait_proc(p)
                         except OSError:
                             self.logger.exception("OSError when run_proc with proc_name={}".format(proc_name))
                             raise
                             
-                    self.wait_proc(p)
+                    
 
                     # Close stderr, stdout files
                     if stderr_file != None:
