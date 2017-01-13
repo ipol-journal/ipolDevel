@@ -243,10 +243,10 @@ class   Database(object):
         """
         try:
             self.cursor.execute("SELECT name FROM demo WHERE name=?", (demo,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return something is not None
+        return row is not None
 
     #---------------------------------------------------------------------------
     def blob_is_in_database(self, hash_blob):
@@ -262,10 +262,10 @@ class   Database(object):
             self.cursor.execute('''
             SELECT hash FROM blob WHERE hash=?''',
                                 (hash_blob,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return something is not None
+        return row is not None
 
     #---------------------------------------------------------------------------
     def tag_is_in_database(self, tag):
@@ -277,13 +277,13 @@ class   Database(object):
         :return: tag name if it isin database else None
         :rtype: string
         """
-        something = None
+        row = None
         try:
             self.cursor.execute("SELECT name FROM tag WHERE name=?", (tag,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return something is not None
+        return row is not None
 
     #---------------------------------------------------------------------------
     def format_is_good(self, fileformat):
@@ -314,10 +314,10 @@ class   Database(object):
             SELECT blob_id FROM demo_blob
             INNER JOIN blob ON demo_blob.blob_id=blob.id WHERE blob.hash=?''',\
             (hash_blob,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return None if something is None else something[0]
+        return None if row is None else row[0]
 
     def demo_id(self, demo):
         """
@@ -332,10 +332,10 @@ class   Database(object):
             self.cursor.execute('''
             SELECT demo.id FROM demo
             WHERE demo.name=?''', (demo,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return None if something is None else something[0]
+        return None if row is None else row[0]
 
     #---------------------------------------------------------------------------
     def tag_id(self, tag):
@@ -349,10 +349,10 @@ class   Database(object):
         """
         try:
             self.cursor.execute("SELECT id FROM tag WHERE name=?", (tag,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return None if something is None else something[0]
+        return None if row is None else row[0]
 
     #---------------------------------------------------------------------------
     def get_blobs_of_demo(self, demo_name):
@@ -407,9 +407,9 @@ class   Database(object):
 
         return blobset_list
 
-    def get_demo_name_from_id(self, demo_id):
+    def get_demo_metadata_by_PK_id(self, demo_id):
         """
-        Return name of the demo from id
+        Return name of the demo from the PK id
 
         :param demo_id: id demo
         ::type demo_id: integer
@@ -423,10 +423,14 @@ class   Database(object):
             FROM demo
             WHERE demo.id=?''',\
             (demo_id,))
-            something = self.cursor.fetchone()
-            dic[something[0]] = {"name": something[1], "is_template": something[2],
-                                 "template_id": something[3]}
 
+            row = self.cursor.fetchone()
+
+            if row is None or len(row) == 0:
+                return None # No results
+
+            dic[row[0]] = {"name": row[1], "is_template": row[2],
+                                 "template_id": row[3]}
         except self.database.Error as e:
             raise DatabaseSelectError(e)
 
@@ -449,10 +453,13 @@ class   Database(object):
             FROM demo
             WHERE demo.name=?''',\
             (demo_name,))
-            something = self.cursor.fetchone()
-            dic[something[0]] = {"name": something[0], "is_template": something[1],
-                                 "template_id": something[2]}
-
+            
+            row = self.cursor.fetchone()
+            if row is None or len(row) == 0:
+                return {} # No results
+            
+            dic[row[0]] = {"name": row[0], "is_template": row[1],
+                                 "template_id": row[2]}
         except self.database.Error as e:
             self.logger.exception("get_demo_info_from_name --> The \
             database does not have the demo ({0})".format(demo_name))
@@ -470,7 +477,7 @@ class   Database(object):
         :rtype: list
         """
         try:
-            something = self.cursor.execute('''
+            row = self.cursor.execute('''
             SELECT hash FROM blob
             INNER JOIN blob_tag ON blob.id=blob_tag.blob_id
             INNER JOIN tag ON blob_tag.tag_id=tag.id
@@ -480,7 +487,7 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         lis = []
-        for item in something:
+        for item in row:
             lis.append(item[0])
         return lis
 
@@ -494,7 +501,7 @@ class   Database(object):
         :rtype: dictionnary
         """
         try:
-            something = self.cursor.execute('''
+            row = self.cursor.execute('''
             SELECT tag.id, tag.name FROM tag
             INNER JOIN blob_tag ON tag.id=blob_tag.tag_id
             INNER JOIN blob ON blob_tag.blob_id=blob.id
@@ -504,7 +511,7 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         lis = {}
-        for item in something:
+        for item in row:
             lis[item[0]] = item[1]
         return lis
 
@@ -622,17 +629,17 @@ class   Database(object):
         :return: number of tag present in database
         :rtype: tuple of integer or None
         """
-        something = None
+        row = None
         try:
             self.cursor.execute('''
             SELECT COUNT(*) FROM blob_tag
             INNER JOIN tag ON tag_id=tag.id
             WHERE tag.id=?''',\
             (tag_id,))
-            something = self.cursor.fetchone()
+            row = self.cursor.fetchone()
         except self.database.Error as e:
             raise DatabaseSelectError(e)
-        return None if not something else something
+        return None if not row else row
 
     #---------------------------------------------------------------------------
     def delete_tag(self, tag_id, tag_is_reducible):
@@ -825,9 +832,9 @@ class   Database(object):
         :return: list of name tag
         :rtype: list of string
         """
-        something = self.cursor.execute("SELECT name FROM tag")
+        row = self.cursor.execute("SELECT name FROM tag")
         lis = []
-        for item in something:
+        for item in row:
             lis.append(item[0])
         return lis
 
@@ -868,7 +875,7 @@ class   Database(object):
         #jak
         #todo  change json schema, avoun int keys
         #lis = {}
-        #for item in something:
+        #for item in row:
         #    lis[item[0]] = {"name": item[1], "is_template": item[2], "template_id": item[3]}
 
         demos_info = self.cursor.fetchall()
@@ -904,7 +911,7 @@ class   Database(object):
         :rtype: string
         """
         try:
-            something = self.cursor.execute('''
+            row = self.cursor.execute('''
             SELECT hash, extension FROM blob
             WHERE blob.id=?''', \
             (blob_id,))
@@ -912,7 +919,7 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         value = ()
-        for item in something:
+        for item in row:
             value = (item[0], item[1])
 
         return value[0] + value[1] if value else value
@@ -933,9 +940,9 @@ class   Database(object):
             SELECT id, hash, extension, credit FROM blob
             WHERE blob.id=?''', \
             (blob_id,))
-            something = self.cursor.fetchone()
-            dic = {"id": something[0], "hash": something[1], "extension": something[2],
-                   "credit": something[3]}
+            row = self.cursor.fetchone()
+            dic = {"id": row[0], "hash": row[1], "extension": row[2],
+                   "credit": row[3]}
         except self.database.Error as e:
             raise DatabaseSelectError(e)
 
@@ -977,7 +984,7 @@ class   Database(object):
 
 
 
-        something = None
+        row = None
         try:
             self.cursor.execute('''
             SELECT tag.id FROM tag
@@ -985,9 +992,9 @@ class   Database(object):
             INNER JOIN blob ON blob_id=blob.id
             WHERE blob.id=?''',\
             (blob_id,))
-            something = self.cursor.fetchone()
-            if something:
-                for item in something:
+            row = self.cursor.fetchone()
+            if row:
+                for item in row:
                     self.delete_tag_from_blob(item, blob_id)
 
         except self.database.Error, e:
@@ -1003,7 +1010,7 @@ class   Database(object):
         :type: dictionnary
         """
         try:
-            something = self.cursor.execute('''
+            row = self.cursor.execute('''
             SELECT id, name
             FROM demo
             WHERE is_template=1''')
@@ -1011,7 +1018,7 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         lis = {}
-        for item in something:
+        for item in row:
             lis[item[0]] = {"name": item[1]}
         return lis
 
@@ -1049,12 +1056,7 @@ class   Database(object):
     #---------------------------------------------------------------------------
     def demo_use_template(self, demo_name):
         """
-        Return the name of the templated demo used by another demo
-
-        :param demo_name: demo_name
-        :type demo_name: integer
-        :return: name of templated demo used
-        :rtype: dictionnary
+        Return the name of the template of demo with the given name
         """
         dic = {}
         try:
@@ -1063,9 +1065,19 @@ class   Database(object):
             FROM demo
             WHERE demo.name=?''',\
             (demo_name,))
-            something = self.cursor.fetchone()
-            if something[0] == 0 and something[1] != 0:
-                dic = self.get_demo_name_from_id(something[1])[something[1]]
+            
+            row = self.cursor.fetchone()
+            if row is None or len(row) == 0:
+                return {}
+            
+            is_template, template_id = row
+            
+            if is_template == 0 and template_id != 0:
+                demo_metadata = self.get_demo_metadata_by_PK_id(template_id)
+                if demo_metadata is None:
+                    return {}
+                
+                dic = demo_metadata[template_id]
         except DatabaseError, e:
             raise DatabaseSelectError(e)
 
