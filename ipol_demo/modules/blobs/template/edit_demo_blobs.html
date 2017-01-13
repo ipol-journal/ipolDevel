@@ -14,11 +14,15 @@
             No
             %if demo[demo_name]["template_id"] == 0:
                 <br>
-                You don't use template.<br>
-                Do you want use a template ?
+                You're not using any template.<br>
+                Do you want use one?
             %else:
                 <br>
-                You use template: ${demo["use_template"]["name"]}<br>
+                %if 'name' in demo["use_template"]:
+                    You use template: ${demo["use_template"]["name"]}<br>
+                %else:
+                    You are not using any template.<br>
+                %endif
                 Do you want to change template used ?
             %endif
             <form action="/use_template" method="post">

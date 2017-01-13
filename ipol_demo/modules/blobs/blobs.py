@@ -942,6 +942,7 @@ class   Blobs(object):
         if demo_blobs["use_template"]:
             template_blobs_res = use_web_service('/get_blobs_from_template_ws',
                                                  {"template": demo_blobs["use_template"]["name"]})
+
             template_blobs = template_blobs_res['blobs']
             for blob_set in template_blobs:
                 blob_size = blob_set[0]['size']
@@ -974,7 +975,6 @@ class   Blobs(object):
                 b["physical_location"] = get_new_path(blob_set[idx]["physical_location"], False)
                 b["url"] = get_new_path(blob_set[idx]["url"], False)
                 b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
-
 
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
