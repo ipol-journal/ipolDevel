@@ -335,6 +335,11 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
+                
+                // empty execution status
+                $("#execStatus").text("");
+                
+                
                 // create an instance of DrawInputs
                 var di = new ipol.DrawInputs(_ddl_json);
                 di.setBlobSet(_demoblobs.blobs[event.data.blobset_id]);
