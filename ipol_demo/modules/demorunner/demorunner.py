@@ -408,7 +408,8 @@ class DemoRunner(object):
         '''
         Checks if all given file names exist
         '''
-        return all([os.path.isfile(f) for f in files])
+        return all([os.path.isfile(f) or os.path.isdir(f) \
+          for f in files])
 
 
     def do_scripts_karl(self, ddl_build, scripts_dir, src_path):
