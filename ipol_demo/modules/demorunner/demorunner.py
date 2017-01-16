@@ -323,13 +323,13 @@ class DemoRunner(object):
 
             if ('build_type' in ddl_build.keys()) and \
                     (ddl_build['build_type'].upper() == 'cmake'.upper()):
-                self.do_cmake(bin_dir, ddl_build, log_file, programs, src_path)
+                self.do_cmake_karl(bin_dir, ddl_build, log_file, programs, src_path)
             else:
-                self.do_make(bin_dir, ddl_build, log_file, programs, src_path)
+                self.do_make_karl(bin_dir, ddl_build, log_file, programs, src_path)
 
             # if build_type is 'script', just execute this part
             if 'scripts' in ddl_build.keys():
-                self.do_scripts(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
+                self.do_scripts_karl(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
 
             if ('post_build' in ddl_build.keys()):
                 print 'post_build command:', ddl_build['post_build']
@@ -405,13 +405,18 @@ class DemoRunner(object):
 
 
     def all_files_exist(self, files):
-        for file in files:
-            if not os.path.isfile(file): return False
-        return True
+        '''
+        Checks if all given file names exist
+        '''
+        return all([os.path.isfile(f) or os.path.isdir(f) \
+          for f in files])
 
 
+    def do_scripts_karl(self, ddl_build, scripts_dir, src_path):
+        self.error_log("do_cmake_karl", \
+          "Using deprecated do_cmake_karl function to compile - {}".\
+            format(src_path))
 
-    def do_scripts(self, ddl_build, scripts_dir, src_path):
         print ddl_build['scripts']
         # Move scripts to the scripts dir
         for script in ddl_build['scripts']:
@@ -428,7 +433,14 @@ class DemoRunner(object):
             # Give exec permission to the script
             os.chmod(new_file, stat.S_IREAD | stat.S_IEXEC)
 
-    def do_make(self, bin_dir, ddl_build, log_file, programs, src_path):
+
+    # This function is deprecated and should be totally removed when no
+    # demo is using the old syntax.
+    def do_make_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
+        self.error_log("do_make_karl", \
+          "Using deprecated do_make_karl function to compile - {}".\
+            format(src_path))
+
         if ('build_type' in ddl_build.keys()) and \
                 (ddl_build['build_type'].upper() == 'make'.upper()):
             # ----- MAKE build
@@ -486,7 +498,13 @@ class DemoRunner(object):
                 print "COPY {} --> {}".format(move[0], move[1])
                 shutil.copy(move[0], move[1])
 
-    def do_cmake(self, bin_dir, ddl_build, log_file, programs, src_path):
+    # This function is deprecated and should be totally removed when no
+    # demo is using the old syntax.
+    def do_cmake_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
+        self.error_log("do_cmake_karl", \
+          "Using deprecated do_cmake_karl function to compile - {}".\
+            format(src_path))
+        
         print "using CMAKE"
         # Run cmake first:
         # create temporary build dir IPOL_xxx_build
@@ -554,6 +572,10 @@ class DemoRunner(object):
                 if 'build1' in ddl_build:
                     make_info = self.make_new(path_for_the_compilation, build_params)
                 else:
+                    # [ToDo] [Miguel] This function is deprecated. It
+                    # should be totally removed when no demo is
+                    # using the old compilation syntax.
+                    # And make_new renamed.
                     make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
                 data['status'] = "OK"

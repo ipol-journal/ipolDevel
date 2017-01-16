@@ -310,6 +310,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     $("#inputs_fieldset"      ).hide();
 
                     var di = new ipol.DrawInputs(ddl_json);
+                    
                     di.setInputOrigin("noinputs");
                     var run = new ipol.RunDemo(ddl_json,
                                                di.getInputOrigin(),
