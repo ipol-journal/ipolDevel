@@ -263,6 +263,9 @@ class RunDemoBase:
                         except OSError:
                             self.logger.exception("OSError when run_proc with proc_name_and_params={}".format(proc_name_and_params))
                             raise
+                        except RuntimeError:
+                            self.logger.exception("RuntimeError when run_proc with proc_name_and_params={}".format(proc_name_and_params))
+                            raise
                             
                     
 
