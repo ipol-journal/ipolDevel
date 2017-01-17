@@ -166,6 +166,14 @@ ipol.history.SetPageState = function( page_state) {
                         di.onLoadImages( function() {
                             onload_callback();
                         });
+                        onload_callback(); // [Miguel] Calling this
+                        // function here is a workaround patch to make
+                        // the results show.
+                        // However, this ipol.history.js file is
+                        // supposed to deal with the history, not with
+                        // images! Moreover, IPOL does not work only with
+                        // images and thus any type which is not an image
+                        // will fail here (!!!)
                     }
                     di.loadDataFromLocalFiles();
                 } else {
@@ -306,4 +314,3 @@ ipol.history.SetPageState = function( page_state) {
         }
     );
 }
-    
