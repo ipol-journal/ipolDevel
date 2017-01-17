@@ -1163,8 +1163,12 @@ demo_id = ", demo_id
                 self.error_log("ensure_compilation()", \
 "ensure_compilation functions returns KO in the demorunner: " + \
 dr + " module")
+
+                # Send compilation message to the editors
                 self.send_compilation_error_email(demo_id)
                 text = self.get_build_log_text(demo_id)
+                
+                # Message for the web interface
                 json_response["error"] = " --- Compilation error. --- {} - {}".format(json_response["message"], text)
                 return json.dumps(json_response)
 
@@ -1192,6 +1196,9 @@ dr + " module")
             if json_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
+                
+                # Message for the web interface
+                json_response["error"] = format(json_response["algo_info"]["status"])
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
