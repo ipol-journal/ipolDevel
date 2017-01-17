@@ -6,26 +6,72 @@
     <body>
       <ul>
 	<a href="get_blobs_of_demo?demo_name=${demo_id}">return</a>
+	
 	<h1>Editing blob with ID = ${blob_info["id"]}</h1>
+	
 	<img src="${blob_info["url_thumb"]}"></img>
-	<table>
+      </ul>
+      <ul>
+        <div>
+        <table style="border:1px solid black">
+        <form action="/edit_blobs_information" method="post">
+	<tr>
+            <td style="margin:2px;padding:2px;" >The set </td>
+            <td style="margin:2px;padding:2px;"><input type="text"   name="blob_set" value="${blob_info["blob_set"]}"> </td>
+        </tr>
+        <tr>
+            <td style="margin:2px;padding:2px;">Title</td>
+            <td style="margin:2px;padding:2px;"><input type="text"   name="title" value="${blob_info["title"]}">  </td>
+         </tr>
+         <tr>
+            <td style="margin:2px;padding:2px;">Credit</td>
+            <td style="margin:2px;padding:2px;"><input type="text"   name="credit" value="${blob_info["credit"]}">  </td>
+         </tr>
+         <tr>
+            <td style="margin:2px;padding:2px;">Position in set</td>
+            <td style="margin:2px;padding:2px;"><input type="text"   name="blob_pos_in_set" value="${blob_info["blob_pos_in_set"]}">    </td>
+         </tr>
+         <tr><td align="center" ><input type="submit" value="Edit Blob"></td></tr>
+          <input type="hidden" name="blob_id" value="${blob_id}"/>
+          <input type="hidden" name="demo_name" value="${demo_id}"/>
+        </form>
+        </table>
+        
+        <br>
+        <table style="border:1px solid black">
 	  %for tag_id in blob_info["tags"]:
 	  <tr>
 	    <td>${blob_info["tags"][tag_id]}</td>
 	    <td><a href="op_remove_tag_from_blob?tag_id=${tag_id}&blob_id=${blob_info["id"]}&demo_name=${demo_id}">remove</a></td>
 	  </tr>
 	  %endfor
-	  <br>
-	</table>
-	<form action="/op_add_tag_to_blob" method="post">
-	  <div>
+	
+	<br>
+	
+       <form action="/op_add_tag_to_blob" method="post">
+	<div>
 	    <input type="hidden" name="blob_id" value="${blob_id}"/>
 	    <input type="hidden" name="demo_name" value="${demo_id}"/>
 	    <input type="text" name="tag" value=""/>
-	    <br>
-	    <input type="submit" value="Add tag">
-	  </div>
+	    <input type="submit" value="Add new tag">
+	</div>
 	</form>
+       
+        </table>
+        
+        <br>
+        
+        <form action="/upload_visual_representation" method="post" enctype="multipart/form-data">
+        <table style="border:1px solid black">
+        <tr>
+        <input type="hidden" name="blob_id" value="${blob_id}"/>
+	<input type="hidden" name="demo_name" value="${demo_id}"/>
+	<td><input type="file"   name="visual_representation"></td>
+        <td><input type="submit" value="Upload VR"></td>
+        </tr>
+        </table><br>
+        </div>
+        </form>
       </ul>
     </body>
 </html>
