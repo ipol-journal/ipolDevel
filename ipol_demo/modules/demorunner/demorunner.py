@@ -89,12 +89,13 @@ class DemoRunner(object):
         logger.addHandler(handler)
         return logger
 
-    def error_log(self, function_name, error):
+    def write_log(self, function_name, message):
         """
         Write an error log in the logs_dir defined in proxy.conf
         """
-        error_string = function_name + ": " + error
-        self.logger.error(error_string)
+        log_string = "{}: {}".format(function_name, message)
+        #
+        self.logger.error(log_string)
 
 
     def __init__(self):
@@ -121,7 +122,7 @@ class DemoRunner(object):
         if not os.path.isdir(self.share_running_dir):
             error_message = "There not exist the folder: " + self.share_running_dir
             print error_message
-            self.error_log("__init__", error_message)
+            self.write_log("__init__", error_message)
 
 
             #####
@@ -157,7 +158,7 @@ class DemoRunner(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.error_log("shutdown", str(ex))
+            self.write_log("shutdown", str(ex))
         return json.dumps(data)
 
     @cherrypy.expose
@@ -174,7 +175,7 @@ class DemoRunner(object):
             data["status"] = "OK"
             data["CPU"] = float(CPU_information)
         except Exception as ex:
-            self.error_log("get_load_state", str(ex))
+            self.write_log("get_load_state", str(ex))
         return json.dumps(data)
 
         # ---------------------------------------------------------------------------
@@ -229,7 +230,7 @@ class DemoRunner(object):
         """
         program build/update
         """
-        self.error_log("make_karl", \
+        self.write_log("make_karl", \
           "Using deprecated make_karl function to compile - {}".\
             format(path_for_the_compilation))
 
@@ -255,7 +256,7 @@ class DemoRunner(object):
         try:
             build.download(ddl_build['url'], tgz_file)
         except Exception as ex:
-            self.error_log("make", "Failed to download the sources: {}".format(tgz_file))
+            self.write_log("make", "Failed to download the sources: {}".format(tgz_file))
             raise
 
         rebuild_needed = False
@@ -413,7 +414,7 @@ class DemoRunner(object):
 
 
     def do_scripts_karl(self, ddl_build, scripts_dir, src_path):
-        self.error_log("do_cmake_karl", \
+        self.write_log("do_cmake_karl", \
           "Using deprecated do_cmake_karl function to compile - {}".\
             format(src_path))
 
@@ -437,7 +438,7 @@ class DemoRunner(object):
     # This function is deprecated and should be totally removed when no
     # demo is using the old syntax.
     def do_make_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
-        self.error_log("do_make_karl", \
+        self.write_log("do_make_karl", \
           "Using deprecated do_make_karl function to compile - {}".\
             format(src_path))
 
@@ -501,7 +502,7 @@ class DemoRunner(object):
     # This function is deprecated and should be totally removed when no
     # demo is using the old syntax.
     def do_cmake_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
-        self.error_log("do_cmake_karl", \
+        self.write_log("do_cmake_karl", \
           "Using deprecated do_cmake_karl function to compile - {}".\
             format(src_path))
         
@@ -666,21 +667,30 @@ class DemoRunner(object):
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
+            self.write_log("exec_and_wait", "IPOLTimeoutError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
-            self.logger.exception("exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id))
+            print res_data
             return json.dumps(res_data)
         except RuntimeError as e:
+            self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['algo_info']['status'] = 'RuntimeError'
             res_data['error'] = str(e)
-            self.logger.exception("exec_and_wait RuntimeError, demo_id={}".format(demo_id))
+            print res_data
+            return json.dumps(res_data)
+        except OSError as e:
+            self.write_log("exec_and_wait", "OSError, demo_id={}".format(demo_id))
+            res_data['status'] = 'KO'
+            res_data['algo_info']['status'] = 'OSError'
+            res_data['error'] = str(e)
             print res_data
             return json.dumps(res_data)
         except Exception as e:
+            self.write_log("exec_and_wait", "Uncatched Exception, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'Error: {}'.format(e)
-            self.logger.exception("IPOL internal error in exec_and_wait, demo_id={}".format(demo_id))
+            print res_data
             return json.dumps(res_data)
 
 
