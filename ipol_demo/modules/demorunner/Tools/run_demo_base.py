@@ -298,6 +298,7 @@ class RunDemoBase:
 
         newenv.update({'demoextras': self.get_demoExtras_main_folder()})
         newenv.update({'matlab_path': self.get_MATLAB_path()})
+        newenv.update({'bin': self.bin_dir})
 
         # TODO clear the PATH, hard-rewrite the exec arg0
         # TODO use shell-string execution
