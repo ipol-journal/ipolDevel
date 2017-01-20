@@ -430,13 +430,71 @@ ipol.DrawParams = function() {
             '<td style="border:0px;"  colspan="2"  >'+
             '<input  style="20em"'+
                     ' type="text" ' + 
-                    ' name="' + param.id + '" ' + 
-                        +
-                        '" ' +
+                    ' name="' + param.id + '" ' + '" ' +
                     'readonly/>' +
             '</td>'
         return html;
-    }    
+    }
+
+    //--------------------------------------------------------------------------
+    /**
+     * Creates input text element
+     * @param {object} param the current parameter object
+     * @returns {string} HTML code
+     * @function _createReadOnly
+     * @memberOf ipol.DrawParams~
+     */
+    var _createTextInput = function (param) {
+
+        var html = "";
+        var limits = '';
+
+        if(param.values != null){
+            limits += ' maxlength  ="' + param.values.maxlength + '"';
+            limits += ' value="' + param.values.default + '"';
+        }
+
+        html =
+            "<td style='border:0;max-width:25em'>" +
+            '<label> ' + param.label + ' </label>'+
+            '</td>'+
+            '<td style="border:0px;"  colspan="2"  >'+
+            '<input  style="20em"'+
+                    ' type="text" ' +
+                    ' name="' + param.id + '" ' +limits + '/>' +
+            '</td>'
+        return html;
+    }
+
+    //--------------------------------------------------------------------------
+    /**
+     * Creates numeric input text element
+     * @param {object} param the current parameter object
+     * @returns {string} HTML code
+     * @function _createNumericInput
+     * @memberOf ipol.DrawParams~
+     */
+    var _createNumericInput = function (param) {
+        var html = "";
+        html += _addLabel(param);
+
+        var limits = '';
+
+        if(param.values != null){
+            limits += ' min  ="' + param.values.min     + '"';
+            limits += ' max  ="' + param.values.max     + '"';
+            limits += ' step ="' + param.values.step    + '"';
+            limits += ' value="' + param.values.default + '"';
+        }
+
+        html += '<td style="border:0px;width:5em">';
+        html += '<input  style="width:100%"  type="number"';
+        html += ' id="number_'+param.id+'"';
+        html += ' name="'+param.id+'" '+limits + ' >';
+        html += '</td>';
+        html += _addComments(param);
+        return html;
+    }
 
     //--------------------------------------------------------------------------
     /** 
@@ -593,6 +651,12 @@ ipol.DrawParams = function() {
                         case "label":
                             params_html += _createLabel(param);
                             break;
+                        case "text":
+                            params_html += _createTextInput(param);
+                            break;
+                        case "numeric":
+                            params_html += _createNumericInput(param);
+                            break;
                         case "checkbox":
                             params_html += _createCheckBox(param);
                             break;
@@ -631,6 +695,10 @@ ipol.DrawParams = function() {
                             break;
                         case "range_scientific":
                             _createSelectionRangeScientificEvents(param,ddl_json);
+                            break;
+                        case "text":
+                            break;
+                        case "numeric":
                             break;
                         case "readonly":
                             break;
@@ -673,7 +741,6 @@ ipol.DrawParams.staticUpdateParams = function (ddl_params) {
     // image dimensions, can be used in parameter expressions
     var imwidth  = 512;
     var imheight = 512;
-    
     //----------------------------------------------------------------------
     function checkImageDimensions() {
 //         console.info("checkImageDimensions() ");
@@ -763,6 +830,12 @@ ipol.DrawParams.staticGetParamValue = function (params_ddl,index) {
             return value;
             break;
         case "range":
+            var value = $("input[name="+name+"]").val();
+            return parseFloat(value);
+        case "text":
+            var value = $("input[name="+name+"]").val();
+            return parseFloat(value);
+        case "numeric":
             var value = $("input[name="+name+"]").val();
             return parseFloat(value);
         case "range_scientific":
