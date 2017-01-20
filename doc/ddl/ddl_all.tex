@@ -427,6 +427,41 @@ The label  can be used as a title to separate groups of parameters.
 \end{longtable}
 
 
+\subsubsection{ \emph{numeric} type}
+
+This param allows just numeric input
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type       & numeric   & yes \\ \hline
+ visible    & Javascript/JQuery boolean expression evaluted in the context defined in \ref{sec:JavascriptEvalParams} that can hide the parameter
+              if evaluated to false (if undefined the parameter is visible) & no \\ \hline
+ label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
+ comments   & description of the parameter, appears on the right side. & no  \\ \hline
+ id         & parameter name in lowercase letters & yes \\ \hline
+ values     & set min,max,step and default values using the following key/value scheme \{ 'min':val, 'max':val, 'default':val \} & no \\ \hline
+\caption{Common keys for the 'checkboxes' type.}
+\end{longtable}
+
+\subsubsection{ \emph{text} type}
+
+This param allows numeric and text input
+\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
+0.58\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type       & text   & yes \\ \hline
+ visible    & Javascript/JQuery boolean expression evaluted in the context defined in \ref{sec:JavascriptEvalParams} that can hide the parameter
+              if evaluated to false (if undefined the parameter is visible) & no \\ \hline
+ label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
+ id         & parameter name in lowercase letters & yes \\ \hline
+ values     & set maxlength and default values using the following key/value scheme \{ 'maxlength':val, 'default':val \} & no \\ \hline
+\caption{Common keys for the 'checkboxes' type.}
+\end{longtable}
+
 %-------------------------------------------------------------------------------
 \subsection{The \emph{params\_layout} section}
 
