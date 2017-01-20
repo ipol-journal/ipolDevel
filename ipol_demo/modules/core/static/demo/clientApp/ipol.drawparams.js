@@ -450,8 +450,8 @@ ipol.DrawParams = function() {
         var limits = '';
 
         if(param.values != null){
-            limits += ' maxlength  ="' + param.values.maxlength + '"';
-            limits += ' value="' + param.values.default + '"';
+            limits += param.values.maxlength != null ? ' maxlength ="' + param.values.maxlength + '"' : "";
+            limits += param.values.default   != null ? ' value ="' + param.values.default + '"' : "";
         }
 
         html =
@@ -481,10 +481,10 @@ ipol.DrawParams = function() {
         var limits = '';
 
         if(param.values != null){
-            limits += ' min  ="' + param.values.min     + '"';
-            limits += ' max  ="' + param.values.max     + '"';
-            limits += ' step ="' + param.values.step    + '"';
-            limits += ' value="' + param.values.default + '"';
+            limits += param.values.min != null     ? ' min  =  "' + param.values.min     + '"' : "";
+            limits += param.values.max != null     ? ' max  =  "' + param.values.max     + '"' : "";
+            limits += param.values.step != null    ? ' step =  "' + param.values.step    + '"' : "";
+            limits += param.values.default != null ? ' value = "' + param.values.default + '"' : "";
         }
 
         html += '<td style="border:0px;width:5em">';
