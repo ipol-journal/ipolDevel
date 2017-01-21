@@ -954,6 +954,22 @@ demoinfo. Failure code -> " + response['code']
         s.sendmail(msg['From'], emails_list, msg.as_string())
         s.quit()
 
+    def get_build_log_text(self, demo_id):
+        '''
+        Returns the contents of the build log file
+        '''
+        # [ToDo] Use the shared folder to access a DR!
+        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
+          format(self.shared_folder_abs, demo_id)
+        if not os.path.isfile(buildLog_filename):
+            return ""
+
+        fp = open(buildLog_filename, 'rb')
+        text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
+        fp.close()
+        
+        return text
+        
 
     def send_compilation_error_email(self, demo_id):
         ''' Send email to editor when compilation fails '''
@@ -970,15 +986,7 @@ demoinfo. Failure code -> " + response['code']
 
         # Send the email
         # [ToDo] Use the shared folder to access a DR!
-        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
-          format(self.shared_folder_abs, demo_id)
-        if not os.path.isfile(buildLog_filename):
-            return
-
-        fp = open(buildLog_filename, 'rb')
-        text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
-        fp.close()
-
+        text = self.get_build_log_text(demo_id)
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
@@ -1155,7 +1163,13 @@ demo_id = ", demo_id
                 self.error_log("ensure_compilation()", \
 "ensure_compilation functions returns KO in the demorunner: " + \
 dr + " module")
+
+                # Send compilation message to the editors
                 self.send_compilation_error_email(demo_id)
+                text = self.get_build_log_text(demo_id)
+                
+                # Message for the web interface
+                json_response["error"] = " --- Compilation error. --- {} - {}".format(json_response["message"], text)
                 return json.dumps(json_response)
 
             print "Entering ensure_extras_updated()"
@@ -1182,6 +1196,9 @@ dr + " module")
             if json_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
+                
+                # Message for the web interface
+                json_response["error"] = format(json_response["algo_info"]["status"])
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)

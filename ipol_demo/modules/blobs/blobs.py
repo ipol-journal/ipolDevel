@@ -86,6 +86,17 @@ def validate_password(dummy, username, password):
         return True
     return False
 
+def get_new_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
+    """
+    This function 
+    """
+    length_of_the_new_subfolder = min(len(blob_hash), depth)
+    subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
+    new_folder = os.path.join(main_directory, subdirs)
+    new_path = os.path.join(new_folder, blob_hash + extension)
+    
+    return new_path, new_folder
+
 def get_new_path(filename, create_dir=True, depth=2):
     """
     This method creates a new fullpath for a given file path,
@@ -144,6 +155,7 @@ class   Blobs(object):
         self.tmp_dir = cherrypy.config['tmp.dir']
         self.final_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
+        self.vr_dir    = cherrypy.config['visual_representation']
 
         self.base_directory = os.getcwd()
         self.html_dir = os.path.join(self.base_directory,
@@ -420,7 +432,16 @@ class   Blobs(object):
                         blob_maxpos = max(blob_maxpos, bs[i]['pos_in_set'])
                         blob_pos_in_set = blob_maxpos + 1
 
-        path = create_tmp_file(blob, tmp_directory)
+        try:
+            path = create_tmp_file(blob, tmp_directory)
+        except Exception as ex:
+            error_message = "Failure adding in add_blob --> %s".format(ex)
+            self.logger.exception(error_message)
+            error_dic = {}
+            error_dic['status']= 'KO'
+            error_dic['message'] = error_message
+            return json.dumps(error_dic)
+        
         data = {"demo_name": demo, "path": path, "tag": list_tag, "ext": ext,
                 "blob_set": blob_set, "blob_pos_in_set":blob_pos_in_set,
                 "title": title, "credit": credit}
@@ -436,6 +457,107 @@ class   Blobs(object):
         #return tmpl_lookup.get_template("get_blobs_of_demo.html").render(demo_name=demo)
 
         return self.get_blobs_of_demo(demo)
+
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="text/plain")
+    def edit_blobs_information(self, **kwargs):
+        """
+        Edit blob (POST Request)
+
+        :param kwargs: list arguments
+        :type kwargs: dictionnary
+        :return: mako templated html page (refer to edit_blob.html)
+        :rtype: mako.lookup.TemplatedLookup
+        """
+        data = {}
+        data['demo_name'] = kwargs['demo_name']
+        data['blob_id'] = kwargs['blob_id']
+        data['blob_set'] = kwargs['blob_set']
+        data['blob_pos_in_set'] = kwargs['blob_pos_in_set']
+        data['title'] = kwargs['title']
+        data['credit'] = kwargs['credit']
+        
+        res = use_web_service("/edit_blob_in_database_ws", data)
+        
+        if res['status'] == 'OK':
+            return self.get_blobs_of_demo(data['demo_name'])
+        else:
+            error_message = "Failure in edit_blobs_information"
+            self.logger.exception(error_message)
+            res['message'] = error_message	  
+            return json.dump(res) 
+    
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def edit_blob_in_database_ws(self, demo_name, blob_id, 
+				 blob_set, blob_pos_in_set, title, credit):
+        """
+        Web service used for editing a blob
+        :return: OK if success or KO if not
+        :rtype:  json format
+        """
+        dic={}
+        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
+            cherrypy.response.headers['Content-Type'] = "application/json"
+
+            try:
+                data.start_transaction()
+                data.edit_blob_in_database(blob_id, blob_set, blob_pos_in_set, title, credit)
+                data.commit()
+                dic["status"] = "OK"
+            except DatabaseError:
+                self.logger.exception("Failure editing the blob in demo = '{}'".format(demo_name))
+                dic["status"] = "KO"
+
+        return json.dumps(dic)
+    
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    #@cherrypy.tools.accept(media="text/plain")
+    def upload_visual_representation(self, **kwargs):
+        """
+        """
+        data = {}
+        demo_name       = kwargs['demo_name']
+        data['blob_id'] = kwargs['blob_id']
+        vr_file = kwargs['visual_representation']
+        
+            
+
+        res = use_web_service('/get_blob_ws', data)
+        
+        if res['status'] == "OK":
+            
+            # The creation of the main folders for blobs, thumbnail and VR 
+            # should be in __init__ ???? 
+            visrep = os.path.join(self.base_directory, self.vr_dir)
+            if not os.path.exists(visrep):
+                os.makedirs(visrep)        
+            
+            blob_hash = res['hash']
+            
+            try:
+            
+                vr_filename, extension = os.path.splitext(vr_file.filename)
+                ## This is returning ok when it must not...
+                assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
+                
+                vr_path, vr_folder = get_new_path_for_visual_representation(visrep, blob_hash, extension)
+                if not os.path.isdir(vr_folder):
+                    os.makedirs(vr_folder)
+
+                temp_path = create_tmp_file(vr_file, vr_folder)
+                os.rename(temp_path, vr_path)
+                self.create_thumbnail(vr_path)
+
+            except Exception as ex:
+                error_message = "Failure in upload_visual_representation --> {}".format(ex)
+                self.logger.exception(error_message)
+                data['status']= 'KO'
+                data['message'] = error_message
+                return json.dumps(data)
+
+        return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
@@ -918,6 +1040,12 @@ class   Blobs(object):
                 dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
                 dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
                 dic["physical_location"] = self.final_dir
+                print "\n\n\n"
+                print self.final_dir
+                print dic['url']
+                print dic['url_thumb']
+                print dic['blobs']
+                print "\n\n\n"
                 dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
@@ -996,49 +1124,55 @@ class   Blobs(object):
         :rtype: mako.lookup.TemplatedLookup
         """
         data = {"blob_id": blob_id}
-        res = use_web_service('/get_blob_ws', data)
-
+        res = use_web_service('/get_info_for_editing_a_blob_ws', data)
+        
         if res["status"] == "OK":
-            b_name = res["hash"] + res["extension"]
+            
+            blob_name = res["hash"] + res["extension"]
             res["physical_location"] = os.path.join(self.base_directory,
                                                     self.final_dir,
-                                                    b_name)
-            res["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
+                                                    blob_name)
+            
+            
+            res["url"] = self.server_address + "/" + self.final_dir + "/" + blob_name
+            
             res["url_thumb"] = (self.server_address + "/" + self.thumb_dir
                                 + "/thumbnail_" + res["hash"]+".jpg")
+            
             res["tags"] = use_web_service('/get_tags_ws', data)
+            
             # process paths
             res["physical_location"] = get_new_path(res["physical_location"], False)
             res["url"] = get_new_path(res["url"], False)
             res["url_thumb"] = get_new_path(res["url_thumb"], False)
-
+            
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(\
           blob_id=blob_id, blob_info=res, demo_id=demo_name)
 
-    #@cherrypy.expose
-    #def get_blob_url_ws(self, blob_hash, blob_ext):
-        #dic = {}
-        #dic['blob_url'] = self.server_address+"/blob_directory/"+blob_hash+blob_ext
-        #return json.dumps(dic)
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    def get_info_for_editing_a_blob_ws(self, blob_id):
+        """
+        Web service used to get the set associated with a blob
 
-    #@cherrypy.expose
-    #def get_blobpath_url_ws(self):
-        #dic = {}
-        #dic['blobpath_url'] = self.server_address+"/blob_directory/"
-        #return json.dumps(dic)
+        :param blob_id: id blob
+        :type blob_id: integer
+        :return: list of hash blob
+        :rtype: json format list
+        """
+        dic = []
+        cherrypy.response.headers['Content-Type'] = "application/json"
 
-    #@cherrypy.expose
-    #def get_thumbpath_url_ws(self):
-        #dic = {}
-        #dic['thumbpath_url'] = self.server_address+"/thumbnail/"
-        #return json.dumps(dic)
-
-    #@cherrypy.expose
-    #def get_blob_url_ws(self, blob_hash, blob_ext):
-        #dic = {}
-        #dic['blob_url'] = self.server_address+"/blob_directory/"+blob_hash+blob_ext
-        #return json.dumps(dic)
+        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
+            try:
+	        dic = data.get_info_for_editing_a_blob(blob_id)
+                dic["status"] = "OK"
+            except DatabaseError:
+                self.logger.exception("Cannot access to blob from its ID")
+                dic["status"] = "KO"
+        
+        return json.dumps(dic)
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")

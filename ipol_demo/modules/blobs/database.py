@@ -231,6 +231,33 @@ class   Database(object):
                 except self.database.Error as e:
                     raise DatabaseInsertError(e)
 
+
+    def edit_blob_in_database(self, blob_id, blob_set, blob_pos_in_set,
+                                    title, credit):
+        """
+        Edit a blob that already exists in the database
+        
+        :param blob_set: set  blob string
+        :param blob_pos_in_set: set  blob id in its set
+        :param title: title blob string
+        :param credit: credit blob string
+        """
+        try:
+            self.cursor.execute('''
+                UPDATE blob SET title=?, credit=?
+                WHERE blob.id=?''', \
+                (title, credit, blob_id,))
+        except self.database.Error as e:
+            raise DatabaseInsertError(e)
+
+        try:
+            self.cursor.execute('''
+                UPDATE demo_blob SET blob_set=?, blob_pos_in_set=?
+                WHERE demo_blob.blob_id=?''', \
+                (blob_set, blob_pos_in_set, blob_id,))
+        except self.database.Error as e:
+            raise DatabaseInsertError(e)
+
     #---------------------------------------------------------------------------
     def demo_is_in_database(self, demo):
         """
@@ -529,6 +556,33 @@ class   Database(object):
             raise DatabaseSelectError(e)
 
         return tagname
+
+    def get_info_for_editing_a_blob(self, blob_id):
+        """
+        Return the set where the blob with this blod_id belongs.
+        """
+        try:
+           self.cursor.execute('''
+           SELECT demo_blob.blob_set, demo_blob.blob_pos_in_set,
+           blob.hash, blob.extension, blob.format, blob.title, blob.credit, blob.id 
+           FROM demo_blob INNER JOIN blob ON blob.id=?
+           WHERE demo_blob.blob_id=?''', (blob_id, blob_id,))
+          
+        except self.database.Error as e:
+            raise DatabaseSelectError(e)
+
+        blob_info = self.cursor.fetchall()
+        dic = {}
+        dic['blob_set'] = blob_info[0][0]
+        dic['blob_pos_in_set'] = blob_info[0][1]
+        dic['hash'] = blob_info[0][2]
+        dic['extension'] = blob_info[0][3]
+        dic['format'] = blob_info[0][4]
+        dic['title'] = blob_info[0][5]
+        dic['credit'] = blob_info[0][6]
+        dic['id'] = blob_info[0][7]
+        
+        return dic
 
     #---------------------------------------------------------------------------
     def blobcount(self, demo_name):
