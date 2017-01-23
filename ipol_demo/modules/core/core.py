@@ -1215,16 +1215,6 @@ dr + " module")
 
             print "resp ", json_response
 
-            # save res_data as a results.json file
-            try:
-                with open(os.path.join(work_dir, \
-                  "results.json"), "w") as resfile:
-                    json.dump(json_response, resfile)
-            except Exception:
-                print "Failed to save results.json file for demo #{}".format(demo_id)
-                self.logger.exception("Failed to save results.json file")
-                return json.dumps(json_response)
-
             print "archive.store_experiment()"
             if original_exp == 'true':
                 ddl_archive = ddl_json['archive']
