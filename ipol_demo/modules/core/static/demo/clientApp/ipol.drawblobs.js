@@ -341,9 +341,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
         var blobs = _demoblobs.blobs;
         
-	console.info("CONNO");
-	
-        // compute the total number of images to load
+	// compute the total number of images to load
         // to adapt the height once all images are loaded
         var images_to_process = 0;
         for(var i=0;i<blobs.length;i++) {
@@ -415,15 +413,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
-                        console.info("Linea 405");
                         // resize displayed blobs
                         $("#displayblobs").resize();
                     }
                 }; 
                 tester.onerror = function(i,idx) { return function() {
                     console.info("tester.onerror blobset:",i," blob index:",idx);
-		    console.info("que pasa brother",i);
-                    $("#blob_"+i+"_"+idx).hide();
+		    $("#blob_"+i+"_"+idx).hide();
                     _infoMessage("failed to load blob image ",i," index ",idx);
                     processed_images++;
                     if (processed_images==images_to_process) {
@@ -433,7 +429,6 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                         // resize displayed blobs
-                        console.info("Linea 422");
                         $("#displayblobs").resize();
                     }
                 }; }(i,idx);
@@ -535,7 +530,6 @@ ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
                 function(db){bc.appendBlobs(db)}
             );
         } else {
-            console.log("line 527");
             bc.updateDemoBlobs();
         }
         
