@@ -3,15 +3,18 @@
     <head>
       <meta charset="utf-8" />
     </head>
-    <body>
+    <body><br><br>
+      <table style="border:1px solid black">
       <form action="add_from_archive" method="post" enctype="multipart/form-data">
-	<input type="hidden" name="demo[id]" value="${demo_name}">
-	File Zip:
-	<br></br>
-	<input type="file" name="archive">
-	<br></br>
-	<input type="submit" value="Submit">
-	</div>
+       <input type="hidden" name="demo[id]" value="${demo_name}">
+      <tr>
+      <td> Upload your compressed file: </Td> 
+      </tr>
+      <tr> <td> 
+       <input type="file" name="archive">
+       <input type="submit" value="Submit">
+      </td></tr>
       </form>
+      </table>
     </body>
 </html>
