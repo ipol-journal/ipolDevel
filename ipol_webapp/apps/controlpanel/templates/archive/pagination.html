@@ -1,0 +1,31 @@
+	<style type="text/css">
+	    a:hover{
+	        text-decoration: none;
+        }
+        .disabled_link, .disabled_link:hover{
+            color: gray;
+        }
+    </style>
+
+{#  WS Pagination, remembers the current search #}
+<div class="pagination">
+    <span class="step-links">
+        {% if data.previous_page_number > 0 %}
+            <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}" title="Go to previous page">< previous</a>
+        {% else %}
+            <a class="disabled_link">< previous</a>
+        {% endif %}
+
+        <span class="current">
+            &nbsp;-&nbsp;
+            Page {{ data.number }} of {{ data.num_pages }}
+            &nbsp;-&nbsp;
+        </span>
+
+        {% if data.next_page_number > 0 %}
+            <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}" title="Go to next page">next ></a>
+        {% else %}
+            <a class="disabled_link">next ></a>
+        {% endif %}
+    </span>
+</div>

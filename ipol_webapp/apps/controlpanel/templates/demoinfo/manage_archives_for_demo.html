@@ -1,0 +1,222 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+	{% trans "Manage Archives" %}
+{% endblock %}
+
+{% block cssfiles %}
+
+	<style type="text/css">
+		.ststsok {
+			color:green;
+		}
+		.ststsnok {
+			color:red;
+		}
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+
+        .experiment{
+            border: 1px solid black;
+            margin: 20px;
+            padding: 10px;
+        }
+        .experiment_files{
+            //border: 1px solid black;
+            //margin: 20px;
+            //padding: 10px;
+        }
+        .experiment_file{
+            border: 1px solid gray;
+            margin: 20px;
+            padding: 10px;
+        }
+
+		.griditem{
+			padding: 5px
+		}
+		.thumbnail{
+		    max-width: 100px;
+		    display: inline;
+		}
+	</style>
+
+{% endblock %}
+
+
+{#{% block topmenu %}#}
+{##}
+{#    <!-- topmenu Section for demoinfo   -->#}
+{#    {% include 'demoinfo/demoinfo_menu.html' %}#}
+{##}
+{#{% endblock %}#}
+
+
+{% block content %}
+
+	<div class="container">
+
+		<h2> {% blocktrans %} Manage archives from demo {{ id }} {%  endblocktrans %}</h2>
+
+        {#  Search bar #}
+        {% with searchurl='ipol.cp.archive.page' demo_id=id q=q %}
+            {% include 'archive/searchbar.html' %}
+        {% endwith %}
+
+		{% with data=view.get_context_data %}
+
+            {# Return to Demo list button #}
+			<div class="container">
+				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
+			</div>
+
+			{% if data.parsed_data.status == "OK" %}
+				{% if data.parsed_data.meta.number_of_experiments > 0 %}
+                    <p>First experiment: {{ data.parsed_data.meta.first_date_of_an_experiment  }}</p>
+                    <p>Experiments: {{ data.parsed_data.meta.number_of_experiments  }}</p>
+
+                    {#  Pagination #}
+                    {% with data=data q=q %}
+                        {% include 'archive/pagination.html' %}
+                    {% endwith %}
+
+                    {% for experiment in data.parsed_data.experiments %}
+                        <div id="experiment_files_info_{{ experiment.id }}" class="experiment_files">
+                            <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
+                                <p style="padding-left: 20px"><h4>Experiment ID: {{ experiment.id }}</h4></p>
+                                <p style="padding-left: 20px">Parameters: {{ experiment.parameters }}</p>
+                                <p style="padding-left: 20px">Date: {{ experiment.date }}</p>
+                                <p style="padding-left: 40px"><h5>Files</h5></p>
+                            {% for file in experiment.files %}
+                                <!--<p style="padding-left: 20px">file id: {#{ file.id }#}</p>
+                                <p style="padding-left: 20px">file name: {#{ file.name }#}</p>
+                                <p style="padding-left: 20px">file url: {#{ file.url }#}</p>-->
+                                <!--<div>-->
+                                <a href="{{ file.url }}">
+                                    <img src="{{ file.url_thumb }}" alt="{{ file.name }}" title="{{ file.name }}" class="thumbnail"/>
+                                </a>
+                                <!--</div>-->
+                            {% endfor %}
+
+                                {#boton Delete experiment#}
+                                <!--<div style="padding-left: 20px" >
+                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{#% url 'ipol.cp.archive.delete_experiment' experiment.id  %#}' )">Delete Experiment</a>
+                                </div>-->
+                            </div>
+
+
+                        </div>
+                    {% endfor %}
+
+                    {#  Pagination #}
+                    {% with data=data q=q %}
+                        {% include 'archive/pagination.html' %}
+                    {% endwith %}
+
+                    {# Return to Demo list button #}
+                    <div class="container">
+				        <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
+			        </div>
+
+                {% else %}
+					<p class="ststsnok"> {% blocktrans %}No Archives available{%  endblocktrans %}</p>
+				{% endif %}
+
+            {% endif %}
+
+		{% endwith %}
+    </div>
+
+{% endblock %}
+
+
+<!-- autocomplete js includes  -->
+{% include 'autocomplete_light/static.html' %}
+<!-- end autocomplete js includes  -->
+
+{#TODO js en archivo separado y minimized#}
+
+{% block functionsjs %}
+
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script>
+
+
+		{#  secure AJAX POST to ws ,from django docs  #}
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie != '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$(document).ready(function(){
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				}
+			});
+		});
+
+
+		{#  delete demo extra  #}
+		function send_delete_demo_extra_request(wsurl, demo_id) {
+			var delextra = confirm('delete the demo extra from demo: ' + demo_id);
+			if (delextra == true) {
+				$.ajax({
+					type: 'POST',
+						url: wsurl,
+						dataType: 'json',
+						success: function(data) {
+							window.location.reload(true);
+
+						},
+						error: function(data){
+							alert("Fallo con error: "+data.status)
+						}
+					});
+			}
+		}
+
+		{#  change the name of the submited file  #}
+		window.fileName = function(){
+			var x = document.getElementById("file");
+			if ('files' in x) {
+				txt = x.files[0].name;
+				if (txt.length>24){
+				    txt = txt.substring(0,22);
+				    txt += "..."
+				}
+				document.getElementById("name").innerHTML = txt;
+				document.getElementById("submitButton").style.visibility="visible";
+				document.getElementById("name").style.color="black";
+			}else{
+				document.getElementById("submitButton").style.visibility="hidden";
+			}
+		}
+
+	</script>
+
+{% endblock %}
+
