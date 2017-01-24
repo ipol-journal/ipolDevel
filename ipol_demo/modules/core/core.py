@@ -1228,18 +1228,35 @@ CORE in demo #{}".format(demo_id)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
-            res_data = {}
-            res_data['info'] = 'Failure in the run function of the \
-CORE using ' + dr + ' module'
-            res_data["status"] = "KO"
+
             return json.dumps(json_response)
 
-        res_data = {}
-        res_data['info'] = 'Run successful'
-        res_data["status"] = "OK"
+        self.read_algo_info(json_response, work_dir)
 
         print "Run successful in demo = ", demo_id
+
         return json.dumps(json_response)
+
+    def read_algo_info(self, json_response, work_dir):
+        '''
+        Read algo_info.txt and add to the json_response the values
+        '''
+        file_name=work_dir + "/algo_info.txt"
+        # Check if algo_info.txt file exists
+        if(not os.path.isfile(file_name)):
+            return
+
+        file = open(file_name, "r")
+        lines = file.readlines()
+        for line in lines:
+            if (len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == ""):
+                print "incorrect format in algo_info.txt, in line {}".format(line)
+                self.error_log("run", "incorrect format in algo_info.txt, in line {}".format(line))
+                continue
+
+            name, value = line.split("=", 1)
+            name = name.strip()
+            json_response["algo_info"][name] = value
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         '''
