@@ -1231,7 +1231,10 @@ demo #{} - {}".format(demo_id, str(ex))
 
             return json.dumps(json_response)
 
-        self.read_algo_info(json_response, work_dir)
+        dic = {}
+        dic = self.read_algo_info(json_response, work_dir)
+        for name in dic:
+            json_response["algo_info"][name] = dic[name]
 
         print "Run successful in demo = ", demo_id
 
@@ -1239,24 +1242,29 @@ demo #{} - {}".format(demo_id, str(ex))
 
     def read_algo_info(self, json_response, work_dir):
         '''
-        Read algo_info.txt and add to the json_response the values
+        Read algo_info.txt
         '''
-        file_name=work_dir + "/algo_info.txt"
+        file_name = os.path.join(work_dir, "algo_info.txt")
+
         # Check if algo_info.txt file exists
-        if(not os.path.isfile(file_name)):
+        if not os.path.isfile(file_name):
             return
 
+        dic = {}
         file = open(file_name, "r")
         lines = file.readlines()
         for line in lines:
-            if (len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == ""):
+            if len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == "":
                 print "incorrect format in algo_info.txt, in line {}".format(line)
                 self.error_log("run", "incorrect format in algo_info.txt, in line {}".format(line))
                 continue
 
             name, value = line.split("=", 1)
             name = name.strip()
-            json_response["algo_info"][name] = value
+            dic[name] = value
+
+        return dic
+
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         '''
