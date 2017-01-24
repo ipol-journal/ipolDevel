@@ -208,195 +208,78 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
             context['q'] = query
 
             try:
-                page = self.request.GET.get('page')
-                page = int(page)
+                current_page = self.request.GET.get('page')
+                current_page = int(current_page)
             except :
                 # If page is not an integer, deliver first page.
-                page = 1
+                current_page = 1
 
-            print "-------------------------------------------"
-            '''
-            print "%%%% demo_id %%%%"
-            print demo_id
-            print "%%%% query %%%%"
-            print query
-            print "%%%% page %%%%"
-            print page
-            '''
-            page_json = ipolservices.archive_get_page(int(demo_id), page)
+            page_json = ipolservices.archive_get_page(int(demo_id), current_page)
 
             try:
-                # Parse a stream into Python native datatypes...
+                # Parse a stream into Python native datatypes
                 # Avoids the use of deserializer
                 stream = BytesIO(page_json)
                 parsed_data = JSONParser().parse(stream)
-                context['parsed_data'] = parsed_data
+                for x in parsed_data:
+                    print "A"
+                    context[x] = parsed_data[x]
+                # context['parsed_data'] = parsed_data
             except Exception as e:
                 msg = "Error on JSON parsing: %s" %e
                 logger.error(msg)
 
             # pagination of result
-            '''
-            if hasattr(parsed_data.meta, 'previous_page_number'):
-                context['previous_page_number'] = parsed_data.previous_page_number
-                context['has_previous'] = True
-            else:
-                context['has_previous'] = False
-            '''
-            #if page:
-            context['number'] = page
-
-            # if hasattr(parsed_data, 'number_of_pages'):
-            if 'number_of_pages' in parsed_data['meta']:
-                context['num_pages'] = parsed_data['meta']['number_of_pages']
-                pages = context['num_pages']
-
-            #has_previous = False
-            #has_next = False
             previous_page = -1
             next_page = -1
+            context['current_page_number'] = current_page
 
-            # 0 or 1 pages
-            if pages <= 1:
-                #has_previous = False
-                #has_next = False
+            if 'number_of_pages' in parsed_data['meta']:
+                total_pages = parsed_data['meta']['number_of_pages']
+                #context['num_pages'] = total_pages
+            else:
+                total_pages = 0
+
+            # 0 or 1 pages (does not have previous/next)
+            if total_pages <= 1:
                 previous_page = -1
                 next_page = -1
 
             # more than 1 pages
             else:
-                # the page is the first one
-                if page == 1:
-                    # has_previous = False
-                    # has_next = True
+                # current page is the first one
+                if current_page == 1:
                     previous_page = -1
-                    next_page = page + 1
+                    next_page = current_page + 1
 
-                # the page is the last one
-                elif page == pages:
-                    #has_previous = True
-                    #has_next = False
-                    previous_page = page - 1
+                # current page is the last one
+                elif current_page == total_pages:
+                    previous_page = current_page - 1
                     next_page = -1
 
-                # the page is between the first and the last one
+                # current page is between the first and the last one
                 else:
-                    #has_previous = True
-                    #has_next = True
-                    previous_page = page - 1
-                    next_page = page + 1
+                    previous_page = current_page - 1
+                    next_page = current_page + 1
 
-            #context['has_next'] = has_next
-            #context['has_previous'] = has_previous
             context['next_page_number'] = next_page
             context['previous_page_number'] = previous_page
 
-            '''
-            if hasattr(parsed_data, 'next_page_number'):
-                context['next_page_number'] = parsed_data.next_page_number
-                context['has_next'] = True
-            else:
-                context['has_next'] = False
-            '''
-            # print "has_previous"
-            # print context['has_previous']
-
-            print "page = %d" % page
-            print "pages = %d" % context['num_pages']
+            print "page = %d" % current_page
+            print "pages = %d" % total_pages
 
             print "prev = %d" % previous_page
             print "next = %d" % next_page
 
-            #print "has_next"
-            #print context['has_next']
-
-            # for exp in parsed_data['experiments']:
-            #    print "X"
-
-            # send context vars for template
-
         except Exception as e:
             msg= "ArchivePageView Error %s "%e
             logger.error(msg)
-            context['status'] = 'KO'
             context['parsed_data'] = []
-            #context['ddlform'] = None
-            #context['demoform'] = None
-            context['states'] = None
             logger.error(msg)
             print(msg)
 
+        print "**** CONTEXT ****"
+        print context
+        print "**** /CONTEXT ****"
+
         return context
-
-    def listing(request):
-        contact_list = User.objects.all()
-        paginator = Paginator(contact_list, 25) # Show 25 contacts per page
-
-        page = request.GET.get('page')
-        try:
-            contacts = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            contacts = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page of results.
-            contacts = paginator.page(paginator.num_pages)
-
-        return render(request, 'list.html', {'contacts': contacts})
-
-
-
-'''
-#FUNCIONANDO
-
-class ArchivePageView(NavbarReusableMixinMF,TemplateView):
-    #template_name = "archive/demo_result_page.html"
-    template_name = "demoinfo/manage_archives_for_demo.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ArchivePageView, self).dispatch(*args, **kwargs)
-
-    #http://reinout.vanrees.org/weblog/2014/05/19/context.html
-    def result(self):
-        demo_id = self.kwargs['id']
-
-        try:
-            query = self.kwargs['q']
-        except Exception as e:
-            query = 'default search'
-        print "$$$$$$$ search $$$$$$$$"
-        print query
-
-
-        # optional param for pagination
-        pagenum=None
-        try:
-            pagenum = self.kwargs['pagenum']
-        except Exception as e:
-            pagenum = 1
-
-        #todo validate id, MUST BE AN INT?
-        #print(id)
-
-        try:
-            page_json = ipolservices.archive_get_page(int(demo_id),pagenum)
-
-            try:
-                # Parse a stream into Python native datatypes...
-                # Avoids the use of deserializer
-                stream = BytesIO(page_json)
-                parsed_data = JSONParser().parse(stream)
-
-            except Exception as e:
-                msg = "Error on JSON parsing: %s" %e
-                logger.error(msg)
-
-        except Exception as e:
-            msg="ArchivePageView Error %s"%e
-            logger.error(msg)
-            print msg
-
-        return parsed_data
-
-'''

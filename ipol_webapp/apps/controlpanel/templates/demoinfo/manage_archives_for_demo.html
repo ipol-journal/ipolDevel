@@ -76,17 +76,17 @@
 				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
 			</div>
 
-			{% if data.parsed_data.status == "OK" %}
-				{% if data.parsed_data.meta.number_of_experiments > 0 %}
-                    <p>First experiment: {{ data.parsed_data.meta.first_date_of_an_experiment  }}</p>
-                    <p>Experiments: {{ data.parsed_data.meta.number_of_experiments  }}</p>
+			{% if data.status == "OK" %}
+				{% if data.meta.number_of_experiments > 0 %}
+                    <p>First experiment: {{ data.meta.first_date_of_an_experiment  }}</p>
+                    <p>Experiments: {{ data.meta.number_of_experiments  }}</p>
 
                     {#  Pagination #}
-                    {% with data=data q=q %}
+                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 
-                    {% for experiment in data.parsed_data.experiments %}
+                    {% for experiment in data.experiments %}
                         <div id="experiment_files_info_{{ experiment.id }}" class="experiment_files">
                             <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
                                 <p style="padding-left: 20px"><h4>Experiment ID: {{ experiment.id }}</h4></p>
@@ -115,7 +115,7 @@
                     {% endfor %}
 
                     {#  Pagination #}
-                    {% with data=data q=q %}
+                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 
