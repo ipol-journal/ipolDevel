@@ -531,7 +531,6 @@ ipol.DrawInputs = function(ddl_json) {
         visrep_url = visrep_url[0].split('url_vr');
         visrep_url = visrep_url[1];
 
-
         if (inputs.length>1) {
             // Create Gallery object
             var inputs_info = {};
@@ -567,14 +566,17 @@ ipol.DrawInputs = function(ddl_json) {
             var is_visrep = blobset[0].html_params.split('&')[1].split(':')[1]
             var blob      = blobset[0].html_params.split('&')[1].split(':')[2];
             
-	    console.info(blob)
-	    
-	    if (inputs[0].type=="image") {
+            var complete_blob = blobs_url+blob
+            if (is_visrep=="1"){
+               complete_blob = visrep_url+blob;
+            }
+           
+           if (inputs[0].type=="image") {
                 var image = new Image();
                 image.onload = function () {
                         _onLoadSingleImage(this);
                     };
-                image.src = blobs_url+blob;
+                image.src = complete_blob;
             } else {
                 // extract non PNG file, ususally .txt for example
                 if (blob.indexOf(',')>-1) {
@@ -585,7 +587,7 @@ ipol.DrawInputs = function(ddl_json) {
                         }
                     }
                 }
-                jQuery.get(blobs_url+blob, undefined, function(data) {
+                jQuery.get(complete_blob, undefined, function(data) {
                     // set feature drawing
                     if (_drawfeature) {
                         var feature_data = JSON.parse(data);
