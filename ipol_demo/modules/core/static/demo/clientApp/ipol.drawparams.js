@@ -966,6 +966,12 @@ ipol.DrawParams.staticResetParamValues = function () {
                     $('#'+range_id).slider('value',param.value_slider);
                     $('#'+range_id).trigger("input");
                     break;
+                case "numeric":
+                    $("input[name="+name+"]").val(param.values.default);
+                    $("input[name="+name+"]").trigger("input");
+                case "text":
+                    $("input[name="+name+"]").val(param.values.default);
+                    $("input[name="+name+"]").trigger("input");
                 case "checkbox":
                     $("input[name="+name+"]").prop('checked',param.default_value);
                     break;
