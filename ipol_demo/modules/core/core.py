@@ -1233,10 +1233,10 @@ demo #{} - {}".format(demo_id, str(ex))
 
         dic = {}
         dic = self.read_algo_info(json_response, work_dir)
-        for name in dic:
-            json_response["algo_info"][name] = dic[name]
-
-        print "Run successful in demo = ", demo_id
+        if dic:
+            for name in dic:
+                json_response["algo_info"][name] = dic[name]
+            print "Run successful in demo = ", demo_id
 
         return json.dumps(json_response)
 

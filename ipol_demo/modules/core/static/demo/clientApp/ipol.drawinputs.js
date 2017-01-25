@@ -571,7 +571,7 @@ ipol.DrawInputs = function(ddl_json) {
                complete_blob = visrep_url+blob;
             }
            
-           if (inputs[0].type=="image") {
+           if (inputs[0].type=="image" || is_visrep=="1") {
                 var image = new Image();
                 image.onload = function () {
                         _onLoadSingleImage(this);
