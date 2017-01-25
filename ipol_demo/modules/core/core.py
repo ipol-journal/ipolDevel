@@ -248,7 +248,7 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>Please, report to the administrators of IPOL that the system is down.</h2><br>
+                 <h2>IPOL internal error: demoInfo module returned KO</h2><br>
                  </body>
                  </html>
                  """
@@ -269,7 +269,8 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>List of demos</h2><br>
+                 <h2>List of demos</h2>
+                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br><br>
                  {}
                  </body>
                  </html>
