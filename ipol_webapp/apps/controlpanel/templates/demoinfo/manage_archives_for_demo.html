@@ -1,68 +1,24 @@
 {% extends 'base/base.html' %}
 {% load staticfiles %}
+
+{# load CSS for this page in particular #}
+    {% block cssfiles %}
+        <style type="text/css">
+        {% include 'demoinfo/manage_archives_for_demo.css' %}
+        </style>
+    {% endblock %}
+
 {% load i18n %}
 {% load crispy_forms_tags %}
-
 
 {% block title %}
 	{% trans "Manage Archives" %}
 {% endblock %}
 
-{% block cssfiles %}
-
-	<style type="text/css">
-		.ststsok {
-			color:green;
-		}
-		.ststsnok {
-			color:red;
-		}
-        .container{
-            margin: 20px;
-            padding: 10px;
-        }
-
-        .experiment{
-            border: 1px solid black;
-            margin: 20px;
-            padding: 10px;
-        }
-        .experiment_files{
-            //border: 1px solid black;
-            //margin: 20px;
-            //padding: 10px;
-        }
-        .experiment_file{
-            border: 1px solid gray;
-            margin: 20px;
-            padding: 10px;
-        }
-
-		.griditem{
-			padding: 5px
-		}
-		.thumbnail{
-		    max-width: 100px;
-		    display: inline;
-		}
-	</style>
-
-{% endblock %}
-
-
-{#{% block topmenu %}#}
-{##}
-{#    <!-- topmenu Section for demoinfo   -->#}
-{#    {% include 'demoinfo/demoinfo_menu.html' %}#}
-{##}
-{#{% endblock %}#}
-
-
 {% block content %}
 
 	<div class="container">
-
-		<h2> {% blocktrans %} Manage archives from demo {{ id }} {%  endblocktrans %}</h2>
+		<h2> {% blocktrans %} Manage Archives for demo {{ id }} {%  endblocktrans %}</h2>
 
         {#  Search bar #}
         {% with searchurl='ipol.cp.archive.page' demo_id=id q=q %}
@@ -79,40 +35,50 @@
 			{% if data.status == "OK" %}
 				{% if data.meta.number_of_experiments > 0 %}
                     <p>First experiment: {{ data.meta.first_date_of_an_experiment  }}</p>
-                    <p>Experiments: {{ data.meta.number_of_experiments  }}</p>
+                    <p>Total experiments: {{ data.meta.number_of_experiments  }}</p>
 
                     {#  Pagination #}
                     {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 
-                    {% for experiment in data.experiments %}
-                        <div id="experiment_files_info_{{ experiment.id }}" class="experiment_files">
-                            <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
-                                <p style="padding-left: 20px"><h4>Experiment ID: {{ experiment.id }}</h4></p>
-                                <p style="padding-left: 20px">Parameters: {{ experiment.parameters }}</p>
-                                <p style="padding-left: 20px">Date: {{ experiment.date }}</p>
-                                <p style="padding-left: 40px"><h5>Files</h5></p>
-                            {% for file in experiment.files %}
-                                <!--<p style="padding-left: 20px">file id: {#{ file.id }#}</p>
-                                <p style="padding-left: 20px">file name: {#{ file.name }#}</p>
-                                <p style="padding-left: 20px">file url: {#{ file.url }#}</p>-->
-                                <!--<div>-->
-                                <a href="{{ file.url }}">
-                                    <img src="{{ file.url_thumb }}" alt="{{ file.name }}" title="{{ file.name }}" class="thumbnail"/>
-                                </a>
-                                <!--</div>-->
-                            {% endfor %}
+                    <div id="experiment_files_info_{{ experiment.id }}" class="experiment_files">
 
-                                {#boton Delete experiment#}
+                        {% for experiment in data.experiments %}
+                            <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
+                                <a title="View more details">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
+                                <p>Date: {{ experiment.date }}</p>
+                                <p>Parameters: {{ experiment.parameters }}</p>
+                                <p>Files:</p>
+
+                                <div class="image_files">
+                                {% for file in experiment.files %}
+                                    <a href="{{ file.url }}">
+                                    {% if '.png' in file.url or '.jpg' in file.url %}
+                                        <img src="{{ file.url_thumb }}" alt="{{ file.name }}" title="{{ file.name }}" class="thumbnail"/>
+                                    {% endif %}
+                                    </a>
+                                {% endfor %}
+                                </div>
+
+                                <div class="other_files">
+                                {% for file in experiment.files %}
+                                    <a href="{{ file.url }}">
+                                    {% if '.png' not in file.url and '.jpg' not in file.url %}
+                                        <span title="{{ file.name }}" class="other_file_thumbnail">{{ file.name }}</span>
+                                    {% endif %}
+                                    </a>
+                                {% endfor %}
+                                </div>
+
+                                {# Delete experiment button#}
                                 <!--<div style="padding-left: 20px" >
                                     <a class="btn btn-primary" onclick="send_delete_experiment_request( '{#% url 'ipol.cp.archive.delete_experiment' experiment.id  %#}' )">Delete Experiment</a>
                                 </div>-->
                             </div>
+                        {% endfor %}
+                    </div>
 
-
-                        </div>
-                    {% endfor %}
 
                     {#  Pagination #}
                     {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
@@ -125,7 +91,7 @@
 			        </div>
 
                 {% else %}
-					<p class="ststsnok"> {% blocktrans %}No Archives available{%  endblocktrans %}</p>
+					<p class="ststsnok">{% blocktrans %}No Archives available{% endblocktrans %}</p>
 				{% endif %}
 
             {% endif %}

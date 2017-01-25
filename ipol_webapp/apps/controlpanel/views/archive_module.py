@@ -190,7 +190,6 @@ class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
 
 
 class ArchivePageView(NavbarReusableMixinMF,TemplateView):
-    # template_name = "archive/demo_result_page.html"
     template_name = "demoinfo/manage_archives_for_demo.html"
 
     @method_decorator(login_required)
@@ -210,76 +209,82 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
             try:
                 current_page = self.request.GET.get('page')
                 current_page = int(current_page)
-            except :
+            except:
                 # If page is not an integer, deliver first page.
                 current_page = 1
 
             page_json = ipolservices.archive_get_page(int(demo_id), current_page)
+            parsed_data = {}
 
             try:
                 # Parse a stream into Python native datatypes
                 # Avoids the use of deserializer
                 stream = BytesIO(page_json)
                 parsed_data = JSONParser().parse(stream)
-                for x in parsed_data:
-                    print "A"
-                    context[x] = parsed_data[x]
-                # context['parsed_data'] = parsed_data
+                # load into context the tags from parsed_data
+                for tag in parsed_data:
+                    context[tag] = parsed_data[tag]
+
             except Exception as e:
                 msg = "Error on JSON parsing: %s" %e
                 logger.error(msg)
 
             # pagination of result
-            previous_page = -1
-            next_page = -1
+
             context['current_page_number'] = current_page
 
             if 'number_of_pages' in parsed_data['meta']:
                 total_pages = parsed_data['meta']['number_of_pages']
-                #context['num_pages'] = total_pages
             else:
                 total_pages = 0
 
-            # 0 or 1 pages (does not have previous/next)
-            if total_pages <= 1:
-                previous_page = -1
-                next_page = -1
+            pages = set_pages(total_pages, current_page)
 
-            # more than 1 pages
-            else:
-                # current page is the first one
-                if current_page == 1:
-                    previous_page = -1
-                    next_page = current_page + 1
-
-                # current page is the last one
-                elif current_page == total_pages:
-                    previous_page = current_page - 1
-                    next_page = -1
-
-                # current page is between the first and the last one
-                else:
-                    previous_page = current_page - 1
-                    next_page = current_page + 1
-
-            context['next_page_number'] = next_page
-            context['previous_page_number'] = previous_page
-
-            print "page = %d" % current_page
-            print "pages = %d" % total_pages
-
-            print "prev = %d" % previous_page
-            print "next = %d" % next_page
+            # set the values of previous/next page
+            context['previous_page_number'] = pages['previous_page']
+            context['next_page_number'] = pages['next_page']
 
         except Exception as e:
-            msg= "ArchivePageView Error %s "%e
+            msg = "ArchivePageView Error %s "%e
             logger.error(msg)
             context['parsed_data'] = []
             logger.error(msg)
             print(msg)
 
-        print "**** CONTEXT ****"
-        print context
-        print "**** /CONTEXT ****"
-
         return context
+
+# Given total pages and current page numbers, returns an array with previous/next pages number
+# Value -1 means the current page does not have previous/next
+def set_pages(total_pages, current_page):
+    pages = {}
+
+    try:
+        # 0 or 1 pages
+        if total_pages <= 1:
+            previous_page = -1
+            next_page = -1
+
+        # more than 1 pages
+        else:
+            # current page is the first one
+            if current_page == 1:
+                previous_page = -1
+                next_page = current_page + 1
+
+            # current page is the last one
+            elif current_page == total_pages:
+                previous_page = current_page - 1
+                next_page = -1
+
+            # current page is between the first and the last one
+            else:
+                previous_page = current_page - 1
+                next_page = current_page + 1
+
+        pages['previous_page'] = previous_page
+        pages['next_page'] = next_page
+
+    except Exception as e:
+        print "Error in set_pages: %s" % e
+
+    return pages
