@@ -24,13 +24,13 @@ class IPOLTimeoutError(Exception):
 # -------------------------------------------------------------------------------
 class RunDemoBase:
     # default timeout to 1 minute
-    default_timeout = 60
 
     # -----------------------------------------------------------------------------
-    def __init__(self, base_dir, work_dir, logger):
+    def __init__(self, base_dir, work_dir, logger, timeout):
         self.base_dir = base_dir
         self.work_dir = work_dir
         self.logger = logger
+        self.timeout = timeout
 
         self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PythonTools/')
         self.bin_dir = os.path.join(base_dir, 'bin/')
@@ -328,43 +328,38 @@ class RunDemoBase:
                      env=newenv, cwd=self.work_dir)
 
     # -----------------------------------------------------------------------------
-    @staticmethod
-    def wait_proc(process, timeout=default_timeout):
+    def wait_proc(self, process):
         """
-    wait for the end of a process execution with an optional timeout
-    timeout: False (no timeout) or a numeric value (seconds)
-    process: a process or a process list, tuple, ...
-    """
-
-        ## If production and timeout is not set, assign a security value
-
+        wait for the end of a process execution with an optional timeout
+        """
         if isinstance(process, Popen):
             # require a list
             process_list = [process]
         else:
-            # duck typing, suppose we have an iterable
+            # duck typing: suppose we have an iterable
             process_list = process
 
         # http://stackoverflow.com/questions/1191374/
-        # wainting for better : http://bugs.python.org/issue5673
+        # waiting for better: http://bugs.python.org/issue5673
         start_time = time.time()
-        run_time = 0
+        #
         while True:
             if all([p.poll() is not None for p in process_list]):
                 # all processes have terminated
                 break
+
             run_time = time.time() - start_time
-            if run_time > timeout:
+            if run_time > self.timeout:
                 for p in process_list:
                     try:
-                        p.terminate()
+                        p.terminate()   # Send signal to stop the process
+                        p.communicate() # Needed to avoid that the process is left as a zombie
                     except OSError:
                         # could not stop the process
                         # probably self-terminated
                         pass
-                raise IPOLTimeoutError(timeout)
-            time.sleep(0.1)
+                raise IPOLTimeoutError(self.timeout)
+            time.sleep(1)
 
         if any([0 != p.returncode for p in process_list]):
             raise RuntimeError
-        return
