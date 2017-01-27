@@ -1,0 +1,44 @@
+<style type="text/css">
+    a:hover{
+        text-decoration: underline;
+    }
+    .disabled_link, .disabled_link:hover{
+        color: gray;
+        text-decoration: none;
+    }
+    .pagination{
+        margin: 10px 20px;
+    }
+</style>
+
+<!--
+    Pagination variables:
+        total_pages = total amount of pages
+        current_page = current page number
+        previous_page = previous page number (-1 means there is no previous one)
+        next_page = next page number (-1 means there is no next one)
+        q = query wrote in the search bar
+-->
+
+{#  WS Pagination, remembers the current search #}
+<div class="pagination">
+    <span class="step-links">
+        {% if previous_page > 0 %}
+            <a href="?page={{ previous_page }}{%if q%}&q={{q}}{%endif%}" title="Go to previous page">< Previous</a>
+        {% else %}
+            <a class="disabled_link" title="Currently in first page">< Previous</a>
+        {% endif %}
+
+        <span class="current">
+            &nbsp;-&nbsp;
+            Page {{ current_page }} of {{ total_pages }}
+            &nbsp;-&nbsp;
+        </span>
+
+        {% if next_page > 0 %}
+            <a href="?page={{ next_page }}{%if q%}&q={{q}}{%endif%}" title="Go to next page">Next ></a>
+        {% else %}
+            <a class="disabled_link" title="Currently in last page">Next ></a>
+        {% endif %}
+    </span>
+</div>

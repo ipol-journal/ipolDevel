@@ -1,0 +1,50 @@
+        .ststsok {
+            color:green;
+        }
+        .ststsnok {
+            color:red;
+        }
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+        .experiment_file{
+            border: 1px solid gray;
+            margin: 20px;
+            padding: 15px;
+        }
+        .griditem{
+            padding: 5px
+        }
+        .thumbnail{
+            max-width: 100px;
+            max-height: 100px;
+            display: inline;
+            margin-bottom: 7px;
+            margin-right: 5px;
+        }
+        .thumbnail_big{
+            max-width: 245px;
+            max-height: 245px;
+        }
+        .badge{
+            margin-bottom: 10px;
+        }
+        .image_files{
+            padding-left: 40px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .other_files{
+            padding-left: 40px;
+        }
+        .other_file_thumbnail{
+            display: block;
+        }
+        p{
+            margin-bottom: 0px;
+            margin-left: 20px;
+        }
+        a:hover{
+            cursor: pointer;
+        }

@@ -412,10 +412,10 @@ class Archive(object):
 
     # [Miguel] Missing docstring!
     @cherrypy.expose
-    def get_experiment(self, demo_id, id_experiment):
+    def get_experiment(self, experiment_id):
 
-        id_demo = int(demo_id)
-        id_experiment = int(id_experiment)
+        #id_demo = int(demo_id)
+        experiment_id = int(experiment_id)
 
         data = {}
         data["status"] = "OK"
@@ -425,10 +425,10 @@ class Archive(object):
             cursor_db = conn.cursor()
 
             cursor_db.execute('''SELECT params, timestamp
-                FROM experiments WHERE id_demo = ? and id = ?''', (id_demo, id_experiment))
+                FROM experiments WHERE id = ?''', (experiment_id, ))
 
             row = cursor_db.fetchone()
-            data['experiment'] = self.get_data_experiment(conn, id_experiment, row[0], row[1])
+            data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1])
 
             conn.close()
 

@@ -132,6 +132,9 @@
                                     {#  btn Edit demo's DEMO EXTRAS #}
                                     <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demo_extras' demo.editorsdemoid %}">{% trans 'DEMO EXTRAS' %}</a>
 
+                                    {#  btn Edit demo's ARCHIVES #}
+                                    <a class="btn btn-info" href="{% url 'ipol.cp.archive.page' demo.editorsdemoid %}">{% trans 'ARCHIVES' %}</a>
+
                                 </div>
                             </div>
                         </div>
@@ -154,7 +157,7 @@
             <div class="pagination">
                 <span class="step-links">
                     {% if has_previous %}
-                        <a href="?page={{ previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
+                        <a href="?page={{ previous_page_number }}{% if search %}&search={{search}}{% endif %}">{% trans 'previous' %}</a>
                     {% endif %}
 
                     <span class="current">
@@ -162,7 +165,7 @@
                     </span>
 
                     {% if has_next %}
-                        <a href="?page={{ next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
+                        <a href="?page={{ next_page_number }}{%if search%}&search={{search}}{%endif%}">{% trans 'next' %}</a>
                     {% endif %}
                 </span>
             </div>
