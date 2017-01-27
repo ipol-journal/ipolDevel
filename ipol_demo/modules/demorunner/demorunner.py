@@ -55,6 +55,9 @@ import build
 import tempfile
 import time
 
+from string import Template
+from threading import Lock
+
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
@@ -102,6 +105,8 @@ class DemoRunner(object):
         """
         Initialize DemoRunner
         """
+        self.lock = Lock()
+
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
         self.main_bin_dir = os.path.join(base_dir, cherrypy.config['main.bin.dir'])
@@ -609,13 +614,32 @@ class DemoRunner(object):
         rd.set_commands(ddl_run)
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-        rd.run_algorithm()
+
+        if isinstance(ddl_run, list): #Checks if the run parameter in the DDL have more than one line
+            rd.run_algorithm_karl()
+        else:
+            cmd = self.variable_substitution(ddl_run,demo_id, params)
+            rd.run_algorithm(cmd, self.lock)
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
         res_data['algo_meta'] = rd.get_algo_meta()
         print "----- run_algo end -----"
 
+    def variable_substitution(self, ddl_run, demo_id, params):
+        """
+        Replace the variables with its values and return the command to be executed
+        """
+        params["demoextras"] = os.path.join(self.share_demoExtras_dir, demo_id)
+        params["matlab_path"] = self.MATLAB_path
+        params["bin"] = self.get_bin_dir(demo_id)
+        return Template(ddl_run).substitute(**params)
+
+    def get_bin_dir(self, demo_id):
+        '''
+        Returns the directory with the peer-reviewed author programs
+        '''
+        return os.path.join(self.main_bin_dir, demo_id, 'bin/')
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None, timeout=60):

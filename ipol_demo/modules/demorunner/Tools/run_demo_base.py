@@ -41,6 +41,14 @@ class RunDemoBase:
         self.demo_id = None
 
     # -----------------------------------------------------------------------------
+    def write_log(self, function_name, message):
+        """
+        Write an error log in the logs_dir defined in proxy.conf
+        """
+        log_string = "{}: {}".format(function_name, message)
+        #
+        self.logger.error(log_string)
+
     # set the running commands as a dictionnary (usually read from JSON file)
     def set_commands(self, commands):
         self.commands = commands
@@ -105,11 +113,43 @@ class RunDemoBase:
         return self.main_demoExtras_Folder
 
     # -----------------------------------------------------------------------------
-    def run_algorithm(self, timeout=False):
+    def run_algorithm(self, cmd, lock):
+        stderr_file = open(self.work_dir + "stderr.txt", 'w')
+        stdout_file = open(self.work_dir + "stdout.txt", 'w')
+
+        with lock:
+            os.chdir(self.work_dir)
+            prog_name_and_params = cmd.split(" ")
+            print "prog_name_and_params ", prog_name_and_params
+            try:
+                p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file)
+            except OSError:
+                self.logger.exception("OSError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
+                raise
+            except RuntimeError:
+                self.logger.exception(
+                    "RuntimeError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
+                raise
+
+        try:
+            self.wait_proc(p)
+        except OSError:
+            self.logger.exception("OSError when wait_proc with prog_name_and_params={}".format(prog_name_and_params))
+            raise
+        except RuntimeError:
+            self.logger.exception(
+                "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
+
+
+
+    def run_algorithm_karl(self, timeout=False):
         """
-    the core algo runner
-    could also be called by a batch processor
-    """
+        the core algo runner
+        could also be called by a batch processor
+        """
+        self.write_log("run_algorithm_karl", \
+          "Using deprecated run_algorithm_karl function to run demo {}".\
+            format(self.demo_id))
 
         lock = Lock()
 
@@ -287,8 +327,8 @@ class RunDemoBase:
 
     def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
         """
-    execute a sub-process from the share run folder
-    """
+        execute a sub-process from the share run folder
+        """
         if env is None:
             env = {}
         # update the environment
