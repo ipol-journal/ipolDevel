@@ -21,7 +21,7 @@
 		<h2> {% blocktrans %} Manage Archives for demo {{ id }} {%  endblocktrans %}</h2>
 
         {#  Search bar #}
-        {% with searchurl='ipol.cp.archive.page' demo_id=id q=q %}
+        {% with searchurl='ipol.cp.archive.experiment_details' search=search %}
             {% include 'archive/searchbar.html' %}
         {% endwith %}
 
@@ -38,7 +38,7 @@
                     <p>Total experiments: {{ data.meta.number_of_experiments  }}</p>
 
                     {#  Pagination #}
-                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
+                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number search=search %}
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 
@@ -46,7 +46,7 @@
 
                         {% for experiment in data.experiments %}
                             <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
-                                <a title="View more details">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
+                                <a title="View more details" href="{% url 'ipol.cp.archive.experiment_details'%}?search={{ experiment.id }}">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
                                 <p>Date: {{ experiment.date }}</p>
                                 <p>Parameters: {{ experiment.parameters }}</p>
                                 <p>Files:</p>
@@ -81,7 +81,7 @@
 
 
                     {#  Pagination #}
-                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number q=q %}
+                    {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number search=search %}
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 

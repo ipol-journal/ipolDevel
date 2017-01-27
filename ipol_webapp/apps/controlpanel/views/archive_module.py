@@ -6,10 +6,6 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from django.utils.six import BytesIO
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render
-
-from django.contrib.auth.models import User
 
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveDemoList, DeserializePage, \
         DeserializeDemoList, DeserializeDemoinfoDemoList
@@ -21,9 +17,6 @@ from rest_framework.parsers import JSONParser
 logger = logging.getLogger(__name__)
 
 __author__ = 'josearrecio'
-
-# pagination settings for archive
-PAGINATION_ITEMS_PER_PAGE_ARCHIVE_LIST = 4
 
 #todo remove, this is used in terminal app
 class ArchiveShutdownView(NavbarReusableMixinMF,TemplateView):
@@ -189,6 +182,53 @@ class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
         return HttpResponse(result, content_type='application/json')
 
 
+class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
+    template_name = "archive/experiment_details.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ExperimentDetails, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        # get context
+        context = super(ExperimentDetails, self).get_context_data(**kwargs)
+        default_msg = 'The query did not return any results. Please make sure that you entered a valid ID.'
+
+        try:
+            # get the typed query, and cast into integer (should be an experiment ID)
+            query = self.request.GET.get('search')
+            query = int(query)
+
+            context['status'] = 'OK'
+            context['query'] = query
+
+            # Search for the asked experiment_id
+            result_json = ipolservices.archive_get_experiment(query)
+
+            try:
+                # Parse a stream into Python native datatypes
+                # Avoids the use of deserializer
+                stream = BytesIO(result_json)
+                parsed_data = JSONParser().parse(stream)
+
+                context['status'] = parsed_data['status']
+                context['results'] = parsed_data['experiment']
+
+            except Exception as e:
+                msg = "Error on JSON parsing: %s" %e
+                context['status'] = 'KO'
+                context['query'] = query
+                context['results'] = default_msg
+                logger.error(msg)
+
+        except Exception as e:
+            context['status'] = 'KO'
+            context['query'] = query
+            context['results'] = default_msg
+
+        return context
+
+
 class ArchivePageView(NavbarReusableMixinMF,TemplateView):
     template_name = "demoinfo/manage_archives_for_demo.html"
 
@@ -253,7 +293,8 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
 
         return context
 
-# Given total pages and current page numbers, returns an array with previous/next pages number
+
+# Given total_pages and current_page numbers, returns an array with previous/next pages numbers
 # Value -1 means the current page does not have previous/next
 def set_pages(total_pages, current_page):
     pages = {}

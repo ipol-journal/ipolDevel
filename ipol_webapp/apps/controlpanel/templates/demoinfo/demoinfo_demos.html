@@ -157,7 +157,7 @@
             <div class="pagination">
                 <span class="step-links">
                     {% if has_previous %}
-                        <a href="?page={{ previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>
+                        <a href="?page={{ previous_page_number }}{% if search %}&search={{search}}{% endif %}">{% trans 'previous' %}</a>
                     {% endif %}
 
                     <span class="current">
@@ -165,7 +165,7 @@
                     </span>
 
                     {% if has_next %}
-                        <a href="?page={{ next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>
+                        <a href="?page={{ next_page_number }}{%if search%}&search={{search}}{%endif%}">{% trans 'next' %}</a>
                     {% endif %}
                 </span>
             </div>

@@ -38,6 +38,11 @@
 
         <h2>Archive module</h2>
 
+        {#  Search bar #}
+        {% with searchurl='ipol.cp.archive.experiment_details' search=data.query %}
+            {% include 'archive/searchbar.html' %}
+        {% endwith %}
+
         <p>
             This module is responsible for storing the experiments made bay users.
             When a user select a file of his own instead of using ono of the files proposed by the demo,

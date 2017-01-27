@@ -8,7 +8,7 @@ import requests
 # from poster.encode import MultipartParam
 from django.core.files.base import ContentFile
 import logging
-from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, \
+from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, archive_ws_url_get_experiment, \
         archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
         archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
         demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
@@ -578,6 +578,20 @@ def archive_get_page(experimentid , page='1'):
 
     servicejson = None
     return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+
+def archive_get_experiment(experiment_id):
+    """
+    The method returns a JSON response with all the data of the experiment with id=experiment_id
+    """
+
+    service_name = archive_ws_url_get_experiment
+    module = "archive"
+
+    serviceparams = {'experiment_id': experiment_id}
+
+    servicejson = None
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+
 
 def archive_get_stats():
     """
