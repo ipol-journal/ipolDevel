@@ -592,7 +592,7 @@ class Archive(object):
                 data["status"] = "OK"
                 return json.dumps(data)
 
-            if page > meta_info["number_of_pages"] or page < 0:
+            if page > meta_info["number_of_pages"] or page <= 0:
                 page = meta_info["number_of_pages"]
                 experiments = self.get_experiment_page(conn, id_demo, page)
 

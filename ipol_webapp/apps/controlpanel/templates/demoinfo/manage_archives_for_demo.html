@@ -49,36 +49,35 @@
                                 <a title="View more details" href="{% url 'ipol.cp.archive.experiment_details'%}?search={{ experiment.id }}">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
                                 <p>Date: {{ experiment.date }}</p>
                                 <p>Parameters: {{ experiment.parameters }}</p>
-                                <p>Files:</p>
 
+                                <p>Files:</p>
+                                {# Show png/jpg/jpeg thumbnails #}
                                 <div class="image_files">
                                 {% for file in experiment.files %}
                                     <a href="{{ file.url }}">
-                                    {% if '.png' in file.url or '.jpg' in file.url %}
+                                    {% if '.png' in file.url or '.jpg' in file.url or '.jpeg' in file.url %}
                                         <img src="{{ file.url_thumb }}" alt="{{ file.name }}" title="{{ file.name }}" class="thumbnail"/>
                                     {% endif %}
                                     </a>
                                 {% endfor %}
                                 </div>
 
+                                {# For other types of files, show a link #}
                                 <div class="other_files">
                                 {% for file in experiment.files %}
-                                    <a href="{{ file.url }}">
-                                    {% if '.png' not in file.url and '.jpg' not in file.url %}
-                                        <span title="{{ file.name }}" class="other_file_thumbnail">{{ file.name }}</span>
+                                    {% if '.png' not in file.url and '.jpg' not in file.url and '.jpeg' not in file.url %}
+                                    <a href="{{ file.url }}" class="other_file_thumbnail">{{ file.name }}</a>
                                     {% endif %}
-                                    </a>
                                 {% endfor %}
                                 </div>
 
                                 {# Delete experiment button#}
-                                <!--<div style="padding-left: 20px" >
-                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{#% url 'ipol.cp.archive.delete_experiment' experiment.id  %#}' )">Delete Experiment</a>
-                                </div>-->
+                                <div style="padding-left: 20px; padding-top: 20px;" >
+                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{#% url 'ipol.cp.archive.delete_experiment' experiment.id  %#}' )">Delete this Experiment</a>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
-
 
                     {#  Pagination #}
                     {% with total_pages=data.meta.number_of_pages current_page=data.current_page_number previous_page=data.previous_page_number next_page=data.next_page_number search=search %}

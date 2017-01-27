@@ -39,7 +39,8 @@
             padding-left: 40px;
         }
         .other_file_thumbnail{
-            display: block;
+            display: list-item;
+            width: auto;
         }
         p{
             margin-bottom: 0px;

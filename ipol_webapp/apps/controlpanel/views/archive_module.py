@@ -225,6 +225,8 @@ class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
             context['status'] = 'KO'
             context['query'] = query
             context['results'] = default_msg
+            msg = "Error while converting search criteria to integer: %s" % e
+            logger.error(msg)
 
         return context
 
@@ -250,8 +252,8 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
                 current_page = self.request.GET.get('page')
                 current_page = int(current_page)
             except:
-                # If page is not an integer, deliver first page.
-                current_page = 1
+                # If page is not an integer, deliver last page, by setting it to -1
+                current_page = -1
 
             page_json = ipolservices.archive_get_page(int(demo_id), current_page)
             parsed_data = {}
@@ -270,17 +272,16 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
                 logger.error(msg)
 
             # pagination of result
-
-            context['current_page_number'] = current_page
-
             if 'number_of_pages' in parsed_data['meta']:
                 total_pages = parsed_data['meta']['number_of_pages']
             else:
                 total_pages = 0
 
+            # call the method to obtain previous/next pages numbers
             pages = set_pages(total_pages, current_page)
 
-            # set the values of previous/next page
+            # set the values of current/previous/next page, according to the values returned by the method set_pages
+            context['current_page_number'] = pages['current_page']
             context['previous_page_number'] = pages['previous_page']
             context['next_page_number'] = pages['next_page']
 
@@ -294,34 +295,40 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
         return context
 
 
-# Given total_pages and current_page numbers, returns an array with previous/next pages numbers
-# Value -1 means the current page does not have previous/next
+# Given total_pages and current_page numbers, returns an array with current/previous/next pages numbers
+# Value 0 means the current page does not have previous/next
+# Also, if the current_page is out of bounds, delivers the last one
 def set_pages(total_pages, current_page):
     pages = {}
 
     try:
+        # if the asked page is out of bounds, show the last page
+        if current_page < 1 or current_page > total_pages:
+            current_page = total_pages
+
         # 0 or 1 pages
         if total_pages <= 1:
-            previous_page = -1
-            next_page = -1
+            previous_page = 0
+            next_page = 0
 
         # more than 1 pages
         else:
             # current page is the first one
             if current_page == 1:
-                previous_page = -1
+                previous_page = 0
                 next_page = current_page + 1
 
             # current page is the last one
             elif current_page == total_pages:
                 previous_page = current_page - 1
-                next_page = -1
+                next_page = 0
 
             # current page is between the first and the last one
             else:
                 previous_page = current_page - 1
                 next_page = current_page + 1
 
+        pages['current_page'] = current_page
         pages['previous_page'] = previous_page
         pages['next_page'] = next_page
 
