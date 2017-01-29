@@ -114,9 +114,16 @@ class RunDemoBase:
 
     # -----------------------------------------------------------------------------
     def run_algorithm(self, cmd, lock):
-        stderr_file = open(self.work_dir + "stderr.txt", 'w')
-        stdout_file = open(self.work_dir + "stdout.txt", 'w')
+        '''
+        Executes an algorithmn given a command line.
+        '''
+        # Open stderr and stdlog files
+        stderr_file = open(os.path.join(self.work_dir, "stderr.txt"), 'w')
+        stdout_file = open(os.path.join(self.work_dir, "stdout.txt"), 'w')
 
+        # We need to lock the working directory change and
+        # creating on the process to prevent that another thread
+        # changes also the working directory in between.
         with lock:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split(" ")
@@ -131,6 +138,7 @@ class RunDemoBase:
                     "RuntimeError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
                 raise
 
+        # This second try executes the command line
         try:
             self.wait_proc(p)
         except OSError:
@@ -139,6 +147,11 @@ class RunDemoBase:
         except RuntimeError:
             self.logger.exception(
                 "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
+
+        # Close files
+        stderr_file = open(self.work_dir + "stderr.txt", 'w')
+        stdout_file = open(self.work_dir + "stdout.txt", 'w')
+                
 
 
 
