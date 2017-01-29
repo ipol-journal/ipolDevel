@@ -44,7 +44,7 @@ ipol.DrawInputs = function(ddl_json) {
     var _infoMessage = function( ) {
         if (_verbose) {
             var args = [].slice.call( arguments ); //Convert to array
-            args.unshift("---- ipol.DrawInputs ----");
+            args.unshift("xxxxxxxxxxx---- ipol.DrawInputs ----");
             console.info.apply(console,args);
         }
     }
@@ -58,7 +58,7 @@ ipol.DrawInputs = function(ddl_json) {
      */
     var _priorityMessage = function( ) {
         var args = [].slice.call( arguments ); //Convert to array
-        args.unshift("---- ipol.DrawInputs ----");
+        args.unshift("**************---- ipol.DrawInputs ----");
         console.info.apply(console,args);
     }
     
@@ -83,6 +83,8 @@ ipol.DrawInputs = function(ddl_json) {
      * @private
      */
     var _ddl_json      = ddl_json;
+    
+    
     
     /** 
      * Contains image display constraints or information. 
@@ -180,7 +182,7 @@ ipol.DrawInputs = function(ddl_json) {
      * @public
      */
     this.getBlobSet = function() {
-        return _blobset;
+      return _blobset;
     }
     
 
@@ -518,19 +520,26 @@ ipol.DrawInputs = function(ddl_json) {
         var inputs  = _ddl_json.inputs;
         var blobset = _blobset;
         _input_origin = "blobset";
-
-        // load input image ...
-        var blobs_url_params = blobset[0].html_params.split('&');
-        _infoMessage("blobs_url_params=",blobs_url_params);
-        var blobs_url = blobs_url_params[0].split('=')[1];
+	
+	// load input image ...
+        var blobs_url_params = blobset[0].html_params.split('url_vr');
+        var blobs_url  = blobs_url_params[0].split('=')[1];
         
+        var blobs_url_params = blobset[0].html_params.split('&');
+ 
+        var visrep_url = blobs_url_params[0].split('&');
+        visrep_url = visrep_url[0].split('url_vr');
+        visrep_url = visrep_url[1];
+
         if (inputs.length>1) {
             // Create Gallery object
             var inputs_info = {};
             for(var idx=0;idx<inputs.length;idx++) {
                 if (idx+1<blobs_url_params.length) {
-                    var idx_str = blobs_url_params[idx+1].split(':')[0];
-                    var blob    = blobs_url_params[idx+1].split(':')[1];
+                    var idx_str   = blobs_url_params[idx+1].split(':')[0];
+                    var is_visrep = blobs_url_params[idx+1].split(':')[1];
+                    var blob      = blobs_url_params[idx+1].split(':')[2];
+                    
                     if (blob.indexOf(',')>-1) {
                         var blobs = blob.split(',');
                         for(var n=0;n<blobs.length;n++) {
@@ -542,19 +551,32 @@ ipol.DrawInputs = function(ddl_json) {
                     var label = inputs[idx].description;
                     // set object input to have information text below the image
                     var obj = {};
-                    obj['<span id="inputinfo_'+idx+'">img info</span>'] = blobs_url+blob;
+                    
+		    var complete_blob = blobs_url+blob;
+		    if (is_visrep=="1"){
+		        complete_blob = visrep_url+blob;
+		    }  
+		    
+		    obj['<span id="inputinfo_'+idx+'">img info</span>'] = complete_blob;
                     inputs_info[label]= obj;
                 }
             }
             _createGallery(inputs_info);
         } else {
-            var blob      = blobset[0].html_params.split('&')[1].split(':')[1];
-            if (inputs[0].type=="image") {
+            var is_visrep = blobset[0].html_params.split('&')[1].split(':')[1]
+            var blob      = blobset[0].html_params.split('&')[1].split(':')[2];
+            
+            var complete_blob = blobs_url+blob
+            if (is_visrep=="1"){
+               complete_blob = visrep_url+blob;
+            }
+           
+           if (inputs[0].type=="image" || is_visrep=="1") {
                 var image = new Image();
                 image.onload = function () {
                         _onLoadSingleImage(this);
                     };
-                image.src = blobs_url+blob;
+                image.src = complete_blob;
             } else {
                 // extract non PNG file, ususally .txt for example
                 if (blob.indexOf(',')>-1) {
@@ -565,7 +587,7 @@ ipol.DrawInputs = function(ddl_json) {
                         }
                     }
                 }
-                jQuery.get(blobs_url+blob, undefined, function(data) {
+                jQuery.get(complete_blob, undefined, function(data) {
                     // set feature drawing
                     if (_drawfeature) {
                         var feature_data = JSON.parse(data);

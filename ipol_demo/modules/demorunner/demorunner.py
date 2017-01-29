@@ -55,6 +55,9 @@ import build
 import tempfile
 import time
 
+from string import Template
+from threading import Lock
+
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
@@ -102,6 +105,8 @@ class DemoRunner(object):
         """
         Initialize DemoRunner
         """
+        self.lock = Lock()
+
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
         self.main_bin_dir = os.path.join(base_dir, cherrypy.config['main.bin.dir'])
@@ -172,8 +177,8 @@ class DemoRunner(object):
             mpstat_result = subprocess.check_output(['mpstat'])
             CPU_information = str(mpstat_result).split()
             CPU_information = CPU_information[-1].replace(",", ".")
-            data["status"] = "OK"
             data["CPU"] = float(CPU_information)
+            data["status"] = "OK"
         except Exception as ex:
             self.write_log("get_load_state", str(ex))
         return json.dumps(data)
@@ -595,12 +600,12 @@ class DemoRunner(object):
     # ---------------------------------------------------------------------------
     # Algorithm runner
     # ---------------------------------------------------------------------------
-    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data):
+    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data, timeout):
         """
         the core algo runner
         """
         print "\n\n----- run_algo begin -----\n\n"
-        rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger)
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger,timeout)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
         rd.set_algo_meta(res_data['algo_meta'])
@@ -609,16 +614,35 @@ class DemoRunner(object):
         rd.set_commands(ddl_run)
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
-        rd.run_algorithm()
+
+        if isinstance(ddl_run, list): #Checks if the run parameter in the DDL have more than one line
+            rd.run_algorithm_karl()
+        else:
+            cmd = self.variable_substitution(ddl_run,demo_id, params)
+            rd.run_algorithm(cmd, self.lock)
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
         res_data['algo_meta'] = rd.get_algo_meta()
         print "----- run_algo end -----"
 
+    def variable_substitution(self, ddl_run, demo_id, params):
+        """
+        Replace the variables with its values and return the command to be executed
+        """
+        params["demoextras"] = os.path.join(self.share_demoExtras_dir, demo_id)
+        params["matlab_path"] = self.MATLAB_path
+        params["bin"] = self.get_bin_dir(demo_id)
+        return Template(ddl_run).substitute(**params)
+
+    def get_bin_dir(self, demo_id):
+        '''
+        Returns the directory with the peer-reviewed author programs
+        '''
+        return os.path.join(self.main_bin_dir, demo_id, 'bin/')
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None, timeout=60):
         '''
         Called by the web interface to run the algorithm
         '''
@@ -661,7 +685,9 @@ class DemoRunner(object):
 
             print "Demoid: ", demo_id
 
-            self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data)
+            timeout = float(timeout)
+            timeout = min(timeout, 10*60) # A maximum of 10 min, regardless the config
+            self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data, timeout)
 
             # re-read the config in case it changed during the execution
             res_data['algo_info']['run_time'] = time.time() - run_time
@@ -687,7 +713,7 @@ class DemoRunner(object):
             print res_data
             return json.dumps(res_data)
         except Exception as e:
-            self.write_log("exec_and_wait", "Uncatched Exception, demo_id={}".format(demo_id))
+            self.logger.exception("Uncatched Exception, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'Error: {}'.format(e)
             print res_data

@@ -3,7 +3,7 @@ from apps.controlpanel.views.Status import StatusView
 
 from apps.controlpanel.views.archive_module import ArchiveShutdownView, ArchiveDeleteExperimentView, \
         ArchiveAddExpToTestDemoView, ArchiveDeleteExperimentFileView, ArchiveDemosView, ArchiveDeleteDemoView, \
-        ArchivePageView
+        ArchivePageView, ExperimentDetails
 
 from apps.controlpanel.views.blobs_module import BlobsDemosView
 from apps.controlpanel.views.demo import DemosView
@@ -105,9 +105,12 @@ urlpatterns = [
         #todo list_demos should be nicer
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
-    url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<pagenum>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
+    url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<page>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
-        #ajax calls
+    url(r'^archive_demo/(?P<q>\d+)/$', ExperimentDetails.as_view(), name="ipol.cp.archive.experiment_details"),
+    url(r'^archive_demo/', ExperimentDetails.as_view(), name="ipol.cp.archive.experiment_details"),
+
+    #ajax calls
     url(r'^ajax_shutdown/', ArchiveShutdownView.as_view(), name="ipol.cp.archive.shutdown"),
     url(r'^ajax_add_exp_to_test_demo/', ArchiveAddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
     url(r'^ajax_delete_archive_demo/(?P<demo_id>[\-\d\w]+)/$', ArchiveDeleteDemoView.as_view(), name="ipol.cp.archive.delete_demo"),

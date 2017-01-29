@@ -24,13 +24,13 @@ class IPOLTimeoutError(Exception):
 # -------------------------------------------------------------------------------
 class RunDemoBase:
     # default timeout to 1 minute
-    default_timeout = 60
 
     # -----------------------------------------------------------------------------
-    def __init__(self, base_dir, work_dir, logger):
+    def __init__(self, base_dir, work_dir, logger, timeout):
         self.base_dir = base_dir
         self.work_dir = work_dir
         self.logger = logger
+        self.timeout = timeout
 
         self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PythonTools/')
         self.bin_dir = os.path.join(base_dir, 'bin/')
@@ -41,6 +41,14 @@ class RunDemoBase:
         self.demo_id = None
 
     # -----------------------------------------------------------------------------
+    def write_log(self, function_name, message):
+        """
+        Write an error log in the logs_dir defined in proxy.conf
+        """
+        log_string = "{}: {}".format(function_name, message)
+        #
+        self.logger.error(log_string)
+
     # set the running commands as a dictionnary (usually read from JSON file)
     def set_commands(self, commands):
         self.commands = commands
@@ -105,11 +113,56 @@ class RunDemoBase:
         return self.main_demoExtras_Folder
 
     # -----------------------------------------------------------------------------
-    def run_algorithm(self, timeout=False):
+    def run_algorithm(self, cmd, lock):
+        '''
+        Executes an algorithmn given a command line.
+        '''
+        # Open stderr and stdlog files
+        stderr_file = open(os.path.join(self.work_dir, "stderr.txt"), 'w')
+        stdout_file = open(os.path.join(self.work_dir, "stdout.txt"), 'w')
+
+        # We need to lock the working directory change and
+        # creating on the process to prevent that another thread
+        # changes also the working directory in between.
+        with lock:
+            os.chdir(self.work_dir)
+            prog_name_and_params = cmd.split(" ")
+            print "prog_name_and_params ", prog_name_and_params
+            try:
+                p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file)
+            except OSError:
+                self.logger.exception("OSError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
+                raise
+            except RuntimeError:
+                self.logger.exception(
+                    "RuntimeError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
+                raise
+
+        # This second try executes the command line
+        try:
+            self.wait_proc(p)
+        except OSError:
+            self.logger.exception("OSError when wait_proc with prog_name_and_params={}".format(prog_name_and_params))
+            raise
+        except RuntimeError:
+            self.logger.exception(
+                "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
+
+        # Close files
+        stderr_file = open(self.work_dir + "stderr.txt", 'w')
+        stdout_file = open(self.work_dir + "stdout.txt", 'w')
+                
+
+
+
+    def run_algorithm_karl(self, timeout=False):
         """
-    the core algo runner
-    could also be called by a batch processor
-    """
+        the core algo runner
+        could also be called by a batch processor
+        """
+        self.write_log("run_algorithm_karl", \
+          "Using deprecated run_algorithm_karl function to run demo {}".\
+            format(self.demo_id))
 
         lock = Lock()
 
@@ -287,8 +340,8 @@ class RunDemoBase:
 
     def run_proc(self, args, stdin=None, stdout=None, stderr=None, env=None):
         """
-    execute a sub-process from the share run folder
-    """
+        execute a sub-process from the share run folder
+        """
         if env is None:
             env = {}
         # update the environment
@@ -328,43 +381,38 @@ class RunDemoBase:
                      env=newenv, cwd=self.work_dir)
 
     # -----------------------------------------------------------------------------
-    @staticmethod
-    def wait_proc(process, timeout=default_timeout):
+    def wait_proc(self, process):
         """
-    wait for the end of a process execution with an optional timeout
-    timeout: False (no timeout) or a numeric value (seconds)
-    process: a process or a process list, tuple, ...
-    """
-
-        ## If production and timeout is not set, assign a security value
-
+        wait for the end of a process execution with an optional timeout
+        """
         if isinstance(process, Popen):
             # require a list
             process_list = [process]
         else:
-            # duck typing, suppose we have an iterable
+            # duck typing: suppose we have an iterable
             process_list = process
 
         # http://stackoverflow.com/questions/1191374/
-        # wainting for better : http://bugs.python.org/issue5673
+        # waiting for better: http://bugs.python.org/issue5673
         start_time = time.time()
-        run_time = 0
+        #
         while True:
             if all([p.poll() is not None for p in process_list]):
                 # all processes have terminated
                 break
+
             run_time = time.time() - start_time
-            if run_time > timeout:
+            if run_time > self.timeout:
                 for p in process_list:
                     try:
-                        p.terminate()
+                        p.terminate()   # Send signal to stop the process
+                        p.communicate() # Needed to avoid that the process is left as a zombie
                     except OSError:
                         # could not stop the process
                         # probably self-terminated
                         pass
-                raise IPOLTimeoutError(timeout)
-            time.sleep(0.1)
+                raise IPOLTimeoutError(self.timeout)
+            time.sleep(1)
 
         if any([0 != p.returncode for p in process_list]):
             raise RuntimeError
-        return

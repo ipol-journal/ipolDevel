@@ -1,0 +1,159 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+
+{# load CSS for this page in particular #}
+    {% block cssfiles %}
+        <style type="text/css">
+        {% include 'demoinfo/manage_archives_for_demo.css' %}
+        </style>
+    {% endblock %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+	{% trans "Experiment details" %}
+{% endblock %}
+
+{% block content %}
+
+{% with data=view.get_context_data %}
+
+	<div class="container">
+        {% if data.status == 'OK' %}
+            <h2> Details of Experiment {{ data.query }} </h2>
+        {% else %}
+            <h2> No results for Experiment '{{ data.query }}'</h2>
+        {% endif %}
+
+        {#  Search bar #}
+        {% with searchurl='ipol.cp.archive.experiment_details' search=data.query %}
+            {% include 'archive/searchbar.html' %}
+        {% endwith %}
+
+        {% if data.status == 'OK' %}
+        <div class="experiment_file">
+            Experiment ID: <span class="badge">{{ data.query }}</span>
+            <p>Date of experiment: {{ data.results.date }}</p>
+            <p>Parameters: {{ data.results.parameters }}</p>
+
+            <p>Files:</p>
+            <div class="image_files">
+            {% for file in data.results.files %}
+                <a href="{{ file.url }}">
+                {% if '.png' in file.url or '.jpg' in file.url %}
+                    <img src="{{ file.url_thumb }}" alt="{{ file.name }}" title="{{ file.name }}" class="thumbnail thumbnail_big"/>
+                {% endif %}
+                </a>
+            {% endfor %}
+            </div>
+
+            <div class="other_files">
+            {% for file in data.results.files %}
+                <a href="{{ file.url }}">
+                {% if '.png' not in file.url and '.jpg' not in file.url %}
+                    <span title="{{ file.name }}" class="other_file_thumbnail">{{ file.name }}</span>
+                {% endif %}
+                </a>
+            {% endfor %}
+            </div>
+
+        </div>
+        {% else%}
+            <p>{{ data.results }}</p>
+        {% endif %}
+
+        {# Return to Demo list button #}
+        <div class="container">
+            <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
+        </div>
+    </div>
+{% endwith %}
+
+{% endblock %}
+
+
+<!-- autocomplete js includes  -->
+{% include 'autocomplete_light/static.html' %}
+<!-- end autocomplete js includes  -->
+
+{#TODO js en archivo separado y minimized#}
+
+{% block functionsjs %}
+
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script>
+
+
+		{#  secure AJAX POST to ws ,from django docs  #}
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie != '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$(document).ready(function(){
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				}
+			});
+		});
+
+
+		{#  delete demo extra  #}
+		function send_delete_demo_extra_request(wsurl, demo_id) {
+			var delextra = confirm('delete the demo extra from demo: ' + demo_id);
+			if (delextra == true) {
+				$.ajax({
+					type: 'POST',
+						url: wsurl,
+						dataType: 'json',
+						success: function(data) {
+							window.location.reload(true);
+
+						},
+						error: function(data){
+							alert("Fallo con error: "+data.status)
+						}
+					});
+			}
+		}
+
+		{#  change the name of the submited file  #}
+		window.fileName = function(){
+			var x = document.getElementById("file");
+			if ('files' in x) {
+				txt = x.files[0].name;
+				if (txt.length>24){
+				    txt = txt.substring(0,22);
+				    txt += "..."
+				}
+				document.getElementById("name").innerHTML = txt;
+				document.getElementById("submitButton").style.visibility="visible";
+				document.getElementById("name").style.color="black";
+			}else{
+				document.getElementById("submitButton").style.visibility="hidden";
+			}
+		}
+
+	</script>
+
+{% endblock %}
+

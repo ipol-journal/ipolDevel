@@ -248,7 +248,7 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>Please, report to the administrators of IPOL that the system is down.</h2><br>
+                 <h2>IPOL internal error: demoInfo module returned KO</h2><br>
                  </body>
                  </html>
                  """
@@ -269,7 +269,8 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>List of demos</h2><br>
+                 <h2>List of demos</h2>
+                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br><br>
                  {}
                  </body>
                  </html>
@@ -1186,6 +1187,10 @@ dr + " module")
             if 'config' in ddl_json:
                 userdata['ddl_config'] = json.dumps(ddl_json['config'])
 
+            if 'general' in ddl_json and 'timeout' in ddl_json['general']:
+                userdata['timeout'] = ddl_json['general']['timeout']
+
+
             userdata['meta'] = json.dumps(meta)
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
@@ -1215,16 +1220,6 @@ dr + " module")
 
             print "resp ", json_response
 
-            # save res_data as a results.json file
-            try:
-                with open(os.path.join(work_dir, \
-                  "results.json"), "w") as resfile:
-                    json.dump(json_response, resfile)
-            except Exception:
-                print "Failed to save results.json file for demo #{}".format(demo_id)
-                self.logger.exception("Failed to save results.json file")
-                return json.dumps(json_response)
-
             print "archive.store_experiment()"
             if original_exp == 'true':
                 ddl_archive = ddl_json['archive']
@@ -1238,18 +1233,43 @@ CORE in demo #{}".format(demo_id)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
-            res_data = {}
-            res_data['info'] = 'Failure in the run function of the \
-CORE using ' + dr + ' module'
-            res_data["status"] = "KO"
+
             return json.dumps(json_response)
 
-        res_data = {}
-        res_data['info'] = 'Run successful'
-        res_data["status"] = "OK"
+        dic = {}
+        dic = self.read_algo_info(json_response, work_dir)
+        if dic:
+            for name in dic:
+                json_response["algo_info"][name] = dic[name]
+            print "Run successful in demo = ", demo_id
 
-        print "Run successful in demo = ", demo_id
         return json.dumps(json_response)
+
+    def read_algo_info(self, json_response, work_dir):
+        '''
+        Read algo_info.txt
+        '''
+        file_name = os.path.join(work_dir, "algo_info.txt")
+
+        # Check if algo_info.txt file exists
+        if not os.path.isfile(file_name):
+            return
+
+        dic = {}
+        file = open(file_name, "r")
+        lines = file.readlines()
+        for line in lines:
+            if len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == "":
+                print "incorrect format in algo_info.txt, in line {}".format(line)
+                self.error_log("run", "incorrect format in algo_info.txt, in line {}".format(line))
+                continue
+
+            name, value = line.split("=", 1)
+            name = name.strip()
+            dic[name] = value
+
+        return dic
+
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         '''

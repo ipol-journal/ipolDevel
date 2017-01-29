@@ -164,7 +164,8 @@ demoinfo_ws_url_add_demo_extra_to_demo = 'add_compressed_file_ws'
 ####################
 #  ARCHIVE MODULE  #
 ####################
-archive_ws_url_page = 'page' #param demo_id, page='1'
+archive_ws_url_page = 'get_page' #param demo_id, page='1'
+archive_ws_url_get_experiment = 'get_experiment' #param experiment_id
 archive_ws_url_ping =  'ping'# param None
 archive_ws_url_stats =  'stats'# param None
 archive_ws_url_admin =  'archive_admin'# param demo_id, page

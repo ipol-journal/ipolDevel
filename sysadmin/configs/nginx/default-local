@@ -6,7 +6,7 @@ server {
         proxy_send_timeout          600;
         proxy_read_timeout          600;
         send_timeout                600;
-	client_max_body_size        5m;
+	client_max_body_size        500m;
 
 	# Change this variable with your own user name
 	set $my_user miguel;

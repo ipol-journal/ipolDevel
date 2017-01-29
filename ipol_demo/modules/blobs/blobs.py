@@ -687,15 +687,11 @@ class   Blobs(object):
         :rtype: json format
         """
         dic = {}
-        print "hola"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
-                print 2
                 id_tmpl = 0
-                print 3
                 if template:
                     id_tmpl = data.demo_id(template)
-                print 4
                 data.add_demo_in_database(name, is_template, id_tmpl)
                 data.commit()
                 dic["status"] = "OK"
@@ -746,15 +742,15 @@ class   Blobs(object):
         demo_name = kwargs['demo[id]']
         the_archive = kwargs['archive']
 
-        _, ext = os.path.splitext(the_archive.filename)
+        filename, extension = os.path.splitext(the_archive.filename)
         assert isinstance(the_archive, cherrypy._cpreqbody.Part)
-
+        
         tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
 
         path = create_tmp_file(the_archive, tmp_directory)
-        self.parse_archive(ext, path, tmp_directory, the_archive.filename, demo_name)
+        self.parse_archive(extension, path, tmp_directory, the_archive.filename, demo_name)
 
         return self.get_blobs_of_demo(demo_name)
 
@@ -926,35 +922,6 @@ class   Blobs(object):
         use_web_service("/remove_tag_from_blob_ws", data)
         return self.edit_blob(blob_id, demo_name)
 
-    #@cherrypy.expose
-    #def op_remove_blobset_from_demo(self, demo_name, blobset):
-        #"""
-        #Delete one blobset from demo
-
-        #:param demo_name    : demo id
-        #:type demo_name     : integer
-        #:param blobset : blobset
-        #:type blobset  : string
-        #:return           : mako templated html page (refer to edit_demo_blobs.html)
-        #:rtype            : mako.lookup.TemplatedLookup
-        #"""
-        #data = {"demo_name": demo_name, "blobset": blobset}
-        #res = use_web_service('/delete_blobset_ws', data)
-
-        #if (res["status"] == "OK" and res["delete"]):
-            #path_file = os.path.join(self.base_directory, self.final_dir,
-                                     #res["delete"])
-            #path_thumb = os.path.join(self.base_directory, self.thumb_dir,
-                                      #("thumbnail_" + res["delete"]))
-            ## process paths
-            #path_file  = get_new_path(path_file)
-            #path_thumb = get_new_path(path_thumb)
-            ##
-            #if os.path.isfile(path_file):     os.remove(path_file)
-            #if os.path.isfile(path_thumb):    os.remove(path_thumb)
-
-        #return self.get_blobs_of_demo(demo_name)
-
     @cherrypy.expose
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
     def op_remove_blob_from_demo(self, demo_name, blob_set, blob_id):
@@ -1036,17 +1003,35 @@ class   Blobs(object):
             try:
                 dic = data.get_demo_info_from_name(demo_name)
                 dic["use_template"] = data.demo_use_template(demo_name)
-                dic["blobs"] = data.get_blobs_of_demo(demo_name)
+                dic_temp = data.get_blobs_of_demo(demo_name)
+                list_of_blobs_corrected_with_vr = []
+                for elements in dic_temp:
+                    blob_set = []
+                    for element in elements: 
+                        if 'hash' in element:
+                            hash_of_blob      = element['hash']
+                            extension_of_blob = element['extension']
+                            vr_path, vr_folder = get_new_path_for_visual_representation(self.vr_dir, hash_of_blob, extension_of_blob) 
+                            if os.path.isdir(vr_folder):
+                                dic_dir = os.listdir(vr_folder)
+                                for file_in_vrdir in dic_dir:
+                                    vr_file, vr_extension = os.path.splitext(file_in_vrdir)
+                                    if vr_file == hash_of_blob:
+                                        element['extension_visrep'] = vr_extension                         
+                        blob_set.append(element)
+                    
+                    list_of_blobs_corrected_with_vr.append(blob_set)
+
+                dic["blobs"] = list_of_blobs_corrected_with_vr
+                
                 dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
                 dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
+                dic["url_visual_representation"] = '/api/blobs' + "/" + self.vr_dir + "/"
+                
                 dic["physical_location"] = self.final_dir
-                print "\n\n\n"
-                print self.final_dir
-                print dic['url']
-                print dic['url_thumb']
-                print dic['blobs']
-                print "\n\n\n"
+                dic["vr_location"] = self.vr_dir
                 dic["status"] = "OK"
+            
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
         return json.dumps(dic)
@@ -1371,11 +1356,7 @@ class   Blobs(object):
                     has_image_representation = False
                     # use the in the list position as the input number
                     file_id = list_file.index(_file)
-                    if ',' in _file:
-                        pos = _file.find(',')
-                        _file_image = _file[pos+1:]
-                        _file = _file[:pos]
-                        has_image_representation = True
+                    
                     if _file and _file in files:
                         title = buff.get(section, 'title')
                         try:
@@ -1406,31 +1387,7 @@ class   Blobs(object):
                             file_dest = self.move_to_input_directory(tmp_path,
                                                                      the_hash,
                                                                      ext)
-                            # in case of blob image representation, process it too
-                            if has_image_representation:
-                                src.extract(_file_image, path=tmp_directory)
-                                tmp_image_path = os.path.join(tmp_directory, _file_image)
-                                _, image_ext = os.path.splitext(tmp_image_path)
-                                # TODO: force image representation to be PNG? ,
-                                # do a conversion if needed?
-
-                                # according to Miguel, don´t add a blob image representation
-                                # as a blob item
-                                data = {"demo_name": demo_name, "path": tmp_image_path,
-                                        "tag":tags,
-                                        "ext": image_ext, "blob_set": section,
-                                        "blob_pos_in_set": file_id, "title": title,
-                                        "credit": credit}
-                                res = use_web_service('/add_blob_ws/', data)
-                                the_hash = res["the_hash"]
-
-                                file_image_dest = self.move_to_input_directory(
-                                    tmp_image_path,
-                                    the_hash,
-                                    image_ext)
-                                self.create_thumbnail(file_image_dest)
-                            else:
-                                self.create_thumbnail(file_dest)
+                            self.create_thumbnail(file_dest)
                         else:
                             os.remove(tmp_path)
                     else:

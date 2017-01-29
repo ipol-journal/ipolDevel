@@ -4,14 +4,16 @@
       <meta charset="utf-8" />
     </head>
     <body>
+      <table style="border:1px solid black">
       <form action="add_from_zip" method="post" enctype="multipart/form-data">
-	<input type="hidden" name="demo[id]" value="${demo_name}">
-	File Zip:
-	<br></br>
-	<input type="file" name="zip">
-	<br></br>
-	<input type="submit" value="Submit">
-	</div>
+      <input type="hidden" name="demo[id]" value="${demo_name}">
+      File Zip:
+      <br></br>
+      <input type="file" name="zip">
+      <br></br>
+      <input type="submit" value="Submit">
+      </div>
       </form>
+      </table>
     </body>
 </html>

@@ -56,7 +56,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      */
     var _verbose=true;
     _infoMessage(" ipol.DrawBlobs started ");
-    _verbose=false;
+    //_verbose=false;
     
     /** 
      * list of demo blobs.
@@ -74,9 +74,6 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      */
     var _ddl_json  = ddl_json;
     
-    _infoMessage("_demoblobs : ", _demoblobs);
-
-
     /** 
      * Maximal ratio (height/width) of thumbnail dimensions to optimize display.
      * @var {number} _max_ratio
@@ -110,37 +107,60 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
         var blobs = _demoblobs.blobs;
         
-        // preprocess HTML parameters string
+	// preprocess HTML parameters string
         // for each blob set, in the form
         // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
         for(var i=0;i<blobs.length;i++)
         {
             var blobset = blobs[i];
-            blobset[0].html_params = "url=" + _demoblobs.url + "&"
-                // extract only contents of interest
+            
+	    blobset[0].html_params = "url=" + _demoblobs.url 
+            blobset[0].html_params += ("url_vr" + _demoblobs.url_visual_representation + "&")
+            
+	    
+	    // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
                 return (a.pos_in_set < b.pos_in_set ? -1 : (a.pos_in_set > b.pos_in_set ? 1 : 0));
             });
             var current_id = ""
+            var extension  = ""
+            var has_visual_representation = ""
+    
+            console.info(blobset_contents)
+    
+    
             for (var idx = 0; idx < blobset_contents.length; idx++) {
-                if (idx == 0) {
-                    blobset[0].html_params += blobset_contents[idx].pos_in_set + ":";
+                
+		extension = blobset_contents[idx].extension;
+	        has_visual_representation = "0:"
+	        
+		if (blobset_contents[idx].extension_visrep){
+                   extension = blobset_contents[idx].extension_visrep;
+		   has_visual_representation = "1:"
+		}
+		
+	        if (idx == 0) {
+                    blobset[0].html_params += blobset_contents[idx].pos_in_set + ":"
+		    + has_visual_representation;
                 } else {
                     // if same id, separate by comma ...
                     if (blobset_contents[idx].pos_in_set == current_id) {
                         blobset[0].html_params += ",";
                     } else {
                         // else separate arguments
-                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":";
+                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":" + 
+			has_visual_representation;
                     }
                 }
                 current_id = blobset_contents[idx].pos_in_set;
-                blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
-                    blobset_contents[idx].hash + blobset_contents[idx].extension;
+                
+		blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
+                    blobset_contents[idx].hash + extension;
+	    
             }
         }
-        
+       
     }
     
     //--------------------------------------------------------------------------
@@ -155,7 +175,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
         var blobs = _demoblobs.blobs;
         
-        // preprocess FormData blobset parameters as an object
+	// preprocess FormData blobset parameters as an object
         // for each blob set, in the form
         // form_params={url:XXXX,0:blob,1:blob,2:blob,blob etc ..."
         for(var i=0;i<blobs.length;i++)
@@ -164,7 +184,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             blobset[0].form_params = {};
             blobset[0].form_params["url"] = _demoblobs.url;
             blobset[0].form_params["physical_location"] = _demoblobs.physical_location;
-                // extract only contents of interest
+            blobset[0].form_params["vr_physical_location"] = _demoblobs.vr_location;
+	    
+	    // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
                 return (a.pos_in_set < b.pos_in_set ? 
@@ -181,8 +203,6 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                     blobset_contents[idx].hash + 
                     blobset_contents[idx].extension);
             }
-            //_infoMessage("_preprocessDemo blobset ", i, 
-            //             " form_params=",blobset[0].form_params);
         }
         
     }
@@ -321,7 +341,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
         var blobs = _demoblobs.blobs;
         
-        // compute the total number of images to load
+	// compute the total number of images to load
         // to adapt the height once all images are loaded
         var images_to_process = 0;
         for(var i=0;i<blobs.length;i++) {
@@ -393,14 +413,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         var new_height = thumbnail_size*_max_ratio;
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
-                        console.info("***");
                         // resize displayed blobs
                         $("#displayblobs").resize();
                     }
                 }; 
                 tester.onerror = function(i,idx) { return function() {
                     console.info("tester.onerror blobset:",i," blob index:",idx);
-                    $("#blob_"+i+"_"+idx).hide();
+		    $("#blob_"+i+"_"+idx).hide();
                     _infoMessage("failed to load blob image ",i," index ",idx);
                     processed_images++;
                     if (processed_images==images_to_process) {
@@ -410,7 +429,6 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         $(".select_input").css({'height'      :new_height+'px',               
                                                 'line-height' :new_height+'px'});
                         // resize displayed blobs
-                        console.info("***");
                         $("#displayblobs").resize();
                     }
                 }; }(i,idx);
@@ -446,12 +464,12 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      */
     this.updateDemoBlobs = function() {
 
-        _infoMessage("demoblobs.blobs.length=",_demoblobs.blobs.length);
+        //_infoMessage("demoblobs.blobs.length=",_demoblobs.blobs.length);
         
         var str = JSON.stringify(_demoblobs, undefined, 4);
 //         $("#tabs-blobs pre").html(ipol.utils.syntaxHighlight(str));
-
-        _preprocessDemo();
+        
+	_preprocessDemo();
         _drawDemoBlobs();
         
         $("#ThumbnailSize")      .unbind().change( function() { 
@@ -487,7 +505,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
 ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
     return function (demoblobs) {
         
-//        console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
+//         console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
 //         console.info("ddl_json=",ddl_json);
 
         if (demoblobs.status=="KO") {

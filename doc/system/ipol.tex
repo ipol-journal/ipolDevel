@@ -352,8 +352,6 @@ The idea behind the DDL is to \emph{describe} the demo, not to specify the opera
 
 In the current system another use of the {\tt params.json} file is to store the lines drawn by the user. It's correct that this data is considered as a parameter, and it's true that perhaps it's too big to be passed as a text string. In any case, if we adopt the solution of keeping the {\tt params.json} file in the run directory, it has to be written by the Core, never by DemoRunner.
 
-- DemoRunner is writing a {\tt results.json} file. Exactly the same bad design issue as in the previous point. That's totally out of the scope of DemoRunner and it should be the Core who eventually would write that file.
-
 
 \bibliographystyle{plain}
 \bibliography{biblio}

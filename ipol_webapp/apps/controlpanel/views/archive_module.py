@@ -5,10 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.http import HttpResponse
+from django.utils.six import BytesIO
+
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveDemoList, DeserializePage, \
         DeserializeDemoList, DeserializeDemoinfoDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
+
 import logging
+from rest_framework.parsers import JSONParser
 
 logger = logging.getLogger(__name__)
 
@@ -178,39 +182,150 @@ class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
         return HttpResponse(result, content_type='application/json')
 
 
+class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
+    template_name = "archive/experiment_details.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ExperimentDetails, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        # get context
+        context = super(ExperimentDetails, self).get_context_data(**kwargs)
+        default_msg = 'The query did not return any results. Please make sure that you entered a valid ID.'
+
+        try:
+            # get the typed query, and cast into integer (should be an experiment ID)
+            query = self.request.GET.get('search')
+            query = int(query)
+
+            context['status'] = 'OK'
+            context['query'] = query
+
+            # Search for the asked experiment_id
+            result_json = ipolservices.archive_get_experiment(query)
+
+            try:
+                # Parse a stream into Python native datatypes
+                # Avoids the use of deserializer
+                stream = BytesIO(result_json)
+                parsed_data = JSONParser().parse(stream)
+
+                context['status'] = parsed_data['status']
+                context['results'] = parsed_data['experiment']
+
+            except Exception as e:
+                msg = "Error on JSON parsing: %s" %e
+                context['status'] = 'KO'
+                context['query'] = query
+                context['results'] = default_msg
+                logger.error(msg)
+
+        except Exception as e:
+            context['status'] = 'KO'
+            context['query'] = query
+            context['results'] = default_msg
+
+        return context
+
+
 class ArchivePageView(NavbarReusableMixinMF,TemplateView):
-    template_name = "archive/demo_result_page.html"
+    template_name = "demoinfo/manage_archives_for_demo.html"
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ArchivePageView, self).dispatch(*args, **kwargs)
 
+    def get_context_data(self, **kwargs):
 
-    #http://reinout.vanrees.org/weblog/2014/05/19/context.html
-    def result(self):
+        # get context
+        context = super(ArchivePageView, self).get_context_data(**kwargs)
         demo_id = self.kwargs['id']
 
-        # optional param for pagination
-        pagenum=None
         try:
-            pagenum = self.kwargs['pagenum']
-        except Exception , e:
-            pagenum = 1
+            query = self.request.GET.get('q')
+            context['q'] = query
 
-        #todo validate id, MUST BE AN INT?
-        #print(id)
+            try:
+                current_page = self.request.GET.get('page')
+                current_page = int(current_page)
+            except:
+                # If page is not an integer, deliver first page.
+                current_page = 1
 
-        result =None
-        try:
-            page_json = ipolservices.archive_get_page(int(demo_id),pagenum)
-            result = DeserializePage(page_json)
+            page_json = ipolservices.archive_get_page(int(demo_id), current_page)
+            parsed_data = {}
 
-            # print(" demo_id: %d"%int(demo_id))
-            # print " result %s"%result
+            try:
+                # Parse a stream into Python native datatypes
+                # Avoids the use of deserializer
+                stream = BytesIO(page_json)
+                parsed_data = JSONParser().parse(stream)
+                # load into context the tags from parsed_data
+                for tag in parsed_data:
+                    context[tag] = parsed_data[tag]
 
-        except Exception , e:
-            msg="ArchivePageView Error %s"%e
+            except Exception as e:
+                msg = "Error on JSON parsing: %s" %e
+                logger.error(msg)
+
+            # pagination of result
+
+            context['current_page_number'] = current_page
+
+            if 'number_of_pages' in parsed_data['meta']:
+                total_pages = parsed_data['meta']['number_of_pages']
+            else:
+                total_pages = 0
+
+            pages = set_pages(total_pages, current_page)
+
+            # set the values of previous/next page
+            context['previous_page_number'] = pages['previous_page']
+            context['next_page_number'] = pages['next_page']
+
+        except Exception as e:
+            msg = "ArchivePageView Error %s "%e
             logger.error(msg)
-            print msg
+            context['parsed_data'] = []
+            logger.error(msg)
+            print(msg)
 
-        return result
+        return context
+
+
+# Given total_pages and current_page numbers, returns an array with previous/next pages numbers
+# Value -1 means the current page does not have previous/next
+def set_pages(total_pages, current_page):
+    pages = {}
+
+    try:
+        # 0 or 1 pages
+        if total_pages <= 1:
+            previous_page = -1
+            next_page = -1
+
+        # more than 1 pages
+        else:
+            # current page is the first one
+            if current_page == 1:
+                previous_page = -1
+                next_page = current_page + 1
+
+            # current page is the last one
+            elif current_page == total_pages:
+                previous_page = current_page - 1
+                next_page = -1
+
+            # current page is between the first and the last one
+            else:
+                previous_page = current_page - 1
+                next_page = current_page + 1
+
+        pages['previous_page'] = previous_page
+        pages['next_page'] = next_page
+
+    except Exception as e:
+        print "Error in set_pages: %s" % e
+
+    return pages
