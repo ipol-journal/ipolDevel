@@ -296,8 +296,8 @@ workload of '{}'".format(dr_name)
         return self.index()
 
 
-    @cherrypy.expose
     @staticmethod
+    @cherrypy.expose
     def ping():
         """
         Ping service: answer with a PONG.
@@ -321,8 +321,8 @@ workload of '{}'".format(dr_name)
             self.logger.exception("shutdown")
         return json.dumps(data)
 
-    @cherrypy.expose
     @staticmethod
+    @cherrypy.expose
     def default(attr):
         """
         Default method invoked when asked for non-existing service.
