@@ -6,6 +6,8 @@ IPOL Core module
 
 import base64
 import tempfile
+import sys
+import os
 
 # To send emails
 import smtplib
@@ -14,6 +16,16 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
 import xml.etree.ElementTree as ET
+
+# [ToDo] [Miguel] Change this by a normal import!
+sys.path.append(os.path.join(\
+    os.path.dirname(os.path.realpath(__file__)), "Tools"))
+#
+from misc import prod
+from image import image
+from sendarchive import SendArchive
+
+
 
 import sys
 import shutil
@@ -42,12 +54,6 @@ import png
 
 import requests
 import cherrypy
-
-# [ToDo] [Miguel] This is probably done because Karl injected Python
-# code. When that code is not used by any other demo, this needs to
-# disappear:
-sys.path.append(os.path.join(\
-    os.path.dirname(os.path.realpath(__file__)), "Tools"))
 
 
 #-------------------------------------------------------------------------------
