@@ -79,14 +79,6 @@ class RunDemoBase:
         return self.algo_info
 
     # -----------------------------------------------------------------------------
-    # set the algorihtm meta info as a  dictionnary
-    def set_algo_meta(self, algo_meta):
-        self.algo_meta = algo_meta
-
-    def get_algo_meta(self):
-        return self.algo_meta
-
-    # -----------------------------------------------------------------------------
     def set_extra_path(self, p):
         self.extra_path = p
 
@@ -147,6 +139,7 @@ class RunDemoBase:
         except RuntimeError:
             self.logger.exception(
                 "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
+            raise
 
         # Close files
         stderr_file = open(self.work_dir + "stderr.txt", 'w')
@@ -169,17 +162,6 @@ class RunDemoBase:
         # convert parameters to variables
         for _k_ in self.algo_params:
             exec ("{0} = {1}".format(_k_, repr(self.algo_params[_k_])))
-        # convert meta info to variables
-        for _k_ in self.algo_meta:
-            exec ("{0} = {1}".format(_k_, repr(self.algo_meta[_k_])))
-
-        demoextras = self.get_demoExtras_main_folder()
-        # scriptsCommon = self.ipol_scripts
-
-        ## there is a problem in Python, seems that locals() should not be modified
-        ## http://stackoverflow.com/questions/1450275/modifying-locals-in-python
-        # locals().update(self.algo_params)
-        # locals().update(self.algo_meta)
 
         # if run several commands, is it in series?
         # TODO: deal with timeout for each command
