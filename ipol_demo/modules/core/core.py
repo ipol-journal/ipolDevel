@@ -470,8 +470,6 @@ workload of '{}'".format(dr_name)
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         """
         pre-process the input data
-        we suppose that config has been initialized, and save the dimensions
-        of each converted image in self.cfg['meta']['input$i_size_{x,y}']
         """
         print "#####  Entering process_inputs...  #####"
         msg = ""
@@ -1086,12 +1084,6 @@ hostname, hostbyname, unresponsive_demorunners_list)
         else:
             crop_info = None
 
-        if 'meta' in kwargs:
-            meta = kwargs.get('meta', None)
-        else:
-            meta = {}
-
-
         blobs = {}
         if input_type == 'upload':
             i = 0
@@ -1191,7 +1183,6 @@ dr + " module")
                 userdata['timeout'] = ddl_json['general']['timeout']
 
 
-            userdata['meta'] = json.dumps(meta)
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
             json_response = resp.json()
@@ -1215,8 +1206,6 @@ dr + " module")
                                         self.share_run_dir_rel, \
                                         demo_id, \
                                         key) + '/'
-            json_response['algo_meta'] = {}
-
 
             print "resp ", json_response
 

@@ -386,7 +386,7 @@ ipol.DrawResults = function( res,ddl_results) {
     //--------------------------------------------------------------------------
     /**
      * Evaluates an expression with the following variables in the local
-     * context: idx, sizeX, sizeY, info, meta, params, imwidth, imheight, 
+     * context: idx, sizeX, sizeY, info, params, imwidth, imheight,
      * work_url
      * @function _evalInContext
      * @memberOf ipol.DrawResults~
@@ -404,10 +404,7 @@ ipol.DrawResults = function( res,ddl_results) {
         var sizeY = _params.y1-_params.y0;
         // need imwidth and imheight
         var info     = _res.algo_info;
-        var meta     = _res.algo_meta;
         var params   = _params;
-        var imwidth  = meta.max_width;
-        var imheight = meta.max_height;
         var work_url = _work_url;
         return eval(expr);
 
@@ -608,13 +605,6 @@ ipol.DrawResults = function( res,ddl_results) {
         // display result status
         if (_res.status==="KO") {
             results_html += '  <p class="error"> '+res.error+' </p>';
-        }
-        
-        if (_res.algo_meta["process_inputs_msg"]!=undefined) {
-            results_html +=
-                "<p style='border:1px solid;margin:3px 0px;padding:5px;color:#9F6000;'>"+
-                "<b>"+_res.algo_meta["process_inputs_msg"]+"</b>"+
-                "</p>";
         }
 //         results_html += this.CreateZoomSelection();
 

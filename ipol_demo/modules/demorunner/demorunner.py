@@ -608,7 +608,6 @@ class DemoRunner(object):
         rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger,timeout)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
-        rd.set_algo_meta(res_data['algo_meta'])
         rd.set_MATLAB_path(self.MATLAB_path)
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
@@ -623,7 +622,6 @@ class DemoRunner(object):
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
-        res_data['algo_meta'] = rd.get_algo_meta()
         print "----- run_algo end -----"
 
     def variable_substitution(self, ddl_run, demo_id, params):
@@ -642,7 +640,7 @@ class DemoRunner(object):
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, meta=None, timeout=60):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
         '''
         Called by the web interface to run the algorithm
         '''
@@ -663,9 +661,6 @@ class DemoRunner(object):
         res_data['params'] = params
         res_data['status'] = 'KO'
         res_data['algo_info'] = {}
-        if meta != None:
-            res_data['algo_meta'] = json.loads(meta)
-            print res_data['algo_meta']
 
         # TODO:this code will be moved to the CORE
         # save parameters as a params.json file
