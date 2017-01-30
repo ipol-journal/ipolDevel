@@ -1,8 +1,31 @@
-#! /usr/bin/python
+#!/usr/bin/python
 
 """
 IPOL Core module
 """
+
+import base64
+import tempfile
+import sys
+import os
+
+# To send emails
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+
+import xml.etree.ElementTree as ET
+
+# [ToDo] [Miguel] Change this by a normal import!
+sys.path.append(os.path.join(\
+    os.path.dirname(os.path.realpath(__file__)), "Tools"))
+#
+from misc import prod
+from image import image
+from sendarchive import SendArchive
+
+
 
 import sys
 import shutil
@@ -24,20 +47,6 @@ import time
 import tarfile
 import zipfile
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
-from misc import prod
-from image import image
-from sendarchive import SendArchive
-import base64
-import tempfile
-
-import xml.etree.ElementTree as ET
-
-# To send emails
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
 import socket
 
 from libtiff import TIFF
@@ -45,6 +54,7 @@ import png
 
 import requests
 import cherrypy
+
 
 #-------------------------------------------------------------------------------
 class Core(object):
@@ -187,10 +197,10 @@ class Core(object):
 
     def demorunners_workload(self):
         """
-        Get workload of each demorunner
+        Get the workload of each DR
         """
         dr_wl = {}
-        for dr_name in self.demorunners.keys():
+        for dr_name in self.demorunners:
             try:
                 resp = self.post(self.demorunners[dr_name]['server'],\
                   'demorunner', 'get_workload')
@@ -286,8 +296,9 @@ workload of '{}'".format(dr_name)
         return self.index()
 
 
+    @staticmethod
     @cherrypy.expose
-    def ping(self):
+    def ping():
         """
         Ping service: answer with a PONG.
         """
@@ -310,8 +321,9 @@ workload of '{}'".format(dr_name)
             self.logger.exception("shutdown")
         return json.dumps(data)
 
+    @staticmethod
     @cherrypy.expose
-    def default(self, attr):
+    def default(attr):
         """
         Default method invoked when asked for non-existing service.
         """
@@ -334,9 +346,10 @@ workload of '{}'".format(dr_name)
 
 
     #---------------------------------------------------------------------------
-    def need_convert(self, im, input_info):
+    @staticmethod
+    def needs_convert(im, input_info):
         '''
-        check if input image needs convertion
+        checks if input image needs convertion
         '''
         mode_kw = {'1x8i' : 'L',\
                    '3x8i' : 'RGB'}
@@ -344,13 +357,13 @@ workload of '{}'".format(dr_name)
         return  im.im.mode != mode_kw[input_info['dtype']]
 
     #---------------------------------------------------------------------------
-    def need_convert_or_resize(self, im, input_info):
+    def needs_convert_or_resize(self, im, input_info):
         '''
         Convert and resize an image object
         '''
         # check max size
         max_pixels = eval(str(input_info['max_pixels']))
-        return self.need_convert(im, input_info) or \
+        return self.needs_convert(im, input_info) or \
                prod(im.size) > max_pixels
 
     #---------------------------------------------------------------------------
@@ -359,7 +372,7 @@ workload of '{}'".format(dr_name)
         Convert and resize an image object
         '''
         msg = ""
-        if self.need_convert(im, input_info):
+        if self.needs_convert(im, input_info):
             im.convert(input_info['dtype'])
             msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
@@ -389,7 +402,8 @@ workload of '{}'".format(dr_name)
 
             tiffFile = TIFF.open(temp_file.name, mode='r')
             tiffImage = tiffFile.read_image()
-            Nrow, Ncolumn, Nchannels = tiffImage.shape
+            # Get number of rows, columns, and channels
+            Nrow, Ncolumn, _ = tiffImage.shape
 
             pixelMatrix = tiffImage[:, :, 0:3].reshape(\
               (Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
@@ -458,7 +472,7 @@ workload of '{}'".format(dr_name)
                     img.resize(max_pixels, method="antialias")
                 # save result
                 self.save_image(img, filename)
-            except ValueError as e:
+            except ValueError:
                 return False, None
 
         else:
@@ -537,7 +551,7 @@ workload of '{}'".format(dr_name)
                     im_converted = im.clone()
                     im_converted_filename = 'input_%i.orig.png' % i
 
-                if self.need_convert_or_resize(im_converted, input_desc):
+                if self.needs_convert_or_resize(im_converted, input_desc):
                     print "need convertion or resize, input description: ", input_desc
                     output_msg = self.convert_and_resize(im_converted,\
                       input_desc)
@@ -576,8 +590,8 @@ workload of '{}'".format(dr_name)
                       'input_%i.png' % i)
 
 
-
-    def input_upload(self, work_dir, blobs, inputs_desc, **kwargs):
+    @staticmethod
+    def input_upload(work_dir, blobs, inputs_desc):
         """
         use the uploaded input files
         file_0, file_1, ... are the input files
@@ -659,7 +673,8 @@ format(work_dir, original_blob_path)
     #--------------
 
 
-    def download(self, url_file, filename):
+    @staticmethod
+    def download(url_file, filename):
         """
         Download a file from the network
         @param url: source url
@@ -679,7 +694,8 @@ format(work_dir, original_blob_path)
 
         return success
 
-    def extract(self, filename, target):
+    @staticmethod
+    def extract(filename, target):
         """
         extract tar, tgz, tbz and zip archives
 
@@ -848,33 +864,33 @@ demoinfo. Failure code -> " + response['code']
         print "### Entering copy_blobs...  ###"
 
         if input_type == 'upload':
-            res_data = self.input_upload(work_dir, blobs, ddl_inputs)
+            self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
             self.copy_blobset_from_physical_location(work_dir, blobs)
 
 
 
-    def get_new_key(self, key=None):
+    @staticmethod
+    def create_new_execution_key():
         """
-        create a key if needed, and the key-related attributes
+        create a new experiment identifier
         """
-        if key is None:
-            keygen = hashlib.md5()
-            seeds = [cherrypy.request.remote.ip,
-                     # use port to improve discrimination
-                     # for proxied or NAT clients
-                     cherrypy.request.remote.port,
-                     datetime.now(),
-                     random()]
+        keygen = hashlib.md5()
+        seeds = [cherrypy.request.remote.ip,
+                 # use port to improve discrimination
+                 # for proxied or NAT clients
+                 cherrypy.request.remote.port,
+                 datetime.now(),
+                 random()]
 
-            for seed in seeds:
-                keygen.update(str(seed))
-            key = keygen.hexdigest().upper()
+        for seed in seeds:
+            keygen.update(str(seed))
+        key = keygen.hexdigest().upper()
 
         # check key
         if not (key and key.isalnum()):
-            # HTTP Bad Request
-            raise cherrypy.HTTPError(400, "The key is invalid")
+            self.logger.exception("create_new_execution_key()")
+            return None
 
         return key
 
@@ -922,8 +938,8 @@ demoinfo. Failure code -> " + response['code']
 
         return emails
 
-
-    def send_email(self, subject, text, emails, zip_filename=None):
+    @staticmethod
+    def send_email(subject, text, emails, zip_filename=None):
         '''
         Send an email to the given recipients
         '''
@@ -966,9 +982,9 @@ demoinfo. Failure code -> " + response['code']
         fp = open(buildLog_filename, 'rb')
         text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
         fp.close()
-        
+
         return text
-        
+
 
     def send_compilation_error_email(self, demo_id):
         ''' Send email to editor when compilation fails '''
@@ -990,7 +1006,8 @@ demoinfo. Failure code -> " + response['code']
         self.send_email(subject, text, emails)
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
-    def zipdir(self, path, ziph):
+    @staticmethod
+    def zipdir(path, ziph):
         ''' Zip a directory '''
         # ziph is zipfile handle
         for root, _, files in os.walk(path):
@@ -1118,7 +1135,15 @@ hostname, hostbyname, unresponsive_demorunners_list)
             return json.dump(res_data)
         ## End block to obtain the DDL
 
-        key = self.get_new_key()
+        # Create a new execution key
+        key = self.create_new_execution_key()
+        if key is None:
+            res_data = {}
+            res_data['info'] = 'Failed to create a valid key'
+            res_data['status'] = 'KO'
+            self.logger.exception("Failed to create a valid key")
+            return json.dumps(res_data)
+
         work_dir = self.create_run_dir(demo_id, key)
         print "Run path is ", work_dir
 
@@ -1160,9 +1185,12 @@ dr + " module")
                 # Send compilation message to the editors
                 self.send_compilation_error_email(demo_id)
                 text = self.get_build_log_text(demo_id)
-                
+
                 # Message for the web interface
-                json_response["error"] = " --- Compilation error. --- {} - {}".format(json_response["message"], text)
+                json_response["error"] = \
+                  " --- Compilation error. --- {} - {}".\
+                  format(json_response["message"], text)
+
                 return json.dumps(json_response)
 
             print "Entering ensure_extras_updated()"
@@ -1192,7 +1220,7 @@ dr + " module")
             if json_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
-                
+
                 # Message for the web interface
                 json_response["error"] = format(json_response["algo_info"]["status"])
 
@@ -1226,37 +1254,41 @@ demo #{} - {}".format(demo_id, str(ex))
             return json.dumps(json_response)
 
         dic = {}
-        dic = self.read_algo_info(json_response, work_dir)
-        if dic:
-            for name in dic:
-                json_response["algo_info"][name] = dic[name]
-            print "Run successful in demo = ", demo_id
+        dic = self.read_algo_info(work_dir)
+        for name in dic:
+            json_response["algo_info"][name] = dic[name]
 
+        print "Run successful in demo = ", demo_id
         return json.dumps(json_response)
 
-    def read_algo_info(self, json_response, work_dir):
+    def read_algo_info(self, work_dir):
         '''
-        Read algo_info.txt
+        Read the file algo_info.txt to make available in the system
+        variables created or modified by the algorithm
         '''
         file_name = os.path.join(work_dir, "algo_info.txt")
 
-        # Check if algo_info.txt file exists
         if not os.path.isfile(file_name):
-            return
+            return {} # The algorithm didn't create the file
 
         dic = {}
-        file = open(file_name, "r")
-        lines = file.readlines()
+        f = open(file_name, "r")
+        lines = f.readlines()
+        #
         for line in lines:
-            if len(line.split("=", 1)) < 2 or line.split("=", 1)[0].strip() == "":
+            # Read with format A = B, where B can contain the '=' sign
+            if len(line.split("=", 1)) < 2 or \
+                   line.split("=", 1)[0].strip() == "":
                 print "incorrect format in algo_info.txt, in line {}".format(line)
-                self.error_log("run", "incorrect format in algo_info.txt, in line {}".format(line))
+                self.error_log("run", "incorrect format in algo_info.txt, at line {}".format(line))
                 continue
 
+            # Add name and assigned value to the output dict
             name, value = line.split("=", 1)
             name = name.strip()
             dic[name] = value
 
+        f.close()
         return dic
 
 
