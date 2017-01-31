@@ -373,7 +373,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
             id = None
             title = None
             abstract = None
-            stateID = None
+            state = None
             editorsdemoid = None
             active = None
             zipURL = None
@@ -389,8 +389,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
             try:
                 title = form.cleaned_data['title']
                 abstract = form.cleaned_data['abstract']
-                stateID = form.cleaned_data['state']
-                stateID = int(stateID)
+                state = form.cleaned_data['state']
                 editorsdemoid = form.cleaned_data['editorsdemoid']
                 editorsdemoid = int(editorsdemoid)
                 active = form.cleaned_data['active']
@@ -416,7 +415,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                     # print (" create demo")
                     # print
 
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID)
+                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,state)
                     print "jsonresult", jsonresult
                     status,error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
@@ -437,7 +436,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                                             "abstract": abstract,
                                             "editorsdemoid": editorsdemoid,
                                             "active": active,
-                                            "stateID": stateID,
+                                            "state": state,
                                             # "id": id,
                                             "zipURL": zipURL,
                                             # "creation": creation,

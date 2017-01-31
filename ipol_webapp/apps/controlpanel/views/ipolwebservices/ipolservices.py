@@ -216,7 +216,7 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
     """
     list demos present in database
     demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
-     demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
+     demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "state": published,
      "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
      "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
      "previous_page_number": 1, "number": 2.0}
@@ -271,13 +271,13 @@ def demoinfo_update_demo(demo,old_editor_demoid):
 
 
 
-def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,stateID):
+def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,state):
 
     service_name = demoinfo_ws_url_add_demo
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
-    serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'stateID': stateID}
+    serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'active': active,'state': state}
     #send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None

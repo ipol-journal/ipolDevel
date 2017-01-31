@@ -11,7 +11,7 @@ To test the POST WS use the following:
         curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
         curl -d editorsdemoid=777 -d title='demo1' -d
             abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d
-            stateID=1 -X POST 'http://127.0.0.1:9002/add_demo'
+            state=published -X POST 'http://127.0.0.1:9002/add_demo'
         or use Ffox plugin: Poster
 
 """
@@ -687,7 +687,7 @@ class DemoInfo(object):
             data["abstract"] = demo.abstract
             data["zipURL"] = demo.zipURL
             data["active"] = demo.active
-            data["stateID"] = demo.stateID
+            data["state"] = demo.state
             data["creation"] = demo.creation
             data["modification"] = demo.modification
             data["status"] = "OK"
@@ -726,7 +726,7 @@ class DemoInfo(object):
             data["abstract"] = demo.abstract
             data["zipURL"] = demo.zipURL
             data["active"] = demo.active
-            data["stateID"] = demo.stateID
+            data["state"] = demo.state
             data["creation"] = demo.creation
             data["modification"] = demo.modification
             data["status"] = "OK"
@@ -747,7 +747,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def add_demo(self, editorsdemoid, title, abstract, zipURL, active, stateID,
+    def add_demo(self, editorsdemoid, title, abstract, zipURL, active, state,
                  demodescriptionID=None, demodescriptionJson=None):
         """
         Allows you to create a demo:
@@ -771,7 +771,7 @@ class DemoInfo(object):
                 #creates a demodescription and asigns it to demo
                 dddao = DemoDescriptionDAO(conn)
                 demodescriptionID = dddao.add(demodescriptionJson)
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
+                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
                 dddao.add(int(editorsdemoid), int(demodescriptionID))
@@ -779,7 +779,7 @@ class DemoInfo(object):
             elif demodescriptionID:
                 # print "demodescriptionID"
                 #asigns to demo an existing demodescription
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), int(stateID))
+                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
                 ddddao.add(int(editorsdemoid), int(demodescriptionID))
@@ -788,7 +788,7 @@ class DemoInfo(object):
                 #demo created without demodescription
                 #careful with Demo init method's validation!
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract,
-                         zipurl=zipURL, active=int(active), stateid=int(stateID))
+                         zipurl=zipURL, active=int(active), state=str(state))
                 demoid = dao.add(d)
 
             conn.close()
@@ -909,10 +909,10 @@ class DemoInfo(object):
             #update creatio ndate
 
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL,
-                     p.active, p.stateID, p.creation)
+                     p.active, p.state, p.creation)
         else:
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL,
-                     p.active, p.stateID)
+                     p.active, p.state)
 
         #update Demo
         try:
@@ -1794,7 +1794,7 @@ class DemoInfo(object):
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
-            state = demo_dao.read(int(demoid)).stateID
+            state = demo_dao.read(int(demoid)).state
             print "El estado de esta demo es: ", state
             if state == 3: #If the demo is inactive the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
@@ -1955,10 +1955,10 @@ class DemoInfo(object):
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute('''SELECT  s.ID, s.name FROM state as s ''')
+            cursor_db.execute('''SELECT s.name FROM state as s ''')
             conn.commit()
             for row in cursor_db.fetchall():
-                s = (row[0], row[1])
+                s = (row[0], row[0])
                 state_list.append(s)
 
             conn.close()
@@ -1975,5 +1975,4 @@ class DemoInfo(object):
                 pass
             #raise Exception
             data["error"] = error_string
-
         return json.dumps(data)
