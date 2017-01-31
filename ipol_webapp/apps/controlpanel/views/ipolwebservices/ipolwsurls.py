@@ -47,12 +47,12 @@ demoinfo_ws_url_stats = 'stats'
 # DEMO
 
 demoinfo_ws_url_demo_list =  'demo_list'
-# param None , "demo_list": [{"creation": "2015-12-28 16:47:54", "stateID": 1, "abstract": "DemoTEST1 Abstract", "title": "DemoTEST1 Title", "editorsdemoid": 23, "active": 1, "id": 1, "zipURL": "https://DemoTEST1.html", "modification": "2015-12-28 16:47:54"},
+# param None , "demo_list": [{"creation": "2015-12-28 16:47:54", "state": published, "abstract": "DemoTEST1 Abstract", "title": "DemoTEST1 Title", "editorsdemoid": 23, "active": 1, "id": 1, "zipURL": "https://DemoTEST1.html", "modification": "2015-12-28 16:47:54"},
 demoinfo_ws_url_demo_list_by_demoeditorid =  'demo_list_by_demoeditorid'
-# param demoeditorid_list  , "demo_list": {"status": "OK", "demo_list": [{"creation": "2016-01-12 20:46:38", "stateID": 1, "abstract": "DemoTEST4 Abstract", "title": "DemoTEST4 Title", "editorsdemoid": 26, "active": 1, "id": 4, "zipURL": "https://DemoTEST4.html", "modification": "2016-01-12 20:46:38"}]}[{"c
+# param demoeditorid_list  , "demo_list": {"status": "OK", "demo_list": [{"creation": "2016-01-12 20:46:38", "state": published, "abstract": "DemoTEST4 Abstract", "title": "DemoTEST4 Title", "editorsdemoid": 26, "active": 1, "id": 4, "zipURL": "https://DemoTEST4.html", "modification": "2016-01-12 20:46:38"}]}[{"c
 demoinfo_ws_url_demo_list_pagination_and_filter =  'demo_list_pagination_and_filter'
 # param num_elements_page, page, qfilter ,
-# result         demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "stateID": 1,
+# result         demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "state": published,
 #        "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "active": 1, "id": 3, "zipURL":
 #        "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
 #        "previous_page_number": 1, "number": 2.0}
@@ -74,13 +74,13 @@ demoinfo_ws_url_delete_demo =  'delete_demo'
 
 demoinfo_ws_url_read_demo =  'read_demo_metainfo'
 # method POST, params demoid result:  {"status": "OK", "creation": "2015-12-21 12:39:11", "title": "demo2", "abstract":
-# "demoabstract", "stateID": 1, "editorsdemoid": 777, "active": 1, "id": 2, "zipURL": "http://prueba.com", "modification": "2015-12-21 12:39:11"}
+# "demoabstract", "state": published, "editorsdemoid": 777, "active": 1, "id": 2, "zipURL": "http://prueba.com", "modification": "2015-12-21 12:39:11"}
 
 demoinfo_ws_url_add_demo =  'add_demo'
-# method POST, params editorsdemoid, title, abstract, zipURL, active, stateID, demodescriptionID=None, demodescriptionJson=None):
+# method POST, params editorsdemoid, title, abstract, zipURL, active, state, demodescriptionID=None, demodescriptionJson=None):
 
 demoinfo_ws_url_update_demo =  'update_demo'
- # method POST,  params demo json ='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "stateID": 1, "id": 1, "zipURL": "http://demo1updated.com"}'
+ # method POST,  params demo json ='{"modification": "2015-12-02 13:24:43", "title": "newdemo1", "abstract": "newdemo1abstract","creation": "2015-12-02 13:24:43", "editorsdemoid": 1, "active": 1, "state": published, "id": 1, "zipURL": "http://demo1updated.com"}'
 
 
 #AUTHOR

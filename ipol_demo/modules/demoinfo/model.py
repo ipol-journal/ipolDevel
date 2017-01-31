@@ -36,7 +36,7 @@ class Demo(object):
     abstract = None
     zipURL = None
     active = None
-    stateID = None
+    state = None
     #id = None
     creation = None
     modification = None
@@ -47,13 +47,13 @@ class Demo(object):
                #zipurl=type(url),
                zipurl=inst(basestring),
                active=typ(int),
-               stateid=typ(int),
+               stateid=typ(str),
                #id= Or(typ(int) , inst(basestring) ),
                creation=Or(typ(datetime.datetime), inst(basestring)),
                modification=Or(typ(datetime.datetime), inst(basestring))
               )
     def __init__(self, editorsdemoid, title, abstract, zipurl,
-                 active, stateid, creation=None, modification=None):
+                 active, state, creation=None, modification=None):
         """
         Constructor.
         """
@@ -63,7 +63,7 @@ class Demo(object):
         self.abstract = abstract
         self.zipURL = zipurl
         self.active = active
-        self.stateID = stateid
+        self.state = state
 
         # if id:
         #     self.id = id
@@ -281,12 +281,17 @@ class DemoDAO(object):
             # print 'demo.abstract: ',demo.abstract
             # print 'demo.zipURL: ',demo.zipURL
             # print 'demo.active: ',demo.active
-            # print 'demo.stateID: ',demo.stateID
+            # print 'demo.state: ',demo.state
             # print 'demo.demodescriptionID: ',demo.demodescriptionID
+            self.cursor.execute('''SELECT ID
+                                FROM state
+                                WHERE state.name=?''', (demo.state,))
+            self.conn.commit()
+            state_id = self.cursor.fetchone()[0]
             self.cursor.execute('''
             INSERT INTO demo(editor_demo_id, title, abstract, zipURL,active, stateID)
             VALUES(?,?,?,?,?,?)''', (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, demo.active, demo.stateID,))
+                                     demo.zipURL, demo.active, state_id,))
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:
@@ -341,6 +346,11 @@ class DemoDAO(object):
             # nowtmstmp=demo.creation
             # print nowtmstmp
             # datetime.strptime('2015-02-25T12:58:01.548Z', '%Y-%m-%dT%H:%M:%S.%fZ')
+            self.cursor.execute('''SELECT ID
+                                FROM state
+                                WHERE state.name=?''',(demo.state,))
+            self.conn.commit()
+            state_id = self.cursor.fetchone()[0]
 
             if demo.creation:
 
@@ -348,7 +358,7 @@ class DemoDAO(object):
                 UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,
                 stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
                                     (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, demo.active, demo.stateID, nowtmstmp,
+                                     demo.zipURL, demo.active, state_id, nowtmstmp,
                                      demo.creation, old_editor_demo_id))
 
             else:
@@ -356,7 +366,7 @@ class DemoDAO(object):
                 UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,active=?,
                 stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
                                     (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, demo.active, demo.stateID, nowtmstmp,
+                                     demo.zipURL, demo.active, state_id, nowtmstmp,
                                      demo.creation, old_editor_demo_id))
             self.conn.commit()
         except Exception as ex:
@@ -371,8 +381,10 @@ class DemoDAO(object):
         """
         result = None
         try:
-            self.cursor.execute('''SELECT  editor_demo_id, title, abstract, zipURL, active,
-                stateID, creation, modification  FROM demo WHERE demo.editor_demo_id=?''', (int(editor_demo_id),))
+            self.cursor.execute('''SELECT  d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, s.name, d.creation, d.modification
+                                FROM demo as d, state as s
+                                WHERE d.editor_demo_id=?
+                                AND d.stateID = s.ID''', (int(editor_demo_id),))
 
             self.conn.commit()
             row = self.cursor.fetchone()
@@ -399,15 +411,17 @@ class DemoDAO(object):
         demo_list = list()
         try:
             if is_active:
-                self.cursor.execute('''SELECT editor_demo_id, title, abstract, zipURL, active,
-                    stateID, creation, modification
-                    FROM demo WHERE active = 1
-                    ORDER BY editor_demo_id DESC ''')
+                self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, s.name, d.creation, d.modification
+                                    FROM demo as d, state as s
+                                    WHERE d.active = 1
+                                    AND d.stateID = s.ID
+                                    ORDER BY d.editor_demo_id DESC ''')
             else:
-                self.cursor.execute('''SELECT editor_demo_id, title, abstract, zipURL, active,
-                    stateID, creation, modification
-                    FROM demo WHERE active = 0
-                    ORDER BY editor_demo_id DESC ''')
+                self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, s.name, d.creation, d.modification
+                                    FROM demo as d, state as s
+                                    WHERE d.active = 0
+                                    AND d.stateID = s.ID
+                                    ORDER BY d.editor_demo_id DESC ''')
                 self.conn.commit()
             for row in self.cursor.fetchall():
                 d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
@@ -584,28 +598,6 @@ class DemoDemoDescriptionDAO(object):
             error_string = ("read_last_demodescription_from_demo  e:%s" % (str(ex)))
             print error_string
         return result
-
-    @validates(typ(int))
-    def read_demodescrption_demos(self, demodescriptionid):
-        """
-        Return demo description from given description id
-        """
-        #todo only one or more then one?
-        demo_list = list()
-        try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract,
-            d.zipURL, d.active, d.stateID, d.creation, d.modification
-            FROM demo as d, demo_demodescription as dd
-            WHERE d.id=dd.demoId and dd.demodescriptionID=?''', (int(demodescriptionid),))
-            self.conn.commit()
-            for row in self.cursor.fetchall():
-                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
-                demo_list.append(d)
-
-        except Exception as ex:
-            error_string = ("read_editor_demos  e:%s" % (str(ex)))
-            print error_string
-        return demo_list    \
 
 
     @validates(typ(int))
@@ -872,9 +864,11 @@ class DemoAuthorDAO(object):
         """
         demo_list = list()
         try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active,
-            d.stateID, d.creation, d.modification
-            FROM demo as d, demo_author as da WHERE d.id=da.demoId and da.authorId=?''', (int(authorid),))
+            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, s.name , d.creation, d.modification
+                                FROM demo as d, demo_author as da, state as s
+                                WHERE d.id=da.demoId
+                                AND d.stateID = s.ID
+                                AND da.authorId=?''', (int(authorid),))
             self.conn.commit()
             for row in self.cursor.fetchall():
                 d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
@@ -1138,10 +1132,11 @@ class DemoEditorDAO(object):
         """
         demo_list = list()
         try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL,
-            d.active, d.stateID, d.id, d.creation, d.modification
-                FROM demo as d, demo_editor as de
-            WHERE d.id=de.demoId and de.editorId=?''', (int(editorid),))
+            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, d.active, s.name, d.id, d.creation, d.modification
+                                FROM demo as d, demo_editor as de, state as s
+                                WHERE d.id=de.demoId
+                                AND d.stateID = s.ID
+                                AND de.editorId=?''', (int(editorid),))
             self.conn.commit()
             for row in self.cursor.fetchall():
                 d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
@@ -1235,7 +1230,7 @@ def createDb(database_name):
                 demodescriptionId INTEGER NOT NULL,
                 creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
-                FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
+                FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE
                 );"""
             )
 
@@ -1368,7 +1363,7 @@ def testDb(database_name):
 
         d = demo_dao.read(1)
         d.zipURL = 'https://www.sqlite.org'
-        d.stateID = 2
+        d.state = 2
         demo_dao.update(d)
         # demo.delete(1)
         d = demo_dao.read(1)
