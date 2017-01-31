@@ -700,11 +700,12 @@ class DemoRunner(object):
             res_data['error'] = str(e)
             print res_data
             return json.dumps(res_data)
-        except OSError as e:
-            self.write_log("exec_and_wait", "OSError, demo_id={}".format(demo_id))
+        except OSError as ex:
+            error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
+            self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = 'OSError'
-            res_data['error'] = str(e)
+            res_data['algo_info']['status'] = error_str
+            res_data['error'] = error_str
             print res_data
             return json.dumps(res_data)
         except Exception as e:

@@ -139,6 +139,7 @@ class RunDemoBase:
         except RuntimeError:
             self.logger.exception(
                 "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
+            raise
 
         # Close files
         stderr_file = open(self.work_dir + "stderr.txt", 'w')

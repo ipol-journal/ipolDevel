@@ -115,7 +115,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             var blobset = blobs[i];
             
 	    blobset[0].html_params = "url=" + _demoblobs.url 
-            blobset[0].html_params += ("url_vr" + _demoblobs.url_visual_representation + "&")
+            blobset[0].html_params += ("url_vr" + _demoblobs.url_visrep + "&")
             
 	    
 	    // extract only contents of interest
