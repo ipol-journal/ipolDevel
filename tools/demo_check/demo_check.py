@@ -88,7 +88,7 @@ def check_ddl(ddl):
     # Check the url in the build
     url = json.dumps(ddl_json["build"]).split("\"url\":")[1].split(",")[0].strip()[1:-1]
     if not urlparse(url).hostname == "www.ipol.im":
-        errors["URL"] = "This demo has an incorrect url: {}".format(url)
+        errors["URL"] = "This demo has an external resource: {}".format(url)
     return errors
 
 
@@ -182,6 +182,10 @@ def start_test():
 # Parse program arguments
 parser = optparse.OptionParser()
 (opts, args) = parser.parse_args()
+
+if len(args) != 1:
+    print "Wrong number of arguments (given {}, expected 1)".format(len(args))
+    exit (0)
 
 environment = args[0].lower()
 
