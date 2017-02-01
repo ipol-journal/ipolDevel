@@ -9,6 +9,11 @@ from subprocess import Popen
 import cherrypy
 
 from misc import ctime
+from time import gmtime, strftime
+import datetime
+
+import os.path
+
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
@@ -35,13 +40,23 @@ def download(url, fname):
         file_handle = open(fname, 'w')
         file_handle.write(url_handle.read())
         file_handle.close()
+        return True
     else:
         # only retrieve if a newer version is available
-        url_ctime = time.strptime(url_handle.info()['last-modified'],
-                                  TIME_FMT)
-        url_size = int(url_handle.info()['content-length'])
-        file_ctime = ctime(fname)
+        url_info = url_handle.info()
+        
+        if 'last-modified' in url_info:
+            last_modified = url_info['last-modified']
+            url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
+        else:
+            # The server didn't send any last-modified. Thus, assume that
+            # the file in the server is newer than ours
+            url_ctime = datetime.datetime.now()
+            
+        url_size = int(url_info['content-length'])
+        file_ctime = datetime.datetime.fromtimestamp(os.path.getctime(fname))
         file_size = os.path.getsize(fname)
+        
         if (url_size != file_size
             or url_ctime > file_ctime):
             # download
@@ -51,7 +66,6 @@ def download(url, fname):
             print "Retrieved"
             return True
         else:
-            print "Not retrieved (local file is newer)"
             return False
 
 def extract(fname, target):
