@@ -265,11 +265,31 @@ workload of '{}'".format(dr_name)
             return string
 
         demo_list = response['demo_list']
-        demos_string = ""
+        
+        # Get all publication states
+        demos_by_state = dict()
         for demo in demo_list:
-            demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
-                demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
+            publication_state = demo["state"]
+            if publication_state not in demos_by_state:
+                demos_by_state[publication_state] = []
+            
+            demos_by_state[publication_state].append( {\
+              'editorsdemoid': demo['editorsdemoid'], \
+              'editorsdemoid': demo['editorsdemoid'], \
+              'title': demo['title'] \
+            })
 
+        demos_string = ""
+        
+        # Show demos according to their state
+        for publication_state in demos_by_state.keys():
+            demos_string += "<h2>{}</h2>".format(publication_state)
+            
+            for demo_data in demos_by_state[publication_state]:
+                print demo_data['title']
+                
+                demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
+                    demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'])
 
         string = """
                  <!DOCTYPE html>
@@ -280,7 +300,7 @@ workload of '{}'".format(dr_name)
                  </head>
                  <body>
                  <h2>List of demos</h2>
-                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br><br>
+                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br>
                  {}
                  </body>
                  </html>
