@@ -913,10 +913,11 @@ demoinfo. Failure code -> " + response['code']
         '''
         Gets demo meta data given its editor's ID
         '''
-        userdata = {"demo_id": demo_id}
+        userdata = {"demoid": demo_id}
         resp = self.post(self.host_name, 'demoinfo', \
           'read_demo_metainfo', userdata)
         return resp.json()
+
 
 
     def get_demo_editor_list(self, demo_id):
