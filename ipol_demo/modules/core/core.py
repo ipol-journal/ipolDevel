@@ -909,6 +909,16 @@ demoinfo. Failure code -> " + response['code']
         return demo_path
 
 
+    def get_demo_metadata(self, demo_id):
+        '''
+        Gets demo meta data given its editor's ID
+        '''
+        userdata = {"demo_id": demo_id}
+        resp = self.post(self.host_name, 'demoinfo', \
+          'read_demo_metainfo', userdata)
+        return resp.json()
+
+
     def get_demo_editor_list(self, demo_id):
         '''
         Get the list of active editors of the given demo
@@ -992,7 +1002,12 @@ demoinfo. Failure code -> " + response['code']
 
         emails = self.get_demo_editor_list(demo_id)
 
-        if self.serverEnvironment == 'production':
+        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        
+        # Add Tech and Edit only if this is the production server and
+        # the demo has been published        
+        if self.serverEnvironment == 'production' and \
+          demo_state == "published":
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
             emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
@@ -1018,8 +1033,12 @@ demoinfo. Failure code -> " + response['code']
         ''' Send email to editor when the execution fails '''
         emails = self.get_demo_editor_list(demo_id)
 
-        # If in production, warn also IPOL Tech and Edit
-        if self.serverEnvironment == 'production':
+        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        
+        # Add Tech and Edit only if this is the production server and
+        # the demo has been published        
+        if self.serverEnvironment == 'production' and \
+          demo_state == "published":
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
             emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
