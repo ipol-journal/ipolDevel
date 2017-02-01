@@ -143,7 +143,6 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
             context['ddlform'] = DDLform
             context['demoform'] = Demoform
             context['states'] = get_demoinfo_module_states()
-            #context['demoform'] = Demoform(initial={'active': True})
 
         except Exception as e:
 
@@ -176,7 +175,7 @@ class DemoinfoDeleteDemoView(NavbarReusableMixinMF,TemplateView):
             logger.error(msg)
             raise ValueError(msg)
 
-        result= ipolservices.demoinfo_delete_demo(demo_id,hard_delete = True)
+        result= ipolservices.demoinfo_delete_demo(demo_id)
         if result == None:
             msg="DemoinfoDeleteDemoView: Something went wrong using demoinfo WS"
             logger.error(msg)
@@ -375,7 +374,6 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
             abstract = None
             state = None
             editorsdemoid = None
-            active = None
             zipURL = None
             # creation = None
             # modification = None
@@ -392,14 +390,11 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                 state = form.cleaned_data['state']
                 editorsdemoid = form.cleaned_data['editorsdemoid']
                 editorsdemoid = int(editorsdemoid)
-                active = form.cleaned_data['active']
-                active=convert_str_to_bool(active)
 
                 zipURL = form.cleaned_data['zipURL']
                 # creation = form.cleaned_data['creation']
                 # modification = form.cleaned_data['modification']
                 # print " title ",title
-                # print " active ",active, type(active)
                 # print
                 #print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
             except Exception as e:
@@ -415,7 +410,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                     # print (" create demo")
                     # print
 
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,active ,state)
+                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract, zipURL, state)
                     print "jsonresult", jsonresult
                     status,error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
@@ -435,7 +430,6 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                                             "title": title,
                                             "abstract": abstract,
                                             "editorsdemoid": editorsdemoid,
-                                            "active": active,
                                             "state": state,
                                             # "id": id,
                                             "zipURL": zipURL,
@@ -548,7 +542,6 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
             context['status'] = status
             context['list_authors'] = list_authors
             context['authorform'] = Authorform
-            #context['demoform'] = Demoform(initial={'active': True})
 
         except Exception as e:
 
@@ -780,7 +773,6 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
             context['choosedemoauthorform'] = ChooseAuthorForDemoform()
             context['demoauthorform'] = DemoAuthorform
             context['authorform'] = Authorform
-            #context['form'] = form(initial={'active': True})
 
         except Exception as e:
 

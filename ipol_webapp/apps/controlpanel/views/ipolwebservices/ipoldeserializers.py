@@ -134,12 +134,11 @@ def DeserializeDemoinfoDemoList(jsonresult):
     #demodescriptionID is optional a demo may not have one yet!
 
     class Demo(object):
-        def __init__(self, editorsdemoid, title, abstract, zipURL, active, state, creation, modification):
+        def __init__(self, editorsdemoid, title, abstract, zipURL, state, creation, modification):
             self.editorsdemoid = editorsdemoid
             self.title = title
             self.abstract = abstract
             self.zipURL = zipURL
-            self.active = active
             self.state = state
             self.creation = creation
             self.modification = modification
@@ -164,7 +163,6 @@ def DeserializeDemoinfoDemoList(jsonresult):
         title = serializers.CharField()
         abstract = serializers.CharField()
         zipURL = serializers.URLField()
-        active = serializers.IntegerField()
         state = serializers.CharField()
         #demodescriptionID = serializers.IntegerField(required=False)
         creation = serializers.DateTimeField()
