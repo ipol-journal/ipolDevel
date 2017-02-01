@@ -265,11 +265,31 @@ workload of '{}'".format(dr_name)
             return string
 
         demo_list = response['demo_list']
-        demos_string = ""
+        
+        # Get all publication states
+        demos_by_state = dict()
         for demo in demo_list:
-            demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
-                demo['editorsdemoid'], demo['editorsdemoid'], demo['title'])
+            publication_state = demo["state"]
+            if publication_state not in demos_by_state:
+                demos_by_state[publication_state] = []
+            
+            demos_by_state[publication_state].append( {\
+              'editorsdemoid': demo['editorsdemoid'], \
+              'editorsdemoid': demo['editorsdemoid'], \
+              'title': demo['title'] \
+            })
 
+        demos_string = ""
+        
+        # Show demos according to their state
+        for publication_state in demos_by_state.keys():
+            demos_string += "<h2>{}</h2>".format(publication_state)
+            
+            for demo_data in demos_by_state[publication_state]:
+                print demo_data['title']
+                
+                demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
+                    demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'])
 
         string = """
                  <!DOCTYPE html>
@@ -280,7 +300,7 @@ workload of '{}'".format(dr_name)
                  </head>
                  <body>
                  <h2>List of demos</h2>
-                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br><br>
+                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br>
                  {}
                  </body>
                  </html>
@@ -909,6 +929,17 @@ demoinfo. Failure code -> " + response['code']
         return demo_path
 
 
+    def get_demo_metadata(self, demo_id):
+        '''
+        Gets demo meta data given its editor's ID
+        '''
+        userdata = {"demoid": demo_id}
+        resp = self.post(self.host_name, 'demoinfo', \
+          'read_demo_metainfo', userdata)
+        return resp.json()
+
+
+
     def get_demo_editor_list(self, demo_id):
         '''
         Get the list of active editors of the given demo
@@ -992,7 +1023,12 @@ demoinfo. Failure code -> " + response['code']
 
         emails = self.get_demo_editor_list(demo_id)
 
-        if self.serverEnvironment == 'production':
+        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        
+        # Add Tech and Edit only if this is the production server and
+        # the demo has been published        
+        if self.serverEnvironment == 'production' and \
+          demo_state == "published":
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
             emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
@@ -1018,8 +1054,12 @@ demoinfo. Failure code -> " + response['code']
         ''' Send email to editor when the execution fails '''
         emails = self.get_demo_editor_list(demo_id)
 
-        # If in production, warn also IPOL Tech and Edit
-        if self.serverEnvironment == 'production':
+        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        
+        # Add Tech and Edit only if this is the production server and
+        # the demo has been published        
+        if self.serverEnvironment == 'production' and \
+          demo_state == "published":
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
             emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
@@ -1078,8 +1118,6 @@ hostname, hostbyname, unresponsive_demorunners_list)
         print "demo_id =", demo_id
         print "kwargs=", kwargs
 
-        # [ToDo] [Miguel] Normally the Core should be agnostic on the
-        # input type. Why are we checking this here???
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
         else:
@@ -1108,9 +1146,16 @@ hostname, hostbyname, unresponsive_demorunners_list)
                 fname = "file_{0}".format(i)
                 blobs[fname] = kwargs[fname]
                 i += 1
-
         elif input_type == 'blobset':
             blobs = json.loads(kwargs['blobs'])
+        else:
+            error_str = "unknown input_type == '{}'".\
+              format(input_type)
+            self.error_log("run()", error_str)
+            response = {}
+            response["status"] = "KO"
+            self.error_log("run", error_str)
+            return json.dumps(response)
 
         ## Start of block to obtain the DDL
         try:
@@ -1147,6 +1192,7 @@ hostname, hostbyname, unresponsive_demorunners_list)
         work_dir = self.create_run_dir(demo_id, key)
         print "Run path is ", work_dir
 
+        # Copy input blobs
         if input_type != 'noinputs':
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
@@ -1163,6 +1209,7 @@ demo_id = ", demo_id
 
 
         try:
+            # Find a DR with satisfies the requirements
             requirements = ddl_json['general']['requirements'] \
                 if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
@@ -1237,8 +1284,10 @@ dr + " module")
 
             print "resp ", json_response
 
+            # Archive the experiment, if the 'archive' section
+            # exists in the DDL
             print "archive.store_experiment()"
-            if original_exp == 'true':
+            if original_exp == 'true' and 'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, \

@@ -48,10 +48,7 @@ class Demoform(forms.Form):
     title = forms.CharField(label='title',required=True)
     zipURL = forms.URLField(label='zipURL',required=True)
 
-    # must not be displayed, always true! its what we use to delete a demo
-    active = forms.IntegerField(label='active',required=True)
     # problems using bool in form, just use int...
-    # active = forms.BooleanField(label='active',required=False,initial=True)
 
     state = forms.ChoiceField(label='state',required=True)
     abstract = forms.CharField(label='abstract',widget=forms.Textarea,required=True)
@@ -66,8 +63,6 @@ class Demoform(forms.Form):
     helper.layout = Layout(
 
             Field('id', type='hidden'),
-            Field('active', type='hidden'),
-            # PrependedText('active', ''),
             Field('editorsdemoid'),
             Field('title', css_class='form-control'),
             Field('zipURL', css_class='form-control'),
@@ -158,7 +153,6 @@ class ChooseAuthorForDemoform(forms.Form):
 
 
 
-#for now we ignore the editors active flag (true by default)
 # for edit Editor
 class Editorform(forms.Form):
     #hidden
