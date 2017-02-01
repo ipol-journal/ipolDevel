@@ -93,9 +93,9 @@
 
                                     <div class="griditem">
                                         {% trans 'state' %}:
-                                        {# {{ demo.stateID }}#}
+                                        {# {{ demo.state }}#}
                                         {% for sid,sname in states %}
-                                            {% if sid == demo.stateID %}
+                                            {% if sid == demo.state %}
                                                 {{ sname }}
                                             {% endif %}
                                         {% endfor %}
@@ -294,7 +294,7 @@
         $form_demo_field_abstract_id="#Demoform #id_abstract";
         $form_demo_field_zipURL_id="#Demoform #id_zipURL";
         $form_demo_field_active_id="#Demoform #id_active";
-        $form_demo_field_state_id="#Demoform #id_state";
+        $form_demo_field_state="#Demoform #id_state";
         {#  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";#}
         var $demoform = $($form_demo_id);
 
@@ -537,7 +537,7 @@
                 $($form_demo_field_abstract_id).get(0).value = '';
                 $($form_demo_field_zipURL_id).get(0).value = '';
                 $($form_demo_field_active_id).get(0).value = 1;
-                $($form_demo_field_state_id).get(0).value = '';
+                $($form_demo_field_state).get(0).value = '';
                 $demoform.show();
                 $($modal_demo_id).modal('show');
             }else{
@@ -557,7 +557,7 @@
                             //edit/show demo
                             if ( data.editorsdemoid ){
 
-                                console.log(" GEt form demo data");
+                                console.log(" Get form demo data");
                                 //Load ddl data in form
                                 //console.log(data.last_demodescription);
                                 //clear error data
@@ -573,7 +573,7 @@
                                 $($form_demo_field_abstract_id).get(0).value = data.abstract;
                                 $($form_demo_field_zipURL_id).get(0).value = data.zipURL;
                                 $($form_demo_field_active_id).get(0).value = data.active;
-                                $($form_demo_field_state_id).get(0).value = data.stateID;
+                                $($form_demo_field_state).get(0).value = data.state;
                                 $($modal_demo_id).modal('show');
                                 $demoform.show();
 
@@ -590,7 +590,7 @@
                                 $($form_demo_field_abstract_id).get(0).value = '';
                                 $($form_demo_field_zipURL_id).get(0).value = '';
                                 $($form_demo_field_active_id).get(0).value = 1;
-                                $($form_demo_field_state_id).get(0).value = '';
+                                $($form_demo_field_state).get(0).value = '';
                                 $($modal_demo_id).modal('show');
                                 //$demoform.show();
                             }

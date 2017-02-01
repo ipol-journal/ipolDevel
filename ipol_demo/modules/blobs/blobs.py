@@ -14,6 +14,7 @@ import hashlib
 import urllib2
 import os
 import os.path
+import glob
 import sys
 import tarfile
 import zipfile
@@ -513,7 +514,6 @@ class   Blobs(object):
     
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    #@cherrypy.tools.accept(media="text/plain")
     def upload_visual_representation(self, **kwargs):
         """
         """
@@ -522,30 +522,34 @@ class   Blobs(object):
         data['blob_id'] = kwargs['blob_id']
         vr_file = kwargs['visual_representation']
         
-            
-
         res = use_web_service('/get_blob_ws', data)
         
         if res['status'] == "OK":
             
             # The creation of the main folders for blobs, thumbnail and VR 
             # should be in __init__ ???? 
-            visrep = os.path.join(self.base_directory, self.vr_dir)
-            if not os.path.exists(visrep):
-                os.makedirs(visrep)        
+            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
+            if not os.path.exists(visrep_folder):
+                os.makedirs(visrep_folder)        
             
             blob_hash = res['hash']
             
             try:
             
-                vr_filename, extension = os.path.splitext(vr_file.filename)
-                ## This is returning ok when it must not...
+                _, extension = os.path.splitext(vr_file.filename)
                 assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
                 
-                vr_path, vr_folder = get_new_path_for_visual_representation(visrep, blob_hash, extension)
+                vr_path, vr_folder = get_new_path_for_visual_representation(visrep_folder, blob_hash, extension)
                 if not os.path.isdir(vr_folder):
                     os.makedirs(vr_folder)
-
+                
+                #Delete the previous visual representations...
+                file_without_extension = os.path.join(vr_folder, blob_hash)
+                list_of_visrep = glob.glob(file_without_extension+".*")
+                for vr_to_delete in list_of_visrep:
+                    os.remove(vr_to_delete)
+                
+                
                 temp_path = create_tmp_file(vr_file, vr_folder)
                 os.rename(temp_path, vr_path)
                 self.create_thumbnail(vr_path)
@@ -734,7 +738,7 @@ class   Blobs(object):
         This function implements post request for /zip
         It corresponds to upload of the zip file
 
-        :param kwargs:
+        :param blob:
         :type kwargs: dictionnary
         :return: mako templated html page refer to list.html
         :rtype: mako.lookup.TemplatedLookup
@@ -754,6 +758,53 @@ class   Blobs(object):
 
         return self.get_blobs_of_demo(demo_name)
 
+    
+    def remove_files_associated_to_a_blob(self, blob):
+        """
+        This function removes a blob, its thumbnail and 
+        the visual representation (if exists)
+        
+        :param blob:
+        :type hash and extension of the blob
+        :return: "OK" if not error else "KO"
+        :rtype: dictionnary 
+        """
+        
+        hash_blob, _ = os.path.splitext(blob)
+        path_file = os.path.join(self.base_directory, self.final_dir, blob)
+        thumbnail_hash_blob = "thumbnail_" + hash_blob + ".jpg"
+        path_thumb = os.path.join(self.base_directory,
+                                  self.thumb_dir, thumbnail_hash_blob)
+        dic={}
+        try:
+            # process paths
+            path_file = get_new_path(path_file)
+            path_thumb = get_new_path(path_thumb)
+
+            # remove blob
+            if os.path.isfile(path_file):
+                os.remove(path_file)
+            if os.path.isfile(path_thumb):
+                os.remove(path_thumb)
+                    
+            #Delete the visual representation (if exists)
+            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
+            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
+            visrep_without_extension = os.path.join(vr_folder, hash_blob)
+            list_of_visrep = glob.glob(visrep_without_extension+".*")
+
+            for vr_to_delete in list_of_visrep:
+                os.remove(vr_to_delete)
+            
+            dic['status'] = 'OK'
+        except Exception as ex:
+            error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
+            self.logger.error(error_message)
+            dic['status'] = 'KO'
+            dic['error']  = error_message
+            
+        return dic
+    
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
@@ -937,21 +988,12 @@ class   Blobs(object):
         """
         data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
-
+        
         if res["status"] == "OK" and res["delete"]:
-            path_file = os.path.join(self.base_directory, self.final_dir, res["delete"])
-            path_thumb = os.path.join(self.base_directory, self.thumb_dir,
-                                      ("thumbnail_" + res["delete"]))
-            # process paths
-            path_file = get_new_path(path_file)
-            path_thumb = get_new_path(path_thumb)
-            # thumbnail extension is jpg
-            path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
-            # remove blob
-            if os.path.isfile(path_file):
-                os.remove(path_file)
-            if os.path.isfile(path_thumb):
-                os.remove(path_thumb)
+            data = self.remove_files_associated_to_a_blob(res["delete"])
+            ## Ask Miguel... 
+            if data['status'] == 'KO':
+                return json.dumps(data)                
 
         return self.get_blobs_of_demo(demo_name)
 
@@ -1011,13 +1053,21 @@ class   Blobs(object):
                         if 'hash' in element:
                             hash_of_blob      = element['hash']
                             extension_of_blob = element['extension']
-                            vr_path, vr_folder = get_new_path_for_visual_representation(self.vr_dir, hash_of_blob, extension_of_blob) 
+                            
+                            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
+                            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, \
+                                                                                  hash_of_blob, \
+                                                                                  extension_of_blob) 
+                            
                             if os.path.isdir(vr_folder):
-                                dic_dir = os.listdir(vr_folder)
-                                for file_in_vrdir in dic_dir:
-                                    vr_file, vr_extension = os.path.splitext(file_in_vrdir)
-                                    if vr_file == hash_of_blob:
-                                        element['extension_visrep'] = vr_extension                         
+                                
+                                file_without_extension = os.path.join(vr_folder, hash_of_blob)
+                                visrep = glob.glob(file_without_extension+".*")
+                        
+                                if len(visrep)>0:
+                                    _, vr_extension = os.path.splitext(visrep[0])
+                                    element['extension_visrep'] = vr_extension 
+                        
                         blob_set.append(element)
                     
                     list_of_blobs_corrected_with_vr.append(blob_set)
@@ -1026,7 +1076,7 @@ class   Blobs(object):
                 
                 dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
                 dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
-                dic["url_visual_representation"] = '/api/blobs' + "/" + self.vr_dir + "/"
+                dic["url_visrep"] = '/api/blobs' + "/" + self.vr_dir + "/"
                 
                 dic["physical_location"] = self.final_dir
                 dic["vr_location"] = self.vr_dir
@@ -1034,6 +1084,7 @@ class   Blobs(object):
             
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
+        
         return json.dumps(dic)
 
 
@@ -1050,7 +1101,7 @@ class   Blobs(object):
         demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo_name})
         template_list_res = use_web_service('/get_template_demo_ws', {})
         template_blobs = {}
-
+        
         #--- if the demo uses a template, process its blobs
         if demo_blobs["use_template"]:
             template_blobs_res = use_web_service('/get_blobs_from_template_ws',
@@ -1218,28 +1269,25 @@ class   Blobs(object):
         :rtype: json format
         """
         cherrypy.response.headers['Content-Type'] = "application/json"
-
+        
         dic = {}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 blobfilenames_to_delete = data.remove_demo(demo_name)
                 data.commit()
+                
+                # remove from disk unused blobs
+                for blob in blobfilenames_to_delete:
+                    dic = self.remove_files_associated_to_a_blob(blob)
+                    
+                    ## Ask Miguel... 
+                    if dic["status"] == 'KO':
+                        self.logger.exception("Failure when deleting a blob in op_remove_demo_ws")
+                        data.rollback()
+                        return json.dumps(dic)
+                
                 dic["status"] = "OK"
 
-                # remove from disk unused blobs
-                for blobfilename in blobfilenames_to_delete:
-                    path_file = os.path.join(self.base_directory, self.final_dir, blobfilename)
-                    path_thumb = os.path.join(self.base_directory,
-                                              self.thumb_dir, ("thumbnail_" + blobfilename))
-                    path_thumb = os.path.splitext(path_thumb)[0]+".jpg"
-                    # process paths
-                    path_file = get_new_path(path_file)
-                    path_thumb = get_new_path(path_thumb)
-                    # remove blob
-                    if os.path.isfile(path_file):
-                        os.remove(path_file)
-                    if os.path.isfile(path_thumb):
-                        os.remove(path_thumb)
 
             except DatabaseError:
                 self.logger.exception("Cannot delete demo")
