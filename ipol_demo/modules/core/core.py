@@ -1244,8 +1244,10 @@ dr + " module")
 
             print "resp ", json_response
 
+            # Archive the experiment, if the 'archive' section
+            # exists in the DDL
             print "archive.store_experiment()"
-            if original_exp == 'true':
+            if original_exp == 'true' and 'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, \
