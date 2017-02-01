@@ -1078,8 +1078,6 @@ hostname, hostbyname, unresponsive_demorunners_list)
         print "demo_id =", demo_id
         print "kwargs=", kwargs
 
-        # [ToDo] [Miguel] Normally the Core should be agnostic on the
-        # input type. Why are we checking this here???
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
         else:
@@ -1108,9 +1106,16 @@ hostname, hostbyname, unresponsive_demorunners_list)
                 fname = "file_{0}".format(i)
                 blobs[fname] = kwargs[fname]
                 i += 1
-
         elif input_type == 'blobset':
             blobs = json.loads(kwargs['blobs'])
+        else:
+            error_str = "unknown input_type == '{}'".\
+              format(input_type)
+            self.error_log("run()", error_str)
+            response = {}
+            response["status"] = "KO"
+            self.error_log("run", error_str)
+            return json.dumps(response)
 
         ## Start of block to obtain the DDL
         try:
@@ -1147,6 +1152,7 @@ hostname, hostbyname, unresponsive_demorunners_list)
         work_dir = self.create_run_dir(demo_id, key)
         print "Run path is ", work_dir
 
+        # Copy input blobs
         if input_type != 'noinputs':
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
@@ -1163,6 +1169,7 @@ demo_id = ", demo_id
 
 
         try:
+            # Find a DR with satisfies the requirements
             requirements = ddl_json['general']['requirements'] \
                 if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
