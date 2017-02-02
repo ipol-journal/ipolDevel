@@ -67,29 +67,43 @@ def read_DDL(editors_demoid):
 
 def check_ddl(ddl):
     """
-    Returns a dict with the errors in the DDL
+    Check if there is any DDL
     """
-    errors = {}
-
-    # Check if there is any DDL
     if ddl is None:
-        errors["DDL"] = "This demo does not have any DDL"
-        return errors
+        return {"DDL":"This demo does not have any DDL"}
+
+    return {}
+
+def check_run_in_DDL(ddl):
+    """
+    Check if the run is correct
+    """
     ddl_json = json.loads(ddl)
 
-    # Check if the run is correct
     if isinstance(ddl_json["run"], list):
-        errors["Run"]="This demo has runs with the deprecated syntax"
+        return {"Run":"This demo has runs with the deprecated syntax"}
+    return {}
 
-    # Check if the build is correct
+def check_build_in_DDL(ddl):
+    """
+    Check if the build is correct
+    """
+    ddl_json = json.loads(ddl)
+
     if not 'build1' in ddl_json["build"]:
-        errors["Build"]="This demo has builds with the deprecated syntax"
+        return {"Build":"This demo has builds with the deprecated syntax"}
+    return {}
 
-    # Check the url in the build
+def check_url_in_DDL(ddl):
+    """
+    Check the url in the build
+    """
+    ddl_json = json.loads(ddl)
+
     url = json.dumps(ddl_json["build"]).split("\"url\":")[1].split(",")[0].strip()[1:-1]
     if not urlparse(url).hostname == "www.ipol.im":
-        errors["URL"] = "This demo has an external resource: {}".format(url)
-    return errors
+        return{"URL":"This demo is using an external resource: {}".format(url)}
+    return {}
 
 
 def have_demo_extras(editors_demoid):
@@ -125,8 +139,12 @@ def get_editors(editors_demoid):
     if not response['status'] == 'OK':
         print "ERROR: get_editors returned KO"
         return
+    editors_list = {}
+    # print response['editor_list'][0]['name']
+    for editor in response['editor_list']:
+        editors_list[editor["mail"]]=editor["name"]
 
-    return response['editor_list']
+    return editors_list
 
 def check_editors(editors):
     """
@@ -138,17 +156,27 @@ def check_editors(editors):
     return {}
 
 
-def print_errors(editors_demoid, title, errors):
+def print_errors(editors_demoid, title, errors, editors):
     """
     Print all the errors found
     """
-    if len(errors) > 0:
-        if len(errors) == 1:
-            print "Demo {} with id {} have 1 error:".format(title, editors_demoid)
-        else:
-            print "Demo {} with id {} have {} errors:".format(title, editors_demoid, len(errors))
-        for error in errors:
-            print "    - In {} - {}".format(error, errors[error])
+    if len(errors) == 0:
+        return
+
+    print "Demo #{} \"{}\"".format(editors_demoid, title)
+
+    # Print editors
+    editors_msg = []
+    for editor in editors:
+        editors_msg.append("{} <{}>".format(editors[editor], editor))
+    if len(editors_msg) > 0:
+        print "Editors: {}".format(", ".join(editors_msg))
+
+    # Print Errors
+    print "Found 1 error:" if len(errors) == 1 else "Found {} errors:".format(len(errors))
+    for error in errors:
+        print "    - In {} - {}".format(error, errors[error])
+    print "\n"
 
 
 def start_test():
@@ -157,24 +185,37 @@ def start_test():
         if not (demo['state'] == "published" or demo['state'] == "preprint"):
             # Only checks the demos that are published or in preprint
             continue
+
         editors_demoid = demo['editorsdemoid']
         title = demo['title']
+        errors = {}
+
+        # Read the DDL
+        ddl = read_DDL(demo['editorsdemoid'])
 
         # Read and check editors
         editors = get_editors(editors_demoid)
-        editors_error = check_editors(editors)
+        errors.update(check_editors(editors))
 
-        # Read and check the DDL
-        ddl = read_DDL(demo['editorsdemoid'])
-        ddl_errors = check_ddl(ddl)
+        # Check the DDL
+        errors.update(check_ddl(ddl))
 
         if ddl is None:
-            print_errors(editors_demoid, title, dict(ddl_errors.items() + editors_error.items()))
+            # If there is no DDL print errors and continue to the next demo
+            print_errors(editors_demoid, title, errors, editors)
             continue
 
+        # Check the build in the DDL
+        errors.update(check_build_in_DDL(ddl))
+        # Check the run in the DDL
+        errors.update(check_run_in_DDL(ddl))
+        # Check the url in the DDL if the demo is published
+        if (demo['state'] == "published"): errors.update(check_url_in_DDL(ddl))
         # Check the demo extras
-        demo_extras_errors = check_demo_extras(editors_demoid,ddl)
-        print_errors(editors_demoid, title, dict(ddl_errors.items() + editors_error.items() + demo_extras_errors.items()))
+        errors.update(check_demo_extras(editors_demoid,ddl))
+
+        # print errors
+        print_errors(editors_demoid, title, errors, editors)
 
 
 
