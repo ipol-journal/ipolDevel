@@ -283,12 +283,23 @@ ipol.history.SetPageState = function( page_state) {
                             
                             // Create RunDemo instance
                             var di = $("#DrawInputs").data("draw_inputs");
-                            var run = new ipol.RunDemo( page_state.ddl_json,
-                                                        di.getInputOrigin(),
-                                                        di.getCropInfo(),
-                                                        di.getBlobSet(), 
-                                                        di.getDrawFeature()
-                                                        );
+                            if (di) {
+                                var run = new ipol.RunDemo( page_state.ddl_json,
+                                                            di.getInputOrigin(),
+                                                            di.getCropInfo(),
+                                                            di.getBlobSet(), 
+                                                            di.getDrawFeature()
+                                                            );
+                            }
+                            else {
+                                var run = new ipol.RunDemo( page_state.ddl_json,
+                                                            "noinputs",
+                                                            null,
+                                                            null, 
+                                                            null
+                                                            );
+                            }
+                            
                             run.setRunEvent();
                             
                             // update parameters once the inputs
