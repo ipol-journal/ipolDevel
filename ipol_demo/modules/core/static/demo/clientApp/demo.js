@@ -311,14 +311,14 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 
                     var di = new ipol.DrawInputs(ddl_json);
                     
-                    di.setInputOrigin("noinputs");
+                    di.setInputOrigin("noinputs");                                              
                     var run = new ipol.RunDemo(ddl_json,
                                                di.getInputOrigin(),
                                                di.getCropInfo(),
                                                di.getBlobSet(),
-                                               di.getDrawMask(),
-                                               di.getDrawLines()
-                                              );
+                                               di.getDrawFeature()
+                                              );                                              
+                                              
                     run.setRunEvent();
                 }
 
