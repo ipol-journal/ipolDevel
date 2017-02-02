@@ -320,8 +320,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                                                null,
                                                null,
                                                null
-                                              );                                              
-                                              
+                                              );
                     run.setRunEvent();
                 }
 

@@ -285,11 +285,14 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
             } else {
                 var params = {};
             }
+            
             // add crop info as parameters (would only need image size...)
-            params['x0']=Math.round(_crop_info.x);
-            params['x1']=Math.round(_crop_info.x+_crop_info.w);
-            params['y0']=Math.round(_crop_info.y);
-            params['y1']=Math.round(_crop_info.y+_crop_info.h);
+            if (_crop_info) {
+                params['x0']=Math.round(_crop_info.x);
+                params['x1']=Math.round(_crop_info.x+_crop_info.w);
+                params['y0']=Math.round(_crop_info.y);
+                params['y1']=Math.round(_crop_info.y+_crop_info.h);
+            }
 
             if (_drawfeature) {
                 _drawfeature.AddToParameters(params);
