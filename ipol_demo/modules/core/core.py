@@ -299,7 +299,7 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>List of demos</h2>
+                 <h1>List of demos</h1>
                  <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br>
                  {}
                  </body>
@@ -1148,6 +1148,8 @@ hostname, hostbyname, unresponsive_demorunners_list)
                 i += 1
         elif input_type == 'blobset':
             blobs = json.loads(kwargs['blobs'])
+        elif input_type == 'noinputs':
+            pass
         else:
             error_str = "unknown input_type == '{}'".\
               format(input_type)
