@@ -267,7 +267,6 @@ class DemoDAO(object):
         """
         Add a demo.
         """
-        print "Llego"
         try:
 
             # print 'demo.editorsdemoid: ',demo.editorsdemoid
@@ -286,7 +285,6 @@ class DemoDAO(object):
             INSERT INTO demo(editor_demo_id, title, abstract, zipURL, stateID)
             VALUES(?,?,?,?,?)''', (demo.editorsdemoid, demo.title, demo.abstract,
                                      demo.zipURL, state_id,))
-            print "termino"
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:
