@@ -386,6 +386,7 @@ class DemoRunner(object):
             for file in files_to_move.split(","):
                 files_path.append(path.join(bin_dir,os.path.basename(file.strip())))
 
+
             try:
                 # Download
                 extract_needed = build.download(url, tgz_file)
@@ -403,8 +404,23 @@ class DemoRunner(object):
                     for file_to_move in files_to_move.split(","):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
-                        shutil.move(path.join(src_dir,file_to_move), path.join(bin_dir, os.path.basename(file_to_move)))
-
+                        #
+                        path_from = path.join(src_dir,file_to_move)
+                        path_to = path.join(bin_dir, os.path.basename(file_to_move))
+                        
+                        print "Moving {} --> {}".\
+                              format(path_from, path_to)
+                        
+                        try:
+                            shutil.move(path_from, path_to)
+                        except (IOError, OSError):
+                            # If can't move, write in the log file, so
+                            # the user can see it
+                            f = open(log_file, 'w')
+                            f.write("Failed to move {} --> {}".\
+                              format(path_from, path_to))
+                            f.close()
+                            raise                            
             except Exception:
                 self.logger.exception("Build failed")
                 raise
