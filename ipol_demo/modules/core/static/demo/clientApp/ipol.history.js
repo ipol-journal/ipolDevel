@@ -86,7 +86,7 @@ ipol.history.SetPageState = function( page_state) {
             width:  params.x1-params.x0,
             height: params.y1-params.y0
         };
-        console.info("1 di=",di);
+
         // recreate only if it has changed:
         if ((!di)||(!ipol.utils.objectEquals(ddl_json,di.ddl_json))) {
             if (di) { console.info("2", ddl_json, " != ",di.ddl_json); }
@@ -283,12 +283,23 @@ ipol.history.SetPageState = function( page_state) {
                             
                             // Create RunDemo instance
                             var di = $("#DrawInputs").data("draw_inputs");
-                            var run = new ipol.RunDemo( page_state.ddl_json,
-                                                        di.getInputOrigin(),
-                                                        di.getCropInfo(),
-                                                        di.getBlobSet(), 
-                                                        di.getDrawFeature()
-                                                        );
+                            if (di) {
+                                var run = new ipol.RunDemo( page_state.ddl_json,
+                                                            di.getInputOrigin(),
+                                                            di.getCropInfo(),
+                                                            di.getBlobSet(), 
+                                                            di.getDrawFeature()
+                                                            );
+                            }
+                            else {
+                                var run = new ipol.RunDemo( page_state.ddl_json,
+                                                            "noinputs",
+                                                            null,
+                                                            null, 
+                                                            null
+                                                            );
+                            }
+                            
                             run.setRunEvent();
                             
                             // update parameters once the inputs
