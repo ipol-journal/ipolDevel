@@ -1761,14 +1761,18 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             state = demo_dao.read(int(demoid)).state
-            print "El estado de esta demo es: ", state
-            if not state == 1: # If the demo is not published the DDL is overwritten
+            if not state == "published": # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
-                demodescription_id = dao.read_last_demodescription_from_demo(
-                    int(demoid))['demodescriptionId']
+                demodescription = dao.read_last_demodescription_from_demo(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
-                dao.update(int(demodescription_id), demojson)
+                if demodescription is None: # Check if is a new demo
+                    demodescription_id = dao.add(demojson, inproduction=inproduction)
+                    dao = DemoDemoDescriptionDAO(conn)
+                    dao.add(int(demoid), int(demodescription_id))
+                else:
+                    demodescription_id = demodescription['demodescriptionId']
+                    dao.update(int(demodescription_id), demojson)
 
             else:           #Otherwise it's create a new one
                 dao = DemoDescriptionDAO(conn)
