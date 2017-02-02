@@ -86,7 +86,7 @@ ipol.history.SetPageState = function( page_state) {
             width:  params.x1-params.x0,
             height: params.y1-params.y0
         };
-        console.info("1 di=",di);
+
         // recreate only if it has changed:
         if ((!di)||(!ipol.utils.objectEquals(ddl_json,di.ddl_json))) {
             if (di) { console.info("2", ddl_json, " != ",di.ddl_json); }
