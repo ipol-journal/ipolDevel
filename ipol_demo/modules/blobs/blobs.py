@@ -454,9 +454,6 @@ class   Blobs(object):
         else:
             os.remove(path)
 
-        #tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        #return tmpl_lookup.get_template("get_blobs_of_demo.html").render(demo_name=demo)
-
         return self.get_blobs_of_demo(demo)
 
     @cherrypy.expose
@@ -775,18 +772,25 @@ class   Blobs(object):
         thumbnail_hash_blob = "thumbnail_" + hash_blob + ".jpg"
         path_thumb = os.path.join(self.base_directory,
                                   self.thumb_dir, thumbnail_hash_blob)
-        dic={}
-        try:
-            # process paths
-            path_file = get_new_path(path_file)
-            path_thumb = get_new_path(path_thumb)
+        # process paths
+        path_file = get_new_path(path_file)
+        path_thumb = get_new_path(path_thumb)
 
-            # remove blob
-            if os.path.isfile(path_file):
-                os.remove(path_file)
-            if os.path.isfile(path_thumb):
-                os.remove(path_thumb)
-                    
+        try:
+            os.remove(path_file)
+        except OSError as ex:
+            error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
+            self.logger.error(error_message)
+            print error_message
+            
+        try:
+            os.remove(path_thumb)
+        except OSError as ex:
+            error_message = "Failure removing the thumbnail of blob {}. Error: {} ".format(blob,ex)
+            self.logger.error(error_message)
+            print error_message
+            
+        try:
             #Delete the visual representation (if exists)
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
             _, vr_folder = get_new_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
@@ -795,16 +799,14 @@ class   Blobs(object):
 
             for vr_to_delete in list_of_visrep:
                 os.remove(vr_to_delete)
-            
-            dic['status'] = 'OK'
+        
         except Exception as ex:
-            error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
+            error_message = "Failure removing the visrep of blob {}. Error: {} ".format(blob,ex)
             self.logger.error(error_message)
-            dic['status'] = 'KO'
-            dic['error']  = error_message
-            
-        return dic
-    
+            print error_message
+        
+        
+        
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
@@ -989,12 +991,12 @@ class   Blobs(object):
         data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
         
+        print "\n\n1\n\n"
+              
+        
         if res["status"] == "OK" and res["delete"]:
-            data = self.remove_files_associated_to_a_blob(res["delete"])
-            ## Ask Miguel... 
-            if data['status'] == 'KO':
-                return json.dumps(data)                
-
+            self.remove_files_associated_to_a_blob(res["delete"])
+            
         return self.get_blobs_of_demo(demo_name)
 
     @cherrypy.expose
@@ -1090,7 +1092,7 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    def get_blobs_of_demo(self, demo_name):
+    def get_blobs_of_demo(self, demo_name, blob_deleted_message=None):
         """
         Web page to show the blobs of the demo from id demo
 
@@ -1140,13 +1142,15 @@ class   Blobs(object):
                 b["url"] = get_new_path(blob_set[idx]["url"], False)
                 b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
 
+        
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
             blobs_list=demo_blobs["blobs"],
             demo_name=demo_name,
             demo=demo_blobs,
             tmpl_list=template_list_res["template_list"],
-            tmpl_blobs=template_blobs)
+            tmpl_blobs=template_blobs,
+            blob_deleted_message=blob_deleted_message)
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
@@ -1271,6 +1275,7 @@ class   Blobs(object):
         cherrypy.response.headers['Content-Type'] = "application/json"
         
         dic = {}
+        dic["status"] = "KO"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 blobfilenames_to_delete = data.remove_demo(demo_name)
@@ -1278,21 +1283,13 @@ class   Blobs(object):
                 
                 # remove from disk unused blobs
                 for blob in blobfilenames_to_delete:
-                    dic = self.remove_files_associated_to_a_blob(blob)
+                    self.remove_files_associated_to_a_blob(blob)
                     
-                    ## Ask Miguel... 
-                    if dic["status"] == 'KO':
-                        self.logger.exception("Failure when deleting a blob in op_remove_demo_ws")
-                        data.rollback()
-                        return json.dumps(dic)
-                
                 dic["status"] = "OK"
-
 
             except DatabaseError:
                 self.logger.exception("Cannot delete demo")
                 data.rollback()
-                dic["status"] = "KO"
 
         return json.dumps(dic)
 

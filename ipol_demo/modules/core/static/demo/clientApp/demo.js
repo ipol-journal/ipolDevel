@@ -309,15 +309,17 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                     $("#selectinputs_fieldset").hide();
                     $("#inputs_fieldset"      ).hide();
 
-                    var di = new ipol.DrawInputs(ddl_json);
+                    // [Miguel] You can't do that is there's no inputs!
+                    // di will be undefined in that case.
+                    //
+                    //var di = new ipol.DrawInputs(ddl_json);                    
+                    //di.setInputOrigin("noinputs");
                     
-                    di.setInputOrigin("noinputs");
                     var run = new ipol.RunDemo(ddl_json,
-                                               di.getInputOrigin(),
-                                               di.getCropInfo(),
-                                               di.getBlobSet(),
-                                               di.getDrawMask(),
-                                               di.getDrawLines()
+                                               "noinputs",
+                                               null,
+                                               null,
+                                               null
                                               );
                     run.setRunEvent();
                 }

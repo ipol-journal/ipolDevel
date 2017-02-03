@@ -10,7 +10,7 @@ description if that's the case.
 To test the POST WS use the following:
         curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
         curl -d editorsdemoid=777 -d title='demo1' -d
-            abstract='demoabstract' -d zipURL='http://prueba.com' -d active=1 -d
+            abstract='demoabstract' -d zipURL='http://prueba.com'  -d
             state=published -X POST 'http://127.0.0.1:9002/add_demo'
         or use Ffox plugin: Poster
 
@@ -686,7 +686,6 @@ class DemoInfo(object):
             data["title"] = demo.title
             data["abstract"] = demo.abstract
             data["zipURL"] = demo.zipURL
-            data["active"] = demo.active
             data["state"] = demo.state
             data["creation"] = demo.creation
             data["modification"] = demo.modification
@@ -725,7 +724,6 @@ class DemoInfo(object):
             data["title"] = demo.title
             data["abstract"] = demo.abstract
             data["zipURL"] = demo.zipURL
-            data["active"] = demo.active
             data["state"] = demo.state
             data["creation"] = demo.creation
             data["modification"] = demo.modification
@@ -747,7 +745,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def add_demo(self, editorsdemoid, title, abstract, zipURL, active, state,
+    def add_demo(self, editorsdemoid, title, abstract, zipURL, state,
                  demodescriptionID=None, demodescriptionJson=None):
         """
         Allows you to create a demo:
@@ -759,10 +757,6 @@ class DemoInfo(object):
         data["status"] = "KO"
 
         try:
-
-            active = convert_str_to_bool(active)
-            #print "active", active, type(active)
-
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
 
@@ -771,7 +765,7 @@ class DemoInfo(object):
                 #creates a demodescription and asigns it to demo
                 dddao = DemoDescriptionDAO(conn)
                 demodescriptionID = dddao.add(demodescriptionJson)
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), state)
+                d = Demo(int(editorsdemoid), title, abstract, zipURL, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
                 dddao.add(int(editorsdemoid), int(demodescriptionID))
@@ -779,7 +773,7 @@ class DemoInfo(object):
             elif demodescriptionID:
                 # print "demodescriptionID"
                 #asigns to demo an existing demodescription
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, int(active), state)
+                d = Demo(int(editorsdemoid), title, abstract, zipURL, state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
                 ddddao.add(int(editorsdemoid), int(demodescriptionID))
@@ -788,7 +782,8 @@ class DemoInfo(object):
                 #demo created without demodescription
                 #careful with Demo init method's validation!
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract,
-                         zipurl=zipURL, active=int(active), state=str(state))
+                         zipurl=zipURL, state=str(state))
+
                 demoid = dao.add(d)
 
             conn.close()
@@ -813,7 +808,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def delete_demo(self, demo_id, hard_delete=False):
+    def delete_demo(self, demo_id):
         """
         webservice deleting given demo.
         """
@@ -824,54 +819,28 @@ class DemoInfo(object):
 
             conn = lite.connect(self.database_file)
 
-            # hard_delete must be converted to int!
-            try:
-                hard_delete = int(hard_delete)
-                if hard_delete not in [0, 1]:
-                    msg = " hard_delete param error"
-                    raise ValueError(msg)
-            except Exception as ex:
-                if hard_delete == 'False':
-                    hard_delete = 0
-                elif hard_delete == 'True':
-                    hard_delete = 1
-                else:
-                    msg = " hard_delete param error"
-                    raise ValueError(msg)
+            demo_dao = DemoDAO(conn)
+            #read demo
+            demo = demo_dao.read(int(demo_id))
 
+            dd_dao = DemoDemoDescriptionDAO(conn)
+            print "demo id", demo_id
+            print "demo", demo.editorsdemoid
+            #read demo_demodescription
+            # demo_ddl_list = dd_dao.read_demo_demodescriptions(int(demo_id))
+            # print
+            # print "demo_ddl_list", demo_ddl_list
+            # print
+            # print "demoid to delete ", demo_id
+            # print
+            # print "demo: ", demo.__dict__
 
-            #print "hard_delete",hard_delete
-            if hard_delete:
-
-                demo_dao = DemoDAO(conn)
-                #read demo
-                demo = demo_dao.read(int(demo_id))
-
-                dd_dao = DemoDemoDescriptionDAO(conn)
-                print "demo id", demo_id
-                print "demo", demo.editorsdemoid
-                #read demo_demodescription
-                # demo_ddl_list = dd_dao.read_demo_demodescriptions(int(demo_id))
-                # print
-                # print "demo_ddl_list", demo_ddl_list
-                # print
-                # print "demoid to delete ", demo_id
-                # print
-                # print "demo: ", demo.__dict__
-
-                #delete demo decription history borra ddl id 3
-                #d_dd con id 2 , y demoid=2, demodescpid 3 deberia no estar
-                dd_dao.delete_all_demodescriptions_for_demo(int(demo_id))
-                #delete demo, and delete on cascade demodemodescription
-                demo_dao.delete(int(demo_id))
-                data["status"] = "OK"
-
-            else:
-                # do not delete, activate /deactivate
-                demo_dao = DemoDAO(conn)
-                demo_dao.set_active_flag(int(demo_id), int(False))
-                data["status"] = "OK"
-
+            #delete demo decription history borra ddl id 3
+            #d_dd con id 2 , y demoid=2, demodescpid 3 deberia no estar
+            dd_dao.delete_all_demodescriptions_for_demo(int(demo_id))
+            #delete demo, and delete on cascade demodemodescription
+            demo_dao.delete(int(demo_id))
+            data["status"] = "OK"
             conn.close()
 
         except Exception as ex:
@@ -900,7 +869,6 @@ class DemoInfo(object):
         p = Payload(demo)
         # print
         # print "update_demo"
-        # print "p.active" ,p.active
         # print "p " ,p
         # print "p type" ,type(p)
         # print
@@ -908,11 +876,9 @@ class DemoInfo(object):
         if hasattr(p, 'creation'):
             #update creatio ndate
 
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL,
-                     p.active, p.state, p.creation)
+            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state, p.creation)
         else:
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL,
-                     p.active, p.state)
+            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
 
         #update Demo
         try:
@@ -1795,14 +1761,18 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             state = demo_dao.read(int(demoid)).state
-            print "El estado de esta demo es: ", state
-            if state == 3: #If the demo is inactive the DDL is overwritten
+            if not state == "published": # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
-                demodescription_id = dao.read_last_demodescription_from_demo(
-                    int(demoid))['demodescriptionId']
+                demodescription = dao.read_last_demodescription_from_demo(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
-                dao.update(int(demodescription_id), demojson)
+                if demodescription is None: # Check if is a new demo
+                    demodescription_id = dao.add(demojson, inproduction=inproduction)
+                    dao = DemoDemoDescriptionDAO(conn)
+                    dao.add(int(demoid), int(demodescription_id))
+                else:
+                    demodescription_id = demodescription['demodescriptionId']
+                    dao.update(int(demodescription_id), demojson)
 
             else:           #Otherwise it's create a new one
                 dao = DemoDescriptionDAO(conn)
@@ -1912,7 +1882,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def stats(self):
         """
-        return the count of active demos, authors and editors.
+        return the count demos, authors and editors.
         """
         data = {}
         data["status"] = "KO"
@@ -1920,7 +1890,7 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
             cursor_db.execute("""
-            SELECT COUNT(*) FROM demo WHERE active = 1""")
+            SELECT COUNT(*) FROM demo""")
             data["nb_demos"] = cursor_db.fetchone()[0]
             cursor_db.execute("""
             SELECT COUNT(*) FROM author""")
