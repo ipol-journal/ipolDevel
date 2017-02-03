@@ -255,13 +255,11 @@ class Archive(object):
 
         return new_path, subdirs
 
-
-
     def add_to_blob_table(self, conn, blob_dict):
         """
-        This function check if an blob exist in the table. If it exist,
+        This function checks if a blob exists in the table. If it exists,
         the id is returned. If not, the blob is added, then the id is returned.
-        :return: id of the blob in the database.
+        :return: id of the blob in the database and blob name
         :rtype: integer.
         """
 
@@ -293,10 +291,8 @@ class Archive(object):
                 blob_thumbnail_path = blob_path
                 blob_path = blob_path_aux
 
-
         id_blob = int()
         path_new_file = str()
-        tmp = tuple()
 
         hash_file = self.get_hash_blob(blob_path)
         format_file = self.file_format(blob_path)
@@ -306,28 +302,45 @@ class Archive(object):
         type_file = extension[1]
         type_file.lower()
 
+        # Look for the given hash in the blobs table
+        # Returns the blob id of the one with that hash (if exists)
         cursor_db = conn.cursor()
-        cursor_db.execute('''
-        SELECT * FROM blobs WHERE hash = ?
+        query = cursor_db.execute('''
+        SELECT id FROM blobs WHERE hash = ?
         ''', (hash_file,))
 
-        if not tmp:
+        self.error_log('-------------*-------------', '')
+        self.error_log('hash ', str(hash_file))
+        row = query.fetchone()
 
+        # If hash already exists, use the blob id that was returned
+        # Useful to reference the same blob from different experiments and
+        # to avoid storing the same hash with different blob id
+        if row is not None:
+            id_blob = int(row[0])
+
+        # If the hash was not found, it must be inserted into the blobs table
+        else:
             path_new_file, _ = self.get_new_path(self.blobs_dir, hash_file, type_file)
 
+            # insert the new blob
             cursor_db.execute('''
             INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
             ''', (hash_file, type_file, format_file,))
 
+            # get the id of the blob previously inserted
+            id_blob = int(str(cursor_db.lastrowid))
+
+            # write blob file to disk
             shutil.copyfile(blob_path, path_new_file)
 
+            # write thumbnail file to disk
             if copy_thumbnail:
-
-                path_new_thumbnail, _ = self.get_new_path(\
-                  self.blobs_thumbs_dir, hash_file, "jpeg")
+                path_new_thumbnail, _ = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
                 shutil.copyfile(blob_thumbnail_path, path_new_thumbnail)
 
-        id_blob = int(cursor_db.lastrowid)
+        self.error_log('> returned id_blob ', str(id_blob))
+        self.error_log('> returned blob_name ', str(blob_name))
         return id_blob, blob_name
 
     def update_exp_table(self, conn, demo_id, parameters):
@@ -346,10 +359,9 @@ class Archive(object):
 
     def update_blob_table(self, conn, blobs):
         """
-        This function update the blob table.
-                It return a dictionary of data to be added
-                to the correspondence table.
-        :return: a dictionary of data to be added to the correspondence table.
+        This function updates the blobs table.
+        It return a dictionary of data to be added to the correspondences table.
+        :return: a dictionary of data to be added to the correspondences table.
         :rtype: dict
         """
         id_blob = int()
@@ -378,7 +390,7 @@ class Archive(object):
     @cherrypy.expose
     def add_experiment(self, demo_id, blobs, parameters):
         """
-        This function add an experiment with all its datas to the archive.
+        This function adds an experiment with all its data to the archive.
                 In case of failure, False will be returned.
         :return: status of the operation
         :rtype: JSON formatted string.
@@ -394,6 +406,8 @@ class Archive(object):
             conn.commit()
             conn.close()
             data["id_experiment"] = id_experiment
+
+            #
 
         except Exception as ex:
             self.error_log("add_experiment", str(ex))
@@ -625,16 +639,37 @@ class Archive(object):
         """
         This function delete the given id_blob, in the database and physically.
         """
+        self.error_log("@@@@@@@@@@@@ delete_blob @@@@@@@@@@@@@", '')
         cursor_db = conn.cursor()
         cursor_db.execute("""
         SELECT * FROM blobs WHERE id = ?""", (id_blob,))
         tmp = cursor_db.fetchone()
-        path_blob = self.blobs_dir + tmp[1] + '.' + tmp[2]
-        path_thumb = self.blobs_thumbs_dir + tmp[1] + '.' + 'jpeg'
+        self.error_log('    === tmp ===', str(len(tmp)))
+        self.error_log('    === [0] ===', str(tmp[0]))
+        self.error_log('    === [1] ===', str(tmp[1]))
+        self.error_log('    === [2] ===', str(tmp[2]))
+        self.error_log('    === [3] ===', str(tmp[3]))
+
+        # path_blob = self.blobs_dir + tmp[1] + '.' + tmp[2]
+        # self.error_log("tmp[1] > ", tmp[1])
+        # self.error_log("tmp[2] > ", tmp[2])
+        # get the new path of the
+        path_blob, subdirs = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
+        # self.error_log("path_file > ", path_file)
+        # self.error_log("subdirs > ", subdirs)
+        # self.error_log("delete_blob > ", path_blob)
+
+        # path_thumb = self.blobs_thumbs_dir + tmp[1] + '.' + 'jpeg'
+        path_thumb, subdirs = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
+        self.error_log("    remove blob > ", path_blob)
+        self.error_log("    remove thumb > ", path_thumb)
+
         os.remove(path_blob)
         os.remove(path_thumb)
         cursor_db.execute("""
         DELETE FROM blobs WHERE id = ?""", (id_blob,))
+        self.error_log("    BLOB DELETED: ", str(tmp[0]))
+        self.error_log("@@@@@@@@@@@@ /delete_blob @@@@@@@@@@@@@", '')
 
     def purge_unique_blobs(self, conn, ids_blobs):
         """
@@ -642,15 +677,19 @@ class Archive(object):
                 If this is the case, they are deleted both in the database
                 and physically.
         """
+        self.error_log("@@@@@@@@@@@@ purge_unique_blobs @@@@@@@@@@@@@", '')
+
         cursor_db = conn.cursor()
 
         for blob in ids_blobs:
             cursor_db.execute("""
             SELECT COUNT(*) FROM correspondence WHERE id_blob = ?""",\
             (blob,))
-
             if cursor_db.fetchone()[0] == 1:
+                self.error_log("    call to delete_blob", str(blob))
                 self.delete_blob(conn, blob)
+        self.error_log("@@@@@@@@@@@@ /purge_unique_blobs @@@@@@@@@@@@@", '')
+
 
     def delete_exp_w_deps(self, conn, experiment_id):
         """
@@ -659,6 +698,9 @@ class Archive(object):
                 table. If the blobs are used only in this experiment, they will be
                 removed too.
         """
+        self.error_log("@@@@@@@@@@@@ delete_exp_w_deps @@@@@@@@@@@@@", '')
+        self.error_log("    id_experiment: ", str(experiment_id))
+
         ids_blobs = []
         cursor_db = conn.cursor()
         cursor_db.execute("""
@@ -668,15 +710,25 @@ class Archive(object):
         SELECT * FROM correspondence where id_experiment = ?""",\
         (experiment_id,)):
             ids_blobs.append(row[2])
+            self.error_log('SELECT * FROM correspondence', str(row[2]))
 
+        self.error_log("    call to purge_unique_blobs with blobs", str(len(ids_blobs)))
         self.purge_unique_blobs(conn, ids_blobs)
-        cursor_db.execute("""
+
+        for row in cursor_db.execute("""
         DELETE FROM experiments WHERE id = ?
-        """, (experiment_id,))
+        """, (experiment_id,)):
+            self.error_log("DELETE FROM experiments WHERE id = ", experiment_id)
+
         cursor_db.execute("""
         DELETE FROM correspondence WHERE id_experiment = ?
         """, (experiment_id,))
+
         cursor_db.execute("VACUUM")
+
+        status = 'UNKNOWN'
+        self.error_log("@@@@@@@@@@@@ /delete_exp_w_deps @@@@@@@@@@@@@", '')
+        return status
 
     @cherrypy.expose
     def delete_experiment(self, experiment_id):
@@ -685,20 +737,26 @@ class Archive(object):
                 experiment.
         :rtype: JSON formatted string
         """
+        self.error_log("@@@@@@@@@@@@ delete_experiment @@@@@@@@@@@@@", '')
         status = {"status" : "KO"}
         try:
             conn = lite.connect(self.database_file)
-            self.delete_exp_w_deps(conn, experiment_id)
+            # status["status"] = 'A'
+            status["status"] = self.delete_exp_w_deps(conn, experiment_id)
+            #status["status"] = 2
             conn.commit()
+            #status["status"] = 3
             conn.close()
             status["status"] = "OK"
         except Exception as ex:
+            status["status"] = ex
             self.error_log("delete_experiment", str(ex))
             try:
                 conn.rollback()
                 conn.close()
             except Exception as ex:
                 pass
+        self.error_log("@@@@@@@@@@@@ /delete_experiment @@@@@@@@@@@@@", '')
         return json.dumps(status)
 
 #####
