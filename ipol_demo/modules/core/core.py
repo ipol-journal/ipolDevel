@@ -286,8 +286,6 @@ workload of '{}'".format(dr_name)
             demos_string += "<h2>{}</h2>".format(publication_state)
             
             for demo_data in demos_by_state[publication_state]:
-                print demo_data['title']
-                
                 demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                     demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'])
 
@@ -761,10 +759,58 @@ format(work_dir, original_blob_path)
 
         return content
 
+    
+    def download_demo_extra(self, source, target, first_download):
+        """
+        Download a demoextras for a given demo
+        inputs: source from demoinfo, target in core, first_download (true or false)
+        return: success or not
+        """
+        if not first_download:
+            try:
+                os.remove(target)
+            except OSError as ex: 
+                error_message = "Failure removing the demoextra {}.\
+Error: {} ".format(target,ex)
+                self.logger.error(error_message)
+                return False
+            
+        print "Downloading  {} ...".format(source)
+        if self.download(source, target) == 1:
+            error_message = "Failure downloading the demoextra {}".format(source)
+            self.logger.error(error_message)
+            return False
+        
+        return True
+    
+    def extract_demo_extra(self, demo_id, compressed_file):
+        """
+        Extract a demo extra...
+        input: demo_id and compressed file for the extraction
+        return: success or not 
+        """
+        demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
+
+        try:        
+            if os.path.isdir(demoExtrasFolder):
+                print "Cleaning the original {} ".format(demoExtrasFolder)
+                shutil.rmtree(demoExtrasFolder)                        
+            
+            self.mkdir_p(demoExtrasFolder)
+            print "Extracting {} ...".format(compressed_file)
+            self.extract(compressed_file, demoExtrasFolder)
+            success = True
+        
+        except Exception as ex:
+            error_message="Extraction failed for demo {}. \
+Exception {} ".format(demo_id, ex)
+            self.logger.exception(error_message)
+            success = False
+        
+        return success
 
 
-    # [ToDo] [Miguel] The code in this function is
-    # quite spaghetti! --> Refactor
+
     def ensure_extras_updated(self, demo_id):
         """
         Ensure that the demo extras of a given demo are updated respect to demoinfo information.
@@ -776,105 +822,52 @@ format(work_dir, original_blob_path)
         compressed_file = os.path.join(ddl_extras_folder, \
           self.demoExtrasFilename)
 
-        download_compressed_file = False
-
-        if os.path.isdir(ddl_extras_folder):
-
-            if os.path.isfile(compressed_file):
-
-                file_state = os.stat(compressed_file)
-
-                userdata = {}
-                userdata["demo_id"] = demo_id
-                userdata["time_of_file_in_core"] = str(file_state.st_ctime)
-                userdata["size_of_file_in_core"] = str(file_state.st_size)
-
-                resp = self.post(self.host_name, 'demoinfo', \
-                  'get_file_updated_state', userdata)
-                response = resp.json()
-
-                status = response['status']
-
-                if status == 'OK':
-
-                    core_file_is_newer = response['code']
-
-                    print "core_file_is_newer (2 = no, 0 = yes)", \
-                      core_file_is_newer
-
-                    if core_file_is_newer == '2':
-                        print "Deleting the previous file..."
-                        os.remove(compressed_file)
-                        compressed_file_url_from_demoinfo = \
-                          response['url_compressed_file']
-
-                        print "Downloading the new file..."
-                        if self.download(\
-                             compressed_file_url_from_demoinfo, \
-                             compressed_file) == 1:
-                            print "Problem dowloading the compressed_file"
-
-                        demoExtrasFolder = os.path.join(\
-                          self.demoExtrasMainDir, demo_id)
-                        if os.path.isdir(demoExtrasFolder):
-                            print "Cleaning the original " + \
-                              demoExtrasFolder + " ..."
-                            shutil.rmtree(demoExtrasFolder)
-                        else:
-                            self.mkdir_p(demoExtrasFolder)
-
-                        print "Extracting the new file..."
-                        self.extract(compressed_file, \
-                          demoExtrasFolder)
-
-                else:
-                    print \
-"Failure requesting demo extras file. Code:" + response['code']
-                    return response
-            else:
-                download_compressed_file = True
-        else:
-            print ddl_extras_folder
-            self.mkdir_p(ddl_extras_folder)
-
-            download_compressed_file = True
-
-
-        if download_compressed_file:
-            userdata = {"demo_id":demo_id}
+        self.mkdir_p(ddl_extras_folder)
+        
+        userdata = {"demo_id":demo_id}
+        
+        if not os.path.isfile(compressed_file):
+            
+            first_download=True
+            code_message="First download with code "
+            
             resp = self.post(self.host_name, 'demoinfo', \
-              'get_compressed_file_url_ws', userdata)
-            response = resp.json()
+                   'get_compressed_file_url_ws', userdata)
+                    
+        else:
+            ## If the file already exists, we must compare the dates
+            first_download=False
+            code_message="Is the file in the core newer? (2 = no, 0 = yes)"
+            
+            file_state = os.stat(compressed_file)
+            userdata["time_of_file_in_core"] = str(file_state.st_ctime)
+            userdata["size_of_file_in_core"] = str(file_state.st_size)
+            
+            resp = self.post(self.host_name, 'demoinfo', \
+               'get_file_updated_state', userdata)
+        
+        response = resp.json()
+        status = response['status']
+        code = response['code']
 
-            status = response['status']
-
-            if status == 'OK':
-
-                code = response['code']
-                if code == '2':
-                    compressed_file_url_from_demoinfo = response['url_compressed_file']
-
-                    print "Downloading the new file..."
-                    if self.download(compressed_file_url_from_demoinfo, compressed_file) == 1:
-                        print "Problem dowloading the compressed_file"
-                        response["status"] = 'KO'
-                        return response
-
-                    demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
-                    print "Creating the " + demoExtrasFolder + " folder..."
-                    self.mkdir_p(demoExtrasFolder)
-                    # [ToDo] Use .format(...), not "+"
-                    print "Extracting the " + compressed_file + \
-                      " in " + demoExtrasFolder + " folder..."
-                    self.extract(compressed_file, demoExtrasFolder)
-
-                else:
-                    print "Failure downloading the demo_extras from \
-demoinfo. Failure code -> " + response['code']
-
-
+        if status == "OK":
+            
+            print code_message, code
+            if code == "2":
+                file_from_demoinfo = response['url_compressed_file']            
+                self.download_demo_extra(file_from_demoinfo, compressed_file, first_download)
+                
+                if not self.extract_demo_extra(demo_id, compressed_file):            
+                    raise
+        else:
+            error_message = "KO downloading a demoextras. \
+Demoinfo code = {}".format(response['code'])
+            self.logger.exception(error_message)
+            print error_message
+            raise
+        
         return response
-
+        
 
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
