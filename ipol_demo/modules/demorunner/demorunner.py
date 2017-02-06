@@ -663,11 +663,11 @@ class DemoRunner(object):
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
         
 
-    def read_workdir_file(self, demo_id, filename):
+    def read_workdir_file(self, demo_id, work_dir, filename):
         '''
         Reads a text files from the working directory
         '''
-        full_file = os.path.join(self.work_dir, filename)
+        full_file = os.path.join(work_dir, filename)
         lines = ""
         if os.path.isfile(full_file):
             with open(full_file) as f:
@@ -687,9 +687,9 @@ class DemoRunner(object):
         params = json.loads(params)
         print "params = ", params
 
-        path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id, "/")
+        path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
         print "path_with_the_binaries = ", path_with_the_binaries
-        work_dir = os.path.join(self.share_running_dir, demo_id, key, "/")
+        work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
         print "run dir = ", work_dir
 
         res_data = {}
@@ -730,20 +730,26 @@ class DemoRunner(object):
             print res_data
             return json.dumps(res_data)
         except RuntimeError as e:
-            self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
-            res_data['status'] = 'KO'
+            
+            try:
+                self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
+                res_data['status'] = 'KO'
 
-            # Read stderr and stdout
-            stderr_lines = self.read_workdir_file(demo_id, "stderr.txt")
-            stdout_lines = self.read_workdir_file(demo_id, "stdout.txt")
-                        
-            # Put them in the message for the web interface
-            res_data['algo_info']['status'] = 'RuntimeError, \
-stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+                # Read stderr and stdout
+                stderr_lines = self.read_workdir_file(demo_id, work_dir, "stderr.txt")
+                stdout_lines = self.read_workdir_file(demo_id, work_dir, "stdout.txt")
+                            
+                # Put them in the message for the web interface
+                res_data['algo_info']['status'] = 'RuntimeError, \
+    stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
 
-            res_data['error'] = str(e)
-            print res_data
-            return json.dumps(res_data)
+                res_data['error'] = str(e)
+                print res_data
+                return json.dumps(res_data)
+            except Exception as e:
+                self.logger.exception("Uncatched Exception, demo_id={}".format(demo_id))
+
+
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
             self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
