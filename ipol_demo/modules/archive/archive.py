@@ -255,92 +255,94 @@ class Archive(object):
 
         return new_path, subdirs
 
-    def add_to_blob_table(self, conn, blob_dict):
+    def add_to_blob_table(self, conn, blob_dict, copied_files_list):
         """
         This function checks if a blob exists in the table. If it exists,
         the id is returned. If not, the blob is added, then the id is returned.
-        :return: id of the blob in the database and blob name
+        :return: id of the blob in the database, and blob name
         :rtype: integer.
         """
 
-        # len = 1 --> Non-image
-        # len = 2 --> Image and thumbnail
+        # List of copied files. Useful to delete them if an exception is thrown
+        # copied_files = []
 
-        if len(blob_dict) == 1:
-            for key, value in blob_dict.items():
-                blob_name = key
-                blob_path = value
+        try:
+            # len = 1 --> Non-image
+            # len = 2 --> Image and thumbnail
 
-            copy_thumbnail = False
+            if len(blob_dict) == 1:
+                for key, value in blob_dict.items():
+                    blob_name = key
+                    blob_path = value
 
-        else:
-            blob, blob_thumbnail = blob_dict.items()
-            blob_name = blob[0]
-            blob_path = blob[1]
-            blob_thumbnail_name = blob_thumbnail[0]
-            blob_thumbnail_path = blob_thumbnail[1]
-            copy_thumbnail = True
+                copy_thumbnail = False
 
-            # The dictionary can be unordered.
-            # We need to ensure that the thumbnail is the second value.
-            #If not, we must order it correctly
-            if blob_thumbnail_name.find('_thumbnail') == -1:
-                # We correct the routes and the names.
-                blob_name = blob_thumbnail_name
-                blob_path_aux = blob_thumbnail_path
-                blob_thumbnail_path = blob_path
-                blob_path = blob_path_aux
+            else:
+                blob, blob_thumbnail = blob_dict.items()
+                blob_name = blob[0]
+                blob_path = blob[1]
+                blob_thumbnail_name = blob_thumbnail[0]
+                blob_thumbnail_path = blob_thumbnail[1]
+                copy_thumbnail = True
 
-        id_blob = int()
-        path_new_file = str()
+                # The dictionary can be unordered.
+                # We need to ensure that the thumbnail is the second value.
+                #If not, we must order it correctly
+                if blob_thumbnail_name.find('_thumbnail') == -1:
+                    # We correct the routes and the names.
+                    blob_name = blob_thumbnail_name
+                    blob_path_aux = blob_thumbnail_path
+                    blob_thumbnail_path = blob_path
+                    blob_path = blob_path_aux
 
-        hash_file = self.get_hash_blob(blob_path)
-        format_file = self.file_format(blob_path)
+            id_blob = int()
+            path_new_file = str()
 
-        _, type_file = os.path.splitext(blob_path)
-        extension = type_file.split('.')
-        type_file = extension[1]
-        type_file.lower()
+            hash_file = self.get_hash_blob(blob_path)
+            format_file = self.file_format(blob_path)
 
-        # Look for the given hash in the blobs table
-        # Returns the blob id of the one with that hash (if exists)
-        cursor_db = conn.cursor()
-        query = cursor_db.execute('''
-        SELECT id FROM blobs WHERE hash = ?
-        ''', (hash_file,))
+            _, type_file = os.path.splitext(blob_path)
+            extension = type_file.split('.')
+            type_file = extension[1]
+            type_file.lower()
 
-        self.error_log('-------------*-------------', '')
-        self.error_log('hash ', str(hash_file))
-        row = query.fetchone()
+            # Look for the given hash in the blobs table
+            # Returns the blob id of the one with that hash (if exists)
+            cursor_db = conn.cursor()
+            query = cursor_db.execute('''
+            SELECT id FROM blobs WHERE hash = ?
+            ''', (hash_file,))
+            row = query.fetchone()
 
-        # If hash already exists, use the blob id that was returned
-        # Useful to reference the same blob from different experiments and
-        # to avoid storing the same hash with different blob id
-        if row is not None:
-            id_blob = int(row[0])
+            # If hash already exists, use the blob id that was returned
+            # Useful to reference the same blob from different experiments and
+            # to avoid storing the same hash with different blob id
+            if row is not None:
+                id_blob = int(row[0])
+            # If the hash was not found, it must be inserted into the blobs table
+            else:
+                # insert the new blob
+                cursor_db.execute('''
+                INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
+                ''', (hash_file, type_file, format_file,))
 
-        # If the hash was not found, it must be inserted into the blobs table
-        else:
-            path_new_file, _ = self.get_new_path(self.blobs_dir, hash_file, type_file)
+                # get id of the blob previously inserted
+                id_blob = int(str(cursor_db.lastrowid))
 
-            # insert the new blob
-            cursor_db.execute('''
-            INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
-            ''', (hash_file, type_file, format_file,))
+                # write blob file to disk
+                path_new_file, _ = self.get_new_path(self.blobs_dir, hash_file, type_file)
+                copied_files_list.append(path_new_file)
+                shutil.copyfile(blob_path, path_new_file)
 
-            # get the id of the blob previously inserted
-            id_blob = int(str(cursor_db.lastrowid))
+                # write thumbnail file to disk
+                if copy_thumbnail:
+                    path_new_thumbnail, _ = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
+                    copied_files_list.append(path_new_thumbnail)
+                    shutil.copyfile(blob_thumbnail_path, path_new_thumbnail)
 
-            # write blob file to disk
-            shutil.copyfile(blob_path, path_new_file)
+        except Exception as ex:
+            self.error_log("add_to_blob_table", str(ex))
 
-            # write thumbnail file to disk
-            if copy_thumbnail:
-                path_new_thumbnail, _ = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
-                shutil.copyfile(blob_thumbnail_path, path_new_thumbnail)
-
-        self.error_log('> returned id_blob ', str(id_blob))
-        self.error_log('> returned blob_name ', str(blob_name))
         return id_blob, blob_name
 
     def update_exp_table(self, conn, demo_id, parameters):
@@ -357,20 +359,25 @@ class Archive(object):
 
         return int(cursor_db.lastrowid)
 
-    def update_blob_table(self, conn, blobs):
+    def update_blob_table(self, conn, blobs, copied_files_list):
         """
         This function updates the blobs table.
         It return a dictionary of data to be added to the correspondences table.
         :return: a dictionary of data to be added to the correspondences table.
         :rtype: dict
         """
-        id_blob = int()
-        dict_blobs = json.loads(blobs)
-        dict_corresp = {}
+        try:
+            id_blob = int()
+            dict_blobs = json.loads(blobs)
+            dict_corresp = []
 
-        for blob_element in dict_blobs:
-            id_blob, blob_name = self.add_to_blob_table(conn, blob_element)
-            dict_corresp[id_blob] = blob_name
+            for blob_element in dict_blobs:
+                id_blob, blob_name = self.add_to_blob_table(conn, blob_element, copied_files_list)
+                dict_corresp.append({'blob_id':id_blob, 'blob_name':blob_name})
+
+        except Exception as ex:
+            self.error_log("update_blob_table", str(ex))
+            raise
 
         return dict_corresp
 
@@ -381,11 +388,11 @@ class Archive(object):
         """
         cursor_db = conn.cursor()
 
-        for keys, values in dict_corresp.items():
+        for item in dict_corresp:
             cursor_db.execute('''
             INSERT INTO
             correspondence (id_experiment, id_blob, name)
-            VALUES (?, ?, ?)''', (id_experiment, keys, values))
+            VALUES (?, ?, ?)''', (id_experiment, item['blob_id'], item['blob_name']))
 
     @cherrypy.expose
     def add_experiment(self, demo_id, blobs, parameters):
@@ -397,27 +404,35 @@ class Archive(object):
         """
         data = {}
         data["status"] = "OK"
+        # initialize list of copied files, to delete them in case of exception
+        copied_files_list = []
+
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
             id_experiment = self.update_exp_table(conn, demo_id, parameters)
-            dict_corresp = self.update_blob_table(conn, blobs)
+            dict_corresp = self.update_blob_table(conn, blobs, copied_files_list)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
             conn.close()
             data["id_experiment"] = id_experiment
-
-            #
 
         except Exception as ex:
             self.error_log("add_experiment", str(ex))
             data["status"] = "KO"
 
             try:
+                # Execute database rollback
                 conn.rollback()
                 conn.close()
-            except Exception as ex:
+
+                # Execute deletion of copied files
+                for copied_file in copied_files_list:
+                    os.remove(copied_file)
+
+            except Exception:
                 pass
+
         return json.dumps(data)
 
 #####
