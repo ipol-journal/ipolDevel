@@ -729,26 +729,21 @@ class DemoRunner(object):
             res_data['error'] = 'IPOLTimeoutError'
             print res_data
             return json.dumps(res_data)
-        except RuntimeError as e:
-            
-            try:
-                self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
-                res_data['status'] = 'KO'
+        except RuntimeError as e:            
+            self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
+            res_data['status'] = 'KO'
 
-                # Read stderr and stdout
-                stderr_lines = self.read_workdir_file(demo_id, work_dir, "stderr.txt")
-                stdout_lines = self.read_workdir_file(demo_id, work_dir, "stdout.txt")
-                            
-                # Put them in the message for the web interface
-                res_data['algo_info']['status'] = 'RuntimeError, \
-    stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+            # Read stderr and stdout
+            stderr_lines = self.read_workdir_file(demo_id, work_dir, "stderr.txt")
+            stdout_lines = self.read_workdir_file(demo_id, work_dir, "stdout.txt")
+                        
+            # Put them in the message for the web interface
+            res_data['algo_info']['status'] = 'RuntimeError, \
+stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
 
-                res_data['error'] = str(e)
-                print res_data
-                return json.dumps(res_data)
-            except Exception as e:
-                self.logger.exception("Uncatched Exception, demo_id={}".format(demo_id))
-
+            res_data['error'] = str(e)
+            print res_data
+            return json.dumps(res_data)
 
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
