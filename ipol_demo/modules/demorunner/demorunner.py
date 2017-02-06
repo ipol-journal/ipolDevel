@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools
 import hashlib
 from   datetime import datetime
 
-import urllib
+import urllib2
 from   timeit   import default_timer as timer
 from   image    import thumbnail, image
 from   misc     import prod
@@ -601,8 +601,13 @@ class DemoRunner(object):
                     make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
                 data['status'] = "OK"
-                data['message'] = "Build for demo {0} checked".format(demo_id)
+                data['message'] = "Build of demo {0} OK".format(demo_id)
                 data['info'] = make_info
+            except urllib2.HTTPError as e:
+                print "HTTPError"
+                self.logger.exception("ensure_compilation - HTTPError")
+                data['message'] = "{}, build_params: {}".format(str(e), str(build_params))
+                return json.dumps(data)                
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
                 self.logger.exception("ensure_compilation")

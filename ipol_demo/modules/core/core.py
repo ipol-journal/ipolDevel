@@ -967,6 +967,10 @@ Demoinfo code = {}".format(response['code'])
         '''
         Send an email to the given recipients
         '''
+        if text is None:
+            text = ""
+        
+        
         emails_list = [entry[1] for entry in emails]
         emails_str = ", ".join(emails_list)
 
@@ -993,24 +997,8 @@ Demoinfo code = {}".format(response['code'])
         s.sendmail(msg['From'], emails_list, msg.as_string())
         s.quit()
 
-    def get_build_log_text(self, demo_id):
-        '''
-        Returns the contents of the build log file
-        '''
-        # [ToDo] Use the shared folder to access a DR!
-        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
-          format(self.shared_folder_abs, demo_id)
-        if not os.path.isfile(buildLog_filename):
-            return ""
 
-        fp = open(buildLog_filename, 'rb')
-        text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
-        fp.close()
-
-        return text
-
-
-    def send_compilation_error_email(self, demo_id):
+    def send_compilation_error_email(self, demo_id, text):
         ''' Send email to editor when compilation fails '''
         print "send_compilation_error_email"
 
@@ -1030,7 +1018,6 @@ Demoinfo code = {}".format(response['code'])
 
         # Send the email
         # [ToDo] Use the shared folder to access a DR!
-        text = self.get_build_log_text(demo_id)
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
@@ -1207,6 +1194,7 @@ demo_id = ", demo_id
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
             json_response = resp.json()
+
             status = json_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
 
@@ -1217,13 +1205,14 @@ demo_id = ", demo_id
 dr + " module")
 
                 # Send compilation message to the editors
-                self.send_compilation_error_email(demo_id)
-                text = self.get_build_log_text(demo_id)
+                text = "{} - {}".format(json_response["buildlog"] \
+if 'buildlog' in json_response else "", json_response["message"])
+                
+                self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
                 json_response["error"] = \
-                  " --- Compilation error. --- {} - {}".\
-                  format(json_response["message"], text)
+                  " --- Compilation error. --- {}".format(text)
 
                 return json.dumps(json_response)
 
