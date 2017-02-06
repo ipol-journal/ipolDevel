@@ -155,7 +155,7 @@ def check_editors(editors):
     return {}
 
 
-def print_errors(editors_demoid, title, errors, editors):
+def print_errors(editors_demoid, state, title, errors, editors):
     """
     Print all the errors found
     """
@@ -163,6 +163,7 @@ def print_errors(editors_demoid, title, errors, editors):
         return
 
     print "Demo #{} \"{}\"".format(editors_demoid, title)
+    print "Type: {}".format(state)
 
     # Print editors
     editors_msg = []
@@ -181,8 +182,10 @@ def print_errors(editors_demoid, title, errors, editors):
 def start_test():
     demos = get_demo_list()
     for demo in demos:
-        if not (demo['state'] == "published" or demo['state'] == "preprint"):
-            # Only checks the demos that are published or in preprint
+        state = demo['state']
+        
+        if state == "test":
+            # Do not check test demos
             continue
 
         editors_demoid = demo['editorsdemoid']
@@ -194,13 +197,14 @@ def start_test():
 
         # Read and check editors
         editors = get_editors(editors_demoid)
-        errors.update(check_editors(editors))
+        if state in ["production", "preprint", "workshop"]:
+            errors.update(check_editors(editors))
 
         # Check the DDL
         errors.update(check_ddl(ddl))
 
         if ddl is None:
-            # If there is no DDL print errors and continue to the next demo
+            # If there is no DDL print errors continue to the next demo
             print_errors(editors_demoid, title, errors, editors)
             continue
 
@@ -209,12 +213,13 @@ def start_test():
         # Check the run in the DDL
         errors.update(check_run_in_DDL(ddl))
         # Check the url in the DDL if the demo is published
-        if (demo['state'] == "published"): errors.update(check_url_in_DDL(ddl))
+        if (demo['state'] == "published"):
+            errors.update(check_url_in_DDL(ddl))
         # Check the demo extras
         errors.update(check_demo_extras(editors_demoid,ddl))
 
         # print errors
-        print_errors(editors_demoid, title, errors, editors)
+        print_errors(editors_demoid, state, title, errors, editors)
 
 
 
