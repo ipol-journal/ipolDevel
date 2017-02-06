@@ -271,39 +271,7 @@ ipol.DrawInputs = function(ddl_json) {
      */
     this.onLoadImages = function(callback) {
         _onloadimages_cb = callback;
-    }
-    
-    //--------------------------------------------------------------------------
-    /**
-     * Checks if blobs has an image for input number idx (used?)
-     * @function _blobHasImage
-     * @memberOf ipol.DrawInputs~
-     * @param {number} blob_idx
-     * @returns {boolean}
-     * @private
-     */
-    var _blobHasImage = function( blob_idx) {
-        var image_found = false;
-        var blobset = _blobset;
-        if (blobset==null) {
-            return false;
-        }
-        var inputs = _ddl_json.inputs;
-        if (inputs[blob_idx].type!='image') {
-            var blob_links = blobset[0].html_params.split('&');
-            _infoMessage("blob_links = ", blob_links);
-            for(var bid=1;bid<blob_links.length;bid++) {
-                _infoMessage(" blob_idx = ", blob_idx, " ",parseInt(blob_links[bid].split(':')[0]));
-                if ((parseInt(blob_links[bid].split(':')[0])===blob_idx) &&
-                    (blob_links[bid].split(':')[1].toLowerCase().indexOf(".png")>-1) ) {
-                    image_found = true;
-                    _infoMessage("image found");
-                    break;
-                }
-            }
-        }
-        return image_found;
-    };
+    }    
     
     //--------------------------------------------------------------------------
     /**
