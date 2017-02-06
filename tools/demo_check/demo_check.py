@@ -99,8 +99,7 @@ def check_url_in_DDL(ddl):
     Check the url in the build
     """
     ddl_json = json.loads(ddl)
-
-    url = json.dumps(ddl_json["build"]).split("\"url\":")[1].split(",")[0].strip()[1:-1]
+    url = json.dumps(ddl_json["build"]).split("\"url\":")[1].split("\"")[1].strip()
     if not urlparse(url).hostname == "www.ipol.im":
         return{"URL":"This demo is using an external resource: {}".format(url)}
     return {}
@@ -184,10 +183,6 @@ def start_test():
     demos = get_demo_list()
     for demo in demos:
         state = demo['state']
-        
-        if state == "test":
-            # Do not check test demos
-            continue
 
         editors_demoid = demo['editorsdemoid']
         title = demo['title']

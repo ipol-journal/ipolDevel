@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools
 import hashlib
 from   datetime import datetime
 
-import urllib
+import urllib2
 from   timeit   import default_timer as timer
 from   image    import thumbnail, image
 from   misc     import prod
@@ -601,15 +601,27 @@ class DemoRunner(object):
                     make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
                 data['status'] = "OK"
-                data['message'] = "Build for demo {0} checked".format(demo_id)
+                data['message'] = "Build of demo {0} OK".format(demo_id)
                 data['info'] = make_info
+            except urllib2.HTTPError as e:
+                print "HTTPError"
+                self.logger.exception("ensure_compilation - HTTPError")
+                data['message'] = "{}, build_params: {}".format(str(e), str(build_params))
+                return json.dumps(data)                
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
                 self.logger.exception("ensure_compilation")
+                
+                log_file = os.path.join(path_for_the_compilation, 'build.log')
+                #
+                lines = ""
+                if os.path.isfile(log_file):
+                    with open(log_file) as f:
+                        lines = f.readlines()
+                
                 data['message'] = "Build for demo {0} failed".format(demo_id)
+                data['buildlog'] = lines
                 return json.dumps(data)
-
-        print ""
 
         return json.dumps(data)
 
@@ -654,6 +666,19 @@ class DemoRunner(object):
         Returns the directory with the peer-reviewed author programs
         '''
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
+        
+
+    def read_workdir_file(self, demo_id, work_dir, filename):
+        '''
+        Reads a text files from the working directory
+        '''
+        full_file = os.path.join(work_dir, filename)
+        lines = ""
+        if os.path.isfile(full_file):
+            with open(full_file) as f:
+                lines = f.readlines()
+        return lines
+
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
@@ -709,13 +734,22 @@ class DemoRunner(object):
             res_data['error'] = 'IPOLTimeoutError'
             print res_data
             return json.dumps(res_data)
-        except RuntimeError as e:
+        except RuntimeError as e:            
             self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = 'RuntimeError'
+
+            # Read stderr and stdout
+            stderr_lines = self.read_workdir_file(demo_id, work_dir, "stderr.txt")
+            stdout_lines = self.read_workdir_file(demo_id, work_dir, "stdout.txt")
+                        
+            # Put them in the message for the web interface
+            res_data['algo_info']['status'] = 'RuntimeError, \
+stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+
             res_data['error'] = str(e)
             print res_data
             return json.dumps(res_data)
+
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
             self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
