@@ -606,10 +606,17 @@ class DemoRunner(object):
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
                 self.logger.exception("ensure_compilation")
+                
+                log_file = os.path.join(path_for_the_compilation, 'build.log')
+                #
+                lines = ""
+                if os.path.isfile(log_file):
+                    with open(log_file) as f:
+                        lines = f.readlines()
+                
                 data['message'] = "Build for demo {0} failed".format(demo_id)
+                data['buildlog'] = lines
                 return json.dumps(data)
-
-        print ""
 
         return json.dumps(data)
 
@@ -654,6 +661,19 @@ class DemoRunner(object):
         Returns the directory with the peer-reviewed author programs
         '''
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
+        
+
+    def read_workdir_file(self, demo_id, filename):
+        '''
+        Reads a text files from the working directory
+        '''
+        full_file = os.path.join(self.work_dir, filename)
+        lines = ""
+        if os.path.isfile(full_file):
+            with open(full_file) as f:
+                lines = f.readlines()
+        return lines
+
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
@@ -667,9 +687,9 @@ class DemoRunner(object):
         params = json.loads(params)
         print "params = ", params
 
-        path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
+        path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id, "/")
         print "path_with_the_binaries = ", path_with_the_binaries
-        work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
+        work_dir = os.path.join(self.share_running_dir, demo_id, key, "/")
         print "run dir = ", work_dir
 
         res_data = {}
@@ -712,7 +732,15 @@ class DemoRunner(object):
         except RuntimeError as e:
             self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = 'RuntimeError'
+
+            # Read stderr and stdout
+            stderr_lines = self.read_workdir_file(demo_id, "stderr.txt")
+            stdout_lines = self.read_workdir_file(demo_id, "stdout.txt")
+                        
+            # Put them in the message for the web interface
+            res_data['algo_info']['status'] = 'RuntimeError, \
+stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+
             res_data['error'] = str(e)
             print res_data
             return json.dumps(res_data)
