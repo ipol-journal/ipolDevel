@@ -183,10 +183,6 @@ def start_test():
     demos = get_demo_list()
     for demo in demos:
         state = demo['state']
-        
-        if state == "test":
-            # Do not check test demos
-            continue
 
         editors_demoid = demo['editorsdemoid']
         title = demo['title']
