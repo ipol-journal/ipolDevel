@@ -1287,7 +1287,7 @@ def initDb(database_name):
         cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
                           ('workshop', 'workshop',))
         cursor_db.execute('''INSERT INTO state (name,description) VALUES(?, ?)''',
-                          ('tests', 'tests',))
+                          ('test', 'test',))
 
         conn.commit()
         conn.close()

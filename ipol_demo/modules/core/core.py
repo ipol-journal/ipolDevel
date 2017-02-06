@@ -1143,14 +1143,6 @@ hostname, hostbyname, unresponsive_demorunners_list)
             blobs = json.loads(kwargs['blobs'])
         elif input_type == 'noinputs':
             pass
-        else:
-            error_str = "unknown input_type == '{}'".\
-              format(input_type)
-            self.error_log("run()", error_str)
-            response = {}
-            response["status"] = "KO"
-            self.error_log("run", error_str)
-            return json.dumps(response)
 
         ## Start of block to obtain the DDL
         try:
