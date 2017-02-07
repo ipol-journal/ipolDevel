@@ -668,7 +668,7 @@ class DemoRunner(object):
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
         
 
-    def read_workdir_file(self, demo_id, work_dir, filename):
+    def read_workdir_file(self, work_dir, filename):
         '''
         Reads a text files from the working directory
         '''
@@ -739,8 +739,8 @@ class DemoRunner(object):
             res_data['status'] = 'KO'
 
             # Read stderr and stdout
-            stderr_lines = self.read_workdir_file(demo_id, work_dir, "stderr.txt")
-            stdout_lines = self.read_workdir_file(demo_id, work_dir, "stdout.txt")
+            stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
+            stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
                         
             # Put them in the message for the web interface
             res_data['algo_info']['status'] = 'RuntimeError, \
