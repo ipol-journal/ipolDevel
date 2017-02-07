@@ -6,7 +6,7 @@
 me=ipol #$(whoami)
 modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
 report="/home/${me}/ipolDevel/ci_tests/pylint_report.txt"
-modules="core archive blobs demoinfo demorunner proxy"
+modules="core archive blobs demoinfo demorunner dispatcher"
 
 #truncate -s 0 ${report}
 today=$(date)

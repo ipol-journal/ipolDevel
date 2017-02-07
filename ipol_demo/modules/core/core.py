@@ -25,9 +25,6 @@ from misc import prod
 from image import image
 from sendarchive import SendArchive
 
-
-
-import sys
 import shutil
 import json
 
@@ -86,7 +83,9 @@ class Core(object):
         self.logger.error(error_string)
 
     def __init__(self):
-
+        '''
+        Constructor
+        '''
         try:
             self.host_name = cherrypy.config['server.socket_host']
 
@@ -95,6 +94,8 @@ class Core(object):
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
+            self.demorunners = {}
+            
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
@@ -884,7 +885,7 @@ Demoinfo code = {}".format(response['code'])
 
 
     @staticmethod
-    def create_new_execution_key():
+    def create_new_execution_key(logger):
         """
         create a new experiment identifier
         """
@@ -902,7 +903,7 @@ Demoinfo code = {}".format(response['code'])
 
         # check key
         if not (key and key.isalnum()):
-            self.logger.exception("create_new_execution_key()")
+            logger.exception("create_new_execution_key()")
             return None
 
         return key
@@ -1155,7 +1156,7 @@ hostname, hostbyname, unresponsive_demorunners_list)
         ## End block to obtain the DDL
 
         # Create a new execution key
-        key = self.create_new_execution_key()
+        key = self.create_new_execution_key(self.logger)
         if key is None:
             res_data = {}
             res_data['info'] = 'Failed to create a valid key'
@@ -1193,9 +1194,9 @@ demo_id = ", demo_id
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
-            json_response = resp.json()
 
-            status = json_response['status']
+            demorunner_response = resp.json()
+            status = demorunner_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
 
             if status != 'OK':
@@ -1211,10 +1212,13 @@ if 'buildlog' in json_response else "", json_response["message"])
                 self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
-                json_response["error"] = \
-                  " --- Compilation error. --- {}".format(text)
 
-                return json.dumps(json_response)
+                demorunner_response["error"] = \
+                  " --- Compilation error. --- {} - {}".\
+                  format(demorunner_response["message"], text)
+
+
+                return json.dumps(demorunner_response)
 
             print "Entering ensure_extras_updated()"
             data = self.ensure_extras_updated(demo_id)
@@ -1236,29 +1240,29 @@ if 'buildlog' in json_response else "", json_response["message"])
 
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
-            json_response = resp.json()
+            demorunner_response = resp.json()
             print userdata
-            print json_response
+            print demorunner_response
 
-            if json_response['status'] != 'OK':
+            if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
 
                 # Message for the web interface
-                json_response["error"] = format(json_response["algo_info"]["status"])
+                demorunner_response["error"] = format(demorunner_response["algo_info"]["status"])
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
-                return json.dumps(json_response)
+                return json.dumps(demorunner_response)
 
-            json_response['work_url'] = os.path.join(\
+            demorunner_response['work_url'] = os.path.join(\
                    "http://{}/api/core/".format(self.host_name), \
                                         self.shared_folder_rel, \
                                         self.share_run_dir_rel, \
                                         demo_id, \
                                         key) + '/'
 
-            print "resp ", json_response
+            print "resp ", demorunner_response
 
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
@@ -1267,7 +1271,7 @@ if 'buildlog' in json_response else "", json_response["message"])
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, \
-                  work_dir, ddl_archive, json_response, self.host_name)
+                  work_dir, ddl_archive, demorunner_response, self.host_name)
 
         except Exception as ex:
             s = "Failure in the run function of the \
@@ -1275,16 +1279,18 @@ CORE in demo #{}".format(demo_id)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
+            core_response = {}
+            core_response["status"] = "KO"
+            core_response["error"] = "{}".format(ex)
+            return json.dumps(core_response)
 
-            return json.dumps(json_response)
-
-        dic = {}
         dic = self.read_algo_info(work_dir)
         for name in dic:
-            json_response["algo_info"][name] = dic[name]
+            demorunner_response["algo_info"][name] = dic[name]
 
         print "Run successful in demo = ", demo_id
-        return json.dumps(json_response)
+        print json.dumps(demorunner_response)
+        return json.dumps(demorunner_response)
 
     def read_algo_info(self, work_dir):
         '''
