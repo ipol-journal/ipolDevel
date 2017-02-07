@@ -360,8 +360,6 @@ class DemoRunner(object):
         bin_dir = os.path.join(path_for_the_compilation, 'bin/')
         log_file = os.path.join(path_for_the_compilation, 'build.log')
         
-        cwd = os.getcwd()
-
         try:
             # Clear src/ folder
             if os.path.isdir(src_dir):
@@ -376,7 +374,7 @@ class DemoRunner(object):
         for build_item in ddl_builds.items():
             # Move to the compilation directory, in case the
             # instructions in the move directive have changed it
-            os.chdir(cwd)
+            os.chdir(src_dir)
             
             build_item = build_item[1]
             # Read DDL
