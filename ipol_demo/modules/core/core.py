@@ -1206,8 +1206,8 @@ demo_id = ", demo_id
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
-            json_response = resp.json()
-            status = json_response['status']
+            demorunner_response = resp.json()
+            status = demorunner_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
 
             if status != 'OK':
@@ -1221,11 +1221,11 @@ dr + " module")
                 text = self.get_build_log_text(demo_id)
 
                 # Message for the web interface
-                json_response["error"] = \
+                demorunner_response["error"] = \
                   " --- Compilation error. --- {} - {}".\
-                  format(json_response["message"], text)
+                  format(demorunner_response["message"], text)
 
-                return json.dumps(json_response)
+                return json.dumps(demorunner_response)
 
             print "Entering ensure_extras_updated()"
             data = self.ensure_extras_updated(demo_id)
@@ -1247,29 +1247,29 @@ dr + " module")
 
             resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
 
-            json_response = resp.json()
+            demorunner_response = resp.json()
             print userdata
-            print json_response
+            print demorunner_response
 
-            if json_response['status'] != 'OK':
+            if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
 
                 # Message for the web interface
-                json_response["error"] = format(json_response["algo_info"]["status"])
+                demorunner_response["error"] = format(demorunner_response["algo_info"]["status"])
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
-                return json.dumps(json_response)
+                return json.dumps(demorunner_response)
 
-            json_response['work_url'] = os.path.join(\
+            demorunner_response['work_url'] = os.path.join(\
                    "http://{}/api/core/".format(self.host_name), \
                                         self.shared_folder_rel, \
                                         self.share_run_dir_rel, \
                                         demo_id, \
                                         key) + '/'
 
-            print "resp ", json_response
+            print "resp ", demorunner_response
 
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
@@ -1278,7 +1278,7 @@ dr + " module")
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, \
-                  work_dir, ddl_archive, json_response, self.host_name)
+                  work_dir, ddl_archive, demorunner_response, self.host_name)
 
         except Exception as ex:
             s = "Failure in the run function of the \
@@ -1286,16 +1286,18 @@ CORE in demo #{}".format(demo_id)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
+            core_response = {}
+            core_response["status"] = "KO"
+            core_response["error"] = "{}".format(ex)
+            return json.dumps(core_response)
 
-            return json.dumps(json_response)
-
-        dic = {}
         dic = self.read_algo_info(work_dir)
         for name in dic:
-            json_response["algo_info"][name] = dic[name]
+            demorunner_response["algo_info"][name] = dic[name]
 
         print "Run successful in demo = ", demo_id
-        return json.dumps(json_response)
+        print json.dumps(demorunner_response)
+        return json.dumps(demorunner_response)
 
     def read_algo_info(self, work_dir):
         '''
