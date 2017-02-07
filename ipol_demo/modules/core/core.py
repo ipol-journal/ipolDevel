@@ -25,9 +25,6 @@ from misc import prod
 from image import image
 from sendarchive import SendArchive
 
-
-
-import sys
 import shutil
 import json
 
@@ -86,7 +83,9 @@ class Core(object):
         self.logger.error(error_string)
 
     def __init__(self):
-
+        '''
+        Constructor
+        '''
         try:
             self.host_name = cherrypy.config['server.socket_host']
 
@@ -95,6 +94,8 @@ class Core(object):
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
+            self.demorunners = {}
+            
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
@@ -884,7 +885,7 @@ Demoinfo code = {}".format(response['code'])
 
 
     @staticmethod
-    def create_new_execution_key():
+    def create_new_execution_key(logger):
         """
         create a new experiment identifier
         """
@@ -902,7 +903,7 @@ Demoinfo code = {}".format(response['code'])
 
         # check key
         if not (key and key.isalnum()):
-            self.logger.exception("create_new_execution_key()")
+            logger.exception("create_new_execution_key()")
             return None
 
         return key
@@ -1155,7 +1156,7 @@ hostname, hostbyname, unresponsive_demorunners_list)
         ## End block to obtain the DDL
 
         # Create a new execution key
-        key = self.create_new_execution_key()
+        key = self.create_new_execution_key(self.logger)
         if key is None:
             res_data = {}
             res_data['info'] = 'Failed to create a valid key'
