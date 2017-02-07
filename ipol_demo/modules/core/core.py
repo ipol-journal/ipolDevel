@@ -25,9 +25,6 @@ from misc import prod
 from image import image
 from sendarchive import SendArchive
 
-
-
-import sys
 import shutil
 import json
 
@@ -86,7 +83,9 @@ class Core(object):
         self.logger.error(error_string)
 
     def __init__(self):
-
+        '''
+        Constructor
+        '''
         try:
             self.host_name = cherrypy.config['server.socket_host']
 
@@ -95,6 +94,8 @@ class Core(object):
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
+            self.demorunners = {}
+            
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
@@ -884,7 +885,7 @@ Demoinfo code = {}".format(response['code'])
 
 
     @staticmethod
-    def create_new_execution_key():
+    def create_new_execution_key(logger):
         """
         create a new experiment identifier
         """
@@ -902,7 +903,7 @@ Demoinfo code = {}".format(response['code'])
 
         # check key
         if not (key and key.isalnum()):
-            self.logger.exception("create_new_execution_key()")
+            logger.exception("create_new_execution_key()")
             return None
 
         return key
@@ -967,6 +968,10 @@ Demoinfo code = {}".format(response['code'])
         '''
         Send an email to the given recipients
         '''
+        if text is None:
+            text = ""
+        
+        
         emails_list = [entry[1] for entry in emails]
         emails_str = ", ".join(emails_list)
 
@@ -993,24 +998,8 @@ Demoinfo code = {}".format(response['code'])
         s.sendmail(msg['From'], emails_list, msg.as_string())
         s.quit()
 
-    def get_build_log_text(self, demo_id):
-        '''
-        Returns the contents of the build log file
-        '''
-        # [ToDo] Use the shared folder to access a DR!
-        buildLog_filename = "{}/../ipol_demo/modules/demorunner/binaries/{}/build.log".\
-          format(self.shared_folder_abs, demo_id)
-        if not os.path.isfile(buildLog_filename):
-            return ""
 
-        fp = open(buildLog_filename, 'rb')
-        text = "Compilation of demo #{} failed:\n\n{}".format(demo_id, fp.read())
-        fp.close()
-
-        return text
-
-
-    def send_compilation_error_email(self, demo_id):
+    def send_compilation_error_email(self, demo_id, text):
         ''' Send email to editor when compilation fails '''
         print "send_compilation_error_email"
 
@@ -1030,7 +1019,6 @@ Demoinfo code = {}".format(response['code'])
 
         # Send the email
         # [ToDo] Use the shared folder to access a DR!
-        text = self.get_build_log_text(demo_id)
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
@@ -1168,7 +1156,7 @@ hostname, hostbyname, unresponsive_demorunners_list)
         ## End block to obtain the DDL
 
         # Create a new execution key
-        key = self.create_new_execution_key()
+        key = self.create_new_execution_key(self.logger)
         if key is None:
             res_data = {}
             res_data['info'] = 'Failed to create a valid key'
@@ -1206,6 +1194,7 @@ demo_id = ", demo_id
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
+
             demorunner_response = resp.json()
             status = demorunner_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
@@ -1217,13 +1206,17 @@ demo_id = ", demo_id
 dr + " module")
 
                 # Send compilation message to the editors
-                self.send_compilation_error_email(demo_id)
-                text = self.get_build_log_text(demo_id)
+                text = "{} - {}".format(json_response["buildlog"] \
+if 'buildlog' in json_response else "", json_response["message"])
+                
+                self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
+
                 demorunner_response["error"] = \
                   " --- Compilation error. --- {} - {}".\
                   format(demorunner_response["message"], text)
+
 
                 return json.dumps(demorunner_response)
 
