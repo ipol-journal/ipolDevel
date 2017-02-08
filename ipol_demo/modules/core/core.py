@@ -1206,8 +1206,8 @@ demo_id = ", demo_id
 dr + " module")
 
                 # Send compilation message to the editors
-                text = "{} - {}".format(json_response["buildlog"] \
-if 'buildlog' in json_response else "", json_response["message"])
+                text = "{} - {}".format(demorunner_response["buildlog"] \
+if 'buildlog' in demorunner_response else "", demorunner_response["message"])
                 
                 self.send_compilation_error_email(demo_id, text)
 
