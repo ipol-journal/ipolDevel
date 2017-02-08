@@ -125,7 +125,7 @@ class DemoRunner(object):
         self.logger = self.init_logging()
 
         if not os.path.isdir(self.share_running_dir):
-            error_message = "There not exist the folder: " + self.share_running_dir
+            error_message = "The folder does not exist: " + self.share_running_dir
             print error_message
             self.write_log("__init__", error_message)
 
