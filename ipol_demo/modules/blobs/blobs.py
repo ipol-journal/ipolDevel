@@ -87,16 +87,19 @@ def validate_password(dummy, username, password):
         return True
     return False
 
-def get_new_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
+def complete_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
     """
-    This function 
+    This function complete the path with the corresponding subdir for a visual representation.
+    new path --> /home/ipol/..../tmp/a/b/abvdddddd.png
+    new folder --> tmp/a/b/
+    subdir     --> a/b
     """
     length_of_the_new_subfolder = min(len(blob_hash), depth)
     subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
     new_folder = os.path.join(main_directory, subdirs)
     new_path = os.path.join(new_folder, blob_hash + extension)
     
-    return new_path, new_folder
+    return new_path, new_folder, subdirs
 
 def get_new_path(filename, create_dir=True, depth=2):
     """
@@ -536,7 +539,7 @@ class   Blobs(object):
                 _, extension = os.path.splitext(vr_file.filename)
                 assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
                 
-                vr_path, vr_folder = get_new_path_for_visual_representation(visrep_folder, blob_hash, extension)
+                vr_path, vr_folder, _ = complete_path_for_visual_representation(visrep_folder, blob_hash, extension)
                 if not os.path.isdir(vr_folder):
                     os.makedirs(vr_folder)
                 
@@ -793,7 +796,7 @@ class   Blobs(object):
         try:
             #Delete the visual representation (if exists)
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
+            _, vr_folder,_ = complete_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
             visrep_without_extension = os.path.join(vr_folder, hash_blob)
             list_of_visrep = glob.glob(visrep_without_extension+".*")
 
@@ -991,9 +994,6 @@ class   Blobs(object):
         data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
         
-        print "\n\n1\n\n"
-              
-        
         if res["status"] == "OK" and res["delete"]:
             self.remove_files_associated_to_a_blob(res["delete"])
             
@@ -1057,9 +1057,11 @@ class   Blobs(object):
                             extension_of_blob = element['extension']
                             
                             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-                            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, \
+                            vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_folder, \
                                                                                   hash_of_blob, \
                                                                                   extension_of_blob) 
+                            ##The subdir is the same in the VR , the thumbnail and in the blob_directory
+                            element['subdirs'] = subdirs + "/"
                             
                             if os.path.isdir(vr_folder):
                                 
@@ -1151,6 +1153,26 @@ class   Blobs(object):
             tmpl_list=template_list_res["template_list"],
             tmpl_blobs=template_blobs,
             blob_deleted_message=blob_deleted_message)
+    
+    @cherrypy.expose
+    def get_blobs_by_id(self, blob_id_list):
+        """
+        
+        :param blob_id_list: list with several blob_id
+        :type list
+        :return: informations
+        """
+        
+        #### This function is not finished yet!
+        
+        dic={}
+        dic["url"] = self.server_address + "/" + self.final_dir + "/" + blob_name
+            
+        dic["url_thumb"] = (self.server_address + "/" + self.thumb_dir
+                                + "/thumbnail_" + res["hash"]+".jpg")
+        
+        return
+
 
     #---------------------------------------------------------------------------
     @cherrypy.expose

@@ -117,7 +117,6 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
 	    blobset[0].html_params = "url=" + _demoblobs.url 
             blobset[0].html_params += ("url_vr" + _demoblobs.url_visrep + "&")
             
-	    
 	    // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
@@ -128,11 +127,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             var has_visual_representation = ""
     
             console.info(blobset_contents)
-    
-    
+            
+
             for (var idx = 0; idx < blobset_contents.length; idx++) {
                 
-		extension = blobset_contents[idx].extension;
+		console.info("blob_id = ",blobset_contents[idx].id)
+	    
+	        extension = blobset_contents[idx].extension;
 	        has_visual_representation = "0:"
 	        
 		if (blobset_contents[idx].extension_visrep){
@@ -154,10 +155,10 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                     }
                 }
                 current_id = blobset_contents[idx].pos_in_set;
-                
-		blobset[0].html_params += ipol.utils.blobhash_subdir(blobset_contents[idx].hash) + 
+	        
+	        blobset[0].html_params += blobset_contents[idx].subdirs + 
                     blobset_contents[idx].hash + extension;
-	    
+		    
             }
         }
        
@@ -185,8 +186,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             blobset[0].form_params["url"] = _demoblobs.url;
             blobset[0].form_params["physical_location"] = _demoblobs.physical_location;
             blobset[0].form_params["vr_physical_location"] = _demoblobs.vr_location;
-	    
-	    // extract only contents of interest
+    
+            var id_blobs_array = new Array();
+            // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
                 return (a.pos_in_set < b.pos_in_set ? 
@@ -199,12 +201,15 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                     blobset[0].form_params[pos]=[];
                 }
                 blobset[0].form_params[pos].push(
-                    ipol.utils.blobhash_subdir(blobset_contents[idx].hash) +
+                    blobset_contents[idx].subdirs +
                     blobset_contents[idx].hash + 
                     blobset_contents[idx].extension);
+                
+                id_blobs_array[pos] = (blobset_contents[idx].id).toString();
+      
             }
+            blobset[0].form_params["id_blobs"] = id_blobs_array;
         }
-        
     }
 
     //--------------------------------------------------------------------------
@@ -238,7 +243,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         
         _infoMessage("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
         
-        // loop over blobsets
+	// loop over blobsets
         for(var i=0;i<_demoblobs.blobs.length;i++)
         {
             var blobset = _demoblobs.blobs[i];
@@ -285,7 +290,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                              +  '           max-height:' +(thumbnail_size-6)+'px;'
                              +  '           vertical-align:middle; margin:3px"'
                              +  '   src="'+_demoblobs.url_thumb+'/'
-                             +  ipol.utils.blobhash_subdir(blobset[idx].hash)
+                             +  blobset[idx].subdirs
                              + 'thumbnail_'+blobset[idx].hash
 //                              + blobset[idx].extension
                              +'.jpg'
@@ -399,7 +404,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 // image
                 var tester=new Image();
                 tester.src= _demoblobs.url_thumb+'/'+
-                            ipol.utils.blobhash_subdir(blobset[idx].hash)+
+                            blobset[idx].subdirs+
                             'thumbnail_'+blobset[idx].hash+
 //                             blobset[idx].extension;
                             '.jpg';

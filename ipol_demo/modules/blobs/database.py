@@ -717,51 +717,6 @@ class   Database(object):
                 raise DatabaseDeleteError(e)
 
 
-    ##---------------------------------------------------------------------------
-    #def delete_blobset_from_demo(self, demo_id, blobset):
-        #"""
-        #Delete link between demo and hash blob from demo_blob column in database
-        #Delete link between blob and tag from blob_tag column in database
-        #Delete demo row named by name demo if demo has no blob
-        #Delete tag row associated to blob if tag has no blob
-        #Delete blob row named by hash blob if blob has no demo
-
-        #:param demo_id: id demo
-        #:type demo_id: integer
-        #:param blob_id: id blob
-        #:type blob_id: integer
-        #:return: true if and only if the blob is not used anymore
-        #:rtype: boolean
-        #"""
-        #print "database.py delete_blobset_from_demo({0},{1})".format(demo_id,blobset)
-        #try:
-            #result = self.cursor.execute('''
-            #SELECT blob_id, demo_id, blob_set  FROM demo_blob
-            #INNER JOIN demo ON demo_blob.demo_id=demo.id
-            #INNER JOIN blob ON demo_blob.blob_id=blob.id
-            #WHERE demo.id=? AND blob.id=? AND demo_blob.blob_set=?''',\
-            #(demo_id, blob_id,blobset))
-        #except self.database.Error as e:
-            #raise DatabaseSelectError(e)
-
-        #value = ()
-        #for item in result:
-            #value = (item[0], item[1])
-            #if value:
-                #try:
-                    #self.cursor.execute('''
-                    #DELETE FROM demo_blob
-                    #WHERE blob_id=? AND demo_id=? AND blob_set=? ''',\
-                    #(value[0], value[1],value[2]))
-                #except self.database.Error as e:
-                    #raise DatabaseDeleteError(e)
-
-        #self.delete_all_tag(blob_id)
-        #blob_demo_count = self.blob_democount(blob_id)
-        #self.delete_blob(blob_id, blob_demo_count)
-        #return blob_demo_count==0
-
-
     #---------------------------------------------------------------------------
     def delete_blob_from_demo(self, demo_name, blobset, blob_id):
         """
@@ -1014,7 +969,6 @@ class   Database(object):
         :type blob_id: integer
         """
 
-
         try:
             self.cursor.execute('''
             DELETE FROM blob_tag
@@ -1035,8 +989,6 @@ class   Database(object):
         :param blob_id: id blob
         :type blob_id: integer
         """
-
-
 
         row = None
         try:
