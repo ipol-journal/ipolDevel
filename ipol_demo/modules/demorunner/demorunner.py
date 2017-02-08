@@ -359,7 +359,7 @@ class DemoRunner(object):
         src_dir = os.path.join(path_for_the_compilation, 'src/')
         bin_dir = os.path.join(path_for_the_compilation, 'bin/')
         log_file = os.path.join(path_for_the_compilation, 'build.log')
-
+        
         try:
             # Clear src/ folder
             if os.path.isdir(src_dir):
@@ -372,6 +372,10 @@ class DemoRunner(object):
             raise
 
         for build_item in ddl_builds.items():
+            # Move to the compilation directory, in case the
+            # instructions in the move directive have changed it
+            os.chdir(src_dir)
+            
             build_item = build_item[1]
             # Read DDL
             url = build_item['url']
