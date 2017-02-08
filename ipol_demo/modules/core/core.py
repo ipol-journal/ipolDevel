@@ -638,7 +638,7 @@ workload of '{}'".format(dr_name)
             if 'ext' in inputs_desc[i]:
                 ext = inputs_desc[i]['ext']
                 file_save = file(os.path.join(\
-                  work_dir, 'input_%i ' % i + ext), 'wb')
+                  work_dir, 'input_%i' % i + ext), 'wb')
             else:
                 error_message="The DDL does not have extension field."
                 print error_message
