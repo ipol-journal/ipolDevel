@@ -635,10 +635,15 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
-            ## suppose than the file is in the correct format for its extension
-            ext = inputs_desc[i]['ext']
-            file_save = file(os.path.join(\
-              work_dir, 'input_%i' % i + ext), 'wb')
+            if 'ext' in inputs_desc[i]:
+                ext = inputs_desc[i]['ext']
+                file_save = file(os.path.join(\
+                  work_dir, 'input_%i' % i + ext), 'wb')
+            else:
+                error_message="The DDL does not have extension field."
+                print error_message
+                self.logger.exception(error_message)
+                raise 
 
             size = 0
             while True:
@@ -1188,12 +1193,12 @@ demo_id = ", demo_id
             requirements = ddl_json['general']['requirements'] \
                 if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
-            dr = self.get_demorunner(self.demorunners_workload(), \
-              requirements)
+            dr_name, dr_server = self.get_demorunner(\
+              self.demorunners_workload(), requirements)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
-            resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
+            resp = self.post(dr_server, 'demorunner', 'ensure_compilation', userdata)
 
             demorunner_response = resp.json()
             status = demorunner_response['status']
@@ -1203,7 +1208,7 @@ demo_id = ", demo_id
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
                 self.error_log("ensure_compilation()", \
 "ensure_compilation functions returns KO in the demorunner: " + \
-dr + " module")
+dr_name + " module")
 
                 # Send compilation message to the editors
                 text = "{} - {}".format(demorunner_response["buildlog"] \
@@ -1238,7 +1243,7 @@ if 'buildlog' in demorunner_response else "", demorunner_response["message"])
                 userdata['timeout'] = ddl_json['general']['timeout']
 
 
-            resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
+            resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
 
             demorunner_response = resp.json()
             print userdata
@@ -1249,7 +1254,9 @@ if 'buildlog' in demorunner_response else "", demorunner_response["message"])
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
 
                 # Message for the web interface
-                demorunner_response["error"] = format(demorunner_response["algo_info"]["status"])
+                website_message = "DR={}, {}".format(dr_name, \
+                    demorunner_response["algo_info"]["status"])
+                demorunner_response["error"] = format(website_message)
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
@@ -1353,7 +1360,7 @@ demo #{} - {}".format(demo_id, str(ex))
             if demorunner_response.ok:
                 if len(unresponsive_demorunners) > 0:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
-                return dr_server
+                return dr_name, dr_server
             else:
                 self.error_log("get_demorunner", \
                   "Module {} unresponsive".format(dr_name))
