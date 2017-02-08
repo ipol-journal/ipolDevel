@@ -635,10 +635,15 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
-            ## suppose than the file is in the correct format for its extension
-            ext = inputs_desc[i]['ext']
-            file_save = file(os.path.join(\
-              work_dir, 'input_%i' % i + ext), 'wb')
+            if 'ext' in inputs_desc[i]:
+                ext = inputs_desc[i]['ext']
+                file_save = file(os.path.join(\
+                  work_dir, 'input_%i ' % i + ext), 'wb')
+            else:
+                error_message="The DDL does not have extension field."
+                print error_message
+                self.logger.exception(error_message)
+                raise 
 
             size = 0
             while True:
