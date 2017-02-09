@@ -105,16 +105,16 @@ def check_url_in_DDL(ddl):
     return {}
 
 
-def have_demo_extras(editors_demoid):
+def has_demo_extras(editors_demoid):
     """
-    Check if the demo have or not demo extras and returns a boolean
+    Check if the demo has or not demo extras and returns a boolean
     """
     resp = post('get_compressed_file_url_ws', {"demo_id":editors_demoid})
     response = resp.json()
     if not response['status'] == 'OK':
         print "ERROR: get_compressed_file_url_ws returned KO"
         return
-    return response['code'] == '2' # Code = 1 don't have demoextra, code = 2 have demoextras
+    return response['code'] == '2' # Code: 1=doesn't have demoextras, code=2 have demoextras
 
 
 def check_demo_extras(editors_demoid, ddl):
@@ -122,10 +122,10 @@ def check_demo_extras(editors_demoid, ddl):
     Returns a dict with the errors in the demo extras
     """
     if not ("$demoextras" in ddl or "${demoextras}" in ddl):
-        if have_demo_extras(editors_demoid):
+        if has_demo_extras(editors_demoid):
             return {"Demoextras":"This demo does not use demo extras, but there is a demo extras file"}
     else:
-        if not have_demo_extras(editors_demoid):
+        if not has_demo_extras(editors_demoid):
             return {"Demoextras":"This demo uses demo extras, but there is not any demo extras file"}
     return {}
 
@@ -193,8 +193,8 @@ def start_test():
 
         # Read and check editors
         editors = get_editors(editors_demoid)
-        if state in ["production", "preprint", "workshop"]:
-            errors.update(check_editors(editors))
+        #if state in ["production", "preprint", "workshop"]:
+        errors.update(check_editors(editors))
 
         # Check the DDL
         errors.update(check_ddl(ddl))
