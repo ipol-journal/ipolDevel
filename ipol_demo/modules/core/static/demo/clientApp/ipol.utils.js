@@ -18,21 +18,6 @@ var ipol = ipol || {};
 ipol.utils = ipol.utils || {};
 
 //------------------------------------------------------------------------------
-/** 
- * Creates the path based on a blob hash, for example if the hash is 
- * abcdef and the depth 3, will return a/b/c/ path.
- * @param {string} blob_hash blob hash
- * @param {number} depth directory depth
- * @returns {string} blob path
- */
-ipol.utils.blobhash_subdir = function ( blob_hash, depth) {
-    if (depth===undefined) {
-        depth=2;
-    }
-    return blob_hash.substring(0,depth).split('').join("/")+'/';
-}
-
-//------------------------------------------------------------------------------
 /**
  * This function creates syntax highlight for pretty display of json files
  * @param {object|string} input json object
@@ -85,27 +70,11 @@ ipol.utils.DeserializeJSON = function(json_str)
 ipol.utils.ModuleService = function(module,service,params,func)
 {
     var link = '/api/'+module+"/"+service+"?"+params;
-//    var link =  servers.proxy +
-//                '/?module='+ module +
-//                '&service='+ service +
-//                '&'+params;
     var params_str = ""+params;
     console.info("--- ModuleService() --- "+ module + " -- "+ service+ " -- "+
                      params_str.slice(0,40) +(params_str.length>40?"...":""));
     return $.getJSON(link).done(func);
 }
-
-// //------------------------------------------------------------------------------
-// //
-// function DemoRunnerService(service,params,func) {
-//     var link =  servers.proxy + 
-//                 '/?module=demorunner'+ 
-//                 '&service='+ service +
-//                 '&'+params;
-//     console.info("---- DemoRunnerService() ---- "+link.slice(0,80)+(link.length>80?"...":""));
-//     return $.getJSON(link).done(func);
-// };
-
 
 //------------------------------------------------------------------------------
 /**

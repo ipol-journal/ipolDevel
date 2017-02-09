@@ -87,16 +87,19 @@ def validate_password(dummy, username, password):
         return True
     return False
 
-def get_new_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
+def complete_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
     """
-    This function 
+    This function complete the path with the corresponding subdir for a visual representation.
+    new path --> /home/ipol/..../tmp/a/b/abvdddddd.png
+    new folder --> tmp/a/b/
+    subdir     --> a/b
     """
     length_of_the_new_subfolder = min(len(blob_hash), depth)
     subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
     new_folder = os.path.join(main_directory, subdirs)
     new_path = os.path.join(new_folder, blob_hash + extension)
     
-    return new_path, new_folder
+    return new_path, new_folder, subdirs
 
 def get_new_path(filename, create_dir=True, depth=2):
     """
@@ -536,7 +539,7 @@ class   Blobs(object):
                 _, extension = os.path.splitext(vr_file.filename)
                 assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
                 
-                vr_path, vr_folder = get_new_path_for_visual_representation(visrep_folder, blob_hash, extension)
+                vr_path, vr_folder, _ = complete_path_for_visual_representation(visrep_folder, blob_hash, extension)
                 if not os.path.isdir(vr_folder):
                     os.makedirs(vr_folder)
                 
@@ -793,7 +796,7 @@ class   Blobs(object):
         try:
             #Delete the visual representation (if exists)
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
+            _, vr_folder,_ = complete_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
             visrep_without_extension = os.path.join(vr_folder, hash_blob)
             list_of_visrep = glob.glob(visrep_without_extension+".*")
 
@@ -991,9 +994,6 @@ class   Blobs(object):
         data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
         
-        print "\n\n1\n\n"
-              
-        
         if res["status"] == "OK" and res["delete"]:
             self.remove_files_associated_to_a_blob(res["delete"])
             
@@ -1026,6 +1026,25 @@ class   Blobs(object):
         return json.dumps(dic)
 
     #---------------------------------------------------------------------------
+    
+    def check_if_visrep_exists(self, vr_folder, hash_of_blob):
+        """
+        This function check if a blob has a visrep associated.
+        If the visrep exists, the function returns its extension
+        if not, returns an empty string
+        """
+        vr_extension = ""
+        if os.path.isdir(vr_folder):
+                                
+            file_without_extension = os.path.join(vr_folder, hash_of_blob)
+            visrep = glob.glob(file_without_extension+".*")
+                        
+            if len(visrep)>0:
+                _, vr_extension = os.path.splitext(visrep[0])
+        
+        return vr_extension 
+    
+    
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blobs_of_demo_by_name_ws(self, demo_name):
@@ -1056,20 +1075,17 @@ class   Blobs(object):
                             hash_of_blob      = element['hash']
                             extension_of_blob = element['extension']
                             
-                            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-                            _, vr_folder = get_new_path_for_visual_representation(visrep_folder, \
+                            visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
+                            vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
                                                                                   hash_of_blob, \
                                                                                   extension_of_blob) 
+                            ##The subdir is the same in the VR , the thumbnail and in the blob_directory
+                            element['subdirs'] = subdirs + "/"
                             
-                            if os.path.isdir(vr_folder):
-                                
-                                file_without_extension = os.path.join(vr_folder, hash_of_blob)
-                                visrep = glob.glob(file_without_extension+".*")
-                        
-                                if len(visrep)>0:
-                                    _, vr_extension = os.path.splitext(visrep[0])
-                                    element['extension_visrep'] = vr_extension 
-                        
+                            vr_extension = self.check_if_visrep_exists(vr_folder, hash_of_blob)
+                            if vr_extension != "":
+                                element['extension_visrep'] = vr_extension
+                            
                         blob_set.append(element)
                     
                     list_of_blobs_corrected_with_vr.append(blob_set)
@@ -1151,6 +1167,50 @@ class   Blobs(object):
             tmpl_list=template_list_res["template_list"],
             tmpl_blobs=template_blobs,
             blob_deleted_message=blob_deleted_message)
+    
+    @cherrypy.expose
+    def get_blobs_by_id(self, blob_id_list):
+        """
+        
+        :param blob_id_list: list with several blob_id
+        :type list
+        :return: informations
+        """
+        
+        #### This function is not finished yet!
+        
+        dic={}
+        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
+            cherrypy.response.headers['Content-Type'] = "application/json"
+        
+            try:
+                list_with_blob_information = []
+                dic_with_blob = {}
+                for blob_id in blob_id_list:
+                    dic_with_blob = data.get_blob(blob_id)
+                    
+                    visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
+                    vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
+                                                                                  dic_with_blob['hash'], \
+                                                                                  dic_with_blob['extension']) 
+                                
+                    dic_with_blob['subdirs'] = subdirs + "/"
+                    vr_extension = self.check_if_visrep_exists(vr_folder, dic_with_blob['hash'])
+                    if vr_extension != "":
+                        dic_with_blob['extension_visrep'] = vr_extension 
+                    
+                    list_with_blob_information.append(dic_with_blob)
+                
+                dic['list_of_blobs'] = list_with_blob_information 
+                dic["physical_location"] = self.final_dir
+                dic["vr_location"] = self.vr_dir
+                dic["status"] = "OK"
+            except DatabaseError:
+                self.logger.exception("Cannot access to blob from its ID")
+                dic["status"] = "KO"
+
+        return json.dumps(dic)
+
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
