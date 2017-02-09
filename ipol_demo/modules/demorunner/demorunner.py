@@ -576,10 +576,6 @@ class DemoRunner(object):
             Ensure compilation in the demorunner
         """
         print "\nDEMO ID " + demo_id + " is in ensure_compilation\n"
-
-        data = {}
-        data['status'] = 'KO'
-
         ddl_build = json.loads(ddl_build)
 
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
@@ -604,6 +600,8 @@ class DemoRunner(object):
                     # And make_new renamed.
                     make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
+
+                data = {}
                 data['status'] = "OK"
                 data['message'] = "Build of demo {0} OK".format(demo_id)
                 data['info'] = make_info
@@ -621,8 +619,10 @@ class DemoRunner(object):
                 lines = ""
                 if os.path.isfile(log_file):
                     with open(log_file) as f:
-                        lines = f.readlines()
-                
+                        lines = f.readlines()                
+
+                data = {}
+                data['status'] = 'KO'                
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 data['buildlog'] = lines
                 return json.dumps(data)
@@ -740,8 +740,7 @@ class DemoRunner(object):
             return json.dumps(res_data)
         except RuntimeError as e:            
             self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
-            res_data['status'] = 'KO'
-
+    
             # Read stderr and stdout
             stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
@@ -750,12 +749,21 @@ class DemoRunner(object):
             res_data['algo_info']['status'] = 'RuntimeError, \
 stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
 
+            res_data['status'] = 'KO'
             res_data['error'] = str(e)
             print res_data
             return json.dumps(res_data)
 
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
+            self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
+            res_data['status'] = 'KO'
+            res_data['algo_info']['status'] = error_str
+            res_data['error'] = error_str
+            print res_data
+            return json.dumps(res_data)
+        except KeyError as ex:
+            error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(str(ex), ddl_run)
             self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
             res_data['algo_info']['status'] = error_str
