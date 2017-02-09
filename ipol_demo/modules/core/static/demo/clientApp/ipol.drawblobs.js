@@ -131,9 +131,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
 
             for (var idx = 0; idx < blobset_contents.length; idx++) {
                 
-		console.info("blob_id = ",blobset_contents[idx].id)
-	    
-	        extension = blobset_contents[idx].extension;
+		extension = blobset_contents[idx].extension;
 	        has_visual_representation = "0:"
 	        
 		if (blobset_contents[idx].extension_visrep){
