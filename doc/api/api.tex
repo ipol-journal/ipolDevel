@@ -1,0 +1,57 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{color}
+\usepackage[hidelinks]{hyperref}
+\usepackage{multirow}
+\usepackage{datetime}
+\usepackage{comment}
+\usepackage{xcolor}
+
+
+% Definitions and commands
+\def \np{\vskip 0.25 cm}
+\def \ap{\vskip 0.15 cm}
+
+\newcommand{\error}[1]{\textcolor{red}{\textbf{[Error]} #1}}
+
+
+\begin{document}
+\begin{titlepage}
+
+\begin{center}
+\vspace*{-1in}
+
+\vspace*{0.6in}
+\begin{Large}
+\textbf{The IPOL Demo System 2.0 \\Microservices API} \\
+\end{Large}
+
+\vspace*{0.6in}
+
+\small{Compiled on \today\ at \currenttime}
+
+\vspace*{0.6in}
+\rule{80mm}{0.1mm}\\
+\vspace*{0.1in}
+\end{center}
+
+\end{titlepage}
+
+This document is the IPOL Demo System 2.0 API specification.
+
+%\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Docstring}
+\label{sec:Docstring}
+\LaTeX
+
+\input{docstrings.tex}
+
+\end{document}
+% End of document

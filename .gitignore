@@ -36,7 +36,22 @@ app/
 *.backup
 
 # Documentation
-doc/ipol.out
+*.bst
+*.aux
+*.bbl
+*.blg
+*.log
+*.lof
+*.toc
+*.out
+
+doc/api/api.pdf
+doc/api/docstrings.tex
+doc/system/ipol.pdf
+doc/control_panel/control_panel.pdf
+doc/ddl/ddl.pdf
+doc/sysadmin/sysadmin.pdf
+ddl.pdf
 
 # generated files
 *.pyc
@@ -46,20 +61,6 @@ logs/
 *.log
 ipol_demo/modules/archive/logs/error.log
 
-# Doc
-*.bst
-*.aux
-*.bbl
-*.blg
-*.log
-doc/system/ipol.pdf
-doc/control_panel/control_panel.pdf
-doc/ddl/ddl.pdf
-doc/sysadmin/sysadmin.pdf
-ddl.pdf
-*.lof
-*.toc
-*.out
 
 #
 # ignore kile files
