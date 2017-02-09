@@ -635,10 +635,15 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
-            ## suppose than the file is in the correct format for its extension
-            ext = inputs_desc[i]['ext']
-            file_save = file(os.path.join(\
-              work_dir, 'input_%i' % i + ext), 'wb')
+            if 'ext' in inputs_desc[i]:
+                ext = inputs_desc[i]['ext']
+                file_save = file(os.path.join(\
+                  work_dir, 'input_%i' % i + ext), 'wb')
+            else:
+                error_message="The DDL does not have extension field."
+                print error_message
+                self.logger.exception(error_message)
+                raise 
 
             size = 0
             while True:
@@ -659,33 +664,94 @@ workload of '{}'".format(dr_name)
             file_save.close()
 
 
-    def copy_blobset_from_physical_location(self, work_dir, blobs):
+    def copy_blobset_from_physical_location(self, work_dir, blobs_id_list):
         """
         use the selected available input images
         input parameters:
         returns:
         """
         print "#### input_select_and_crop begin ####"
-
-        blob_physical_location = blobs['physical_location']
-        del blobs['physical_location']
-        del blobs['url']
-
-        # copy to work_dir
-        for index, blob in blobs.items():
-            original_blob_path = os.path.join(self.blobs_folder,\
-              blob_physical_location, blob[0])
-            extension = blob[0].split('.')
-            try:
-                shutil.copy(original_blob_path, os.path.join(\
-                  work_dir, 'input_{0}.{1}'.\
-                  format(index, extension[1])))
-            except Exception as ex:
-                s = "Copy blobs to physical location, \
+        
+        userdata = {'blob_id_list': blobs_id_list}
+        resp = self.post(self.host_name, 'blobs', \
+                   'get_blobs_by_id', userdata)
+        
+        response = resp.json()
+        status=response['status']
+        
+        if status == 'OK':
+        
+            physical_location    = response['physical_location']
+            list_of_blobs        = response['list_of_blobs']
+            vr_physical_location = response['vr_location']
+            
+            index = 0
+            for blob in list_of_blobs:
+                
+                subdirs      = blob['subdirs'] 
+                hash_of_blob = blob['hash']
+                extension    = blob['extension']
+                
+                complete_blob_without_extension = subdirs + hash_of_blob
+                complete_blob = complete_blob_without_extension + extension
+                complete_blob_folder = os.path.join(self.blobs_folder, physical_location)
+                
+                original_blob_path = os.path.join(complete_blob_folder, complete_blob)  
+                
+                try:
+                    final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
+                    shutil.copy(original_blob_path, final_path)
+                except Exception as ex:
+                    s = "Copy blobs to physical location, \
 work_dir={}, original_blob_path={}".\
 format(work_dir, original_blob_path)
-                self.logger.exception(s)
-                print ex
+                    self.logger.exception(s)
+                    print ex
+                
+                #If the original blob has a visrep, we copy it in the run folder too...
+                if 'extension_visrep' in blob:
+                    extension_visrep       = blob['extension_visrep']
+                    complete_visrep        = complete_blob_without_extension + extension_visrep
+                    complete_visrep_folder = os.path.join(self.blobs_folder, vr_physical_location)
+                    visrep_path = os.path.join(complete_visrep_folder, complete_visrep)
+                    
+                    try:
+                        final_visrep_path = os.path.join(work_dir, \
+                                            'visrep_{0}{1}'.format(index, extension_visrep))
+                        
+                        shutil.copy(visrep_path, final_visrep_path)
+                    except Exception as ex:
+                        s = "Copy visrep blob to physical location, \
+work_dir={}, visrep_path={}".\
+format(work_dir, visrep_path)
+                        self.logger.exception(s)
+                        print ex
+        
+                index = index + 1
+        else:       
+            error_message  = "KO copying the blobs from Blobs module" 
+            error_message += " with copy_blobset_from_physical_location"
+            self.logger.exception(error_message)
+        
+    def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
+        """
+        copy the blobs in the run path.
+        The blobs can be uploaded by post method or a blobs from blob module
+        """
+        print "### Entering copy_blobs_from_blobs_module...  ###"
+
+        if input_type == 'upload':
+            self.input_upload(work_dir, blobs, ddl_inputs)
+        elif input_type == 'blobset':
+            
+            if 'id_blobs' in blobs:
+                 blobs_id_list = blobs['id_blobs']
+                 self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
+            else:
+                 error_message="There is not id blobs"
+                 print error_message
+                 self.logger.exception(error_message)
+                 raise
 
     ##---------------
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
@@ -868,20 +934,6 @@ Demoinfo code = {}".format(response['code'])
             raise
         
         return response
-        
-
-    def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
-        """
-        copy the blobs in the run path.
-        The blobs can be uploaded by post method or a blobs from blob module
-        """
-        print "### Entering copy_blobs...  ###"
-
-        if input_type == 'upload':
-            self.input_upload(work_dir, blobs, ddl_inputs)
-        elif input_type == 'blobset':
-            self.copy_blobset_from_physical_location(work_dir, blobs)
-
 
 
     @staticmethod
@@ -1146,8 +1198,8 @@ hostname, hostbyname, unresponsive_demorunners_list)
                 ddl_inputs = ddl_json['inputs']
 
         except Exception as ex:
-            print "Failed to obtain the DDL of demo {}".format(demo_id)
             s = "Failed to obtain the DDL of demo {}".format(demo_id)
+            print s
             self.logger.exception(s)
             res_data = {}
             res_data['info'] = 'DDL read demoInfo failed in the Core'
@@ -1188,12 +1240,12 @@ demo_id = ", demo_id
             requirements = ddl_json['general']['requirements'] \
                 if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
 
-            dr = self.get_demorunner(self.demorunners_workload(), \
-              requirements)
+            dr_name, dr_server = self.get_demorunner(\
+              self.demorunners_workload(), requirements)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
-            resp = self.post(dr, 'demorunner', 'ensure_compilation', userdata)
+            resp = self.post(dr_server, 'demorunner', 'ensure_compilation', userdata)
 
             demorunner_response = resp.json()
             status = demorunner_response['status']
@@ -1203,11 +1255,12 @@ demo_id = ", demo_id
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
                 self.error_log("ensure_compilation()", \
 "ensure_compilation functions returns KO in the demorunner: " + \
-dr + " module")
+dr_name + " module")
 
                 # Send compilation message to the editors
-                text = "{} - {}".format(json_response["buildlog"] \
-if 'buildlog' in json_response else "", json_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, \
+demorunner_response["buildlog"] if 'buildlog' in demorunner_response \
+else "", demorunner_response["message"])
                 
                 self.send_compilation_error_email(demo_id, text)
 
@@ -1238,7 +1291,7 @@ if 'buildlog' in json_response else "", json_response["message"])
                 userdata['timeout'] = ddl_json['general']['timeout']
 
 
-            resp = self.post(dr, 'demorunner', 'exec_and_wait', userdata)
+            resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
 
             demorunner_response = resp.json()
             print userdata
@@ -1249,7 +1302,9 @@ if 'buildlog' in json_response else "", json_response["message"])
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
 
                 # Message for the web interface
-                demorunner_response["error"] = format(demorunner_response["algo_info"]["status"])
+                website_message = "DR={}, {}".format(dr_name, \
+                    demorunner_response["algo_info"]["status"])
+                demorunner_response["error"] = format(website_message)
 
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
@@ -1353,7 +1408,7 @@ demo #{} - {}".format(demo_id, str(ex))
             if demorunner_response.ok:
                 if len(unresponsive_demorunners) > 0:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
-                return dr_server
+                return dr_name, dr_server
             else:
                 self.error_log("get_demorunner", \
                   "Module {} unresponsive".format(dr_name))

@@ -15,11 +15,12 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 #
-
+import os
 import requests
 import json
 
 HOST = "integration.ipol.im"
+# HOST = "127.0.1.1"
 
 def post(service, params=None, json=None):
     """
@@ -37,7 +38,7 @@ def post(service, params=None, json=None):
 
 def get_demo_list():
     """
-    Returns the list of demos
+    Return the list of demos
     """
     resp = post('demo_list')
     response = resp.json()
@@ -49,7 +50,7 @@ def get_demo_list():
 
 def read_DDL(editors_demoid):
     """
-    Returs the DDL for the demo with the given editordemoid
+    Return the DDL for the demo with the given editordemoid
     """
     try:
         resp = post('read_last_demodescription_from_demo', params={"demo_id": editors_demoid, "returnjsons": True})
@@ -80,14 +81,18 @@ def do_write(editors_demoid, ddl):
 
 def fix_run(ddl):
     """
-    Returns a DDL with the run fixed
+    Return a DDL with the run fixed
     """
     ddl_json = json.loads(ddl)
     if not isinstance(ddl_json["run"], list):
         # Run is correct
         return ddl
-    if len(ddl_json["run"]) > 1 or ">" in json.dumps(ddl_json["run"]):
-        # print "This demo needs a manually fix"
+    if len(ddl_json["run"]) > 1:
+        return ddl
+    if ">stdout.txt" in json.dumps(ddl_json["run"]):
+        ddl_json["run"] = ddl_json["run"][0].split(">")[0]
+        return json.dumps(ddl_json, indent=4, separators=(',', ': '))
+    elif ">" in json.dumps(ddl_json["run"]):
         return ddl
 
     ddl_json["run"] = ddl_json["run"][0]
@@ -96,7 +101,7 @@ def fix_run(ddl):
 
 def fix_build(ddl):
     """
-    Returns a DDL with the build fixed
+    Return a DDL with the build fixed
     """
     ddl_json = json.loads(ddl)
     if 'build1' in ddl_json["build"]:
@@ -107,11 +112,13 @@ def fix_build(ddl):
     new_build = {}
     for build in ddl_json["build"]:
         dic = {}
-        if "url*previous" in build or "url*previous*" in build or "prepare_make" in build:
-            # Can't convert url*previous or prepare_make yet
-            return ddl
+
         # Get url
-        if "url" in build:
+        if "url*previous" in build:
+            dic["url"] = build["url*previous"]
+        elif "url*previous*" in build:
+            dic["url"] = build["url*previous*"]
+        elif "url" in build:
             dic["url"] = build["url"]
 
         # Get construct
@@ -125,12 +132,19 @@ def fix_build(ddl):
             else:
                 dic["construct"] = "{} -C {}".format(build["build_type"], build["srcdir"])
 
-        # Get binaries
+        # Get files to move
+        binaries = []
         if "binaries" in build:
-            binaries = []
             for binary in build["binaries"]:
-                binaries.append("/".join(binary))
-            dic["move"] = "{}/{}".format(build["srcdir"],", ".join(binaries))
+                binaries.append(os.path.normpath(os.path.join(build["srcdir"], "/".join(binary))))
+
+        scripts = []
+        if "scripts" in build:
+            for script in build["scripts"]:
+                scripts.append(os.path.normpath(os.path.join(build["srcdir"],"/".join(script))))
+
+        if len(binaries+scripts) > 0:
+            dic["move"] = ", ".join(binaries + scripts)
 
         str = "build{}".format(index)
         new_build[str] = dic
@@ -147,12 +161,12 @@ if __name__ == '__main__':
         original_ddl = read_DDL(editors_demoid)
 
         # Fix the DDL
-        ddl = fix_run(original_ddl)
-        ddl = fix_build(ddl)
+        new_ddl = fix_run(original_ddl)
+        new_ddl = fix_build(new_ddl)
 
-        if not original_ddl == ddl:
+        if not original_ddl == new_ddl:
             print "Demo #{} \"{}\" was modified".format(editors_demoid,title)
             # Stores the new DDL
-            do_write(editors_demoid,ddl)
+            do_write(editors_demoid, new_ddl)
 
 
