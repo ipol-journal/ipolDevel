@@ -18,23 +18,18 @@
 
 import optparse
 import re
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    ERROR = '\033[91m'
-    ENDC = '\033[0m'
-
+import time
 
 def start_scann(module):
     # Open and read file
-    with open(module) as f:
+    method_list = []
+
+    with open("../../ipol_demo/modules/{}/{}.py".format(module, module)) as f:
         lines = f.readlines()
 
     for line_index in range(len(lines)):
+
+        method = ""
         if "@cherrypy.expose" in lines[line_index]:
 
             line_index += 1
@@ -42,10 +37,10 @@ def start_scann(module):
                 line_index += 1
 
             # Name of the method
-            print bcolors.OKBLUE + lines[line_index].strip()[:3] + bcolors.ENDC + lines[line_index].strip()[3:]
+            method += lines[line_index].strip() +"\n"
             while not "):" in lines[line_index]:
                 line_index += 1
-                print lines[line_index][:-1]
+                method += lines[line_index][:-1] + "\n"
 
             line_index += 1
             # Check for comments or empty lines before docstring
@@ -54,35 +49,57 @@ def start_scann(module):
 
             # Check if the method have any docstring
             if not ("\"\"\"" in lines[line_index] or "\'\'\'" in lines[line_index]):
-                print "    " + bcolors.ERROR + "Warning: This method does not have any docstring" + bcolors.ENDC
+                method += "    \\error{this method does not have any docstring}\n"
             else:
                 line_index += 1
-                # Print the docstring
+                # Docstring
                 while not ("\"\"\"" in lines[line_index] or "\'\'\'" in lines[line_index]):
-                    print "    " + bcolors.OKGREEN + lines[line_index].strip() + bcolors.ENDC
+                    method += "    " + lines[line_index].strip() + "\n"
                     line_index += 1
-            print "\n"
+            method += "\n"
+            method_list.append(method)
+
+    return {module:method_list}
+
+
+def print_latex(content):
+    result =""
+    for module in content:
+        result += "\\subsection{"+module.capitalize()+"} \n"
+        result += "\\begin{itemize} \n"
+        for method in content[module]:
+            result += "\item {}".format(method.replace("_","\\_")
+                                        .replace("\n","\n\\\\")
+                                        .replace("<", "\textless")
+                                        .replace(">", "\textgreater")
+                                        .replace("{", "\{")
+                                        .replace("}", "\}"))
+        result += "\\end{itemize} \n"
+    print result.replace("\\\\\\","\\")
 
 
 # Parse program arguments
 parser = optparse.OptionParser()
 (opts, args) = parser.parse_args()
 
-if len(args) != 1:
-    print "Wrong number of arguments (given {}, expected 1)".format(len(args))
+if len(args) > 1:
+    print "Wrong number of arguments"
     exit(0)
 
-module = args[0].lower()
+module = args[0].lower() if len(args) == 1 else None
 acepted_modules = ["core", "dispatcher", "demorunner", "demoinfo", "blobs", "archive"]
+date = time.strftime("%d/%m/%Y")
+modules = []
 
 if module in acepted_modules:
-    module_file = "../../ipol_demo/modules/{}/{}.py".format(module, module)
-    start_scann(module_file)
-elif module == "all":
-    for module in acepted_modules:
-        print bcolors.HEADER + "\n ---------- {} ---------- \n".format(module.capitalize()) + bcolors.ENDC
-        module_file = "../../ipol_demo/modules/{}/{}.py".format(module, module)
-        start_scann(module_file)
+    modules.append(module)
+elif module is None:
+    modules = acepted_modules
 else:
     print "Unknown module '{}'".format(module)
     exit(-1)
+
+content = {}
+for module in modules:
+    content.update(start_scann(module))
+print_latex(content)

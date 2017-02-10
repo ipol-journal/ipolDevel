@@ -137,15 +137,14 @@ class DemoRunner(object):
     @cherrypy.expose
     def index(self):
         """
-        Small index for the demorunner.
+        HTML presentation page
         """
         return ("This is the IPOL DemoRunner module")
 
     @cherrypy.expose
     def ping(self):
         """
-        Ping pong.
-        :rtype: JSON formatted string
+        Ping service: answer with a PONG.
         """
         data = {}
         data["status"] = "OK"
@@ -169,7 +168,7 @@ class DemoRunner(object):
     @cherrypy.expose
     def get_load_state(self):
         """
-        return CPU charge
+        Returns the CPU load of the machine
         """
         data = {}
         data["status"] = "KO"
@@ -199,7 +198,7 @@ class DemoRunner(object):
     @cherrypy.expose
     def get_workload(self):
         """
-        Return the workload from this DR
+        Return the workload of this DR
         """
         data = {}
         data["status"] = "OK"
@@ -573,7 +572,8 @@ class DemoRunner(object):
     @cherrypy.expose
     def ensure_compilation(self, demo_id, ddl_build):
         """
-            Ensure compilation in the demorunner
+        Ensures that the source codes of the given demo are compiled and
+        moved correcty.
         """
         print "\nDEMO ID " + demo_id + " is in ensure_compilation\n"
         ddl_build = json.loads(ddl_build)
@@ -687,7 +687,7 @@ class DemoRunner(object):
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
         '''
-        Called by the web interface to run the algorithm
+        Called by the Core to run the algorithm
         '''
         print "#### run demo ####"
         print "demo_id = ", demo_id

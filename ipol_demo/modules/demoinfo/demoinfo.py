@@ -368,7 +368,8 @@ class DemoInfo(object):
                 for demo in complete_demo_list:
                     #print "demo: ",demo
                     if (qfilter.lower() in demo.title.lower()
-                            or qfilter.lower() in demo.abstract.lower()):
+                            or qfilter.lower() in demo.abstract.lower()
+                                or qfilter == str(demo.editorsdemoid)):
                         demo_list.append(demo.__dict__)
             else:
                 #convert to Demo class to json
