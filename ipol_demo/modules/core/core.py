@@ -672,7 +672,7 @@ workload of '{}'".format(dr_name)
         """
         print "#### input_select_and_crop begin ####"
         
-        userdata = {'blob_id_list': blobs_id_list}
+        userdata = {'blob_ids': blobs_id_list}
         resp = self.post(self.host_name, 'blobs', \
                    'get_blobs_by_id', userdata)
         
