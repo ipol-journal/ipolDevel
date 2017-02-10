@@ -999,6 +999,56 @@ class   Blobs(object):
             
         return self.get_blobs_of_demo(demo_name)
 
+    
+    #---------------------------------------------------------------------------
+    def prepare_list_of_blobs(self, dic_blobs):
+        """
+        This function creates a list with the info that the ws: get_blobs_of_demo_by_name_ws
+        and get_blobs_from_template_ws, require for returning hash, extension, subdirs 
+        and if the visrep exists, it includes the visrep extension
+        """
+        list_of_blobs_corrected_with_vr = []
+        for elements in dic_blobs:
+            blob_set = []
+            for element in elements: 
+               if 'hash' in element:
+                  hash_of_blob      = element['hash']
+                  extension_of_blob = element['extension']
+                            
+                  visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
+                  vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
+                                                                                  hash_of_blob, \
+                                                                                  extension_of_blob) 
+                  ##The subdir is the same in the VR , the thumbnail and in the blob_directory
+                  element['subdirs'] = subdirs + "/"
+                            
+                  vr_extension = self.check_if_visrep_exists(vr_folder, hash_of_blob)
+                  if vr_extension != "":
+                      element['extension_visrep'] = vr_extension
+                            
+               blob_set.append(element)
+                    
+            list_of_blobs_corrected_with_vr.append(blob_set)
+        
+        return list_of_blobs_corrected_with_vr
+    
+    def check_if_visrep_exists(self, vr_folder, hash_of_blob):
+        """
+        This function check if a blob has a visrep associated.
+        If the visrep exists, the function returns its extension
+        if not, returns an empty string
+        """
+        vr_extension = ""
+        if os.path.isdir(vr_folder):
+                                
+            file_without_extension = os.path.join(vr_folder, hash_of_blob)
+            visrep = glob.glob(file_without_extension+".*")
+                        
+            if len(visrep)>0:
+                _, vr_extension = os.path.splitext(visrep[0])
+        
+        return vr_extension 
+    
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blobs_from_template_ws(self, template):
@@ -1018,6 +1068,7 @@ class   Blobs(object):
             try:
                 # template_id = data.demo_id(template)
                 dic["blobs"] = data.get_blobs_of_demo(template)
+                dic["blobs"] = self.prepare_list_of_blobs(dic['blobs'])
                 dic["status"] = "OK"
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from template demo")
@@ -1025,26 +1076,6 @@ class   Blobs(object):
 
         return json.dumps(dic)
 
-    #---------------------------------------------------------------------------
-    
-    def check_if_visrep_exists(self, vr_folder, hash_of_blob):
-        """
-        This function check if a blob has a visrep associated.
-        If the visrep exists, the function returns its extension
-        if not, returns an empty string
-        """
-        vr_extension = ""
-        if os.path.isdir(vr_folder):
-                                
-            file_without_extension = os.path.join(vr_folder, hash_of_blob)
-            visrep = glob.glob(file_without_extension+".*")
-                        
-            if len(visrep)>0:
-                _, vr_extension = os.path.splitext(visrep[0])
-        
-        return vr_extension 
-    
-    
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blobs_of_demo_by_name_ws(self, demo_name):
@@ -1067,30 +1098,8 @@ class   Blobs(object):
                 dic = data.get_demo_info_from_name(demo_name)
                 dic["use_template"] = data.demo_use_template(demo_name)
                 dic_temp = data.get_blobs_of_demo(demo_name)
-                list_of_blobs_corrected_with_vr = []
-                for elements in dic_temp:
-                    blob_set = []
-                    for element in elements: 
-                        if 'hash' in element:
-                            hash_of_blob      = element['hash']
-                            extension_of_blob = element['extension']
-                            
-                            visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
-                            vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
-                                                                                  hash_of_blob, \
-                                                                                  extension_of_blob) 
-                            ##The subdir is the same in the VR , the thumbnail and in the blob_directory
-                            element['subdirs'] = subdirs + "/"
-                            
-                            vr_extension = self.check_if_visrep_exists(vr_folder, hash_of_blob)
-                            if vr_extension != "":
-                                element['extension_visrep'] = vr_extension
-                            
-                        blob_set.append(element)
-                    
-                    list_of_blobs_corrected_with_vr.append(blob_set)
 
-                dic["blobs"] = list_of_blobs_corrected_with_vr
+                dic["blobs"] = self.prepare_list_of_blobs(dic_temp)
                 
                 dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
                 dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
