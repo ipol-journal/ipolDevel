@@ -786,8 +786,8 @@ ipol.DrawInputs = function(ddl_json) {
                                 // inverse transform that the one used in
                                 // getData from cropper.js (line 2395)
                                 $(this).cropper('setCropBoxData',
-                                                {   left:   e.x     *ratio,
-                                                    top:    e.y     *ratio,
+                                                {   left:   e.x     *ratio + canvasData.left,
+                                                    top:    e.y     *ratio + canvasData.top,
                                                     width:  e.width *ratio,
                                                     height: e.height*ratio});
                                 return;

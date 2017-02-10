@@ -1169,24 +1169,21 @@ class   Blobs(object):
             blob_deleted_message=blob_deleted_message)
     
     @cherrypy.expose
-    def get_blobs_by_id(self, blob_id_list):
+    @cherrypy.tools.accept(media="application/json")
+    def get_blobs_by_id(self, blob_ids):
         """
-        
-        :param blob_id_list: list with several blob_id
-        :type list
-        :return: informations
+        Obtain blobs metadata from their IDs
         """
-        
+
+        blobs_ids_tuple = blob_ids if isinstance(blob_ids, list) else [int(blob_ids)]
         #### This function is not finished yet!
         
         dic={}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-        
             try:
                 list_with_blob_information = []
                 dic_with_blob = {}
-                for blob_id in blob_id_list:
+                for blob_id in blobs_ids_tuple:
                     dic_with_blob = data.get_blob(blob_id)
                     
                     visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
@@ -1205,7 +1202,7 @@ class   Blobs(object):
                 dic["physical_location"] = self.final_dir
                 dic["vr_location"] = self.vr_dir
                 dic["status"] = "OK"
-            except DatabaseError:
+            except Exception:
                 self.logger.exception("Cannot access to blob from its ID")
                 dic["status"] = "KO"
 
