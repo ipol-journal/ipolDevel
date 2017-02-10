@@ -654,96 +654,59 @@ class Archive(object):
         """
         This function delete the given id_blob, in the database and physically.
         """
-        self.error_log("@@@@@@@@@@@@ delete_blob @@@@@@@@@@@@@", '')
         cursor_db = conn.cursor()
-        cursor_db.execute("""
-        SELECT * FROM blobs WHERE id = ?""", (id_blob,))
+        cursor_db.execute("SELECT * FROM blobs WHERE id = ?", (id_blob,))
         tmp = cursor_db.fetchone()
-        self.error_log('    === tmp ===', str(len(tmp)))
-        self.error_log('    === [0] ===', str(tmp[0]))
-        self.error_log('    === [1] ===', str(tmp[1]))
-        self.error_log('    === [2] ===', str(tmp[2]))
-        self.error_log('    === [3] ===', str(tmp[3]))
 
-        # path_blob = self.blobs_dir + tmp[1] + '.' + tmp[2]
-        # self.error_log("tmp[1] > ", tmp[1])
-        # self.error_log("tmp[2] > ", tmp[2])
-        # get the new path of the
-        path_blob, subdirs = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
-        # self.error_log("path_file > ", path_file)
-        # self.error_log("subdirs > ", subdirs)
-        # self.error_log("delete_blob > ", path_blob)
+        # get the new path of the blob and thumbnail
+        if tmp is not None:
+            path_blob, subdirs = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
+            path_thumb, subdirs = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
 
-        # path_thumb = self.blobs_thumbs_dir + tmp[1] + '.' + 'jpeg'
-        path_thumb, subdirs = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
-        self.error_log("    remove blob > ", path_blob)
-        self.error_log("    remove thumb > ", path_thumb)
+        cursor_db.execute("DELETE FROM blobs WHERE id = ?", (id_blob,))
 
-        os.remove(path_blob)
-        os.remove(path_thumb)
-        cursor_db.execute("""
-        DELETE FROM blobs WHERE id = ?""", (id_blob,))
-        self.error_log("    BLOB DELETED: ", str(tmp[0]))
-        self.error_log("@@@@@@@@@@@@ /delete_blob @@@@@@@@@@@@@", '')
+        # delete the files of this blob
+        try:
+            os.remove(path_blob)
+            os.remove(path_thumb)
+        except Exception:
+            pass
 
-    def purge_unique_blobs(self, conn, ids_blobs):
+    def purge_unique_blobs(self, conn, ids_blobs, experiment_id):
         """
-        This function check if the blobs are use in only one experiment.
+        This function checks if the blobs are used only in this experiment.
                 If this is the case, they are deleted both in the database
                 and physically.
         """
-        self.error_log("@@@@@@@@@@@@ purge_unique_blobs @@@@@@@@@@@@@", '')
-
         cursor_db = conn.cursor()
 
         for blob in ids_blobs:
-            cursor_db.execute("""
-            SELECT COUNT(*) FROM correspondence WHERE id_blob = ?""",\
-            (blob,))
-            if cursor_db.fetchone()[0] == 1:
-                self.error_log("    call to delete_blob", str(blob))
+            cursor_db.execute("""SELECT COUNT(*) FROM correspondence WHERE id_blob = ? AND id_experiment <> ?""",
+                              (blob, experiment_id,))
+            if cursor_db.fetchone()[0] == 0:
                 self.delete_blob(conn, blob)
-        self.error_log("@@@@@@@@@@@@ /purge_unique_blobs @@@@@@@@@@@@@", '')
-
 
     def delete_exp_w_deps(self, conn, experiment_id):
         """
         This function remove, in the database, an experiment from
-                the experiment table, and its dependencies in the correspondence
-                table. If the blobs are used only in this experiment, they will be
+                the experiments table, and its dependencies in the correspondence
+                table. If the blobs are used only by this experiment, they will be
                 removed too.
         """
-        self.error_log("@@@@@@@@@@@@ delete_exp_w_deps @@@@@@@@@@@@@", '')
-        self.error_log("    id_experiment: ", str(experiment_id))
-
         ids_blobs = []
         cursor_db = conn.cursor()
         cursor_db.execute("""
         PRAGMA foreign_keys=ON""")
 
-        for row in cursor_db.execute("""
-        SELECT * FROM correspondence where id_experiment = ?""",\
-        (experiment_id,)):
+        # save a list of blobs used by the experiment
+        for row in cursor_db.execute("SELECT * FROM correspondence where id_experiment = ?", (experiment_id,)):
             ids_blobs.append(row[2])
-            self.error_log('SELECT * FROM correspondence', str(row[2]))
 
-        self.error_log("    call to purge_unique_blobs with blobs", str(len(ids_blobs)))
-        self.purge_unique_blobs(conn, ids_blobs)
+        self.purge_unique_blobs(conn, ids_blobs, experiment_id)
 
-        for row in cursor_db.execute("""
-        DELETE FROM experiments WHERE id = ?
-        """, (experiment_id,)):
-            self.error_log("DELETE FROM experiments WHERE id = ", experiment_id)
-
-        cursor_db.execute("""
-        DELETE FROM correspondence WHERE id_experiment = ?
-        """, (experiment_id,))
-
+        cursor_db.execute("DELETE FROM experiments WHERE id = ?", (experiment_id,))
+        cursor_db.execute("DELETE FROM correspondence WHERE id_experiment = ?", (experiment_id,))
         cursor_db.execute("VACUUM")
-
-        status = 'UNKNOWN'
-        self.error_log("@@@@@@@@@@@@ /delete_exp_w_deps @@@@@@@@@@@@@", '')
-        return status
 
     @cherrypy.expose
     def delete_experiment(self, experiment_id):
@@ -752,26 +715,22 @@ class Archive(object):
                 experiment.
         :rtype: JSON formatted string
         """
-        self.error_log("@@@@@@@@@@@@ delete_experiment @@@@@@@@@@@@@", '')
         status = {"status" : "KO"}
         try:
             conn = lite.connect(self.database_file)
-            # status["status"] = 'A'
-            status["status"] = self.delete_exp_w_deps(conn, experiment_id)
-            #status["status"] = 2
+            self.delete_exp_w_deps(conn, experiment_id)
             conn.commit()
-            #status["status"] = 3
             conn.close()
             status["status"] = "OK"
+
         except Exception as ex:
-            status["status"] = ex
             self.error_log("delete_experiment", str(ex))
             try:
                 conn.rollback()
                 conn.close()
             except Exception as ex:
                 pass
-        self.error_log("@@@@@@@@@@@@ /delete_experiment @@@@@@@@@@@@@", '')
+
         return json.dumps(status)
 
 #####

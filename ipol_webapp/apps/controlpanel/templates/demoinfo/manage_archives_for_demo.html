@@ -72,8 +72,8 @@
                                 </div>
 
                                 {# Delete experiment button#}
-                                <div style="padding-left: 20px; padding-top: 20px;" >
-                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{#% url 'ipol.cp.archive.delete_experiment' experiment.id  %#}' )">Delete this Experiment</a>
+                                <div style="padding-left: 20px; padding-top: 10px;" align="right">
+                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{% url 'ipol.cp.archive.delete_experiment' experiment.id %}', {{ experiment.id  }} )">Delete this Experiment</a>
                                 </div>
                             </div>
                         {% endfor %}
@@ -111,8 +111,6 @@
 
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
 	<script>
-
-
 		{#  secure AJAX POST to ws ,from django docs  #}
 		function getCookie(name) {
 			var cookieValue = null;
@@ -144,43 +142,27 @@
 			});
 		});
 
-
-		{#  delete demo extra  #}
-		function send_delete_demo_extra_request(wsurl, demo_id) {
-			var delextra = confirm('delete the demo extra from demo: ' + demo_id);
-			if (delextra == true) {
+		{#  delete experiment  #}
+		function send_delete_experiment_request(wsurl, experiment_id) {
+			var delexp = confirm('Delete experiment ' + experiment_id + '?\nThe items will be deleted permanently');
+			if (delexp == true) {
 				$.ajax({
-					type: 'POST',
-						url: wsurl,
-						dataType: 'json',
-						success: function(data) {
-							window.location.reload(true);
-
-						},
-						error: function(data){
-							alert("Fallo con error: "+data.status)
-						}
-					});
+					type: 'GET',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        if(data.status == 'OK')
+                            alert('Operation performed successfully\nExperiment ' + experiment_id + ' was deleted');
+                        else
+                            alert('Failed to delete the experiment ' + experiment_id );
+                        window.location.reload(true);
+                    },
+                    error: function(data){
+                        alert('Failed to delete the experiment ' + experiment_id )
+                    }
+                });
 			}
 		}
-
-		{#  change the name of the submited file  #}
-		window.fileName = function(){
-			var x = document.getElementById("file");
-			if ('files' in x) {
-				txt = x.files[0].name;
-				if (txt.length>24){
-				    txt = txt.substring(0,22);
-				    txt += "..."
-				}
-				document.getElementById("name").innerHTML = txt;
-				document.getElementById("submitButton").style.visibility="visible";
-				document.getElementById("name").style.color="black";
-			}else{
-				document.getElementById("submitButton").style.visibility="hidden";
-			}
-		}
-
 	</script>
 
 {% endblock %}
