@@ -201,7 +201,7 @@ def start_test():
 
         if ddl is None:
             # If there is no DDL print errors continue to the next demo
-            print_errors(editors_demoid, title, errors, editors)
+            print_errors(editors_demoid, state, title, errors, editors)
             continue
 
         # Check the build in the DDL
