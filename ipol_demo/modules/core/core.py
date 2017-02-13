@@ -359,8 +359,6 @@ workload of '{}'".format(dr_name)
         '''
         Save image object given full path
         '''
-        # [Miguel] It's not clear to me what stack_depth is used for.
-        # In any case, it seems that probably we have here a typical race condition.
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
 
@@ -505,6 +503,7 @@ workload of '{}'".format(dr_name)
         pre-process the input data
         """
         print "#####  Entering process_inputs...  #####"
+        
         msg = ""
         max_width = 0
         max_height = 0
@@ -517,26 +516,26 @@ workload of '{}'".format(dr_name)
             # find files starting with input_%
             input_files = glob.glob(os.path.join(work_dir, \
               'input_%i' % i+'.*'))
-            if input_desc['type'] == 'image':
-            # we deal with an image, go on ...
-                print "Processing input {0}".format(i)
-                if len(input_files) != 1:
-                    if  ('required' in inputs_desc[i].keys()) and \
-                        inputs_desc[i]['required']:
+            
+            if len(input_files) != 1:
+                if  ('required' in inputs_desc[i].keys()) and inputs_desc[i]['required']:
                     # problem here
-                        raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
-                    else:
-                        # optional input missing, end of inputs
-                        break
+                    raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
                 else:
-                    # open the file as an image
-                    try:
-                        im = image(input_files[0])
-                    except IOError:
-                        print "failed to read image " + input_files[0]
-                        raise cherrypy.HTTPError(400, # Bad Request
-                                                 "Bad input file")
+                    # optional input missing, end of inputs
+                    break
+            
+            print "Processing input {0}".format(i)
 
+            if input_desc['type'] == 'image':
+
+                # open the file as an image
+                try:
+                    im = image(input_files[0])
+                except IOError:
+                    print "failed to read image " + input_files[0]
+                    raise cherrypy.HTTPError(400, # Bad Request
+                                              "Bad input file")
                 ##-----------------------------
                 ## Save the original file as PNG
                 ##
@@ -598,16 +597,21 @@ workload of '{}'".format(dr_name)
                     msg += input_msg + "<br/>\n"
                 # end if type is image
             else:
-                # check if we have a representing image to display
-                if len(input_files) > 1:
-                    # the number of input files should be 2...
-                    # for the moment, only check for png file
-
-                    # [ToDo] [Miguel] This png_file variable is
-                    # never used!!!
-                    png_file = os.path.join(work_dir,\
-                      'input_%i.png' % i)
-
+                if inputs_desc[i]['type'] == "data":
+                    if 'ext' in inputs_desc[i]:
+                        ext = inputs_desc[i]['ext']
+                    else:
+                        error_message="The DDL does not have extension field"
+                        print error_message
+                        self.logger.exception(error_message)
+                        raise 
+                    
+                    blob_path_without_extension = os.path.splitext(input_files[0])
+                    
+                    blob_with_ddl_extension = blob_path_without_extension[0] + ext
+                    os.rename(input_files[0], blob_with_ddl_extension)
+                    print "The blob is now {}".format(blob_with_ddl_extension)
+                    
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -635,16 +639,35 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
+            content_type = file_up.content_type
+            type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
+            
             if 'ext' in inputs_desc[i]:
                 ext = inputs_desc[i]['ext']
-                file_save = file(os.path.join(\
-                  work_dir, 'input_%i' % i + ext), 'wb')
             else:
-                error_message="The DDL does not have extension field."
+                error_message="The DDL does not have extension field"
+                print error_message
+                self.logger.exception(error_message)
+                raise 
+            
+            if 'type' in inputs_desc[i]:
+                if inputs_desc[i]['type'] == type_of_uploaded_blob or inputs_desc[i]['type'] == "data":
+                    # We keep the file according it was uploaded
+                    # process_inputs will make the possible modifications
+                    file_save = file(os.path.join(\
+                         work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')      
+                else:
+                    error_message="The DDL type does not match with the uploaded file"
+                    print error_message
+                    self.logger.exception(error_message)
+                    raise 
+            else:
+                error_message="The DDL does not have type field"
                 print error_message
                 self.logger.exception(error_message)
                 raise 
 
+            
             size = 0
             while True:
                 ## TODO larger data size
