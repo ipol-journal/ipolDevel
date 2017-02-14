@@ -18,7 +18,7 @@
             color:red;
         }
         .author{
-            border: 1px solid black;
+            border: 1px solid gray;
             margin: 20px;
             padding: 10px;
             //width: 40%;
@@ -29,6 +29,10 @@
         }
         .griditem{
             padding-left: 20px
+        }
+        .btn-primary{
+            margin-top: 2px;
+            margin-bottom: 2px;
         }
     </style>
 
@@ -70,17 +74,17 @@
                     {% for author in data.author_list %}
 
                         <div class="author row" id="author_info_{{ author.id }}" >
-                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ author.id }}</span> </div>
-                            <div class="griditem col-sm-3">{% trans 'name' %}:{{ author.name }} </div>
-                            <div class="griditem col-sm-3">{% trans 'email' %}:{{ author.mail}} </div>
+                            <div class="griditem col-sm-3"> {% trans 'Id' %}: <span class="badge">{{ author.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'Name' %}: {{ author.name }} </div>
+                            <div class="griditem col-sm-3">{% trans 'Email' %}: {{ author.mail}} </div>
 
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo'  demo_id author.id %}',{{ author.id }} )">{% trans 'Delete Author from demo' %}</a>
+                                <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo'  demo_id author.id %}',{{ author.id }}, '{{ author.name }}', {{ demo_id }} )" title="Delete {{ author.name }} from demo {{ demo_id }}">{% trans 'Delete Author from demo' %}</a>
 
                                 {#  btn Edit author #}
-                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )">{% trans 'Edit Author' %}</a>
+                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )" title="Edit {{ author.name }}'s information">{% trans 'Edit Author' %}</a>
 
                             </div>
 
@@ -263,8 +267,8 @@
 
 
         {#  delete author  #}
-        function send_delete_demo_author_request(wsurl,author_id) {
-            var delauthor = confirm('delete this author: ' + author_id);
+        function send_delete_demo_author_request(wsurl,author_id, author_name, demo_id) {
+            var delauthor = confirm('Remove ' + author_name + ' from demo ' + demo_id + '?');
 
             if (delauthor == true) {
                 $.ajax({
@@ -273,7 +277,7 @@
                     dataType: 'json',
                     success: function(data) {
                         console.log(data.status);
-                        var okhtml="<p class=\"ststsok\">author removed from demo</p>";
+                        var okhtml="<p class=\"ststsok\">Author succesfully removed from demo.</p>";
                         $('#author_info_'+ author_id).html(okhtml);
                         //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);

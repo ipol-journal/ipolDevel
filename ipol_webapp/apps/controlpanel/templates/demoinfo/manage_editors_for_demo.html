@@ -18,7 +18,7 @@
             color:red;
         }
         .editor{
-            border: 1px solid black;
+            border: 1px solid gray;
             margin: 20px;
             padding: 10px;
             //width: 40%;
@@ -29,6 +29,10 @@
         }
         .griditem{
             padding-left: 20px
+        }
+        .btn-primary{
+            margin-top: 2px;
+            margin-bottom: 2px;
         }
     </style>
 
@@ -70,17 +74,17 @@
                     {% for editor in data.editor_list %}
 
                         <div class="editor row" id="editor_info_{{ editor.id }}" >
-                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ editor.id }}</span> </div>
-                            <div class="griditem col-sm-3">{% trans 'name' %}:{{ editor.name }} </div>
-                            <div class="griditem col-sm-3">{% trans 'email' %}:{{ editor.mail}} </div>
+                            <div class="griditem col-sm-3"> {% trans 'Id' %}: <span class="badge">{{ editor.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'Name' %}: {{ editor.name }} </div>
+                            <div class="griditem col-sm-3">{% trans 'Email' %}: {{ editor.mail}} </div>
 
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete editor,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_editor_request('{% url 'ipol.cp.demoinfo.delete_editor_from_demo'  demo_id editor.id %}',{{ editor.id }} )">{% trans 'Delete Editor from demo' %}</a>
+                                <a class="btn btn-primary" onclick="send_delete_demo_editor_request('{% url 'ipol.cp.demoinfo.delete_editor_from_demo'  demo_id editor.id %}',{{ editor.id }}, '{{ editor.name }}', {{ demo_id }} )" title="Delete {{ editor.name }} from demo {{ demo_id }}">{% trans 'Delete Editor from demo' %}</a>
 
                                 {#  btn Edit editor #}
-                                <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )">{% trans 'Edit Editor' %}</a>
+                                <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )" title="Edit {{ editor.name }}'s information">{% trans 'Edit Editor' %}</a>
 
                             </div>
 
@@ -265,8 +269,8 @@
 
 
         {#  delete editor  #}
-        function send_delete_demo_editor_request(wsurl,editor_id) {
-            var deleditor = confirm('delete this editor: ' + editor_id);
+        function send_delete_demo_editor_request(wsurl, editor_id, editor_name, demo_id) {
+            var deleditor = confirm('Remove ' + editor_name + ' from demo ' + demo_id + '?');
 
             if (deleditor == true) {
                 $.ajax({
@@ -275,7 +279,7 @@
                     dataType: 'json',
                     success: function(data) {
                         console.log(data.status);
-                        var okhtml="<p class=\"ststsok\">editor removed from demo</p>";
+                        var okhtml="<p class=\"ststsok\">Editor succesfully removed from demo.</p>";
                         $('#editor_info_'+ editor_id).html(okhtml);
                         //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);
@@ -283,7 +287,7 @@
                     },
                     error: function(data){
                         console.error(data.status);
-                        var errorhtml="<p class=\"ststsnok\">editor not removed from demo sucessfully, "+$ws_down+"</p>";
+                        var errorhtml="<p class=\"ststsnok\">Editor not removed from demo, "+$ws_down+"</p>";
                         $('#editor_info_'+ editor_id).html(errorhtml);
                     }
                 });
@@ -505,7 +509,7 @@
                     console.log("AJAX CALL status: "+data.status);
 
                     if (data.status == "OK") {
-                        $($modal_choosedemoeditor_msg_div).html('choosedemoEditor saved').show();
+                        $($modal_choosedemoeditor_msg_div).html('Changes saved.').show();
                         $choosedemoeditorform.hide();
                         //todo better to only reload part of list, but should change django pagination for js pagination
                         window.location.reload(true);
