@@ -457,6 +457,12 @@ GRUB_CMDLINE_LINUX="nosmap"
 
 And finally {\tt update-grub} and reboot the machine.
 
+To start and stop the virtual machine called ``VM":
+
+{\tt VBoxManage startvm VM --type headless}
+
+{\tt vboxmanage controlvm VM poweroff soft}
+
 \bibliographystyle{plain}
 \bibliography{biblio}
 
