@@ -107,7 +107,7 @@ class RunDemoBase:
     # -----------------------------------------------------------------------------
     def run_algorithm(self, cmd, lock):
         '''
-        Executes an algorithmn given a command line.
+        Executes an algorithm given a command line.
         '''
         # Open stderr and stdlog files
         stderr_file = open(os.path.join(self.work_dir, "stderr.txt"), 'w')
@@ -142,8 +142,8 @@ class RunDemoBase:
             raise
 
         # Close files
-        stderr_file = open(self.work_dir + "stderr.txt", 'w')
-        stdout_file = open(self.work_dir + "stdout.txt", 'w')
+        stderr_file.close()
+        stdout_file.close()
                 
 
 
