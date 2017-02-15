@@ -134,8 +134,8 @@ class ChooseAuthorForDemoform(forms.Form):
     # select a demo for this author
     # author = forms.ChoiceField(label='author(name,email)',required=True)
 
-    # author = al.ChoiceField('AuthorAutocomplete',label='author(name,email)',required=True)
-    author = al.MultipleChoiceField('AuthorAutocomplete',label='author(name,email)',required=True)
+    author = al.ChoiceField('AuthorAutocomplete',label='Author (name, email)',required=True)
+    #author = al.MultipleChoiceField('AuthorAutocomplete',label='author(name,email)',required=True)
 
     helper = FormHelper()
     helper.form_id = "ChooseAuthorForDemoform"
@@ -205,8 +205,8 @@ class ChooseEditorForDemoform(forms.Form):
     demoid = forms.IntegerField(label='demoid',required=False)
     # no need for editor id, whe add it from the select or create it
     # select a demo for this editor
-    # editor = al.ChoiceField('EditorAutocomplete',label='editor(name,email)',required=True)
-    editor = al.MultipleChoiceField('EditorAutocomplete',label='editor(name,email)',required=True)
+    editor = al.ChoiceField('EditorAutocomplete',label='Editor (name, email)',required=True)
+    # editor = al.MultipleChoiceField('EditorAutocomplete',label='editor(name,email)',required=True)
 
     helper = FormHelper()
     helper.form_id = "ChooseEditorForDemoform"

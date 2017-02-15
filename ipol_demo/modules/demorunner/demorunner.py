@@ -736,6 +736,7 @@ class DemoRunner(object):
             self.write_log("exec_and_wait", "IPOLTimeoutError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
+            res_data['algo_info']['status'] = 'RuntimeError, Timeout={} s'.format(timeout)
             print res_data
             return json.dumps(res_data)
         except RuntimeError as e:            

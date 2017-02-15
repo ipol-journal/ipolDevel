@@ -434,6 +434,35 @@ To access the Control Panel the user will need to access the specified URL, and 
 \item Password: gy54g7x2 \miguel{Do we really want to write password in the public doc?}
 \end{itemize}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Virtual Machines}
+In order to allow members of the lab use the IPOL infrastructure for their computational research need, we create virtual machines (VM) with VirtualBox.
+
+First, the CPU priorities need to be added /etc/security/limits.conf:
+\begin{verbatim}
+*               soft     priority            17
+ipol            soft     priority            0
+\end{verbatim}
+
+
+The following packages need to be installed with: sudo apt-get install virtualbox virtualbox-dkms virtualbox-guest-dkms virtualbox-guest-utils vde2 virtualbox-guest-additions-iso xfonts-100dpi xfonts-75dpi
+
+Then the ``nosmap" kernel option need to be added to the kernel options: sudo nano /etc/default/grub
+
+\begin{verbatim}
+GRUB_CMDLINE_LINUX_DEFAULT="nosmap"
+GRUB_CMDLINE_LINUX="nosmap"
+\end{verbatim}
+
+And finally {\tt update-grub} and reboot the machine.
+
+To start and stop the virtual machine called ``VM":
+
+{\tt VBoxManage startvm VM --type headless}
+
+{\tt vboxmanage controlvm VM poweroff soft}
+
 \bibliographystyle{plain}
 \bibliography{biblio}
 
