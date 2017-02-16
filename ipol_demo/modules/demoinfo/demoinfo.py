@@ -1599,9 +1599,9 @@ class DemoInfo(object):
         else:
             if hasattr(p, 'creation'):
                 #todo, if active is not provideed, we suppose its True
-                e = Editor(p.name, p.mail, id=p.id, active=1, creation=p.creation)
+                e = Editor(p.name, p.mail, the_id=p.id, active=1, creation=p.creation)
             else:
-                e = Editor(p.name, p.mail, id=p.id)
+                e = Editor(p.name, p.mail, the_id=p.id)
 
         #update Editor
         try:
