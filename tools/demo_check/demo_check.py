@@ -162,13 +162,13 @@ def print_errors(editors_demoid, state, title, errors, editors):
     if len(errors) == 0:
         return
 
-    print "Demo #{} \"{}\"".format(editors_demoid, title)
+    print "Demo #{} \"{}\"".format(editors_demoid, title.encode('utf8'))
     print "Type: {}".format(state)
 
     # Print editors
     editors_msg = []
     for editor in editors:
-        editors_msg.append("{} <{}>".format(editors[editor], editor))
+        editors_msg.append("{} <{}>".format(editors[editor].encode('utf-8'), editor))
     if len(editors_msg) > 0:
         print "Editors: {}".format(", ".join(editors_msg))
 
@@ -181,6 +181,8 @@ def print_errors(editors_demoid, state, title, errors, editors):
 
 def start_test():
     demos = get_demo_list()
+    number_of_errors=0
+    number_of_wrong_demos=0
     for demo in demos:
         state = demo['state']
 
@@ -216,7 +218,12 @@ def start_test():
 
         # print errors
         print_errors(editors_demoid, state, title, errors, editors)
-
+        if len(errors)>0:
+            number_of_errors += len(errors)
+            number_of_wrong_demos += 1
+    if number_of_wrong_demos > 0:
+        print "Number of wrong demos:  {}".format(number_of_wrong_demos)
+        print "Number of total errors: {}".format(number_of_errors)
 
 
 

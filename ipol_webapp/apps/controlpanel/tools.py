@@ -107,7 +107,7 @@ def get_demoinfo_available_author_list(demoid=None):
         author_list= author_list_dict['author_list']
         #author_list_option.append( (0,"None selected") )
         for a in author_list:
-            a = (a["id"],str(a["name"])+", "+str(a["mail"]))
+            a = (a["id"],(a["name"].encode('utf8'))+", "+str(a["mail"]))
             author_list_option.append(a)
 
 
@@ -137,7 +137,7 @@ def get_demoinfo_available_editor_list(demoid=None):
         editor_list= editor_list_dict['editor_list']
         #editor_list_option.append( (0,"None selected") )
         for a in editor_list:
-            a = (a["id"],str(a["name"])+", "+str(a["mail"]))
+            a = (a["id"],(a["name"].encode('utf8'))+", "+str(a["mail"]))
             editor_list_option.append(a)
 
 
