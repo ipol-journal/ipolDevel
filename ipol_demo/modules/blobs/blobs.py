@@ -87,7 +87,7 @@ def validate_password(dummy, username, password):
         return True
     return False
 
-def complete_path_for_visual_representation(main_directory, blob_hash, extension, depth=2):
+def dispersed_path(main_directory, blob_hash, extension, is_thumbnail=False, depth=2):
     """
     This function complete the path with the corresponding subdir for a visual representation.
     new path --> /home/ipol/..../tmp/a/b/abvdddddd.png
@@ -97,38 +97,14 @@ def complete_path_for_visual_representation(main_directory, blob_hash, extension
     length_of_the_new_subfolder = min(len(blob_hash), depth)
     subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
     new_folder = os.path.join(main_directory, subdirs)
-    new_path = os.path.join(new_folder, blob_hash + extension)
     
+    if is_thumbnail:
+        blob = "thumbnail_" + blob_hash + extension
+    else:
+        blob = blob_hash + extension
+
+    new_path = os.path.join(new_folder, blob)
     return new_path, new_folder, subdirs
-
-def get_new_path(filename, create_dir=True, depth=2):
-    """
-    This method creates a new fullpath for a given file path,
-    where new directories are created for each 'depth' first letters
-    of the filename, for example:
-      input is /tmp/abvddff.png
-      output is /tmp/a/b/v/d/abvddff.png
-      where the full path /tmp/a/b/v/d has been created
-
-      if the filename name starts with thumbnail_, use the name without
-      'thumbnail_' to define its new path
-      for example:
-      /tmp/thumbnail_abvddff.png will be /tmpl/a/b/v/d/thumbnail_abvddff.png
-
-    """
-    prefix = ""
-    bname = os.path.basename(filename)
-    if bname.startswith("thumbnail_"):
-        prefix = "thumbnail_"
-        bname = bname[len(prefix):]
-    dname = os.path.dirname(filename)
-    fname = bname.split(".")[0]
-    l = min(len(fname), depth)
-    subdirs = '/'.join(list(fname[:l]))
-    new_dname = dname + '/' + subdirs + '/'
-    if create_dir and not os.path.isdir(new_dname):
-        os.makedirs(new_dname)
-    return new_dname + prefix + bname
 
 class MyFieldStorage(cherrypy._cpreqbody.Part):
     """
@@ -539,7 +515,7 @@ class   Blobs(object):
                 _, extension = os.path.splitext(vr_file.filename)
                 assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
                 
-                vr_path, vr_folder, _ = complete_path_for_visual_representation(visrep_folder, blob_hash, extension)
+                vr_path, vr_folder, _ = dispersed_path(visrep_folder, blob_hash, extension)
                 if not os.path.isdir(vr_folder):
                     os.makedirs(vr_folder)
                 
@@ -770,22 +746,21 @@ class   Blobs(object):
         :rtype: dictionnary 
         """
         
-        hash_blob, _ = os.path.splitext(blob)
-        path_file = os.path.join(self.base_directory, self.final_dir, blob)
-        thumbnail_hash_blob = "thumbnail_" + hash_blob + ".jpg"
-        path_thumb = os.path.join(self.base_directory,
-                                  self.thumb_dir, thumbnail_hash_blob)
-        # process paths
-        path_file = get_new_path(path_file)
-        path_thumb = get_new_path(path_thumb)
-
+        hash_blob, extension = os.path.splitext(blob)
+        
+        main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
+        path_file, _ , _  = dispersed_path(main_blobs_folder, hash_blob, extension)
+        
         try:
             os.remove(path_file)
         except OSError as ex:
             error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
             self.logger.error(error_message)
             print error_message
-            
+        
+        main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
+        path_thumb, _, _  = dispersed_path(main_thumb_folder, hash_blob, ".jpg", True)
+        
         try:
             os.remove(path_thumb)
         except OSError as ex:
@@ -796,7 +771,7 @@ class   Blobs(object):
         try:
             #Delete the visual representation (if exists)
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-            _, vr_folder,_ = complete_path_for_visual_representation(visrep_folder, hash_blob, "dummy")
+            _, vr_folder,_ = dispersed_path(visrep_folder, hash_blob, "dummy")
             visrep_without_extension = os.path.join(vr_folder, hash_blob)
             list_of_visrep = glob.glob(visrep_without_extension+".*")
 
@@ -1016,7 +991,7 @@ class   Blobs(object):
                   extension_of_blob = element['extension']
                             
                   visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
-                  vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
+                  vr_path, vr_folder, subdirs = dispersed_path(visrep_main_folder, \
                                                                                   hash_of_blob, \
                                                                                   extension_of_blob) 
                   ##The subdir is the same in the VR , the thumbnail and in the blob_directory
@@ -1116,6 +1091,24 @@ class   Blobs(object):
 
 
     #---------------------------------------------------------------------------
+    def process_paths(self, blob_hash, extension):
+        """
+        """
+        main_blobs_folder = os.path.join(self.base_directory, self.vr_dir)
+        physical_location, _, _ = dispersed_path(main_blobs_folder, \
+                                                                  blob_hash, \
+                                                                  extension) 
+                
+        url_blobs = os.path.join(self.server_address, self.final_dir)
+        url_blobs, _, _ = dispersed_path(url_blobs, blob_hash, extension) 
+                    
+        url_thumb = os.path.join(self.server_address, self.thumb_dir)
+        url_thumb, _, _ = dispersed_path(url_thumb, blob_hash, ".jpg", True)
+        
+        return physical_location, url_blobs, url_thumb
+    
+    
+    
     @cherrypy.expose
     def get_blobs_of_demo(self, demo_name, blob_deleted_message=None):
         """
@@ -1139,34 +1132,17 @@ class   Blobs(object):
                 blob_size = blob_set[0]['size']
                 for idx in range(1, blob_size + 1):
                     b = blob_set[idx]
-                    b_name = b["hash"] + b["extension"]
-                    b["physical_location"] = os.path.join(self.base_directory,
-                                                          self.final_dir, b_name)
-                    b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
-                    b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
-                                      + "/thumbnail_" + b["hash"] + ".jpg")
-
-                    # process paths
-                    b["physical_location"] = get_new_path(blob_set[idx]["physical_location"], False)
-                    b["url"] = get_new_path(blob_set[idx]["url"], False)
-                    b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
-
+                    b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
+		                                                                  b['extension'])
+                
 
         for blob_set in demo_blobs["blobs"]:
             blob_size = blob_set[0]['size']
             for idx in range(1, blob_size + 1):
                 b = blob_set[idx]
-                b_name = b["hash"] + b["extension"]
-                b["physical_location"] = os.path.join(self.base_directory,
-                                                      self.final_dir, b_name)
-                b["url"] = self.server_address + "/" + self.final_dir + "/" + b_name
-                b["url_thumb"] = (self.server_address + "/" + self.thumb_dir
-                                  + "/thumbnail_" + b["hash"] + ".jpg")
-                # process paths
-                b["physical_location"] = get_new_path(blob_set[idx]["physical_location"], False)
-                b["url"] = get_new_path(blob_set[idx]["url"], False)
-                b["url_thumb"] = get_new_path(blob_set[idx]["url_thumb"], False)
-
+                b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
+		                                                                  b['extension'])
+                
         
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
@@ -1185,8 +1161,7 @@ class   Blobs(object):
         """
 
         blobs_ids_tuple = blob_ids if isinstance(blob_ids, list) else [int(blob_ids)]
-        #### This function is not finished yet!
-        
+       
         dic={}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
@@ -1195,15 +1170,11 @@ class   Blobs(object):
                 for blob_id in blobs_ids_tuple:
                     dic_with_blob = data.get_blob(blob_id)
                     
-                    visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
-                    vr_path, vr_folder, subdirs = complete_path_for_visual_representation(visrep_main_folder, \
-                                                                                  dic_with_blob['hash'], \
-                                                                                  dic_with_blob['extension']) 
-                                
+                    _, _, subdirs = dispersed_path(os.path.join(self.base_directory, self.final_dir), \
+                                                                 dic_with_blob['hash'], \
+                                                                 dic_with_blob['extension']) 
+                               
                     dic_with_blob['subdirs'] = subdirs + "/"
-                    vr_extension = self.check_if_visrep_exists(vr_folder, dic_with_blob['hash'])
-                    if vr_extension != "":
-                        dic_with_blob['extension_visrep'] = vr_extension 
                     
                     list_with_blob_information.append(dic_with_blob)
                 
@@ -1234,23 +1205,24 @@ class   Blobs(object):
         
         if res["status"] == "OK":
             
-            blob_name = res["hash"] + res["extension"]
-            res["physical_location"] = os.path.join(self.base_directory,
-                                                    self.final_dir,
-                                                    blob_name)
-            
-            
-            res["url"] = self.server_address + "/" + self.final_dir + "/" + blob_name
-            
-            res["url_thumb"] = (self.server_address + "/" + self.thumb_dir
-                                + "/thumbnail_" + res["hash"]+".jpg")
-            
             res["tags"] = use_web_service('/get_tags_ws', data)
             
             # process paths
-            res["physical_location"] = get_new_path(res["physical_location"], False)
-            res["url"] = get_new_path(res["url"], False)
-            res["url_thumb"] = get_new_path(res["url_thumb"], False)
+            main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
+            res["physical_location"], _, _ = dispersed_path(main_blobs_folder, \
+                                             res["hash"], \
+                                             res["extension"]) 
+
+            url_blobs = os.path.join(self.server_address, self.final_dir)
+            res['url'], _, _ = dispersed_path(url_blobs, \
+                                            res["hash"], \
+                                            res["extension"]) 
+            url_thumb = os.path.join(self.server_address, self.thumb_dir)
+            
+            res["url_thumb"], _, _ = dispersed_path(url_thumb, \
+                                                    res["hash"], \
+                                                    ".jpg", \
+                                                    True) 
             
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(\
@@ -1380,7 +1352,7 @@ class   Blobs(object):
         return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
 
     #---------------------------------------------------------------------------
-    def move_to_input_directory(self, path, the_hash, extension):
+    def move_to_input_directory(self, path, blob_hash, extension):
         """
         Create final blob directory if it doesn't exist
         Move the temporary blob in this directory
@@ -1393,11 +1365,14 @@ class   Blobs(object):
         :param extension: extension of blob
         :type extension: string
         """
-        file_directory = os.path.join(self.base_directory, self.final_dir)
-        if not os.path.exists(file_directory):
-            os.makedirs(file_directory)
-        file_dest = os.path.join(file_directory, (the_hash + extension))
-        file_dest = get_new_path(file_dest)
+        main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
+        if not os.path.exists(main_blobs_folder):
+            os.makedirs(main_blobs_folder)
+        
+        file_dest, _, _ = dispersed_path(main_blobs_folder, \
+                                          blob_hash, \
+                                          extension) 
+        
         shutil.move(path, file_dest)
         return file_dest
 
@@ -1410,13 +1385,16 @@ class   Blobs(object):
         :param src: source path of the blob
         :type src: string
         """
-        file_directory = os.path.join(self.base_directory, self.thumb_dir)
-        if not os.path.exists(file_directory):
-            os.makedirs(file_directory)
+        main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
+        if not os.path.exists(main_thumb_folder):
+            os.makedirs(main_thumb_folder)
         name = os.path.basename(src)
+        blob_hash = os.path.splitext(name)[0]
         # force thumbnail extension to be .jpg
-        file_dest = os.path.join(file_directory, ('thumbnail_' + os.path.splitext(name)[0]+'.jpg'))
-        file_dest = get_new_path(file_dest)
+        file_dest, _, _ = dispersed_path(main_thumb_folder, \
+                                          blob_hash, \
+                                          ".jpg", \
+                                          True) 
         fil_format = file_format(src)
         try:
             if fil_format == 'image':
@@ -1462,12 +1440,8 @@ class   Blobs(object):
                 the_files = buff.get(section, "files")
                 list_file = the_files.split()
                 for _file in list_file:
-                    # to associate a blob image representation, use
-                    # 2 files separated by a comma
-                    has_image_representation = False
-                    # use the in the list position as the input number
-                    file_id = list_file.index(_file)
                     
+                    file_id = list_file.index(_file)
                     if _file and _file in files:
                         title = buff.get(section, 'title')
                         try:

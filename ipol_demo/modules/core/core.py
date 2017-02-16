@@ -601,7 +601,7 @@ workload of '{}'".format(dr_name)
                     if 'ext' in inputs_desc[i]:
                         ext = inputs_desc[i]['ext']
                     else:
-                        error_message="The DDL does not have extension field"
+                        error_message = "The DDL does not have extension field"
                         print error_message
                         self.logger.exception(error_message)
                         raise 
@@ -645,7 +645,7 @@ workload of '{}'".format(dr_name)
             if 'ext' in inputs_desc[i]:
                 ext = inputs_desc[i]['ext']
             else:
-                error_message="The DDL does not have extension field"
+                error_message = "The DDL does not have extension field"
                 print error_message
                 self.logger.exception(error_message)
                 raise 
@@ -657,7 +657,7 @@ workload of '{}'".format(dr_name)
                     file_save = file(os.path.join(\
                          work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')      
                 else:
-                    error_message="The DDL type does not match with the uploaded file"
+                    error_message = "The DDL type does not match with the uploaded file"
                     print error_message
                     self.logger.exception(error_message)
                     raise 
@@ -700,13 +700,13 @@ workload of '{}'".format(dr_name)
                    'get_blobs_by_id', userdata)
         
         response = resp.json()
-        status=response['status']
+        status = response['status']
         
         if status == 'OK':
         
             physical_location    = response['physical_location']
             list_of_blobs        = response['list_of_blobs']
-            vr_physical_location = response['vr_location']
+            #vr_physical_location = response['vr_location']
             
             index = 0
             for blob in list_of_blobs:
@@ -730,27 +730,9 @@ work_dir={}, original_blob_path={}".\
 format(work_dir, original_blob_path)
                     self.logger.exception(s)
                     print ex
-                
-                #If the original blob has a visrep, we copy it in the run folder too...
-                if 'extension_visrep' in blob:
-                    extension_visrep       = blob['extension_visrep']
-                    complete_visrep        = complete_blob_without_extension + extension_visrep
-                    complete_visrep_folder = os.path.join(self.blobs_folder, vr_physical_location)
-                    visrep_path = os.path.join(complete_visrep_folder, complete_visrep)
-                    
-                    try:
-                        final_visrep_path = os.path.join(work_dir, \
-                                            'visrep_{0}{1}'.format(index, extension_visrep))
-                        
-                        shutil.copy(visrep_path, final_visrep_path)
-                    except Exception as ex:
-                        s = "Copy visrep blob to physical location, \
-work_dir={}, visrep_path={}".\
-format(work_dir, visrep_path)
-                        self.logger.exception(s)
-                        print ex
         
                 index = index + 1
+
         else:       
             error_message  = "KO copying the blobs from Blobs module" 
             error_message += " with copy_blobset_from_physical_location"

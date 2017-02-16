@@ -675,7 +675,9 @@ class AuthorDAO(object):
             else:
                 self.cursor.execute('''
                 UPDATE author SET name=?, mail=? WHERE id=?''', (author.name, author.mail, author.id))
-                self.conn.commit()
+
+            self.conn.commit()
+
         except Exception as ex:
             error_string = ("update_author  e:%s" % (str(ex)))
             print error_string
@@ -941,7 +943,9 @@ class EditorDAO(object):
                 self.cursor.execute('''
                 UPDATE editor SET name=?, mail=?,active=? WHERE id=?''',
                                     (editor.name, editor.mail, editor.active, editor.id))
-                self.conn.commit()
+
+            self.conn.commit()
+
         except Exception as ex:
             error_string = ("update_editor  e:%s" % (str(ex)))
             print error_string
