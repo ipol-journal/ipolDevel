@@ -162,7 +162,7 @@ def print_errors(editors_demoid, state, title, errors, editors):
     if len(errors) == 0:
         return
 
-    print "Demo #{} \"{}\"".format(editors_demoid, title)
+    print "Demo #{} \"{}\"".format(editors_demoid, title.encode('utf8'))
     print "Type: {}".format(state)
 
     # Print editors
