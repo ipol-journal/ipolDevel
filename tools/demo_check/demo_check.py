@@ -168,7 +168,7 @@ def print_errors(editors_demoid, state, title, errors, editors):
     # Print editors
     editors_msg = []
     for editor in editors:
-        editors_msg.append("{} <{}>".format(editors[editor], editor))
+        editors_msg.append("{} <{}>".format(editors[editor].encode('utf-8'), editor))
     if len(editors_msg) > 0:
         print "Editors: {}".format(", ".join(editors_msg))
 
