@@ -181,6 +181,8 @@ def print_errors(editors_demoid, state, title, errors, editors):
 
 def start_test():
     demos = get_demo_list()
+    number_of_errors=0
+    number_of_wrong_demos=0
     for demo in demos:
         state = demo['state']
 
@@ -216,7 +218,12 @@ def start_test():
 
         # print errors
         print_errors(editors_demoid, state, title, errors, editors)
-
+        if len(errors)>0:
+            number_of_errors += len(errors)
+            number_of_wrong_demos += 1
+    if number_of_wrong_demos > 0:
+        print "Number of wrong demos:  {}".format(number_of_wrong_demos)
+        print "Number of total errors: {}".format(number_of_errors)
 
 
 
