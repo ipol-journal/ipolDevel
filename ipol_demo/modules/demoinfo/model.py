@@ -540,24 +540,24 @@ class DemoDemoDescriptionDAO(object):
 
             if returnjsons is True or returnjsons == 'True':
 
-                self.cursor.execute('''SELECT ddl.inproduction,dd.creation,ddl.JSON, ddl.id
+                self.cursor.execute('''SELECT ddl.inproduction,ddl.creation,ddl.JSON, ddl.id
                     FROM demodescription as ddl
                     INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
                     INNER JOIN demo ON  demo.ID = dd.demoId
                     WHERE editor_demo_id = ?
-                    ORDER BY dd.creation DESC LIMIT 1''', (int(editorsdemoid),))
+                    ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
                 self.conn.commit()
                 row = self.cursor.fetchone()
                 if row:
                     result = {'inproduction': row[0], 'creation': row[1],
                               'json': row[2], 'demodescriptionId': row[3]}
             else:
-                self.cursor.execute('''SELECT ddl.inproduction,dd.creation, ddl.id
+                self.cursor.execute('''SELECT ddl.inproduction,ddl.creation, ddl.id
                     FROM demodescription as ddl
                     INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
                     INNER JOIN demo ON  demo.ID = dd.demoId
                     WHERE editor_demo_id = ?
-                    ORDER BY dd.creation DESC LIMIT 1''', (int(editorsdemoid),))
+                    ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
                 self.conn.commit()
                 row = self.cursor.fetchone()
                 if row:
@@ -582,7 +582,7 @@ class DemoDemoDescriptionDAO(object):
         try:
             if returnjsons is True or returnjsons == 'True':
                 self.cursor.execute('''
-                SELECT ddl.ID,ddl.inproduction,dd.creation,ddl.JSON
+                SELECT ddl.ID,ddl.inproduction,ddl.creation,ddl.JSON
                 FROM demo_demodescription as dd, demodescription as ddl, demo as d
                 WHERE  dd.demodescriptionID=ddl.ID
                 AND dd.demoID= d.ID
@@ -594,7 +594,7 @@ class DemoDemoDescriptionDAO(object):
                     demodescription_list.append(ddl)
             else:
                 self.cursor.execute('''
-                SELECT ddl.ID,ddl.inproduction,dd.creation
+                SELECT ddl.ID,ddl.inproduction,ddl.creation
                 FROM demo_demodescription as dd, demodescription as ddl, demo as d
                 WHERE  dd.demodescriptionID=ddl.ID
                 AND dd.demoID= d.ID
@@ -1177,6 +1177,7 @@ def createDb(database_name):
             cursor_db.execute(
                 """CREATE TABLE IF NOT EXISTS "demodescription" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 inproduction INTEGER(1) DEFAULT 1,
                 JSON BLOB
                 );"""
@@ -1202,7 +1203,6 @@ def createDb(database_name):
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 demoID INTEGER NOT NULL,
                 demodescriptionId INTEGER NOT NULL,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
                 FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE
                 );"""

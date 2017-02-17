@@ -237,11 +237,11 @@ if len(args) != 1:
 
 environment = args[0].lower()
 
-if environment == 'integration':
+if environment in ['integration', 'int', 'i']:
     HOST = "integration.ipol.im"
-elif environment == 'production' :
+elif environment in ['production', 'prod', 'p']:
     HOST = "ipolcore.ipol.im"
-elif environment == 'local':
+elif environment in ['local', 'l']:
     HOST = "127.0.1.1"
 else:
     print "Unknown environment '{}'".format(environment)
