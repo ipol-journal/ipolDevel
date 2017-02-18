@@ -586,7 +586,8 @@ class DemoRunner(object):
             builds = [ddl_build]
         else:
             builds = ddl_build
-
+        
+        data = {}
         for build_params in builds:
             try:
                 print ddl_build
@@ -601,7 +602,6 @@ class DemoRunner(object):
                     make_info = self.make_karl(path_for_the_compilation, build_params)
                 print make_info
 
-                data = {}
                 data['status'] = "OK"
                 data['message'] = "Build of demo {0} OK".format(demo_id)
                 data['info'] = make_info
@@ -621,7 +621,6 @@ class DemoRunner(object):
                     with open(log_file) as f:
                         lines = f.readlines()                
 
-                data = {}
                 data['status'] = 'KO'                
                 data['message'] = "Build for demo {0} failed".format(demo_id)
                 data['buildlog'] = lines
