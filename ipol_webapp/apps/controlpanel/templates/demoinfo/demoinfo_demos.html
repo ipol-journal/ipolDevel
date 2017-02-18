@@ -73,26 +73,19 @@
                                 {#  <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ demo.editorsdemoid }}</span> </div>#}
                                 <div class="col-sm-4">
                                     <div class="griditem">
-                                        {% trans 'id' %}:<span class="badge">{{ demo.editorsdemoid }}</span>
-
-
-
-
+                                        {% trans 'Id' %}: <span class="badge">{{ demo.editorsdemoid }}</span>
                                     </div>
-                                    {#  <div class="griditem col-sm-3">{% trans 'editors id' %}:{{ demo.editorsdemoid }} </div>#}
-                                    <div class="griditem">{% trans 'title' %}:{{ demo.title}} </div>
-                                    <div class="griditem">{% trans 'abstract' %}:
+                                    {#  <div class="griditem col-sm-3">{% trans 'Editors id' %}:{{ demo.editorsdemoid }} </div>#}
+                                    <div class="griditem">{% trans 'Title' %}: {{ demo.title}} </div>
+                                    <div class="griditem">{% trans 'Abstract' %}:
                                         <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
-                                    <div class="griditem">{% trans 'URL' %}:<a  href="#">{{ demo.zipURL }}</a> </div>
-
-
-
+                                    <div class="griditem">{% trans 'URL' %}: <a  href="#">{{ demo.zipURL }}</a> </div>
 
                                     <div class="griditem">
-                                        {% trans 'state' %}:
+                                        {% trans 'State' %}:
                                         {# {{ demo.state }}#}
                                         {% for sid,sname in states %}
                                             {% if sid == demo.state %}
@@ -101,13 +94,13 @@
                                         {% endfor %}
                                     </div>
 
-                                    {# <div class="griditem col-sm-3">{% trans 'DDL' %}:{{ demo.demodescriptionID }} </div>#}
-                                    <div class="griditem">{% trans 'last modification' %}:{{ demo.modification |date:"d M Y" }} </div>
+                                    {# <div class="griditem col-sm-3">{% trans 'DDL' %}: {{ demo.demodescriptionID }} </div>#}
+                                    <div class="griditem">{% trans 'Last modification' %}: {{ demo.modification |date:"d M Y" }} </div>
                                 </div>
 
                                 <div class=" col-sm-4">
                                     {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.editorsdemoid %}',{{ demo.editorsdemoid }} ,{{ demo.editorsdemoid }} ,'{{ demo.title }}' )">{% trans 'Delete' %}</a>
+                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.editorsdemoid %}', {{ demo.editorsdemoid }} ,{{ demo.editorsdemoid }}, '{{ demo.title|addslashes }}')">{% trans 'Delete' %}</a>
 
                                     {#  btn Edit demo #}
                                     <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.editorsdemoid %}', {{ demo.editorsdemoid }}  )">{% trans 'Edit' %}</a>
@@ -368,7 +361,7 @@
                     "that this is what you really want. Note that you can instead change the state of the demo to testing, which is 'safe'.");
             if (deldemo == true) {
 
-                var deldemo2 = confirm( "This is your last change to cancel the total removal of the demo with editor's id: "+
+                var deldemo2 = confirm( "This is your last chance to cancel the total removal of the demo with editor's id: "+
                     demo_editorsdemoid + " ("+ demo_title +") Please confirm that you want to totally remove it from the system");
                 if (deldemo2 == true) {
                     $.ajax({
@@ -377,7 +370,7 @@
                         dataType: 'json',
                         success: function(data) {
                             console.log(data.status);
-                            var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+                            var okhtml="<p class=\"ststsok\">Demo deleted succesfully</p>";
                             $('#demo_info_'+ demo_id).html(okhtml);
                             //todo better to only reload part of list, but shoul change django pagination for js pagination
                             window.location.reload(true);
@@ -385,7 +378,7 @@
                         },
                         error: function(data){
                             console.error(data.status);
-                            var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, "+$ws_down+"</p>";
+                            var errorhtml="<p class=\"ststsnok\">Demo not deleted: "+$ws_down+"</p>";
                             $('#demo_info_'+ demo_id).html(errorhtml);
                         }
                     });

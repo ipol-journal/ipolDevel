@@ -586,7 +586,7 @@ class DemoRunner(object):
             builds = [ddl_build]
         else:
             builds = ddl_build
-
+        
         for build_params in builds:
             try:
                 print ddl_build
@@ -608,6 +608,8 @@ class DemoRunner(object):
             except urllib2.HTTPError as e:
                 print "HTTPError"
                 self.logger.exception("ensure_compilation - HTTPError")
+                data = {}
+                data['status'] = 'KO'                
                 data['message'] = "{}, build_params: {}".format(str(e), str(build_params))
                 return json.dumps(data)                
             except Exception as e:
@@ -620,7 +622,6 @@ class DemoRunner(object):
                 if os.path.isfile(log_file):
                     with open(log_file) as f:
                         lines = f.readlines()                
-
                 data = {}
                 data['status'] = 'KO'                
                 data['message'] = "Build for demo {0} failed".format(demo_id)
