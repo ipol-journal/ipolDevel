@@ -67,7 +67,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     var _demoblobs = demoblobs;
     
     /** 
-     * Demo Description Language DDL information.
+     * Demo Description Lines DDL information.
      * @var {object} _ddl_json
      * @memberOf ipol.DrawBlobs~
      * @private

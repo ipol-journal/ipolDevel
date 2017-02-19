@@ -77,7 +77,7 @@ ipol.DrawInputs = function(ddl_json) {
     _priorityMessage(" DrawInput started ");
     
     /** 
-     * The Demo Description Language DDL object.
+     * The Demo Description Lines (DDL) object.
      * @var {object} _ddl_json
      * @memberOf ipol.DrawInputs~
      * @private
