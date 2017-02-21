@@ -105,7 +105,8 @@ class DemoRunner(object):
         """
         Initialize DemoRunner
         """
-        self.lock = Lock()
+        self.lock_run = Lock()
+        self.lock_construct = Lock()
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
@@ -361,9 +362,6 @@ class DemoRunner(object):
         
         try:
             # Clear src/ folder
-            if os.path.isdir(src_dir):
-                shutil.rmtree(src_dir)
-            self.mkdir_p(src_dir)
             self.mkdir_p(dl_dir)
             self.mkdir_p(bin_dir)
         except Exception:
@@ -371,10 +369,7 @@ class DemoRunner(object):
             raise
 
         for build_item in ddl_builds.items():
-            # Move to the compilation directory, in case the
-            # instructions in the move directive have changed it
-            os.chdir(src_dir)
-            
+
             build_item = build_item[1]
             # Read DDL
             url = build_item['url']
@@ -396,34 +391,41 @@ class DemoRunner(object):
 
                 # Check if a rebuild is nedded
                 if extract_needed or not self.all_files_exist(files_path):
-                    # Extract source code
-                    build.extract(tgz_file, src_dir)
+                    with self.lock_construct:
+                        if os.path.isdir(src_dir):
+                            shutil.rmtree(src_dir)
+                        self.mkdir_p(src_dir)
+                        # Move to the compilation directory, in case the
+                        # instructions in the move directive have changed it
+                        os.chdir(src_dir)
+                        # Extract source code
+                        build.extract(tgz_file, src_dir)
 
-                    if construct is not None:
-                        # Execute the construct
-                        build.run(construct, log_file, cwd=src_dir)
+                        if construct is not None:
+                            # Execute the construct
+                            build.run(construct, log_file, cwd=src_dir)
 
-                    # Move files
-                    for file_to_move in files_to_move.split(","):
-                        # Remove possible white spaces
-                        file_to_move = file_to_move.strip()
-                        #
-                        path_from = path.join(src_dir,file_to_move)
-                        path_to = path.join(bin_dir, os.path.basename(file_to_move))
-                        
-                        print "Moving {} --> {}".\
-                              format(path_from, path_to)
-                        
-                        try:
-                            shutil.move(path_from, path_to)
-                        except (IOError, OSError):
-                            # If can't move, write in the log file, so
-                            # the user can see it
-                            f = open(log_file, 'w')
-                            f.write("Failed to move {} --> {}".\
-                              format(path_from, path_to))
-                            f.close()
-                            raise                            
+                        # Move files
+                        for file_to_move in files_to_move.split(","):
+                            # Remove possible white spaces
+                            file_to_move = file_to_move.strip()
+                            #
+                            path_from = path.join(src_dir,file_to_move)
+                            path_to = path.join(bin_dir, os.path.basename(file_to_move))
+
+                            print "Moving {} --> {}".\
+                                  format(path_from, path_to)
+
+                            try:
+                                shutil.move(path_from, path_to)
+                            except (IOError, OSError):
+                                # If can't move, write in the log file, so
+                                # the user can see it
+                                f = open(log_file, 'w')
+                                f.write("Failed to move {} --> {}".\
+                                  format(path_from, path_to))
+                                f.close()
+                                raise
             except Exception:
                 self.logger.exception("Build failed")
                 raise
@@ -651,7 +653,7 @@ class DemoRunner(object):
             rd.run_algorithm_karl()
         else:
             cmd = self.variable_substitution(ddl_run,demo_id, params)
-            rd.run_algorithm(cmd, self.lock)
+            rd.run_algorithm(cmd, self.lock_run)
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
@@ -683,7 +685,6 @@ class DemoRunner(object):
             with open(full_file) as f:
                 lines = f.readlines()
         return lines
-
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
