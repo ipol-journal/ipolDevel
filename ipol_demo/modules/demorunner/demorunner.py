@@ -105,7 +105,8 @@ class DemoRunner(object):
         """
         Initialize DemoRunner
         """
-        self.lock = Lock()
+        self.lock_run = Lock()
+        self.lock_construct = Lock()
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.share_running_dir = cherrypy.config['share.running.dir']
@@ -230,127 +231,8 @@ class DemoRunner(object):
 
         return json.dumps(data)
 
-    def make_karl(self, path_for_the_compilation, ddl_build):
-        """
-        program build/update
-        """
-        self.write_log("make_karl", \
-          "Using deprecated make_karl function to compile - {}".\
-            format(path_for_the_compilation))
 
-        print "make begin"
-        total_start = time.time()
-        make_info = ""
-
-        zip_filename = urlparse.urlsplit(ddl_build['url']).path.split('/')[-1]
-        src_dir_name = ddl_build['srcdir']
-
-        dl_dir = os.path.join(path_for_the_compilation, 'dl/')
-        scripts_dir = os.path.join(path_for_the_compilation, 'scripts/')
-        log_file = os.path.join(path_for_the_compilation, 'build.log')
-        src_dir = os.path.join(path_for_the_compilation, 'src/')
-        bin_dir = os.path.join(path_for_the_compilation, 'bin/')
-        src_path = os.path.join(src_dir, src_dir_name)
-
-        self.mkdir_p(dl_dir)
-        tgz_file = path.join(dl_dir, zip_filename)
-
-        print "Initing the make in ", path_for_the_compilation
-        # get the latest source archive
-        try:
-            build.download(ddl_build['url'], tgz_file)
-        except Exception as ex:
-            self.write_log("make", "Failed to download the sources: {}".format(tgz_file))
-            raise
-
-        rebuild_needed = False
-
-        ## test if the dest file is missing, or too old, for each program to build
-        if 'binaries' in ddl_build:
-            programs = ddl_build['binaries']
-            for program in programs:
-                print "build ", program
-                # use first binary name to check time
-                prog_filename = program[1]
-                try:
-                    prog_file = path.join(bin_dir, os.path.basename(prog_filename))  ### AQUI GUARDA EL BINARIO AL FINAL
-                    if os.path.basename(prog_filename) == '' and len(program) == 3:
-                        prog_file = path.join(bin_dir, program[2])
-                    if not (path.isfile(prog_file)) or (ctime(tgz_file) > ctime(prog_file)):
-                        rebuild_needed = True
-                except Exception as ex:
-                    self.logger.exception("make")
-                    raise
-
-        # test timestamp for scripts too
-        if 'scripts' in ddl_build.keys():
-            for script in ddl_build['scripts']:
-                try:
-                    script_file = path.join(scripts_dir, script[1])
-                    if os.path.basename(script[1]) == '' and len(script) == 3:
-                        script_file = path.join(scripts_dir, script[1], script[2])
-                    if not (path.isfile(script_file)) or (ctime(tgz_file) > ctime(script_file)):
-                        rebuild_needed = True
-                except Exception as ex:
-                    self.logger.exception("make")
-                    raise
-
-        # --- build
-        if not (rebuild_needed):
-            make_info += "no rebuild needed "
-            print "no rebuild needed for demo ", path_for_the_compilation
-        else:
-
-            print "Extracting code for demo ", path_for_the_compilation
-            # extract the archive
-            start = time.time()  # 040404
-
-            if path.isdir(src_dir):
-                shutil.rmtree(src_dir)
-            self.mkdir_p(src_dir)
-
-            build.extract(tgz_file, src_dir)
-            make_info += "extracting archive: " + tgz_file + " sec.; ".format(time.time() - start)
-            print make_info
-
-            print "creating bin_dir"
-            if path.isdir(bin_dir):
-                shutil.rmtree(bin_dir)
-            self.mkdir_p(bin_dir)
-
-            print "creating scripts dir"
-            if path.isdir(scripts_dir):
-                shutil.rmtree(scripts_dir)
-            self.mkdir_p(scripts_dir)
-
-            ## Execute make or cmake
-            start = time.time()
-
-            if ('build_type' in ddl_build.keys()) and \
-                    (ddl_build['build_type'].upper() == 'cmake'.upper()):
-                self.do_cmake_karl(bin_dir, ddl_build, log_file, programs, src_path)
-            else:
-                self.do_make_karl(bin_dir, ddl_build, log_file, programs, src_path)
-
-            # if build_type is 'script', just execute this part
-            if 'scripts' in ddl_build.keys():
-                self.do_scripts_karl(ddl_build, scripts_dir, src_path)# prepare_cmake can fix some options before configuration
-
-            if ('post_build' in ddl_build.keys()):
-                print 'post_build command:', ddl_build['post_build']
-                build.run(ddl_build['post_build'],
-                          stdout=log_file, cwd=src_path)
-
-            # cleanup the source dir
-            shutil.rmtree(src_dir)
-            make_info += "build: {0} sec.; ".format(time.time() - start)
-
-        make_info += "total elapsed time: {0} sec.".format(time.time() - total_start)
-        print "make end"
-
-        return make_info
-
-    def make_new(self, path_for_the_compilation, ddl_builds):
+    def construct(self, path_for_the_compilation, ddl_builds):
         """
         program build/update
         """
@@ -361,9 +243,6 @@ class DemoRunner(object):
         
         try:
             # Clear src/ folder
-            if os.path.isdir(src_dir):
-                shutil.rmtree(src_dir)
-            self.mkdir_p(src_dir)
             self.mkdir_p(dl_dir)
             self.mkdir_p(bin_dir)
         except Exception:
@@ -371,10 +250,7 @@ class DemoRunner(object):
             raise
 
         for build_item in ddl_builds.items():
-            # Move to the compilation directory, in case the
-            # instructions in the move directive have changed it
-            os.chdir(src_dir)
-            
+
             build_item = build_item[1]
             # Read DDL
             url = build_item['url']
@@ -396,34 +272,41 @@ class DemoRunner(object):
 
                 # Check if a rebuild is nedded
                 if extract_needed or not self.all_files_exist(files_path):
-                    # Extract source code
-                    build.extract(tgz_file, src_dir)
+                    with self.lock_construct:
+                        if os.path.isdir(src_dir):
+                            shutil.rmtree(src_dir)
+                        self.mkdir_p(src_dir)
+                        # Move to the compilation directory, in case the
+                        # instructions in the move directive have changed it
+                        os.chdir(src_dir)
+                        # Extract source code
+                        build.extract(tgz_file, src_dir)
 
-                    if construct is not None:
-                        # Execute the construct
-                        build.run(construct, log_file, cwd=src_dir)
+                        if construct is not None:
+                            # Execute the construct
+                            build.run(construct, log_file, cwd=src_dir)
 
-                    # Move files
-                    for file_to_move in files_to_move.split(","):
-                        # Remove possible white spaces
-                        file_to_move = file_to_move.strip()
-                        #
-                        path_from = path.join(src_dir,file_to_move)
-                        path_to = path.join(bin_dir, os.path.basename(file_to_move))
-                        
-                        print "Moving {} --> {}".\
-                              format(path_from, path_to)
-                        
-                        try:
-                            shutil.move(path_from, path_to)
-                        except (IOError, OSError):
-                            # If can't move, write in the log file, so
-                            # the user can see it
-                            f = open(log_file, 'w')
-                            f.write("Failed to move {} --> {}".\
-                              format(path_from, path_to))
-                            f.close()
-                            raise                            
+                        # Move files
+                        for file_to_move in files_to_move.split(","):
+                            # Remove possible white spaces
+                            file_to_move = file_to_move.strip()
+                            #
+                            path_from = path.join(src_dir,file_to_move)
+                            path_to = path.join(bin_dir, os.path.basename(file_to_move))
+
+                            print "Moving {} --> {}".\
+                                  format(path_from, path_to)
+
+                            try:
+                                shutil.move(path_from, path_to)
+                            except (IOError, OSError):
+                                # If can't move, write in the log file, so
+                                # the user can see it
+                                f = open(log_file, 'w')
+                                f.write("Failed to move {} --> {}".\
+                                  format(path_from, path_to))
+                                f.close()
+                                raise
             except Exception:
                 self.logger.exception("Build failed")
                 raise
@@ -436,138 +319,6 @@ class DemoRunner(object):
         return all([os.path.isfile(f) or os.path.isdir(f) \
           for f in files])
 
-
-    def do_scripts_karl(self, ddl_build, scripts_dir, src_path):
-        self.write_log("do_cmake_karl", \
-          "Using deprecated do_cmake_karl function to compile - {}".\
-            format(src_path))
-
-        print ddl_build['scripts']
-        # Move scripts to the scripts dir
-        for script in ddl_build['scripts']:
-            print "moving ", path.join(src_path, script[0], script[1]), " to ", scripts_dir
-            new_file = path.join(scripts_dir, script[1])
-
-            if os.path.exists(new_file):
-                if path.isfile(new_file):
-                    os.remove(new_file)
-                else:
-                    os.chmod(new_file, stat.S_IRWXU)
-                    shutil.rmtree(new_file)
-            shutil.move(path.join(src_path, script[0], script[1]), scripts_dir)
-            # Give exec permission to the script
-            os.chmod(new_file, stat.S_IREAD | stat.S_IEXEC)
-
-
-    # This function is deprecated and should be totally removed when no
-    # demo is using the old syntax.
-    def do_make_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
-        self.write_log("do_make_karl", \
-          "Using deprecated do_make_karl function to compile - {}".\
-            format(src_path))
-
-        if ('build_type' in ddl_build.keys()) and \
-                (ddl_build['build_type'].upper() == 'make'.upper()):
-            # ----- MAKE build
-            print "using MAKE"
-
-            # prepare_cmake can fix some options before configuration
-            if ('prepare_make' in ddl_build.keys()):
-                print 'prepare_make :', ddl_build['prepare_make']
-                build.run(ddl_build['prepare_make'], stdout=log_file, cwd=src_path)
-
-            moves = []
-
-            # build the programs for make
-            for program in programs:
-                target = program[1]
-                make_C_dir = path.join(src_path, program[0])
-                target_path = path.join(make_C_dir, target)
-                bins_to_move = program[1:] if len(program) >= 2 else [target]
-
-                # build
-                if os.path.isdir(target_path):
-                    cmd = "make %s -C %s" % (ddl_build['flags'], make_C_dir)
-                    # print "CASO 1, cmd={}".format(cmd)
-                else:
-                    cmd = "make %s -C %s %s" % (ddl_build['flags'], make_C_dir, target)
-                    # print "CASO 2, cmd={}".format(cmd)
-
-                print cmd
-                build.run(cmd, stdout=log_file)
-
-                if os.path.isdir(target_path):
-                    print "copying all files in bin dir from:", target_path
-                    # copy all files to bin dir
-                    for file_name in os.listdir(target_path):
-                        full_file_name = os.path.join(target_path, file_name)
-                        if (os.path.isfile(full_file_name)):
-                            print "{0}; ".format(file_name),
-                            shutil.copy(full_file_name, bin_dir)
-                else:
-                    # copy binary to bin dir
-                    print "{0}-->{1}".format(target_path, bin_dir)
-
-                    # shutil.copy(target_path, bin_dir)
-                    for bin_to_move in bins_to_move:
-                        # print "\n\n*******************"
-                        # print "target={}".format(target)
-                        # print "make_C_dir={}".format(make_C_dir)
-                        # print "target_path=", target_path
-                        # print "bin_to_move=", bin_to_move
-                        # print "*******************\n\n"
-                        moves.append((os.path.join(make_C_dir, bin_to_move), bin_dir))
-                        # shutil.copy(file_from, bin_dir)
-
-            for move in moves:
-                print "COPY {} --> {}".format(move[0], move[1])
-                shutil.copy(move[0], move[1])
-
-    # This function is deprecated and should be totally removed when no
-    # demo is using the old syntax.
-    def do_cmake_karl(self, bin_dir, ddl_build, log_file, programs, src_path):
-        self.write_log("do_cmake_karl", \
-          "Using deprecated do_cmake_karl function to compile - {}".\
-            format(src_path))
-        
-        print "using CMAKE"
-        # Run cmake first:
-        # create temporary build dir IPOL_xxx_build
-        build_dir = path.join(src_path, "__IPOL_build__")
-        self.mkdir_p(build_dir)
-        # prepare_cmake can fix some options before configuration
-        if ('prepare_cmake' in ddl_build.keys()):
-            print 'prepare_cmake :', ddl_build['prepare_cmake']
-            build.run(ddl_build['prepare_cmake'], stdout=log_file, cwd=src_path)
-        print "..."
-        # set release mode by default, other options could be added
-        if ('cmake_flags' in ddl_build.keys()):
-            cmake_flags = ddl_build['cmake_flags']
-        else:
-            cmake_flags = ''
-        build.run("cmake -D CMAKE_BUILD_TYPE:string=Release " + cmake_flags + " " + src_path,
-                  stdout=log_file, cwd=build_dir)
-        # build
-        build.run("make %s " % (ddl_build['flags']), stdout=log_file, cwd=build_dir)
-        ## copy binaries
-        for program in programs:
-            prog_path = path.join(build_dir, program[0])
-            target = path.join(prog_path, program[1])
-
-            if os.path.isdir(target):
-                print "copying all files in bin dir"
-                # copy all files to bin dir
-                # src_files = os.listdir(target)
-                for file_name in src_files:
-                    full_file_name = os.path.join(target, file_name)
-                if (os.path.isfile(full_file_name)):
-                    print "{0}; ".format(file_name),
-                    shutil.copy(full_file_name, bin_dir)
-                print ''
-            else:
-                # copy binary to bin dir
-                print "{0}-->{1}".format(target, bin_dir)
-                shutil.copy(target, bin_dir)
 
     @cherrypy.expose
     def ensure_compilation(self, demo_id, ddl_build):
@@ -587,18 +338,17 @@ class DemoRunner(object):
         else:
             builds = ddl_build
         
-        for build_params in builds:
+        for build_block in builds:
             try:
                 print ddl_build
                 print type(ddl_build)
                 if 'build1' in ddl_build:
-                    make_info = self.make_new(path_for_the_compilation, build_params)
+                    make_info = self.construct(path_for_the_compilation, build_block)
                 else:
-                    # [ToDo] [Miguel] This function is deprecated. It
-                    # should be totally removed when no demo is
-                    # using the old compilation syntax.
-                    # And make_new renamed.
-                    make_info = self.make_karl(path_for_the_compilation, build_params)
+                    data = {}
+                    data['status'] = 'KO'
+                    data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
+                    return json.dumps(data)
                 print make_info
 
                 data = {}
@@ -610,7 +360,7 @@ class DemoRunner(object):
                 self.logger.exception("ensure_compilation - HTTPError")
                 data = {}
                 data['status'] = 'KO'                
-                data['message'] = "{}, build_params: {}".format(str(e), str(build_params))
+                data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
                 return json.dumps(data)                
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
@@ -651,7 +401,7 @@ class DemoRunner(object):
             rd.run_algorithm_karl()
         else:
             cmd = self.variable_substitution(ddl_run,demo_id, params)
-            rd.run_algorithm(cmd, self.lock)
+            rd.run_algorithm(cmd, self.lock_run)
 
         res_data['params'] = rd.get_algo_params()
         res_data['algo_info'] = rd.get_algo_info()
@@ -683,7 +433,6 @@ class DemoRunner(object):
             with open(full_file) as f:
                 lines = f.readlines()
         return lines
-
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):

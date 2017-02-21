@@ -37,7 +37,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     var _this = this;
     
     /** 
-     * The Demo Description Language DDL object.
+     * The Demo Description Lines (DDL) object.
      * @var {object} _ddl_json
      * @memberOf ipol.RunDemo~
      * @private
@@ -45,7 +45,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
     var _ddl_json      = ddl_json;
     
     /** 
-     * The Demo Description Language DDL object.
+     * The Demo Description Lines (DDL) object.
      * @var {object} _input_origin
      * @memberOf ipol.RunDemo~
      * @private

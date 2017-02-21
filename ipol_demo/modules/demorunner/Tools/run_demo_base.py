@@ -144,9 +144,6 @@ class RunDemoBase:
         # Close files
         stderr_file.close()
         stdout_file.close()
-                
-
-
 
     def run_algorithm_karl(self, timeout=False):
         """

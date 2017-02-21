@@ -1,16 +1,15 @@
-\section{The Demo Description Language}
+\section{The Demo Description Lines (DDL)}
 
 current version is 0.2.
 
 \subsection{Introduction}
-The Demo Description Language (DDL) is a textual description of a IPOL demo that 
-allows to compile, generate a web interface, and run a demo. The description is 
-written in JSON (JavaScript Object Notation) format, which is a standard format 
-used in web applications. Current the JSON files are located in the 'static/JSON'
-subdirectory. This language is evolving to allow a maximum number 
-of demos to be described without the need to manually write HTML or Python code 
-for a given demo. Each main key in the description file is described in the 
-following sections:
+The Demo Description Lines (DDL) is an abtract syntax which allow to
+define an IPOL demo. The description is 
+written in JSON (JavaScript Object Notation) format. This language is
+evolving to allow a maximum number of demos to be described without the
+need to manually write HTML or Python code 
+for a given demo. Each main key in the description file is described
+in the following sections:
 \begin{itemize}
   \item \textit{general}: some general options;
   \item \textit{build}: everything needed to download and compile the source code;
@@ -1066,7 +1065,8 @@ Based on the description of the Javascript variable scope and closure in the pre
 and based on information found on the internet, we decided to implement classes in
 javascript in the following way:
 
-\lstinputlisting[language=JavaScript,basicstyle=\scriptsize]{class_example.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript,basicstyle=\scriptsize]{class_example.js}
 
 
 \subsubsection{Different files}
@@ -1218,8 +1218,8 @@ The main flow is as follows:
 The file "ipol\_demo.html" contains the page template, where the main displayed components are defined.
 The different scripts are included, together with their CSS stylesheets:
 
-\lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, 
-basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
 
 You will notice the use of the following external modules:
 \begin{itemize}
@@ -1252,20 +1252,16 @@ You will notice the use of the following external modules:
 contains the demo selection, display and execution. The second tab contains
 the archive information, and the third tab contains the Demo Description 
 Language (DDL) file in JSON format.
-\miguel{Are we really copying lines from the source specifying a line range? Of course, we can't do it like that, since obviously if we chage the source code the documentation will desynchronize and won't make sense. Also, you need to explain what the code does, not copying parts of code.}
-\lstinputlisting[language=HTML, firstnumber=111,
-linerange={111-123}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=HTML, firstnumber=111, linerange={111-123}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
 $\cdots$
-\lstinputlisting[language=HTML, firstnumber=241,
-linerange={241-248}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=HTML, firstnumber=241,linerange={241-248}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
 
 Additionally, when the user enters the 'Archive' tab, the archive information
 is automatically updated and the last archive page is displayed:
-\lstinputlisting[language=JavaScript, firstnumber=523,
-linerange={523-538}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript, firstnumber=523,linerange={523-538}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 To obtain the demo id, we first get the demo list stored within the "demo-select"
 HTML element (using the jquery data() function), then we obtain the demo id 
 (editordemoid) from the current position of the demo selection widget.
@@ -1276,9 +1272,8 @@ Four fieldsets are defined in the file ipol\_demo.html: blob selection, inputs,
 parameters and results. It also contains the code to create the progress bar
 and the modal dialog to upload data.
 The modal dialog is then initialized by the following code:
-\lstinputlisting[language=JavaScript, firstnumber=581,
-linerange={581-599}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript, firstnumber=581,linerange={581-599}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
 
 \subsubsection{Step 1: input demo selection}
@@ -1292,9 +1287,8 @@ ipol.setDemoPage() is called.
 
 The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
 of the "demoinfo" module using ipol.utils.ModuleService():
-\lstinputlisting[language=JavaScript, firstnumber=317,
-linerange={317-321}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript, firstnumber=317,linerange={317-321}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
 
 Once the demo description is returned, it runs the following steps:
 \begin{itemize}
@@ -1331,9 +1325,8 @@ local files.
 If it is selected by clicking on one of the proposed blobsets, the event will
 trigger the creation of a DrawInputs instance with the string "blobset" as origin,
 load the input blobset and prepare for running the demo:
-\lstinputlisting[language=JavaScript, firstnumber=333,
-linerange={333-353}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/ipol.drawblobs.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript, firstnumber=333,linerange={333-353}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/ipol.drawblobs.js}
 
 \paragraph{Data upload:}
 
@@ -1354,9 +1347,8 @@ demo execution (after clicking on the "run" button).
 Once the user accept its selection by clicking on the "Apply" button, 
 instances of the DrawInputs and RunDemo classes are created within the 
 ipol.upload.ManageLocalData() function:
-\lstinputlisting[language=JavaScript, firstnumber=160,
-linerange={160-185}, basicstyle=\scriptsize]{
-../../ipol_demo/modules/core/static/demo/clientApp/ipol.upload.js}
+\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
+%\lstinputlisting[language=JavaScript, firstnumber=160,linerange={160-185}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/ipol.upload.js}
 
 \subsubsection{Step 4: Display selected blobset}
 Once the user has selected a blobset, it is displayed in the inputs fieldset
