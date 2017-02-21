@@ -419,6 +419,15 @@ workload of '{}'".format(dr_name)
 
             tiffFile = TIFF.open(temp_file.name, mode='r')
             tiffImage = tiffFile.read_image()
+
+            # Check if the image can be converted
+            if not ("uint" in tiffImage.dtype.name or "int" in tiffImage.dtype.name):
+                path=os.path.join(self.project_folder,"ipol_demo","modules","core","static",
+                                  "demo","clientApp","images","non_viewable_data.png")
+                with open(path, "rb") as image:
+                    data["img"] = base64.b64encode(image.read())
+                data["status"] = "OK"
+                return json.dumps(data)
             # Get number of rows, columns, and channels
             Nrow, Ncolumn, _ = tiffImage.shape
 
@@ -437,8 +446,8 @@ workload of '{}'".format(dr_name)
             data["img"] = encoded_string
             data["status"] = "OK"
         except Exception as ex:
-            print "Failed to convert image from tiff to png", ex
-            self.logger.exception("Failed to convert image from tiff to png")
+            print "Failed to convert image from TIFF to PNG", ex
+            self.logger.exception("Failed to convert image from TIFF to PNG")
         return json.dumps(data)
 
 
@@ -1025,10 +1034,11 @@ Demoinfo code = {}".format(response['code'])
         '''
         Send an email to the given recipients
         '''
+
         if text is None:
             text = ""
-        
-        
+
+
         emails_list = [entry[1] for entry in emails]
         emails_str = ", ".join(emails_list)
 
@@ -1048,13 +1058,15 @@ Demoinfo code = {}".format(response['code'])
 
         text_data = MIMEText(text)
         msg.attach(text_data)
-
-        s = smtplib.SMTP('localhost')
-
-         # Must pass only a list here
-        s.sendmail(msg['From'], emails_list, msg.as_string())
-        s.quit()
-
+        print "##############"
+        print emails_list
+        try:
+            s = smtplib.SMTP('localhost')
+             # Must pass only a list here
+            s.sendmail(msg['From'], emails_list, msg.as_string())
+            s.quit()
+        except:
+            pass
 
     def send_compilation_error_email(self, demo_id, text):
         ''' Send email to editor when compilation fails '''
@@ -1091,11 +1103,10 @@ Demoinfo code = {}".format(response['code'])
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
         emails = self.get_demo_editor_list(demo_id)
-
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-        
+
         # Add Tech and Edit only if this is the production server and
-        # the demo has been published        
+        # the demo has been published
         if self.serverEnvironment == 'production' and \
           demo_state == "published":
             emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
@@ -1199,6 +1210,11 @@ hostname, hostbyname, unresponsive_demorunners_list)
             ddl_json = json.loads(last_demodescription['json'])
             if 'build' in ddl_json:
                 ddl_build = ddl_json['build']
+            else:
+                response = {}
+                response["status"] = "KO"
+                response["error"] = "no 'build' section found in the DDL"
+                return json.dumps(response)
             if 'inputs' in ddl_json:
                 ddl_inputs = ddl_json['inputs']
 
@@ -1207,16 +1223,17 @@ hostname, hostbyname, unresponsive_demorunners_list)
             print s
             self.logger.exception(s)
             res_data = {}
-            res_data['info'] = 'DDL read demoInfo failed in the Core'
+            res_data['error'] = 'unable to read the DDL'
             res_data['status'] = 'KO'
-            return json.dump(res_data)
+            print res_data
+            return json.dumps(res_data)
         ## End block to obtain the DDL
 
         # Create a new execution key
         key = self.create_new_execution_key(self.logger)
         if key is None:
             res_data = {}
-            res_data['info'] = 'Failed to create a valid key'
+            res_data['error'] = 'internal error. Failed to create a valid execution key'
             res_data['status'] = 'KO'
             self.logger.exception("Failed to create a valid key")
             return json.dumps(res_data)
@@ -1229,21 +1246,28 @@ hostname, hostbyname, unresponsive_demorunners_list)
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
-
             except Exception as ex:
                 print "FAILURE in copy_blobs/process_inputs. \
 demo_id = ", demo_id
                 res_data = {}
-                res_data['info'] = 'Failure in copy_blobs/process_inputs in CORE'
+                res_data['error'] = 'internal error. Blobs operations failed'
                 res_data['status'] = 'KO'
                 self.logger.exception("copy_blobs/process_inputs FAILED")
                 return json.dumps(res_data)
 
 
         try:
+
+
+            if 'general' not in ddl_json:
+                response = {}
+                response["error"] = "bad DDL syntax: no 'general' section found"
+                response["status"] = "KO"
+                return json.dumps(response)
+
             # Find a DR with satisfies the requirements
             requirements = ddl_json['general']['requirements'] \
-                if 'general' in ddl_json and 'requirements' in ddl_json['general'] else None
+                if 'requirements' in ddl_json['general'] else None
 
             dr_name, dr_server = self.get_demorunner(\
               self.demorunners_workload(), requirements)
@@ -1270,13 +1294,11 @@ else "", demorunner_response["message"])
                 self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
-
-                demorunner_response["error"] = \
-                  " --- Compilation error. --- {} - {}".\
-                  format(demorunner_response["message"], text)
-
-
-                return json.dumps(demorunner_response)
+                response = {}
+                response["error"] = " --- Compilation error. --- {}".\
+                  format(text)
+                response["status"] = "KO"
+                return json.dumps(response)
 
             print "Entering ensure_extras_updated()"
             data = self.ensure_extras_updated(demo_id)
@@ -1286,13 +1308,18 @@ else "", demorunner_response["message"])
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
-            if 'run' in ddl_json:
-                userdata['ddl_run'] = json.dumps(ddl_json['run'])
+            if 'run' not in ddl_json:
+                response = {}
+                response["error"] = "bad DDL syntax: no 'run' section found"
+                response["status"] = "KO"
+                return json.dumps(response)
+
+            userdata['ddl_run'] = json.dumps(ddl_json['run'])
 
             if 'config' in ddl_json:
                 userdata['ddl_config'] = json.dumps(ddl_json['config'])
 
-            if 'general' in ddl_json and 'timeout' in ddl_json['general']:
+            if 'timeout' in ddl_json['general']:
                 userdata['timeout'] = ddl_json['general']['timeout']
 
 
@@ -1309,11 +1336,12 @@ else "", demorunner_response["message"])
                 # Message for the web interface
                 website_message = "DR={}, {}".format(dr_name, \
                     demorunner_response["algo_info"]["status"])
-                demorunner_response["error"] = format(website_message)
-
+                response = {}
+                response["error"] = format(website_message)
+                response["status"] = "KO"
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key)
-                return json.dumps(demorunner_response)
+                return json.dumps(response)
 
             demorunner_response['work_url'] = os.path.join(\
                    "http://{}/api/core/".format(self.host_name), \
