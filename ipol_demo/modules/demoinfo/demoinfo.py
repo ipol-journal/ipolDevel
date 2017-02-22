@@ -1442,7 +1442,6 @@ class DemoInfo(object):
             data["name"] = editor.name
             data["mail"] = editor.mail
             data["creation"] = editor.creation
-            data["active"] = editor.active
             data["status"] = "OK"
 
         except Exception as ex:
@@ -1591,17 +1590,10 @@ class DemoInfo(object):
         #get payload from json object
         p = Payload(editor)
         #convert payload to Editor object
-        if hasattr(p, 'active'):
-            if hasattr(p, 'creation'):
-                e = Editor(p.name, p.mail, p.id, p.active, p.creation)
-            else:
-                e = Editor(p.name, p.mail, p.id, p.active)
+        if hasattr(p, 'creation'):
+            e = Editor(p.name, p.mail, p.id, p.creation)
         else:
-            if hasattr(p, 'creation'):
-                #todo, if active is not provideed, we suppose its True
-                e = Editor(p.name, p.mail, the_id=p.id, active=1, creation=p.creation)
-            else:
-                e = Editor(p.name, p.mail, the_id=p.id)
+            e = Editor(p.name, p.mail, p.id)
 
         #update Editor
         try:

@@ -1002,7 +1002,7 @@ Demoinfo code = {}".format(response['code'])
 
     def get_demo_editor_list(self, demo_id):
         '''
-        Get the list of active editors of the given demo
+        Get the list of editors of the given demo
         '''
         # Get the list of editors of the demo
         # userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
@@ -1021,11 +1021,10 @@ Demoinfo code = {}".format(response['code'])
         if len(editor_list) == 0:
             return () # No editors given
 
-        # Get the names and emails of the active editors
+        # Get the names and emails of the editors
         emails = []
         for entry in editor_list:
-            if entry['active'] == 1:
-                emails.append((entry['name'], entry['mail']))
+            emails.append((entry['name'], entry['mail']))
 
         return emails
 

@@ -120,7 +120,6 @@ class Editor(object):
     id = None
     name = None
     mail = None
-    active = None
     creation = None
 
     @validates(
@@ -128,17 +127,15 @@ class Editor(object):
         #mail=regex("[^@]+@[^@]+\.[^@]+"),
         mail=type(email_address),
         the_id=Or(typ(int), inst(basestring)),
-        active=typ(int),
         creation=Or(typ(datetime.datetime), inst(basestring))
         )
-    def __init__(self, name, mail, the_id=None, active=None, creation=None):
+    def __init__(self, name, mail, the_id=None, creation=None):
         """
         Constructor.
         """
         self.name = name
         self.mail = mail
         self.id = the_id
-        self.active = active
         if creation:
             self.creation = creation
         else:
@@ -936,13 +933,13 @@ class EditorDAO(object):
             # todo validate user input
             if editor.creation:
                 self.cursor.execute('''
-                UPDATE editor SET name=?, mail=?,active=?,creation=? WHERE id=?''',
-                                    (editor.name, editor.mail, editor.active,
+                UPDATE editor SET name=?, mail=?,creation=? WHERE id=?''',
+                                    (editor.name, editor.mail,
                                      editor.creation, editor.id))
             else:
                 self.cursor.execute('''
-                UPDATE editor SET name=?, mail=?,active=? WHERE id=?''',
-                                    (editor.name, editor.mail, editor.active, editor.id))
+                UPDATE editor SET name=?, mail=? WHERE id=?''',
+                                    (editor.name, editor.mail, editor.id))
 
             self.conn.commit()
 
@@ -957,16 +954,16 @@ class EditorDAO(object):
         get an editor from its ID.
         """
         try:
-            self.cursor.execute('''SELECT name, mail, id, active, creation
+            self.cursor.execute('''SELECT name, mail, id, creation
             FROM editor WHERE id=?''', (int(the_id),))
-            # name, mail, id=None,active=None, creation=None):
+            # name, mail, id=None,creation=None):
             self.conn.commit()
             row = self.cursor.fetchone()
 
         except Exception as ex:
             error_string = ("read_editor  e:%s" % (str(ex)))
             print error_string
-        return Editor(row[0], row[1], row[2], row[3], row[4])
+        return Editor(row[0], row[1], row[2], row[3])
 
     def list(self):
         """
@@ -974,12 +971,12 @@ class EditorDAO(object):
         """
         editor_list = list()
         try:
-            # name, mail, id=None,active=None, creation=
-            self.cursor.execute('''SELECT  name, mail,  id, active, creation
+            # name, mail, id=None, creation=
+            self.cursor.execute('''SELECT  name, mail,  id, creation
             FROM editor ORDER BY id DESC ''')
             self.conn.commit()
             for row in self.cursor.fetchall():
-                e = Editor(row[0], row[1], row[2], row[3], row[4])
+                e = Editor(row[0], row[1], row[2], row[3])
                 # print 'editor list'
                 # print e.__dict__
                 editor_list.append(e)
@@ -1132,14 +1129,14 @@ class DemoEditorDAO(object):
             # self.cursor.execute('''SELECT id,demoID,
             # editorId FROM demo_editor WHERE demoID=?''', (int(demoid),))
             self.cursor.execute('''
-                SELECT e.name, e.mail,e.id, e.active,e.creation
+                SELECT e.name, e.mail,e.id,e.creation
                 FROM editor as e, demo_editor as de , demo as d
                 WHERE e.id=de.editorId
                 AND de.demoID= d.ID
                 AND d.editor_demo_id=?''', (int(editordemoid),))
             self.conn.commit()
             for row in self.cursor.fetchall():
-                e = Editor(row[0], row[1], row[2], row[3], row[4])
+                e = Editor(row[0], row[1], row[2], row[3])
                 editor_list.append(e)
 
         except Exception as ex:
@@ -1222,7 +1219,6 @@ def createDb(database_name):
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR ,
                 mail VARCHAR(320) UNIQUE,
-                active INTEGER(1) DEFAULT 1,
                 creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );"""
             )
