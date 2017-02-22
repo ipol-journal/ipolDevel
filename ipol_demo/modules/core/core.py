@@ -288,7 +288,7 @@ workload of '{}'".format(dr_name)
             
             for demo_data in demos_by_state[publication_state]:
                 demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
-                    demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'])
+                    demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'].encode('utf-8'))
 
         string = """
                  <!DOCTYPE html>
