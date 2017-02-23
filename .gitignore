@@ -84,3 +84,5 @@ ipol_demo/modules/blobs/blobs_nelson.conf
 changes*.txt
 ipol_demo/app_new/
 
+# Mac OS cache
+*DS_Store

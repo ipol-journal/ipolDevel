@@ -948,45 +948,29 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
         return json.dumps(data)
 
     @cherrypy.expose
-    def delete_demo_w_deps(self, demo_id):
+    def delete_demo(self, demo_id):
         """
-        Encapsulation of the delete_exp_w_deps function for removing an
-                experiment.
+        Delete all the experiments and dependencies for the given demo_id
         :rtype: JSON formatted string status:OK/KO
         """
-        # [ToDo][Miguel] demo_id is not used!!!
-        # This functions is clearly wrong.
 
-        status = {"status" : "KO"}
+        status = {"status": "KO"}
         try:
-
-            # Get all experiments of this demo
+            # Get all experiments for this demo
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute("""
-            SELECT DISTINCT id FROM experiments""")
-            experiment_id_list = list()
-            wd = True
-            while wd:
-                try:
-                    demoid = cursor_db.fetchone()[0]
-                    experiment_id_list.append(demoid)
-                # [ToDo][Miguel] Too broad Exception class! Use the
-                # right (specific) type.
-                except Exception, e:
-                    wd = False
+            cursor_db.execute("SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,))
 
+            experiment_id_list = cursor_db.fetchall()
 
-            # Delete all demo experiments info from db
+            # Delete experiments and files
             for experiment_id in experiment_id_list:
-                print experiment_id
-                self.delete_exp_w_deps(conn, experiment_id)
-                # files removed?
-
+                self.delete_exp_w_deps(conn, experiment_id[0])
 
             conn.commit()
             conn.close()
             status["status"] = "OK"
+
         except Exception as ex:
             self.error_log("delete_demo", str(ex))
             try:
@@ -994,4 +978,5 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
                 conn.close()
             except Exception as ex:
                 pass
+
         return json.dumps(status)
