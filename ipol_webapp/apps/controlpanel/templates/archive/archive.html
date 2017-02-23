@@ -134,7 +134,7 @@
         <script>
 
         function send_delete_demo_request(wsurl,demo_id) {
-            var deldemo = confirm('delete this demo from archive module: ' + demo_id);
+            var deldemo = confirm('Delete this demo from archive module: ' + demo_id + '?');
             if (deldemo == true) {
                 $.ajax({
                     type: 'GET',
@@ -142,12 +142,12 @@
                     dataType: 'json',
                     success: function(data) {
                         //console.error(data.status);
-                        var okhtml="<p class=\"ststsok\">Demo Deleted</p>";
+                        var okhtml="<p class=\"ststsok\">Demo succesfully deleted from Archive.</p>";
                         $('#demo_info_'+ demo_id).html(okhtml);
-
+                        window.location.reload(true);
                     },
                     error: function(data){
-                        var errorhtml="<p class=\"ststsnok\">Demo not deleted sucessfully, refresh page</p>";
+                        var errorhtml="<p class=\"ststsnok\">Demo was not deleted</p>";
                         $('#demo_info_'+ demo_id).html(errorhtml);
                     }
                 });

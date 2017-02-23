@@ -176,7 +176,7 @@ archive_ws_url_demo_list =  'demo_list'# param None
 
 #for testing, ads an experiment to test demo (id=-1)
 archive_ws_url_add_experiment_test =  'add_exp_test'# param None
-archive_ws_url_delete_demo =  'delete_demo_w_deps'# param demo_id
+archive_ws_url_delete_demo =  'delete_demo'# param demo_id
 
 #todo , remove if not necessary
 archive_ws_url_add_experiment =  'add_experiment'# param None
