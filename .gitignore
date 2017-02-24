@@ -78,9 +78,14 @@ ipol.pdf
 #staticData
 staticData/
 
+# emails
+ipol_demo/modules/config_common/emails.conf
 
 # other
+
 ipol_demo/modules/blobs/blobs_nelson.conf
 changes*.txt
 ipol_demo/app_new/
 
+# Mac OS cache
+*DS_Store
