@@ -16,7 +16,7 @@
         <table style="border:1px solid black">
         <form action="/edit_blobs_information" method="post">
 	<tr>
-            <td style="margin:2px;padding:2px;" >The set </td>
+            <td style="margin:2px;padding:2px;" >Set </td>
             <td style="margin:2px;padding:2px;"><input type="text"   name="blob_set" value="${blob_info["blob_set"]}"> </td>
         </tr>
         <tr>
@@ -28,10 +28,10 @@
             <td style="margin:2px;padding:2px;"><input type="text"   name="credit" value="${blob_info["credit"]}">  </td>
          </tr>
          <tr>
-            <td style="margin:2px;padding:2px;">Position in set</td>
+            <td style="margin:2px;padding:2px;">Position in the set</td>
             <td style="margin:2px;padding:2px;"><input type="text"   name="blob_pos_in_set" value="${blob_info["blob_pos_in_set"]}">    </td>
          </tr>
-         <tr><td align="center" ><input type="submit" value="Edit Blob"></td></tr>
+         <tr><td align="left" ><input type="submit" value="Save"></td></tr>
           <input type="hidden" name="blob_id" value="${blob_id}"/>
           <input type="hidden" name="demo_name" value="${demo_id}"/>
         </form>
