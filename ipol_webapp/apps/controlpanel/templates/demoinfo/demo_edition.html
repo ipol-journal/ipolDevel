@@ -1,0 +1,154 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+
+{# load CSS for this page in particular #}
+    {% block cssfiles %}
+
+        <link href="{% static 'jsoneditor/jsoneditor.min.css' %}" rel="stylesheet" type="text/css">
+
+        <style type="text/css">
+        {% include 'demoinfo/manage_archives_for_demo.css' %}
+
+        h3{
+            font-style: italic;
+        }
+
+        </style>
+    {% endblock %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+	{% trans "Demo Edition" %}
+{% endblock %}
+
+{% block content %}
+    {% with data=view.get_demo_details %}
+        <div class="container">
+            {# Page title #}
+            {% if data.status == 'OK' %}
+                <h2> Editing Demo {{ data.demo_id }} </h2>
+                <h3> {{ data.title }} </h3>
+            {% else %}
+                <h2> No results for Demo '{{ data.demo_id }}'</h2>
+            {% endif %}
+
+            {% if data.status == 'OK' %}
+                <div class="experiment_file">
+                    <h4>State:</h4>
+                    <p>{{ data.state }}</p>
+
+                    <h4>Last modification:</h4>
+                    <p>{{ data.modification|slice:'19' }}</p>
+
+                    <h4>Zip URL:</h4>
+                    <p><a  href="{{ data.zipURL }}">{{ data.zipURL }}</a></p>
+
+                    <h4>Abstract:</h4>
+                    <p>{{ data.abstract }}</p>
+
+                    <h4>DDL:</h4>
+                    <!--<div id="jsoneditor" style="width: 400px; height: 300px;"></div>-->
+                    <pre><code id="ddl">{{data.ddl}}</code></pre>
+
+                </div>
+
+            {# If there are no results, print the default message #}
+            {% else%}
+                <p>{{ data.results }}</p>
+            {% endif %}
+
+            {# Return to previous page button #}
+            <div class="container">
+                <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+            </div>
+        </div>
+    {% endwith %}
+{% endblock %}
+
+
+<!-- autocomplete js includes  -->
+{% include 'autocomplete_light/static.html' %}
+<!-- end autocomplete js includes  -->
+
+{#TODO js en archivo separado y minimized#}
+
+{% block functionsjs %}
+    <script src="{% static 'jsoneditor/jsoneditor.min.js' %}"></script>
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script>
+		{#  secure AJAX POST to ws ,from django docs  #}
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie != '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		$(document).ready(function(){
+			var csrftoken = getCookie('csrftoken');
+			$.ajaxSetup({
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				}
+			});
+
+
+
+            // create the editor
+            var container = document.getElementById("jsoneditor");
+            var options = {};
+            var editor = new JSONEditor(container, options);
+
+            // set json
+            var json = document.getElementById("ddl").innerHTML;
+
+            editor.set(json);
+
+            // get json
+            var json = editor.get();
+
+		});
+
+        /*
+		{#  delete experiment  #}
+		function send_delete_experiment_request(wsurl, experiment_id, previous_page_url) {
+			var delexp = confirm('Delete experiment ' + experiment_id + '?\nThe items will be deleted permanently');
+			if (delexp == true) {
+				$.ajax({
+					type: 'GET',
+                    url: wsurl,
+                    dataType: 'json',
+                    success: function(data) {
+                        if(data.status == 'OK')
+                            alert('Operation performed successfully\nExperiment ' + experiment_id + ' was deleted');
+                        else
+                            alert('Failed to delete the experiment ' + experiment_id );
+                        window.location = previous_page_url;
+                    },
+                    error: function(data){
+                        alert('Failed to delete the experiment ' + experiment_id )
+                    }
+                });
+			}
+		}
+		*/
+	</script>
+
+{% endblock %}
+

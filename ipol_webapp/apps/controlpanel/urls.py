@@ -10,7 +10,7 @@ from apps.controlpanel.views.demo import DemosView
 
 from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoAuthorsView, DemoinfoEditorsView, \
     DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemoView, \
-    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, \
+    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, DemoinfoDemoEditionView, \
         DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView, DemoinfoAddExistingAuthorToDemoView, \
         DemoinfoAddNewAuthorToDemoView, DemoinfoDeleteEditorView, DemoinfoGetEditorView, DemoinfoSaveEditorView, \
         DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, DemoinfoAddExistingEditorToDemoView, \
@@ -44,6 +44,7 @@ urlpatterns = [
 
         # Demo list
     url(r'^demoinfo_demos/', DemoinfoDemosView.as_view(), name="ipol.cp.demoinfo.demos"),
+    url(r'^demo_edition/(?P<demo_id>\d+)/$', DemoinfoDemoEditionView.as_view(), name="ipol.cp.demoinfo.demo_edition"),
     url(r'^ajax_delete_demoinfo_demo/(?P<demo_id>[\-\d\w]+)/$', DemoinfoDeleteDemoView.as_view(), name="ipol.cp.demoinfo.delete_demo"),
         # Show the ddl form in a modal whith the ddl (ajax jq call)
     url(r'^ajax_get_demoinfo_ddl/(?P<demo_id>\d+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
