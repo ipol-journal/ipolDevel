@@ -1078,7 +1078,8 @@ Demoinfo code = {}".format(response['code'])
         # the demo has been published        
         if self.serverEnvironment == 'production' and \
                         demo_state == "published":
-            self.get_emails_from_emails_conf_file(emails)
+            emails += self.read_emails_from_config()
+
         if len(emails) == 0:
             return
 
@@ -1087,8 +1088,12 @@ Demoinfo code = {}".format(response['code'])
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
-    def get_emails_from_emails_conf_file(self, emails, sections=None):
+    def read_emails_from_config(self, sections=None):
+        """
+        Read the list of emails from the emails.conf file
+        """
         try:
+            emails = []
             emails_file_path = os.path.join(self.project_folder, "ipol_demo",
                                             "modules", "config_common", "emails.conf")
             cfg = ConfigParser()
@@ -1100,6 +1105,7 @@ Demoinfo code = {}".format(response['code'])
                 for section in cfg.sections():
                     if sections is None or section in sections:
                         emails.append((cfg.get(section, "name"), cfg.get(section, "email")))
+            return emails
         except Exception as e:
             print "Fail reading mails.conf file, Exception:", e
 
@@ -1136,7 +1142,7 @@ Demoinfo code = {}".format(response['code'])
         # the demo has been published
         if self.serverEnvironment == 'production' and \
           demo_state == "published":
-            self.get_emails_from_emails_conf_file(emails)
+            emails += self.read_emails_from_config()
 
         if len(emails) == 0:
             return
@@ -1166,7 +1172,7 @@ format(hostname, hostbyname, key, demo_id)
         '''
         emails = []
         if self.serverEnvironment == 'production':
-            self.get_emails_from_emails_conf_file(emails,"tech")
+            emails += self.read_emails_from_config("tech")
         if len(emails) == 0:
             return
 
@@ -1305,7 +1311,6 @@ demo_id = ", demo_id
             demorunner_response = resp.json()
             status = demorunner_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
-
             if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
                 self.error_log("ensure_compilation()", \
