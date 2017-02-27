@@ -1090,39 +1090,30 @@ Demoinfo code = {}".format(response['code'])
 
     def read_emails_from_config(self, sections=None):
         """
-        Read the list of emails from the emails.conf file
+        Read the list of emails from the configuration file
         """
         try:
-            emails = []
-            emails_file_path = os.path.join(self.project_folder, "ipol_demo",
-                                            "modules", "config_common", "emails.conf")
+            emails_file_path = os.path.join(self.project_folder, \
+              "ipol_demo", "modules", "config_common", "emails.conf")
             cfg = ConfigParser()
             if not os.path.isfile(emails_file_path):
-                self.create_mails_conf_file(cfg, emails_file_path)
-            else:
-                cfg.read([emails_file_path])
-                if sections is not None and not isinstance(sections,list): sections=[sections]
-                for section in cfg.sections():
-                    if sections is None or section in sections:
-                        emails.append((cfg.get(section, "name"), cfg.get(section, "email")))
+                self.error_log("read_emails_from_config", \
+                  "Can't open {}".format(emails_file_path))
+                return []
+
+            emails = []
+            cfg.read([emails_file_path])
+            if sections is not None and not isinstance(sections,list):
+                sections = [sections]
+
+            for section in cfg.sections():
+                if sections is None or section in sections:
+                    emails.append((cfg.get(section, "name"), \
+                                   cfg.get(section, "email")))
             return emails
         except Exception as e:
-            print "Fail reading mails.conf file, Exception:", e
-
-
-    def create_mails_conf_file(self, cfg, emails_file_path):
-        '''
-        Creates an email config file with the required fields empty
-        '''
-        file = open(emails_file_path, 'w')
-        cfg.add_section("tech")
-        cfg.set("tech", "name", "")
-        cfg.set("tech", "email", "")
-        cfg.add_section("edit")
-        cfg.set("edit", "name", "")
-        cfg.set("edit", "email", "")
-        cfg.write(file)
-        file.close()
+            self.logger.exception("Can't read emails of journal staff")
+            print "Fail reading emails config. Exception:", e
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
