@@ -397,15 +397,20 @@ class DemoRunner(object):
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
 
-        if isinstance(ddl_run, list): #Checks if the run parameter in the DDL have more than one line
-            rd.run_algorithm_karl()
-        else:
-            cmd = self.variable_substitution(ddl_run,demo_id, params)
-            rd.run_algorithm(cmd, self.lock_run)
+        # Note: use isinstance(s, str) if moving to Python 3
+        if not isinstance(ddl_run, basestring):
+            return -1 # Bad run syntax: not a string
 
-        res_data['params'] = rd.get_algo_params()
+        # Substitute variables and run algorithm
+        cmd = self.variable_substitution(ddl_run,demo_id, params)
+        rd.run_algorithm(cmd, self.lock_run)
+
+        res_data['params'] = rd.get_algo_params() # Should not be used
+        # Info interface --> algo
         res_data['algo_info'] = rd.get_algo_info()
         print "----- run_algo end -----"
+        return 0
+        
 
     def variable_substitution(self, ddl_run, demo_id, params):
         """
@@ -475,11 +480,26 @@ class DemoRunner(object):
 
             print "Demoid: ", demo_id
 
-            timeout = float(timeout)
-            timeout = min(timeout, 10*60) # A maximum of 10 min, regardless the config
-            self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data, timeout)
+            timeout = float(timeout)            
+            # A maximum of 10 min, regardless the config
+            timeout = min(timeout, 10*60)
+            # At least five seconds
+            timeout = max(timeout, 5)
 
-            # re-read the config in case it changed during the execution
+            # Run algorithm and control exceptions
+            code = self.run_algo(demo_id, work_dir, \
+                                 path_with_the_binaries, \
+                                 ddl_run, params, res_data, timeout)
+
+            if code == -1: # Bad run syntax
+                self.write_log("exec_and_wait", "Bad run syntax, demo_id={}".format(demo_id))
+                res_data['status'] = 'KO'
+                err = "Bad run syntax (not a string): {}".format(str(ddl_run))
+                res_data['error'] = err
+                res_data['algo_info']['status'] = err
+                print res_data
+                return json.dumps(res_data)
+
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
@@ -529,7 +549,7 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             return json.dumps(res_data)
 
 
-        # TODO:this code will be moved to the CORE
+        # [Miguel] this code needs to be moved to the Core
         # get back parameters
         try:
             with open(os.path.join(work_dir, "params.json")) as resfile:
@@ -541,6 +561,9 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             res_data['error'] = 'Read params.json'
             return json.dumps(res_data)
 
+        # [Miguel] Check what this is.
+        # [Miguel] Is 'info_from_file' really used?
+        #
         # check if new config fields
         if ddl_config != None:
             ddl_config = json.loads(ddl_config)

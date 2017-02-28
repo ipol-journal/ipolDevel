@@ -1025,7 +1025,7 @@ Demoinfo code = {}".format(response['code'])
         # Get the names and emails of the editors
         emails = []
         for entry in editor_list:
-            emails.append((entry['name'], entry['mail']))
+            emails.append({"name":entry['name'],"email":entry['mail']})
 
         return emails
 
@@ -1034,19 +1034,29 @@ Demoinfo code = {}".format(response['code'])
         '''
         Send an email to the given recipients
         '''
-
         if text is None:
             text = ""
 
+        emails_list = []
 
-        emails_list = [entry[1] for entry in emails]
+        for section in emails:
+            if section == 'sender': continue
+            if section != 'editors':
+                emails_list.append(emails[section]['email'])
+                continue
+            else:
+                i=0
+                while i < len(emails[section]):
+                    emails_list.append(emails[section][i]['email'])
+                    i += 1
+
+
         emails_str = ", ".join(emails_list)
 
         msg = MIMEMultipart()
-
         msg['Subject'] = subject
         # [ToDo] Move this to the core.conf
-        msg['From'] = "IPOL Core <nor" + "eply" + "@cml" + "a.ens" + "-cac" + "han.fr>"
+        msg['From'] = "{} <{}>".format(emails["sender"]["name"],emails["sender"]["email"])
         msg['To'] = emails_str # Must pass only a comma-separated string here
         msg.preamble = text
 
@@ -1069,26 +1079,30 @@ Demoinfo code = {}".format(response['code'])
     def send_compilation_error_email(self, demo_id, text):
         ''' Send email to editor when compilation fails '''
         print "send_compilation_error_email"
-
-        emails = self.get_demo_editor_list(demo_id)
+        emails = {}
 
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-        
+
         # Add Tech and Edit only if this is the production server and
-        # the demo has been published        
+        # the demo has been published
+
+        config_emails = self.read_emails_from_config()
+        emails['editors'] = self.get_demo_editor_list(demo_id)
         if self.serverEnvironment == 'production' and \
                         demo_state == "published":
-            emails += self.read_emails_from_config()
-
+            emails['tech'] = config_emails['tech']
+            emails['edit'] = config_emails['edit']
         if len(emails) == 0:
             return
+
+        emails['sender'] = config_emails['sender']
 
         # Send the email
         # [ToDo] Use the shared folder to access a DR!
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
-    def read_emails_from_config(self, sections=None):
+    def read_emails_from_config(self):
         """
         Read the list of emails from the configuration file
         """
@@ -1101,15 +1115,11 @@ Demoinfo code = {}".format(response['code'])
                   "Can't open {}".format(emails_file_path))
                 return []
 
-            emails = []
+            emails = {}
             cfg.read([emails_file_path])
-            if sections is not None and not isinstance(sections,list):
-                sections = [sections]
-
             for section in cfg.sections():
-                if sections is None or section in sections:
-                    emails.append((cfg.get(section, "name"), \
-                                   cfg.get(section, "email")))
+                emails[section] = {"name":cfg.get(section, "name"),"email":cfg.get(section, "email")}
+
             return emails
         except Exception as e:
             self.logger.exception("Can't read emails of journal staff")
@@ -1126,17 +1136,22 @@ Demoinfo code = {}".format(response['code'])
 
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
-        emails = self.get_demo_editor_list(demo_id)
+        # emails = self.get_demo_editor_list(demo_id)
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
+        emails = {}
+        config_emails = self.read_emails_from_config()
+        emails['editors'] = self.get_demo_editor_list(demo_id)
         if self.serverEnvironment == 'production' and \
           demo_state == "published":
-            emails += self.read_emails_from_config()
+            emails['tech'] = config_emails['tech']
+            emails['edit'] = config_emails['edit']
 
         if len(emails) == 0:
             return
+
+        emails['sender'] = config_emails['sender']
 
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
@@ -1157,15 +1172,17 @@ format(hostname, hostbyname, key, demo_id)
         self.send_email(subject, text, emails, zip_filename=zip_filename)
 
     def send_demorunner_unresponsive_email(self, \
-      unresponsive_demorunners):
+        unresponsive_demorunners):
         '''
         Send email to editor when the demorruner is down
         '''
-        emails = []
-        if self.serverEnvironment == 'production':
-            emails += self.read_emails_from_config("tech")
+        emails = {}
+        config_emails = self.read_emails_from_config()
+        if not self.serverEnvironment == 'production':
+            emails['tech'] = config_emails['tech']
         if len(emails) == 0:
             return
+        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1173,10 +1190,9 @@ format(hostname, hostbyname, key, demo_id)
         unresponsive_demorunners_list = ",".\
           join(unresponsive_demorunners)
 
-        text = "This is the IPOL Core machine ({}, {}).\n\nThe list \
-of demorunners unresponsive is: {}.".format(\
-hostname, hostbyname, unresponsive_demorunners_list)
-        print text
+        text = "This is the IPOL Core machine ({}, {}).\n" \
+               "\nThe list of demorunners unresponsive is: {}.".\
+            format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails)
 
