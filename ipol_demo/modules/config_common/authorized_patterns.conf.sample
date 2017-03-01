@@ -1,0 +1,5 @@
+[Patterns]
+local = 127.*.*.*
+lan = 192.168.*.*
+integration = 99.99.99.*
+production = 123.123.123.*

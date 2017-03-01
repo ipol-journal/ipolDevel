@@ -27,6 +27,8 @@ import shutil
 import cherrypy
 import magic
 from mako.template import Template
+import ConfigParser
+import re
 
 
 class Archive(object):
@@ -37,6 +39,18 @@ class Archive(object):
 #####
 # initialization and static methods.
 #####
+
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if Archive.instance is None:
+            Archive.instance = Archive()
+        return Archive.instance
+
     @staticmethod
     def mkdir_p(path):
         """
@@ -90,14 +104,13 @@ class Archive(object):
         return extension[0]
 
 
-    def __init__(self, option, conf_file):
+    def __init__(self):
         """
         Initialize Archive class.
         Attribute status should be checked after each initialisation.
         It is false if something went wrong.
         """
         thumbs_s = None
-        cherrypy.config.update(conf_file)
         # [ToDo][Miguel] Why self.status as an object variable if
         # if it's used just in this contructor???
         self.status = self.check_config()
@@ -106,14 +119,14 @@ class Archive(object):
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
         self.blobs_thumbs_dir = cherrypy.config.get("blobs_thumbs_dir")
-
-        if option == "test":
-            self.database_dir = "test"
-        else:
-            self.database_dir = cherrypy.config.get("database_dir")
+        self.database_dir = cherrypy.config.get("database_dir")
 
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))
@@ -146,6 +159,60 @@ class Archive(object):
         if not self.status:
             sys.exit("Initialization of database failed. Check the logs.")
 
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            ip = cherrypy.request.remote.ip
+            if not is_authorized_ip(ip):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            archive = Archive.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in archive.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
 
     def init_logging(self):
         """
@@ -395,6 +462,7 @@ class Archive(object):
             VALUES (?, ?, ?)''', (id_experiment, item['blob_id'], item['blob_name']))
 
     @cherrypy.expose
+    @authenticate
     def add_experiment(self, demo_id, blobs, parameters):
         """
         This function adds an experiment with all its data to the archive.
@@ -709,6 +777,7 @@ class Archive(object):
         cursor_db.execute("VACUUM")
 
     @cherrypy.expose
+    @authenticate
     def delete_experiment(self, experiment_id):
         """
         Encapsulation of the delete_exp_w_deps function for removing an
@@ -738,6 +807,7 @@ class Archive(object):
 #####
 
     @cherrypy.expose
+    @authenticate
     def delete_blob_w_deps(self, id_blob):
         """
         Remove a blob, both physically and in the database,
@@ -798,6 +868,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
             return template.render()
 
     @cherrypy.expose
+    @authenticate
     def delete_blob_w_deps_web(self, id_blob, demo_id):
         """
         HTML rendering for deleting blobs.
@@ -810,6 +881,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
             return self.archive_admin(demo_id, 0)
 
     @cherrypy.expose
+    @authenticate
     def delete_experiment_web(self, experiment_id, demo_id):
         """
         HTML rendering for deleting experiments.
@@ -837,6 +909,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -948,6 +1021,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def delete_demo(self, demo_id):
         """
         Delete all the experiments and dependencies for the given demo_id

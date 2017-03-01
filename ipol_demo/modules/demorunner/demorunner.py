@@ -57,11 +57,26 @@ import time
 
 from string import Template
 from threading import Lock
+import ConfigParser
+import re
 
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
     """
+
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if DemoRunner.instance is None:
+            DemoRunner.instance = DemoRunner()
+        return DemoRunner.instance
+
+
     @staticmethod
     def mkdir_p(path):
         """
@@ -124,7 +139,10 @@ class DemoRunner(object):
         self.mkdir_p(self.main_log_dir)
 
         self.logger = self.init_logging()
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
 
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
         if not os.path.isdir(self.share_running_dir):
             error_message = "The folder does not exist: " + self.share_running_dir
             print error_message
@@ -134,6 +152,62 @@ class DemoRunner(object):
             #####
             # web utilities
             #####
+
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            ip = cherrypy.request.remote.ip
+            if not is_authorized_ip(ip):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            demorunner = DemoRunner.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in demorunner.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
+
 
     @cherrypy.expose
     def index(self):
@@ -153,6 +227,7 @@ class DemoRunner(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -164,23 +239,6 @@ class DemoRunner(object):
             data["status"] = "OK"
         except Exception as ex:
             self.write_log("shutdown", str(ex))
-        return json.dumps(data)
-
-    @cherrypy.expose
-    def get_load_state(self):
-        """
-        Returns the CPU load of the machine
-        """
-        data = {}
-        data["status"] = "KO"
-        try:
-            mpstat_result = subprocess.check_output(['mpstat'])
-            CPU_information = str(mpstat_result).split()
-            CPU_information = CPU_information[-1].replace(",", ".")
-            data["CPU"] = float(CPU_information)
-            data["status"] = "OK"
-        except Exception as ex:
-            self.write_log("get_load_state", str(ex))
         return json.dumps(data)
 
         # ---------------------------------------------------------------------------

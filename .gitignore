@@ -78,6 +78,9 @@ ipol.pdf
 #staticData
 staticData/
 
+# authentication
+ipol_demo/modules/config_common/authorized_patterns.conf
+
 # emails
 ipol_demo/modules/config_common/emails.conf
 

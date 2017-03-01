@@ -8,7 +8,7 @@ import base64
 import tempfile
 import sys
 import os
-
+import re
 # To send emails
 import smtplib
 from email.mime.text import MIMEText
@@ -27,7 +27,7 @@ from sendarchive import SendArchive
 
 import shutil
 import json
-from ConfigParser import ConfigParser
+import ConfigParser
 
 import errno
 import logging
@@ -59,6 +59,16 @@ class Core(object):
     """
     Core index used as the root app
     """
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if Core.instance is None:
+            Core.instance = Core()
+        return Core.instance
 
     def init_logging(self):
         """
@@ -100,7 +110,7 @@ class Core(object):
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
-
+            self.common_config_dir = cherrypy.config.get("config_common_dir")
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
@@ -118,6 +128,9 @@ class Core(object):
 
             self.load_demorunners()
 
+            # Security: authorized IPs
+            self.authorized_patterns = self.read_authorized_patterns()
+
             #Create shared folder if not exist
             self.mkdir_p(self.shared_folder_abs)
 
@@ -134,6 +147,61 @@ class Core(object):
 
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
+
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            ip = cherrypy.request.remote.ip
+            if not is_authorized_ip(ip):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            core = Core.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in core.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.common_config_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
 
     def load_demorunners(self):
         """
@@ -328,6 +396,7 @@ workload of '{}'".format(dr_name)
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -1109,7 +1178,7 @@ Demoinfo code = {}".format(response['code'])
         try:
             emails_file_path = os.path.join(self.project_folder, \
               "ipol_demo", "modules", "config_common", "emails.conf")
-            cfg = ConfigParser()
+            cfg = ConfigParser.ConfigParser()
             if not os.path.isfile(emails_file_path):
                 self.error_log("read_emails_from_config", \
                   "Can't open {}".format(emails_file_path))
