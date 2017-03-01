@@ -164,8 +164,6 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
     def get_demo_details(self, **kwargs):
         data = {}
-        # message to send to template, when an exception is thrown
-        message = 'The query did not return any results. Please make sure that you entered a valid criteria.'
 
         try:
             try:
@@ -198,7 +196,6 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
         except Exception as ex:
             data['editorsdemoid'] = demo_id
-            data['message'] = message
             data['demoform'] = None
             data['status'] = 'KO'
 
