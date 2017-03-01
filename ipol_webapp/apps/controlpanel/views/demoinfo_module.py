@@ -164,6 +164,9 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
     def get_demo_details(self, **kwargs):
         data = {}
+        # message to send to template, when an exception is thrown
+        message = 'The query did not return any results. Please make sure that you entered a valid criteria.'
+
         try:
             try:
                 demo_id = int(self.kwargs['demo_id'])
@@ -178,34 +181,27 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             if demo_result == None or ddl_result == None:
                 msg = "DemoinfoDemoEditionView: Something went wrong using demoinfo WS"
                 logger.error(msg)
-                print '(Exception)'
                 raise ValueError(msg)
 
             demo_result = json.loads(demo_result)
             ddl_result = json.loads(ddl_result)
 
-            #print demo_result
-            #print '###'
-            #print ddl_result['last_demodescription']['json']
-            print ddl_result
-            #print '***'
-
-            data['demo_id'] = demo_id
+            data['editorsdemoid'] = demo_id
             data['title'] = demo_result['title']
             data['state'] = demo_result['state']
             data['abstract'] = demo_result['abstract']
             data['ddl'] = ddl_result['last_demodescription']['json']
-            #data['ddl'] = ddl_result
             data['modification'] = demo_result['modification']
             data['zipURL'] = demo_result['zipURL']
+            data['demoform'] = Demoform
             data['status'] = 'OK'
 
         except Exception as ex:
-            print 'EXCEPTION ' + str(ex)
-            data['demo_id'] = demo_id
+            data['editorsdemoid'] = demo_id
+            data['message'] = message
+            data['demoform'] = None
             data['status'] = 'KO'
 
-        #print data
         return data
 
 
@@ -461,10 +457,24 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
                     jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract, zipURL, state)
                     print "jsonresult", jsonresult
-                    status,error = get_status_and_error_from_json(jsonresult)
+                    status, error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
                     if error is not None:
                         jres['error'] = error
+
+                    # insert a default (empty) DDL for the new Demo
+                    try:
+                        defaultDDL = '{}'
+                        jsonresult = ipolservices.demoinfo_save_demo_description(pjson=defaultDDL, demoid=editorsdemoid)
+                        status, error = get_status_and_error_from_json(jsonresult)
+                        jres['status'] = status
+                        if error is not None:
+                            jres['error'] = error
+
+                    except Exception as e:
+                        msg = "update ddl error: %s" % e
+                        logger.error(msg)
+                        print msg
 
                 except Exception as e:
                     msg = "create demo error: %s" % e
