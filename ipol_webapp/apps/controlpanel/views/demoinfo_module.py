@@ -34,7 +34,7 @@ PAGINATION_ITEMS_PER_PAGE_DEMO_EXTRAS_LIST = 4
 # demos
 
 class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
-    template_name = "demoinfo/demoinfo_demos.html"
+    template_name = "demoinfo/demoinfo_demos_2.html"
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
