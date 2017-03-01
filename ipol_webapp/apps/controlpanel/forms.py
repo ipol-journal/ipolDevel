@@ -44,14 +44,14 @@ class Demoform(forms.Form):
     #hidden
     id = forms.IntegerField(label='demoid',required=False)
     #normal
-    editorsdemoid = forms.IntegerField(label='editorsdemoid',required=True)
-    title = forms.CharField(label='title',required=True)
-    zipURL = forms.URLField(label='zipURL',required=True)
+    editorsdemoid = forms.IntegerField(label='Editors Demo ID',required=True)
+    title = forms.CharField(label='Title',required=True)
+    zipURL = forms.URLField(label='Zip URL',required=True)
 
     # problems using bool in form, just use int...
 
-    state = forms.ChoiceField(label='state',required=True)
-    abstract = forms.CharField(label='abstract',widget=forms.Textarea,required=True)
+    state = forms.ChoiceField(label='State',required=True)
+    abstract = forms.CharField(label='Abstract',widget=forms.Textarea,required=True)
 
 
     helper = FormHelper()

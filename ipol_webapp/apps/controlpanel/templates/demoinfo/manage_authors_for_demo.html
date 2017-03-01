@@ -19,9 +19,9 @@
         }
         .author{
             border: 1px solid gray;
+            border-radius: 5px;
             margin: 20px;
             padding: 10px;
-            //width: 40%;
         }
         .container{
             margin: 20px;
@@ -39,31 +39,17 @@
 {% endblock %}
 
 
-{#{% block topmenu %}#}
-{##}
-{#    <!-- topmenu Section for demoinfo   -->#}
-{#    {% include 'demoinfo/demoinfo_menu.html' %}#}
-{##}
-{#{% endblock %}#}
-
-
 {% block content %}
-
 
     <div class="container">
 
         <h2> {% blocktrans %} Manage demo {{ demo_id }}'s Authors  {%  endblocktrans %}</h2>
 
-        {#  Search bar #}
-{#        {% with searchurl='ipol.cp.demoinfo.authors' %}#}
-{#            {% include 'demoinfo/searchbar.html' %}#}
-{#        {% endwith %}#}
-
         {#  Add Author btn #}
         <div class="container">
+            <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
             <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
             <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
-            <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
         </div>
 
         {#  Author list for this demo#}
@@ -72,12 +58,10 @@
 
                 {% if data.author_list %}
                     {% for author in data.author_list %}
-
                         <div class="author row" id="author_info_{{ author.id }}" >
                             <div class="griditem col-sm-3"> {% trans 'Id' %}: <span class="badge">{{ author.id }}</span> </div>
                             <div class="griditem col-sm-3">{% trans 'Name' %}: {{ author.name }} </div>
                             <div class="griditem col-sm-3">{% trans 'Email' %}: {{ author.mail}} </div>
-
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
@@ -85,26 +69,17 @@
 
                                 {#  btn Edit author #}
                                 <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )" title="Edit {{ author.name }}'s information">{% trans 'Edit Author' %}</a>
-
                             </div>
-
                         </div>
                     {% endfor %}
+
                 {% else %}
-
                     <p class="ststsnok"> {% blocktrans %}No Authors for this demo.{%  endblocktrans %}</p>
-
-
                 {% endif %}
 
             {% else %}
-
                 <p class="ststsnok"> {% blocktrans %}Could not connect to demoinfo , check demoinfo Status{%  endblocktrans %}</p>
-
             {% endif %}
-
-
-
         {% endwith %}
 
     </div>

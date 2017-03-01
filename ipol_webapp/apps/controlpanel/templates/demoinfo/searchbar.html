@@ -51,9 +51,9 @@
                 <form id="searchform" action="{% url searchurl %}" method="get" accept-charset="utf-8">
                     <div id="custom-search-input">
                         <div class="input-group ">
-                            <input id="searchbox" name="q" type="text" class="search-query form-control" value="{%if q%}{{q}}{%endif%}" placeholder="Search" />
+                            <input id="searchbox" name="q" type="text" class="search-query form-control" value="{%if q%}{{q}}{%endif%}" placeholder="Search by ID, title, abstract" />
                             <span class="input-group-btn">
-                                <button class="btn" type="submit">
+                                <button class="btn" type="submit" title="Search for Demos">
                                     <i class="fa fa-search"></i>
                                 </button>
                             </span>
