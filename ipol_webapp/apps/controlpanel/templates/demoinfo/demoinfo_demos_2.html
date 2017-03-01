@@ -3,11 +3,11 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-
 {% block title %}
     {% trans 'List of Demos' %}
 {% endblock %}
 
+{# load CSS for this page in particular #}
 {% block cssfiles %}
 
     <style type="text/css">
@@ -18,10 +18,13 @@
             color:red;
         }
         .demo{
-            border: 1px solid gray;
+            border: 1px solid lightgray;
             margin: 20px;
             padding: 15px 10px;
-            //width: 40%;
+            border-radius: 5px;
+        }
+        .demo:hover{
+            border: 1px solid #337ab7;
         }
         .container{
             margin: 20px;
@@ -30,10 +33,12 @@
         .griditem{
             padding-left: 20px
         }
+        /* column to display state and last modification of demos */
         .col-sm-4{
             width: 35%;
             min-width: 150px;
         }
+        /* column to display ID and title of demo */
         .col-sm-5{
             width: 65%;
             min-width: 300px;
@@ -41,6 +46,22 @@
         .demo-title, .badge{
             font-size: 16px;
             font-weight: bold;
+        }
+
+        /* style for demo modal */
+        .form-actions{
+            margin-top: 10px;
+        }
+        .form-control{
+            min-width: 100%;
+            max-width: 100%;
+        }
+        .btn{
+            min-width: 75px;
+        }
+        .btn-default{
+            border: 1px solid gray;
+            border-radius: 5px !important;
         }
     </style>
 
@@ -51,6 +72,7 @@
     <!-- topmenu Section for demoinfo   -->
     {% include 'demoinfo/demoinfo_menu.html' %}
 {% endblock %}
+
 
 {% block content %}
 
@@ -74,91 +96,47 @@
 
                 {% if data %}
                     {% for demo in data %}
-                        <a href="{% url 'ipol.cp.demoinfo.demo_edition' demo.editorsdemoid %}" title="Edit Demo {{ demo.editorsdemoid }}">
-                        <div class="demo" id="demo_info_{{ demo.editorsdemoid }}">
+                        <a href="{% url 'ipol.cp.demoinfo.demo_edition' demo.editorsdemoid %}" title="View/edit Demo {{ demo.editorsdemoid }}">
+                            <div class="demo" id="demo_info_{{ demo.editorsdemoid }}">
 
-                            <div class="row">
-                                <div class="col-sm-4 col-sm-5">
-                                    <div class="griditem">
-                                        {% trans 'Title' %}: <span class="demo-title">{{ demo.title}}</span>
-                                    </div>
-                                    <div class="griditem">
-                                        {% trans 'ID' %}: <span class="badge">{{ demo.editorsdemoid }}</span>
-                                    </div>
-                                    <!--
-                                    <div class="griditem">{% trans 'Abstract' %}:
-                                        <a class="abstractmodal" data-toggle="modal" data-abstract="{{ demo.abstract}}" >{{ demo.abstract|slice:"10" }}...</a>
-                                    </div>
-                                    -->
-                                </div>
-                                <div class="col-sm-4">
-                                    <!--
-                                    <div class="griditem">{% trans 'Source URL' %}: <a  href="#">{{ demo.zipURL }}</a> </div>
-                                    -->
-                                    <div class="griditem">
-                                        {% trans 'State' %}:
-                                        {# {{ demo.state }}#}
-                                        {% for sid,sname in states %}
-                                            {% if sid == demo.state %}
-                                                {{ sname }}
-                                            {% endif %}
-                                        {% endfor %}
+                                <div class="row">
+                                    <div class="col-sm-4 col-sm-5">
+                                        <!-- Title -->
+                                        <div class="griditem">
+                                            {% trans 'Title' %}: <span class="demo-title">{{ demo.title}}</span>
+                                        </div>
+                                        <!-- Demo ID -->
+                                        <div class="griditem">
+                                            {% trans 'ID' %}: <span class="badge">{{ demo.editorsdemoid }}</span>
+                                        </div>
                                     </div>
 
-                                    {# <div class="griditem col-sm-3">{% trans 'DDL' %}: {{ demo.demodescriptionID }} </div>#}
-                                    <div class="griditem">{% trans 'Last modification' %}: {{ demo.modification|date:"d M Y" }} </div>
-                                </div>
-<!--
-                                <div class=" col-sm-4">
-                                    {#  btn Delete demo,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                    <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' demo.editorsdemoid %}', {{ demo.editorsdemoid }} ,{{ demo.editorsdemoid }}, '{{ demo.title|addslashes }}')">{% trans 'Delete' %}</a>
-
-                                    {#  btn Edit demo #}
-                                    <a class="btn btn-primary" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' demo.editorsdemoid %}', {{ demo.editorsdemoid }}  )">{% trans 'Edit' %}</a>
-
-                                </div>
--->
-                            </div>
-
-<!--
-                            <div class="row">
-                                <div class="griditem col-sm-6">
-
-
-                                    {#  btn Edit demo's DDL #}
-                                    <a class="btn btn-info" onclick="send_get_ddl_request('{% url 'ipol.cp.demoinfo.get_ddl' demo.editorsdemoid %}', {{ demo.editorsdemoid }} )">{% trans 'DDL' %}</a>
-
-                                    {#  btn Edit demo's AUTHORS #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_authors' demo.editorsdemoid %}">{% trans 'AUTHORS' %}</a>
-
-                                    {#  btn Edit demo's EDITORS #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demos_editors' demo.editorsdemoid %}">{% trans 'EDITORS' %}</a>
-
-                                    {#  btn Edit demo's DEMO EXTRAS #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.get_demo_extras' demo.editorsdemoid %}">{% trans 'DEMO EXTRAS' %}</a>
-
-                                    {#  btn Edit demo's ARCHIVES #}
-                                    <a class="btn btn-info" href="{% url 'ipol.cp.archive.page' demo.editorsdemoid %}">{% trans 'ARCHIVES' %}</a>
-
+                                    <div class="col-sm-4">
+                                        <!-- State -->
+                                        <div class="griditem">
+                                            {% trans 'State' %}:
+                                            {# {{ demo.state }}#}
+                                            {% for sid,sname in states %}
+                                                {% if sid == demo.state %}
+                                                    {{ sname }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <!-- Modification -->
+                                        <div class="griditem">{% trans 'Last modification' %}: {{ demo.modification|date:"d M Y" }} </div>
+                                    </div>
                                 </div>
                             </div>
--->
-                        </div>
                         </a>
                     {% endfor %}
+
                 {% else %}
-
-                    <p class="ststsnok"> {% blocktrans %}No demos available.{%  endblocktrans %}</p>
-
-
+                    <p class="ststsnok">{% blocktrans %}There are no demos available.{%  endblocktrans %}</p>
                 {% endif %}
 
             {% else %}
-
-                <p class="ststsnok"> {% blocktrans %}Could not connect to demoinfo demos. Please check demoinfo Status{%  endblocktrans %}</p>
-
+                <p class="ststsnok"> {% blocktrans %}Could not connect to DemoInfo. Please check DemoInfo status{%  endblocktrans %}</p>
             {% endif %}
-
 
             {#  WS Pagination, remebers the current search #}
             <div class="pagination">
@@ -176,73 +154,12 @@
                     {% endif %}
                 </span>
             </div>
-            {#  Django Pagination, remebers the current search #}
-            {#            <div class="pagination">#}
-            {#                <span class="step-links">#}
-            {#                    {% if data.has_previous %}#}
-            {#                        <a href="?page={{ data.previous_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'previous' %}</a>#}
-            {#                    {% endif %}#}
-            {##}
-            {#                    <span class="current">#}
-            {#                        {% trans 'Page' %} {{ data.number }} {% trans 'of' %} {{ data.paginator.num_pages }}.#}
-            {#                    </span>#}
-            {##}
-            {#                    {% if data.has_next %}#}
-            {#                        <a href="?page={{ data.next_page_number }}{%if q%}&q={{q}}{%endif%}">{% trans 'next' %}</a>#}
-            {#                    {% endif %}#}
-            {#                </span>#}
-            {#            </div>#}
-
 
         {% endwith %}
-
     </div>
+
 
     {#  Modals #}
-
-    <!-- Modal Abstract-->
-    <div class="modal fade" id="ShowAbstractModalID" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <a href="#" class="close" data-dismiss="modal">&times;</a>
-                    <h3>Abstract</h3>
-                </div>
-                <div class="modal-body" id="modalbodyabstractid">
-                {#  <input type="text" name="cafeId" id="cafeId" value=""/>#}
-
-                </div>
-                    {# <div class="modal-footer">#}
-                    {# <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
-                    {#  </div>#}
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Modal DDL show/edit -->
-    <div class="modal fade" id="createDDLFormModalId" >
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div id="createDDLModalheader" class="modal-header">
-                    <a href="#" class="close" data-dismiss="modal">&times;</a>
-                    <h3>Create DDL</h3>
-
-                </div>
-                <div class="modal-body" id="createDDLFormmodalbody">
-                    <div id="createddl_modal_errordiv"></div>
-                    {% crispy ddlform %}
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-default" onclick="prettyPrint('id_ddlJSON')">{% trans 'Pretty Print' %}</button>
-                    <button type="button" class="btn btn-default" onclick="prettyPrintundo('id_ddlJSON')">{% trans 'Ugly Print' %}</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
     <!-- Modal DEMO show/edit -->
     <div class="modal fade" id="createDemoFormModalId" >
@@ -266,8 +183,6 @@
     </div>
 
 
-
-
 {% endblock %}
 
 
@@ -277,6 +192,7 @@
 {% block functionsjs %}
 
     <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+
     <script>
         {#  global vars #}
 
@@ -316,7 +232,7 @@
         //normal
         $form_ddl_field_ddljson="#DDLform #id_ddlJSON";
         var $ddlform = $($form_ddl_id);
-        
+
         {#  js error msg#}
         $ws_down=" check webservices are running, go to status page";
         var $ws_error_msg="";
