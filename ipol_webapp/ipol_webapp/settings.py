@@ -237,7 +237,7 @@ WSGI_APPLICATION = 'ipol_webapp.wsgi.application'
 SOCIALACCOUNT_ENABLED = False
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 #LOGIN_REDIRECT_URL = reverse_lazy('allauth.profile')
-LOGIN_REDIRECT_URL = reverse_lazy('ipol.cp.status')
+LOGIN_REDIRECT_URL = reverse_lazy('ipol.cp.demoinfo.demos')
 ACCOUNT_ADAPTER = 'vendor.allauth.myadapter.accountadapter.AccountAdapter'
 AUTHENTICATION_BACKENDS = (
         # Needed to login by username in Django admin, regardless of `allauth`
