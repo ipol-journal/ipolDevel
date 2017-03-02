@@ -14,7 +14,7 @@
       <ul>
         <div>
         <table style="border:1px solid black">
-        <form action="/edit_blobs_information" method="post">
+        <form action="edit_blobs_information" method="post">
 	<tr>
             <td style="margin:2px;padding:2px;" >Set </td>
             <td style="margin:2px;padding:2px;"><input type="text"   name="blob_set" value="${blob_info["blob_set"]}"> </td>
@@ -48,7 +48,7 @@
 	
 	<br>
 	
-       <form action="/op_add_tag_to_blob" method="post">
+       <form action="op_add_tag_to_blob" method="post">
 	<div>
 	    <input type="hidden" name="blob_id" value="${blob_id}"/>
 	    <input type="hidden" name="demo_name" value="${demo_id}"/>
@@ -61,7 +61,7 @@
         
         <br>
         
-        <form action="/upload_visual_representation" method="post" enctype="multipart/form-data">
+        <form action="upload_visual_representation" method="post" enctype="multipart/form-data">
         <table style="border:1px solid black">
         <tr>
         <input type="hidden" name="blob_id" value="${blob_id}"/>

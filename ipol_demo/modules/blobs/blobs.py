@@ -388,7 +388,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def add_blob_ws(self, demo_name, path, tag, ext, blob_set, blob_pos_in_set,
                     title, credit):
         """
@@ -440,7 +439,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    @authenticate
     def add_blob(self, **kwargs):
         """
         This function implements the web page '/add_blob'
@@ -516,7 +514,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    @authenticate
     def edit_blobs_information(self, **kwargs):
         """
         Edit blob (POST Request)
@@ -546,7 +543,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def edit_blob_in_database_ws(self, demo_name, blob_id,
 				 blob_set, blob_pos_in_set, title, credit):
         """
@@ -571,7 +567,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def upload_visual_representation(self, **kwargs):
         """
         """
@@ -682,7 +677,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def set_template_ws(self, demo_name, name):
         """
         Web service used to change the current template used by a demo
@@ -736,7 +730,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def add_demo_ws(self, name, is_template, template):
         """
         Web service used to add demo to database
@@ -768,7 +761,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    @authenticate
     def add_demo(self, **kwargs):
         """
         Web page used to add demo to database
@@ -794,7 +786,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    @authenticate
     def add_from_archive(self, **kwargs):
         """
         This function implements post request for /zip
@@ -874,7 +865,6 @@ class   Blobs(object):
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    @authenticate
     def delete_blob_ws(self, demo_name, blob_set, blob_id):
         """
         This functions implements web service associated to '/delete_blob'
@@ -946,7 +936,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def add_tag_to_blob_ws(self, blob_id, tag):
         """
         Web service of '/op_add_tag_to_blob'
@@ -975,7 +964,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="text/plain")
-    @authenticate
     def op_add_tag_to_blob(self, **kwargs):
         """
         Add tag to blob (POST Request)
@@ -1001,7 +989,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    @authenticate
     def remove_tag_from_blob_ws(self, tag_id, blob_id):
         """
         Web service of '/op_remove_tag_from_blob'
@@ -1028,7 +1015,6 @@ class   Blobs(object):
         return json.dumps(dic)
 
     @cherrypy.expose
-    @authenticate
     def op_remove_tag_from_blob(self, tag_id, blob_id, demo_name):
         """
         Remove one tag from blob
@@ -1046,7 +1032,6 @@ class   Blobs(object):
 
     @cherrypy.expose
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    @authenticate
     def op_remove_blob_from_demo(self, demo_name, blob_set, blob_id):
         """
         Delete one blob from demo
@@ -1283,7 +1268,6 @@ class   Blobs(object):
 
     #---------------------------------------------------------------------------
     @cherrypy.expose
-    @authenticate
     def edit_blob(self, blob_id, demo_name):
         """
         HTML Page : show thumbnail of one blob, add tag or remove tag
@@ -1395,7 +1379,6 @@ class   Blobs(object):
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    @authenticate
     def op_remove_demo_ws(self, demo_name):
         """
         Web service used to remove demo from id demo
@@ -1428,7 +1411,6 @@ class   Blobs(object):
     #---------------------------------------------------------------------------
     @cherrypy.expose
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    @authenticate
     def op_remove_demo(self, demo_name):
         """
         Web page used to remove a demo from id
