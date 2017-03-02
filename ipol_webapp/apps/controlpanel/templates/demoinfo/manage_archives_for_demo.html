@@ -5,7 +5,14 @@
     {% block cssfiles %}
         <style type="text/css">
         {% include 'demoinfo/manage_archives_for_demo.css' %}
+
+        .experiment_file{
+            border: 1px solid lightgray;
+            border-radius: 5px;
+        }
         </style>
+
+
     {% endblock %}
 
 {% load i18n %}
@@ -27,10 +34,10 @@
 
 		{% with data=view.get_context_data %}
 
-            {# Return to Demo list button #}
-			<div class="container">
-				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
-			</div>
+            <!-- Return to previous page -->
+            <div class="container">
+                <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+            </div>
 
 			{% if data.status == "OK" %}
 				{% if data.meta.number_of_experiments > 0 %}
@@ -84,10 +91,10 @@
                         {% include 'archive/pagination.html' %}
                     {% endwith %}
 
-                    {# Return to Demo list button #}
+                    <!-- Return to previous page -->
                     <div class="container">
-				        <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %}Return to demo list{% endblocktrans %}</a>
-			        </div>
+                        <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                    </div>
 
                 {% else %}
 					<p class="ststsnok">{% blocktrans %}No Archives available{% endblocktrans %}</p>
