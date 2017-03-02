@@ -9,93 +9,9 @@
 
 {# load CSS for this page in particular #}
 {% block cssfiles %}
-
-    <style type="text/css">
-        {% include 'demoinfo/manage_archives_for_demo.css' %}
-
-        h3, .abstract{
-            font-style: italic;
-        }
-        h4{
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-        .title{
-            font-weight: bold;
-        }
-        .manage-btn{
-            margin-left: 20px;
-        }
-        .experiment_file{
-            border: 1px solid lightgray;
-            border-radius: 5px;
-        }
-        .column-2, .column-4{
-            display: inline-block;
-            vertical-align: top;
-        }
-        .column-2{
-            width: 49%;
-        }
-        .column-4{
-            width: 24.5%;
-        }
-        #col-3{
-            min-width: 33%;
-        }
-        #col-4{
-            width: 16%;
-        }
-        .options{
-            margin: 2px;
-            min-width: 70px;
-        }
-        #editor {
-            position: relative;
-            min-width: 100%;
-            min-height: 500px;
-            font-size: 1em;
-            border: 1px solid lightgray;
-            border-radius: 5px;
-        }
-        #save-ddl-container{
-            width: 100%;
-            min-height: 40px;
-            padding-top:10px;
-            padding-right:15px;
-        }
-        #save-ddl-container .column-4{
-            width: 10%;
-            min-width: 80px;
-            height: 40px;
-            padding-left: 20px;
-        }
-        #save-ddl-container .column-2{
-            width: 89%;
-            height: 40px;
-            line-height: 35px;
-        }
-        /* style for demo modal */
-        .form-actions{
-            margin-top: 10px;
-        }
-        .form-control{
-            min-width: 100%;
-            max-width: 100%;
-        }
-        .btn{
-            min-width: 75px;
-        }
-        .btn-default{
-            border: 1px solid lightgray !important;
-            border-radius: 5px !important;
-        }
-        #DDL_error_msg{
-            display: none;
-            color: red;
-        }
-    </style>
-
+    <!-- include external styles from static content -->
+    <link rel="stylesheet" href="{% static 'css/manage_archives_for_demo.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/demo_edition.css' %}"/>
 {% endblock %}
 
 
@@ -246,7 +162,7 @@
 {% block functionsjs %}
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
 
-<!-- load Ace JSON Editor-->
+    <!-- load Ace JSON Editor-->
     <script src="{% static 'ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 
     <!-- include external script with required functions -->

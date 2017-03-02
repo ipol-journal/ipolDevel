@@ -9,7 +9,8 @@
             padding: 10px;
         }
         .experiment_file{
-            border: 1px solid gray;
+            border: 1px solid lightgray;
+            border-radius: 5px;
             margin: 20px;
             padding: 15px;
         }

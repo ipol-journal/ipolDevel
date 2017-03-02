@@ -1,0 +1,53 @@
+        .ststsok {
+            color:green;
+        }
+        .ststsnok {
+            color:red;
+        }
+        .demo{
+            border: 1px solid lightgray;
+            margin: 20px;
+            padding: 15px 10px;
+            border-radius: 5px;
+        }
+        .demo:hover{
+            border: 1px solid #337ab7;
+        }
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+        .griditem{
+            padding-left: 20px
+        }
+        /* column to display state and last modification of demos */
+        .col-sm-4{
+            width: 35%;
+            min-width: 150px;
+        }
+        /* column to display ID and title of demo */
+        .col-sm-5{
+            width: 65%;
+            min-width: 300px;
+        }
+        .demo-title, .badge{
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* style for demo modal */
+        .form-actions{
+            margin-top: 10px;
+        }
+        .form-control{
+            min-width: 100%;
+            max-width: 100%;
+        }
+        .btn{
+            min-width: 75px;
+        }
+        .btn-default{
+            border: 1px solid gray;
+            border-radius: 5px !important;
+        }
+
