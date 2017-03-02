@@ -196,8 +196,9 @@ class   Blobs(object):
             '''
             Invokes the wrapped function if authenticated
             '''
-            ip = cherrypy.request.remote.ip
-            if not is_authorized_ip(ip):
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
                 cherrypy.response.headers['Content-Type'] = "application/json"
                 error = {"status": "KO", "error": "Authentication Failed"}
                 return json.dumps(error)
