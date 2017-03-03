@@ -17,13 +17,10 @@ from email.mime.multipart import MIMEMultipart
 
 import xml.etree.ElementTree as ET
 
-# [ToDo] [Miguel] Change this by a normal import!
-sys.path.append(os.path.join(\
-    os.path.dirname(os.path.realpath(__file__)), "Tools"))
-#
-from misc import prod
-from image import image
-from sendarchive import SendArchive
+
+from Tools.misc import prod
+from Tools.image import image
+from Tools.sendarchive import SendArchive
 
 import shutil
 import json
@@ -750,7 +747,6 @@ workload of '{}'".format(dr_name)
             
             size = 0
             while True:
-                ## TODO larger data size
                 data = file_up.file.read(128)
                 if not data:
                     break
@@ -1125,8 +1121,7 @@ Demoinfo code = {}".format(response['code'])
 
         msg = MIMEMultipart()
         msg['Subject'] = subject
-        # [ToDo] Move this to the core.conf
-        msg['From'] = "{} <{}>".format(emails["sender"]["name"],emails["sender"]["email"])
+        msg['From'] = "{} <{}>".format(emails["sender"]["name"], emails["sender"]["email"])
         msg['To'] = emails_str # Must pass only a comma-separated string here
         msg.preamble = text
 
@@ -1168,7 +1163,6 @@ Demoinfo code = {}".format(response['code'])
         emails['sender'] = config_emails['sender']
 
         # Send the email
-        # [ToDo] Use the shared folder to access a DR!
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
 
