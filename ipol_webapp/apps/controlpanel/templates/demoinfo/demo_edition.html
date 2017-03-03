@@ -30,28 +30,28 @@
             {% if data.status == 'OK' %}
                 <div class="experiment_file">
 
-                    <form action="{% url 'ipol.cp.demoinfo.save_ddl' %}" id="DDLform" method="post" >
+                    <!--<form action="" id="DDLform" method="post" >-->
                         <h4>DDL:</h4>
                         <div id="editor" name="editor">{{data.ddl}}</div>
 
                         <!-- input for the DDL to submit -->
-                        <input id="ddlJSON" name="ddlJSON" type="hidden"/>
+                        <!--<input id="ddlJSON" name="ddlJSON" type="hidden"/>-->
                         <!-- input for the current Demo ID -->
                         <input id="demoid" name="demoid" type="hidden" value="{{ data.editorsdemoid }}"/>
 
                         <div id="save-ddl-container">
                             <div class="column-4">
                                 <!-- button to check and submit the DDL -->
-                                <a class="btn btn-primary options" onclick="submitDDL();" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
+                                <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
                             </div>
                             <div class="column-2">
                                 <!-- message to display when DDL syntax is not OK -->
-                                <ul id="DDL_error_msg">
-                                    <li class="ddl-error">DDL not saved: please check the syntax errors.</li>
+                                <ul>
+                                    <li class="hidden" id="DDL_msg"></li>
                                 </ul>
                             </div>
                         </div>
-                    </form>
+                    <!--</form>-->
 
                     <hr>
 
@@ -162,7 +162,7 @@
 {% block functionsjs %}
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
 
-    <!-- load Ace JSON Editor-->
+<!-- load Ace JSON Editor-->
     <script src="{% static 'ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 
     <!-- include external script with required functions -->

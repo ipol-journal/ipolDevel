@@ -25,31 +25,74 @@ $editor = ace.edit("editor");
 $editor.getSession().setMode("ace/mode/json");
 $editor.getSession().setUseWrapMode(true);
 $editor.getSession().setTabSize(4);
-// Element to display errors when the JSON is invalid
-$DDL_error_msg = document.getElementById('DDL_error_msg');
-// div containing the JSON editor
-$editorDiv = document.getElementById('editor');
-// hidden input in the form where copy the JSON from the editor
-$DDL_input = document.getElementById('ddlJSON');
+
+// Element to display messages about the DDL
+$DDL_msg = document.getElementById('DDL_msg');
+// Last version of DDL saved
+last_DDL_saved = $editor.getValue();
+
+// when changed the DDL in the editor, check if it is equal to the version saved
+$editor.on("input", function() {
+    checkChanges();
+});
+
+// check if there are unsaved changes
+function checkChanges(){
+    // compare the last saved DDL with the current DDL in the editor
+    if (last_DDL_saved.localeCompare($editor.getValue()) != 0){
+        setDDLMessage('', 'There are unsaved changes');
+    }else{
+        $DDL_msg.style.display = 'none';
+    }
+}
+
 
 // validate JSON DDL, and submit via AJAX if it is OK
-function submitDDL(){
+function submitDDL(submit_URL){
+    disableSaveButton(true);
+
     // >0 if errors found, =0 if JSON is OK
     var json_is_valid = $editor.getSession().getAnnotations().length;
     var editor_value = $editor.getValue();
 
     // check syntax, and also if it is not empty
     if (json_is_valid == 0 && editor_value != ''){
-        // copy the value from editor, to the 'ddlJSON' input in the form
-        $DDL_input.value = $editor.getValue();
-        // hide error message, to indicate it is OK
-        $DDL_error_msg.style.display='none';
         // submit the DDL via AJAX
-        submitDDLformAJAX();
-
+        setDDLMessage('', 'Saving...');
+        submitDDLAJAX(submit_URL);
+        disableSaveButton(false);
     }else{
         // show message to indicate errors
-        $DDL_error_msg.style.display='block';
+        setDDLMessage('KO', 'DDL not saved, please check the syntax.');
+        disableSaveButton(false);
+    }
+}
+
+// sets the given class and message, to the DDL Editor message
+function setDDLMessage(msg_type, msg){
+    if (msg_type == 'KO'){
+        new_class = 'ststsnok';
+    }else if(msg_type == 'OK'){
+        new_class = 'ststsok';
+    }else{
+        new_class = 'ststsnormal';
+    }
+
+    // set the class to change color, etc
+    $DDL_msg.className = new_class;
+    $DDL_msg.style.display = 'block';
+    // set the message to the element
+    $DDL_msg.innerHTML = msg;
+}
+
+// button to save the DDL
+$save_btn = document.getElementById('save-DDL-btn');
+
+function disableSaveButton(arg){
+    if (arg == true){
+        $save_btn.className += " btn-disabled";
+    }else{
+        $save_btn.classList.remove("btn-disabled");
     }
 }
 
@@ -108,13 +151,17 @@ $(document).ready(function(){
 /************ DDL Form ************/
 
 // submit DDL form
-function submitDDLformAJAX(){
+function submitDDLAJAX(submit_URL){
     var csrftoken = getCookie('csrftoken');
-    var $ddl_form = $('#DDLform');
-    // serialized data from the form
-    var $serializedData = $($ddl_form).serialize();
+
+    // Demo ID value
+    var demoid_value = document.getElementById('demoid').value;
+    // DDL value
+    var DDL_value = $editor.getValue();
+    // serialize data before send
+    var $serializedData = $.param({demoid: demoid_value, ddlJSON: DDL_value });
     // URL to submit the data
-    var $ajaxurl = $ddl_form.attr("action");
+    var $ajaxurl = submit_URL;
 
     $.ajax({
         url: $ajaxurl,
@@ -124,18 +171,22 @@ function submitDDLformAJAX(){
         success: function(data) {
             console.log("AJAX CALL status: "+data.status);
             if (data.status == "OK") {
-                alert('DDL succesfully saved');
-                window.location.reload(true);
+                //alert('DDL succesfully saved');
+                setDDLMessage('OK', 'DDL succesfully saved.');
+                last_DDL_saved = DDL_value;
             }else {
                 console.log("status KO");
-                alert('Could not save the DDL.\nStatus: \'' + data.status + '\'');
+                setDDLMessage('KO', 'Could not save the DDL. Status: \'' + data.status + '\'.');
+                //alert('Could not save the DDL.\nStatus: \'' + data.status + '\'');
             }
         },
         error: function () {
             console.log("ajax error");
-            alert('Error saving the DDL: ' + $ws_down);
+            setDDLMessage('KO', 'Error saving the DDL: ' + $ws_down);
+            //alert('Error saving the DDL: ' + $ws_down);
         }
     });
+
 }
 
 
