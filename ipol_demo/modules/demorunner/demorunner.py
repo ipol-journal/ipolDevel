@@ -145,8 +145,8 @@ class DemoRunner(object):
         self.authorized_patterns = self.read_authorized_patterns()
         if not os.path.isdir(self.share_running_dir):
             error_message = "The folder does not exist: " + self.share_running_dir
-            print error_message
             self.write_log("__init__", error_message)
+            print error_message
 
 
             #####
@@ -193,7 +193,7 @@ class DemoRunner(object):
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
+            self.write_log("read_authorized_patterns",
                            "Can't open {}".format(authorized_patterns_path))
             return []
 
