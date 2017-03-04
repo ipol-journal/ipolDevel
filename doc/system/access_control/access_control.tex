@@ -1,0 +1,21 @@
+\section{Access control}
+\label{sec:Access_control}
+\subsection{Introduction}
+To avoid the execution of exposed methods that allow the modification of the database (write and delete actions) by an unauthorized 
+client, it has been created a wrapper that controls the access to these methods.
+
+This wrapper compares the IP of the client that is calling the method with a list of authorized patterns. If the IP is authorized, 
+the wrapper will automatically invoke the method requested by the client. Otherwise the request will be denied and the wrapper will 
+respond with an Authentication Failed message.
+
+
+\subsection{Authorized IPs File}
+The file with the authorized IPs patterns is authorized\_pattern.conf, in the config\_common directory. This file consists
+of a general section [Patterns], where all the permitted patterns are given with the following format: ``name=pattern''. Each pattern
+allows the access of multiple IPs. 
+
+The syntax for the pattern uses the asterisk to mean ``any''. For example: \tt{``local = 127.*.*.*''}
+
+\subsection{Usage}
+To add the authentication requisite to a method it is enough to add the \tt{@authenticate} decorator. It is important to add it 
+below the \tt{@cherrypy.expose} decorator. Otherwise the method will not be longer exposed.

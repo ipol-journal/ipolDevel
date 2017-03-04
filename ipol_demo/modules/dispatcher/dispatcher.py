@@ -14,10 +14,23 @@ import json
 import random
 import sys
 import requests
-
+import ConfigParser
+import re
 
 class Dispatcher(object):
-    def __init__(self, option, conf_file):
+
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if Dispatcher.instance is None:
+            Dispatcher.instance = Dispatcher()
+        return Dispatcher.instance
+
+    def __init__(self):
         """
         Initialize Dispatcher class
         """
@@ -25,6 +38,10 @@ class Dispatcher(object):
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.host_name = cherrypy.config.get("server.socket_host")
         self.demorunners = None
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
         # Default policy: lowest_workload
         self.policy=Policy.factory('lowest_workload')
@@ -36,6 +53,63 @@ class Dispatcher(object):
             self.logger = self.init_logging()
         except Exception as e:
             self.logger.exception("Failed to create log dir (using file dir) : %s".format(e))
+
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                cherrypy.response.headers['Content-Type'] = "application/json"
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            dispatcher = Dispatcher.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in dispatcher.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
 
     @cherrypy.expose
     def refresh_demorunners(self):
@@ -131,6 +205,7 @@ class Dispatcher(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -148,6 +223,7 @@ class Dispatcher(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def set_policy(self, policy):
         '''
         Change the policy used. If the given name is not a known policy the original policy is not changed

@@ -1,0 +1,11 @@
+[sender]
+name = "Journal demo system"
+email = "noreply@example.com"
+
+[tech]
+name = "Journal Technical staff"
+email = "tech@example.com"
+
+[edit]
+name = "Journal Editorial staff"
+email = "edit@example.com"

@@ -78,8 +78,14 @@ ipol.pdf
 #staticData
 staticData/
 
+# authentication
+ipol_demo/modules/config_common/authorized_patterns.conf
+
+# emails
+ipol_demo/modules/config_common/emails.conf
 
 # other
+
 ipol_demo/modules/blobs/blobs_nelson.conf
 changes*.txt
 ipol_demo/app_new/

@@ -7,41 +7,18 @@
 {% endblock %}
 
 {% block cssfiles %}
-
-    <style type="text/css">
-        .ststsok {
-            color:green;
-
-        }
-        .ststsnok {
-            color:red;
-
-        }
-        .machine{
-            border: 1px solid black;
-            margin: 20px;
-            padding: 10px;
-        }
-        .container{
-            margin: 20px;
-            padding: 10px;
-        }
-    </style>
-
+    <!-- include external styles from static content -->
+    <link rel="stylesheet" href="{% static 'css/stats.css' %}"/>
 {% endblock %}
 
 {% block content %}
 
     <div class="container">
         <h1>
-            <p>Control Panel SYSTEM STATS</p>
+            <p>Control Panel: System Status</p>
         </h1>
 
-
         {% with proxy_module_stats=view.get_proxy_module_stats proxymachine=view.get_proxy_machine archive_module_stats=view.get_archive_module_stats archivemachine=view.get_archive_machine blobs_module_stats=view.get_blobs_module_stats blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine %}
-
-
-
 
             {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine or '127.0.0.1' in proxymachine %}
                 <p> The purpose of this page is to monitor the status of the diferent modules that provide functionality (this is a microservices architecture) used by Control Panel</p>
@@ -57,6 +34,7 @@
 
             {% endif %}
 
+            <!--
             <div id="proxy_module_info" class="machine">
                 {% if proxy_module_stats.status == "OK" %}
 
@@ -78,11 +56,11 @@
                     <p class="ststsnok">CP will not work</p>
                 {% endif %}
             </div>
+            -->
 
             <div id="demoinfo_module_info" class="machine">
                 {% if demoinfo_module_stats.status == "OK" %}
-
-                    <p class="ststsok"> <b>DEMOINFO RUNNING at: {{ demoinfomachine }}</b></p>
+                    <p class="ststsok"> <b>DemoInfo running at: {{ demoinfomachine }}</b></p>
 
                     <div style="padding-left: 20px">
                         <p>nb_demos: {{ demoinfo_module_stats.nb_demos  }}</p>
@@ -90,23 +68,22 @@
                         <p>nb_editors: {{ demoinfo_module_stats.nb_editors  }}</p>
                     </div>
 
-
                 {% else %}
-                    <p class="ststsnok">Demoinfo Module Not running!</p>
+                    <p class="ststsnok bold">Demoinfo Module is not running!</p>
                 {% endif %}
             </div>
 
 
             <div id="archive_module_info" class="machine">
                 {% if archive_module_stats.status == "OK" %}
-
-                    <p class="ststsok"> <b>ARCHIVE RUNNING at: {{ archivemachine }}</b></p>
+                    <p class="ststsok"> <b>Archive running at: {{ archivemachine }}</b></p>
 
                     <div style="padding-left: 20px">
                         <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
                         <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
                     </div>
 
+                    <!--
                     {#boton shutdown#}
                     {#    <div style="padding-left: 20px" >#}
                     {#        <a class="btn btn-primary" onclick="send_archive_shutdown_request()">Shutdown Archive</a>#}
@@ -116,18 +93,16 @@
                     <div style="padding-left: 20px" >
                         <a class="btn btn-primary" onclick="send_add_test_to_test_demo('{% url 'ipol.cp.archive.add_exp_to_test_demo' %}' )">Add experiment to test demo</a>
                     </div>
+                    -->
 
                 {% else %}
-
-                    <p class="ststsnok">Archive Module Not running!</p>
-
+                    <p class="ststsnok bold">Archive Module is not running!</p>
                 {% endif %}
             </div>
 
-
             <div id="blobs_module_info" class="machine">
                 {% if blobs_module_stats %}
-                    <p class="ststsok"><b>BLOBS RUNNING at: {{ blobmachine }}</b></p>
+                    <p class="ststsok"><b>Blobs running at: {{ blobmachine }}</b></p>
                     <div style="padding-left: 20px">
                         {% for demo in blobs_module_stats.list_demos%}
                             ( demo_id:{{ demo.id }}, name:{{ demo.name }} )
@@ -137,80 +112,36 @@
                     </div>
 
                 {% else %}
-                    <p class="ststsnok">Blobs Module Not running!</p>
-
+                    <p class="ststsnok bold">Blobs Module is not running!</p>
                 {% endif %}
             </div>
 
-
+            <!--
             <div id="Demo_module_info" class="machine">
-
+            -->
+                <!--
                 <p class="ststsnok"> No integration with archive module, it has its own archive in ipol_Demo/libs/archive.py (its like blobs and archive mixed together)</p>
                 <p class="ststsnok"> No integration with Blobs module, </p>
+                -->
+            <!--
                 {% if demomachine %}
-                    <p class="ststsok"><b>Demo RUNNING at: {{ demomachine }}</b></p>
+                    <p class="ststsok"><b>Demo running at: {{ demomachine }}</b></p>
+
                 {% else %}
-                    <p class="ststsnok"><b>Demo NOT RUNNING </b></p>
+                    <p class="ststsnok bold"><b>Demo is not running!</b></p>
                 {% endif %}
-
-
-
             </div>
-
+            -->
         {% endwith %}
     </div>
-
-
 {% endblock %}
 
+
 {% block functionsjs %}
-
     <script>
-
         var myshdwnurl="{% url 'ipol.cp.archive.shutdown' %}";
-        //console.log(myshdwnurl);
-        function send_archive_shutdown_request() {
-            var confirmshutdown = confirm(' Dou You Want to shutdown Archive Module?');
-            if (confirmshutdown == true) {
-
-                $.ajax({
-                    type: 'GET',
-                    url: myshdwnurl,
-                    dataType: 'json',
-                    success: function (data) {
-                        //console.error(data.status);
-                        var okhtml = "<p class=\"ststsnok\">Archive Module Shutdown successfull</p>";
-                        $('#archive_module_info').html(okhtml);
-
-                    },
-                    error: function (data) {
-                        var errorhtml = "<p>Could not shutdown properly, refresh page</p>";
-                        $('#archive_module_info').html(errorhtml);
-                    }
-                });
-            }
-        }
-
-
-        function send_add_test_to_test_demo(wsurl) {
-            var addexp = confirm('Add exp to test demo (id=-1)' );
-            if (addexp == true) {
-
-                $.ajax({
-                    type: 'GET',
-                    url: wsurl,
-                    dataType: 'json',
-                    success: function(data) {
-                        location.reload();
-
-                    },
-                    error: function(data){
-                        alert("nok error adding experiment")
-                    }
-                });
-            }
-        }
-
     </script>
 
+    <!-- include external script with required functions -->
+    <script src="{% static 'js/stats.js' %}"></script>
 {% endblock %}

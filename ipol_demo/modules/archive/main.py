@@ -34,4 +34,4 @@ if __name__ == '__main__':
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
 
     cherrypy.config.update(CONF_FILE_ABS)
-    cherrypy.quickstart(Archive(None,CONF_FILE_ABS), config=CONF_FILE_ABS)
+    cherrypy.quickstart(Archive.get_instance(), config=CONF_FILE_ABS)

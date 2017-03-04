@@ -57,4 +57,4 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
-    cherrypy.quickstart(Core(), config=CONF_FILE_ABS)
+    cherrypy.quickstart(Core.get_instance(), config=CONF_FILE_ABS)

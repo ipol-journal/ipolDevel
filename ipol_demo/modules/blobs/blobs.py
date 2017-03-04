@@ -18,7 +18,6 @@ import glob
 import sys
 import tarfile
 import zipfile
-import re
 import ConfigParser as configparser
 import threading
 import logging
@@ -31,6 +30,8 @@ import cherrypy
 from database import Database
 from error import DatabaseError
 from mako.lookup import TemplateLookup
+import ConfigParser
+import re
 
 #Get the server socket_host from conf file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -97,7 +98,7 @@ def dispersed_path(main_directory, blob_hash, extension, is_thumbnail=False, dep
     length_of_the_new_subfolder = min(len(blob_hash), depth)
     subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
     new_folder = os.path.join(main_directory, subdirs)
-    
+
     if is_thumbnail:
         blob = "thumbnail_" + blob_hash + extension
     else:
@@ -125,6 +126,19 @@ class   Blobs(object):
     HTML page is templated using Mako
     Library
     """
+
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if Blobs.instance is None:
+            Blobs.instance = Blobs()
+        return Blobs.instance
+
+
     def __init__(self):
         """
         Initialize Blob class
@@ -144,6 +158,10 @@ class   Blobs(object):
             cherrypy.config['server.socket_host'],
             cherrypy.config['server.socket_port'])
         self.server = cherrypy.config['server.socket_host']
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
         self.logs_dir = cherrypy.config.get("logs_dir")
         try:
@@ -168,8 +186,67 @@ class   Blobs(object):
         if not self.status:
             sys.exit("Initialisation of database failed. Check the logs.")
 
+    # ---------------------------------------------------------------------------
 
-    #---------------------------------------------------------------------------
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                cherrypy.response.headers['Content-Type'] = "application/json"
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            blobs = Blobs.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in blobs.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
+
+
+
     def init_logging(self):
         """
         Initialize the error logs of the module.
@@ -421,7 +498,7 @@ class   Blobs(object):
             error_dic['status']= 'KO'
             error_dic['message'] = error_message
             return json.dumps(error_dic)
-        
+
         data = {"demo_name": demo, "path": path, "tag": list_tag, "ext": ext,
                 "blob_set": blob_set, "blob_pos_in_set":blob_pos_in_set,
                 "title": title, "credit": credit}
@@ -453,20 +530,20 @@ class   Blobs(object):
         data['blob_pos_in_set'] = kwargs['blob_pos_in_set']
         data['title'] = kwargs['title']
         data['credit'] = kwargs['credit']
-        
+
         res = use_web_service("/edit_blob_in_database_ws", data)
-        
+
         if res['status'] == 'OK':
             return self.get_blobs_of_demo(data['demo_name'])
         else:
             error_message = "Failure in edit_blobs_information"
             self.logger.exception(error_message)
-            res['message'] = error_message	  
-            return json.dump(res) 
-    
+            res['message'] = error_message
+            return json.dump(res)
+
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
-    def edit_blob_in_database_ws(self, demo_name, blob_id, 
+    def edit_blob_in_database_ws(self, demo_name, blob_id,
 				 blob_set, blob_pos_in_set, title, credit):
         """
         Web service used for editing a blob
@@ -487,7 +564,7 @@ class   Blobs(object):
                 dic["status"] = "KO"
 
         return json.dumps(dic)
-    
+
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def upload_visual_representation(self, **kwargs):
@@ -497,35 +574,35 @@ class   Blobs(object):
         demo_name       = kwargs['demo_name']
         data['blob_id'] = kwargs['blob_id']
         vr_file = kwargs['visual_representation']
-        
+
         res = use_web_service('/get_blob_ws', data)
-        
+
         if res['status'] == "OK":
-            
+
             # The creation of the main folders for blobs, thumbnail and VR 
             # should be in __init__ ???? 
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
             if not os.path.exists(visrep_folder):
-                os.makedirs(visrep_folder)        
-            
+                os.makedirs(visrep_folder)
+
             blob_hash = res['hash']
-            
+
             try:
-            
+
                 _, extension = os.path.splitext(vr_file.filename)
-                assert isinstance(vr_file, cherrypy._cpreqbody.Part) 
-                
+                assert isinstance(vr_file, cherrypy._cpreqbody.Part)
+
                 vr_path, vr_folder, _ = dispersed_path(visrep_folder, blob_hash, extension)
                 if not os.path.isdir(vr_folder):
                     os.makedirs(vr_folder)
-                
+
                 #Delete the previous visual representations...
                 file_without_extension = os.path.join(vr_folder, blob_hash)
                 list_of_visrep = glob.glob(file_without_extension+".*")
                 for vr_to_delete in list_of_visrep:
                     os.remove(vr_to_delete)
-                
-                
+
+
                 temp_path = create_tmp_file(vr_file, vr_folder)
                 os.rename(temp_path, vr_path)
                 self.create_thumbnail(vr_path)
@@ -724,7 +801,7 @@ class   Blobs(object):
 
         filename, extension = os.path.splitext(the_archive.filename)
         assert isinstance(the_archive, cherrypy._cpreqbody.Part)
-        
+
         tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
         if not os.path.exists(tmp_directory):
             os.makedirs(tmp_directory)
@@ -734,7 +811,7 @@ class   Blobs(object):
 
         return self.get_blobs_of_demo(demo_name)
 
-    
+
     def remove_files_associated_to_a_blob(self, blob):
         """
         This function removes a blob, its thumbnail and 
@@ -745,29 +822,29 @@ class   Blobs(object):
         :return: "OK" if not error else "KO"
         :rtype: dictionnary 
         """
-        
+
         hash_blob, extension = os.path.splitext(blob)
-        
+
         main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
         path_file, _ , _  = dispersed_path(main_blobs_folder, hash_blob, extension)
-        
+
         try:
             os.remove(path_file)
         except OSError as ex:
             error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
             self.logger.error(error_message)
             print error_message
-        
+
         main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
         path_thumb, _, _  = dispersed_path(main_thumb_folder, hash_blob, ".jpg", True)
-        
+
         try:
             os.remove(path_thumb)
         except OSError as ex:
             error_message = "Failure removing the thumbnail of blob {}. Error: {} ".format(blob,ex)
             self.logger.error(error_message)
             print error_message
-            
+
         try:
             #Delete the visual representation (if exists)
             visrep_folder = os.path.join(self.base_directory, self.vr_dir)
@@ -777,14 +854,14 @@ class   Blobs(object):
 
             for vr_to_delete in list_of_visrep:
                 os.remove(vr_to_delete)
-        
+
         except Exception as ex:
             error_message = "Failure removing the visrep of blob {}. Error: {} ".format(blob,ex)
             self.logger.error(error_message)
             print error_message
-        
-        
-        
+
+
+
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
@@ -968,13 +1045,13 @@ class   Blobs(object):
         """
         data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
         res = use_web_service('/delete_blob_ws', data, 'authenticated')
-        
+
         if res["status"] == "OK" and res["delete"]:
             self.remove_files_associated_to_a_blob(res["delete"])
-            
+
         return self.get_blobs_of_demo(demo_name)
 
-    
+
     #---------------------------------------------------------------------------
     def prepare_list_of_blobs(self, dic_blobs):
         """
@@ -985,28 +1062,28 @@ class   Blobs(object):
         list_of_blobs_corrected_with_vr = []
         for elements in dic_blobs:
             blob_set = []
-            for element in elements: 
+            for element in elements:
                if 'hash' in element:
                   hash_of_blob      = element['hash']
                   extension_of_blob = element['extension']
-                            
+
                   visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
                   vr_path, vr_folder, subdirs = dispersed_path(visrep_main_folder, \
                                                                                   hash_of_blob, \
-                                                                                  extension_of_blob) 
+                                                                                  extension_of_blob)
                   ##The subdir is the same in the VR , the thumbnail and in the blob_directory
                   element['subdirs'] = subdirs + "/"
-                            
+
                   vr_extension = self.check_if_visrep_exists(vr_folder, hash_of_blob)
                   if vr_extension != "":
                       element['extension_visrep'] = vr_extension
-                            
+
                blob_set.append(element)
-                    
+
             list_of_blobs_corrected_with_vr.append(blob_set)
-        
+
         return list_of_blobs_corrected_with_vr
-    
+
     def check_if_visrep_exists(self, vr_folder, hash_of_blob):
         """
         This function check if a blob has a visrep associated.
@@ -1015,15 +1092,15 @@ class   Blobs(object):
         """
         vr_extension = ""
         if os.path.isdir(vr_folder):
-                                
+
             file_without_extension = os.path.join(vr_folder, hash_of_blob)
             visrep = glob.glob(file_without_extension+".*")
-                        
+
             if len(visrep)>0:
                 _, vr_extension = os.path.splitext(visrep[0])
-        
-        return vr_extension 
-    
+
+        return vr_extension
+
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blobs_from_template_ws(self, template):
@@ -1075,18 +1152,18 @@ class   Blobs(object):
                 dic_temp = data.get_blobs_of_demo(demo_name)
 
                 dic["blobs"] = self.prepare_list_of_blobs(dic_temp)
-                
+
                 dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
                 dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
                 dic["url_visrep"] = '/api/blobs' + "/" + self.vr_dir + "/"
-                
+
                 dic["physical_location"] = self.final_dir
                 dic["vr_location"] = self.vr_dir
                 dic["status"] = "OK"
-            
+
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from demo")
-        
+
         return json.dumps(dic)
 
 
@@ -1097,18 +1174,18 @@ class   Blobs(object):
         main_blobs_folder = os.path.join(self.base_directory, self.vr_dir)
         physical_location, _, _ = dispersed_path(main_blobs_folder, \
                                                                   blob_hash, \
-                                                                  extension) 
-                
+                                                                  extension)
+
         url_blobs = os.path.join(self.server_address, self.final_dir)
-        url_blobs, _, _ = dispersed_path(url_blobs, blob_hash, extension) 
-                    
+        url_blobs, _, _ = dispersed_path(url_blobs, blob_hash, extension)
+
         url_thumb = os.path.join(self.server_address, self.thumb_dir)
         url_thumb, _, _ = dispersed_path(url_thumb, blob_hash, ".jpg", True)
-        
+
         return physical_location, url_blobs, url_thumb
-    
-    
-    
+
+
+
     @cherrypy.expose
     def get_blobs_of_demo(self, demo_name, blob_deleted_message=None):
         """
@@ -1121,7 +1198,7 @@ class   Blobs(object):
         demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo_name})
         template_list_res = use_web_service('/get_template_demo_ws', {})
         template_blobs = {}
-        
+
         #--- if the demo uses a template, process its blobs
         if demo_blobs["use_template"]:
             template_blobs_res = use_web_service('/get_blobs_from_template_ws',
@@ -1134,7 +1211,7 @@ class   Blobs(object):
                     b = blob_set[idx]
                     b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
 		                                                                  b['extension'])
-                
+
 
         for blob_set in demo_blobs["blobs"]:
             blob_size = blob_set[0]['size']
@@ -1142,8 +1219,8 @@ class   Blobs(object):
                 b = blob_set[idx]
                 b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
 		                                                                  b['extension'])
-                
-        
+
+
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_demo_blobs.html").render(
             blobs_list=demo_blobs["blobs"],
@@ -1152,7 +1229,7 @@ class   Blobs(object):
             tmpl_list=template_list_res["template_list"],
             tmpl_blobs=template_blobs,
             blob_deleted_message=blob_deleted_message)
-    
+
     @cherrypy.expose
     @cherrypy.tools.accept(media="application/json")
     def get_blobs_by_id(self, blob_ids):
@@ -1161,7 +1238,7 @@ class   Blobs(object):
         """
 
         blobs_ids_tuple = blob_ids if isinstance(blob_ids, list) else [int(blob_ids)]
-       
+
         dic={}
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
@@ -1169,16 +1246,16 @@ class   Blobs(object):
                 dic_with_blob = {}
                 for blob_id in blobs_ids_tuple:
                     dic_with_blob = data.get_blob(blob_id)
-                    
+
                     _, _, subdirs = dispersed_path(os.path.join(self.base_directory, self.final_dir), \
                                                                  dic_with_blob['hash'], \
-                                                                 dic_with_blob['extension']) 
-                               
+                                                                 dic_with_blob['extension'])
+
                     dic_with_blob['subdirs'] = subdirs + "/"
-                    
+
                     list_with_blob_information.append(dic_with_blob)
-                
-                dic['list_of_blobs'] = list_with_blob_information 
+
+                dic['list_of_blobs'] = list_with_blob_information
                 dic["physical_location"] = self.final_dir
                 dic["vr_location"] = self.vr_dir
                 dic["status"] = "OK"
@@ -1202,28 +1279,28 @@ class   Blobs(object):
         """
         data = {"blob_id": blob_id}
         res = use_web_service('/get_info_for_editing_a_blob_ws', data)
-        
+
         if res["status"] == "OK":
-            
+
             res["tags"] = use_web_service('/get_tags_ws', data)
-            
+
             # process paths
             main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
             res["physical_location"], _, _ = dispersed_path(main_blobs_folder, \
                                              res["hash"], \
-                                             res["extension"]) 
+                                             res["extension"])
 
             url_blobs = os.path.join(self.server_address, self.final_dir)
             res['url'], _, _ = dispersed_path(url_blobs, \
                                             res["hash"], \
-                                            res["extension"]) 
+                                            res["extension"])
             url_thumb = os.path.join(self.server_address, self.thumb_dir)
-            
+
             res["url_thumb"], _, _ = dispersed_path(url_thumb, \
                                                     res["hash"], \
                                                     ".jpg", \
-                                                    True) 
-            
+                                                    True)
+
         tmpl_lookup = TemplateLookup(directories=[self.html_dir])
         return tmpl_lookup.get_template("edit_blob.html").render(\
           blob_id=blob_id, blob_info=res, demo_id=demo_name)
@@ -1249,7 +1326,7 @@ class   Blobs(object):
             except DatabaseError:
                 self.logger.exception("Cannot access to blob from its ID")
                 dic["status"] = "KO"
-        
+
         return json.dumps(dic)
 
     @cherrypy.expose
@@ -1311,18 +1388,18 @@ class   Blobs(object):
         :rtype: json format
         """
         cherrypy.response.headers['Content-Type'] = "application/json"
-        
+
         dic = {}
         dic["status"] = "KO"
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             try:
                 blobfilenames_to_delete = data.remove_demo(demo_name)
                 data.commit()
-                
+
                 # remove from disk unused blobs
                 for blob in blobfilenames_to_delete:
                     self.remove_files_associated_to_a_blob(blob)
-                    
+
                 dic["status"] = "OK"
 
             except DatabaseError:
@@ -1368,11 +1445,11 @@ class   Blobs(object):
         main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
         if not os.path.exists(main_blobs_folder):
             os.makedirs(main_blobs_folder)
-        
+
         file_dest, _, _ = dispersed_path(main_blobs_folder, \
                                           blob_hash, \
-                                          extension) 
-        
+                                          extension)
+
         shutil.move(path, file_dest)
         return file_dest
 
@@ -1394,7 +1471,7 @@ class   Blobs(object):
         file_dest, _, _ = dispersed_path(main_thumb_folder, \
                                           blob_hash, \
                                           ".jpg", \
-                                          True) 
+                                          True)
         fil_format = file_format(src)
         try:
             if fil_format == 'image':
@@ -1440,7 +1517,7 @@ class   Blobs(object):
                 the_files = buff.get(section, "files")
                 list_file = the_files.split()
                 for _file in list_file:
-                    
+
                     file_id = list_file.index(_file)
                     if _file and _file in files:
                         title = buff.get(section, 'title')
@@ -1500,6 +1577,7 @@ class   Blobs(object):
 
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.

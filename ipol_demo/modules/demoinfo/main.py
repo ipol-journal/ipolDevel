@@ -35,5 +35,6 @@ if __name__ == '__main__':
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
 
+    cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
-    cherrypy.quickstart(DemoInfo(CONF_FILE_ABS), '', config=CONF_FILE_ABS)
+    cherrypy.quickstart(DemoInfo.get_instance(), '', config=CONF_FILE_ABS)

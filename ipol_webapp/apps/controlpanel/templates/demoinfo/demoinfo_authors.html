@@ -18,7 +18,8 @@
             color:red;
         }
         .author{
-            border: 1px solid black;
+            border: 1px solid lightgray;
+            border-radius: 5px;
             margin: 20px;
             padding: 10px;
             //width: 40%;
@@ -48,7 +49,7 @@
 
     <div class="container">
 
-        <h2> {% blocktrans %} AUTHORS LIST {%  endblocktrans %}</h2>
+        <h2> {% blocktrans %} List of Authors {%  endblocktrans %}</h2>
 
         {#  Search bar #}
         {% with searchurl='ipol.cp.demoinfo.authors' %}
@@ -57,7 +58,7 @@
 
         {#  Add Author btn #}
         <div class="container">
-            <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.create_author' %}' )">{% blocktrans %}Add New Author{%  endblocktrans %}</a>
+            <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.create_author' %}' )">{% blocktrans %}Add a new Author{%  endblocktrans %}</a>
         </div>
 
         {#  Author list #}
@@ -70,16 +71,16 @@
                     {% for author in data %}
 
                         <div class="author row" id="author_info_{{ author.id }}" >
-                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ author.id }}</span> </div>
-                            <div class="griditem col-sm-3">{% trans 'name' %}:{{ author.name }} </div>
-                            <div class="griditem col-sm-3">{% trans 'email' %}:{{ author.mail}} </div>
+                            <div class="griditem col-sm-3"> {% trans 'ID' %}: <span class="badge">{{ author.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'Name' %}: {{ author.name }} </div>
+                            <div class="griditem col-sm-3">{% trans 'Email' %}: {{ author.mail}} </div>
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_author_request('{% url 'ipol.cp.demoinfo.delete_author' author.id %}',{{ author.id }} )">{% trans 'Delete' %}</a>
+                                <a class="btn btn-primary" onclick="send_delete_author_request('{% url 'ipol.cp.demoinfo.delete_author' author.id %}',{{ author.id }} )" title="Delete {{ author.name }}">{% trans 'Delete' %}</a>
 
                                 {#  btn Edit author #}
-                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )">{% trans 'Edit' %}</a>
+                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )" title="Edit {{ author.name }}'s information">{% trans 'Edit' %}</a>
 
                             </div>
 

@@ -23,6 +23,10 @@ import shutil
 import json
 from math import ceil
 import cherrypy
+import re
+import socket
+
+import ConfigParser
 
 from model import *
 from tools import is_json, Payload, convert_str_to_bool
@@ -36,18 +40,21 @@ class DemoInfo(object):
     Implement the demoinfo webservices.
     """
 
-    def __init__(self, configfile=None):
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if DemoInfo.instance is None:
+            DemoInfo.instance = DemoInfo()
+        return DemoInfo.instance
+
+    def __init__(self):
         """
         Constructor.
         """
-
-        # Cherrypy Conf
-        if not configfile:
-            sys.stderr.write("Config file not found, terminating.")
-            sys.exit(1)
-        else:
-            cherrypy.config.update(configfile)
-
         status = self.check_config()
         if not status:
             sys.exit(1)
@@ -58,19 +65,22 @@ class DemoInfo(object):
 
         self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
         self.mkdir_p(self.dl_extras_dir)
-
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
         self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
 
         self.server_address = 'http://{0}:{1}'.format(
             cherrypy.config['server.socket_host'],
             cherrypy.config['server.socket_port'])
 
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
+
         # Database
         self.database_dir = cherrypy.config.get("database_dir")
         self.database_name = cherrypy.config.get("database_name")
         self.database_file = os.path.join(self.database_dir, self.database_name)
 
-        # check if DB already exist
+        # check if DB already exists
         if not os.path.isfile(self.database_name):
 
             statuscreateDb = createDb(self.database_name)
@@ -82,11 +92,6 @@ class DemoInfo(object):
             if not statusinitDb:
                 print "DB not initialized correctly"
                 sys.exit(1)
-        else:
-            print "DB already exist and is initialized"
-
-        # db testing purposes only!, better use unittests in test folder
-        # testDb(self.database_name)
 
     @staticmethod
     def mkdir_p(path):
@@ -116,6 +121,64 @@ class DemoInfo(object):
         else:
             return True
 
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            demo_info = DemoInfo.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in demo_info.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
+
+
 
     def init_logging(self):
         """
@@ -133,7 +196,7 @@ class DemoInfo(object):
 
     def error_log(self, function_name, error):
         """
-        Write a message to the error log.
+        Write a message in the error log.
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
@@ -144,7 +207,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def default(attr):
         """
-        Default method invoked when asked for non-existing service.
+        Default method invoked when asked for a non-existing service.
         """
         data = {}
         data["status"] = "KO"
@@ -186,7 +249,9 @@ class DemoInfo(object):
         """
         return json.dumps(self.get_compressed_file_url(demo_id))
 
+
     @cherrypy.expose
+    @authenticate
     def delete_compressed_file_ws(self, demo_id):
         """
         WS for deleting the compressed demo extra file of a demo
@@ -204,6 +269,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def add_compressed_file_ws(self, demo_id, **kwargs):
         """
         WS for add a new compressed demo extra file to a demo
@@ -445,6 +511,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def demo_get_authors_list(self, demo_id):
         """
         return the list of authors of a given demo.
@@ -478,6 +545,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def demo_get_available_authors_list(self, demo_id):
         """
         return the list of all authors that are not currently assigned to a given demo.
@@ -520,6 +588,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def demo_get_editors_list(self, demo_id):
         """
         return the editors of a given demo.
@@ -553,6 +622,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def demo_get_available_editors_list(self, demo_id):
         """
         return all editors that are not currently assigned to a given demo
@@ -705,47 +775,9 @@ class DemoInfo(object):
 
         return json.dumps(data)
 
-
-    @cherrypy.expose
-    def read_demo_metainfo_by_editordemoid(self, editordemoid):
-        """
-        return metainfo of a demo from a given association between an editor and a demo.
-        """
-        data = dict()
-        data["status"] = "KO"
-
-        try:
-
-            demo = self.read_demo_by_editordemoid(editordemoid)
-            if demo is None:
-                raise ValueError("No demo retrieved for this id")
-
-            #data["id"] = demo.id
-            data["editorsdemoid"] = demo.editorsdemoid
-            data["title"] = demo.title
-            data["abstract"] = demo.abstract
-            data["zipURL"] = demo.zipURL
-            data["state"] = demo.state
-            data["creation"] = demo.creation
-            data["modification"] = demo.modification
-            data["status"] = "OK"
-
-        except Exception as ex:
-            error_string = "demoinfo read_demo_metainfo_by_editordemoid error %s" % str(ex)
-            print error_string
-            self.error_log("read_demo_metainfo_by_editordemoid", error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            #raise Exception
-            data["error"] = error_string
-
-        return json.dumps(data)
-
-
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def add_demo(self, editorsdemoid, title, abstract, zipURL, state,
                  demodescriptionID=None, demodescriptionJson=None):
         """
@@ -809,6 +841,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def delete_demo(self, demo_id):
         """
         webservice deleting given demo.
@@ -860,6 +893,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def update_demo(self, demo, old_editor_demoid):
         """
         webservice updating demo.
@@ -909,6 +943,7 @@ class DemoInfo(object):
 
     #todo check its not usefull any more and delete...
     @cherrypy.expose
+    @authenticate
     def author_list(self):
         """
         webservice returning list of authors.
@@ -941,6 +976,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def author_list_pagination_and_filter(self, num_elements_page, page,
                                           qfilter=None):
         """
@@ -1024,6 +1060,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def read_author(self, authorid):
         """
         webservice returning info on author from id in database.
@@ -1104,6 +1141,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST', 'GET']) #allow only post
+    @authenticate
     def add_author(self, name, mail):
         """
         webservice adding author entry.
@@ -1133,6 +1171,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def add_author_to_demo(self, demo_id, author_id):
         """
         webservice adding author to demo.
@@ -1159,6 +1198,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def remove_author_from_demo(self, demo_id, author_id):
         """
         webservice removing given author of given demo.
@@ -1186,6 +1226,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def remove_author(self, author_id):
         """
         deleting given author, and its relationship with demos
@@ -1226,6 +1267,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def update_author(self, author):
         """
         webservice updating author entry.
@@ -1268,6 +1310,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def editor_list(self):
         """
         webservice returning editor list
@@ -1300,6 +1343,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def editor_list_pagination_and_filter(self, num_elements_page, page,
                                           qfilter=None):
         """
@@ -1415,6 +1459,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def read_editor(self, editorid):
         """
         webservice getting info of editor from id.
@@ -1460,6 +1505,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def add_editor(self, name, mail):
         """
         webservice adding editor entry.
@@ -1489,6 +1535,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def add_editor_to_demo(self, demo_id, editor_id):
         """
         webservice adding given editor to given demo.
@@ -1516,6 +1563,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def remove_editor_from_demo(self, demo_id, editor_id):
         """
         webservice removing given editor from given demo.
@@ -1543,6 +1591,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def remove_editor(self, editor_id):
         """
         webservice deleting editor and its relationship with the demos
@@ -1581,6 +1630,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def update_editor(self, editor):
         """
         webservice updating editor entry in db.
@@ -1697,37 +1747,9 @@ class DemoInfo(object):
             data["error"] = error_string
         return json.dumps(data)
 
-
-    #todo check its not usefull any more and delete...
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
-    def add_demodescription_to_demo(self, demo_id, demodescription_id):
-        """
-        Add a correspondence between an demo and a description.
-        """
-        data = {}
-        data["status"] = "KO"
-        try:
-            conn = lite.connect(self.database_file)
-            dao = DemoDemoDescriptionDAO(conn)
-            dao.add(int(demo_id), int(demodescription_id))
-            conn.close()
-            data["status"] = "OK"
-        except Exception as ex:
-            error_string = "demoinfo add_demodescription_to_demo error %s" % str(ex)
-            print error_string
-            self.error_log("add_demodescription_to_demo", error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            #raise Exception
-            data["error"] = error_string
-        return json.dumps(data)
-
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['POST']) #allow only post
+    @authenticate
     def save_demo_description(self, demoid):
         """
         Save the demo description.
@@ -1794,44 +1816,6 @@ class DemoInfo(object):
         return json.dumps(data)
 
 
-    #For unittests and internal use, in other case you should use add_demo_description instead
-    #@cherrypy.expose
-    #@cherrypy.tools.allow(methods=['POST']) #allow only post
-    def add_demo_description_using_param(self, demojson, inproduction=None):
-        #recieves a valid json as a string AS PARAMETER
-        #stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
-        """
-        Add demo description using params.
-        """
-        data = {}
-        data["status"] = "KO"
-        demojson = str(demojson)
-
-        if not is_json(demojson):
-            print "add_demo_description_using_param demojson is not a validjson "
-            print "+++++ demojson: ", demojson
-            print "+++++ demojson type: ", type(demojson)
-            raise Exception
-
-        try:
-            conn = lite.connect(self.database_file)
-            dao = DemoDescriptionDAO(conn)
-            if inproduction is not None:
-                the_id = dao.add(demojson, inproduction)
-            else:
-                the_id = dao.add(demojson)
-            conn.close()
-            #return id
-            data["status"] = "OK"
-            data["demo_description_id"] = the_id
-
-        except Exception as ex:
-            error_string = ("WS add_demo_description_using_param  e:%s" % (str(ex)))
-            print error_string
-            conn.close()
-            raise Exception
-
-        return json.dumps(data)
 
     # MISCELLANEA
 
@@ -1857,6 +1841,7 @@ class DemoInfo(object):
 
     #TODO protect THIS
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         shutdown the module.

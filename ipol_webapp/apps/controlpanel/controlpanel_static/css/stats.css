@@ -1,0 +1,19 @@
+.ststsok {
+    color:green;
+}
+.ststsnok {
+    color:red;
+}
+.bold{
+    font-weight: bold;
+}
+.machine{
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 10px;
+}
+.container{
+    margin: 20px;
+    padding: 10px;
+}

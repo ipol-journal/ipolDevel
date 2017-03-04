@@ -18,10 +18,11 @@
 			color:red;
 		}
 		.extra{
-			border: 1px solid black;
+			border: 1px solid gray;
 			margin: 20px;
 			padding: 10px;
 			width: 35%;
+			border-radius: 5px;
 		}
 		.extraFile{
 			border: 1px solid grey;
@@ -57,26 +58,21 @@
 
 	<div class="container">
 
-		<h2> {% blocktrans %} Manage demo extras from demo {{ demo_id }} {%  endblocktrans %}</h2>
-
-		{#  Search bar #}
-{#        {% with searchurl='ipol.cp.demoinfo.demo_extras' %}#}
-{#            {% include 'demoinfo/searchbar.html' %}#}
-{#        {% endwith %}#}
+		<h2> {% blocktrans %} Manage demo extras for demo {{ demo_id }} {%  endblocktrans %}</h2>
 
 		{% with data=view.list_demo_extras_for_demo %}
 			{#  Add Demo Extras btn #}
 
 			<div class="container">
 				<form id="frm" action="{% url 'ipol.cp.demoinfo.add_demo_extra_to_demo'  demo_id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-					<input type="file" id="file"  style="visibility:hidden;" name="myfile" onchange="fileName()"/>
-					<input type="submit" id="submit" style="visibility:hidden;" value="Upload" />
+					<input type="file" id="file"  style="display: none;" name="myfile" onchange="fileName()"/>
+					<input type="submit" id="submit" style="display: none;" value="Upload" />
 				</form>
 				<label class="btn btn-info" for="file"> Select File</label>
 				<label class="extraFile" id="name" >  File...</label>
 				<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload</label>
 				<p></p>
-				<a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demos' %}">{% blocktrans %} Return to demo list{%  endblocktrans %}</a>
+				<a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
 			</div>
 
 			{% if data.status == "OK" %}
@@ -85,7 +81,6 @@
 						<p class="griditem col-sm-7">{{ data.name }} </p>
 						<a class="btn btn-info" onclick="window.open('{{ data.url_compressed_file }}')" target="_self"> Download</a>
                         <a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
-
 					</div>
 				{% else %}
 					<p class="ststsnok"> {% blocktrans %}No Demo Extras available{%  endblocktrans %}</p>

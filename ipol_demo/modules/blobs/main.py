@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF)
 
-    APP = cherrypy.tree.mount(Blobs(), '/', CONF)
+    APP = cherrypy.tree.mount(Blobs.get_instance(), '/', CONF)
     APP.merge(CONF_FILE)
 
     if hasattr(cherrypy.engine, "signal_handler"):

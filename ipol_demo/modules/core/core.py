@@ -8,7 +8,7 @@ import base64
 import tempfile
 import sys
 import os
-
+import re
 # To send emails
 import smtplib
 from email.mime.text import MIMEText
@@ -17,16 +17,14 @@ from email.mime.multipart import MIMEMultipart
 
 import xml.etree.ElementTree as ET
 
-# [ToDo] [Miguel] Change this by a normal import!
-sys.path.append(os.path.join(\
-    os.path.dirname(os.path.realpath(__file__)), "Tools"))
-#
-from misc import prod
-from image import image
-from sendarchive import SendArchive
+
+from Tools.misc import prod
+from Tools.image import image
+from Tools.sendarchive import SendArchive
 
 import shutil
 import json
+import ConfigParser
 
 import errno
 import logging
@@ -58,6 +56,16 @@ class Core(object):
     """
     Core index used as the root app
     """
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if Core.instance is None:
+            Core.instance = Core()
+        return Core.instance
 
     def init_logging(self):
         """
@@ -99,7 +107,7 @@ class Core(object):
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
-
+            self.common_config_dir = cherrypy.config.get("config_common_dir")
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
             self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
@@ -117,6 +125,9 @@ class Core(object):
 
             self.load_demorunners()
 
+            # Security: authorized IPs
+            self.authorized_patterns = self.read_authorized_patterns()
+
             #Create shared folder if not exist
             self.mkdir_p(self.shared_folder_abs)
 
@@ -133,6 +144,62 @@ class Core(object):
 
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
+
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            core = Core.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in core.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.common_config_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
 
     def load_demorunners(self):
         """
@@ -327,6 +394,7 @@ workload of '{}'".format(dr_name)
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -679,7 +747,6 @@ workload of '{}'".format(dr_name)
             
             size = 0
             while True:
-                ## TODO larger data size
                 data = file_up.file.read(128)
                 if not data:
                     break
@@ -1024,7 +1091,7 @@ Demoinfo code = {}".format(response['code'])
         # Get the names and emails of the editors
         emails = []
         for entry in editor_list:
-            emails.append((entry['name'], entry['mail']))
+            emails.append({"name":entry['name'],"email":entry['mail']})
 
         return emails
 
@@ -1033,19 +1100,28 @@ Demoinfo code = {}".format(response['code'])
         '''
         Send an email to the given recipients
         '''
-
         if text is None:
             text = ""
 
+        emails_list = []
 
-        emails_list = [entry[1] for entry in emails]
+        for section in emails:
+            if section == 'sender': continue
+            if section != 'editors':
+                emails_list.append(emails[section]['email'])
+                continue
+            else:
+                i=0
+                while i < len(emails[section]):
+                    emails_list.append(emails[section][i]['email'])
+                    i += 1
+
+
         emails_str = ", ".join(emails_list)
 
         msg = MIMEMultipart()
-
         msg['Subject'] = subject
-        # [ToDo] Move this to the core.conf
-        msg['From'] = "IPOL Core <nor" + "eply" + "@cml" + "a.ens" + "-cac" + "han.fr>"
+        msg['From'] = "{} <{}>".format(emails["sender"]["name"], emails["sender"]["email"])
         msg['To'] = emails_str # Must pass only a comma-separated string here
         msg.preamble = text
 
@@ -1057,8 +1133,6 @@ Demoinfo code = {}".format(response['code'])
 
         text_data = MIMEText(text)
         msg.attach(text_data)
-        print "##############"
-        print emails_list
         try:
             s = smtplib.SMTP('localhost')
              # Must pass only a list here
@@ -1070,25 +1144,50 @@ Demoinfo code = {}".format(response['code'])
     def send_compilation_error_email(self, demo_id, text):
         ''' Send email to editor when compilation fails '''
         print "send_compilation_error_email"
-
-        emails = self.get_demo_editor_list(demo_id)
+        emails = {}
 
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-        
-        # Add Tech and Edit only if this is the production server and
-        # the demo has been published        
-        if self.serverEnvironment == 'production' and \
-          demo_state == "published":
-            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
-            emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
 
+        # Add Tech and Edit only if this is the production server and
+        # the demo has been published
+
+        config_emails = self.read_emails_from_config()
+        emails['editors'] = self.get_demo_editor_list(demo_id)
+        if self.serverEnvironment == 'production' and \
+                        demo_state == "published":
+            emails['tech'] = config_emails['tech']
+            emails['edit'] = config_emails['edit']
         if len(emails) == 0:
             return
 
+        emails['sender'] = config_emails['sender']
+
         # Send the email
-        # [ToDo] Use the shared folder to access a DR!
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails)
+
+    def read_emails_from_config(self):
+        """
+        Read the list of emails from the configuration file
+        """
+        try:
+            emails_file_path = os.path.join(self.project_folder, \
+              "ipol_demo", "modules", "config_common", "emails.conf")
+            cfg = ConfigParser.ConfigParser()
+            if not os.path.isfile(emails_file_path):
+                self.error_log("read_emails_from_config", \
+                  "Can't open {}".format(emails_file_path))
+                return []
+
+            emails = {}
+            cfg.read([emails_file_path])
+            for section in cfg.sections():
+                emails[section] = {"name":cfg.get(section, "name"),"email":cfg.get(section, "email")}
+
+            return emails
+        except Exception as e:
+            self.logger.exception("Can't read emails of journal staff")
+            print "Fail reading emails config. Exception:", e
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
@@ -1101,18 +1200,22 @@ Demoinfo code = {}".format(response['code'])
 
     def send_runtime_error_email(self, demo_id, key):
         ''' Send email to editor when the execution fails '''
-        emails = self.get_demo_editor_list(demo_id)
+        # emails = self.get_demo_editor_list(demo_id)
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
-
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
+        emails = {}
+        config_emails = self.read_emails_from_config()
+        emails['editors'] = self.get_demo_editor_list(demo_id)
         if self.serverEnvironment == 'production' and \
           demo_state == "published":
-            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
-            emails.append(('IPOL Edit', "ed" + "it" + "@ip" + "ol.im"))
+            emails['tech'] = config_emails['tech']
+            emails['edit'] = config_emails['edit']
 
         if len(emails) == 0:
             return
+
+        emails['sender'] = config_emails['sender']
 
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
@@ -1133,15 +1236,17 @@ format(hostname, hostbyname, key, demo_id)
         self.send_email(subject, text, emails, zip_filename=zip_filename)
 
     def send_demorunner_unresponsive_email(self, \
-      unresponsive_demorunners):
+        unresponsive_demorunners):
         '''
         Send email to editor when the demorruner is down
         '''
-        emails = []
-        if self.serverEnvironment == 'production':
-            emails.append(('IPOL Tech', "te" + "ch" + "@ip" + "ol.im"))
+        emails = {}
+        config_emails = self.read_emails_from_config()
+        if not self.serverEnvironment == 'production':
+            emails['tech'] = config_emails['tech']
         if len(emails) == 0:
             return
+        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1149,10 +1254,9 @@ format(hostname, hostbyname, key, demo_id)
         unresponsive_demorunners_list = ",".\
           join(unresponsive_demorunners)
 
-        text = "This is the IPOL Core machine ({}, {}).\n\nThe list \
-of demorunners unresponsive is: {}.".format(\
-hostname, hostbyname, unresponsive_demorunners_list)
-        print text
+        text = "This is the IPOL Core machine ({}, {}).\n" \
+               "\nThe list of demorunners unresponsive is: {}.".\
+            format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails)
 
@@ -1278,7 +1382,6 @@ demo_id = ", demo_id
             demorunner_response = resp.json()
             status = demorunner_response['status']
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
-
             if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
                 self.error_log("ensure_compilation()", \

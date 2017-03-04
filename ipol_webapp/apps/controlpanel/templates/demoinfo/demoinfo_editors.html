@@ -18,7 +18,8 @@
             color:red;
         }
         .editor{
-            border: 1px solid black;
+            border: 1px solid lightgray;
+            border-radius: 5px;
             margin: 20px;
             padding: 10px;
             //width: 40%;
@@ -48,7 +49,7 @@
 
     <div class="container">
 
-        <h2> {% blocktrans %} EDITORS LIST {%  endblocktrans %}</h2>
+        <h2> {% blocktrans %} List of Editors {%  endblocktrans %}</h2>
 
         {#  Search bar #}
         {% with searchurl='ipol.cp.demoinfo.editors' %}
@@ -57,7 +58,7 @@
 
         {#  Add Editor btn #}
         <div class="container">
-            <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.create_editor' %}' )">{% blocktrans %}Add New Editor{%  endblocktrans %}</a>
+            <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.create_editor' %}' )">{% blocktrans %}Add a new Editor{%  endblocktrans %}</a>
         </div>
 
         {#  Editor list #}
@@ -70,16 +71,16 @@
                     {% for editor in data %}
 
                         <div class="editor row" id="editor_info_{{ editor.id }}" >
-                            <div class="griditem col-sm-3"> {% trans 'id' %}:<span class="badge">{{ editor.id }}</span> </div>
-                            <div class="griditem col-sm-3">{% trans 'name' %}:{{ editor.name }} </div>
-                            <div class="griditem col-sm-3">{% trans 'email' %}:{{ editor.mail}} </div>
+                            <div class="griditem col-sm-3"> {% trans 'ID' %}: <span class="badge">{{ editor.id }}</span> </div>
+                            <div class="griditem col-sm-3">{% trans 'Name' %}: {{ editor.name }} </div>
+                            <div class="griditem col-sm-3">{% trans 'Email' %}: {{ editor.mail}} </div>
 
                             <div class="griditem col-sm-3">
                                 {#  btn Delete editor,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_editor_request('{% url 'ipol.cp.demoinfo.delete_editor' editor.id %}',{{ editor.id }} )">{% trans 'Delete' %}</a>
+                                <a class="btn btn-primary" onclick="send_delete_editor_request('{% url 'ipol.cp.demoinfo.delete_editor' editor.id %}',{{ editor.id }} )" title="Delete {{ editor.name }}">{% trans 'Delete' %}</a>
 
                                 {#  btn Edit editor #}
-                                <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )">{% trans 'Edit' %}</a>
+                                <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )" title="Edit {{ editor.name }}'s information">{% trans 'Edit' %}</a>
 
                             </div>
 

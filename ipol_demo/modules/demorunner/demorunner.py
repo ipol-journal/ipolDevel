@@ -57,11 +57,26 @@ import time
 
 from string import Template
 from threading import Lock
+import ConfigParser
+import re
 
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
     """
+
+    instance = None
+
+    @staticmethod
+    def get_instance():
+        '''
+        Singleton pattern
+        '''
+        if DemoRunner.instance is None:
+            DemoRunner.instance = DemoRunner()
+        return DemoRunner.instance
+
+
     @staticmethod
     def mkdir_p(path):
         """
@@ -124,7 +139,10 @@ class DemoRunner(object):
         self.mkdir_p(self.main_log_dir)
 
         self.logger = self.init_logging()
+        self.config_common_dir = cherrypy.config.get("config_common_dir")
 
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
         if not os.path.isdir(self.share_running_dir):
             error_message = "The folder does not exist: " + self.share_running_dir
             print error_message
@@ -134,6 +152,63 @@ class DemoRunner(object):
             #####
             # web utilities
             #####
+
+    def authenticate(func):
+        '''
+        Wrapper to authenticate before using an exposed function
+        '''
+        def authenticate_and_call(*args,**kwargs):
+            '''
+            Invokes the wrapped function if authenticated
+            '''
+            if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                    ("X-Real-IP" in cherrypy.request.headers and
+                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                error = {"status": "KO", "error": "Authentication Failed"}
+                return json.dumps(error)
+            return func(*args,**kwargs)
+
+        def is_authorized_ip(ip):
+            '''
+            Validates the given IP
+            '''
+            demorunner = DemoRunner.get_instance()
+            patterns = []
+            # Creates the patterns  with regular expresions
+            for authorized_pattern in demorunner.authorized_patterns:
+                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+            # Compare the IP with the patterns
+            for pattern in patterns:
+                if pattern.match(ip) is not None:
+                    return True
+            return False
+
+
+        return authenticate_and_call
+
+    def read_authorized_patterns(self):
+        '''
+        Read from the IPs conf file
+        '''
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
+        try:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
+
 
     @cherrypy.expose
     def index(self):
@@ -153,6 +228,7 @@ class DemoRunner(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def shutdown(self):
         """
         Shutdown the module.
@@ -164,23 +240,6 @@ class DemoRunner(object):
             data["status"] = "OK"
         except Exception as ex:
             self.write_log("shutdown", str(ex))
-        return json.dumps(data)
-
-    @cherrypy.expose
-    def get_load_state(self):
-        """
-        Returns the CPU load of the machine
-        """
-        data = {}
-        data["status"] = "KO"
-        try:
-            mpstat_result = subprocess.check_output(['mpstat'])
-            CPU_information = str(mpstat_result).split()
-            CPU_information = CPU_information[-1].replace(",", ".")
-            data["CPU"] = float(CPU_information)
-            data["status"] = "OK"
-        except Exception as ex:
-            self.write_log("get_load_state", str(ex))
         return json.dumps(data)
 
         # ---------------------------------------------------------------------------
@@ -397,15 +456,20 @@ class DemoRunner(object):
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
 
-        if isinstance(ddl_run, list): #Checks if the run parameter in the DDL have more than one line
-            rd.run_algorithm_karl()
-        else:
-            cmd = self.variable_substitution(ddl_run,demo_id, params)
-            rd.run_algorithm(cmd, self.lock_run)
+        # Note: use isinstance(s, str) if moving to Python 3
+        if not isinstance(ddl_run, basestring):
+            return -1 # Bad run syntax: not a string
 
-        res_data['params'] = rd.get_algo_params()
+        # Substitute variables and run algorithm
+        cmd = self.variable_substitution(ddl_run,demo_id, params)
+        rd.run_algorithm(cmd, self.lock_run)
+
+        res_data['params'] = rd.get_algo_params() # Should not be used
+        # Info interface --> algo
         res_data['algo_info'] = rd.get_algo_info()
         print "----- run_algo end -----"
+        return 0
+        
 
     def variable_substitution(self, ddl_run, demo_id, params):
         """
@@ -475,11 +539,26 @@ class DemoRunner(object):
 
             print "Demoid: ", demo_id
 
-            timeout = float(timeout)
-            timeout = min(timeout, 10*60) # A maximum of 10 min, regardless the config
-            self.run_algo(demo_id, work_dir, path_with_the_binaries, ddl_run, params, res_data, timeout)
+            timeout = float(timeout)            
+            # A maximum of 10 min, regardless the config
+            timeout = min(timeout, 10*60)
+            # At least five seconds
+            timeout = max(timeout, 5)
 
-            # re-read the config in case it changed during the execution
+            # Run algorithm and control exceptions
+            code = self.run_algo(demo_id, work_dir, \
+                                 path_with_the_binaries, \
+                                 ddl_run, params, res_data, timeout)
+
+            if code == -1: # Bad run syntax
+                self.write_log("exec_and_wait", "Bad run syntax, demo_id={}".format(demo_id))
+                res_data['status'] = 'KO'
+                err = "Bad run syntax (not a string): {}".format(str(ddl_run))
+                res_data['error'] = err
+                res_data['algo_info']['status'] = err
+                print res_data
+                return json.dumps(res_data)
+
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
@@ -529,7 +608,7 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             return json.dumps(res_data)
 
 
-        # TODO:this code will be moved to the CORE
+        # [Miguel] this code needs to be moved to the Core
         # get back parameters
         try:
             with open(os.path.join(work_dir, "params.json")) as resfile:
@@ -541,6 +620,9 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             res_data['error'] = 'Read params.json'
             return json.dumps(res_data)
 
+        # [Miguel] Check what this is.
+        # [Miguel] Is 'info_from_file' really used?
+        #
         # check if new config fields
         if ddl_config != None:
             ddl_config = json.loads(ddl_config)
