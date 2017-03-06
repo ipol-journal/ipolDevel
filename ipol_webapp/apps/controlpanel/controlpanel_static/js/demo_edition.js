@@ -18,7 +18,6 @@ var $demoform = $($form_demo_id);
 /************ js error msgs ************/
 $ws_down = "Please check if the webservices are running, in the status page.";
 
-
 /************ Ace JSON Editor ************/
 // Editor configuration
 $editor = ace.edit("editor");
@@ -36,7 +35,7 @@ $editor.on("input", function() {
     checkChanges();
 });
 
-// check if there are unsaved changes
+// check for unsaved changes in the DDL, and show a message in that case
 function checkChanges(){
     // compare the last saved DDL with the current DDL in the editor
     if (last_DDL_saved.localeCompare($editor.getValue()) != 0){
@@ -171,22 +170,18 @@ function submitDDLAJAX(submit_URL){
         success: function(data) {
             console.log("AJAX CALL status: "+data.status);
             if (data.status == "OK") {
-                //alert('DDL succesfully saved');
                 setDDLMessage('OK', 'DDL succesfully saved.');
                 last_DDL_saved = DDL_value;
             }else {
                 console.log("status KO");
                 setDDLMessage('KO', 'Could not save the DDL. Status: \'' + data.status + '\'.');
-                //alert('Could not save the DDL.\nStatus: \'' + data.status + '\'');
             }
         },
         error: function () {
             console.log("ajax error");
             setDDLMessage('KO', 'Error saving the DDL: ' + $ws_down);
-            //alert('Error saving the DDL: ' + $ws_down);
         }
     });
-
 }
 
 
@@ -268,31 +263,20 @@ function send_get_demo_request(wsurl,editor_demo_id){
 
                     //edit/show demo
                     if ( data.editorsdemoid ){
-                        console.log(" Get form demo data");
                         //Load ddl data in form
-                        //console.log(data.last_demodescription);
                         //clear error data
                         $($modal_demo_msg_div).html('');
-                        console.log(" Get form 2");
                         $($modal_demo_header).html('<h3>Edit Demo data</h3>');
                         //  $($form_ddl_field_demo_id).get(0).value = demo_id;
                         //  $($form_ddl_field_ddl_id).get(0).value = data.last_demodescription.id;
                         //  $($form_ddl_field_ddljson).get(0).value = $.parseJSON(data.last_demodescription.json);
-                        console.log(" Get form 3");
                         $($form_demo_field_demo_id).get(0).value = data.editorsdemoid;
-                        console.log(" Get form 3.1");
-
                         $($form_demo_field_editorsdemo_id).get(0).value = data.editorsdemoid;
-                        console.log(" Get form 3.2");
-
                         $($form_demo_field_title_id).get(0).value = data.title;
-                        console.log(" Get form 4");
                         $($form_demo_field_abstract_id).get(0).value = data.abstract;
                         $($form_demo_field_zipURL_id).get(0).value = data.zipURL;
                         $($form_demo_field_state).get(0).value = data.state;
-                        console.log(" Get form 5");
                         $($modal_demo_id).modal('show');
-                        console.log(" Get form 6");
                         $demoform.show();
 
                     //create demo
@@ -361,15 +345,11 @@ function submitDemoformAJAX(){
                 window.location.reload(true);
             }
             else {
-
                 $demoform.show();
-
                 console.log(" Error, ws returned KO");
-
                 $error_msg = find_ws_errors(data);
                 var errorhtml="<p class=\"ststsnok\">Demo not saved, ws returned  "+$error_msg+"</p>";
                 $($modal_demo_msg_div).html(errorhtml).show();
-
             }
         },
         error: function () {
