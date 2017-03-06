@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 from Tools.misc import prod
 from Tools.image import image
 from Tools.sendarchive import SendArchive
+from Tools.evaluator import *
 
 import shutil
 import json
@@ -447,7 +448,7 @@ workload of '{}'".format(dr_name)
         Convert and resize an image object
         '''
         # check max size
-        max_pixels = eval(str(input_info['max_pixels']))
+        max_pixels = evaluate(str(input_info['max_pixels']))
         return self.needs_convert(im, input_info) or \
                prod(im.size) > max_pixels
 
@@ -461,7 +462,7 @@ workload of '{}'".format(dr_name)
             im.convert(input_info['dtype'])
             msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
-        max_pixels = eval(str(input_info['max_pixels']))
+        max_pixels = evaluate(str(input_info['max_pixels']))
         resize = prod(im.size) > max_pixels
 
         if resize:
@@ -555,9 +556,7 @@ workload of '{}'".format(dr_name)
             y1 = int(round(crop_info['y']+crop_info['h']))
             #save parameters
             try:
-                ## [Miguel][ToDo]
-                ## TODO: get rid of ALL eval/exec!!!
-                max_pixels = eval(str(inputs_desc[0]['max_pixels']))
+                max_pixels = evaluate(str(inputs_desc[0]['max_pixels']))
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
                 img.crop((x0, y0, x1, y1))
@@ -752,7 +751,7 @@ workload of '{}'".format(dr_name)
                     break
                 size += len(data)
                 if 'max_weight' in inputs_desc[i] and\
-                  size > eval(str(inputs_desc[i]['max_weight'])):
+                  size > evaluate(str(inputs_desc[i]['max_weight'])):
                     # file too heavy
                     # Bad Request
                     raise cherrypy.HTTPError(400, \
@@ -1349,6 +1348,12 @@ format(hostname, hostbyname, key, demo_id)
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
+            except IPOLEvaluateError as ex:
+                res_data = {}
+                res_data['error'] = 'invalid expresion "{}" found in the DDL'.format(ex)
+                res_data['status'] = 'KO'
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                return json.dumps(res_data)
             except Exception as ex:
                 print "FAILURE in copy_blobs/process_inputs. \
 demo_id = ", demo_id
