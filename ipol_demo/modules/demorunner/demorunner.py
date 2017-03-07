@@ -521,18 +521,6 @@ class DemoRunner(object):
         res_data['status'] = 'KO'
         res_data['algo_info'] = {}
 
-        # TODO:this code will be moved to the CORE
-        # save parameters as a params.json file
-        try:
-            with open(os.path.join(work_dir, "params.json"), "w") as resfile:
-                json.dump(params, resfile)
-        except Exception as ex:
-            self.logger.exception("Save params.json, demo_id={}".format(demo_id))
-            print "Failed to save params.json file"
-            res_data['status'] = 'KO'
-            res_data['error'] = 'Save params.json'
-            return json.dumps(res_data)
-
         # run the algorithm
         try:
             run_time = time.time()
@@ -607,22 +595,6 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             print res_data
             return json.dumps(res_data)
 
-
-        # [Miguel] this code needs to be moved to the Core
-        # get back parameters
-        try:
-            with open(os.path.join(work_dir, "params.json")) as resfile:
-                res_data['params'] = json.load(resfile)
-        except Exception as ex:
-            print "Failed to read params.json file"
-            self.logger.exception("exec_and_wait can't read params.json, demo_id={}".format(demo_id))
-            res_data['status'] = 'KO'
-            res_data['error'] = 'Read params.json'
-            return json.dumps(res_data)
-
-        # [Miguel] Check what this is.
-        # [Miguel] Is 'info_from_file' really used?
-        #
         # check if new config fields
         if ddl_config != None:
             ddl_config = json.loads(ddl_config)

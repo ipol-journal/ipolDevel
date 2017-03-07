@@ -1,7 +1,9 @@
 import ast
 
+
 class IPOLEvaluateError(Exception):
     pass
+
 
 def evaluate(expression):
     """
@@ -14,6 +16,7 @@ def evaluate(expression):
         return _evaluate(node)
     except Exception:
         raise IPOLEvaluateError(expression)
+
 
 def _evaluate(node):
     """
