@@ -7,7 +7,6 @@ IPOL Core module
 import base64
 import tempfile
 import sys
-import os
 import re
 # To send emails
 import smtplib
@@ -16,7 +15,6 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
 import xml.etree.ElementTree as ET
-
 
 from Tools.misc import prod
 from Tools.image import image
@@ -36,7 +34,7 @@ import urllib
 
 import hashlib
 from   datetime import datetime
-from   random   import random
+from   random import random
 import glob
 import time
 
@@ -52,7 +50,7 @@ import requests
 import cherrypy
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 class Core(object):
     """
     Core index used as the root app
@@ -61,9 +59,9 @@ class Core(object):
 
     @staticmethod
     def get_instance():
-        '''
+        """
         Singleton pattern
-        '''
+        """
         if Core.instance is None:
             Core.instance = Core()
         return Core.instance
@@ -77,9 +75,9 @@ class Core(object):
         logger = logging.getLogger(logs_dir_abs)
         logger.setLevel(logging.ERROR)
         handler = logging.FileHandler(os.path.join(logs_dir_abs, self.logs_name))
-        formatter = logging.Formatter(\
-          '%(asctime)s ERROR in %(message)s',\
-          datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter(
+            '%(asctime)s ERROR in %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
@@ -92,19 +90,18 @@ class Core(object):
         self.logger.error(error_string)
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         try:
             self.host_name = cherrypy.config['server.socket_host']
-
 
             # Read configuration file
             self.serverEnvironment = cherrypy.config.get("server.environment").lower()
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
             self.demorunners = {}
-            
+
             self.logs_dir_rel = cherrypy.config.get("logs.dir")
             self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
@@ -115,28 +112,28 @@ class Core(object):
 
             self.shared_folder_rel = cherrypy.config.get("shared_folder")
             self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
-            self.demoExtrasMainDir = os.path.join(\
-              self.shared_folder_abs, \
-              cherrypy.config.get("demoExtrasDir"))
-            self.dl_extras_dir = os.path.join(self.shared_folder_abs, \
-              cherrypy.config.get("dl_extras_dir"))
+            self.demoExtrasMainDir = os.path.join(
+                self.shared_folder_abs,
+                cherrypy.config.get("demoExtrasDir"))
+            self.dl_extras_dir = os.path.join(self.shared_folder_abs,
+                                              cherrypy.config.get("dl_extras_dir"))
             self.share_run_dir_rel = cherrypy.config.get("running.dir")
-            self.share_run_dir_abs = os.path.join(\
-              self.shared_folder_abs, self.share_run_dir_rel)
+            self.share_run_dir_abs = os.path.join(
+                self.shared_folder_abs, self.share_run_dir_rel)
 
             self.load_demorunners()
 
             # Security: authorized IPs
             self.authorized_patterns = self.read_authorized_patterns()
 
-            #Create shared folder if not exist
+            # Create shared folder if not exist
             self.mkdir_p(self.shared_folder_abs)
 
-            #create running dir and demoextras dirs
+            # create running dir and demoextras dirs
             self.mkdir_p(self.share_run_dir_abs)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
-            #return to core
+            # return to core
 
             # Configure
             self.png_compresslevel = 1
@@ -147,13 +144,14 @@ class Core(object):
             self.logger.exception("__init__", str(ex))
 
     def authenticate(func):
-        '''
+        """
         Wrapper to authenticate before using an exposed function
-        '''
-        def authenticate_and_call(*args,**kwargs):
-            '''
+        """
+
+        def authenticate_and_call(*args, **kwargs):
+            """
             Invokes the wrapped function if authenticated
-            '''
+            """
             if not is_authorized_ip(cherrypy.request.remote.ip) or \
                     ("X-Real-IP" in cherrypy.request.headers and
                          not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
@@ -162,27 +160,27 @@ class Core(object):
             return func(*args,**kwargs)
 
         def is_authorized_ip(ip):
-            '''
+            """
             Validates the given IP
-            '''
+            """
             core = Core.get_instance()
             patterns = []
             # Creates the patterns  with regular expresions
             for authorized_pattern in core.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+                patterns.append(re.compile(authorized_pattern.replace(".", "\.").
+                                           replace("*", "[0-9]*")))
             # Compare the IP with the patterns
             for pattern in patterns:
                 if pattern.match(ip) is not None:
                     return True
             return False
 
-
         return authenticate_and_call
 
     def read_authorized_patterns(self):
-        '''
+        """
         Read from the IPs conf file
-        '''
+        """
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.common_config_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
@@ -227,9 +225,9 @@ class Core(object):
 
     @cherrypy.expose
     def refresh_demorunners(self):
-        '''
+        """
         refresh demorunners information and alert the dispatcher module
-        '''
+        """
         data = {}
         data["status"] = "OK"
 
@@ -249,11 +247,10 @@ class Core(object):
 
     @cherrypy.expose
     def get_demorunners(self):
-        '''
+        """
         Get the information of the demorunners
-        '''
-        data = {}
-        data["status"] = "OK"
+        """
+        data = {"status": "OK"}
         try:
             data["demorunners"] = str(self.demorunners)
         except Exception as ex:
@@ -271,15 +268,15 @@ class Core(object):
         dr_wl = {}
         for dr_name in self.demorunners:
             try:
-                resp = self.post(self.demorunners[dr_name]['server'],\
-                  'demorunner', 'get_workload')
+                resp = self.post(self.demorunners[dr_name]['server'],
+                                 'demorunner', 'get_workload')
                 response = resp.json()
                 if response['status'] == 'OK':
                     dr_wl[dr_name] = response['workload']
                 else:
-                    self.error_log("demorunners_workload", \
-                      "get_workload returned KO for DR='{}'".\
-                      format(dr_name))
+                    self.error_log("demorunners_workload",
+                                   "get_workload returned KO for DR='{}'".
+                                   format(dr_name))
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
                 s = "Error when trying to obtain the \
@@ -334,26 +331,25 @@ workload of '{}'".format(dr_name)
             return string
 
         demo_list = response['demo_list']
-        
+
         # Get all publication states
         demos_by_state = dict()
         for demo in demo_list:
             publication_state = demo["state"]
             if publication_state not in demos_by_state:
                 demos_by_state[publication_state] = []
-            
-            demos_by_state[publication_state].append( {\
-              'editorsdemoid': demo['editorsdemoid'], \
-              'editorsdemoid': demo['editorsdemoid'], \
-              'title': demo['title'] \
+
+            demos_by_state[publication_state].append({
+                'editorsdemoid': demo['editorsdemoid'],
+                'title': demo['title']
             })
 
         demos_string = ""
-        
+
         # Show demos according to their state
         for publication_state in demos_by_state.keys():
             demos_string += "<h2>{}</h2>".format(publication_state)
-            
+
             for demo_data in demos_by_state[publication_state]:
                 demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                     demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'].encode('utf-8'))
@@ -377,11 +373,10 @@ workload of '{}'".format(dr_name)
 
     @cherrypy.expose
     def demo(self):
-        '''
+        """
         Return a HTML page with the list of demos.
-        '''
+        """
         return self.index()
-
 
     @staticmethod
     @cherrypy.expose
@@ -420,43 +415,41 @@ workload of '{}'".format(dr_name)
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
 
-
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # INPUT HANDLING TOOLS (OLD with a few modifications)
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def save_image(self, im, fullpath):
-        '''
+        """
         Save image object given full path
-        '''
+        """
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
-
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     @staticmethod
     def needs_convert(im, input_info):
-        '''
+        """
         checks if input image needs convertion
-        '''
-        mode_kw = {'1x8i' : 'L',\
-                   '3x8i' : 'RGB'}
+        """
+        mode_kw = {'1x8i': 'L',
+                   '3x8i': 'RGB'}
         # check max size
-        return  im.im.mode != mode_kw[input_info['dtype']]
+        return im.im.mode != mode_kw[input_info['dtype']]
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def needs_convert_or_resize(self, im, input_info):
-        '''
+        """
         Convert and resize an image object
-        '''
+        """
         # check max size
         max_pixels = evaluate(str(input_info['max_pixels']))
         return self.needs_convert(im, input_info) or \
                prod(im.size) > max_pixels
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def convert_and_resize(self, im, input_info):
-        '''
+        """
         Convert and resize an image object
-        '''
+        """
         msg = ""
         if self.needs_convert(im, input_info):
             im.convert(input_info['dtype'])
@@ -475,10 +468,10 @@ workload of '{}'".format(dr_name)
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
-        '''
+        """
         Converts the input TIFF to PNG.
         This is used by the web interface for visualization purposes
-        '''
+        """
         data = {}
         data["status"] = "KO"
         try:
@@ -491,8 +484,8 @@ workload of '{}'".format(dr_name)
 
             # Check if the image can be converted
             if not ("uint" in tiffImage.dtype.name or "int" in tiffImage.dtype.name):
-                path=os.path.join(self.project_folder,"ipol_demo","modules","core","static",
-                                  "demo","clientApp","images","non_viewable_data.png")
+                path = os.path.join(self.project_folder, "ipol_demo", "modules", "core", "static",
+                                    "demo", "clientApp", "images", "non_viewable_data.png")
                 with open(path, "rb") as image:
                     data["img"] = base64.b64encode(image.read())
                 data["status"] = "OK"
@@ -500,13 +493,13 @@ workload of '{}'".format(dr_name)
             # Get number of rows, columns, and channels
             Nrow, Ncolumn, _ = tiffImage.shape
 
-            pixelMatrix = tiffImage[:, :, 0:3].reshape(\
-              (Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
+            pixelMatrix = tiffImage[:, :, 0:3].reshape(
+                (Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
             tmp_file = tempfile.SpooledTemporaryFile()
 
             bitdepth = int(tiffImage.dtype.name.split("uint")[1])
-            writer = png.Writer(Ncolumn, Nrow, \
-              bitdepth=bitdepth, greyscale=False)
+            writer = png.Writer(Ncolumn, Nrow,
+                                bitdepth=bitdepth, greyscale=False)
 
             writer.write(tmp_file, pixelMatrix)
             tmp_file.seek(0)
@@ -518,7 +511,6 @@ workload of '{}'".format(dr_name)
             print "Failed to convert image from TIFF to PNG", ex
             self.logger.exception("Failed to convert image from TIFF to PNG")
         return json.dumps(data)
-
 
     ###--------------------------------------------------------------------------
     ##          END BLOCK OF INPUT TOOLS
@@ -542,8 +534,8 @@ workload of '{}'".format(dr_name)
         if idx != 0:
             return False, None
 
-        filename = os.path.join(work_dir, \
-          'input_{0}.crop.png'.format(idx))
+        filename = os.path.join(work_dir,
+                                'input_{0}.crop.png'.format(idx))
 
         print "crop_info = {0}".format(crop_info)
         crop_info = json.loads(crop_info)
@@ -552,9 +544,9 @@ workload of '{}'".format(dr_name)
             # define x0,y0,x1,y1
             x0 = int(round(crop_info['x']))
             y0 = int(round(crop_info['y']))
-            x1 = int(round(crop_info['x']+crop_info['w']))
-            y1 = int(round(crop_info['y']+crop_info['h']))
-            #save parameters
+            x1 = int(round(crop_info['x'] + crop_info['w']))
+            y1 = int(round(crop_info['y'] + crop_info['h']))
+            # save parameters
             try:
                 max_pixels = evaluate(str(inputs_desc[0]['max_pixels']))
                 # Karl: here different from base_app approach
@@ -573,13 +565,12 @@ workload of '{}'".format(dr_name)
 
         return True, filename
 
-
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         """
         pre-process the input data
         """
         print "#####  Entering process_inputs...  #####"
-        
+
         msg = ""
         max_width = 0
         max_height = 0
@@ -590,17 +581,17 @@ workload of '{}'".format(dr_name)
             # check the input type
             input_desc = inputs_desc[i]
             # find files starting with input_%
-            input_files = glob.glob(os.path.join(work_dir, \
-              'input_%i' % i+'.*'))
-            
+            input_files = glob.glob(os.path.join(work_dir,
+                                                 'input_%i' % i + '.*'))
+
             if len(input_files) != 1:
-                if  ('required' in inputs_desc[i].keys()) and inputs_desc[i]['required']:
+                if ('required' in inputs_desc[i].keys()) and inputs_desc[i]['required']:
                     # problem here
                     raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
                 else:
                     # optional input missing, end of inputs
                     break
-            
+
             print "Processing input {0}".format(i)
 
             if input_desc['type'] == 'image':
@@ -610,25 +601,25 @@ workload of '{}'".format(dr_name)
                     im = image(input_files[0])
                 except IOError:
                     print "failed to read image " + input_files[0]
-                    raise cherrypy.HTTPError(400, # Bad Request
-                                              "Bad input file")
+                    raise cherrypy.HTTPError(400,  # Bad Request
+                                             "Bad input file")
                 ##-----------------------------
                 ## Save the original file as PNG
                 ##
                 ## Do a check before security attempting copy.
                 ## If the check fails, do a save instead
-                if  im.im.format != "PNG" or \
-                    im.size[0] > 20000 or im.size[1] > 20000 or \
-                    len(im.im.getbands()) > 4:
+                if im.im.format != "PNG" or \
+                                im.size[0] > 20000 or im.size[1] > 20000 or \
+                                len(im.im.getbands()) > 4:
                     # Save as PNG (slow)
-                    self.save_image(im, os.path.join(work_dir, \
-                      'input_%i.orig.png' % i))
+                    self.save_image(im, os.path.join(work_dir,
+                                                     'input_%i.orig.png' % i))
                     # delete the original
                     os.remove(input_files[0])
                 else:
                     # Move file (fast)
-                    shutil.move(input_files[0], \
-                      os.path.join(work_dir, 'input_%i.orig.png' % i))
+                    shutil.move(input_files[0],
+                                os.path.join(work_dir, 'input_%i.orig.png' % i))
 
                 ##-----------------------------
                 ## convert to the expected input format. TODO: do it if needed ...
@@ -647,31 +638,31 @@ workload of '{}'".format(dr_name)
 
                 if self.needs_convert_or_resize(im_converted, input_desc):
                     print "need convertion or resize, input description: ", input_desc
-                    output_msg = self.convert_and_resize(im_converted,\
-                      input_desc)
-                    input_msg += " Input {0}:".format(i)+output_msg+" "
+                    output_msg = self.convert_and_resize(im_converted,
+                                                         input_desc)
+                    input_msg += " Input {0}:".format(i) + output_msg + " "
                     # save a web viewable copy
-                    im_converted.save(os.path.join(work_dir,\
-                      'input_%i.png' % i), \
-                      compresslevel=self.png_compresslevel)
+                    im_converted.save(os.path.join(work_dir,
+                                                   'input_%i.png' % i),
+                                      compresslevel=self.png_compresslevel)
                 else:
                     # just create a symbolic link
-                    os.symlink(im_converted_filename,\
-                      os.path.join(work_dir, 'input_%i.png' % i))
+                    os.symlink(im_converted_filename,
+                               os.path.join(work_dir, 'input_%i.png' % i))
 
                 if im.size != im_converted.size:
-                    input_msg += " {0} --> {1} ".\
-                      format(im.size, im_converted.size)
+                    input_msg += " {0} --> {1} ". \
+                        format(im.size, im_converted.size)
                     print "The image has been resized for a reduced computation time ",
-                    print  "({0} --> {1})".\
-                      format(im.size, im_converted.size)
+                    print  "({0} --> {1})". \
+                        format(im.size, im_converted.size)
                 # update maximal dimensions information
                 max_width = max(max_width, im_converted.size[0])
                 max_height = max(max_height, im_converted.size[1])
                 if input_msg != "":
                     # next line in html
                     msg += input_msg + "<br/>\n"
-                # end if type is image
+                    # end if type is image
             else:
                 if inputs_desc[i]['type'] == "data":
                     if 'ext' in inputs_desc[i]:
@@ -680,14 +671,13 @@ workload of '{}'".format(dr_name)
                         error_message = "The DDL does not have extension field"
                         print error_message
                         self.logger.exception(error_message)
-                        raise 
-                    
+                        raise
+
                     blob_path_without_extension = os.path.splitext(input_files[0])
-                    
+
                     blob_with_ddl_extension = blob_path_without_extension[0] + ext
                     os.rename(input_files[0], blob_with_ddl_extension)
                     print "The blob is now {}".format(blob_with_ddl_extension)
-                    
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -701,15 +691,14 @@ workload of '{}'".format(dr_name)
         print "inputs_desc = ", inputs_desc
         nb_inputs = len(inputs_desc)
 
-
         for i in range(nb_inputs):
             file_up = blobs.pop('file_%i' % i, None)
 
             if file_up is None or file_up.filename == '':
-                if  not('required' in inputs_desc[i].keys()) or \
-                    inputs_desc[i]['required']:
+                if not ('required' in inputs_desc[i].keys()) or \
+                        inputs_desc[i]['required']:
                     ## missing file
-                    raise cherrypy.HTTPError(400, # Bad Request
+                    raise cherrypy.HTTPError(400,  # Bad Request
                                              "Missing input file number {0}".format(i))
                 else:
                     # skip this input
@@ -717,50 +706,45 @@ workload of '{}'".format(dr_name)
 
             content_type = file_up.content_type
             type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
-            
+
             if 'ext' in inputs_desc[i]:
                 ext = inputs_desc[i]['ext']
             else:
                 error_message = "The DDL does not have extension field"
                 print error_message
-                self.logger.exception(error_message)
-                raise 
-            
+                raise
+
             if 'type' in inputs_desc[i]:
                 if inputs_desc[i]['type'] == type_of_uploaded_blob or inputs_desc[i]['type'] == "data":
                     # We keep the file according it was uploaded
                     # process_inputs will make the possible modifications
-                    file_save = file(os.path.join(\
-                         work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')      
+                    file_save = file(os.path.join(
+                        work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
                 else:
                     error_message = "The DDL type does not match with the uploaded file"
                     print error_message
-                    self.logger.exception(error_message)
-                    raise 
+                    raise
             else:
-                error_message="The DDL does not have type field"
+                error_message = "The DDL does not have type field"
                 print error_message
-                self.logger.exception(error_message)
-                raise 
+                raise
 
-            
             size = 0
             while True:
                 data = file_up.file.read(128)
                 if not data:
                     break
                 size += len(data)
-                if 'max_weight' in inputs_desc[i] and\
-                  size > evaluate(str(inputs_desc[i]['max_weight'])):
+                if 'max_weight' in inputs_desc[i] and \
+                                size > evaluate(str(inputs_desc[i]['max_weight'])):
                     # file too heavy
                     # Bad Request
-                    raise cherrypy.HTTPError(400, \
-                      "File too large, " + \
-                       "resize or compress more")
+                    raise cherrypy.HTTPError(400,
+                                             "File too large, " +
+                                             "resize or compress more")
 
                 file_save.write(data)
             file_save.close()
-
 
     def copy_blobset_from_physical_location(self, work_dir, blobs_id_list):
         """
@@ -769,50 +753,49 @@ workload of '{}'".format(dr_name)
         returns:
         """
         print "#### input_select_and_crop begin ####"
-        
+
         userdata = {'blob_ids': blobs_id_list}
-        resp = self.post(self.host_name, 'blobs', \
-                   'get_blobs_by_id', userdata)
-        
+        resp = self.post(self.host_name, 'blobs', 'get_blobs_by_id', userdata)
+
         response = resp.json()
         status = response['status']
-        
+
         if status == 'OK':
-        
-            physical_location    = response['physical_location']
-            list_of_blobs        = response['list_of_blobs']
-            #vr_physical_location = response['vr_location']
-            
+
+            physical_location = response['physical_location']
+            list_of_blobs = response['list_of_blobs']
+            # vr_physical_location = response['vr_location']
+
             index = 0
             for blob in list_of_blobs:
-                
-                subdirs      = blob['subdirs'] 
+
+                subdirs = blob['subdirs']
                 hash_of_blob = blob['hash']
-                extension    = blob['extension']
-                
+                extension = blob['extension']
+
                 complete_blob_without_extension = subdirs + hash_of_blob
                 complete_blob = complete_blob_without_extension + extension
                 complete_blob_folder = os.path.join(self.blobs_folder, physical_location)
-                
-                original_blob_path = os.path.join(complete_blob_folder, complete_blob)  
-                
+
+                original_blob_path = os.path.join(complete_blob_folder, complete_blob)
+
                 try:
                     final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
                     shutil.copy(original_blob_path, final_path)
                 except Exception as ex:
                     s = "Copy blobs to physical location, \
-work_dir={}, original_blob_path={}".\
-format(work_dir, original_blob_path)
+work_dir={}, original_blob_path={}". \
+                        format(work_dir, original_blob_path)
                     self.logger.exception(s)
                     print ex
-        
+
                 index = index + 1
 
-        else:       
-            error_message  = "KO copying the blobs from Blobs module" 
+        else:
+            error_message = "KO copying the blobs from Blobs module"
             error_message += " with copy_blobset_from_physical_location"
             self.logger.exception(error_message)
-        
+
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
         copy the blobs in the run path.
@@ -823,19 +806,19 @@ format(work_dir, original_blob_path)
         if input_type == 'upload':
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-            
+
             if 'id_blobs' in blobs:
-                 blobs_id_list = blobs['id_blobs']
-                 self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
+                blobs_id_list = blobs['id_blobs']
+                self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
             else:
-                 error_message="There is not id blobs"
-                 print error_message
-                 self.logger.exception(error_message)
-                 raise
+                error_message = "There is not id blobs"
+                print error_message
+                self.logger.exception(error_message)
+                raise
 
     ##---------------
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
-    #--------------
+    # --------------
 
 
     @staticmethod
@@ -886,11 +869,11 @@ format(work_dir, original_blob_path)
         try:
             ar.extractall(target)
         except (IOError, AttributeError):
-        # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
-        # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
-        # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
-        # SO WE HAVE TO CLEAN IT BEFORE STARTING OVER WITH ZIP
-        # cleanup/create the target dir
+            # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
+            # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
+            # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
+            # SO WE HAVE TO CLEAN IT BEFORE STARTING OVER WITH ZIP
+            # cleanup/create the target dir
             if os.path.isdir(target):
                 shutil.rmtree(target)
             os.mkdir(target)
@@ -906,7 +889,6 @@ format(work_dir, original_blob_path)
 
         return content
 
-    
     def download_demo_extra(self, source, target, first_download):
         """
         Download a demoextras for a given demo
@@ -916,20 +898,20 @@ format(work_dir, original_blob_path)
         if not first_download:
             try:
                 os.remove(target)
-            except OSError as ex: 
+            except OSError as ex:
                 error_message = "Failure removing the demoextra {}.\
-Error: {} ".format(target,ex)
+Error: {} ".format(target, ex)
                 self.logger.error(error_message)
                 return False
-            
+
         print "Downloading  {} ...".format(source)
         if self.download(source, target) == 1:
             error_message = "Failure downloading the demoextra {}".format(source)
             self.logger.error(error_message)
             return False
-        
+
         return True
-    
+
     def extract_demo_extra(self, demo_id, compressed_file):
         """
         Extract a demo extra...
@@ -938,25 +920,23 @@ Error: {} ".format(target,ex)
         """
         demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
 
-        try:        
+        try:
             if os.path.isdir(demoExtrasFolder):
                 print "Cleaning the original {} ".format(demoExtrasFolder)
-                shutil.rmtree(demoExtrasFolder)                        
-            
+                shutil.rmtree(demoExtrasFolder)
+
             self.mkdir_p(demoExtrasFolder)
             print "Extracting {} ...".format(compressed_file)
             self.extract(compressed_file, demoExtrasFolder)
             success = True
-        
+
         except Exception as ex:
-            error_message="Extraction failed for demo {}. \
+            error_message = "Extraction failed for demo {}. \
 Exception {} ".format(demo_id, ex)
             self.logger.exception(error_message)
             success = False
-        
+
         return success
-
-
 
     def ensure_extras_updated(self, demo_id):
         """
@@ -966,45 +946,45 @@ Exception {} ".format(demo_id, ex)
         print "### Ensuring demo extras... ##"
 
         ddl_extras_folder = os.path.join(self.dl_extras_dir, demo_id)
-        compressed_file = os.path.join(ddl_extras_folder, \
-          self.demoExtrasFilename)
+        compressed_file = os.path.join(ddl_extras_folder,
+                                       self.demoExtrasFilename)
 
         self.mkdir_p(ddl_extras_folder)
-        
-        userdata = {"demo_id":demo_id}
-        
+
+        userdata = {"demo_id": demo_id}
+
         if not os.path.isfile(compressed_file):
-            
-            first_download=True
-            code_message="First download with code "
-            
-            resp = self.post(self.host_name, 'demoinfo', \
-                   'get_compressed_file_url_ws', userdata)
-                    
+
+            first_download = True
+            code_message = "First download with code "
+
+            resp = self.post(self.host_name, 'demoinfo',
+                             'get_compressed_file_url_ws', userdata)
+
         else:
             ## If the file already exists, we must compare the dates
-            first_download=False
-            code_message="Is the file in the core newer? (2 = no, 0 = yes)"
-            
+            first_download = False
+            code_message = "Is the file in the core newer? (2 = no, 0 = yes)"
+
             file_state = os.stat(compressed_file)
             userdata["time_of_file_in_core"] = str(file_state.st_ctime)
             userdata["size_of_file_in_core"] = str(file_state.st_size)
-            
-            resp = self.post(self.host_name, 'demoinfo', \
-               'get_file_updated_state', userdata)
-        
+
+            resp = self.post(self.host_name, 'demoinfo',
+                             'get_file_updated_state', userdata)
+
         response = resp.json()
         status = response['status']
         code = response['code']
 
         if status == "OK":
-            
+
             print code_message, code
             if code == "2":
-                file_from_demoinfo = response['url_compressed_file']            
+                file_from_demoinfo = response['url_compressed_file']
                 self.download_demo_extra(file_from_demoinfo, compressed_file, first_download)
-                
-                if not self.extract_demo_extra(demo_id, compressed_file):            
+
+                if not self.extract_demo_extra(demo_id, compressed_file):
                     raise
         else:
             error_message = "KO downloading a demoextras. \
@@ -1012,9 +992,8 @@ Demoinfo code = {}".format(response['code'])
             self.logger.exception(error_message)
             print error_message
             raise
-        
-        return response
 
+        return response
 
     @staticmethod
     def create_new_execution_key(logger):
@@ -1047,34 +1026,30 @@ Demoinfo code = {}".format(response['code'])
         :param demo_id:   id demo
         :param run_folder: key
         """
-        demo_path = os.path.join(self.shared_folder_abs, \
-                                 self.share_run_dir_abs, \
-                                 demo_id, \
+        demo_path = os.path.join(self.shared_folder_abs,
+                                 self.share_run_dir_abs,
+                                 demo_id,
                                  key)
         self.mkdir_p(demo_path)
         return demo_path
 
-
     def get_demo_metadata(self, demo_id):
-        '''
+        """
         Gets demo meta data given its editor's ID
-        '''
+        """
         userdata = {"demoid": demo_id}
         resp = self.post(self.host_name, 'demoinfo', \
-          'read_demo_metainfo', userdata)
+                         'read_demo_metainfo', userdata)
         return resp.json()
 
-
-
     def get_demo_editor_list(self, demo_id):
-        '''
+        """
         Get the list of editors of the given demo
-        '''
+        """
         # Get the list of editors of the demo
-        # userdata = {"module":"demoinfo", "service":"demo_get_editors_list"}
         userdata = {"demo_id": demo_id}
-        resp = self.post(self.host_name, 'demoinfo', \
-          'demo_get_editors_list', userdata)
+        resp = self.post(self.host_name, 'demoinfo',
+                         'demo_get_editors_list', userdata)
         response = resp.json()
         status = response['status']
 
@@ -1085,20 +1060,20 @@ Demoinfo code = {}".format(response['code'])
         editor_list = response['editor_list']
 
         if len(editor_list) == 0:
-            return () # No editors given
+            return ()  # No editors given
 
         # Get the names and emails of the editors
         emails = []
         for entry in editor_list:
-            emails.append({"name":entry['name'],"email":entry['mail']})
+            emails.append({"name": entry['name'], "email": entry['mail']})
 
         return emails
 
     @staticmethod
     def send_email(subject, text, emails, zip_filename=None):
-        '''
+        """
         Send an email to the given recipients
-        '''
+        """
         if text is None:
             text = ""
 
@@ -1110,18 +1085,17 @@ Demoinfo code = {}".format(response['code'])
                 emails_list.append(emails[section]['email'])
                 continue
             else:
-                i=0
+                i = 0
                 while i < len(emails[section]):
                     emails_list.append(emails[section][i]['email'])
                     i += 1
-
 
         emails_str = ", ".join(emails_list)
 
         msg = MIMEMultipart()
         msg['Subject'] = subject
         msg['From'] = "{} <{}>".format(emails["sender"]["name"], emails["sender"]["email"])
-        msg['To'] = emails_str # Must pass only a comma-separated string here
+        msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
 
         if zip_filename is not None:
@@ -1134,14 +1108,14 @@ Demoinfo code = {}".format(response['code'])
         msg.attach(text_data)
         try:
             s = smtplib.SMTP('localhost')
-             # Must pass only a list here
+            # Must pass only a list here
             s.sendmail(msg['From'], emails_list, msg.as_string())
             s.quit()
         except:
             pass
 
     def send_compilation_error_email(self, demo_id, text):
-        ''' Send email to editor when compilation fails '''
+        """ Send email to editor when compilation fails """
         print "send_compilation_error_email"
         emails = {}
 
@@ -1170,18 +1144,18 @@ Demoinfo code = {}".format(response['code'])
         Read the list of emails from the configuration file
         """
         try:
-            emails_file_path = os.path.join(self.project_folder, \
-              "ipol_demo", "modules", "config_common", "emails.conf")
+            emails_file_path = os.path.join(self.project_folder,
+                                            "ipol_demo", "modules", "config_common", "emails.conf")
             cfg = ConfigParser.ConfigParser()
             if not os.path.isfile(emails_file_path):
-                self.error_log("read_emails_from_config", \
-                  "Can't open {}".format(emails_file_path))
+                self.error_log("read_emails_from_config",
+                               "Can't open {}".format(emails_file_path))
                 return []
 
             emails = {}
             cfg.read([emails_file_path])
             for section in cfg.sections():
-                emails[section] = {"name":cfg.get(section, "name"),"email":cfg.get(section, "email")}
+                emails[section] = {"name": cfg.get(section, "name"), "email": cfg.get(section, "email")}
 
             return emails
         except Exception as e:
@@ -1191,14 +1165,14 @@ Demoinfo code = {}".format(response['code'])
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
     def zipdir(path, ziph):
-        ''' Zip a directory '''
+        """ Zip a directory """
         # ziph is zipfile handle
         for root, _, files in os.walk(path):
             for f in files:
                 ziph.write(os.path.join(root, f))
 
     def send_runtime_error_email(self, demo_id, key):
-        ''' Send email to editor when the execution fails '''
+        """ Send email to editor when the execution fails """
         # emails = self.get_demo_editor_list(demo_id)
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
         # Add Tech and Edit only if this is the production server and
@@ -1207,7 +1181,7 @@ Demoinfo code = {}".format(response['code'])
         config_emails = self.read_emails_from_config()
         emails['editors'] = self.get_demo_editor_list(demo_id)
         if self.serverEnvironment == 'production' and \
-          demo_state == "published":
+                        demo_state == "published":
             emails['tech'] = config_emails['tech']
             emails['edit'] = config_emails['edit']
 
@@ -1221,8 +1195,8 @@ Demoinfo code = {}".format(response['code'])
         hostbyname = socket.gethostbyname(hostname)
         text = "This is the IPOL Core machine ({}, {}).\n\n\
 The execution with key={} of demo #{} has failed.\nPlease find \
-attached the failed experiment data.".\
-format(hostname, hostbyname, key, demo_id)
+attached the failed experiment data.". \
+            format(hostname, hostbyname, key, demo_id)
 
         subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
 
@@ -1234,11 +1208,11 @@ format(hostname, hostbyname, key, demo_id)
 
         self.send_email(subject, text, emails, zip_filename=zip_filename)
 
-    def send_demorunner_unresponsive_email(self, \
-        unresponsive_demorunners):
-        '''
+    def send_demorunner_unresponsive_email(self,
+                                           unresponsive_demorunners):
+        """
         Send email to editor when the demorruner is down
-        '''
+        """
         emails = {}
         config_emails = self.read_emails_from_config()
         if not self.serverEnvironment == 'production':
@@ -1250,11 +1224,11 @@ format(hostname, hostbyname, key, demo_id)
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
 
-        unresponsive_demorunners_list = ",".\
-          join(unresponsive_demorunners)
+        unresponsive_demorunners_list = ",". \
+            join(unresponsive_demorunners)
 
         text = "This is the IPOL Core machine ({}, {}).\n" \
-               "\nThe list of demorunners unresponsive is: {}.".\
+               "\nThe list of demorunners unresponsive is: {}.". \
             format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails)
@@ -1274,10 +1248,9 @@ format(hostname, hostbyname, key, demo_id)
         else:
             response = {}
             response["status"] = "KO"
-            self.error_log("run", \
-              "There is not input_type in run function.")
+            self.error_log("run",
+                           "There is not input_type in run function.")
             return json.dumps(response)
-
 
         if 'params' in kwargs:
             params = kwargs.get('params', None)
@@ -1305,8 +1278,8 @@ format(hostname, hostbyname, key, demo_id)
         ## Start of block to obtain the DDL
         try:
             userdata = {"demo_id": demo_id, "returnjsons": 'True'}
-            resp = self.post(self.host_name, 'demoinfo', \
-              'read_last_demodescription_from_demo', userdata)
+            resp = self.post(self.host_name, 'demoinfo',
+                             'read_last_demodescription_from_demo', userdata)
             response = resp.json()
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(last_demodescription['json'])
@@ -1363,9 +1336,7 @@ demo_id = ", demo_id
                 self.logger.exception("copy_blobs/process_inputs FAILED")
                 return json.dumps(res_data)
 
-
         try:
-
 
             if 'general' not in ddl_json:
                 response = {}
@@ -1377,8 +1348,8 @@ demo_id = ", demo_id
             requirements = ddl_json['general']['requirements'] \
                 if 'requirements' in ddl_json['general'] else None
 
-            dr_name, dr_server = self.get_demorunner(\
-              self.demorunners_workload(), requirements)
+            dr_name, dr_server = self.get_demorunner(
+                self.demorunners_workload(), requirements)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1389,27 +1360,40 @@ demo_id = ", demo_id
             print "ensure_compilation response --> " + status + " in demo = " + demo_id
             if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
-                self.error_log("ensure_compilation()", \
-"ensure_compilation functions returns KO in the demorunner: " + \
-dr_name + " module")
+                self.error_log("ensure_compilation()",
+                               "ensure_compilation functions returns KO in the demorunner: " + \
+                               dr_name + " module")
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, \
-demorunner_response["buildlog"] if 'buildlog' in demorunner_response \
-else "", demorunner_response["message"])
-                
+                text = "DR={}, {} - {}".format(dr_name,
+                                               demorunner_response["buildlog"] if 'buildlog' in demorunner_response \
+                                                   else "", demorunner_response["message"])
+
                 self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
                 response = {}
-                response["error"] = " --- Compilation error. --- {}".\
-                  format(text)
+                response["error"] = " --- Compilation error. --- {}". \
+                    format(text)
                 response["status"] = "KO"
                 return json.dumps(response)
 
             print "Entering ensure_extras_updated()"
             data = self.ensure_extras_updated(demo_id)
             print "Result in ensure_extras_updated : ", data
+
+            # save parameters as a params.json file
+            try:
+                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                with open(os.path.join(work_dir, "params.json"), "w") as resfile:
+                    resfile.write(params)
+            except (OSError, IOError) as ex:
+                self.logger.exception("Save params.json, demo_id={}".format(demo_id))
+                print "Failed to save params.json file", ex
+                response = {}
+                response['status'] = 'KO'
+                response['error'] = 'Save params.json'
+                return json.dumps(response)
 
             print "dr.exec_and_wait()"
 
@@ -1429,7 +1413,6 @@ else "", demorunner_response["message"])
             if 'timeout' in ddl_json['general']:
                 userdata['timeout'] = ddl_json['general']['timeout']
 
-
             resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
 
             demorunner_response = resp.json()
@@ -1441,8 +1424,8 @@ else "", demorunner_response["message"])
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
 
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name, \
-                    demorunner_response["algo_info"]["status"])
+                website_message = "DR={}, {}".format(dr_name,
+                                                     demorunner_response["algo_info"]["status"])
                 response = {}
                 response["error"] = format(website_message)
                 response["status"] = "KO"
@@ -1450,12 +1433,12 @@ else "", demorunner_response["message"])
                 self.send_runtime_error_email(demo_id, key)
                 return json.dumps(response)
 
-            demorunner_response['work_url'] = os.path.join(\
-                   "http://{}/api/core/".format(self.host_name), \
-                                        self.shared_folder_rel, \
-                                        self.share_run_dir_rel, \
-                                        demo_id, \
-                                        key) + '/'
+            demorunner_response['work_url'] = os.path.join(
+                "http://{}/api/core/".format(self.host_name),
+                self.shared_folder_rel,
+                self.share_run_dir_rel,
+                demo_id,
+                key) + '/'
 
             print "resp ", demorunner_response
 
@@ -1466,7 +1449,7 @@ else "", demorunner_response["message"])
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, \
-                  work_dir, ddl_archive, demorunner_response, self.host_name)
+                                            work_dir, ddl_archive, demorunner_response, self.host_name)
 
         except Exception as ex:
             s = "Failure in the run function of the \
@@ -1488,14 +1471,14 @@ demo #{} - {}".format(demo_id, str(ex))
         return json.dumps(demorunner_response)
 
     def read_algo_info(self, work_dir):
-        '''
+        """
         Read the file algo_info.txt to make available in the system
         variables created or modified by the algorithm
-        '''
+        """
         file_name = os.path.join(work_dir, "algo_info.txt")
 
         if not os.path.isfile(file_name):
-            return {} # The algorithm didn't create the file
+            return {}  # The algorithm didn't create the file
 
         dic = {}
         f = open(file_name, "r")
@@ -1504,7 +1487,7 @@ demo #{} - {}".format(demo_id, str(ex))
         for line in lines:
             # Read with format A = B, where B can contain the '=' sign
             if len(line.split("=", 1)) < 2 or \
-                   line.split("=", 1)[0].strip() == "":
+                            line.split("=", 1)[0].strip() == "":
                 print "incorrect format in algo_info.txt, in line {}".format(line)
                 self.error_log("run", "incorrect format in algo_info.txt, at line {}".format(line))
                 continue
@@ -1517,20 +1500,19 @@ demo #{} - {}".format(demo_id, str(ex))
         f.close()
         return dic
 
-
     def get_demorunner(self, demorunners_workload, requirements=None):
-        '''
+        """
         Return an active demorunner for the requirements
-        '''
-        demorunner_data = {\
-          "demorunners_workload": str(demorunners_workload),\
-          "requirements":requirements}
+        """
+        demorunner_data = { \
+            "demorunners_workload": str(demorunners_workload), \
+            "requirements": requirements}
         unresponsive_demorunners = set()
         # Try twice the length of the DR list before raising an exception
-        for i in range(len(self.demorunners)*2):
+        for i in range(len(self.demorunners) * 2):
             # Get a demorunner for the requirements
             dispatcher_response = self.post(self.host_name, \
-              'dispatcher', 'get_demorunner', demorunner_data)
+                                            'dispatcher', 'get_demorunner', demorunner_data)
             if not dispatcher_response.ok:
                 raise Exception("Dispatcher unresponsive")
 
@@ -1544,27 +1526,24 @@ demo #{} - {}".format(demo_id, str(ex))
             # Check if the DR is up. Otherwise add it to the
             # list of unresponsive DRs
             demorunner_response = self.post(dr_server, \
-              'demorunner', 'ping')
+                                            'demorunner', 'ping')
             if demorunner_response.ok:
                 if len(unresponsive_demorunners) > 0:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
                 return dr_name, dr_server
             else:
-                self.error_log("get_demorunner", \
-                  "Module {} unresponsive".format(dr_name))
+                self.error_log("get_demorunner",
+                               "Module {} unresponsive".format(dr_name))
                 print "Module {} unresponsive".format(dr_name)
                 unresponsive_demorunners.add(dr_name)
 
             # At half of the tries wait 5 secs and try again
-            if i == len(self.demorunners)-1:
+            if i == len(self.demorunners) - 1:
                 time.sleep(5)
 
         # If there is no demorrunner active send an email with all the unresponsive DRs
         self.send_demorunner_unresponsive_email(unresponsive_demorunners)
         raise Exception("No DR available after many tries")
-
-
-
 
     def post(self, host, module, service, data=None):
         """
@@ -1579,5 +1558,5 @@ demo #{} - {}".format(demo_id, str(ex))
         except Exception as ex:
             print "Failure in the post function of the CORE in the call \
               to {} module - {}".format(module, str(ex))
-            self.logger.exception(\
-              "Failure in the post function of the CORE")
+            self.logger.exception(
+                "Failure in the post function of the CORE")
