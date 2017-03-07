@@ -35,9 +35,28 @@ h4{
     margin: 2px;
     min-width: 70px;
 }
+
+/* demo modal */
+.form-actions{
+    margin-top: 10px;
+}
+.form-control{
+    min-width: 100%;
+    max-width: 100%;
+}
+.btn{
+    min-width: 75px;
+}
+.btn-default{
+    border: 1px solid lightgray !important;
+    border-radius: 5px !important;
+}
+
+/* DDL editor */
 #editor {
     position: relative;
     min-width: 100%;
+    max-width: 100%;
     min-height: 500px;
     font-size: 1em;
     border: 1px solid lightgray;
@@ -60,26 +79,11 @@ h4{
     height: 40px;
     line-height: 35px;
 }
-/* style for demo modal */
-.form-actions{
-    margin-top: 10px;
-}
-.form-control{
-    min-width: 100%;
-    max-width: 100%;
-}
-.btn{
-    min-width: 75px;
-}
-.btn-default{
-    border: 1px solid lightgray !important;
-    border-radius: 5px !important;
-}
 #save-DDL-btn{
     width: 90px;
 }
 .btn-disabled{
-    border-color: gray;
+    border-color: lightgray;
     background-color: lightgray;
     color: gray;
     pointer-events: none;
@@ -93,4 +97,8 @@ h4{
 }
 .hidden{
     display: none;
+}
+.info{
+    color: gray;
+    text-align: right;
 }

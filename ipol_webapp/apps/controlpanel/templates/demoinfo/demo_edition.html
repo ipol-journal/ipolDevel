@@ -12,6 +12,9 @@
     <!-- include external styles from static content -->
     <link rel="stylesheet" href="{% static 'css/manage_archives_for_demo.css' %}"/>
     <link rel="stylesheet" href="{% static 'css/demo_edition.css' %}"/>
+
+    <!-- include JQuery stylesheet to resize the editor -->
+    <link rel="stylesheet" href="{% static 'css/jquery-ui.css' %}"/>
 {% endblock %}
 
 
@@ -30,28 +33,26 @@
             {% if data.status == 'OK' %}
                 <div class="experiment_file">
 
-                    <!--<form action="" id="DDLform" method="post" >-->
-                        <h4>DDL:</h4>
-                        <div id="editor" name="editor">{{data.ddl}}</div>
+                    <!-- DDL -->
+                    <h4>DDL:</h4>
+                    <p class="info">Press <i>Ctrl+F</i> to search</p>
+                    <div id="editor" name="editor">{{data.ddl}}</div>
 
-                        <!-- input for the DDL to submit -->
-                        <!--<input id="ddlJSON" name="ddlJSON" type="hidden"/>-->
-                        <!-- input for the current Demo ID -->
-                        <input id="demoid" name="demoid" type="hidden" value="{{ data.editorsdemoid }}"/>
+                    <!-- input for the current Demo ID -->
+                    <input id="demoid" name="demoid" type="hidden" value="{{ data.editorsdemoid }}"/>
 
-                        <div id="save-ddl-container">
-                            <div class="column-4">
-                                <!-- button to check and submit the DDL -->
-                                <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
-                            </div>
-                            <div class="column-2">
-                                <!-- message to display when DDL syntax is not OK -->
-                                <ul>
-                                    <li class="hidden" id="DDL_msg"></li>
-                                </ul>
-                            </div>
+                    <div id="save-ddl-container">
+                        <div class="column-4">
+                            <!-- button to check and submit the DDL -->
+                            <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
                         </div>
-                    <!--</form>-->
+                        <div class="column-2">
+                            <!-- element to display messages about the DDL -->
+                            <ul>
+                                <li id="DDL_msg"></li>
+                            </ul>
+                        </div>
+                    </div>
 
                     <hr>
 
@@ -162,10 +163,13 @@
 {% block functionsjs %}
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
 
-<!-- load Ace JSON Editor-->
+    <!-- load Ace JSON Editor-->
     <script src="{% static 'ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 
     <!-- include external script with required functions -->
     <script src="{% static 'js/demo_edition.js' %}"></script>
+
+    <!-- include JQuery scripts to resize the editor -->
+    <script src="{% static 'js/min/jquery-ui.min.js' %}"></script>
 {% endblock %}
 
