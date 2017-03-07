@@ -3,72 +3,27 @@
 {% load i18n %}
 {% load crispy_forms_tags %}
 
-
 {% block title %}
 	{% trans "Manage Demo Extras" %}
 {% endblock %}
 
 {% block cssfiles %}
-
-	<style type="text/css">
-		.ststsok {
-			color:green;
-		}
-		.ststsnok {
-			color:red;
-		}
-		.extra{
-			border: 1px solid gray;
-			margin: 20px;
-			padding: 10px;
-			width: 35%;
-			border-radius: 5px;
-		}
-		.extraFile{
-			border: 1px solid grey;
-			border-radius: 5px;
-			margin: 5px;
-			padding: 5px;
-			color: grey;
-			width: 15%;
-
-		}
-		.container{
-			margin: 20px;
-			padding: 10px;
-		}
-		.griditem{
-			padding: 5px
-		}
-	</style>
-
+    <!-- include external styles from static content -->
+    <link rel="stylesheet" href="{% static 'css/manage_demo_extras_for_demo.css' %}"/>
 {% endblock %}
 
-
-{#{% block topmenu %}#}
-{##}
-{#    <!-- topmenu Section for demoinfo   -->#}
-{#    {% include 'demoinfo/demoinfo_menu.html' %}#}
-{##}
-{#{% endblock %}#}
-
-
 {% block content %}
-
-
 	<div class="container">
-
-		<h2> {% blocktrans %} Manage demo extras for demo {{ demo_id }} {%  endblocktrans %}</h2>
+		<h2> {% blocktrans %} Manage Demo Extras for demo {{ demo_id }} {%  endblocktrans %}</h2>
 
 		{% with data=view.list_demo_extras_for_demo %}
 			{#  Add Demo Extras btn #}
-
 			<div class="container">
 				<form id="frm" action="{% url 'ipol.cp.demoinfo.add_demo_extra_to_demo'  demo_id %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 					<input type="file" id="file"  style="display: none;" name="myfile" onchange="fileName()"/>
 					<input type="submit" id="submit" style="display: none;" value="Upload" />
 				</form>
-				<label class="btn btn-info" for="file"> Select File</label>
+				<label class="btn btn-info" for="file"> Select file</label>
 				<label class="extraFile" id="name" >  File...</label>
 				<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload</label>
 				<p></p>
@@ -82,98 +37,23 @@
 						<a class="btn btn-info" onclick="window.open('{{ data.url_compressed_file }}')" target="_self"> Download</a>
                         <a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
 					</div>
+
 				{% else %}
 					<p class="ststsnok"> {% blocktrans %}No Demo Extras available{%  endblocktrans %}</p>
 				{% endif %}
 			{% endif %}
 		{% endwith %}
-
 	</div>
 
 {% endblock %}
-
 
 <!-- autocomplete js includes  -->
 {% include 'autocomplete_light/static.html' %}
 <!-- end autocomplete js includes  -->
 
-{#TODO js en archivo separado y minimized#}
-
 {% block functionsjs %}
-
 	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
-	<script>
 
-
-		{#  secure AJAX POST to ws ,from django docs  #}
-		function getCookie(name) {
-			var cookieValue = null;
-			if (document.cookie && document.cookie != '') {
-				var cookies = document.cookie.split(';');
-				for (var i = 0; i < cookies.length; i++) {
-					var cookie = jQuery.trim(cookies[i]);
-					// Does this cookie string begin with the name we want?
-					if (cookie.substring(0, name.length + 1) == (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
-			}
-			return cookieValue;
-		}
-		function csrfSafeMethod(method) {
-			// these HTTP methods do not require CSRF protection
-			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-		}
-		$(document).ready(function(){
-			var csrftoken = getCookie('csrftoken');
-			$.ajaxSetup({
-				beforeSend: function(xhr, settings) {
-					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-						xhr.setRequestHeader("X-CSRFToken", csrftoken);
-					}
-				}
-			});
-		});
-
-
-		{#  delete demo extra  #}
-		function send_delete_demo_extra_request(wsurl, demo_id) {
-			var delextra = confirm('delete the demo extra from demo: ' + demo_id);
-			if (delextra == true) {
-				$.ajax({
-					type: 'POST',
-						url: wsurl,
-						dataType: 'json',
-						success: function(data) {
-							window.location.reload(true);
-
-						},
-						error: function(data){
-							alert("Fallo con error: "+data.status)
-						}
-					});
-			}
-		}
-
-		{#  change the name of the submited file  #}
-		window.fileName = function(){
-			var x = document.getElementById("file");
-			if ('files' in x) {
-				txt = x.files[0].name;
-				if (txt.length>24){
-				    txt = txt.substring(0,22);
-				    txt += "..."
-				}
-				document.getElementById("name").innerHTML = txt;
-				document.getElementById("submitButton").style.visibility="visible";
-				document.getElementById("name").style.color="black";
-			}else{
-				document.getElementById("submitButton").style.visibility="hidden";
-			}
-		}
-
-	</script>
-
+    <!-- include external script with required functions -->
+    <script src="{% static 'js/manage_demo_extras_for_demo.js' %}"></script>
 {% endblock %}
-
