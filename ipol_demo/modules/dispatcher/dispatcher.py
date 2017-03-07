@@ -409,6 +409,6 @@ class DemoRunnerInfo(object):
     '''
 
     def __init__(self, server, name, capabilities=None):
-        self.capabilities = [] is capabilities is None else capabilities
+        self.capabilities = [] if capabilities is None else capabilities
         self.server = server
         self.name = name
