@@ -13,13 +13,8 @@
     <link rel="stylesheet" href="{% static 'css/manage_archives_for_demo.css' %}"/>
     <link rel="stylesheet" href="{% static 'css/demo_edition.css' %}"/>
 
-    <style>
-        .info{
-            color: gray;
-            text-align: right;
-        }
-
-    </style>
+    <!-- include JQuery stylesheet to resize the editor -->
+    <link rel="stylesheet" href="{% static 'css/jquery-ui.css' %}"/>
 {% endblock %}
 
 
@@ -54,7 +49,7 @@
                         <div class="column-2">
                             <!-- element to display messages about the DDL -->
                             <ul>
-                                <li class="hidden" id="DDL_msg"></li>
+                                <li id="DDL_msg"></li>
                             </ul>
                         </div>
                     </div>
@@ -173,5 +168,8 @@
 
     <!-- include external script with required functions -->
     <script src="{% static 'js/demo_edition.js' %}"></script>
+
+    <!-- include JQuery scripts to resize the editor -->
+    <script src="{% static 'js/min/jquery-ui.min.js' %}"></script>
 {% endblock %}
 

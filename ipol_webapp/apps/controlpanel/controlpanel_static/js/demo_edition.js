@@ -1,4 +1,4 @@
-/************ global variables ************/
+/************ global variables ******/
 
 /************ modal demo ************/
 $modal_demo_msg_div='#createdemo_modal_errordiv';
@@ -15,20 +15,26 @@ $form_demo_field_zipURL_id="#Demoform #id_zipURL";
 $form_demo_field_state="#Demoform #id_state";
 var $demoform = $($form_demo_id);
 
-/************ js error msgs ************/
+/************ js error msgs *********/
 $ws_down = "Please check if the webservices are running, in the status page.";
 
-/************ Ace JSON Editor ************/
+/************ Ace JSON Editor *******/
 // Editor configuration
 $editor = ace.edit("editor");
 $editor.getSession().setMode("ace/mode/json");
 $editor.getSession().setUseWrapMode(true);
 $editor.getSession().setTabSize(4);
+$editor.setAutoScrollEditorIntoView(true);
 
 // Element to display messages about the DDL
 $DDL_msg = document.getElementById('DDL_msg');
 // Last version of DDL saved
 last_DDL_saved = $editor.getValue();
+
+// disable Save button, at the beginning
+//disableSaveButton(true);
+
+checkChanges();
 
 // when changed the DDL in the editor, check if it is equal to the version saved
 $editor.on("input", function() {
@@ -39,9 +45,11 @@ $editor.on("input", function() {
 function checkChanges(){
     // compare the last saved DDL with the current DDL in the editor
     if (last_DDL_saved.localeCompare($editor.getValue()) != 0){
-        setDDLMessage('', 'There are unsaved changes');
+        disableSaveButton(false);
+        setDDLMessage('', 'There are unsaved changes.');
     }else{
-        $DDL_msg.style.display = 'none';
+        disableSaveButton(true);
+        setDDLMessage('', 'DDL already saved.');
     }
 }
 
@@ -50,11 +58,11 @@ function checkChanges(){
 function submitDDL(submit_URL){
     disableSaveButton(true);
 
-    // >0 if errors found, =0 if JSON is OK
+    // >0 if errors found, ==0 if JSON is OK
     var json_is_valid = $editor.getSession().getAnnotations().length;
     var editor_value = $editor.getValue();
 
-    // check syntax, and also if it is not empty
+    // check syntax and it is not empty
     if (json_is_valid == 0 && editor_value != ''){
         // submit the DDL via AJAX
         setDDLMessage('', 'Saving...');
@@ -79,15 +87,17 @@ function setDDLMessage(msg_type, msg){
 
     // set the class to change color, etc
     $DDL_msg.className = new_class;
-    $DDL_msg.style.display = 'block';
+    $DDL_msg.style.display = 'initial';
     // set the message to the element
     $DDL_msg.innerHTML = msg;
 }
 
-// button to save the DDL
-$save_btn = document.getElementById('save-DDL-btn');
-
+// disables the Save DDL button when it is
+// already saved, or while is being saved
 function disableSaveButton(arg){
+    // button to save the DDL
+    $save_btn = document.getElementById('save-DDL-btn');
+
     if (arg == true){
         $save_btn.className += " btn-disabled";
     }else{
@@ -144,6 +154,13 @@ $(document).ready(function(){
             }
         }
     });
+
+    // use JQuery to refresh the editor when its container div is resized
+    $( "#editor" ).resizable({
+        resize: function( event, ui ) {
+            $editor.resize();
+        }
+    });
 });
 
 
@@ -172,6 +189,7 @@ function submitDDLAJAX(submit_URL){
             if (data.status == "OK") {
                 setDDLMessage('OK', 'DDL succesfully saved.');
                 last_DDL_saved = DDL_value;
+                disableSaveButton(true);
             }else {
                 console.log("status KO");
                 setDDLMessage('KO', 'Could not save the DDL. Status: \'' + data.status + '\'.');
