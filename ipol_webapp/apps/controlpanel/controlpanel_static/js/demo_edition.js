@@ -358,9 +358,18 @@ function submitDemoformAJAX(){
 
             if (data.status == "OK") {
                 $($modal_demo_msg_div).html('Demo saved').show();
+                $new_demo_id = document.getElementById('id_editorsdemoid').value;
+                $old_demo_id = document.getElementById('id_id').value;
                 $demoform.hide();
-                //todo better to only reload part of list, but should change django pagination for js pagination
-                window.location.reload(true);
+
+                // check if demo id has changed, and redirect to the new URL, if it is the case
+                if($new_demo_id == $old_demo_id){
+                    window.location.reload(true);
+                }else{
+                    $current_demo_URL = window.location.href;
+                    $new_demo_URL = $current_demo_URL.replace($old_demo_id, $new_demo_id);
+                    window.location.replace($new_demo_URL);
+                }
             }
             else {
                 $demoform.show();
