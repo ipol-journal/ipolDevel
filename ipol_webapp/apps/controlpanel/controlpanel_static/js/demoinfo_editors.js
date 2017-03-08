@@ -82,7 +82,7 @@ function send_get_editor_request(wsurl,editor_id){
 
     if (editor_id === undefined) {
         // editor_id was not passed, just open create modal
-        $($modal_editor_header).html('<h3>New editor data</h3>');
+        $($modal_editor_header).html('<h3>New editor</h3>');
         //clear data
         $($modal_editor_msg_div).html('');
 
@@ -116,7 +116,7 @@ function send_get_editor_request(wsurl,editor_id){
                         //clear error data
                         $($modal_editor_msg_div).html('');
 
-                        $($modal_editor_header).html('<h3>Edit Editor data</h3>');
+                        $($modal_editor_header).html('<h3>Edit Editor</h3>');
                         $($form_editor_field_editor_id).get(0).value = data.id;
                         $($form_editor_field_name_id).get(0).value = data.name;
                         $($form_editor_field_mail_id).get(0).value = data.mail;

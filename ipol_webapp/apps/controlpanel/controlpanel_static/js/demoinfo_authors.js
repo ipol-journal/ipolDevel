@@ -82,7 +82,7 @@ function send_get_author_request(wsurl,author_id){
 
     if (author_id === undefined) {
         // author_id was not passed, just open create modal
-        $($modal_author_header).html('<h3>New author data</h3>');
+        $($modal_author_header).html('<h3>New author</h3>');
         //clear data
         $($modal_author_msg_div).html('');
 
@@ -117,7 +117,7 @@ function send_get_author_request(wsurl,author_id){
                         //clear error data
                         $($modal_author_msg_div).html('');
 
-                        $($modal_author_header).html('<h3>Edit Author data</h3>');
+                        $($modal_author_header).html('<h3>Edit Author</h3>');
                         $($form_author_field_author_id).get(0).value = data.id;
                         $($form_author_field_name_id).get(0).value = data.name;
                         $($form_author_field_mail_id).get(0).value = data.mail;
