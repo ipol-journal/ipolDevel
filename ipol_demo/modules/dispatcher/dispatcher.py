@@ -260,11 +260,14 @@ class Dispatcher(object):
                 self.refresh_demorunners()
 
             dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
+
+            if dr_winner is None:
+                json.dumps(data)
+
             data["name"] = dr_winner.name
             data["status"] = "OK"
 
         except Exception as ex:
-            data["message"] = "No demorunner for the requirements"
             self.logger.exception("No demorunner for the requirements and {} policy".format(self.policy))
             print "No demorunner for the requirements and {} policy - {}".format(self.policy, ex)
 
@@ -340,6 +343,7 @@ class RandomPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Random", ex
+            raise
 
 class SequentialPolicy(Policy):
 
@@ -364,6 +368,7 @@ class SequentialPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Sequential", ex
+            raise
 
 
 class LowestWorkloadPolicy(Policy):
@@ -397,8 +402,8 @@ class LowestWorkloadPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Lowest Workload", ex
+            raise
 
-                        # ---------------------------------------------------------------------------
 
 class DemoRunnerInfo(object):
     '''

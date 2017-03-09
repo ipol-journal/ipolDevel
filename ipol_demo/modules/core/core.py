@@ -1215,7 +1215,7 @@ attached the failed experiment data.". \
         """
         emails = {}
         config_emails = self.read_emails_from_config()
-        if not self.serverEnvironment == 'production':
+        if self.serverEnvironment == 'production':
             emails['tech'] = config_emails['tech']
         if len(emails) == 0:
             return
@@ -1231,6 +1231,27 @@ attached the failed experiment data.". \
                "\nThe list of demorunners unresponsive is: {}.". \
             format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
+        self.send_email(subject, text, emails)
+
+    def send_not_demorunner_for_published_demo_email(self,demo_id):
+        """
+        Send email to tech when there isn't any suitable demorunner for a published demo
+        """
+        emails = {}
+        config_emails = self.read_emails_from_config()
+        if self.serverEnvironment == 'production':
+            emails['tech'] = config_emails['tech']
+        if len(emails) == 0:
+            return
+        emails['sender'] = config_emails['sender']
+
+        hostname = socket.gethostname()
+        hostbyname = socket.gethostbyname(hostname)
+
+        text = "This is the IPOL Core machine ({}, {}).\n" \
+               "\nThere isn't any suitable demorunner for demo: {}.". \
+            format(hostname, hostbyname,demo_id)
+        subject = '[IPOL Core] Not suitable demorunner'
         self.send_email(subject, text, emails)
 
     @cherrypy.expose
@@ -1350,6 +1371,11 @@ demo_id = ", demo_id
 
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
+            if dr_name is None:
+                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                if self.get_demo_metadata(demo_id)["state"].lower() == "published":
+                    self.send_not_demorunner_for_published_demo_email(demo_id)
+                return json.dumps(response)
 
             print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1518,7 +1544,7 @@ demo #{} - {}".format(demo_id, str(ex))
 
             # Check if there is a DR for the requirements
             if dispatcher_response.json()['status'] != 'OK':
-                raise Exception(dispatcher_response.json()['message'])
+                return None, None
 
             dr_name = dispatcher_response.json()['name']
             dr_server = self.demorunners[dr_name]['server']
