@@ -459,7 +459,7 @@ workload of '{}'".format(dr_name)
         resize = prod(im.size) > max_pixels
 
         if resize:
-            im.resize(max_pixels)
+            im.resize(int(max_pixels))
             if msg != "":
                 msg += "&"
             msg += " resized to {0}px ".format(max_pixels)
@@ -554,7 +554,7 @@ workload of '{}'".format(dr_name)
                 img.crop((x0, y0, x1, y1))
                 # resize if cropped image is too big
                 if max_pixels and prod(img.size) > max_pixels:
-                    img.resize(max_pixels, method="antialias")
+                    img.resize(int(max_pixels), method="antialias")
                 # save result
                 self.save_image(img, filename)
             except ValueError:
