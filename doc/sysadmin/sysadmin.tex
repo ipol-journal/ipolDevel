@@ -154,6 +154,15 @@ When a new machine is added to the IPOL infrastructure, the following needs to b
 
 - Install bash-completion {\tt apt-get install bash-completion}
 
+- Configure the SSH server to allow only access with public key and not with password. Set the following in /etc/ssh/sshd\_config:
+{\tt PasswordAuthentication no}
+
+{\tt RSAAuthentication yes}
+
+{\tt PubkeyAuthentication yes}
+
+And restart the SSH server with {\tt service ssh restart}
+
 - Install cron-apt: {\tt apt-get install cron-apt}
 
 And edit /etc/cron-apt/config:
