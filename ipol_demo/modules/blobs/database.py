@@ -1125,3 +1125,19 @@ class   Database(object):
             (template_id, demo_name,))
         except DatabaseError as e:
             raise DatabaseUpdateError(e)
+
+    #---------------------------------------------------------------------------
+    def update_demo_id(self, old_demo_id, new_demo_id):
+        """
+        Update the given old demo id by the given new demo id in the database.
+        """
+        try:
+            self.cursor.execute('''
+            UPDATE demo
+            SET name = ?
+            WHERE name = ?
+            ''', (new_demo_id, old_demo_id))
+        except DatabaseError as e:
+            raise DatabaseUpdateError(e)
+
+        return self.database.total_changes

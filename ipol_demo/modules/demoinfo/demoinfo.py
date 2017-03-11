@@ -26,6 +26,7 @@ import cherrypy
 import re
 import socket
 
+
 import ConfigParser
 
 from model import *
@@ -915,14 +916,19 @@ class DemoInfo(object):
         else:
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
 
+
         #update Demo
         try:
-
 
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
             dao.update(d, int(old_editor_demoid))
             conn.close()
+
+            if old_editor_demoid != p.editorsdemoid:
+                os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
+                          os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+
             data["status"] = "OK"
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s"%(str(ex)))
@@ -1924,3 +1930,4 @@ class DemoInfo(object):
             #raise Exception
             data["error"] = error_string
         return json.dumps(data)
+

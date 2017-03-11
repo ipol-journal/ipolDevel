@@ -1055,3 +1055,41 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
                 pass
 
         return json.dumps(status)
+
+
+    @cherrypy.expose
+    def update_demo_id(self, old_demo_id, new_demo_id):
+        """
+        Change the given old demo id by the new demo id in all the experiments.
+        """
+
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+
+            cursor_db.execute("""
+            UPDATE experiments
+            SET id_demo = ?
+            WHERE id_demo = ?
+            """, (new_demo_id, old_demo_id))
+
+            rows_changed = conn.total_changes
+
+            conn.commit()
+            conn.close()
+            status = {"status": "OK"}
+
+            if rows_changed == 0:
+                status["status"] = "KO"
+
+            return json.dumps(status)
+            
+        except Exception as ex:
+            status = {"status": "KO"}
+            self.error_log("update_demo_id", str(ex))
+            if conn is not None:
+                conn.rollback()
+                conn.close()
+
+            return json.dumps(status)
