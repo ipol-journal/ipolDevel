@@ -3,7 +3,7 @@
 # Pylint report
 # Miguel Colom, 2016
 
-me=ipol #$(whoami)
+me=miguel #ipol #$(whoami)
 modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
 report="/home/${me}/ipolDevel/ci_tests/pylint_report.txt"
 modules="core archive blobs demoinfo demorunner dispatcher"
@@ -14,10 +14,14 @@ echo "IPOL PyLint report on ${today}" > ${report}
 echo >> ${report}
 
 # PyLint test on each IPOL module
+cur_dir=$(pwd)
+
 for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
-    pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc ${modulesDir}${module}/*.py >> ${report}
+    cd ${modulesDir}${module}
+    pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc *.py >> ${report}
+    cd ${cur_dir}
 done
 
 # Send report by email

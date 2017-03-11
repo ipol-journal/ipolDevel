@@ -8,6 +8,9 @@
 % 1) Create the diagram with dia
 % 2) Export it as .eps
 % 3) use epstopdf to convert to PDF
+%
+% Editing SVG files and exporting them to PDF with Inkscape is admitted too.
+% Remember to keep a copy of the editable file (.dia or .svg files).
 
 
 \documentclass[a4paper,12pt]{article}
@@ -462,6 +465,18 @@ To start and stop the virtual machine called ``VM":
 {\tt VBoxManage startvm VM --type headless}
 
 {\tt vboxmanage controlvm VM poweroff soft}
+
+To avoid that the VM is not started after an eventual machine reboot, it is convenient to call a script to start the virtual machine. The following line needs to be added to the crontab (execute {\tt crontab -e}):
+
+{\tt @reboot /home/vm/start\_vm.sh}
+
+This script contains the instructions to start again the VM:
+
+\begin{verbatim}
+#!/bin/bash
+VBoxManage startvm VM --type headless
+\end{verbatim}
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}

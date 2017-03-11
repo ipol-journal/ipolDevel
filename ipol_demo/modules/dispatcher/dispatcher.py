@@ -18,6 +18,9 @@ import ConfigParser
 import re
 
 class Dispatcher(object):
+    '''
+    The Dispatcher chooses the best DR acording to a policy
+    '''
 
     instance = None
 
@@ -44,7 +47,7 @@ class Dispatcher(object):
         self.authorized_patterns = self.read_authorized_patterns()
 
         # Default policy: lowest_workload
-        self.policy=Policy.factory('lowest_workload')
+        self.policy = Policy.factory('lowest_workload')
 
         try:
             if not os.path.exists(self.logs_dir):
@@ -58,17 +61,17 @@ class Dispatcher(object):
         '''
         Wrapper to authenticate before using an exposed function
         '''
-        def authenticate_and_call(*args,**kwargs):
+        def authenticate_and_call(*args, **kwargs):
             '''
             Invokes the wrapped function if authenticated
             '''
             if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                    ("X-Real-IP" in cherrypy.request.headers and
-                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+ ("X-Real-IP" in cherrypy.request.headers and \
+not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
                 cherrypy.response.headers['Content-Type'] = "application/json"
                 error = {"status": "KO", "error": "Authentication Failed"}
                 return json.dumps(error)
-            return func(*args,**kwargs)
+            return func(*args, **kwargs)
 
         def is_authorized_ip(ip):
             '''
@@ -78,7 +81,8 @@ class Dispatcher(object):
             patterns = []
             # Creates the patterns  with regular expresions
             for authorized_pattern in dispatcher.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
+                patterns.append(re.compile(\
+authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
             # Compare the IP with the patterns
             for pattern in patterns:
                 if pattern.match(ip) is not None:
@@ -119,8 +123,7 @@ class Dispatcher(object):
         data = {}
         data["status"] = "OK"
         try:
-
-            url='http://{}/api/{}/{}'.format(
+            url = 'http://{}/api/{}/{}'.format(
                 self.host_name,
                 'core',
                 'get_demorunners'
@@ -141,7 +144,7 @@ class Dispatcher(object):
             data["status"] = "KO"
             data["message"] = "Can not refresh the demorunners"
             self.logger.exception("Can not refresh the demorunners")
-            print "Can not refresh the demorunners",ex
+            print "Can not refresh the demorunners", ex
 
         return json.dumps(data)
 
@@ -233,12 +236,12 @@ class Dispatcher(object):
 
         orig_policy = self.policy
 
-        self.policy=Policy.factory(policy)
+        self.policy = Policy.factory(policy)
 
         if self.policy is None:
             data["status"] = "KO"
             data["message"] = "Policy {} is not a known policy".format(policy)
-            self.error_log("set_policy","Policy {} is not a known policy".format(policy))
+            self.error_log("set_policy", "Policy {} is not a known policy".format(policy))
             self.policy = orig_policy
 
         return json.dumps(data)
@@ -260,11 +263,14 @@ class Dispatcher(object):
                 self.refresh_demorunners()
 
             dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
+
+            if dr_winner is None:
+                json.dumps(data)
+
             data["name"] = dr_winner.name
             data["status"] = "OK"
 
         except Exception as ex:
-            data["message"] = "No demorunner for the requirements"
             self.logger.exception("No demorunner for the requirements and {} policy".format(self.policy))
             print "No demorunner for the requirements and {} policy - {}".format(self.policy, ex)
 
@@ -331,7 +337,7 @@ class RandomPolicy(Policy):
         '''
         try:
 
-            suitable_dr = Policy().get_suitable_demorunners(requirements,demorunners)
+            suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
             if len(suitable_dr) > 0:
                 return suitable_dr[random.randrange(0, len(suitable_dr), 1)]
             else:
@@ -340,6 +346,7 @@ class RandomPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Random", ex
+            raise
 
 class SequentialPolicy(Policy):
 
@@ -364,6 +371,7 @@ class SequentialPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Sequential", ex
+            raise
 
 
 class LowestWorkloadPolicy(Policy):
@@ -397,15 +405,15 @@ class LowestWorkloadPolicy(Policy):
 
         except Exception as ex:
             print "Error in execute policy Lowest Workload", ex
+            raise
 
-                        # ---------------------------------------------------------------------------
 
 class DemoRunnerInfo(object):
     '''
     Demorunner information object
     '''
 
-    def __init__(self, server, name, capabilities=[]):
-        self.capabilities = capabilities
+    def __init__(self, server, name, capabilities=None):
+        self.capabilities = [] if capabilities is None else capabilities
         self.server = server
         self.name = name

@@ -110,11 +110,8 @@ class Archive(object):
         Attribute status should be checked after each initialisation.
         It is false if something went wrong.
         """
-        thumbs_s = None
-        # [ToDo][Miguel] Why self.status as an object variable if
-        # if it's used just in this contructor???
-        self.status = self.check_config()
-        if not self.status:
+
+        if not self.check_config():
             sys.exit(1)
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
@@ -155,8 +152,7 @@ class Archive(object):
 
         self.database_file = os.path.join(self.database_dir, self.database_name)
 
-        self.status = self.init_database()
-        if not self.status:
+        if not self.init_database():
             sys.exit("Initialization of database failed. Check the logs.")
 
     def authenticate(func):
@@ -508,10 +504,11 @@ class Archive(object):
 # displaying a single experiment of archive
 #####
 
-    # [Miguel] Missing docstring!
     @cherrypy.expose
     def get_experiment(self, experiment_id):
-
+        '''
+        Get requested experiment
+        '''
         #id_demo = int(demo_id)
         experiment_id = int(experiment_id)
 

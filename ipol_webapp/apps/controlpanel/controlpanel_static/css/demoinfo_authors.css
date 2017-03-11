@@ -1,0 +1,30 @@
+.ststsok {
+    color:green;
+}
+.ststsnok {
+    color:red;
+}
+.author{
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 10px;
+    //width: 40%;
+}
+.container{
+    margin: 20px;
+    padding: 10px;
+}
+.griditem{
+    padding-left: 20px
+}
+.btn{
+    min-width: 75px;
+}
+.btn-default{
+    border: 1px solid lightgray !important;
+    border-radius: 5px !important;
+}
+#submit-id-save_author{
+    margin-top: 15px;
+}

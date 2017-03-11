@@ -3,9 +3,8 @@
 
 {# load CSS for this page in particular #}
     {% block cssfiles %}
-        <style type="text/css">
-        {% include 'demoinfo/manage_archives_for_demo.css' %}
-        </style>
+        <!-- include external styles from static content -->
+        <link rel="stylesheet" href="{% static 'css/manage_archives_for_demo.css' %}"/>
     {% endblock %}
 
 {% load i18n %}

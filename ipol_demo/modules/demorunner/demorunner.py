@@ -145,8 +145,8 @@ class DemoRunner(object):
         self.authorized_patterns = self.read_authorized_patterns()
         if not os.path.isdir(self.share_running_dir):
             error_message = "The folder does not exist: " + self.share_running_dir
-            print error_message
             self.write_log("__init__", error_message)
+            print error_message
 
 
             #####
@@ -193,7 +193,7 @@ class DemoRunner(object):
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
+            self.write_log("read_authorized_patterns",
                            "Can't open {}".format(authorized_patterns_path))
             return []
 
@@ -521,18 +521,6 @@ class DemoRunner(object):
         res_data['status'] = 'KO'
         res_data['algo_info'] = {}
 
-        # TODO:this code will be moved to the CORE
-        # save parameters as a params.json file
-        try:
-            with open(os.path.join(work_dir, "params.json"), "w") as resfile:
-                json.dump(params, resfile)
-        except Exception as ex:
-            self.logger.exception("Save params.json, demo_id={}".format(demo_id))
-            print "Failed to save params.json file"
-            res_data['status'] = 'KO'
-            res_data['error'] = 'Save params.json'
-            return json.dumps(res_data)
-
         # run the algorithm
         try:
             run_time = time.time()
@@ -607,22 +595,6 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             print res_data
             return json.dumps(res_data)
 
-
-        # [Miguel] this code needs to be moved to the Core
-        # get back parameters
-        try:
-            with open(os.path.join(work_dir, "params.json")) as resfile:
-                res_data['params'] = json.load(resfile)
-        except Exception as ex:
-            print "Failed to read params.json file"
-            self.logger.exception("exec_and_wait can't read params.json, demo_id={}".format(demo_id))
-            res_data['status'] = 'KO'
-            res_data['error'] = 'Read params.json'
-            return json.dumps(res_data)
-
-        # [Miguel] Check what this is.
-        # [Miguel] Is 'info_from_file' really used?
-        #
         # check if new config fields
         if ddl_config != None:
             ddl_config = json.loads(ddl_config)
