@@ -10,11 +10,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# Alexis Mongin - alexis.mongin #~AT~# outlook.com
-# Miguel Colom -  http://mcolom.info
-
 """
-This script implements a terminal for controlling the IPOL system modules.
+IPOL modules control terminal.
+A tool for sysadmins.
 """
 
 import os
@@ -86,11 +84,11 @@ class Terminal(object):
 
 
     @staticmethod
-    def do_nothing(_dummy):
+    def do_nothing(dummy=None):
         """
-        Do nothing :)
+        Do nothing
         """
-        return
+        pass
 
 
     def __init__(self):
@@ -112,7 +110,7 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print "\nWelcome to the IPOL control terminal!\n"
+        print "\nIPOL Control Terminal\n"
         for key, value in self.dict_modules.items():
             try:
                 list_tmp = [key,]
@@ -158,20 +156,20 @@ class Terminal(object):
                 self.dict_modules[name]["server"],
                 self.dict_modules[name]["module"]
             )).read()
-
+            
             response = json.loads(json_response)
             status = response['status']
 
             if status == "OK":
-                print name + "  (" + self.dict_modules[name]["server"] + ")" + ":  Module active, it says PONG!"
+                print "{} ({}): \x1b[1;32;40mOK\x1b[0m".format(name, self.dict_modules[name]["server"])
             else:
-                print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when making a PING"
+                print "{} ({}): \x1b[1;33;41m*** KO ***\x1b[0m".format(name, self.dict_modules[name]["server"])
+        except ValueError as ex:
+            # No JSON object could be decoded exception
+            print "{} ({}): \x1b[1;33;41m*** KO (exception) ***\x1b[0m".format(name, self.dict_modules[name]["server"])
 
-        except Exception:
-            print name + "  (" + self.dict_modules[name]["server"] + ")" + " : Module unresponsive. "
 
-
-    def ping_all(self, _dummy):
+    def ping_all(self, dummy=None):
         """
         ping all modules
         """
@@ -197,12 +195,13 @@ class Terminal(object):
             status = response['status']
 
             if status == "OK":
-                print name + "  (" + self.dict_modules[name]["server"] + ")" + " is shut down."
+                print "{} ({}): \x1b[1;32;40mStoppped\x1b[0m".format(name, self.dict_modules[name]["server"])
             else:
+                print "{} ({}): \x1b[1;33;41m*** KO ***\x1b[0m".format(name, self.dict_modules[name]["server"])
                 print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when shutting down the module"
-
-        except Exception:
-            print name + "  (" + self.dict_modules[name]["server"] + ")" + " stop : service unreachable. "
+        except ValueError:
+            # No JSON object could be decoded exception
+            print "{} ({}): \x1b[1;33;41m*** KO (exception) ***\x1b[0m".format(name, self.dict_modules[name]["server"])
 
 
     def start_module(self, args_array):
@@ -216,26 +215,24 @@ class Terminal(object):
         try:
             cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
             os.system("ssh " + self.dict_modules[module]["serverSSH"] + cmd)
-            print module + " started, try to ping it."
         except Exception as ex:
             print ex
 
 
-    def start_all(self, _dummy):
+    def start_all(self, dummy=None):
         """
         Start all the modules.
         """
         for module in self.dict_modules.keys():
-            list_tmp = [module,]
-            self.start_module(list_tmp)
+            print "Starting {} ({})".format(module, self.dict_modules[module]["server"])
+            self.start_module([module,])
 
-    def stop_all(self, _dummy):
+    def stop_all(self, dummy=None):
         """
         Shutdown all the modules.
         """
         for module in self.dict_modules.keys():
-            list_tmp = [module,]
-            self.stop_module(list_tmp)
+            self.stop_module([module,])
 
 
     def restart_module(self, args_array):
@@ -261,7 +258,7 @@ class Terminal(object):
         print ""
 
 
-    def display_modules(self, _dummy):
+    def display_modules(self, dummy=None):
         """
         Print the modules.
         """
@@ -270,7 +267,7 @@ class Terminal(object):
             print module
 
 
-    def display_help(self, _dummy):
+    def display_help(self, dummy=None):
         """
         Help of the terminal
         """
@@ -291,7 +288,7 @@ class Terminal(object):
         print "For more detailed information please read the documentation."
 
 
-    def pull(self, _dummy):
+    def pull(self, dummy=None):
         """
         Ssh into servers and pull.
         """

@@ -26,6 +26,7 @@ import cherrypy
 import re
 import socket
 
+
 import ConfigParser
 
 from model import *
@@ -902,12 +903,7 @@ class DemoInfo(object):
         data["status"] = "KO"
         #get payload from json object
         p = Payload(demo)
-        # print
-        # print "update_demo"
-        # print "p " ,p
-        # print "p type" ,type(p)
-        # print
-        #convert payload to Demo object
+
         if hasattr(p, 'creation'):
             #update creatio ndate
 
@@ -915,15 +911,28 @@ class DemoInfo(object):
         else:
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
 
+
         #update Demo
         try:
-
 
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
             dao.update(d, int(old_editor_demoid))
             conn.close()
+
+            if old_editor_demoid != p.editorsdemoid \
+                    and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(p.editorsdemoid))):
+                    # If the destination path exists, it should be removed
+                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+
+                os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
+                          os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+
             data["status"] = "OK"
+        except OSError as ex:
+            data["status"] = "KO"
+            data["error"] = "demoinfo update_demo error".format(ex)
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s"%(str(ex)))
             print error_string
@@ -1924,3 +1933,4 @@ class DemoInfo(object):
             #raise Exception
             data["error"] = error_string
         return json.dumps(data)
+

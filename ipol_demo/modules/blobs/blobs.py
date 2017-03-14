@@ -1560,6 +1560,32 @@ class   Blobs(object):
                 ": Cannot add item in database")
 
     #---------------------------------------------------------------------------
+           
+    @cherrypy.expose
+    @cherrypy.tools.accept(media="application/json")
+    @authenticate
+    def update_demo_id(self, old_demo_id, new_demo_id):
+        """
+        Update the given old demo id by the given new demo id.
+        """
+        dic = {}
+        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
+            cherrypy.response.headers['Content-Type'] = "application/json"
+            try:
+                data.update_demo_id(old_demo_id, new_demo_id)
+                data.commit()
+
+                dic["status"] = "OK"
+
+            except DatabaseError as ex:
+                self.logger.exception("Cannot update demo id in database")
+                data.rollback()
+                dic["status"] = "KO"
+                dic["error"] = "blobs update_demo_id error: {}".format(ex)
+
+        return json.dumps(dic)
+
+    #---------------------------------------------------------------------------
 
     @staticmethod
     @cherrypy.expose
@@ -1594,8 +1620,7 @@ class   Blobs(object):
             sys.exit(1)
         return json.dumps(data)
 
-
-
+    
 def create_tmp_file(blob, path):
     """
     Create temporary directory and copy uploaded blob
