@@ -1171,7 +1171,7 @@ Demoinfo code = {}".format(response['code'])
             for f in files:
                 ziph.write(os.path.join(root, f))
 
-    def send_runtime_error_email(self, demo_id, key):
+    def send_runtime_error_email(self, demo_id, key, message):
         """ Send email to editor when the execution fails """
         # emails = self.get_demo_editor_list(demo_id)
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
@@ -1194,9 +1194,9 @@ Demoinfo code = {}".format(response['code'])
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
         text = "This is the IPOL Core machine ({}, {}).\n\n\
-The execution with key={} of demo #{} has failed.\nPlease find \
+The execution with key={} of demo #{} has failed.\nProblem: {}.\nPlease find \
 attached the failed experiment data.". \
-            format(hostname, hostbyname, key, demo_id)
+            format(hostname, hostbyname, key, demo_id, message)
 
         subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
 
@@ -1453,10 +1453,10 @@ demo_id = ", demo_id
                 website_message = "DR={}, {}".format(dr_name,
                                                      demorunner_response["algo_info"]["status"])
                 response = {}
-                response["error"] = format(website_message)
+                response["error"] = website_message
                 response["status"] = "KO"
                 # Send email to the editors
-                self.send_runtime_error_email(demo_id, key)
+                self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
 
             demorunner_response['work_url'] = os.path.join(
