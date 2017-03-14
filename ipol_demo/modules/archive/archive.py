@@ -1071,19 +1071,15 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
             WHERE id_demo = ?
             """, (new_demo_id, old_demo_id))
 
-            rows_changed = conn.total_changes
-
             conn.commit()
             conn.close()
             status = {"status": "OK"}
-
-            if rows_changed == 0:
-                status["status"] = "KO"
 
             return json.dumps(status)
             
         except Exception as ex:
             status = {"status": "KO"}
+            status = {"error": "blobs update_demo_id error: {}".format(ex)}
             self.error_log("update_demo_id", str(ex))
             if conn is not None:
                 conn.rollback()

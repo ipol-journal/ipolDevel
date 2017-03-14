@@ -1139,5 +1139,3 @@ class   Database(object):
             ''', (new_demo_id, old_demo_id))
         except DatabaseError as e:
             raise DatabaseUpdateError(e)
-
-        return self.database.total_changes

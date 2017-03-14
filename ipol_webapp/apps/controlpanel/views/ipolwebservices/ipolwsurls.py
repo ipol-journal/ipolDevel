@@ -180,6 +180,7 @@ archive_ws_url_delete_demo =  'delete_demo'# param demo_id
 
 #todo , remove if not necessary
 archive_ws_url_add_experiment =  'add_experiment'# param None
+archive_ws_url_update_demo_id = 'update_demo_id'
 
 
 
@@ -188,3 +189,4 @@ archive_ws_url_add_experiment =  'add_experiment'# param None
 ####################
 #view list of available demos
 blobs_demo_list =  'demos_ws'
+blobs_update_demo_id = 'update_demo_id'

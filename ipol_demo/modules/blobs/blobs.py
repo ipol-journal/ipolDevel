@@ -1572,16 +1572,16 @@ class   Blobs(object):
         with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
             cherrypy.response.headers['Content-Type'] = "application/json"
             try:
-                rows_changed = data.update_demo_id(old_demo_id, new_demo_id)
+                data.update_demo_id(old_demo_id, new_demo_id)
                 data.commit()
-                if rows_changed > 0:
-                    dic["status"] = "OK"
-                else:
-                    dic["status"] = "KO"
-            except DatabaseError:
+
+                dic["status"] = "OK"
+
+            except DatabaseError as ex:
                 self.logger.exception("Cannot update demo id in database")
                 data.rollback()
                 dic["status"] = "KO"
+                dic["error"] = "blobs update_demo_id error: {}".format(ex)
 
         return json.dumps(dic)
 

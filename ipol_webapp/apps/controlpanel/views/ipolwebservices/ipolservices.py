@@ -23,7 +23,7 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
         demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
         demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_list_for_demo, \
         demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
-        proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo
+        proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo,archive_ws_url_update_demo_id,blobs_update_demo_id
 
 logger = logging.getLogger(__name__)
 
@@ -258,16 +258,23 @@ def demoinfo_read_demo(demo_id):
 
 def demoinfo_update_demo(demo,old_editor_demoid):
 
-    service_name = demoinfo_ws_url_update_demo
+    demoinfo_params = {'demo': json.dumps(demo),'old_editor_demoid':old_editor_demoid}
+    blobs_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
+    archive_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
 
+    demoinfo_resp = get_JSON_from_webservice('demoinfo', demoinfo_ws_url_update_demo, METHOD='POST', params=demoinfo_params, json=None)
+    if json.loads(demoinfo_resp)['status'] == 'KO':
+        return demoinfo_resp
 
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
-    serviceparams = {'demo': json.dumps(demo),'old_editor_demoid':old_editor_demoid}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    blob_resp = get_JSON_from_webservice('blobs',blobs_update_demo_id,METHOD='POST',params=blobs_params,json=None)
+    if json.loads(blob_resp)['status'] == 'KO':
+        return blob_resp
 
-    servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    archive_resp = get_JSON_from_webservice('archive',archive_ws_url_update_demo_id,METHOD='POST',params=archive_params,json=None)
+    if json.loads(archive_resp)['status'] == 'KO':
+        return archive_resp
+
+    return demoinfo_resp
 
 
 
