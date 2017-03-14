@@ -922,9 +922,9 @@ class DemoInfo(object):
 
             if old_editor_demoid != p.editorsdemoid \
                     and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
-                if os.path.isdir(os.path.join(self.dl_extras_dir, str(editorsdemoid))):
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(p.editorsdemoid))):
                     # If the destination path exists, it should be removed
-                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(editorsdemoid)))
+                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
 
                 os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
                           os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
