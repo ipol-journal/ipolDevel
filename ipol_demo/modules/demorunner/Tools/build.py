@@ -35,7 +35,7 @@ def download(url, fname, username=None, password=None):
     if not os.path.isdir(os.path.dirname(fname)):
         os.makedirs(os.path.dirname(fname))
 
-    # Open the url. Add authorization header if needed 
+    # Open the url. Add authorization header if needed
     if username is None:
         url_handle = urllib2.urlopen(url)
     else:

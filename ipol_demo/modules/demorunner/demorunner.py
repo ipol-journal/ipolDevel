@@ -399,7 +399,7 @@ class DemoRunner(object):
             builds = [ddl_build]
         else:
             builds = ddl_build
-        
+
         for build_block in builds:
             try:
                 print ddl_build
@@ -421,7 +421,12 @@ class DemoRunner(object):
                 print "HTTPError"
                 self.logger.exception("ensure_compilation - HTTPError")
                 data = {}
-                data['status'] = 'KO'                
+
+                build_name = build_block.keys()[0]
+                if 'password' in build_block[build_name]:
+                    build_block[build_name]['password'] = "*****"
+                    build_block[build_name]['username'] = "*****"
+                data['status'] = 'KO'
                 data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
                 return json.dumps(data)                
             except Exception as e:
