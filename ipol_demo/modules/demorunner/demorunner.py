@@ -316,6 +316,9 @@ class DemoRunner(object):
             files_to_move = build_item['move']
             construct = build_item['construct'] if 'construct' in build_item else None
 
+            username = build_item['username'] if 'username' in build_item else None
+            password = build_item['password'] if 'password' in build_item else None
+
             zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
             tgz_file = path.join(dl_dir, zip_filename)
 
@@ -327,7 +330,7 @@ class DemoRunner(object):
 
             try:
                 # Download
-                extract_needed = build.download(url, tgz_file)
+                extract_needed = build.download(url, tgz_file, username, password)
 
                 # Check if a rebuild is nedded
                 if extract_needed or not self.all_files_exist(files_path):
@@ -396,7 +399,7 @@ class DemoRunner(object):
             builds = [ddl_build]
         else:
             builds = ddl_build
-        
+
         for build_block in builds:
             try:
                 print ddl_build
@@ -418,7 +421,12 @@ class DemoRunner(object):
                 print "HTTPError"
                 self.logger.exception("ensure_compilation - HTTPError")
                 data = {}
-                data['status'] = 'KO'                
+
+                build_name = build_block.keys()[0]
+                if 'password' in build_block[build_name]:
+                    build_block[build_name]['password'] = "*****"
+                    build_block[build_name]['username'] = "*****"
+                data['status'] = 'KO'
                 data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
                 return json.dumps(data)                
             except Exception as e:
