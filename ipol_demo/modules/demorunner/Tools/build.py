@@ -1,10 +1,13 @@
 """
 build tools
 """
-
+import base64
 import os, shutil
-import urllib2, time
-import tarfile, zipfile
+import urllib
+import urllib2
+import time
+import tarfile
+import zipfile
 from subprocess import Popen
 import cherrypy
 
@@ -14,10 +17,10 @@ import datetime
 
 import os.path
 
-
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
-def download(url, fname):
+
+def download(url, fname, username=None, password=None):
     """
     download a file from the network if it is newer than the local
     file
@@ -32,8 +35,14 @@ def download(url, fname):
     if not os.path.isdir(os.path.dirname(fname)):
         os.makedirs(os.path.dirname(fname))
 
-    # open the url
-    url_handle = urllib2.urlopen(url)
+    # Open the url. Add authorization header if needed 
+    if username is None:
+        url_handle = urllib2.urlopen(url)
+    else:
+        request = urllib2.Request(url)
+        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64string)
+        url_handle = urllib2.urlopen(request)
 
     if not os.path.isfile(fname):
         # no local copy : retrieve
@@ -44,7 +53,7 @@ def download(url, fname):
     else:
         # only retrieve if a newer version is available
         url_info = url_handle.info()
-        
+
         if 'last-modified' in url_info:
             last_modified = url_info['last-modified']
             url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
@@ -52,11 +61,11 @@ def download(url, fname):
             # The server didn't send any last-modified. Thus, assume that
             # the file in the server is newer than ours
             url_ctime = datetime.datetime.now()
-            
+
         url_size = int(url_info['content-length'])
         file_ctime = datetime.datetime.fromtimestamp(os.path.getctime(fname))
         file_size = os.path.getsize(fname)
-        
+
         if (url_size != file_size
             or url_ctime > file_ctime):
             # download
@@ -67,6 +76,7 @@ def download(url, fname):
             return True
         else:
             return False
+
 
 def extract(fname, target):
     """
@@ -119,6 +129,7 @@ def extract(fname, target):
                 f.close()
 
     return content
+
 
 def run(command, stdout, cwd=None, env=None):
     """

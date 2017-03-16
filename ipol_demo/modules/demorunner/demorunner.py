@@ -316,6 +316,9 @@ class DemoRunner(object):
             files_to_move = build_item['move']
             construct = build_item['construct'] if 'construct' in build_item else None
 
+            username = build_item['username'] if 'username' in build_item else None
+            password = build_item['password'] if 'password' in build_item else None
+
             zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
             tgz_file = path.join(dl_dir, zip_filename)
 
@@ -327,7 +330,7 @@ class DemoRunner(object):
 
             try:
                 # Download
-                extract_needed = build.download(url, tgz_file)
+                extract_needed = build.download(url, tgz_file, username, password)
 
                 # Check if a rebuild is nedded
                 if extract_needed or not self.all_files_exist(files_path):
