@@ -27,6 +27,29 @@ server {
 
 	server_name _;
 
+	location /demo/clientApp/demo.html {
+		if ($args ~ ".*id=33333999\d*") {
+			error_page 418 = @authTestPasswd;
+			return 418;
+		}
+		resolver 127.0.0.1;
+		proxy_pass  http://$host:8080;
+	}
+    
+	# Authentication test. user: auth_test , password: auth_test
+    	location @authTestPasswd {
+		auth_basic "Restricted";
+		auth_basic_user_file /etc/nginx/.passwd/auth_test;
+		resolver 127.0.0.1;
+		proxy_pass  http://$host:8080;
+	}
+
+	location /auth_src/ {
+		auth_basic "Restricted";
+                auth_basic_user_file /etc/nginx/.passwd/auth_test;
+		alias /home/ipol/auth_src/;
+	}
+
 	# DEMOS
         location /demo/  {
 		resolver 127.0.0.1;

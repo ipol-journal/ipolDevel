@@ -13,15 +13,31 @@ server {
     proxy_read_timeout          600;
     send_timeout                600;
     client_max_body_size        500m;
-    access_log  /home/ipol/ipolDevel/ipol_webapp/logs/host.access.log  main;
 
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    access_log  /home/ipol/ipolDevel/ipol_webapp/logs/host.access.log  main;
 
 
     # Path of the static content
     location /cp/static/ {
         alias  /home/ipol/IPOLWEBAPP_STATIC/;
+    }
+
+    # Change the CompanyName to the real name
+    location /demo/clientApp/demo.html {		
+	if ($args ~ ".*id=33333001\d*") {
+		error_page 418 = @CompanyNamePasswd;
+		return 418;
+	}
+	proxy_pass  http://$host:8080;
+    }
+    
+    location @CompanyNamePasswd {
+	auth_basic "Restricted";
+	auth_basic_user_file /etc/nginx/.passwd/CompanyName;
+	proxy_pass  http://$host:8080;
     }
 
     # DEMOS
