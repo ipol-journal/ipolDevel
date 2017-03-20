@@ -351,8 +351,11 @@ workload of '{}'".format(dr_name)
             demos_string += "<h2>{}</h2>".format(publication_state)
 
             for demo_data in demos_by_state[publication_state]:
-                demos_string += "Demo #{}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
-                    demo_data['editorsdemoid'], demo_data['editorsdemoid'], demo_data['title'].encode('utf-8'))
+                editorsdemoid = str(demo_data['editorsdemoid'])
+                
+                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
+                    "(private)" if editorsdemoid.startswith("33333") else "", 
+                    editorsdemoid, editorsdemoid, demo_data['title'].encode('utf-8'))
 
         string = """
                  <!DOCTYPE html>
@@ -363,7 +366,7 @@ workload of '{}'".format(dr_name)
                  </head>
                  <body>
                  <h1>List of demos</h1>
-                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests.</h3><br>
+                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests. The workshops which begin with 33333 are private and require authorization.</h3><br>
                  {}
                  </body>
                  </html>
