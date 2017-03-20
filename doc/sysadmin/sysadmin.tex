@@ -313,10 +313,42 @@ proxy_pass http://ipol_webapp_server;
 
 \end{enumerate}
 \end{enumerate}
+\item Add authentication for demos. Only in the machine which servers the static files of the demo, of course.
+\begin{enumerate}
+\item Create subfolder .passwd in /etc/nginx
+\begin{lstlisting}[language=Bash]
+mkdir /etc/nginx/.passwd
+\end{lstlisting}
+\item Install apache2-utils
+\begin{lstlisting}[language=Bash]
+sudo apt-get install apache2-utils
+\end{lstlisting}
+\item Creates username and password with htpasswd
+\begin{lstlisting}[language=Bash]
+ sudo htpasswd -c /etc/nginx/.passwd/company company
+\end{lstlisting}
+\item Edit the default file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
+\begin{lstlisting}[language=Bash]
+location /demo/clientApp/demo.html {
+  if ($args ~ ".*id=33333999\d*") {
+    error_page 418 = @companyPasswd;
+    return 418;
+  }
+  proxy_pass  http://$host:8080;
+}
+location @companyPasswd {
+  auth_basic "Restricted";
+  auth_basic_user_file /etc/nginx/.passwd/company;
+  proxy_pass  http://$host:8080;
+}
+\end{lstlisting}
+\end{enumerate}
+
 \item Enable the site by creating a symbolic link to default configuration:
 \begin{lstlisting}[language=Bash]
 ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 \end{lstlisting}
+
 \item Check Nginx configuration
 \begin{lstlisting}[language=Bash]
 
