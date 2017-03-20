@@ -354,8 +354,9 @@ workload of '{}'".format(dr_name)
                 editorsdemoid = str(demo_data['editorsdemoid'])
                 
                 demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
+                    editorsdemoid,
                     "(private)" if editorsdemoid.startswith("33333") else "", 
-                    editorsdemoid, editorsdemoid, demo_data['title'].encode('utf-8'))
+                    editorsdemoid, demo_data['title'].encode('utf-8'))
 
         string = """
                  <!DOCTYPE html>
