@@ -366,7 +366,7 @@ workload of '{}'".format(dr_name)
                  </head>
                  <body>
                  <h1>List of demos</h1>
-                 <h3>The demos whose ID begins with 77777 are workshops and those with 55555 are tests. The workshops which begin with 33333 are private and require authorization.</h3><br>
+                 <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private. Test demos begin with '55555'.</h3><br>
                  {}
                  </body>
                  </html>
