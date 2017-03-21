@@ -217,38 +217,19 @@ class DemoInfo(object):
 
     def get_compressed_file_url(self, demo_id):
         """
-        Get url of compressed file for given demo_id.
+        Get the URL of the demo's demoExtras
         """
-        data = {}
-        data['status'] = "OK"
 
         extras_folder = os.path.join(self.dl_extras_dir, demo_id)
         compressed_file = os.path.join(extras_folder, self.demoExtrasFilename)
 
-        try:
-            if os.path.isfile(compressed_file):
-
-                data['url_compressed_file'] = os.path.join(self.server_address,\
-                                                   self.dl_extras_dir, \
-                                                   demo_id,\
-                                                   self.demoExtrasFilename)
-                print data['url_compressed_file']
-                data['code'] = "2"
-            else:
-                data['code'] = "1"
-
-        except Exception as ex:
-            data['status'] = 'KO'
-            self.error_log("Failure in get_compressed_file_url ", str(ex))
-
-        return data
-
-    @cherrypy.expose
-    def get_compressed_file_url_ws(self, demo_id):
-        """
-        WS for obtaining the url for the compressed file with the demoExtras
-        """
-        return json.dumps(self.get_compressed_file_url(demo_id))
+        if os.path.isfile(compressed_file):
+            return os.path.join(self.server_address,\
+                                               self.dl_extras_dir, \
+                                               demo_id,\
+                                               self.demoExtrasFilename)
+        else:
+            return None
 
 
     @cherrypy.expose
@@ -299,37 +280,31 @@ class DemoInfo(object):
 
         return json.dumps(data)
 
-
-
     @cherrypy.expose
-    def get_file_updated_state(self, demo_id, time_of_file_in_core, size_of_file_in_core):
+    def get_demo_extras_info(self, demo_id):
         """
-        Webservice returning state of compressed file.
+        Return the date of creation, the size of the file and the demoExtras file if exists
         """
+        try:
+            data = {'status':'KO'}
+            demoExtras_url = self.get_compressed_file_url(demo_id)
+            if demoExtras_url is None:
+                # DemoInfo does not have any demoExtras
+                return json.dumps({'status':'OK'})
 
-        data = self.get_compressed_file_url(demo_id)
-
-        #The compressed_file does not exist or KO
-        if data['code'] == '1' or data['status'] == 'KO':
+            demoExtras_path = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+            file_stats = os.stat(demoExtras_path)
+            data['date'] = float(file_stats.st_mtime)
+            data['size'] = float(file_stats.st_size)
+            data['url'] = demoExtras_url
+            data['status'] = 'OK'
             return json.dumps(data)
 
-        try:
-            compressed_file = os.path.join(self.dl_extras_dir,
-                                           demo_id + "/" + self.demoExtrasFilename)
-            file_state_in_demoinfo = os.stat(compressed_file)
-            time_of_file_in_demoinfo = float(file_state_in_demoinfo.st_mtime)
-            size_of_file_in_demoinfo = float(file_state_in_demoinfo.st_size)
-            time_of_file_in_core = float(time_of_file_in_core)
-            size_of_file_in_core = float(size_of_file_in_core)
-            data['code'] = "2"
-            if (time_of_file_in_core >= time_of_file_in_demoinfo
-                    and size_of_file_in_core == size_of_file_in_demoinfo):
-                data["code"] = "0"
         except Exception as ex:
-            data['status'] = 'KO'
-            self.error_log("Failure in get_file_updated_state ", str(ex))
+            self.logger.exception("Failure in get_demo_extras_info")
+            print "get_demo_extras_info. Error: {}".format(ex)
+            return json.dumps(data)
 
-        return json.dumps(data)
 
     #todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
     @cherrypy.expose
@@ -767,10 +742,6 @@ class DemoInfo(object):
             error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
             print error_string
             self.error_log("read_demo_metainfo", error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
             #raise Exception
             data["error"] = error_string
 

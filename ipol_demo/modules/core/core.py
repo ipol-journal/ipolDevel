@@ -20,6 +20,7 @@ from Tools.misc import prod
 from Tools.image import image
 from Tools.sendarchive import SendArchive
 from Tools.evaluator import *
+from errors import IPOLDemoExtrasError
 
 import shutil
 import json
@@ -824,23 +825,13 @@ work_dir={}, original_blob_path={}". \
     @staticmethod
     def download(url_file, filename):
         """
-        Download a file from the network
-        @param url: source url
-        @param fname: destination file name
-
-        @return: successfull process
+        Downloads a file given its URL
         """
+        url_handle = urllib.urlopen(url_file)
+        file_handle = open(filename, 'w')
+        file_handle.write(url_handle.read())
+        file_handle.close()
 
-        try:
-            url_handle = urllib.urlopen(url_file)
-            file_handle = open(filename, 'w')
-            file_handle.write(url_handle.read())
-            file_handle.close()
-            success = 0
-        except Exception:
-            success = 1
-
-        return success
 
     @staticmethod
     def extract(filename, target):
@@ -852,6 +843,7 @@ work_dir={}, original_blob_path={}". \
 
         @return: the archive content
         """
+
         try:
             # start with tar
             ar = tarfile.open(filename)
@@ -889,111 +881,65 @@ work_dir={}, original_blob_path={}". \
 
         return content
 
-    def download_demo_extra(self, source, target, first_download):
-        """
-        Download a demoextras for a given demo
-        inputs: source from demoinfo, target in core, first_download (true or false)
-        return: success or not
-        """
-        if not first_download:
-            try:
-                os.remove(target)
-            except OSError as ex:
-                error_message = "Failure removing the demoextra {}.\
-Error: {} ".format(target, ex)
-                self.logger.error(error_message)
-                return False
-
-        print "Downloading  {} ...".format(source)
-        if self.download(source, target) == 1:
-            error_message = "Failure downloading the demoextra {}".format(source)
-            self.logger.error(error_message)
-            return False
-
-        return True
-
     def extract_demo_extra(self, demo_id, compressed_file):
         """
         Extract a demo extra...
         input: demo_id and compressed file for the extraction
         return: success or not 
         """
-        demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
-
         try:
+            demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
             if os.path.isdir(demoExtrasFolder):
                 print "Cleaning the original {} ".format(demoExtrasFolder)
                 shutil.rmtree(demoExtrasFolder)
 
             self.mkdir_p(demoExtrasFolder)
-            print "Extracting {} ...".format(compressed_file)
             self.extract(compressed_file, demoExtrasFolder)
-            success = True
-
         except Exception as ex:
-            error_message = "Extraction failed for demo {}. \
-Exception {} ".format(demo_id, ex)
-            self.logger.exception(error_message)
-            success = False
-
-        return success
+            print "Extraction failed for demo #{}. Error: {} ".format(demo_id, ex)
+            raise IPOLDemoExtrasError(ex)
 
     def ensure_extras_updated(self, demo_id):
         """
         Ensure that the demo extras of a given demo are updated respect to demoinfo information.
         and exists in the core folder.
         """
-        print "### Ensuring demo extras... ##"
+        demoextras_compress_dir = os.path.join(self.dl_extras_dir, demo_id)
 
-        ddl_extras_folder = os.path.join(self.dl_extras_dir, demo_id)
-        compressed_file = os.path.join(ddl_extras_folder,
-                                       self.demoExtrasFilename)
+        demoextras_file = os.path.join(demoextras_compress_dir, self.demoExtrasFilename)
 
-        self.mkdir_p(ddl_extras_folder)
+        self.mkdir_p(demoextras_compress_dir)
 
-        userdata = {"demo_id": demo_id}
+        resp = self.post(self.host_name, 'demoinfo', 'get_demo_extras_info', {"demo_id": demo_id})
+        demoinfo_resp = resp.json()
 
-        if not os.path.isfile(compressed_file):
+        if demoinfo_resp['status'] != 'OK':
+            raise IPOLDemoExtrasError("Demoinfo responds with a KO")
 
-            first_download = True
-            code_message = "First download with code "
-
-            resp = self.post(self.host_name, 'demoinfo',
-                             'get_compressed_file_url_ws', userdata)
-
+        if not os.path.isfile(demoextras_file):
+            print 0
+            if not 'url' in demoinfo_resp:
+                return
+            # There is a new demoExtras in demoinfo
+            self.download(demoinfo_resp['url'], demoextras_file)
+            self.extract_demo_extra(demo_id, demoextras_file)
         else:
-            ## If the file already exists, we must compare the dates
-            first_download = False
-            code_message = "Is the file in the core newer? (2 = no, 0 = yes)"
+            if 'url' not in demoinfo_resp:
+                # DemoExtras was removed from demoinfo
+                shutil.rmtree(demoextras_compress_dir) # remove compress file
+                shutil.rmtree(os.path.join(self.demoExtrasMainDir, demo_id)) # remove decompress file
+                return
 
-            file_state = os.stat(compressed_file)
-            userdata["time_of_file_in_core"] = str(file_state.st_ctime)
-            userdata["size_of_file_in_core"] = str(file_state.st_size)
+            demoinfo_demoextras_date = demoinfo_resp['date']
+            demoinfo_demoextras_size = demoinfo_resp['size']
+            core_demoextras_date = os.stat(demoextras_file).st_mtime
+            core_demoextras_size = os.stat(demoextras_file).st_size
+            if core_demoextras_date <= demoinfo_demoextras_date or core_demoextras_size != demoinfo_demoextras_size:
+                # DemoExtras needs an update
+                self.download(demoinfo_resp['url'], demoextras_file)
+                self.extract_demo_extra(demo_id, demoextras_file)
 
-            resp = self.post(self.host_name, 'demoinfo',
-                             'get_file_updated_state', userdata)
 
-        response = resp.json()
-        status = response['status']
-        code = response['code']
-
-        if status == "OK":
-
-            print code_message, code
-            if code == "2":
-                file_from_demoinfo = response['url_compressed_file']
-                self.download_demo_extra(file_from_demoinfo, compressed_file, first_download)
-
-                if not self.extract_demo_extra(demo_id, compressed_file):
-                    raise
-        else:
-            error_message = "KO downloading a demoextras. \
-Demoinfo code = {}".format(response['code'])
-            self.logger.exception(error_message)
-            print error_message
-            raise
-
-        return response
 
     @staticmethod
     def create_new_execution_key(logger):
@@ -1405,8 +1351,14 @@ demo_id = ", demo_id
                 return json.dumps(response)
 
             print "Entering ensure_extras_updated()"
-            data = self.ensure_extras_updated(demo_id)
-            print "Result in ensure_extras_updated : ", data
+            try:
+                self.ensure_extras_updated(demo_id)
+            except IPOLDemoExtrasError as ex:
+                self.logger.exception("Ensure_extras_updated error, demo_id={}".format(demo_id))
+                print "Ensure_extras_updated failed for demo #{}. Error: {}".format(demo_id, ex)
+                response = {'status': 'KO',
+                            'error': 'An internal error occurred while retrieving the demoExtras: {}'.format(ex)}
+                return json.dumps(response)
 
             # save parameters as a params.json file
             try:

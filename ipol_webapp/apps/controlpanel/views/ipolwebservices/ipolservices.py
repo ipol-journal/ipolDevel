@@ -21,7 +21,7 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
         demoinfo_ws_url_delete_author_from_demo, demoinfo_ws_url_editor_list, demoinfo_ws_url_editor_list_for_demo, \
         demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
         demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
-        demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_list_for_demo, \
+        demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_for_demo, \
         demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
         proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo,archive_ws_url_update_demo_id,blobs_update_demo_id
 
@@ -531,9 +531,9 @@ def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 
 #DEMO EXTRAS
 
-def demoinfo_demo_extras_list_for_demo(demo_id):
+def demoinfo_demo_extras_for_demo(demo_id):
 
-    service_name = demoinfo_ws_url_demo_extras_list_for_demo
+    service_name = demoinfo_ws_url_demo_extras_for_demo
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}

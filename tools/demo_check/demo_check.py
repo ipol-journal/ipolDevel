@@ -109,12 +109,12 @@ def has_demo_extras(editors_demoid):
     """
     Check if the demo has or not demo extras and returns a boolean
     """
-    resp = post('get_compressed_file_url_ws', {"demo_id":editors_demoid})
+    resp = post('get_demo_extras_info', {"demo_id":editors_demoid})
     response = resp.json()
     if not response['status'] == 'OK':
-        print "ERROR: get_compressed_file_url_ws returned KO"
+        print "ERROR: get_demo_extras_info returned KO"
         return
-    return response['code'] == '2' # Code: 1=doesn't have demoextras, code=2 have demoextras
+    return 'url' in response # If there is a URL in the response it means there are demoExtras
 
 
 def check_demo_extras(editors_demoid, ddl):
