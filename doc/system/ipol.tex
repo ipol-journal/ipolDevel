@@ -219,7 +219,7 @@ In this section we add general comments on the projects, parts which still neeed
 \item python-gdal
 \end{itemize}
 
-Packages to be installed with pip install:
+Packages to be installed with pip install: \miguel{This should be put in a requirements.txt file and here document only how to use that file.}
 \begin{itemize}
 \item python-magic
 \item pypng
@@ -339,38 +339,9 @@ sonFlickrFeed({
   \item To ensure good compilation of the algorithm source codes
 \end{itemize}
 
-We need to use PyUnit for the unit tests.
-
-- Implement authentication in the Proxy to prevent that unauthorized entities (i.e. other that the CP) perform write operations in the system. It can be done for example with a service in the Proxy which add the client to a table of authorized clients for some time, and a list of privileged functions in the API.
-
-- Related for the previous point, configure {\tt iptables} to block access to certain services. It seems that we'll have to put the services in one port and the static content in other, to filter the access. This problem needs to be studied.
-
-- When a error happens during execution, the core should send an email to the autors, and also IPOL's tech and edit.
-
-- Now the flow to execute a demo is as follows: 1) The JQuery calls the run webservices in the Core 2) The Core runs the demo and sends back the results to JQuery in the JSON response. This is the right way to do it and the flow must not change. However, we could use asynchronous push status messages\footnote{\url{https://www.w3.org/TR/push-api/}} from the Core to the client related to the execution (say, when it's compiling, copying blobs, doing conversions or running the user's code). 
+We can use PyUnit for the unit tests, but the most important is to have system-scope tests.
 
 - Add statistics data collecting. Piwik can be used for this. Or Google Analytics, amongs others.
-
-
-\subsection{Design issues (a.k.a. \emph{Hall of Shame})}
-\miguel{This section is maintained by Miguel Colom to track bad design issues. Please do never edit it.}
-
-
-- DemoRunner has a lot of {\tt exec} commands which inject code to update variables in the DR Python's workspace. This solution is totally unacceptable from the point of view of system design and moreover it means a huge security risk for the server. The possibility of manipulating variables in the DDL with the {\tt python: } prefix does not justify such a bad design.
-
-The proposed solution is that DR reads the parameters from the webservice's call, update a dictionary without code injection, and makes very simple substitutions. For example:
-
-\begin{verbatim}
-run.sh ${sigma} ${removeFlag} ${demoExtras}/data/polynomial${polNum}.txt
-\end{verbatim}
-
-The user's scripts are allowed to write a file with the params and variable values, which will be read by the Core and send it along the run response to the JQuery code. This allows to update parameters and variables in the client interface.
-
-The idea behind the DDL is to \emph{describe} the demo, not to specify the operations needed to run it. Thus, any scripts containing running operations must be given as a user's script will will be called from run.sh
-
-- DemoRunner is writing a {\tt params.json} file and stores it in the run directory. Actually, only the Core needs to write and read this file. It doesn't make any sense that demoRunner stores these parameters. If we consider that we finally need this {\tt params.json} file to re-create the page in another client given the demo ID and experiment key, it should be the Core, not DemoRunner who is responsible for writing and reading it.
-
-In the current system another use of the {\tt params.json} file is to store the lines drawn by the user. It's correct that this data is considered as a parameter, and it's true that perhaps it's too big to be passed as a text string. In any case, if we adopt the solution of keeping the {\tt params.json} file in the run directory, it has to be written by the Core, never by DemoRunner.
 
 
 \bibliographystyle{plain}
