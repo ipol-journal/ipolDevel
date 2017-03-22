@@ -1002,31 +1002,17 @@ work_dir={}, original_blob_path={}". \
         return emails
 
     @staticmethod
-    def send_email(subject, text, emails, zip_filename=None):
+    def send_email(subject, text, emails, sender, zip_filename=None):
         """
         Send an email to the given recipients
         """
         if text is None:
             text = ""
-
-        emails_list = []
-
-        for section in emails:
-            if section == 'sender': continue
-            if section != 'editors':
-                emails_list.append(emails[section]['email'])
-                continue
-            else:
-                i = 0
-                while i < len(emails[section]):
-                    emails_list.append(emails[section][i]['email'])
-                    i += 1
-
-        emails_str = ", ".join(emails_list)
+        emails_str = ", ".join(emails)
 
         msg = MIMEMultipart()
         msg['Subject'] = subject
-        msg['From'] = "{} <{}>".format(emails["sender"]["name"], emails["sender"]["email"])
+        msg['From'] = "{} <{}>".format(sender["name"], sender["email"])
         msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
 
@@ -1041,15 +1027,16 @@ work_dir={}, original_blob_path={}". \
         try:
             s = smtplib.SMTP('localhost')
             # Must pass only a list here
-            s.sendmail(msg['From'], emails_list, msg.as_string())
+            s.sendmail(msg['From'], emails, msg.as_string())
             s.quit()
         except:
             pass
 
     def send_compilation_error_email(self, demo_id, text):
-        """ Send email to editor when compilation fails """
-        print "send_compilation_error_email"
-        emails = {}
+        """
+        Send email to editor when compilation fails
+        """
+        emails = []
 
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
@@ -1057,19 +1044,20 @@ work_dir={}, original_blob_path={}". \
         # the demo has been published
 
         config_emails = self.read_emails_from_config()
-        emails['editors'] = self.get_demo_editor_list(demo_id)
-        if self.serverEnvironment == 'production' and \
-                        demo_state == "published":
-            emails['tech'] = config_emails['tech']
-            emails['edit'] = config_emails['edit']
+
+        for editor_mail in self.get_demo_editor_list(demo_id):
+            emails.append(editor_mail['email'])
+
+        if self.serverEnvironment == 'production' and demo_state == "published":
+            emails += config_emails['tech']['email'].split(",")
+            emails += config_emails['edit']['email'].split(",")
         if len(emails) == 0:
             return
 
-        emails['sender'] = config_emails['sender']
 
         # Send the email
         subject = 'Compilation of demo #{} failed'.format(demo_id)
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     def read_emails_from_config(self):
         """
@@ -1109,18 +1097,19 @@ work_dir={}, original_blob_path={}". \
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
-        emails['editors'] = self.get_demo_editor_list(demo_id)
-        if self.serverEnvironment == 'production' and \
-                        demo_state == "published":
-            emails['tech'] = config_emails['tech']
-            emails['edit'] = config_emails['edit']
+
+        for editor in self.get_demo_editor_list(demo_id):
+            emails.append(editor['email'])
+
+        if not self.serverEnvironment == 'production' and demo_state == "published":
+            emails += config_emails['tech']['email'].split(",")
+            emails += config_emails['edit']['email'].split(",")
 
         if len(emails) == 0:
             return
 
-        emails['sender'] = config_emails['sender']
 
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
@@ -1137,21 +1126,19 @@ attached the failed experiment data.". \
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
-
-        self.send_email(subject, text, emails, zip_filename=zip_filename)
+        self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
 
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
         """
         Send email to editor when the demorruner is down
         """
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
         if self.serverEnvironment == 'production':
-            emails['tech'] = config_emails['tech']
+            emails += config_emails['tech']['email'].split(",")
         if len(emails) == 0:
             return
-        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1163,19 +1150,18 @@ attached the failed experiment data.". \
                "\nThe list of demorunners unresponsive is: {}.". \
             format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     def send_not_demorunner_for_published_demo_email(self,demo_id):
         """
         Send email to tech when there isn't any suitable demorunner for a published demo
         """
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
-        if self.serverEnvironment == 'production':
-            emails['tech'] = config_emails['tech']
+        if not self.serverEnvironment == 'production':
+            emails += config_emails['tech']['email'].split(",")
         if len(emails) == 0:
             return
-        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1184,7 +1170,7 @@ attached the failed experiment data.". \
                "\nThere isn't any suitable demorunner for demo: {}.". \
             format(hostname, hostbyname,demo_id)
         subject = '[IPOL Core] Not suitable demorunner'
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     @cherrypy.expose
     def run(self, demo_id, **kwargs):
@@ -1402,13 +1388,10 @@ attached the failed experiment data.". \
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
-
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name,
-                                                     demorunner_response["algo_info"]["status"])
-                response = {}
-                response["error"] = website_message
-                response["status"] = "KO"
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"])
+                response = {"error": website_message,
+                            "status": "KO"}
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
