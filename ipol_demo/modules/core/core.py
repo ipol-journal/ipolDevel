@@ -21,6 +21,9 @@ from Tools.image import image
 from Tools.sendarchive import SendArchive
 from Tools.evaluator import *
 from errors import IPOLDemoExtrasError
+from errors import IPOLInputUploadError
+from errors import IPOLCopyBlobsError
+from errors import IPOLProcessInputsError
 
 import shutil
 import json
@@ -669,20 +672,17 @@ workload of '{}'".format(dr_name)
                     msg += input_msg + "<br/>\n"
                     # end if type is image
             else:
-                if inputs_desc[i]['type'] == "data":
-                    if 'ext' in inputs_desc[i]:
-                        ext = inputs_desc[i]['ext']
-                    else:
-                        error_message = "The DDL does not have extension field"
-                        print error_message
-                        self.logger.exception(error_message)
-                        raise
+                if not inputs_desc[i]['type'] == "data":
+                    return
+                if not 'ext' in inputs_desc[i]:
+                    raise IPOLProcessInputsError ("The DDL does not have extension field")
 
-                    blob_path_without_extension = os.path.splitext(input_files[0])
+                ext = inputs_desc[i]['ext']
 
-                    blob_with_ddl_extension = blob_path_without_extension[0] + ext
-                    os.rename(input_files[0], blob_with_ddl_extension)
-                    print "The blob is now {}".format(blob_with_ddl_extension)
+                blob_path_without_extension = os.path.splitext(input_files[0])
+
+                blob_with_ddl_extension = blob_path_without_extension[0] + ext
+                os.rename(input_files[0], blob_with_ddl_extension)
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -693,7 +693,6 @@ workload of '{}'".format(dr_name)
         """
         print "#### input_upload ####"
 
-        print "inputs_desc = ", inputs_desc
         nb_inputs = len(inputs_desc)
 
         for i in range(nb_inputs):
@@ -703,8 +702,7 @@ workload of '{}'".format(dr_name)
                 if not ('required' in inputs_desc[i].keys()) or \
                         inputs_desc[i]['required']:
                     ## missing file
-                    raise cherrypy.HTTPError(400,  # Bad Request
-                                             "Missing input file number {0}".format(i))
+                    raise cherrypy.HTTPError(400,"Missing input file number {0}".format(i))
                 else:
                     # skip this input
                     continue
@@ -712,27 +710,18 @@ workload of '{}'".format(dr_name)
             content_type = file_up.content_type
             type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
 
-            if 'ext' in inputs_desc[i]:
-                ext = inputs_desc[i]['ext']
-            else:
-                error_message = "The DDL does not have extension field"
-                print error_message
-                raise
+            if not 'ext' in inputs_desc[i]:
+                raise IPOLInputUploadError ("The DDL does not have extension field")
 
-            if 'type' in inputs_desc[i]:
-                if inputs_desc[i]['type'] == type_of_uploaded_blob or inputs_desc[i]['type'] == "data":
-                    # We keep the file according it was uploaded
-                    # process_inputs will make the possible modifications
-                    file_save = file(os.path.join(
-                        work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
-                else:
-                    error_message = "The DDL type does not match with the uploaded file"
-                    print error_message
-                    raise
-            else:
-                error_message = "The DDL does not have type field"
-                print error_message
-                raise
+            if not 'type' in inputs_desc[i]:
+                raise IPOLInputUploadError("The DDL does not have type field")
+
+            if not inputs_desc[i]['type'] == type_of_uploaded_blob and not inputs_desc[i]['type'] == "data":
+                raise IPOLInputUploadError("The DDL type does not match with the uploaded file")
+
+            # We keep the file according it was uploaded
+            # process_inputs will make the possible modifications
+            file_save = file(os.path.join(work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
 
             size = 0
             while True:
@@ -744,9 +733,7 @@ workload of '{}'".format(dr_name)
                                 size > evaluate(str(inputs_desc[i]['max_weight'])):
                     # file too heavy
                     # Bad Request
-                    raise cherrypy.HTTPError(400,
-                                             "File too large, " +
-                                             "resize or compress more")
+                    raise cherrypy.HTTPError(400,"File too large, resize or compress more")
 
                 file_save.write(data)
             file_save.close()
@@ -806,20 +793,16 @@ work_dir={}, original_blob_path={}". \
         copy the blobs in the run path.
         The blobs can be uploaded by post method or a blobs from blob module
         """
-        print "### Entering copy_blobs_from_blobs_module...  ###"
 
         if input_type == 'upload':
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
 
-            if 'id_blobs' in blobs:
-                blobs_id_list = blobs['id_blobs']
-                self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
-            else:
-                error_message = "There is not id blobs"
-                print error_message
-                self.logger.exception(error_message)
-                raise
+            if not 'id_blobs' in blobs:
+                raise IPOLCopyBlobsError("There is not id blobs")
+
+            blobs_id_list = blobs['id_blobs']
+            self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
 
     ##---------------
     ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
@@ -921,7 +904,6 @@ work_dir={}, original_blob_path={}". \
             raise IPOLDemoExtrasError("Demoinfo responds with a KO")
 
         if not os.path.isfile(demoextras_file):
-            print 0
             if not 'url' in demoinfo_resp:
                 return
             # There is a new demoExtras in demoinfo
@@ -1020,31 +1002,17 @@ work_dir={}, original_blob_path={}". \
         return emails
 
     @staticmethod
-    def send_email(subject, text, emails, zip_filename=None):
+    def send_email(subject, text, emails, sender, zip_filename=None):
         """
         Send an email to the given recipients
         """
         if text is None:
             text = ""
-
-        emails_list = []
-
-        for section in emails:
-            if section == 'sender': continue
-            if section != 'editors':
-                emails_list.append(emails[section]['email'])
-                continue
-            else:
-                i = 0
-                while i < len(emails[section]):
-                    emails_list.append(emails[section][i]['email'])
-                    i += 1
-
-        emails_str = ", ".join(emails_list)
+        emails_str = ", ".join(emails)
 
         msg = MIMEMultipart()
         msg['Subject'] = subject
-        msg['From'] = "{} <{}>".format(emails["sender"]["name"], emails["sender"]["email"])
+        msg['From'] = "{} <{}>".format(sender["name"], sender["email"])
         msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
 
@@ -1059,15 +1027,16 @@ work_dir={}, original_blob_path={}". \
         try:
             s = smtplib.SMTP('localhost')
             # Must pass only a list here
-            s.sendmail(msg['From'], emails_list, msg.as_string())
+            s.sendmail(msg['From'], emails, msg.as_string())
             s.quit()
         except:
             pass
 
     def send_compilation_error_email(self, demo_id, text):
-        """ Send email to editor when compilation fails """
-        print "send_compilation_error_email"
-        emails = {}
+        """
+        Send email to editor when compilation fails
+        """
+        emails = []
 
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
@@ -1075,19 +1044,20 @@ work_dir={}, original_blob_path={}". \
         # the demo has been published
 
         config_emails = self.read_emails_from_config()
-        emails['editors'] = self.get_demo_editor_list(demo_id)
-        if self.serverEnvironment == 'production' and \
-                        demo_state == "published":
-            emails['tech'] = config_emails['tech']
-            emails['edit'] = config_emails['edit']
+
+        for editor_mail in self.get_demo_editor_list(demo_id):
+            emails.append(editor_mail['email'])
+
+        if self.serverEnvironment == 'production' and demo_state == "published":
+            emails += config_emails['tech']['email'].split(",")
+            emails += config_emails['edit']['email'].split(",")
         if len(emails) == 0:
             return
 
-        emails['sender'] = config_emails['sender']
 
         # Send the email
         subject = 'Compilation of demo #{} failed'.format(demo_id)
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     def read_emails_from_config(self):
         """
@@ -1127,18 +1097,19 @@ work_dir={}, original_blob_path={}". \
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
-        emails['editors'] = self.get_demo_editor_list(demo_id)
-        if self.serverEnvironment == 'production' and \
-                        demo_state == "published":
-            emails['tech'] = config_emails['tech']
-            emails['edit'] = config_emails['edit']
+
+        for editor in self.get_demo_editor_list(demo_id):
+            emails.append(editor['email'])
+
+        if not self.serverEnvironment == 'production' and demo_state == "published":
+            emails += config_emails['tech']['email'].split(",")
+            emails += config_emails['edit']['email'].split(",")
 
         if len(emails) == 0:
             return
 
-        emails['sender'] = config_emails['sender']
 
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
@@ -1155,21 +1126,19 @@ attached the failed experiment data.". \
         zipf = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED)
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
-
-        self.send_email(subject, text, emails, zip_filename=zip_filename)
+        self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
 
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
         """
         Send email to editor when the demorruner is down
         """
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
         if self.serverEnvironment == 'production':
-            emails['tech'] = config_emails['tech']
+            emails += config_emails['tech']['email'].split(",")
         if len(emails) == 0:
             return
-        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1181,19 +1150,18 @@ attached the failed experiment data.". \
                "\nThe list of demorunners unresponsive is: {}.". \
             format(hostname, hostbyname, unresponsive_demorunners_list)
         subject = '[IPOL Core] Demorunner unresponsive'
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     def send_not_demorunner_for_published_demo_email(self,demo_id):
         """
         Send email to tech when there isn't any suitable demorunner for a published demo
         """
-        emails = {}
+        emails = []
         config_emails = self.read_emails_from_config()
-        if self.serverEnvironment == 'production':
-            emails['tech'] = config_emails['tech']
+        if not self.serverEnvironment == 'production':
+            emails += config_emails['tech']['email'].split(",")
         if len(emails) == 0:
             return
-        emails['sender'] = config_emails['sender']
 
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1202,7 +1170,7 @@ attached the failed experiment data.". \
                "\nThere isn't any suitable demorunner for demo: {}.". \
             format(hostname, hostbyname,demo_id)
         subject = '[IPOL Core] Not suitable demorunner'
-        self.send_email(subject, text, emails)
+        self.send_email(subject, text, emails, config_emails['sender'])
 
     @cherrypy.expose
     def run(self, demo_id, **kwargs):
@@ -1293,18 +1261,34 @@ attached the failed experiment data.". \
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
             except IPOLEvaluateError as ex:
-                res_data = {}
-                res_data['error'] = 'invalid expresion "{}" found in the DDL'.format(ex)
-                res_data['status'] = 'KO'
+                res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
+                            'status': 'KO'}
                 self.logger.exception("copy_blobs/process_inputs FAILED")
+                print 'Invalid expression "{}" found in the DDL'.format(ex)
+                return json.dumps(res_data)
+            except IPOLCopyBlobsError as ex:
+                res_data = {'error': 'internal error copying blobs. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "Copy blobs failed. Error: {}".format(ex)
+                return json.dumps(res_data)
+            except IPOLInputUploadError as ex:
+                res_data = {'error': 'internal error uploading input. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "Input upload failed. Error: {}".format(ex)
+                return json.dumps(res_data)
+            except IPOLProcessInputsError as ex:
+                res_data = {'error': 'internal error processing inputs. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("Processing inputs failed. Error: {}".format(ex))
+                print "Input upload failed. Error: {}".format(ex)
                 return json.dumps(res_data)
             except Exception as ex:
-                print "FAILURE in copy_blobs/process_inputs. \
-demo_id = ", demo_id
-                res_data = {}
-                res_data['error'] = 'internal error. Blobs operations failed'
-                res_data['status'] = 'KO'
+                res_data = {'error': 'internal error. Blobs operations failed',
+                            'status': 'KO'}
                 self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
                 return json.dumps(res_data)
 
         try:
@@ -1404,13 +1388,10 @@ demo_id = ", demo_id
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 self.error_log("dr.exec_and_wait()", "DR returned KO")
-
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name,
-                                                     demorunner_response["algo_info"]["status"])
-                response = {}
-                response["error"] = website_message
-                response["status"] = "KO"
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"])
+                response = {"error": website_message,
+                            "status": "KO"}
                 # Send email to the editors
                 self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
