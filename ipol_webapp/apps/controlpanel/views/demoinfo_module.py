@@ -12,7 +12,7 @@ from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
         get_demoinfo_available_editor_list, get_demoinfo_module_states
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
-        DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList,DeserializeDemoinfoDemoExtrasList
+        DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList,DeserializeDemoinfoDemoExtras
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
@@ -1688,8 +1688,8 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
                 print(msg)
                 pass
 
-            page_json = ipolservices.demoinfo_demo_extras_list_for_demo(demo_id)
-            result = DeserializeDemoinfoDemoExtrasList(page_json)
+            page_json = ipolservices.demoinfo_demo_extras_for_demo(demo_id)
+            result = DeserializeDemoinfoDemoExtras(page_json)
 
         except Exception as e:
             msg="Error list_demo_extras_for_demo %s"%e

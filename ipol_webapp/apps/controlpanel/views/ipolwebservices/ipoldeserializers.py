@@ -8,6 +8,7 @@ from django.utils.six import BytesIO
 from rest_framework.parsers import JSONParser
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -445,32 +446,28 @@ def DeserializeDemoinfoEditorList(jsonresult):
 
 #DEMO EXTRAS
 
-def DeserializeDemoinfoDemoExtrasList(jsonresult):
+def DeserializeDemoinfoDemoExtras(jsonresult):
 
     class DemoExtra(object):
-        def __init__(self, status,code,url_compressed_file,name):
+        def __init__(self, status,url_compressed_file,name):
             self.status = status
-            self.code = code
             self.name = name
             self.url_compressed_file = url_compressed_file
 
 
-    #Using data from WS
-    jsondata = jsonresult
-    import json
     #Deserialization.
     myel = None
     try:
 
-        stream = BytesIO(jsondata)
+        stream = BytesIO(jsonresult)
         data = JSONParser().parse(stream)
         if data['status'] == "OK":
-            if data['code'] == "2":
-                url = data['url_compressed_file']
-                name = url.split("/")
-                myel = DemoExtra(data['status'],data['code'], url,name[len(name)-1])
+            if 'url' in data:
+                url = data['url']
+
+                myel = DemoExtra(data['status'],url, os.path.basename(url))
             else:
-                myel = DemoExtra(data['status'],data['code'], "","")
+                myel = DemoExtra(data['status'], "", "")
 
     except Exception,e:
         msg="Error DeserializeEditorinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e

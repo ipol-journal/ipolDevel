@@ -14,3 +14,20 @@ In order to distribute the load among several machines, the Core checks the load
 
 
 \ToDo{Document the run program of the Core, and which are the main operations which are performed and which are delegated. For example: blob conversion, copy blobs, ask the dispatcher for the best demoRunner according to a policy chosen by the Core, send the execution to a demoRunner, delegate in Archive to store the results if needed, etc. It should also be explained the shared folder.}
+
+\subsection{DemoExtras}
+
+For the execution of some demos it is necessary some extra files called DemoExtras. Those files are stored in a compressed file (.tar.gz)
+in the demoinfo module. Also, a copy of this compressed file is stored in the ``dl\_extras'' folder in the ``shared\_folder'' for comparison
+reasons.
+
+The first time a DemoExtra is found, the core uncompress the file into ``DemoExtras'' folder in the ``shared\_folder''. And in each execution
+the core checks the date and the size of the compressed file in the ``shared\_folder'' with the one stored in demoinfo.
+
+The possible results from the check are:
+\begin{itemize}
+ \item \textbf{Date and size match:} Nothing is done
+ \item \textbf{Date or size don't match:} The DemoExtra is downloaded again
+ \item \textbf{DemoExtra deleted in demoinfo:} All DemoExtras files related to that demo are deleted in the ``share\_folder''
+\end{itemize}
+

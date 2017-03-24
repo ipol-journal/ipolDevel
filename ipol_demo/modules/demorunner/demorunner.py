@@ -590,7 +590,7 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             return json.dumps(res_data)
         except KeyError as ex:
             error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(str(ex), ddl_run)
-            self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
+            self.write_log("exec_and_wait", "KeyError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
             res_data['algo_info']['status'] = error_str
             res_data['error'] = error_str
