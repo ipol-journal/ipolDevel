@@ -70,7 +70,11 @@ def check_ddl(ddl):
     Check if there is any DDL
     """
     if ddl is None:
-        return {"DDL":"This demo does not have any DDL"}
+        return {"DDL": "This demo does not have any DDL"}
+        
+    ddl_json = json.loads(ddl)
+    if len(ddl_json.keys()) == 0:
+        return {"DDL": "No sections found"}
 
     return {}
 
@@ -79,6 +83,9 @@ def check_run_in_DDL(ddl):
     Check if the run is correct
     """
     ddl_json = json.loads(ddl)
+
+    if "run" not in ddl_json:
+        return {"Run": "Missing 'run' section"}
 
     if isinstance(ddl_json["run"], list):
         return {"Run":"This demo has runs with the deprecated syntax"}
@@ -90,8 +97,11 @@ def check_build_in_DDL(ddl):
     """
     ddl_json = json.loads(ddl)
 
+    if not 'build' in ddl_json:
+        return {"Build": "Missing 'build' section"}
+
     if not 'build1' in ddl_json["build"]:
-        return {"Build":"This demo has builds with the deprecated syntax"}
+        return {"Build":" This demo has builds with the deprecated syntax"}
     return {}
 
 def check_url_in_DDL(ddl):
@@ -151,7 +161,7 @@ def check_editors(editors):
     """
 
     if len(editors) < 1:
-        return {"Editors":"This demo does not have any editor"}
+        return {"Editors": "This demo does not have any editor"}
     return {}
 
 
