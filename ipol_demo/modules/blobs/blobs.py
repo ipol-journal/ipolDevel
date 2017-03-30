@@ -1444,12 +1444,12 @@ class   Blobs(object):
         """
         main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
 
-        file_dest, _, _  = dispersed_path(main_blobs_folder, \
+        file_dest, new_folder, _  = dispersed_path(main_blobs_folder, \
                                           blob_hash, \
                                           extension)
 
-        if not os.path.exists(file_dest):
-            os.makedirs(file_dest)
+        if not os.path.exists(new_folder):
+            os.makedirs(new_folder)
 
         shutil.move(path, file_dest)
         return file_dest
