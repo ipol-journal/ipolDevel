@@ -1435,7 +1435,7 @@ class   Blobs(object):
         Move the temporary blob in this directory
         Changing the name of the blob by the hash
 
-        :param path: path of the temporary directory (!= /tmp/)
+       :param path: path of the temporary directory (!= /tmp/)
         :type path: string
         :param the_hash: hash content blob
         :type the_hash: string
@@ -1443,12 +1443,13 @@ class   Blobs(object):
         :type extension: string
         """
         main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
-        if not os.path.exists(main_blobs_folder):
-            os.makedirs(main_blobs_folder)
 
-        file_dest, _, _ = dispersed_path(main_blobs_folder, \
+        file_dest, _, _  = dispersed_path(main_blobs_folder, \
                                           blob_hash, \
                                           extension)
+
+        if not os.path.exists(file_dest):
+            os.makedirs(file_dest)
 
         shutil.move(path, file_dest)
         return file_dest
