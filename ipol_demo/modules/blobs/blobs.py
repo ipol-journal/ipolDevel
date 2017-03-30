@@ -1435,7 +1435,7 @@ class   Blobs(object):
         Move the temporary blob in this directory
         Changing the name of the blob by the hash
 
-        :param path: path of the temporary directory (!= /tmp/)
+       :param path: path of the temporary directory (!= /tmp/)
         :type path: string
         :param the_hash: hash content blob
         :type the_hash: string
@@ -1443,12 +1443,13 @@ class   Blobs(object):
         :type extension: string
         """
         main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
-        if not os.path.exists(main_blobs_folder):
-            os.makedirs(main_blobs_folder)
 
-        file_dest, _, _ = dispersed_path(main_blobs_folder, \
+        file_dest, new_folder, _  = dispersed_path(main_blobs_folder, \
                                           blob_hash, \
                                           extension)
+
+        if not os.path.exists(new_folder):
+            os.makedirs(new_folder)
 
         shutil.move(path, file_dest)
         return file_dest
@@ -1459,19 +1460,21 @@ class   Blobs(object):
         Create thumbnail with source path of the image
         Needed to improve it for sound and video !
 
-        :param src: source path of the blob
+       :param src: source path of the blob
         :type src: string
         """
         main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
-        if not os.path.exists(main_thumb_folder):
-            os.makedirs(main_thumb_folder)
         name = os.path.basename(src)
         blob_hash = os.path.splitext(name)[0]
         # force thumbnail extension to be .jpg
-        file_dest, _, _ = dispersed_path(main_thumb_folder, \
+        file_dest, new_folder, _ = dispersed_path(main_thumb_folder, \
                                           blob_hash, \
                                           ".jpg", \
                                           True)
+        
+        if not os.path.exists(new_folder):
+            os.makedirs(new_folder)
+        
         fil_format = file_format(src)
         try:
             if fil_format == 'image':

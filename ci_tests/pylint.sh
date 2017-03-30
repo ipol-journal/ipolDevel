@@ -3,7 +3,7 @@
 # Pylint report
 # Miguel Colom, 2016
 
-me=miguel #ipol #$(whoami)
+me=$(whoami)
 modulesDir="/home/${me}/ipolDevel/ipol_demo/modules/"
 report="/home/${me}/ipolDevel/ci_tests/pylint_report.txt"
 modules="core archive blobs demoinfo demorunner dispatcher"
