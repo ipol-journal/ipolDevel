@@ -16,15 +16,10 @@
 
 
 
-Login in dev enviroment:
-	--Ipol Cp App
-	http://127.0.1.1:8000
+First create a superuser:
+python manage.py createsuperuser
+http://127.0.1.1/cp/admin
 
-		user:ipoluser
-		passwd:ipoluser2015
+Login:
+	http://127.0.1.1/cp
 
-	--Ipol CP admin app (this is for configuring the app, do not experiment with this)
-	http://ns3018037.ip-151-80-24.eu:8000/admin
-
-		user:ipolcpadmin
-		passwd:ipolazsxdc
