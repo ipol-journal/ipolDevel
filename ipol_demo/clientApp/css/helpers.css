@@ -1,0 +1,16 @@
+.di{
+    display: inline;
+}
+
+.di-none{
+    display: none;
+}
+
+.p-x-10 {
+    padding: 0 10px;
+}
+
+
+.vertical-align {
+    align-items: center;
+}

@@ -1,0 +1,104 @@
+#header {
+    margin: 0 0 0 2em;
+    min-height: 65px;
+    font-weight: normal;
+    font-size: 100%;
+    color: #555
+}
+
+#header a {
+    color: #555
+}
+
+#header a:hover {
+    color: #5b4ba6
+}
+
+#header a:hover {
+    text-decoration: none
+}
+
+.pageheader {
+    margin: 0 0 1em 0;
+    padding: 1em 2em 0 2em;
+    padding: 0;
+    border-bottom: #cecece 1px solid;
+    width: 100%
+}
+
+#motto {
+    margin: 0;
+    padding: .4em 0;
+    font-family: Arial, Helvetica, Tahoma, sans-serif;
+    font-size: 160%;
+    max-height: 1.7em
+}
+
+#motto img {
+    vertical-align: middle
+}
+
+#menu {
+    margin: 0;
+    padding: 1px 2.2em 1px 0;
+    font-size: 90%;
+    font-family: Verdana, _Verdana, Arial, Helvetica, Tahoma, sans-serif;
+    text-align: right;
+    max-width: 71em
+}
+
+#menu ul {
+    margin: 0;
+    padding: 1px 0;
+    list-style-type: none
+}
+
+#menu li {
+    padding: 0;
+    margin: 0;
+    display: inline
+}
+
+#menu li:after {
+    content: " ·"
+}
+
+#menu li:last-child:after {
+    content: none
+}
+
+#menu form#search {
+    display: inline
+}
+
+#menu li.search input {
+    background: #fff;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    font-size: 100%;
+    color: inherit;
+    font-family: Verdana, _Verdana, Arial, Helvetica, Tahoma, sans-serif
+}
+
+#menu li.search input[type="submit"] {
+    cursor: pointer
+}
+
+#menu li.search:hover input[type="submit"] {
+    color: #5b4ba6;
+    text-decoration: underline
+}
+
+#menu li.search input[type="text"] {
+    padding: 0;
+    border: #d4c9e9 1px solid;
+    font-weight: normal;
+    width: 8em
+}
+
+#menu li.search:hover input[type="text"] {
+    background: #d4c9e9;
+    border: #5b4ba6 1px solid;
+    color: #5b4ba6
+}
