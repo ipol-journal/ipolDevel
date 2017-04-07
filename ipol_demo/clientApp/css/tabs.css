@@ -1,0 +1,39 @@
+#tabs-nohdr {
+  padding: 1px 4px;
+  background: none;
+  border-width: 0px;
+  font-family:Arial,Helvetica,Tahoma,sans-serif;
+  font-size:1em;
+}
+#tabs-nohdr .ui-tabs-nav {
+  background: transparent;
+  border-width: 0px 0px 1px 0px;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0px;
+}
+
+#tabs-nohdr  .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default
+{
+   background: #d4c9e9;
+   font-weight: normal;
+   color: White;
+}
+
+#tabs-nohdr  .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active
+{
+   background: none;
+   font-weight: normal;
+   color: white;
+}
+
+#tabs-nohdr  ul li
+{
+  margin:1px 0.3em 0 0;
+}
+
+#tabs-nohdr  ul li a
+{
+    padding:0.1em 0.3em;
+    display:block;
+}
