@@ -1692,33 +1692,29 @@ class DemoInfo(object):
         return json.dumps(data)
 
     @cherrypy.expose
-    def read_last_demodescription_from_demo(self, demo_id, returnjsons=None):
+    def get_ddl(self, demo_id):
         """
         webservice getting last description of the demo.
         """
         data = {}
         data["status"] = "KO"
         data["last_demodescription"] = None
+        
         try:
             #read all _demodescription for this demo
             conn = lite.connect(self.database_file)
             dd_dao = DemoDemoDescriptionDAO(conn)
 
-            if returnjsons is None:
-                last_demodescription = dd_dao.read_last_demodescription_from_demo(int(demo_id))
-            else:
-                last_demodescription = dd_dao.read_last_demodescription_from_demo(
-                    int(demo_id),
-                    returnjsons=returnjsons)
-
+            last_demodescription = dd_dao.get_ddl(int(demo_id))
+            
             data["last_demodescription"] = last_demodescription
             data["status"] = "OK"
             conn.close()
 
         except Exception as ex:
-            error_string = "demoinfo read_last_demodescription_from_demo error %s" % str(ex)
+            error_string = "demoinfo get_ddl error %s" % str(ex)
             print error_string
-            self.error_log("read_last_demodescription_from_demo", error_string)
+            self.error_log("get_ddl", error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1758,7 +1754,7 @@ class DemoInfo(object):
             state = demo_dao.read(int(demoid)).state
             if not state == "published": # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
-                demodescription = dao.read_last_demodescription_from_demo(int(demoid))
+                demodescription = dao.get_ddl(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
                 if demodescription is None: # Check if is a new demo

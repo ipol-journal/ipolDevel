@@ -144,7 +144,7 @@ ipol.demo_origin =  {
  * @param {number} demo_id the demo id
  * @param {ipol.demo_origin} origin of enum type demo_origin
  * @param {callback} func
- * @fires demoinfo:read_last_demodescription_from_demo
+ * @fires demoinfo:get_ddl
  * @fires blobs:get_blobs_of_demo_by_name_ws
  * @fires archive:get_experiment
  */
@@ -159,8 +159,8 @@ ipol.setDemoPage = function (demo_id,origin,func) {
     if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
-            'read_last_demodescription_from_demo',
-            'demo_id=' + demo_id + '&returnjsons=True',
+            'get_ddl',
+            'demo_id=' + demo_id,
             function(demo_ddl) {
 
                 if (demo_ddl.status == "OK") {
