@@ -1103,7 +1103,7 @@ work_dir={}, original_blob_path={}". \
         for editor in self.get_demo_editor_list(demo_id):
             emails.append(editor['email'])
 
-        if not self.serverEnvironment == 'production' and demo_state == "published":
+        if self.serverEnvironment == 'production' and demo_state == "published":
             emails += config_emails['tech']['email'].split(",")
             emails += config_emails['edit']['email'].split(",")
 
