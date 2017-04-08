@@ -53,10 +53,10 @@ def read_DDL(editors_demoid):
     Return the DDL for the demo with the given editordemoid
     """
     try:
-        resp = post('read_last_demodescription_from_demo', params={"demo_id": editors_demoid, "returnjsons": True})
+        resp = post('get_ddl', params={"demo_id": editors_demoid})
         response = resp.json()
         if response['status'] != 'OK':
-            print "ERROR: read_last_demodescription_from_demo returned KO for demo {}".format(editors_demoid)
+            print "ERROR: get_ddl returned KO for demo {}".format(editors_demoid)
             return
         if response['last_demodescription'] is None : return
         last_demodescription = response['last_demodescription']

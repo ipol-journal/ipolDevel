@@ -1103,7 +1103,7 @@ work_dir={}, original_blob_path={}". \
         for editor in self.get_demo_editor_list(demo_id):
             emails.append(editor['email'])
 
-        if not self.serverEnvironment == 'production' and demo_state == "published":
+        if self.serverEnvironment == 'production' and demo_state == "published":
             emails += config_emails['tech']['email'].split(",")
             emails += config_emails['edit']['email'].split(",")
 
@@ -1216,10 +1216,10 @@ attached the failed experiment data.". \
 
         ## Start of block to obtain the DDL
         try:
-            userdata = {"demo_id": demo_id, "returnjsons": 'True'}
             resp = self.post(self.host_name, 'demoinfo',
-                             'read_last_demodescription_from_demo', userdata)
+                             'get_ddl', {"demo_id": demo_id})
             response = resp.json()
+            
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(last_demodescription['json'])
             if 'build' in ddl_json:

@@ -1,0 +1,50 @@
+.inputContainer {
+    margin: 5% 20px;
+    padding: 5px;
+    border-bottom: 1px solid #cccccc;
+}
+
+.setContainer {
+    height: auto;
+    max-height: 360px;
+    border: 1px solid black;
+    border-radius: 3px;
+    overflow-y: auto;
+    overflow-x: auto;
+    /*white-space:nowrap;*/
+    width: auto;
+    padding: 0;
+    margin: 5px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.blobSet{
+    background-color: #EEE;
+    margin: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.blobSet img:not(:last-of-type){
+    margin-right: 3px;
+}
+
+.blobSet:hover img{
+    background-color: #cd5757;
+}
+
+.blobSet img {
+    height: 128px;
+    padding: 15px 15px;
+}
+
+.blobTitle {
+    flex: 0 1 100%;
+    text-align: center;
+    width: 1px;
+}

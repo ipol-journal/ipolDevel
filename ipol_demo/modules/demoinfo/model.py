@@ -525,45 +525,29 @@ class DemoDemoDescriptionDAO(object):
 
 
     @validates(typ(int))
-    def read_last_demodescription_from_demo(self, editorsdemoid, returnjsons=None):
+    def get_ddl(self, editorsdemoid):
         """
         return last demo description entered for editorsdemoid.
         """
         result = None
         # print
-        # print "   +++++++ read_last_demodescription_from_demo"
-        # print type(returnjsons)
+        # print "   +++++++ get_ddl +++++++++"
         try:
 
-            if returnjsons is True or returnjsons == 'True':
-
-                self.cursor.execute('''SELECT ddl.inproduction,ddl.creation,ddl.JSON, ddl.id
-                    FROM demodescription as ddl
-                    INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
-                    INNER JOIN demo ON  demo.ID = dd.demoId
-                    WHERE editor_demo_id = ?
-                    ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
-                self.conn.commit()
-                row = self.cursor.fetchone()
-                if row:
-                    result = {'inproduction': row[0], 'creation': row[1],
-                              'json': row[2], 'demodescriptionId': row[3]}
-            else:
-                self.cursor.execute('''SELECT ddl.inproduction,ddl.creation, ddl.id
-                    FROM demodescription as ddl
-                    INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
-                    INNER JOIN demo ON  demo.ID = dd.demoId
-                    WHERE editor_demo_id = ?
-                    ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
-                self.conn.commit()
-                row = self.cursor.fetchone()
-                if row:
-                    result = {'inproduction': row[0],
-                              'creation': row[1],
-                              'demodescriptionId': row[2]}
+            self.cursor.execute('''SELECT ddl.inproduction,ddl.creation,ddl.JSON, ddl.id
+                 FROM demodescription as ddl
+                 INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
+                 INNER JOIN demo ON  demo.ID = dd.demoId
+                 WHERE editor_demo_id = ?
+                 ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
+            self.conn.commit()
+            row = self.cursor.fetchone()
+            if row:
+                result = {'inproduction': row[0], 'creation': row[1],
+                          'json': row[2], 'demodescriptionId': row[3]}
 
         except Exception as ex:
-            error_string = ("read_last_demodescription_from_demo  e:%s" % (str(ex)))
+            error_string = ("get_ddl  e:%s" % (str(ex)))
             print error_string
         return result
 

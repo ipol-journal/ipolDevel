@@ -122,17 +122,14 @@ def demoinfo_get_states():
 # DDL
 
 
-def demoinfo_read_last_demodescription_from_demo(demo_id,returnjsons=None):
+def demoinfo_get_ddl(demo_id):
 
 
     service_name = demoinfo_ws_url_last_demodescription_from_demo
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
-    if returnjsons == True or returnjsons == 'True':
-        serviceparams = {'demo_id': demo_id,'returnjsons':True}
-    else:
-        serviceparams = {'demo_id': demo_id}
+    serviceparams = {'demo_id': demo_id}
     #send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None

@@ -42,10 +42,10 @@ def do_read(demos):
     '''
     for editorsdemoid in demos:
         try:
-            resp = post('read_last_demodescription_from_demo', params={"demo_id": editorsdemoid, "returnjsons": True})
+            resp = post('get_ddl', params={"demo_id": editorsdemoid})
             response = resp.json()
             if response['status'] != 'OK':
-                print "ERROR: read_last_demodescription_from_demo returned KO for demo {}".format(editorsdemoid)
+                print "ERROR: get_ddl returned KO for demo {}".format(editorsdemoid)
                 continue
             last_demodescription = response['last_demodescription']
             ddl_json = last_demodescription['json']

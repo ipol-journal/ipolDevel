@@ -174,7 +174,7 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
                 raise ValueError(msg)
 
             demo_result = ipolservices.demoinfo_read_demo(demo_id)
-            ddl_result = ipolservices.demoinfo_read_last_demodescription_from_demo(demo_id, returnjsons=True)
+            ddl_result = ipolservices.demoinfo_get_ddl(demo_id)
 
             if demo_result == None or ddl_result == None:
                 msg = "DemoinfoDemoEditionView: Something went wrong using demoinfo WS"
@@ -245,7 +245,7 @@ class DemoinfoGetDDLView(NavbarReusableMixinMF,TemplateView):
             raise ValueError(msg)
 
 
-        result= ipolservices.demoinfo_read_last_demodescription_from_demo(demo_id,returnjsons=True)
+        result= ipolservices.demoinfo_get_ddl(demo_id)
         if result == None:
             msg="DemoinfoGetDDLView: Something went wrong using demoinfo WS"
             print msg
