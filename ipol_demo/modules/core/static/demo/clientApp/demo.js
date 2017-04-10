@@ -14,6 +14,7 @@
   contain an experiment id together with the demo id.
  * @author  Karl Krissian
  * @version 0.1
+ * test static 1
  */
 
 // using strict mode: better compatibility
