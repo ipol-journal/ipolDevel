@@ -881,8 +881,6 @@ class DemoInfo(object):
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state, p.creation)
         else:
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
-
-
         #update Demo
         try:
 
@@ -902,7 +900,6 @@ class DemoInfo(object):
 
             data["status"] = "OK"
         except OSError as ex:
-            data["status"] = "KO"
             data["error"] = "demoinfo update_demo error".format(ex)
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s"%(str(ex)))
@@ -1662,18 +1659,10 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
-            ddl, isproduction = dao.read(id)
-            del isproduction
-            # print type(ddl)
-            # print ddl
-            # print
-            # ddl is stored in db as blob, must be converted to str before dumping
-            # calling this ws from CP, dao.read(id) is buffer
-            # calling directly ths ws from python code is unicode.
-            # because data is serialized by request lib
+            ddl = dao.read(id)
             ddl = str(ddl)
-            # print type(ddl)
-            # print ddl
+            print type(ddl)
+            print ddl
 
             data["demo_description"] = ddl
             conn.close()
@@ -1692,6 +1681,38 @@ class DemoInfo(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    def get_interface_ddl(self, demo_id):
+        """
+        webservice getting the last description of a given demo
+        It returns the ddl without the fields run and build
+        """
+        data = {} 
+        data['status'] = 'KO'
+        
+        try:
+
+            ddl = json.loads(self.get_ddl(demo_id))
+            
+            if ddl['status'] == 'OK':
+                ddl = ddl["last_demodescription"]["ddl"]        
+                ddl = json.loads(ddl)
+                del ddl['build']
+                del ddl['run']
+                data['last_demodescription'] = {"ddl": json.dumps(ddl)}
+                data['status'] = 'OK'
+            else:
+                data['error'] = ddl['error']
+
+        except Exception as ex:
+            error_string = "demoinfo get_interface_ddl error %s" % str(ex)
+            print error_string
+            self.error_log("get_interface_ddl", error_string)
+            data['error'] = error_string
+        
+        return json.dumps(data)
+
+    @cherrypy.expose
+    @authenticate
     def get_ddl(self, demo_id):
         """
         webservice getting last description of the demo.
@@ -1705,9 +1726,7 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dd_dao = DemoDemoDescriptionDAO(conn)
 
-            last_demodescription = dd_dao.get_ddl(int(demo_id))
-            
-            data["last_demodescription"] = last_demodescription
+            data["last_demodescription"] = dd_dao.get_ddl(int(demo_id))
             data["status"] = "OK"
             conn.close()
 
@@ -1734,18 +1753,17 @@ class DemoInfo(object):
         #recieves a valid json as a string AS POST DATA
         #stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
 
-        inproduction = 1 #This shouldn't be necessary in the demoDescription and should be removed
         data = {}
         data["status"] = "KO"
 
         cl = cherrypy.request.headers['Content-Length']
-        demojson = cherrypy.request.body.read(int(cl))
+        ddl = cherrypy.request.body.read(int(cl))
 
-        if not is_json(demojson):
+        if not is_json(ddl):
             print
-            print "save_demo_description demojson is not a valid json "
-            print "+++++ demojson: ", demojson
-            print "+++++ demojson type: ", type(demojson)
+            print "save_demo_description ddl is not a valid json "
+            print "+++++ ddl: ", ddl
+            print "+++++ ddl type: ", type(ddl)
             raise Exception
 
         try:
@@ -1757,17 +1775,25 @@ class DemoInfo(object):
                 demodescription = dao.get_ddl(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
+                print "\n\n"
+                print "ESTOY AQUI"
+                
+                
                 if demodescription is None: # Check if is a new demo
-                    demodescription_id = dao.add(demojson, inproduction=inproduction)
+                    demodescription_id = dao.add(ddl)
+                    print ":D"
+                    print demodescription_id
+                    
                     dao = DemoDemoDescriptionDAO(conn)
                     dao.add(int(demoid), int(demodescription_id))
                 else:
-                    demodescription_id = demodescription['demodescriptionId']
-                    dao.update(int(demodescription_id), demojson)
-
+                    #demodescription_id = demodescription['demodescriptionId']
+                    dao.update(ddl, demoid)
+                print "\n\n"
+                 
             else:           #Otherwise it's create a new one
                 dao = DemoDescriptionDAO(conn)
-                demodescription_id = dao.add(demojson, inproduction=inproduction)
+                demodescription_id = dao.add(ddl)
                 dao = DemoDemoDescriptionDAO(conn)
                 dao.add(int(demoid), int(demodescription_id))
 

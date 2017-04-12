@@ -14,7 +14,6 @@
   contain an experiment id together with the demo id.
  * @author  Karl Krissian
  * @version 0.1
- * test static 2
  */
 
 // using strict mode: better compatibility
@@ -219,11 +218,10 @@ ipol.setDemoPage = function (demo_id,origin,func) {
         origin=ipol.demo_origin.select_widget;
     }
 
-    console.info("HOLA");
     if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
-            'get_ddl',
+            'get_interface_ddl',
             'demo_id=' + demo_id,
             function(demo_ddl) {
                 console.info("read demo ddl status = ", demo_ddl.status);
@@ -235,9 +233,11 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
-
-                if (demo_ddl.status == "OK") {
-                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.json);
+                
+		console.info(demo_ddl.status);
+                
+		if (demo_ddl.status == "OK") {
+                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.ddl);
                     var str = JSON.stringify(ddl_json, undefined, 4);
                     $("#tabs-ddl pre").html(ipol.utils.syntaxHighlight(str));
                 } else {

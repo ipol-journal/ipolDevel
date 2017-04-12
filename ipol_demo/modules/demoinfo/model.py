@@ -172,17 +172,13 @@ class DemoDescriptionDAO(object):
     # conn.close()
 
     #@validates(inst(Demo))
-    def add(self, demojson, inproduction=None):
+    def add(self, ddl):
         """
         Add description for the given demo.
         """
         try:
-            if inproduction is None:
-                self.cursor.execute('''INSERT INTO demodescription (json) VALUES(?)''', (demojson,))
-            else:
-                self.cursor.execute('''INSERT INTO demodescription (json,inproduction) VALUES(?,?)''',
-                                    (demojson, int(inproduction)))
-                self.conn.commit()
+            self.cursor.execute('''INSERT INTO demodescription (ddl) VALUES(?)''', (ddl,))
+            self.conn.commit()
             return self.cursor.lastrowid
         except Exception as ex:
             error_string = ("add demo_description  e:%s" % (str(ex)))
@@ -205,15 +201,30 @@ class DemoDescriptionDAO(object):
 
 
     #@validates(inst(Demo))
-    def update(self, demo_description_id, demojson):
+    def update(self, ddl, demo_id):
         """
-        update description for given demo.
+        update description for a given demo.
         """
-        # demojson is a json str (json.dumps(jsonpythondict))
-        # carefull doubly-encoding JSON strings
         try:
-            self.cursor.execute('''UPDATE demodescription SET json=? WHERE id=?''', (demojson, demo_description_id))
+            self.cursor.execute("""
+                UPDATE demodescription
+                SET ddl = ?
+                WHERE id = (SELECT demodescriptionId
+                        FROM demo_demodescription
+                        WHERE demoID = (SELECT ID 
+                                    FROM DEMO
+                                    WHERE editor_demo_id = ?    
+                                    )
+                        )
+                """, (ddl, demo_id))
+            
+            if self.cursor.rowcount == 0:
+                error_string = ("Demo %s not updated in DemoDescriptionDAO" % (str(demo_id)))
+                print error_string
+                raise Exception(error_string)
+
             self.conn.commit()
+
         except Exception as ex:
             error_string = ("update demo_description  e:%s" % (str(ex)))
             print error_string
@@ -226,7 +237,7 @@ class DemoDescriptionDAO(object):
         """
         result = None
         try:
-            self.cursor.execute('''SELECT  json,inproduction  FROM demodescription WHERE id=?''',
+            self.cursor.execute('''SELECT  ddl  FROM demodescription WHERE id=?''',
                                 (int(demo_description_id),))
             self.conn.commit()
             row = self.cursor.fetchone()
@@ -311,15 +322,6 @@ class DemoDAO(object):
         try:
 
             nowtmstmp = datetime.datetime.now()
-            # print nowtmstmp
-            # #nowtmstmp =datetime.datetime.strptime(nowtmstmp, '%Y-%m-%d %H:%M:%S.%fZ')
-            # #print nowtmstmp
-            # from django.core.serializers.json import json, DjangoJSONEncoder
-            # nowtmstmp=json.dumps(nowtmstmp, cls=DjangoJSONEncoder)
-            # print nowtmstmp
-            # nowtmstmp=demo.creation
-            # print nowtmstmp
-            # datetime.strptime('2015-02-25T12:58:01.548Z', '%Y-%m-%dT%H:%M:%S.%fZ')
             self.cursor.execute('''SELECT ID
                                 FROM state
                                 WHERE state.name=?''',(demo.state,))
@@ -463,9 +465,6 @@ class DemoDemoDescriptionDAO(object):
         remove all entries for a demo.
         """
         try:
-            #self.cursor.execute("DELETE FROM demo_demodescription WHERE demoID=?", (int(demoid),))
-            #self.cursor.execute("DELETE FROM demodescription WHERE demoID=?", (int(demoid),))
-
             self.cursor.execute('''
             DELETE
             FROM demodescription
@@ -530,25 +529,24 @@ class DemoDemoDescriptionDAO(object):
         return last demo description entered for editorsdemoid.
         """
         result = None
-        # print
-        # print "   +++++++ get_ddl +++++++++"
         try:
-
-            self.cursor.execute('''SELECT ddl.inproduction,ddl.creation,ddl.JSON, ddl.id
+            self.cursor.execute('''SELECT ddl.DDL
                  FROM demodescription as ddl
                  INNER JOIN demo_demodescription AS dd ON dd.demodescriptionId = ddl.ID
                  INNER JOIN demo ON  demo.ID = dd.demoId
                  WHERE editor_demo_id = ?
                  ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
+            
+            
             self.conn.commit()
             row = self.cursor.fetchone()
             if row:
-                result = {'inproduction': row[0], 'creation': row[1],
-                          'json': row[2], 'demodescriptionId': row[3]}
+                result = {'ddl' : row[0]}
 
         except Exception as ex:
             error_string = ("get_ddl  e:%s" % (str(ex)))
             print error_string
+        
         return result
 
 
@@ -561,30 +559,18 @@ class DemoDemoDescriptionDAO(object):
 
         demodescription_list = list()
         try:
-            if returnjsons is True or returnjsons == 'True':
-                self.cursor.execute('''
-                SELECT ddl.ID,ddl.inproduction,ddl.creation,ddl.JSON
+            self.cursor.execute('''
+                SELECT ddl.ID,ddl.creation,ddl.DDL
                 FROM demo_demodescription as dd, demodescription as ddl, demo as d
                 WHERE  dd.demodescriptionID=ddl.ID
                 AND dd.demoID= d.ID
                 AND d.editor_demo_id=?
                 ORDER BY ddl.ID DESC''', (int(editorsdemoid),))
-                self.conn.commit()
-                for row in self.cursor.fetchall():
-                    ddl = (row[0], row[1], row[2], row[3])
-                    demodescription_list.append(ddl)
-            else:
-                self.cursor.execute('''
-                SELECT ddl.ID,ddl.inproduction,ddl.creation
-                FROM demo_demodescription as dd, demodescription as ddl, demo as d
-                WHERE  dd.demodescriptionID=ddl.ID
-                AND dd.demoID= d.ID
-                AND d.editor_demo_id=?
-                ORDER BY ddl.ID DESC''', (int(editorsdemoid),))
-                self.conn.commit()
-                for row in self.cursor.fetchall():
-                    ddl = (row[0], row[1], row[2])
-                    demodescription_list.append(ddl)
+            self.conn.commit()
+            for row in self.cursor.fetchall():
+                ddl = (row[0], row[1], row[2])
+                demodescription_list.append(ddl)
+
         except Exception as ex:
             error_string = ("read_demo_demodescriptions  e:%s" % (str(ex)))
             print "read_demo_demodescriptions e: ", error_string
@@ -1159,10 +1145,17 @@ def createDb(database_name):
                 """CREATE TABLE IF NOT EXISTS "demodescription" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                inproduction INTEGER(1) DEFAULT 1,
-                JSON BLOB
+                DDL BLOB
                 );"""
             )
+	    #cursor_db.execute(
+                #"""CREATE TABLE IF NOT EXISTS "demodescription" (
+                #ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                #creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                #inproduction INTEGER(1) DEFAULT 1,
+                #JSON BLOB
+                #);"""
+            #)
             cursor_db.execute(
                 """CREATE TABLE IF NOT EXISTS "demo" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,

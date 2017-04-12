@@ -1221,7 +1221,10 @@ attached the failed experiment data.". \
             response = resp.json()
             
             last_demodescription = response['last_demodescription']
-            ddl_json = json.loads(last_demodescription['json'])
+            #ddl_json = json.loads(last_demodescription['json'])
+            ddl_json = json.loads(last_demodescription['ddl'])
+            
+            
             if 'build' in ddl_json:
                 ddl_build = ddl_json['build']
             else:
