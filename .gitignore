@@ -40,7 +40,6 @@ app/
 *.aux
 *.bbl
 *.blg
-*.log
 *.lof
 *.toc
 *.out
@@ -51,10 +50,6 @@ doc/system/ipol.pdf
 doc/control_panel/control_panel.pdf
 doc/ddl/ddl.pdf
 doc/sysadmin/sysadmin.pdf
-ddl.pdf
-
-# generated files
-*.pyc
 
 # logs
 logs/
@@ -69,13 +64,7 @@ ipol_demo/modules/archive/logs/error.log
 # ignore Pycharm files
 .idea
 
-#
-# ignore generated pdf docs
-#
-
-ipol.pdf
-
-#staticData
+# Static data
 staticData/
 
 # authentication

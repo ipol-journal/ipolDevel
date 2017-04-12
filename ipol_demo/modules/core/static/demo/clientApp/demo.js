@@ -336,7 +336,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
                 // Get demo blobs
                 ipol.utils.ModuleService(
                     "blobs",
-                    "get_blobs_of_demo_by_name_ws",
+                    "get_blobs_deprecated",
                     "demo_name=" + demo_id,
                     ipol.DrawBlobs.staticOnDemoBlobs(ddl_json));
 
