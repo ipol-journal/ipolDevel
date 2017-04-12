@@ -747,7 +747,7 @@ workload of '{}'".format(dr_name)
         print "#### input_select_and_crop begin ####"
 
         userdata = {'blob_ids': blobs_id_list}
-        resp = self.post(self.host_name, 'blobs', 'get_blobs_by_id', userdata)
+        resp = self.post(self.host_name, 'blobs', 'get_blobs_data_deprecated', userdata)
 
         response = resp.json()
         status = response['status']

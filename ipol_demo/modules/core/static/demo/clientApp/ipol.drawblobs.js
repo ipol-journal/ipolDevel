@@ -289,7 +289,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                              +  '           vertical-align:middle; margin:3px"'
                              +  '   src="'+_demoblobs.url_thumb+'/'
                              +  blobset[idx].subdirs
-                             + 'thumbnail_'+blobset[idx].hash
+                             + blobset[idx].hash
 //                              + blobset[idx].extension
                              +'.jpg'
                              +'" '
@@ -403,7 +403,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 var tester=new Image();
                 tester.src= _demoblobs.url_thumb+'/'+
                             blobset[idx].subdirs+
-                            'thumbnail_'+blobset[idx].hash+
+                            blobset[idx].hash+
 //                             blobset[idx].extension;
                             '.jpg';
                 tester.onload = function() {
