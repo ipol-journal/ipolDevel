@@ -8,7 +8,7 @@ import requests
 # from poster.encode import MultipartParam
 from django.core.files.base import ContentFile
 import logging
-from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, archive_ws_url_stats, archive_ws_url_page, archive_ws_url_get_experiment, \
+from apps.controlpanel.views.ipolwebservices.ipolwsurls import archive_ws_url_stats, archive_ws_url_page, archive_ws_url_get_experiment, \
         archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
         archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
         demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
@@ -23,7 +23,9 @@ from apps.controlpanel.views.ipolwebservices.ipolwsurls import blobs_demo_list, 
         demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
         demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_for_demo, \
         demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
-        proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo,archive_ws_url_update_demo_id,blobs_update_demo_id
+        proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo,archive_ws_url_update_demo_id,blobs_update_demo_id, \
+        get_demo_owned_blobs, edit_blob_from_demo, remove_blob_from_demo,get_demo_templates,add_blob_to_demo, remove_vr_from_demo,\
+        get_all_templates
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +52,11 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
 
     """
     #todo if needeed insert schema validation here
-
     url = 'http://{}/api/{}/{}'.format(
             HOST_NAME,
             module,
             service
     )
-
     try:
         if not METHOD or METHOD=='GET':
             response = requests.get(url,params=params)
@@ -698,14 +698,207 @@ def archive_delete_file(file_id):
 ####################
 
 
-def get_blobs_demo_list():
+def get_demo_owned_blobs(demo_id):
     """
-    list demos present in database
-    { return:OK or KO, list demos: {id,name, id template, template } }
+    Get the demo owned blobs
     """
-    service_name = blobs_demo_list
+    service_name = "get_demo_owned_blobs"
+    #[todo] Change blobs2 to blobs
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id}
+
+    servicejson = None
+    return get_JSON_from_webservice(module, service_name, METHOD='GET',params=serviceparams, json=servicejson)
+
+def get_demo_templates(demo_id):
+    """
+    Get the demo owned blobs
+    """
+    service_name = "get_demo_templates"
+    #[todo] Change blobs2 to blobs
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id}
+
+    servicejson = None
+    return get_JSON_from_webservice(module, service_name, METHOD='GET',params=serviceparams, json=servicejson)
+
+def edit_blob_from_demo(request,demo_id,tags,blob_set,new_blob_set,pos_set,new_pos_set,title,credit):
+    """
+    Get the demo owned blobs
+    """
+    service_name = "edit_blob_from_demo"
     module = "blobs"
 
-    serviceparams = None
-    servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    files = None
+    try:
+        if 'vr' in request.FILES:
+            files = {'vr': request.FILES['vr'].file}
+    except Exception as ex:
+        print ex
+
+    serviceparams = {'demo_id': demo_id, 'tags':tags, 'blob_set':blob_set,'new_blob_set':new_blob_set,
+                     'pos_set':pos_set, 'new_pos_set':new_pos_set, 'title':title, 'credit':credit}
+
+    return get_JSON_from_webservice(module, service_name, METHOD='POST',params=serviceparams, files=files)
+
+def remove_blob_from_demo(demo_id, blob_set, pos_set):
+    """
+    Remove blob from demo
+    """
+    service_name = "remove_blob_from_demo"
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id, 'blob_set': blob_set, 'pos_set': pos_set}
+
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def remove_template_from_demo(demo_id, template):
+    """
+    Remove blob from demo
+    """
+    service_name = "remove_template_from_demo"
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id, 'template_name':template}
+
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def add_template_to_demo(demo_id, template):
+    """
+    Remove blob from demo
+    """
+    service_name = "add_templates_to_demo"
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id, 'template_names':template}
+
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def add_blob_to_demo(request,demo_id,tags,blob_set,pos_set,title,credit):
+    """
+    Add a new blob to the demo
+    """
+    service_name = "add_blob_to_demo"
+    module = "blobs"
+    params = {'demo_id': demo_id, 'tags': tags, 'title': title, 'credit': credit}
+
+    if blob_set !="":
+        params['blob_set'] = blob_set
+        params['pos_set'] = pos_set
+
+    try:
+        files = {'blob': request.FILES['blob'].file}
+        if 'vr' in request.FILES:
+            files['blob_vr']= request.FILES['vr'].file
+    except Exception as ex:
+        print ex
+
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=params, files=files)
+
+def remove_vr_from_demo(demo_id, set, pos):
+    """
+    Remove the visual representation of the blob in the demo (in all the demos and templates)
+    """
+    service_name = "remove_visual_representation_from_demo"
+    module = "blobs"
+    serviceparams = {'demo_id': demo_id, 'blob_set': set, 'pos_set': pos}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def get_all_templates():
+    """
+    Remove the visual representation of the blob in the demo (in all the demos and templates)
+    """
+    service_name = "get_all_templates"
+    module = "blobs"
+    return get_JSON_from_webservice(module, service_name, METHOD='GET')
+
+def get_template_blobs(name):
+    """
+    Get template blobs
+    """
+    service_name = "get_template_blobs"
+    module = "blobs"
+    serviceparams = {'template_name': name}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def add_blob_to_template(request,name,tags,blob_set,pos_set,title,credit):
+    """
+    Add a new blob to the template
+    """
+    service_name = "add_blob_to_template"
+    module = "blobs"
+    params = {'template_name': name, 'tags': tags, 'title': title, 'credit': credit}
+
+    if blob_set !="":
+        params['blob_set'] = blob_set
+        params['pos_set'] = pos_set
+
+    try:
+        files = {'blob': request.FILES['blob'].file}
+        if 'vr' in request.FILES:
+            files['blob_vr']= request.FILES['vr'].file
+    except Exception as ex:
+        print ex
+
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=params, files=files)
+
+def remove_blob_from_template(name, blob_set, pos_set):
+    """
+    Remove blob from template
+    """
+    service_name = "remove_blob_from_template"
+    module = "blobs"
+    serviceparams = {'template_name': name, 'blob_set': blob_set, 'pos_set': pos_set}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+
+def remove_vr_from_template(name, set, pos):
+    """
+    Remove the visual representation of the blob in the template (in all the demos and templates)
+    """
+    service_name = "remove_visual_representation_from_template"
+    module = "blobs"
+    serviceparams = {'template_name': name, 'blob_set': set, 'pos_set': pos}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
+    """
+    Edit blob info from template
+    """
+    service_name = "edit_blob_from_template"
+    module = "blobs"
+
+    files = None
+    try:
+        if 'vr' in request.FILES:
+            files = {'vr': request.FILES['vr'].file}
+    except Exception as ex:
+        print ex
+
+    serviceparams = {'template_name': name, 'tags':tags, 'blob_set':blob_set, 'new_blob_set':new_blob_set,
+                     'pos_set':pos_set, 'new_pos_set':new_pos_set, 'title':title, 'credit':credit}
+
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, files=files)
+
+def get_all_templates():
+    """
+    Get all the templates
+    """
+    service_name = "get_all_templates"
+    module = "blobs"
+    return get_JSON_from_webservice(module, service_name, METHOD='GET')
+
+def delete_template(name):
+    """
+    Get all the templates
+    """
+    service_name = "remove_template"
+    module = "blobs"
+    serviceparams = {'template_name': name}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def create_template(name):
+    """
+    Get all the templates
+    """
+    service_name = "create_template"
+    module = "blobs"
+    serviceparams = {'template_name': name}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)

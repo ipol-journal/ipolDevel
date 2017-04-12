@@ -187,5 +187,11 @@ archive_ws_url_update_demo_id = 'update_demo_id'
 #   BLOBS MODULE   #
 ####################
 #view list of available demos
-blobs_demo_list =  'demos_ws'
+get_demo_owned_blobs =  'get_demo_owned_blobs'
+get_demo_templates =  'get_demo_templates'
 blobs_update_demo_id = 'update_demo_id'
+edit_blob_from_demo = 'edit_blob_from_demo'
+remove_blob_from_demo = 'remove_blob_from_demo'
+add_blob_to_demo = 'add_blob_to_demo'
+remove_vr_from_demo = 'remove_visual_representation_from_demo'
+get_all_templates = 'get_all_templates'

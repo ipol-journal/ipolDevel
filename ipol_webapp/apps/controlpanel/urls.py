@@ -5,7 +5,11 @@ from apps.controlpanel.views.archive_module import ArchiveShutdownView, ArchiveD
         ArchiveAddExpToTestDemoView, ArchiveDeleteExperimentFileView, ArchiveDemosView, ArchiveDeleteDemoView, \
         ArchivePageView, ExperimentDetails
 
-from apps.controlpanel.views.blobs_module import BlobsDemosView
+from apps.controlpanel.views.blobs_module import ManageBlobsForDemoView, EditBlobFromDemoView,DemoBlobSaveInfo,RemoveBlobFromDemo, \
+    RemoveTemplateFromDemo,AddBlobDemoView,AddBlobToDemo,RemoveVRFromDemo,AddTemplateToDemo,TemplatePageView, AddBlobTemplateView, \
+    AddBlobToTemplate,RemoveBlobFromDemo, EditBlobFromTemplate, RemoveVRFromTemplate, SaveBlobInfoFromTemplate, RemoveBlobFromTemplate, \
+    TemplateListView,DeleteTemplate,CreateTemplate
+
 from apps.controlpanel.views.demo import DemosView
 
 from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoAuthorsView, DemoinfoEditorsView, \
@@ -97,13 +101,13 @@ urlpatterns = [
 
 
 
-        ###################
+    ###################
     # Archive module  #
-        ###################
+    ###################
 
-        # Menu option Archive Module:
+    # Menu option Archive Module:
     #todo, carefull, a demo can have negative id WTF!
-        #todo list_demos should be nicer
+    #todo list_demos should be nicer
 
     url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<page>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
@@ -122,30 +126,49 @@ urlpatterns = [
 
 
 
-        ###################
+    ###################
     # Blobs module    #
-        ###################
+    ###################
 
         #todo not much done here
-    url(r'^blobs_module/', BlobsDemosView.as_view(), name="ipol.cp.blobs.demos"),
+    url(r'^blob_demo/(?P<id>[\-\d\w]+)/(?P<page>\d+)/$', ManageBlobsForDemoView.as_view(), name="ipol.cp.blobs.page"),
+    url(r'^blob_demo/(?P<id>[\-\d\w]+)/$', ManageBlobsForDemoView.as_view(), name="ipol.cp.blobs.page"),
 
-        ###################
-    # Proxy module    #
-        ###################
+    url(r'^blob_demo/(?P<id>[\-\d\w]+)/$', EditBlobFromDemoView.as_view(), name="ipol.cp.blobs.blob_details"),
+    url(r'^blob_demo/$', EditBlobFromDemoView.as_view(), name="ipol.cp.blobs.blob_details"),
+    url(r'^add_blob_to_demo/(?P<id>[\-\d\w]+)/$', AddBlobDemoView.as_view(), name="ipol.cp.blobs.add_blob_to_demo_view"),
+    url(r'^ajax_save_blob_info/$', DemoBlobSaveInfo.as_view(), name="ipol.cp.blobs.save_blob_info"),
+    url(r'^ajax_remove_blob_from_demo/$', RemoveBlobFromDemo.as_view(), name="ipol.cp.blobs.remove_blob_from_demo"),
+    url(r'^ajax_remove_vr_from_demo/$', RemoveVRFromDemo.as_view(), name="ipol.cp.blobs.remove_vr_from_demo"),
+    url(r'^ajax_remove_template_from_demo/$', RemoveTemplateFromDemo.as_view(), name="ipol.cp.blobs.remove_template_from_demo"),
+    url(r'^ajax_add_template_to_demo/$', AddTemplateToDemo.as_view(), name="ipol.cp.blobs.add_template_to_demo"),
+    url(r'^ajax_add_blob_to_demo/$', AddBlobToDemo.as_view(), name="ipol.cp.blobs.add_blob_to_demo"),
 
-        #####################
+    #Templates
+    url(r'^blob_template/(?P<name>[\-\d\w]+)/$', TemplatePageView.as_view(), name="ipol.cp.template.page"),
+    url(r'^add_blob_to_template/(?P<name>[\-\d\w]+)/$', AddBlobTemplateView.as_view(), name="ipol.cp.add_blob_to_template.page"),
+    url(r'^ajax_add_blob_to_template/$', AddBlobToTemplate.as_view(), name="ipol.cp.blobs.add_blob_to_template"),
+    url(r'^ajax_remove_blob_from_template/$', RemoveBlobFromTemplate.as_view(), name="ipol.cp.blobs.remove_blob_from_template"),
+    url(r'^blob_template/$', EditBlobFromTemplate.as_view(), name="ipol.cp.blobs.edit_blob_template.page"),
+    url(r'^ajax_remove_vr_from_template/$', RemoveVRFromTemplate.as_view(), name="ipol.cp.blobs.remove_vr_from_template"),
+    url(r'^ajax_save_blob_info_from_template/$', SaveBlobInfoFromTemplate.as_view(), name="ipol.cp.blobs.save_blob_info_from_template"),
+
+    url(r'^templates_list/$', TemplateListView.as_view(), name="ipol.cp.blobs.templates_list.page"),
+    url(r'^ajax_delete_template/$', DeleteTemplate.as_view(), name="ipol.cp.blobs.delete_template"),
+    url(r'^ajax_create_template/$', CreateTemplate.as_view(), name="ipol.cp.blobs.create_template"),
+    #####################
     # DemoRunner module #
-        #####################
+    #####################
 
-        ##########################
+    ##########################
     # Demo Dispatcher module #
-        ##########################
+    ##########################
 
     # Demo (we will not be using this probably, but just in case, its the old code)
 
     ###########
     # allauth #
-        ###########
+    ###########
     url(r'^login/$', MyLoginView.as_view(),name='account_login'),
         url(r"^signup/$", MySignupView.as_view(), name="account_signup"),
     url(r"^logout/$", MyLogoutView.as_view(), name="account_logout"),
@@ -163,9 +186,9 @@ urlpatterns = [
     url(r"^password/reset/key/done/$", MyPasswordResetFromKeyDoneView.as_view(), name="account_reset_password_from_key_done"),
     url(r'^profile/', login_required(ProfileView.as_view()), name="allauth.profile"),
 
-        ###################
+    ###################
     # Docs            #
-        ###################
+    ###################
     #todo, documentacion in the app would be nice to have! atfirst jut link pdf......
 
 

@@ -1,0 +1,106 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+
+{# load CSS for this page in particular #}
+    {% block cssfiles %}
+        <link rel="stylesheet" href="{% static 'css/add_blob.css' %}"/>
+    {% endblock %}
+
+{% load i18n %}
+
+{% block title %}
+	{% trans "Add Blob" %}
+{% endblock %}
+<p>
+    a
+</p>
+{% block content %}
+    {% with data=view.get_context_data %}
+        <div class="container">
+            {# Page title #}
+            <h2> Add Blob </h2>
+            <div class="blob_file">
+
+                <form id="form" action="{% url 'ipol.cp.blobs.add_blob_to_demo' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+
+                    <input name="demo"  style="display: none;" value="{{id}}"/>
+
+                    <!--Thumbnail-->
+                    <div class="image_files">
+                        <img id="thumbnail" class="thumbnail thumbnail_big" title="Blob" onclick="blobClick()" src="">
+                        <img id="thumbnail_vr" class="thumbnail thumbnail_big" title="Visual Representation" onclick="vrClick()" src="">
+                    </div>
+
+                    <!--BLOB-->
+                    <div class="input-group">
+                        <span class="input-group-addon">Blob</span>
+                        <input type="file"  name="blob" id="blob" style="display: none;" onchange="blobUploaded()"/>
+                        <label id="blob_name" class="form-control" for="blob">File...</label>
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger" type="button" onclick="removeUploadedBlob()">X</button>
+                        </span>
+                    </div>
+
+
+                    <!--TITLE-->
+                    <div class="input-group">
+                        <span class="input-group-addon" >Title</span>
+                        <input id="title" name ="title" type="text" class="form-control">
+                    </div>
+
+                    <!--SET-->
+                    <div class="input-group">
+                        <span class="input-group-addon">SET </span>
+                        <input id="set" name ="set" type="text" class="form-control">
+                    </div>
+
+                    <!--POS-->
+                    <div class="input-group">
+                        <span class="input-group-addon">Position in set</span>
+                        <input id="pos" name ="pos" type="number" class="form-control" value="0">
+                    </div>
+
+                    <!--CREDIT-->
+                    <div class="input-group">
+                        <span class="input-group-addon">Credit</span>
+                        <input id="credit" name ="credit" type="text" class="form-control" >
+                    </div>
+
+                    <!--TAGS-->
+                    <div class="input-group">
+                        <span class="input-group-addon">Tags</span>
+                        <input id="tags" name ="tags" type="text" class="form-control" >
+                    </div>
+
+                    <!--VISUAL REPRESENTATION-->
+                    <div class="input-group">
+                        <span class="input-group-addon">Visual Representation</span>
+                        <label id="vr_name" class="form-control" for="vr">File...</label>
+                        <input type="file" name="vr" id="vr"  style="display: none;" onchange="vrUploaded()"/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger" type="button" onclick="removeUploadedVr()">X</button>
+                        </span>
+                    </div>
+
+                    <div  align="right">
+                        <input type="submit" id="submit" style="display: none;" value="Upload" />
+                        <label class="btn btn-primary " for="submit">Add</label>
+                    </div>
+                </form>
+            </div>
+
+            <a class="btn btn-info" href="/cp/blob_demo/{{id}}/">Go to previous page</a>
+
+        </div>
+    {% endwith %}
+{% endblock %}
+
+
+{% block functionsjs %}
+
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script src="{% static 'js/add_blob.js' %}"></script>
+    <script src="{% static 'js/ajaxPost.js' %}"></script>
+
+{% endblock %}
+
