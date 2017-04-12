@@ -1,7 +1,0 @@
-# Ignore paths created by the module
-blob_directory
-thumbnail
-tmp_blob
-
-# Authentication file with the user and password
-auth
