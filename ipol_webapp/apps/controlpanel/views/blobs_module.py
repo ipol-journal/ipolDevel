@@ -147,7 +147,7 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_demo?demo='+id+'&set='+new_set+'&pos='+new_pos)
+        return HttpResponseRedirect('/cp/blob_demo/'+id)
 
 class RemoveBlobFromDemo(NavbarReusableMixinMF,TemplateView):
 
@@ -408,7 +408,7 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_template?name='+name+'&set='+new_set+'&pos='+new_pos)
+        return HttpResponseRedirect('/cp/blob_template/'+name)
 
 class RemoveBlobFromTemplate(NavbarReusableMixinMF,TemplateView):
 
