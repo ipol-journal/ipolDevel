@@ -1676,7 +1676,7 @@ class DemoInfo(object):
         
         try:
 
-            ddl = json.loads(self.get_ddl(demo_id))
+            ddl = self.get_ddl_from_database(demo_id)
             
             if ddl['status'] == 'OK':
                 ddl = ddl["last_demodescription"]["ddl"]        
@@ -1695,12 +1695,19 @@ class DemoInfo(object):
             data['error'] = error_string
         
         return json.dumps(data)
-
+    
     @cherrypy.expose
     @authenticate
     def get_ddl(self, demo_id):
         """
         webservice getting last description of the demo.
+        """
+        ddl = self.get_ddl_from_database(demo_id)
+        return json.dumps(ddl)
+
+    def get_ddl_from_database(self, demo_id):
+        """
+        Method that gives the DDL directly from the database
         """
         data = {}
         data["status"] = "KO"
@@ -1716,7 +1723,7 @@ class DemoInfo(object):
             conn.close()
 
         except Exception as ex:
-            error_string = "demoinfo get_ddl error %s" % str(ex)
+            error_string = "Error getting the DDL %s" % str(ex)
             print error_string
             self.error_log("get_ddl", error_string)
             try:
@@ -1725,8 +1732,10 @@ class DemoInfo(object):
                 pass
             #raise Exception
             data["error"] = error_string
-        return json.dumps(data)
-
+        
+        return data
+      
+      
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
     @authenticate
