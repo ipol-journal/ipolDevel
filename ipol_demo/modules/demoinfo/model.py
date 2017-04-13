@@ -177,8 +177,9 @@ class DemoDescriptionDAO(object):
         Add description for the given demo.
         """
         try:
-            self.cursor.execute('''INSERT INTO demodescription (ddl) VALUES(?)''', (ddl,))
+            self.cursor.execute('''INSERT INTO demodescription (DDL) VALUES(?)''', (ddl,))
             self.conn.commit()
+            print "INSERTADO"
             return self.cursor.lastrowid
         except Exception as ex:
             error_string = ("add demo_description  e:%s" % (str(ex)))
@@ -209,20 +210,18 @@ class DemoDescriptionDAO(object):
             self.cursor.execute("""
                 UPDATE demodescription
                 SET ddl = ?
-                WHERE id = (SELECT demodescriptionId
-                        FROM demo_demodescription
-                        WHERE demoID = (SELECT ID 
-                                    FROM DEMO
-                                    WHERE editor_demo_id = ?    
-                                    )
-                        )
+                WHERE id = (SELECT  dd.id
+                            FROM demo_demodescription AS ddd, demodescription AS dd, demo AS d 
+                            WHERE dd.id = ddd.demodescriptionid AND ddd.demoid = d.id AND d.editor_demo_id = ?
+                            ORDER by dd.creation DESC LIMIT 1
+                           )
                 """, (ddl, demo_id))
             
             if self.cursor.rowcount == 0:
                 error_string = ("Demo %s not updated in DemoDescriptionDAO" % (str(demo_id)))
                 print error_string
                 raise Exception(error_string)
-
+ 
             self.conn.commit()
 
         except Exception as ex:

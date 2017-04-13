@@ -658,7 +658,6 @@ class DemoInfo(object):
                 demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id),
                                                                          returnjsons=returnjsons)
 
-
             data["demodescription_list"] = demodescription_list
             data["status"] = "OK"
             conn.close()
@@ -793,8 +792,6 @@ class DemoInfo(object):
 
             conn.close()
 
-
-
             data["status"] = "OK"
             data["demoid"] = demoid
         except Exception as ex:
@@ -830,17 +827,7 @@ class DemoInfo(object):
             demo = demo_dao.read(int(demo_id))
 
             dd_dao = DemoDemoDescriptionDAO(conn)
-            print "demo id", demo_id
-            print "demo", demo.editorsdemoid
-            #read demo_demodescription
-            # demo_ddl_list = dd_dao.read_demo_demodescriptions(int(demo_id))
-            # print
-            # print "demo_ddl_list", demo_ddl_list
-            # print
-            # print "demoid to delete ", demo_id
-            # print
-            # print "demo: ", demo.__dict__
-
+            
             #delete demo decription history borra ddl id 3
             #d_dd con id 2 , y demoid=2, demodescpid 3 deberia no estar
             dd_dao.delete_all_demodescriptions_for_demo(int(demo_id))
@@ -1661,9 +1648,7 @@ class DemoInfo(object):
 
             ddl = dao.read(id)
             ddl = str(ddl)
-            print type(ddl)
-            print ddl
-
+            
             data["demo_description"] = ddl
             conn.close()
             data["status"] = "OK"
@@ -1775,21 +1760,14 @@ class DemoInfo(object):
                 demodescription = dao.get_ddl(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
-                print "\n\n"
-                print "ESTOY AQUI"
-                
                 
                 if demodescription is None: # Check if is a new demo
                     demodescription_id = dao.add(ddl)
-                    print ":D"
-                    print demodescription_id
                     
                     dao = DemoDemoDescriptionDAO(conn)
                     dao.add(int(demoid), int(demodescription_id))
                 else:
-                    #demodescription_id = demodescription['demodescriptionId']
                     dao.update(ddl, demoid)
-                print "\n\n"
                  
             else:           #Otherwise it's create a new one
                 dao = DemoDescriptionDAO(conn)
