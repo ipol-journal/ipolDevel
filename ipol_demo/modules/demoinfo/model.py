@@ -1147,14 +1147,6 @@ def createDb(database_name):
                 DDL BLOB
                 );"""
             )
-	    #cursor_db.execute(
-                #"""CREATE TABLE IF NOT EXISTS "demodescription" (
-                #ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                #creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                #inproduction INTEGER(1) DEFAULT 1,
-                #JSON BLOB
-                #);"""
-            #)
             cursor_db.execute(
                 """CREATE TABLE IF NOT EXISTS "demo" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
