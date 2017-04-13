@@ -602,14 +602,14 @@ class Blobs(object):
 
         sorted_sets = sorted(sets.items(), key=operator.itemgetter(0))
         result = []
-        for element in sorted_sets:
+        for blob_set in sorted_sets:
             dic = {}
-            for blob in element[1]:
+            for blob in blob_set[1]:
                 position = blob['pos_set']
                 del blob['pos_set']
                 dic[position] = blob
 
-            result.append({"name": element[0], "blobs": dic})
+            result.append({"name": blob_set[0], "blobs": dic})
         return result
 
     @cherrypy.expose
@@ -1105,10 +1105,21 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             if dest["dest"] == "demo":
                 demo_id = dest["demo_id"]
+
+                if new_pos_set != pos_set and \
+                        database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, new_pos_set):
+                    new_pos_set = database.get_max_pos_in_demo_set(conn, demo_id, blob_set) + 1
+                    print new_pos_set
+
                 database.edit_blob_from_demo(conn, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit)
                 blob_data = database.get_blob_data_from_demo(conn, demo_id, new_blob_set, new_pos_set)
             elif dest["dest"] == "template":
                 template_name = dest["name"]
+
+                if new_pos_set != pos_set and \
+                        database.is_pos_occupied_in_template_set(conn, template_name, blob_set, new_pos_set):
+                    new_pos_set = database.get_max_pos_in_template_set(conn, template_name, blob_set) + 1
+
                 database.edit_blob_from_template(conn, template_name, blob_set, new_blob_set, pos_set, new_pos_set,
                                                  title, credit)
                 blob_data = database.get_blob_data_from_template(conn, template_name, new_blob_set, new_pos_set)

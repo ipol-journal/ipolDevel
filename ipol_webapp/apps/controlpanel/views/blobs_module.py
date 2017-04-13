@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from django.utils.six import BytesIO
+import collections
 
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveDemoList, DeserializePage, \
         DeserializeDemoList, DeserializeDemoinfoDemoList
@@ -86,7 +87,9 @@ class ManageBlobsForDemoView(NavbarReusableMixinMF, TemplateView):
             context['q'] = query
 
             page_json = ipolservices.get_demo_owned_blobs(int(demo_id))
-            response_sets = json.loads(page_json)
+
+            response_sets = json.loads(page_json, object_pairs_hook=collections.OrderedDict)
+
             page_json = ipolservices.get_demo_templates(int(demo_id))
             response_templates = json.loads(page_json)
             used_templates = response_templates['templates']
@@ -144,7 +147,7 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_demo?demo='+id+'&set='+new_set+'&pos='+new_pos)
+        return HttpResponseRedirect('/cp/blob_demo/'+id)
 
 class RemoveBlobFromDemo(NavbarReusableMixinMF,TemplateView):
 
@@ -268,8 +271,7 @@ class TemplatePageView(NavbarReusableMixinMF, TemplateView):
         try:
 
             page_json = ipolservices.get_template_blobs(name)
-            response_sets = json.loads(page_json)
-
+            response_sets = json.loads(page_json, object_pairs_hook=collections.OrderedDict)
             context['status'] = response_sets['status']
             context['sets'] = response_sets['sets']
 
@@ -406,7 +408,7 @@ class SaveBlobInfoFromTemplate(NavbarReusableMixinMF,TemplateView):
             logger.error(msg)
             print(msg)
 
-        return HttpResponseRedirect('/cp/blob_template?name='+name+'&set='+new_set+'&pos='+new_pos)
+        return HttpResponseRedirect('/cp/blob_template/'+name)
 
 class RemoveBlobFromTemplate(NavbarReusableMixinMF,TemplateView):
 
