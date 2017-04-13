@@ -1672,28 +1672,22 @@ class DemoInfo(object):
         It returns the ddl without the fields run and build
         """
         data = {} 
-        data['status'] = 'KO'
-        
         try:
 
             ddl = self.get_ddl_from_database(demo_id)
-            
-            if ddl['status'] == 'OK':
-                ddl = ddl["last_demodescription"]["ddl"]        
-                ddl = json.loads(ddl)
-                del ddl['build']
-                del ddl['run']
-                data['last_demodescription'] = {"ddl": json.dumps(ddl)}
-                data['status'] = 'OK'
-            else:
-                data['error'] = ddl['error']
-
+            ddl = json.loads(ddl["ddl"])
+            del ddl['build']
+            del ddl['run']
+            data['last_demodescription'] = {"ddl": json.dumps(ddl)}
+            data['status'] = 'OK'
+                  
         except Exception as ex:
-            error_string = "demoinfo get_interface_ddl error %s" % str(ex)
+            error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
             print error_string
-            self.error_log("get_interface_ddl", error_string)
+            self.logger.error(error_string)
             data['error'] = error_string
-        
+            data['status'] = 'KO'
+
         return json.dumps(data)
     
     @cherrypy.expose
@@ -1702,39 +1696,33 @@ class DemoInfo(object):
         """
         webservice getting last description of the demo.
         """
-        ddl = self.get_ddl_from_database(demo_id)
-        return json.dumps(ddl)
+        data = {}
+        try:
+            ddl = self.get_ddl_from_database(demo_id)
+            data['last_demodescription'] = ddl
+            data['status'] = "OK"
+        except Exception as ex:
+            error_string = "Failure in function get_ddl, Error = {}".format(ex)
+            print error_string
+            self.logger.error(error_string)
+            data['status'] = "KO"
+            
+        return json.dumps(data)
 
     def get_ddl_from_database(self, demo_id):
         """
         Method that gives the DDL directly from the database
         """
-        data = {}
-        data["status"] = "KO"
-        data["last_demodescription"] = None
-        
         try:
-            #read all _demodescription for this demo
             conn = lite.connect(self.database_file)
             dd_dao = DemoDemoDescriptionDAO(conn)
-
-            data["last_demodescription"] = dd_dao.get_ddl(int(demo_id))
-            data["status"] = "OK"
+            last_demodescription = dd_dao.get_ddl(int(demo_id))
             conn.close()
-
+            return last_demodescription
         except Exception as ex:
-            error_string = "Error getting the DDL %s" % str(ex)
-            print error_string
-            self.error_log("get_ddl", error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            #raise Exception
-            data["error"] = error_string
+            self.logger.error("Failure in get_ddl_from_database, Error = {}".format(ex))
+            raise 
         
-        return data
-      
       
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
