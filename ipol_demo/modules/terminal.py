@@ -161,12 +161,12 @@ class Terminal(object):
             status = response['status']
 
             if status == "OK":
-                print "{} ({}): \x1b[1;32;40mOK\x1b[0m".format(name, self.dict_modules[name]["server"])
+                print "{} ({}): \033[92mOK\033[0m".format(name, self.dict_modules[name]["server"])
             else:
-                print "{} ({}): \x1b[1;33;41m*** KO ***\x1b[0m".format(name, self.dict_modules[name]["server"])
+                print "{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"])
         except ValueError as ex:
             # No JSON object could be decoded exception
-            print "{} ({}): \x1b[1;33;41m*** KO (exception) ***\x1b[0m".format(name, self.dict_modules[name]["server"])
+            print "{} ({}): \033[31;1mUnresponsive\033[0m".format(name, self.dict_modules[name]["server"])
 
 
     def ping_all(self, dummy=None):
@@ -195,13 +195,13 @@ class Terminal(object):
             status = response['status']
 
             if status == "OK":
-                print "{} ({}): \x1b[1;32;40mStoppped\x1b[0m".format(name, self.dict_modules[name]["server"])
+                print "{} ({}): \033[93mStoppped\033[0m".format(name, self.dict_modules[name]["server"])
             else:
-                print "{} ({}): \x1b[1;33;41m*** KO ***\x1b[0m".format(name, self.dict_modules[name]["server"])
+                print "{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"])
                 print name + "  (" + self.dict_modules[name]["server"] + ")" + " : JSON response is KO when shutting down the module"
         except ValueError:
             # No JSON object could be decoded exception
-            print "{} ({}): \x1b[1;33;41m*** KO (exception) ***\x1b[0m".format(name, self.dict_modules[name]["server"])
+            print "{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, self.dict_modules[name]["server"])
 
 
     def start_module(self, args_array):

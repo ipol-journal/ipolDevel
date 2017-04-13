@@ -1,0 +1,116 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+
+{# load CSS for this page in particular #}
+    {% block cssfiles %}
+        <link rel="stylesheet" href="{% static 'css/edit_blob.css' %}"/>
+    {% endblock %}
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+	{% trans "Blob details" %}
+{% endblock %}
+
+{% block content %}
+    {% with data=view.get_context_data %}
+        <div class="container">
+            {% if data.status == 'OK' %}
+                <h2> {{data.blob.title}} </h2>
+                <div class="blob_file">
+
+                    <form id="form" action="{% url 'ipol.cp.blobs.save_blob_info' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+
+                        <input name="demo"  style="display: none;" value="{{data.demo}}"/>
+                        <div class="image_files">
+                            <a href="{{ data.blob.blob }}">
+                                <img src="{{ data.blob.thumbnail }}" alt="{{ data.blob.title }}" title="{{ data.blob.title }}">
+                            </a>
+                        </div>
+
+                        <!--TITLE-->
+                        <div class="input-group">
+                            <span class="input-group-addon" >Title</span>
+                            <input id="title" name ="title" type="text" class="form-control" value="{{ data.blob.title }}">
+                        </div>
+
+                        <!--SET-->
+                        <div class="input-group">
+                            <span class="input-group-addon">SET </span>
+                            {% if data.set|slice:":2" == '__' %}
+                                <input name ="new_set" type="text" class="form-control" value="">
+                            {% else %}
+                                <input name ="new_set" type="text" class="form-control" value="{{data.set}}">
+                            {% endif %}
+                        </div>
+                        <!--Original SET-->
+                        <input id="set" name="set"  style="display: none;" value="{{data.set}}"/>
+
+                        <!--POS-->
+                        <div class="input-group">
+                            <span class="input-group-addon">Position in set</span>
+                            <input id="pos" name ="new_pos" type="number" class="form-control" value="{{data.pos}}">
+                        </div>
+                        <!--Original POS-->
+                        <input name="pos"  style="display: none;" value="{{data.pos}}"/>
+
+                        <!--CREDIT-->
+                        <div class="input-group">
+                            <span class="input-group-addon">Credit</span>
+                            <input id="credit" name ="credit" type="text" class="form-control" value="{{ data.blob.credit }}">
+                        </div>
+
+                        <!--TAGS-->
+                        <div class="input-group">
+                            <span class="input-group-addon">Tags</span>
+                            <input id="tags" name ="tags" type="text" class="form-control" value="">
+                        </div>
+
+                        <!--VISUAL REPRESENTATION-->
+                        <div class="input-group">
+                            <span class="input-group-addon">Visual Representation</span>
+                            <label type="text" id="vr_name" class="form-control" for="vr">File...</label>
+                            <input type="file" name="vr" id="vr" style="display: none;" onchange="fileName()"/>
+                            <span class="input-group-btn">
+                                <button class="btn btn-danger" type="button" onclick="removeFile()">X</button>
+                            </span>
+                        </div>
+
+                        <div  align="right">
+                            <input type="submit" id="submit" style="display: none;"value="Upload" />
+                            <label class="btn btn-primary " for="submit">Save changes</label>
+                        </div>
+
+                    </form>
+                    <div style="padding-top: 15px;" align="right">
+                        <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{demo}}')">Delete blob</a>
+                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.remove_vr_from_demo'%}','{{demo}}')">Remove visual representation</a>
+                    </div>
+                </div>
+
+            {% endif %}
+
+            {# Return to previous page button #}
+            <div class="container">
+                <a class="btn btn-info" href="/cp/blob_demo/{{data.demo}}/">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+            </div>
+        </div>
+    {% endwith %}
+{% endblock %}
+
+{% block functionsjs %}
+
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+	<script src="{% static 'js/edit_blob_from_demo.js' %}"></script>
+    <script src="{% static 'js/ajaxPost.js' %}"></script>
+    <script>
+        window.onload=function() {
+            var tags = [{% for tag in view.get_context_data.blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+            tags_list = tags.join(", ")
+            document.getElementById("tags").value = tags_list
+        }
+    </script>
+
+{% endblock %}
+

@@ -48,3 +48,29 @@
     text-align: center;
     width: 1px;
 }
+
+.upload-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    align-items: center;
+}
+
+.upload-dialog > div:nth-of-type(odd) {
+    background-color: #e3e2e7;
+}
+
+.upload-element {
+    flex-grow: 1;
+    flex-basis: 25%;
+}
+
+.upload-row > img {
+    display: none;
+    width: 100%;
+    max-width: 160px;
+}
+
+.upload-element:first-child {
+    text-align: center;
+}

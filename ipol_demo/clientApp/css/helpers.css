@@ -10,6 +10,10 @@
     padding: 0 10px;
 }
 
+.m-x-10 {
+    margin: 0 10px;
+}
+
 
 .vertical-align {
     align-items: center;

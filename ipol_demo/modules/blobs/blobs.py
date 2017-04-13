@@ -5,247 +5,109 @@
 This file implements the system core of the server
 It implements Blob object and manages web page and web service
 """
-
-import tempfile
-import shutil
-import urllib
-import json
 import hashlib
-import urllib2
+import json
 import os
 import os.path
-import glob
 import sys
-import tarfile
-import zipfile
-import ConfigParser as configparser
-import threading
 import logging
-import time
-import base64
 import sqlite3 as lite
-import PIL.Image
-import magic
+import glob
+
+import operator
+from PIL import Image
 import cherrypy
-from database import Database
-from error import DatabaseError
-from mako.lookup import TemplateLookup
 import ConfigParser
 import re
+import shutil
+import errno
+import magic
+from threading import Lock
 
-#Get the server socket_host from conf file
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONF_FILE = os.path.join(BASE_DIR, 'blobs.conf')
-cherrypy.config.update(CONF_FILE)
-REALM = cherrypy.config['server.socket_host']
+import database
+from errors import IPOLBlobsDataBaseError
+from errors import IPOLBlobsTemplateError
+from errors import IPOLBlobsThumbnailError
+from errors import IPOLRemoveDirError
 
-#Get username and password from file
-auth_file = open('auth', 'r')
-user_name, passwd = auth_file.read().strip().split(':')
 
-class   DatabaseConnection(object):
+def authenticate(func):
     """
-    Class implementing a safe abstraction for database access.
-
-    with DatabaseConnection(...) as db:
-    db.do_stuff()
+    Wrapper to authenticate before using an exposed function
     """
 
-    def __init__(self, database_dir, database_name, logger):
+    def authenticate_and_call(*args, **kwargs):
         """
-        Initiating the Database object to be used.
+        Invokes the wrapped function if authenticated
         """
-        try:
-            self.db = Database(database_dir, database_name, logger)
-        except DatabaseError:
-            logger.exception("Cannot instantiate Database Object")
-            sys.exit(1)
+        if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                ("X-Real-IP" in cherrypy.request.headers
+                 and not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+            error = {"status": "KO", "error": "Authentication Failed"}
+            return json.dumps(error)
+        return func(*args, **kwargs)
 
-    def __enter__(self):
+    def is_authorized_ip(ip):
         """
-        Return a connection to a database into a safe context
-        declared with the keyword "with"
+        Validates the given IP
         """
-        return self.db
+        blobs = Blobs.get_instance()
+        patterns = []
+        # Creates the patterns  with regular expressions
+        for authorized_pattern in blobs.authorized_patterns:
+            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+        # Compare the IP with the patterns
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                return True
+        return False
 
-    def __exit__(self, _type, _value, _traceback):
-        """
-        Try to automatically close the connection when leaving the
-        safe context, if not already done.
-        """
-        try:
-            self.db.close()
-        except Exception as _:
-            pass
+    return authenticate_and_call
 
 
-def validate_password(dummy, username, password):
-    """
-    Validates the username and the password given
-    """
-    credentials = {user_name: passwd}
-    if username in credentials and credentials[username] == password:
-        return True
-    return False
-
-def dispersed_path(main_directory, blob_hash, extension, is_thumbnail=False, depth=2):
-    """
-    This function complete the path with the corresponding subdir for a visual representation.
-    new path --> /home/ipol/..../tmp/a/b/abvdddddd.png
-    new folder --> tmp/a/b/
-    subdir     --> a/b
-    """
-    length_of_the_new_subfolder = min(len(blob_hash), depth)
-    subdirs = '/'.join(list(blob_hash[:length_of_the_new_subfolder]))
-    new_folder = os.path.join(main_directory, subdirs)
-
-    if is_thumbnail:
-        blob = "thumbnail_" + blob_hash + extension
-    else:
-        blob = blob_hash + extension
-
-    new_path = os.path.join(new_folder, blob)
-    return new_path, new_folder, subdirs
-
-class MyFieldStorage(cherrypy._cpreqbody.Part):
-    """
-    This class allows to get uploaded blob creating temporary file in /tmp/
-    See: https://cherrypy.readthedocs.org/en/3.3.0/refman/_cpreqbody.html
-    """
-    def make_file(self):
-        return tempfile.NamedTemporaryFile()
-
-cherrypy._cpreqbody.Entity.part_class = MyFieldStorage
-
-class   Blobs(object):
-    """
-    This class implements Web service and Web Page separate with Cherrypy
-    Web Service allows to interact with database (it's controller).
-    The format argument (entry/leave) is JSON.
-    Web Page allows to display html page. The format argument is HTML text.
-    HTML page is templated using Mako
-    Library
-    """
-
+class Blobs(object):
     instance = None
 
     @staticmethod
     def get_instance():
-        '''
+        """
         Singleton pattern
-        '''
+        """
+
         if Blobs.instance is None:
             Blobs.instance = Blobs()
         return Blobs.instance
 
-
     def __init__(self):
-        """
-        Initialize Blob class
-        """
-        # control the concurrent access to the blobs instance
-        self.blobs_lock = threading.Lock()
 
-        self.tmp_dir = cherrypy.config['tmp.dir']
-        self.final_dir = cherrypy.config['final.dir']
+        # Paths
+        self.blob_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
-        self.vr_dir    = cherrypy.config['visual_representation']
+        self.vr_dir = cherrypy.config['visual_representation.dir']
+        self.config_common_dir = cherrypy.config.get("config_common.dir")
+        self.module_dir = cherrypy.config.get("module.dir")
 
-        self.base_directory = os.getcwd()
-        self.html_dir = os.path.join(self.base_directory,
-                                     cherrypy.config['html.dir'])
-        self.server_address = 'http://{0}:{1}'.format(
-            cherrypy.config['server.socket_host'],
-            cherrypy.config['server.socket_port'])
-        self.server = cherrypy.config['server.socket_host']
-        self.config_common_dir = cherrypy.config.get("config_common_dir")
+        # Lock
+        self.lock = Lock()
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
 
+        # Logs
         self.logs_dir = cherrypy.config.get("logs_dir")
         try:
             if not os.path.exists(self.logs_dir):
                 os.makedirs(self.logs_dir)
-        except Exception as e:
-            self.logs_dir = os.path.dirname(os.path.realpath(__file__))
             self.logger = self.init_logging()
-            self.logger.exception(
-                "Failed to create log dir (using file dir) : %s".format(e))
-        else:
-            self.logger = self.init_logging()
+        except Exception as ex:
+            print "Failed to create log dir. Error: {}".format(ex)
 
-        try:
-            self.database_dir = cherrypy.config.get("database_dir")
-            self.database_name = cherrypy.config.get("database_name")
-            self.database_file = os.path.join(self.database_dir, self.database_name)
-        except Exception as _:
-            self.logger.exception("failed to get database config")
-
-        self.status = self.init_database()
-        if not self.status:
-            sys.exit("Initialisation of database failed. Check the logs.")
-
-    # ---------------------------------------------------------------------------
-
-    def authenticate(func):
-        '''
-        Wrapper to authenticate before using an exposed function
-        '''
-        def authenticate_and_call(*args,**kwargs):
-            '''
-            Invokes the wrapped function if authenticated
-            '''
-            if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                    ("X-Real-IP" in cherrypy.request.headers and
-                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-                cherrypy.response.headers['Content-Type'] = "application/json"
-                error = {"status": "KO", "error": "Authentication Failed"}
-                return json.dumps(error)
-            return func(*args,**kwargs)
-
-        def is_authorized_ip(ip):
-            '''
-            Validates the given IP
-            '''
-            blobs = Blobs.get_instance()
-            patterns = []
-            # Creates the patterns  with regular expresions
-            for authorized_pattern in blobs.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
-            # Compare the IP with the patterns
-            for pattern in patterns:
-                if pattern.match(ip) is not None:
-                    return True
-            return False
-
-
-        return authenticate_and_call
-
-    def read_authorized_patterns(self):
-        '''
-        Read from the IPs conf file
-        '''
-        # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
-        if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
-            return []
-
-        # Read config file
-        try:
-            cfg = ConfigParser.ConfigParser()
-            cfg.read([authorized_patterns_path])
-            patterns = []
-            for item in cfg.items('Patterns'):
-                patterns.append(item[1])
-            return patterns
-        except ConfigParser.Error:
-            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
-            return []
-
-
+        # Database
+        self.database_dir = cherrypy.config.get("database_dir")
+        self.database_name = cherrypy.config.get("database_name")
+        self.database_file = os.path.join(self.database_dir, self.database_name)
+        if not self.init_database():
+            sys.exit("Initialization of database failed. Check the logs.")
 
     def init_logging(self):
         """
@@ -263,16 +125,18 @@ class   Blobs(object):
         logger.addHandler(handler)
         return logger
 
-    #---------------------------------------------------------------------------
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in demo.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string)
+
     def init_database(self):
         """
-            Initialize the database used by the module if it doesn't exist.
-            If the file is empty, the system delete it and create a new one.
-            :return: False if there was an error. True otherwise.
-            :rtype: bool
+        Initialize the database used by the module if it doesn't exist.
+        If the file is empty, the system delete it and create a new one.
         """
-
-        status = True
 
         if os.path.isfile(self.database_file):
 
@@ -283,8 +147,7 @@ class   Blobs(object):
                     os.remove(self.database_file)
                 except Exception as ex:
                     self.logger.exception("init_database: " + str(ex))
-                    status = False
-                    return status
+                    return False
 
         if not os.path.isfile(self.database_file):
             try:
@@ -293,7 +156,7 @@ class   Blobs(object):
 
                 sql_buffer = ""
 
-                with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
+                with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
                     for line in sql_file:
 
                         sql_buffer += line
@@ -313,25 +176,40 @@ class   Blobs(object):
                         os.remove(self.database_file)
                     except Exception as ex:
                         self.logger.exception("init_database - " + str(ex))
-                        status = False
+                        return False
 
-        return status
+        return True
 
-    #---------------------------------------------------------------------------
-    def instance_database(self):
+    def read_authorized_patterns(self):
         """
-        Create an instance of the Database object
-        If an exception is catched, close the program
-
-        :return: a connection to the database
-        :rtype: Database object
+        Read from the IPs conf file
         """
+        # Check if the config file exists
+        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        if not os.path.isfile(authorized_patterns_path):
+            self.error_log("read_authorized_patterns",
+                           "Can't open {}".format(authorized_patterns_path))
+            return []
+
+        # Read config file
         try:
-            data = Database(self.database_dir, self.database_name, self.logger)
-            return data
-        except DatabaseError:
-            self.logger.exception("Cannot instantiate Database object")
-            sys.exit(1)
+            cfg = ConfigParser.ConfigParser()
+            cfg.read([authorized_patterns_path])
+            patterns = []
+            for item in cfg.items('Patterns'):
+                patterns.append(item[1])
+            return patterns
+        except ConfigParser.Error:
+            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            return []
+
+    @staticmethod
+    @cherrypy.expose
+    def index():
+        """
+        index of the module.
+        """
+        return "Dispatcher module"
 
     @staticmethod
     @cherrypy.expose
@@ -339,1271 +217,17 @@ class   Blobs(object):
         """
         Default method invoked when asked for non-existing service.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        data["status"] = "KO"
-        data["message"] = "Unknown service '{}'".format(attr)
+        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data)
-
-    @cherrypy.expose
-    def index(self):
-        """
-        Function exposed corresponding to '/' in url adress
-        Return "index" html page for cherrypy.server.socket_host
-
-        :return: mako templated html page (refer to demos.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {}
-        res = use_web_service('/demos_ws', data)
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
-
-    @cherrypy.expose
-    def blob(self, demo_name):
-        """
-        Web page used to upload one blob to one demo
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :return: mako templated html page (refer to demos.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_blob.html").render(demo_name=demo_name)
-
-    @cherrypy.expose
-    def archive(self, demo_name):
-        """
-        Function used for upload zip file to one demo
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :return: mako templated html page (refer to index.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_archive.html").render(demo_name=demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def add_blob_ws(self, demo_name, path, tag, ext, blob_set, blob_pos_in_set,
-                    title, credit):
-        """
-        This function implements get request (from '/add_blob_ws')
-        It allows to check if demo given by name and blob given by hash
-        is already in database if not it add its.
-
-        :param demo_name:         demo id integer
-        :param path:            blob path string
-        :param tag:             name tag string
-        :param ext:             extension of blob string
-        :param blob_set:        string
-        :param blob_pos_in_set:  number, id of the blob within its blob_set
-        :param title:           title blob string
-        :param credit:          credit blob string
-        :return:                hash of current blob (dictionnary) json format
-        """
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        blob_hash = get_hash_blob(path)
-        fileformat = file_format(path)
-        #hash_tmp = -1
-        dic = {}
-        dic["the_hash"] = blob_hash
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-
-            try:
-                data.start_transaction()
-                blobid = -1
-
-                if data.blob_is_in_database(blob_hash):
-                    blobid = data.blob_id(blob_hash)
-
-                data.add_blob_in_database(demo_name, blob_hash, fileformat,
-                                          ext, tag, blob_set, blob_pos_in_set,
-                                          title, credit, blobid)
-
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot add item in database")
-                data.rollback()
-                dic["status"] = "KO"
-
-            #dic["the_hash"] = hash_tmp
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def add_blob(self, **kwargs):
-        """
-        This function implements the web page '/add_blob'
-
-        :param kwargs: list arguments
-        :type: dict
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        demo = kwargs['demo[id]']
-        # demo_name = kwargs['demo[name]']
-        tag = kwargs['blob[tag]']
-        blob = kwargs['blob[file]']
-        blob_set = kwargs['blob[set]']
-        blob_pos = kwargs['blob[pos]']
-        title = kwargs['blob[title]']
-        credit = kwargs['blob[credit]']
-
-        pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
-        list_tag = [x for x in pattern.split(tag) if x]
-
-        if not list_tag:
-            list_tag = [""]
-
-        _, ext = os.path.splitext(blob.filename)
-        assert isinstance(blob, cherrypy._cpreqbody.Part)
-
-        tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
-        if not os.path.exists(tmp_directory):
-            os.makedirs(tmp_directory)
-
-        # pos in set 0 by default (if the set does not exists)
-        blob_pos_in_set = 0
-
-        # add blob to the end of the blobset
-        # look for the size of the blobset
-        demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo})
-        for bs in demo_blobs["blobs"]:
-            if bs[0]['set_name'] == blob_set:
-                # check if blob_pos is an existing position
-                # and also compute the maximal exisiting position
-                blob_maxpos = 0
-                for i in range(1, bs[0]['size'] + 1):
-                    if str(bs[i]['pos_in_set']) == str(blob_pos):
-                        blob_pos_in_set = blob_pos
-                        break
-                    else:
-                        blob_maxpos = max(blob_maxpos, bs[i]['pos_in_set'])
-                        blob_pos_in_set = blob_maxpos + 1
-
-        try:
-            path = create_tmp_file(blob, tmp_directory)
-        except Exception as ex:
-            error_message = "Failure adding in add_blob --> %s".format(ex)
-            self.logger.exception(error_message)
-            error_dic = {}
-            error_dic['status']= 'KO'
-            error_dic['message'] = error_message
-            return json.dumps(error_dic)
-
-        data = {"demo_name": demo, "path": path, "tag": list_tag, "ext": ext,
-                "blob_set": blob_set, "blob_pos_in_set":blob_pos_in_set,
-                "title": title, "credit": credit}
-        res = use_web_service('/add_blob_ws/', data)
-
-        if res["the_hash"] != -1 and res["status"] == "OK":
-            file_dest = self.move_to_input_directory(path, res["the_hash"], ext)
-            self.create_thumbnail(file_dest)
-        else:
-            os.remove(path)
-
-        return self.get_blobs_of_demo(demo)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def edit_blobs_information(self, **kwargs):
-        """
-        Edit blob (POST Request)
-
-        :param kwargs: list arguments
-        :type kwargs: dictionnary
-        :return: mako templated html page (refer to edit_blob.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {}
-        data['demo_name'] = kwargs['demo_name']
-        data['blob_id'] = kwargs['blob_id']
-        data['blob_set'] = kwargs['blob_set']
-        data['blob_pos_in_set'] = kwargs['blob_pos_in_set']
-        data['title'] = kwargs['title']
-        data['credit'] = kwargs['credit']
-
-        res = use_web_service("/edit_blob_in_database_ws", data)
-
-        if res['status'] == 'OK':
-            return self.get_blobs_of_demo(data['demo_name'])
-        else:
-            error_message = "Failure in edit_blobs_information"
-            self.logger.exception(error_message)
-            res['message'] = error_message
-            return json.dump(res)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def edit_blob_in_database_ws(self, demo_name, blob_id,
-				 blob_set, blob_pos_in_set, title, credit):
-        """
-        Web service used for editing a blob
-        :return: OK if success or KO if not
-        :rtype:  json format
-        """
-        dic={}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-
-            try:
-                data.start_transaction()
-                data.edit_blob_in_database(blob_id, blob_set, blob_pos_in_set, title, credit)
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Failure editing the blob in demo = '{}'".format(demo_name))
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def upload_visual_representation(self, **kwargs):
-        """
-        """
-        data = {}
-        demo_name       = kwargs['demo_name']
-        data['blob_id'] = kwargs['blob_id']
-        vr_file = kwargs['visual_representation']
-
-        res = use_web_service('/get_blob_ws', data)
-
-        if res['status'] == "OK":
-
-            # The creation of the main folders for blobs, thumbnail and VR 
-            # should be in __init__ ???? 
-            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-            if not os.path.exists(visrep_folder):
-                os.makedirs(visrep_folder)
-
-            blob_hash = res['hash']
-
-            try:
-
-                _, extension = os.path.splitext(vr_file.filename)
-                assert isinstance(vr_file, cherrypy._cpreqbody.Part)
-
-                vr_path, vr_folder, _ = dispersed_path(visrep_folder, blob_hash, extension)
-                if not os.path.isdir(vr_folder):
-                    os.makedirs(vr_folder)
-
-                #Delete the previous visual representations...
-                file_without_extension = os.path.join(vr_folder, blob_hash)
-                list_of_visrep = glob.glob(file_without_extension+".*")
-                for vr_to_delete in list_of_visrep:
-                    os.remove(vr_to_delete)
-
-
-                temp_path = create_tmp_file(vr_file, vr_folder)
-                os.rename(temp_path, vr_path)
-                self.create_thumbnail(vr_path)
-
-            except Exception as ex:
-                error_message = "Failure in upload_visual_representation --> {}".format(ex)
-                self.logger.exception(error_message)
-                data['status']= 'KO'
-                data['message'] = error_message
-                return json.dumps(data)
-
-        return self.get_blobs_of_demo(demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def demos_ws(self):
-        """
-        Web service used to have the list of demos from database
-
-        :return: list of demos (dictionnary)
-        :rtype: json format
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-
-            dic["list_demos"] = {}
-            try:
-                dic["list_demos"] = data.list_of_demos()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot have the list of demos")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_template_demo_ws(self):
-        """
-        Web service used to have the list of template demos from database
-
-        :return: list of template (dictionnary)
-        :rtype: json format
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-
-            dic["template_list"] = {}
-            try:
-                dic["template_list"] = data.list_of_template()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot have the list of templates demos")
-                dic["status"] = "KO"
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    def demo(self):
-        """
-        Web page used to add demo to database
-
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {}
-        res = use_web_service('/get_template_demo_ws', data)
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("add_demo.html").render(res_tmpl=res["template_list"])
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def set_template_ws(self, demo_name, name):
-        """
-        Web service used to change the current template used by a demo
-        demo
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :param name: name of the templated demo selected
-        :type name: string
-        :return: "OK" if not error else "KO"
-        :rtype: json format
-        """
-        dic = {}
-
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                print "Name:",name
-                print "demo name:",demo_name
-                template_id = data.demo_id(name)
-                if name == 'None':
-                    template_id = 0
-                data.update_template(demo_name, template_id)
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot update template used")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def use_template(self, **kwargs):
-        """
-        Web page used to change templated demo used
-
-        :param kwargs: list arguments
-        :type: dict
-        :return: mako templated html page (refer to edit_blob.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        demo_name = kwargs["demo[id]"]
-        name_tmpl = kwargs["name_template"]
-
-        data = {"demo_name": demo_name, "name": name_tmpl}
-
-        use_web_service('/set_template_ws', data)
-
-        return self.get_blobs_of_demo(demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def add_demo_ws(self, name, is_template, template):
-        """
-        Web service used to add demo to database
-
-        :param name: name of the demo
-        :type name: string
-        :param is_template: if demo is a template equal 1 else 0
-        :type is_template: boolean cast in integer
-        :param template: name of the demo templated used
-        :type template: string
-        :return: "OK" if not error else "KO" (dictionnary)
-        :rtype: json format
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                id_tmpl = 0
-                if template:
-                    id_tmpl = data.demo_id(template)
-                data.add_demo_in_database(name, is_template, id_tmpl)
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot have the list of templates demos")
-                data.rollback()
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def add_demo(self, **kwargs):
-        """
-        Web page used to add demo to database
-
-        :param kwargs: list arguments
-        :type: dict
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        demo_name = kwargs["demo"]
-        is_tmpl = kwargs["template"]
-        is_template = 0
-        template = kwargs["name_template"]
-
-        if is_tmpl != '0':
-            is_template = 1
-            template = ""
-
-        data = {"name": demo_name, "is_template": is_template, "template": template}
-        use_web_service('/add_demo_ws', data)
-
-        return self.index()
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def add_from_archive(self, **kwargs):
-        """
-        This function implements post request for /zip
-        It corresponds to upload of the zip file
-
-        :param blob:
-        :type kwargs: dictionnary
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        demo_name = kwargs['demo[id]']
-        the_archive = kwargs['archive']
-
-        filename, extension = os.path.splitext(the_archive.filename)
-        assert isinstance(the_archive, cherrypy._cpreqbody.Part)
-
-        tmp_directory = os.path.join(self.base_directory, self.tmp_dir)
-        if not os.path.exists(tmp_directory):
-            os.makedirs(tmp_directory)
-
-        path = create_tmp_file(the_archive, tmp_directory)
-        self.parse_archive(extension, path, tmp_directory, the_archive.filename, demo_name)
-
-        return self.get_blobs_of_demo(demo_name)
-
-
-    def remove_files_associated_to_a_blob(self, blob):
-        """
-        This function removes a blob, its thumbnail and 
-        the visual representation (if exists)
-        
-        :param blob:
-        :type hash and extension of the blob
-        :return: "OK" if not error else "KO"
-        :rtype: dictionnary 
-        """
-
-        hash_blob, extension = os.path.splitext(blob)
-
-        main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
-        path_file, _ , _  = dispersed_path(main_blobs_folder, hash_blob, extension)
-
-        try:
-            os.remove(path_file)
-        except OSError as ex:
-            error_message = "Failure removing the blob {}. Error: {} ".format(blob,ex)
-            self.logger.error(error_message)
-            print error_message
-
-        main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
-        path_thumb, _, _  = dispersed_path(main_thumb_folder, hash_blob, ".jpg", True)
-
-        try:
-            os.remove(path_thumb)
-        except OSError as ex:
-            error_message = "Failure removing the thumbnail of blob {}. Error: {} ".format(blob,ex)
-            self.logger.error(error_message)
-            print error_message
-
-        try:
-            #Delete the visual representation (if exists)
-            visrep_folder = os.path.join(self.base_directory, self.vr_dir)
-            _, vr_folder,_ = dispersed_path(visrep_folder, hash_blob, "dummy")
-            visrep_without_extension = os.path.join(vr_folder, hash_blob)
-            list_of_visrep = glob.glob(visrep_without_extension+".*")
-
-            for vr_to_delete in list_of_visrep:
-                os.remove(vr_to_delete)
-
-        except Exception as ex:
-            error_message = "Failure removing the visrep of blob {}. Error: {} ".format(blob,ex)
-            self.logger.error(error_message)
-            print error_message
-
-
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def delete_blob_ws(self, demo_name, blob_set, blob_id):
-        """
-        This functions implements web service associated to '/delete_blob'
-        Delete blob from demo name and hash blob in database
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        return: name of the blob if it is not associated to demo and
-        "OK" if not error else "KO"
-        :rtype: dictionnary
-        """
-        dic = {}
-        dic["delete"] = ""
-        # return json.dump(dic)
-        # wait for the lock until timeout in seconds is reach
-        # if it can lock, locks and returns True
-        # otherwise returns False
-        # code based on http://stackoverflow.com/questions/8392640/how-to-
-        # implement-a-lock-with-a-timeout-in-python-2-7
-        # another option is to use Queue:
-        # http://stackoverflow.com/questions/35149889/lock-with-timeout-in-
-        # python2-7
-        def waitLock(lock, timeout):
-            """
-            This function start to acquire the given lock
-            during timeout amount of time.
-            """
-            current_time = start_time = time.time()
-            while current_time < start_time + timeout:
-                if lock.acquire(False):
-                    return True
-                else:
-                    # wait for 50ms and try again
-                    time.sleep(0.05)
-                    current_time = time.time()
-            return False
-
-        # prevent simultaneous calls
-        # try to acquire lock during 3 seconds
-        if waitLock(self.blobs_lock, 3):
-
-            with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-
-                try:
-                    blob_name = data.get_blob_filename(blob_id)
-                    has_no_demo = data.delete_blob_from_demo(demo_name, blob_set, blob_id)
-                    data.commit()
-                    if has_no_demo:
-                        dic["delete"] = blob_name
-                    dic["status"] = "OK"
-
-                except DatabaseError:
-                    self.logger.exception("Cannot delete item in database")
-                    data.rollback()
-                    dic["status"] = "KO"
-
-                finally:
-                    self.blobs_lock.release()
-
-        else:
-            self.logger.error("Failed to acquire blobs lock")
-            dic["status"] = "KO"
-
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        return json.dumps(dic)
-
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def add_tag_to_blob_ws(self, blob_id, tag):
-        """
-        Web service of '/op_add_tag_to_blob'
-
-        :param blob_id: id blob
-        :type blob_id: integer
-        :param tag: list of tag
-        :type tag: list
-        :return: "OK" if not error else "KO"
-        :rtype: dictionnary
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-
-            try:
-                data.add_tag_in_database(blob_id, tag)
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot add tag in database")
-                data.rollback()
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="text/plain")
-    def op_add_tag_to_blob(self, **kwargs):
-        """
-        Add tag to blob (POST Request)
-
-        :param kwargs: list arguments
-        :type kwargs: dictionnary
-        :return: mako templated html page (refer to edit_blob.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        tag = kwargs['tag']
-        blob_id = kwargs['blob_id']
-        demo_name = kwargs['demo_name']
-        pattern = re.compile(r"^\s+|\s*,\s*|\s+$")
-        list_tag = [x for x in pattern.split(tag) if x]
-
-        if not list_tag:
-            list_tag = [""]
-
-        data = {"blob_id": blob_id, "tag": list_tag}
-        use_web_service("/add_tag_to_blob_ws", data)
-
-        return self.edit_blob(blob_id, demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def remove_tag_from_blob_ws(self, tag_id, blob_id):
-        """
-        Web service of '/op_remove_tag_from_blob'
-
-        :param tag_id: id tag
-        :type tag_id: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: 'OK' if not error else 'KO'
-        :rtype: dictionnary
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-            try:
-                data.delete_tag_from_blob(tag_id, blob_id)
-                data.commit()
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot delete item in database")
-                data.rollback()
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    def op_remove_tag_from_blob(self, tag_id, blob_id, demo_name):
-        """
-        Remove one tag from blob
-
-        :param tag_id: id tag
-        :type tag_id: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: mako templated html page (refer to edit_blob.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {"tag_id": tag_id, "blob_id": blob_id}
-        use_web_service("/remove_tag_from_blob_ws", data)
-        return self.edit_blob(blob_id, demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_blob_from_demo(self, demo_name, blob_set, blob_id):
-        """
-        Delete one blob from demo
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: mako templated html page (refer to edit_demo_blobs.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {"demo_name": demo_name, "blob_set": blob_set, "blob_id": blob_id}
-        res = use_web_service('/delete_blob_ws', data, 'authenticated')
-
-        if res["status"] == "OK" and res["delete"]:
-            self.remove_files_associated_to_a_blob(res["delete"])
-
-        return self.get_blobs_of_demo(demo_name)
-
-
-    #---------------------------------------------------------------------------
-    def prepare_list_of_blobs(self, dic_blobs):
-        """
-        This function creates a list with the info that the ws: get_blobs_of_demo_by_name_ws
-        and get_blobs_from_template_ws, require for returning hash, extension, subdirs 
-        and if the visrep exists, it includes the visrep extension
-        """
-        list_of_blobs_corrected_with_vr = []
-        for elements in dic_blobs:
-            blob_set = []
-            for element in elements:
-               if 'hash' in element:
-                  hash_of_blob      = element['hash']
-                  extension_of_blob = element['extension']
-
-                  visrep_main_folder = os.path.join(self.base_directory, self.vr_dir)
-                  vr_path, vr_folder, subdirs = dispersed_path(visrep_main_folder, \
-                                                                                  hash_of_blob, \
-                                                                                  extension_of_blob)
-                  ##The subdir is the same in the VR , the thumbnail and in the blob_directory
-                  element['subdirs'] = subdirs + "/"
-
-                  vr_extension = self.check_if_visrep_exists(vr_folder, hash_of_blob)
-                  if vr_extension != "":
-                      element['extension_visrep'] = vr_extension
-
-               blob_set.append(element)
-
-            list_of_blobs_corrected_with_vr.append(blob_set)
-
-        return list_of_blobs_corrected_with_vr
-
-    def check_if_visrep_exists(self, vr_folder, hash_of_blob):
-        """
-        This function check if a blob has a visrep associated.
-        If the visrep exists, the function returns its extension
-        if not, returns an empty string
-        """
-        vr_extension = ""
-        if os.path.isdir(vr_folder):
-
-            file_without_extension = os.path.join(vr_folder, hash_of_blob)
-            visrep = glob.glob(file_without_extension+".*")
-
-            if len(visrep)>0:
-                _, vr_extension = os.path.splitext(visrep[0])
-
-        return vr_extension
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blobs_from_template_ws(self, template):
-        """
-        Web service used to get the list of blob from demo templated
-        associated to another demo
-
-        :param template: name of template demo
-        :type template: string
-        :return: the list of blobs and 'OK' if not error else 'KO'
-        :rtype: dictionnary
-        """
-        dic = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                # template_id = data.demo_id(template)
-                dic["blobs"] = data.get_blobs_of_demo(template)
-                dic["blobs"] = self.prepare_list_of_blobs(dic['blobs'])
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot access to blob from template demo")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blobs_of_demo_by_name_ws(self, demo_name):
-        """
-        This function implements get request from '/get_hash' (Web Service)
-        It returns list of hash blob corresponding to demo given in parameter
-        List is empty if not any blob is associated to demo
-
-        :param demo: name demo
-        :type demo: string
-        :return: list of hash blob
-        :rtype: json format list
-        """
-        dic = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        dic["status"] = "KO"
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                dic = data.get_demo_info_from_name(demo_name)
-                dic["use_template"] = data.demo_use_template(demo_name)
-                dic_temp = data.get_blobs_of_demo(demo_name)
-
-                dic["blobs"] = self.prepare_list_of_blobs(dic_temp)
-
-                dic["url"] = '/api/blobs' + "/" + self.final_dir + "/"
-                dic["url_thumb"] = '/api/blobs' + "/" + self.thumb_dir + "/"
-                dic["url_visrep"] = '/api/blobs' + "/" + self.vr_dir + "/"
-
-                dic["physical_location"] = self.final_dir
-                dic["vr_location"] = self.vr_dir
-                dic["status"] = "OK"
-
-            except DatabaseError:
-                self.logger.exception("Cannot access to blob from demo")
-
-        return json.dumps(dic)
-
-
-    #---------------------------------------------------------------------------
-    def process_paths(self, blob_hash, extension):
-        """
-        """
-        main_blobs_folder = os.path.join(self.base_directory, self.vr_dir)
-        physical_location, _, _ = dispersed_path(main_blobs_folder, \
-                                                                  blob_hash, \
-                                                                  extension)
-
-        url_blobs = os.path.join(self.server_address, self.final_dir)
-        url_blobs, _, _ = dispersed_path(url_blobs, blob_hash, extension)
-
-        url_thumb = os.path.join(self.server_address, self.thumb_dir)
-        url_thumb, _, _ = dispersed_path(url_thumb, blob_hash, ".jpg", True)
-
-        return physical_location, url_blobs, url_thumb
-
-
-
-    @cherrypy.expose
-    def get_blobs_of_demo(self, demo_name, blob_deleted_message=None):
-        """
-        Web page to show the blobs of the demo from id demo
-
-        :param demo_name: demo_name
-        :return: mako templated html page (refer to edit_demo_blobs.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        demo_blobs = use_web_service('/get_blobs_of_demo_by_name_ws', {"demo_name": demo_name})
-        template_list_res = use_web_service('/get_template_demo_ws', {})
-        template_blobs = {}
-
-        #--- if the demo uses a template, process its blobs
-        if demo_blobs["use_template"]:
-            template_blobs_res = use_web_service('/get_blobs_from_template_ws',
-                                                 {"template": demo_blobs["use_template"]["name"]})
-
-            template_blobs = template_blobs_res['blobs']
-            for blob_set in template_blobs:
-                blob_size = blob_set[0]['size']
-                for idx in range(1, blob_size + 1):
-                    b = blob_set[idx]
-                    b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
-		                                                                  b['extension'])
-
-
-        for blob_set in demo_blobs["blobs"]:
-            blob_size = blob_set[0]['size']
-            for idx in range(1, blob_size + 1):
-                b = blob_set[idx]
-                b["physical_location"], b['url'], b["url_thumb"] = self.process_paths(b["hash"],\
-		                                                                  b['extension'])
-
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("edit_demo_blobs.html").render(
-            blobs_list=demo_blobs["blobs"],
-            demo_name=demo_name,
-            demo=demo_blobs,
-            tmpl_list=template_list_res["template_list"],
-            tmpl_blobs=template_blobs,
-            blob_deleted_message=blob_deleted_message)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blobs_by_id(self, blob_ids):
-        """
-        Obtain blobs metadata from their IDs
-        """
-
-        blobs_ids_tuple = blob_ids if isinstance(blob_ids, list) else [int(blob_ids)]
-
-        dic={}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                list_with_blob_information = []
-                dic_with_blob = {}
-                for blob_id in blobs_ids_tuple:
-                    dic_with_blob = data.get_blob(blob_id)
-
-                    _, _, subdirs = dispersed_path(os.path.join(self.base_directory, self.final_dir), \
-                                                                 dic_with_blob['hash'], \
-                                                                 dic_with_blob['extension'])
-
-                    dic_with_blob['subdirs'] = subdirs + "/"
-
-                    list_with_blob_information.append(dic_with_blob)
-
-                dic['list_of_blobs'] = list_with_blob_information
-                dic["physical_location"] = self.final_dir
-                dic["vr_location"] = self.vr_dir
-                dic["status"] = "OK"
-            except Exception:
-                self.logger.exception("Cannot access to blob from its ID")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    def edit_blob(self, blob_id, demo_name):
-        """
-        HTML Page : show thumbnail of one blob, add tag or remove tag
-
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: mako templated html page (refer to edit_blob.html)
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {"blob_id": blob_id}
-        res = use_web_service('/get_info_for_editing_a_blob_ws', data)
-
-        if res["status"] == "OK":
-
-            res["tags"] = use_web_service('/get_tags_ws', data)
-
-            # process paths
-            main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
-            res["physical_location"], _, _ = dispersed_path(main_blobs_folder, \
-                                             res["hash"], \
-                                             res["extension"])
-
-            url_blobs = os.path.join(self.server_address, self.final_dir)
-            res['url'], _, _ = dispersed_path(url_blobs, \
-                                            res["hash"], \
-                                            res["extension"])
-            url_thumb = os.path.join(self.server_address, self.thumb_dir)
-
-            res["url_thumb"], _, _ = dispersed_path(url_thumb, \
-                                                    res["hash"], \
-                                                    ".jpg", \
-                                                    True)
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("edit_blob.html").render(\
-          blob_id=blob_id, blob_info=res, demo_id=demo_name)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_info_for_editing_a_blob_ws(self, blob_id):
-        """
-        Web service used to get the set associated with a blob
-
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: list of hash blob
-        :rtype: json format list
-        """
-        dic = []
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-	        dic = data.get_info_for_editing_a_blob(blob_id)
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot access to blob from its ID")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_blob_ws(self, blob_id):
-        """
-        Return informations of blob from id
-
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: extension, id, hash, credit of blob
-        :rtype: dictionnary
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-
-            try:
-                dic = data.get_blob(blob_id)
-                dic["status"] = "OK"
-            except DatabaseError:
-                self.logger.exception("Cannot access to blob from its ID")
-                dic["status"] = "KO"
-
-        return json.dumps(dic)
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    def get_tags_ws(self, blob_id):
-        """
-        Web service used to get the tag associated to the blob
-
-        :param blob_id: id blob
-        :type blob_id: integer
-        :return: list of hash blob
-        :rtype: json format list
-        """
-        lis = []
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                lis = data.get_tags_of_blob(blob_id)
-            except DatabaseError:
-                self.logger.exception("Cannot access tag from blob")
-        return json.dumps(lis)
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_demo_ws(self, demo_name):
-        """
-        Web service used to remove demo from id demo
-
-        :param demo_name: demo name
-        :return: "OK" if not error else "KO"
-        :rtype: json format
-        """
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        dic = {}
-        dic["status"] = "KO"
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            try:
-                blobfilenames_to_delete = data.remove_demo(demo_name)
-                data.commit()
-
-                # remove from disk unused blobs
-                for blob in blobfilenames_to_delete:
-                    self.remove_files_associated_to_a_blob(blob)
-
-                dic["status"] = "OK"
-
-            except DatabaseError:
-                self.logger.exception("Cannot delete demo")
-                data.rollback()
-
-        return json.dumps(dic)
-
-    #---------------------------------------------------------------------------
-    @cherrypy.expose
-    @cherrypy.tools.auth_basic(realm=REALM, checkpassword=validate_password)
-    def op_remove_demo(self, demo_name):
-        """
-        Web page used to remove a demo from id
-
-        :param demo_name: id demo
-        :type demo_name: integer
-        :return: mako templated html page refer to list.html
-        :rtype: mako.lookup.TemplatedLookup
-        """
-        data = {"demo_name": demo_name}
-        use_web_service('/op_remove_demo_ws', data, 'authenticated')
-        data = {}
-        res = use_web_service('/demos_ws', data)
-
-        tmpl_lookup = TemplateLookup(directories=[self.html_dir])
-        return tmpl_lookup.get_template("demos.html").render(list_demos=res["list_demos"])
-
-    #---------------------------------------------------------------------------
-    def move_to_input_directory(self, path, blob_hash, extension):
-        """
-        Create final blob directory if it doesn't exist
-        Move the temporary blob in this directory
-        Changing the name of the blob by the hash
-
-       :param path: path of the temporary directory (!= /tmp/)
-        :type path: string
-        :param the_hash: hash content blob
-        :type the_hash: string
-        :param extension: extension of blob
-        :type extension: string
-        """
-        main_blobs_folder = os.path.join(self.base_directory, self.final_dir)
-
-        file_dest, new_folder, _  = dispersed_path(main_blobs_folder, \
-                                          blob_hash, \
-                                          extension)
-
-        if not os.path.exists(new_folder):
-            os.makedirs(new_folder)
-
-        shutil.move(path, file_dest)
-        return file_dest
-
-    #---------------------------------------------------------------------------
-    def create_thumbnail(self, src):
-        """
-        Create thumbnail with source path of the image
-        Needed to improve it for sound and video !
-
-       :param src: source path of the blob
-        :type src: string
-        """
-        main_thumb_folder = os.path.join(self.base_directory, self.thumb_dir)
-        name = os.path.basename(src)
-        blob_hash = os.path.splitext(name)[0]
-        # force thumbnail extension to be .jpg
-        file_dest, new_folder, _ = dispersed_path(main_thumb_folder, \
-                                          blob_hash, \
-                                          ".jpg", \
-                                          True)
-        
-        if not os.path.exists(new_folder):
-            os.makedirs(new_folder)
-        
-        fil_format = file_format(src)
-        try:
-            if fil_format == 'image':
-                try:
-                    image = PIL.Image.open(src)
-                except Exception as _:
-                    self.logger.exception("failed to open image file")
-                    return
-                image.thumbnail((256, 256))
-                image.save(file_dest)
-        except IOError:
-            self.logger.exception("Cannot create thumbnail")
-
-    #---------------------------------------------------------------------------
-    def parse_archive(self, ext, path, tmp_directory, the_archive, demo_name):
-        """
-        Open archive (zip, tar) file
-        Extract blob object in function informations in 'index.cfg' file
-        Call Web service '/add_blob_ws' to add blob to the database
-
-        :param ext: extension of the archive
-        :type ext: string
-        :param path: path of the archive
-        :type path: string
-        :param tmp_directory: path of the temporary directory
-        :type tmp_directory: string
-        :param the_archive: name zip file
-        :type the_archive: string
-        """
-        if ext == '.zip':
-            src = zipfile.ZipFile(path)
-            files = src.namelist()
-        else:
-            src = tarfile.open(path)
-            files = src.getnames()
-
-        if 'index.cfg' in files:
-            src.extract('index.cfg', path=tmp_directory)
-            index_path = os.path.join(tmp_directory, 'index.cfg')
-            buff = configparser.ConfigParser()
-            buff.readfp(open(index_path))
-            for section in buff.sections():
-                the_files = buff.get(section, "files")
-                list_file = the_files.split()
-                for _file in list_file:
-
-                    file_id = list_file.index(_file)
-                    if _file and _file in files:
-                        title = buff.get(section, 'title')
-                        try:
-                            credit = buff.get(section, 'credit')
-                        except Exception as dummy:
-                            credit = ""
-                        try:
-                            tags = buff.get(section, 'tag')
-                        except Exception as dummy:
-                            tags = ""
-                        src.extract(_file, path=tmp_directory)
-                        tmp_path = os.path.join(tmp_directory, _file)
-                        _, ext = os.path.splitext(tmp_path)
-
-
-                        data = {"demo_name": demo_name, "path": tmp_path,
-                                "tag":tags,
-                                "ext": ext, "blob_set": section,
-                                "blob_pos_in_set": file_id, "title": title,
-                                "credit": credit}
-                        res = use_web_service('/add_blob_ws/', data)
-
-                        # add the tags
-
-                        #res = use_web_service('/add_tag_to_blob_ws/', data)
-                        the_hash = res["the_hash"]
-                        if the_hash != -1 and res["status"] == "OK":
-                            file_dest = self.move_to_input_directory(tmp_path,
-                                                                     the_hash,
-                                                                     ext)
-                            self.create_thumbnail(file_dest)
-                        else:
-                            os.remove(tmp_path)
-                    else:
-                        pass
-        else:
-            self.logger.exception(
-                "ZipError: index.cfg missing in " + the_archive +
-                ": Cannot add item in database")
-
-    #---------------------------------------------------------------------------
-           
-    @cherrypy.expose
-    @cherrypy.tools.accept(media="application/json")
-    @authenticate
-    def update_demo_id(self, old_demo_id, new_demo_id):
-        """
-        Update the given old demo id by the given new demo id.
-        """
-        dic = {}
-        with DatabaseConnection(self.database_dir, self.database_name, self.logger) as data:
-            cherrypy.response.headers['Content-Type'] = "application/json"
-            try:
-                data.update_demo_id(old_demo_id, new_demo_id)
-                data.commit()
-
-                dic["status"] = "OK"
-
-            except DatabaseError as ex:
-                self.logger.exception("Cannot update demo id in database")
-                data.rollback()
-                dic["status"] = "KO"
-                dic["error"] = "blobs update_demo_id error: {}".format(ex)
-
-        return json.dumps(dic)
-
-    #---------------------------------------------------------------------------
 
     @staticmethod
     @cherrypy.expose
     def ping():
         """
-        Ping pong.
-        :rtype: JSON formatted string
+        Ping service: answer with a PONG.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        data["status"] = "OK"
-        data["ping"] = "pong"
+        data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
-
 
     @cherrypy.expose
     @authenticate
@@ -1611,79 +235,1184 @@ class   Blobs(object):
         """
         Shutdown the module.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        data["status"] = "KO"
+        data = {"status": "KO"}
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.error("Failed to shutdown : " + ex)
+            self.logger.error("Failed to shutdown : {}".format(ex))
             sys.exit(1)
         return json.dumps(data)
 
-    
-def create_tmp_file(blob, path):
-    """
-    Create temporary directory and copy uploaded blob
+    @staticmethod
+    def mkdir_p(path):
+        """
+        Implement the UNIX shell command "mkdir -p"
+        with given path as parameter.
+        """
+        try:
+            os.makedirs(path)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
 
-    :param blob: blob object
-    :type blob: class view.myFieldStorage
-    :param path: path directory
-    :type path: string
-    :return: path copy file
-    :rtype: string
-    """
-    (_, filename) = tempfile.mkstemp(dir=path)
-    with open(filename, 'wb') as the_file:
-        shutil.copyfileobj(blob.file, the_file)
-    return filename
+    def add_blob(self, blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+        """
+        Copies the blob and store it in the DB
+        """
 
-def use_web_service(req, data, auth=None):
-    """
-    Call get function with urllib2
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            mime = self.get_blob_mime(blob.file)
+            blob_format, ext = mime.split('/')
+            ext = "." + ext
+            blob_hash = self.get_hash(blob.file)
 
-    :param req: name of get request
-    :type req: string
-    :param data: data needed for request
-    :type data: dict
-    :return: json decode
-    :rtype: list
-    """
-    #cherrypy.response.headers['Content-Type'] = "application/json"
-    urls_values = urllib.urlencode(data, True)
-    url = cherrypy.server.base() + req + '?' + urls_values
-    request = urllib2.Request(url)
-    if auth == 'authenticated':
-        base64string = base64.encodestring('%s:%s' % (user_name, passwd)).replace('\n', '')
-        request.add_header("Authorization", "Basic %s" % base64string)
-    res = urllib2.urlopen(request)
-    tmp = res.read()
-    return json.loads(tmp)
+            self.store_blob(conn, blob.file, title, credit, blob_hash, ext, blob_format)
+            try:
+                if blob_vr is not None:
+                    vr_ext = "." + self.get_blob_mime(blob_vr.file).split('/')[1]
+                    self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
+                    self.create_thumbnail(blob_vr.file, blob_hash, 'image')
+                else:
+                    self.create_thumbnail(blob.file, blob_hash, blob_format)
+            except IPOLBlobsThumbnailError as ex:
+                # An error in the creation of the thumbnail doesn't stop the execution of the method
+                self.logger.exception("Error creating the thumbnail")
+                print "Couldn't create the thumbnail. Error: {}".format(ex)
 
-def get_hash_blob(path):
-    """
-    Return hash (content of blob in the sha1 form) from path blob
+            self.add_tags_to_blob(conn, blob_hash, tags)
 
-    :param path: path file
-    :type path: string
-    :return: sha1 content blob to define a blob (if 2 blob are the same hash,
-    so it's the same blob
-    :rtype:
-    """
-    with open(path, 'rb') as the_file:
-        return hashlib.sha1(the_file.read()).hexdigest()
+            # If the hash is empty the module generates an unique set name
+            if blob_set is None:
+                blob_set = self.generate_set_name(blob_hash)
+                pos_set = 0
 
-def file_format(the_file):
-    """
-    Return format of the file
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                # Check if the pos is empty
+                if database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, pos_set):
+                    pos_set = database.get_max_pos_in_demo_set(conn, demo_id, blob_set) + 1
 
-    :param the_file: path of the file
-    :type the_file: string
-    :return: format of file (audio, image or video)
-    :rtype: string
-    """
-    mime = magic.Magic(mime=True)
-    fileformat = mime.from_file(the_file)
-    return fileformat[:5]
+                self.do_add_blob_to_demo(conn, demo_id, blob_hash, blob_set, pos_set)
+                res = True
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                # Check if the pos is empty
+                if database.is_pos_occupied_in_template_set(conn, template_name, blob_set, pos_set):
+                    pos_set = database.get_max_pos_in_template_set(conn, template_name, blob_set) + 1
+                self.do_add_blob_to_template(conn, template_name, blob_hash, blob_set, pos_set)
+                res = True
+            else:
+                self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
+
+        except IOError as ex:
+            self.logger.exception("Error copying uploaded blob")
+            print "Couldn't copy uploaded blob. Error: {}".format(ex)
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Error adding blob info to DB")
+            print "Couldn't add blob info to DB. Error: {}".format(ex)
+        except IPOLBlobsTemplateError as ex:
+            self.logger.exception("Error adding blob to template. Template does not exists")
+            print "Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when adding the blob")
+            print "*** Failed to add the blob. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+
+        return res
+
+    @cherrypy.expose
+    def add_blob_to_demo(self, blob=None, demo_id=None, tags=None, blob_set=None, pos_set=None, title=None,
+                         credit=None, blob_vr=None):
+        """
+        Adds a new blob to a demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+
+        if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def add_blob_to_template(self, blob=None, template_name=None, tags=None, blob_set=None, pos_set=None, title=None,
+                             credit=None, blob_vr=None):
+        """
+        Adds a new blob to a template
+        """
+        dest = {"dest": "template", "name": template_name}
+
+        if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def store_blob(self, conn, blob, title, credit, blob_hash, ext, blob_format):
+        """
+        Stores the blob info in the DB and copy it in the file system
+        """
+
+        if database.is_blob_in_db(conn, blob_hash):
+            # If the DB already have the hash there is no need to store the blob
+            return
+        try:
+            self.copy_blob(blob, blob_hash, ext, self.blob_dir)
+            database.store_blob(conn, blob_hash, blob_format, ext, title, credit)
+            conn.commit()
+
+        except IPOLBlobsDataBaseError:
+            conn.rollback()
+            raise
+
+    @staticmethod
+    def get_blob_mime(blob):
+        """
+        Return format from blob
+        """
+        mime = magic.Magic(mime=True)
+        blob_format = mime.from_buffer(blob.read())
+        return blob_format
+
+    @staticmethod
+    def get_hash(blob):
+        """
+        Return the sha1 hash from blob
+        """
+        blob.seek(0)
+        return hashlib.sha1(blob.read()).hexdigest()
+
+    def copy_blob(self, blob, blob_hash, ext, path):
+        """
+        Stores the blob in the file system
+        """
+        subdir = self.get_subdir(blob_hash)
+        full_path = os.path.join(path, subdir)
+        if not os.path.isdir(full_path):
+            self.mkdir_p(full_path)
+        blob_path = os.path.join(full_path, blob_hash + ext)
+        blob.seek(0)
+        with open(blob_path, 'wb') as f:
+            shutil.copyfileobj(blob, f)
+
+    @staticmethod
+    def get_subdir(blob_hash):
+        """
+        Returns the subdirectory from the blob hash
+        """
+        return os.path.join(blob_hash[0], blob_hash[1])
+
+    @staticmethod
+    def do_add_blob_to_demo(conn, demo_id, blob_hash, pos_set, blob_set):
+        """
+        Associates the blob to a demo in the DB
+        """
+        try:
+            if not database.demo_exist(conn, demo_id):
+                database.create_demo(conn, demo_id)
+            database.add_blob_to_demo(conn, demo_id, blob_hash, pos_set, blob_set)
+            conn.commit()
+        except IPOLBlobsDataBaseError:
+            conn.rollback()
+            raise
+
+    @staticmethod
+    def do_add_blob_to_template(conn, template_name, blob_hash, blob_set, pos_set):
+        """
+        Associates the template to a demo in the DB
+        """
+        try:
+            if not database.template_exist(conn, template_name):
+                raise IPOLBlobsTemplateError
+
+            database.add_blob_to_template(conn, template_name, blob_hash, pos_set, blob_set)
+            conn.commit()
+        except IPOLBlobsDataBaseError:
+            conn.rollback()
+            raise
+
+    def create_thumbnail(self, blob, blob_hash, blob_format):
+        """
+        Creates the thumbnail according to the blob_format
+        """
+        if blob_format == "image":
+            self.create_image_thumbnail(blob, blob_hash)
+        else:
+            # Other blob types are not supported yet
+            # [Todo] Implement other types of thumbnail (video, audio...)
+            pass
+
+    def create_image_thumbnail(self, blob, blob_hash):
+        """
+        Creates a 256x256 jpg thumbnail for the image blob
+        """
+        try:
+            subdir = self.get_subdir(blob_hash)
+            path = os.path.join(self.thumb_dir, subdir)
+
+            if not os.path.isdir(path):
+                self.mkdir_p(path)
+
+            thumb_path = os.path.join(path, blob_hash + ".jpg")
+
+            blob.seek(0)
+            image = Image.open(blob).convert('RGBA')
+            image.thumbnail((256, 256))
+
+            image.save(thumb_path)
+        except Exception as ex:
+            raise IPOLBlobsThumbnailError(ex)
+
+    def add_tags_to_blob(self, conn, blob_hash, tags):
+        """
+        Creates the tags and associate them to the blob
+        """
+        tag_list = set(map(str.strip, str(tags).split(",")))
+        try:
+            with self.lock:
+                database.create_tags(conn, tag_list)
+            database.add_tags_to_blob(conn, tag_list, blob_hash)
+            conn.commit()
+        except IPOLBlobsDataBaseError:
+            conn.rollback()
+            raise
+
+    @cherrypy.expose
+    def create_template(self, template_name):
+        """
+        Creates a new empty template
+        """
+
+        status = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            database.create_template(conn, template_name)
+            conn.commit()
+            status = {"status": "OK"}
+
+        except IPOLBlobsDataBaseError as ex:
+            if conn is not None:
+                conn.rollback()
+            self.logger.exception("Fail creating template {}".format(template_name))
+            print "Couldn't create the template {}. Error: {}".format(template_name, ex)
+        except Exception as ex:
+            if conn is not None:
+                conn.rollback()
+            self.logger.exception("*** Unhandled exception when creating the template {}".format(template_name))
+            print "*** Unhandled exception when creating the template {}. Error: {}".format(template_name, ex)
+
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(status)
+
+    @cherrypy.expose
+    def add_templates_to_demo(self, demo_id, template_names):
+        """
+        Associates the demo to the list of templates
+        """
+        template_names_list = set(map(str.strip, str(template_names).split(",")))
+        status = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            if not database.all_templates_exist(conn, template_names_list):
+                raise IPOLBlobsTemplateError
+
+            if not database.demo_exist(conn, demo_id):
+                database.create_demo(conn, demo_id)
+
+            database.add_templates_to_demo(conn, template_names_list, demo_id)
+            conn.commit()
+            status = {"status": "OK"}
+
+        except IPOLBlobsDataBaseError as ex:
+            if conn is not None:
+                conn.rollback()
+            self.logger.exception("Fails linking templates {} to the demo #{}".format(template_names, demo_id))
+            print "Couldn't link templates {} to the demo #{}. Error: {}".format(template_names, demo_id, ex)
+        except IPOLBlobsTemplateError as ex:
+            if conn is not None:
+                conn.rollback()
+            self.logger.exception("Some of the templates {} does not exist".format(template_names))
+            print "Some of the templates {} does not exist. Error: {}".format(template_names, ex)
+        except Exception as ex:
+            if conn is not None:
+                conn.rollback()
+            self.logger.exception("*** Unhandled exception when linking the templates {} to the demo #{}"
+                                  .format(template_names, demo_id))
+            print "*** Unhandled exception when linking the templates {} to the demo #{}. Error:{}" \
+                .format(template_names, demo_id, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(status)
+
+    @cherrypy.expose
+    def get_blobs(self, demo_id):
+        """
+        Get all the blobs of the demo, from owned blobs and templates
+        """
+        data = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            demo_blobs = database.get_demo_owned_blobs(conn, demo_id)
+            templates = database.get_demo_templates(conn, demo_id)
+            sets = self.prepare_list(demo_blobs)
+            for template in templates:
+                sets += self.prepare_list(database.get_template_blobs(conn, template))
+
+            data["sets"] = sets
+            data["status"] = "OK"
+
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
+            print "Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when obtaining all the blobs from demo #{}"
+                                  .format(demo_id))
+            print "*** Unhandled exception when obtaining all the blobs from demo #{}. Error: {}" \
+                .format(demo_id, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    def prepare_list(self, blobs):
+        """
+        Prepare the output list of blobs
+        """
+        sets = {}
+        for blob in blobs:
+            blob_set = blob["blob_set"]
+            if blob_set in sets:
+                sets[blob_set].append(self.get_blob_info(blob))
+            else:
+                sets[blob_set] = [self.get_blob_info(blob)]
+
+        sorted_sets = sorted(sets.items(), key=operator.itemgetter(0))
+        result = []
+        for blob_set in sorted_sets:
+            dic = {}
+            for blob in blob_set[1]:
+                position = blob['pos_set']
+                del blob['pos_set']
+                dic[position] = blob
+
+            result.append({"name": blob_set[0], "blobs": dic})
+        return result
+
+    @cherrypy.expose
+    def get_template_blobs(self, template_name):
+        """
+        Get the list of blobs for the template
+        """
+        data = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            if not database.template_exist(conn, template_name):
+                # If the requested template doesn't exist the method will return a KO
+                return json.dumps(data)
+
+            sets = self.prepare_list(database.get_template_blobs(conn, template_name))
+
+            data["sets"] = sets
+            data["status"] = "OK"
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_name))
+            print "Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_name, ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when obtaining the owned blobs from template '{}'"
+                                  .format(template_name))
+            print "*** Unhandled exception when obtaining the owned blobs from template '{}'. Error: {}" \
+                .format(template_name, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    @cherrypy.expose
+    def get_demo_owned_blobs(self, demo_id):
+        """
+        Get the list of owned blobs for the demo
+        """
+        data = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            blobs = database.get_demo_owned_blobs(conn, demo_id)
+            sets = self.prepare_list(blobs)
+            data["sets"] = sets
+            data["status"] = "OK"
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
+            print "Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when obtaining the owned blobs from demo #{}"
+                                  .format(demo_id))
+            print "*** Unhandled exception when obtaining the owned blobs from demo #{}. Error: {}" \
+                .format(demo_id, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    def get_blob_info(self, blob):
+        """
+        Return the required information from the blob
+        """
+        subdir = self.get_subdir(blob['hash'])
+        vr_physical_dir = os.path.join(self.vr_dir, subdir)
+        thumb_physical_dir = os.path.join(self.thumb_dir, subdir)
+        blob_physical_dir = os.path.join(self.blob_dir, subdir)
+
+        vr_url = os.path.join('/api', 'blobs', vr_physical_dir)
+        thumbnail_url = os.path.join('/api', 'blobs', thumb_physical_dir)
+        blob_url = os.path.join('/api', 'blobs', blob_physical_dir)
+
+        blob_info = {'title': blob['title'],
+                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
+                     'format': blob['format'],
+                     'credit': blob['credit'],
+                     'tags': blob['tags'],
+                     'pos_set': blob['pos_set'],
+                     'physical_location': os.path.join(blob_physical_dir, blob['hash'] + blob['extension'])}
+
+        if os.path.isfile(os.path.join(self.module_dir, thumb_physical_dir, blob['hash'] + '.jpg')):
+            blob_info['thumbnail'] = os.path.join(self.module_dir, thumbnail_url, blob['hash'] + '.jpg')
+
+        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob['hash'])
+        if vr_extension is not None:
+            blob_info['vr'] = os.path.join(vr_url, blob['hash'] + vr_extension)
+
+        return blob_info
+
+    @staticmethod
+    def get_vr_extension(vr_dir, blob_hash):
+        """
+        If the visual representation exists, the function returns its extension
+        if not, returns None
+        """
+        vr_extension = None
+        if os.path.isdir(vr_dir):
+
+            file_without_extension = os.path.join(vr_dir, blob_hash)
+            vr = glob.glob(file_without_extension + ".*")
+
+            if len(vr) > 0:
+                _, vr_extension = os.path.splitext(vr[0])
+
+        return vr_extension
+
+    @cherrypy.expose
+    def get_demo_templates(self, demo_id):
+        """
+        Get the list of templates used by the demo
+        """
+        data = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            db_response = database.get_demo_templates(conn, demo_id)
+            data["templates"] = db_response
+            data["status"] = "OK"
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Fails obtaining the owned templates from demo #{}".format(demo_id))
+            print "Couldn't obtain owned templates from demo #{}. Error: {}".format(demo_id, ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when obtaining the owned templates from demo #{}"
+                                  .format(demo_id))
+            print "*** Unhandled exception when obtaining the owned templates from demo #{}. Error: {}" \
+                .format(demo_id, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    def add_blob_tags(self, tags, blob_set, pos_set, dest):
+        """
+        Add a new to tag to the blob
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+            else:
+                self.logger.error("Failed to add the tags to blob. Unknown dest: {}".format(dest["dest"]))
+                return res
+
+            if blob_data is None:
+                return res
+            self.add_tags_to_blob(conn, blob_data['hash'], tags)
+            res = True
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Failed to add the tags to blob")
+            print "Failed to add the tags to blob. DB Error: {}".format(ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when adding the tags to blob")
+            print "*** Unhandled exception when adding the tags to blob. Error: {}" \
+                .format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    @cherrypy.expose
+    def add_tag_to_blob_in_demo(self, demo_id, tags, blob_set, pos_set):
+        """
+        Add a new to tag to the blob in the demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+
+        if self.add_blob_tags(tags, blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def add_tag_to_blob_in_template(self, template_name, tags, blob_set, pos_set):
+        """
+        Add a new to tag to the blob in the template
+        """
+        dest = {"dest": "template", "name": template_name}
+
+        if self.add_blob_tags(tags, blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def remove_blob(self, blob_set, pos_set, dest):
+        """
+        Remove the blob
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
+                database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+                database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
+            else:
+                self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                return res
+
+            blob_hash = blob_data['hash']
+            if not database.is_blob_used(conn, blob_hash):
+                database.remove_blob(conn, blob_hash)
+                self.remove_files_associated_to_a_blob(blob_hash)
+            conn.commit()
+            res = True
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while removing blob")
+            print "Failed to remove blob from DB. Error: {}".format(ex)
+        except OSError as ex:
+            conn.rollback()
+            self.logger.exception("OS error while deleting blob file")
+            print "Failed to remove blob from file system. Error: {}".format(ex)
+        except IPOLRemoveDirError as ex:
+            # There is no need to do a rollback if the problem was deleting directories
+            self.logger.exception("Failed to remove directories")
+            print "Failed to remove directories. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when removing the blob")
+            print "*** Unhandled exception when removing the blob. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    @cherrypy.expose
+    def remove_blob_from_demo(self, demo_id, blob_set, pos_set):
+        """
+        Remove a blob from the demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+        if self.remove_blob(blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def remove_blob_from_template(self, template_name, blob_set, pos_set):
+        """
+        Remove a blob from the template
+        """
+        dest = {"dest": "template", "name": template_name}
+        if self.remove_blob(blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def remove_blob_container(self, dest):
+        """
+        Remove the demo or template and all the blobs only used by them
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                blobs = database.get_demo_owned_blobs(conn, demo_id)
+                database.remove_demo_blobs_association(conn, demo_id)
+                database.remove_demo(conn, demo_id)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                blobs = database.get_template_blobs(conn, template_name)
+                database.remove_template_blobs_association(conn, template_name)
+                database.remove_template(conn, template_name)
+            else:
+                self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                return res
+            for blob in blobs:
+                if not database.is_blob_used(conn, blob['hash']):
+                    database.remove_blob(conn, blob['hash'])
+                    self.remove_files_associated_to_a_blob(blob['hash'])
+
+            conn.commit()
+            res = True
+        except OSError as ex:
+            conn.rollback()
+            self.logger.exception("OS error while deleting blob file")
+            print "Failed to remove blob from file system. Error: {}".format(ex)
+        except IPOLRemoveDirError as ex:
+            # There is no need to do a rollback if the problem was deleting directories
+            self.logger.exception("Failed to remove directories")
+            print "Failed to remove directories. Error: {}".format(ex)
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while removing the demo/template")
+            print "Failed to remove the demo/template. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when removing the demo/template")
+            print "*** Unhandled exception when removing the demo/template. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    @cherrypy.expose
+    def remove_demo(self, demo_id):
+        """
+        Remove the demo and the blobs only used in that demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+        if self.remove_blob_container(dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def remove_template(self, template_name):
+        """
+        Remove the template and the blobs only used in that template
+        """
+        dest = {"dest": "template", "name": template_name}
+        if self.remove_blob_container(dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def remove_template_from_demo(self, demo_id, template_name):
+        """
+        Remove the template from the demo
+        """
+        data = {'status': 'KO'}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            database.remove_template_from_demo(conn, demo_id, template_name)
+            conn.commit()
+            data['status'] = 'OK'
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while removing the template from the demo")
+            print "Failed to remove the template from the demo. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when removing the template from the demo")
+            print "*** Unhandled exception when removing the template from the demo. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    def remove_tag(self, tag, blob_set, pos_set, dest):
+        """
+        Remove the tag from a demo or template
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                database.remove_tag_from_demo(conn, tag, demo_id, blob_set, pos_set)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                database.remove_tag_from_template(conn, tag, template_name, blob_set, pos_set)
+            else:
+                self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                return res
+
+            conn.commit()
+            res = True
+
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while removing the demo/template")
+            print "Failed to remove the demo/template. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when removing the demo/template")
+            print "*** Unhandled exception when removing the demo/template. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    @cherrypy.expose
+    def remove_tag_from_blob_in_demo(self, tag, demo_id, blob_set, pos_set):
+        """
+        Remove the tag from a demo in the demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+        if self.remove_tag(tag, blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def remove_tag_from_blob_in_template(self, tag, template_name, blob_set, pos_set):
+        """
+        Remove the tag from a demo in the template
+        """
+        dest = {"dest": "template", "name": template_name}
+        if self.remove_tag(tag, blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def remove_files_associated_to_a_blob(self, blob_hash):
+        """
+        This function removes the blob, the thumbnail and
+        the visual representation from the hash given
+        """
+        subdir = self.get_subdir(blob_hash)
+
+        blob_folder = os.path.join(self.module_dir, self.blob_dir, subdir)
+        thumb_folder = os.path.join(self.module_dir, self.thumb_dir, subdir)
+        vr_folder = os.path.join(self.module_dir, self.vr_dir, subdir)
+
+        blob_file = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
+        thumb_file = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))
+        vr_file = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))
+
+        # remove blob and its folder if necessary
+        if len(blob_file) > 0:
+            os.remove(blob_file[0])
+            self.remove_dirs(blob_folder)
+
+        # remove thumbnail and its folder if necessary
+        if len(thumb_file) > 0:
+            os.remove(thumb_file[0])
+            self.remove_dirs(thumb_folder)
+
+        # remove visual representation and its folder if necessary
+        if len(vr_file) > 0:
+            os.remove(vr_file[0])
+            self.remove_dirs(vr_folder)
+
+    def remove_dirs(self, blob_folder):
+        """
+        Remove all the empty directories
+        """
+        try:
+            if not os.listdir(blob_folder):
+                os.rmdir(blob_folder)
+                self.remove_dirs(os.path.dirname(blob_folder))
+        except Exception as ex:
+            raise IPOLRemoveDirError(ex)
+
+    @staticmethod
+    def generate_set_name(blob_hash):
+        """
+        Generate a unique set name for the given blob hash
+        """
+        return "__" + str(blob_hash)
+
+    @cherrypy.expose
+    def edit_blob_from_demo(self, demo_id=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+                            new_pos_set=None, title=None, credit=None, vr=None):
+        """
+        Edit blob information in a demo
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+        if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
+                                new_pos_set=None, title=None, credit=None, vr=None):
+        """
+        Edit blob information in a template
+        """
+        dest = {"dest": "template", "name": template_name}
+        if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def edit_blob(self, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
+        """
+        Edit blob information
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+
+                if new_pos_set != pos_set and \
+                        database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, new_pos_set):
+                    new_pos_set = database.get_max_pos_in_demo_set(conn, demo_id, blob_set) + 1
+                    print new_pos_set
+
+                database.edit_blob_from_demo(conn, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit)
+                blob_data = database.get_blob_data_from_demo(conn, demo_id, new_blob_set, new_pos_set)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+
+                if new_pos_set != pos_set and \
+                        database.is_pos_occupied_in_template_set(conn, template_name, blob_set, new_pos_set):
+                    new_pos_set = database.get_max_pos_in_template_set(conn, template_name, blob_set) + 1
+
+                database.edit_blob_from_template(conn, template_name, blob_set, new_blob_set, pos_set, new_pos_set,
+                                                 title, credit)
+                blob_data = database.get_blob_data_from_template(conn, template_name, new_blob_set, new_pos_set)
+            else:
+                self.logger.error("Failed to edit blob. Unknown dest: {}".format(dest["dest"]))
+                return res
+            blob_hash = blob_data['hash']
+            self.set_tags(conn, blob_hash, tags)
+
+            if blob_vr is not None:
+                vr_ext = "." + self.get_blob_mime(blob_vr.file).split('/')[1]
+
+                self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
+                self.create_thumbnail(blob_vr.file, blob_hash, 'image')
+            conn.commit()
+            res = True
+
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while editing the blob")
+            print "Failed editing the blob. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when editing the blob")
+            print "*** Unhandled exception when editing the blob. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    def set_tags(self, conn, blob_hash, tags):
+        """
+        Remove old tags and add the new ones
+        """
+        for tag in database.get_blob_tags(conn, blob_hash):
+            database.remove_tag(conn, tag)
+
+        self.add_tags_to_blob(conn, blob_hash, tags)
+
+    @cherrypy.expose
+    def get_all_templates(self):
+        """
+        Return all the templates
+        """
+        conn = None
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            data['templates'] = database.get_all_templates(conn)
+            data['status'] = 'OK'
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("BD error while reading all the templates")
+            print "Failed reading all the templates. Error: {}".format(ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when reading all the templates")
+            print "*** Unhandled exception when reading all the templates. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    @cherrypy.expose
+    def remove_visual_representation_from_demo(self, demo_id, blob_set, pos_set):
+        """
+        Remove the visual representation of the blob in the demo (in all the demos and templates)
+        """
+        dest = {"dest": "demo", "demo_id": demo_id}
+        if self.remove_visual_representation(blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    @cherrypy.expose
+    def remove_visual_representation_from_template(self, template_name, blob_set, pos_set):
+        """
+        Remove the visual representation of the blob in the template (in all the demos and templates)
+        """
+        dest = {"dest": "template", "name": template_name}
+        if self.remove_visual_representation(blob_set, pos_set, dest):
+            return json.dumps({"status": "OK"})
+        else:
+            return json.dumps({"status": "KO"})
+
+    def remove_visual_representation(self, blob_set, pos_set, dest):
+        """
+        Remove the visual representation of the blob (in all the demos and templates)
+        """
+        res = False
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            if dest["dest"] == "demo":
+                demo_id = dest["demo_id"]
+                blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
+            elif dest["dest"] == "template":
+                template_name = dest["name"]
+                blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+            else:
+                self.logger.error("Failed to remove VR. Unknown dest: {}".format(dest["dest"]))
+                return res
+
+            blob_hash = blob_data['hash']
+
+            # Delete VR
+            vr_folder = os.path.join(self.vr_dir, self.get_subdir(blob_hash))
+            vr_file = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))[0]
+            os.remove(vr_file)
+            self.remove_dirs(vr_folder)
+
+            # Even if it fails creating the thumbnail the response wil be OK
+            res = True
+
+            # Creates the thumbnail with the blob (if it is possible)
+            blob_folder = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
+            blob_path = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))[0]
+            blob_file = open(blob_path)
+            blob_format = self.get_blob_mime(blob_file).split('/')[0]
+            self.create_thumbnail(blob_file, blob_hash, blob_format)
+        except IPOLBlobsThumbnailError as ex:
+            self.logger.exception("Error creating the thumbnail")
+            print "Couldn't create the thumbnail. Error: {}".format(ex)
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while removing the visual representation")
+            print "Failed removing the visual representation. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception when removing the visual representation")
+            print "*** Unhandled exception when removing the visual representation. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return res
+
+    @cherrypy.expose
+    def update_demo_id(self, old_demo_id, new_demo_id):
+        """
+        Update the given old demo id by the given new demo id.
+        """
+        conn = None
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            database.update_demo_id(conn, old_demo_id, new_demo_id)
+            data['status'] = 'OK'
+            conn.commit()
+        except IPOLBlobsDataBaseError as ex:
+            conn.rollback()
+            self.logger.exception("BD error while updating demo id")
+            print "Failed while updating demo id. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception while updating demo id")
+            print "*** Unhandled exception while updating demo id. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    # ----------- DEPRECATED FUNCTIONS ---------------
+    # This functions are for the OLD web interface and
+    # they shouldn't be called by new methods.
+    # [TODO] Get rid of these functions
+
+    @cherrypy.expose
+    def get_blobs_deprecated(self, demo_name):
+        """
+        DEPRECATED - Return all demo blobs for the old interface
+        """
+        data = {"status": "KO"}
+        conn = None
+        try:
+            conn = lite.connect(self.database_file)
+            demo_blobs = database.get_demo_owned_blobs_deprecated(conn, demo_name)
+            templates = database.get_demo_templates(conn, demo_name)
+            sets = self.prepare_list_deprecated(demo_blobs)
+            for template in templates:
+                sets += self.prepare_list_deprecated(database.get_template_blobs_deprecated(conn, template))
+
+            data["blobs"] = sets
+            data["status"] = "OK"
+            data["url"] = "/api/blobs/staticData/blob_directory/"
+            data['url_visrep'] = "/api/blobs/staticData/visrep/"
+            data["vr_location"] = "staticData/visrep"
+            data[demo_name] = {'is_template': 0, 'name': str(demo_name), 'template_id': 0}
+            data['use_template'] = {}
+            data["url_thumb"] = "/api/blobs/staticData/thumbnail/"
+            data['physical_location'] = "staticData/blob_directory"
+
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_name))
+            print "Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_name, ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception when obtaining all the blobs from demo #{}"
+                                  .format(demo_name))
+            print "*** Unhandled exception when obtaining all the blobs from demo #{}. Error: {}" \
+                .format(demo_name, ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
+    def prepare_list_deprecated(self, blobs):
+        """
+        DEPRECATED - Prepare the output list of blobs
+        """
+        sets = {}
+        for blob in blobs:
+            blob_set = blob["blob_set"]
+            if blob_set in sets:
+                sets[blob_set].append(self.get_blob_info_deprecated(blob))
+            else:
+                sets[blob_set] = [self.get_blob_info_deprecated(blob)]
+
+        sorted_sets = sorted(sets.items(), key=operator.itemgetter(0))
+        result = []
+        for element in sorted_sets:
+            blob_set = [{'set_name': element[0], 'size': len(element[1])}]
+
+            for blob in element[1]:
+                dic = {
+                    'credit': blob['credit'],
+                    'tag': ','.join(blob['tags']),
+                    'hash': blob['hash'],
+                    'extension': blob['extension'],
+                    'pos_in_set': blob['pos_set'],
+                    'format': blob['format'],
+                    'title': blob['title'],
+                    'id': blob['id'],
+                    'subdirs': blob['subdir'],
+
+                }
+                if 'vr' in blob:
+                    dic['extension_visrep'] = blob['vr']
+                blob_set.append(dic)
+
+            result.append(blob_set)
+        return result
+
+    def get_blob_info_deprecated(self, blob):
+        """
+        DEPRECATED - Return the required information from the blob
+        """
+        subdir = self.get_subdir(blob['hash'])
+        vr_physical_dir = os.path.join(self.vr_dir, subdir)
+
+        blob_info = {'title': blob['title'],
+                     'hash': blob['hash'],
+                     'extension': blob['extension'],
+                     'format': blob['format'],
+                     'credit': blob['credit'],
+                     'tags': blob['tags'],
+                     'subdir': subdir + "/",
+                     'id': blob['id'],
+                     'pos_set': blob['pos_set']}
+
+        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob['hash'])
+        if vr_extension is not None:
+            blob_info['vr'] = vr_extension
+
+        return blob_info
+
+    @cherrypy.expose
+    def get_blobs_data_deprecated(self, blob_ids):
+        """
+        DEPRECATED - Obtain blobs metadata
+        """
+        conn = None
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            data['templates'] = database.get_all_templates(conn)
+
+            blobs_ids_tuple = blob_ids if isinstance(blob_ids, list) else [int(blob_ids)]
+            list_with_blob_information = []
+            for blob_id in blobs_ids_tuple:
+                blob_data = database.get_blob_data_deprecated(conn, blob_id)
+
+                blob_data['subdirs'] = self.get_subdir(blob_data['hash']) + "/"
+
+                list_with_blob_information.append(blob_data)
+
+            data['list_of_blobs'] = list_with_blob_information
+            data["physical_location"] = self.blob_dir
+            data["vr_location"] = self.vr_dir
+            data["status"] = "OK"
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("BD error while getting blob data")
+            print "Failed while getting blob data. DB Error: {}".format(ex)
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception while getting blob data")
+            print "*** Unhandled exception while getting blob data. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)

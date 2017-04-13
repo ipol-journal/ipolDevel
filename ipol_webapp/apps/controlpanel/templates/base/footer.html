@@ -68,31 +68,13 @@
                     <a href="{% url 'ipol.cp.archive.demos' %}">{% trans 'Archives' %}</a>
                 </li>
 
-                <li class="nav-item {% if request.session.menu == 'menu-blob' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.blobs.demos' %}">{% trans 'Blobs' %}</a>
+                <li class="nav-item {% if request.session.menu == 'menu-templates' %} active {% endif %}">
+                    <a href="{% url 'ipol.cp.blobs.templates_list.page' %}">{% trans 'Templates' %}</a>
                 </li>
 
                 <li class="nav-item {% if request.session.menu == 'menu-status' %} active {% endif %}">
                     <a href="{% url 'ipol.cp.status' %}">{% trans 'Status' %}</a>
                 </li>
-
-                <!--
-                <li class="nav-item {% if request.session.menu == 'menu-demos' %} active {% endif %}" >
-                    <a style="color:red" href="{% url 'ipol.cp.demos' %}">{% trans 'Demos' %}</a>
-                </li>
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'DemoRunner Module' %}</a>
-                </li>
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'DemoDispatcher Module' %}</a>
-                </li>
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'Proxy Module' %}</a>
-                </li>
-                <li class="nav-item {% if request.session.menu == 'menu-' %} active {% endif %}">
-                    <a style="color:red" href="#">{% trans 'User Manual' %}</a>
-                </li>
-                -->
 
                 {#   allauth   #}
                 <li class="nav-item {% if request.session.menu == 'menu-private-logout' %} active {% endif %}">
