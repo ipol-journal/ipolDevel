@@ -1668,61 +1668,44 @@ class DemoInfo(object):
     @cherrypy.expose
     def get_interface_ddl(self, demo_id):
         """
-        webservice getting the last description of a given demo
-        It returns the ddl without the fields run and build
+        Service getting the DDL of a given demo. It returns the ddl without private fields
         """
-        data = {} 
         try:
-
-            ddl = self.get_ddl_from_database(demo_id)
+            ddl = self.get_stored_ddl(demo_id)
             ddl = json.loads(ddl["ddl"])
             del ddl['build']
             del ddl['run']
-            data['last_demodescription'] = {"ddl": json.dumps(ddl)}
-            data['status'] = 'OK'
-                  
+            return json.dumps({'status':'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
             print error_string
-            self.logger.error(error_string)
-            data['error'] = error_string
-            data['status'] = 'KO'
-
-        return json.dumps(data)
+            self.logger.exception(error_string)
+            return json.dumps({'status':'KO', 'error': error_string})
     
     @cherrypy.expose
     @authenticate
     def get_ddl(self, demo_id):
         """
-        webservice getting last description of the demo.
+        Service getting last description of the demo.
         """
-        data = {}
         try:
-            ddl = self.get_ddl_from_database(demo_id)
-            data['last_demodescription'] = ddl
-            data['status'] = "OK"
+            ddl = self.get_stored_ddl(demo_id)
+            return json.dumps({'status':'OK', 'last_demodescription': ddl})
         except Exception as ex:
             error_string = "Failure in function get_ddl, Error = {}".format(ex)
             print error_string
-            self.logger.error(error_string)
-            data['status'] = "KO"
-            
-        return json.dumps(data)
+            self.logger.exception(error_string)
+            return json.dumps({'status':'KO'})
 
-    def get_ddl_from_database(self, demo_id):
+    def get_stored_ddl(self, demo_id):
         """
-        Method that gives the DDL directly from the database
+        Method that gives the stored DDL given a demo_id
         """
-        try:
-            conn = lite.connect(self.database_file)
-            dd_dao = DemoDemoDescriptionDAO(conn)
-            last_demodescription = dd_dao.get_ddl(int(demo_id))
-            conn.close()
-            return last_demodescription
-        except Exception as ex:
-            self.logger.error("Failure in get_ddl_from_database, Error = {}".format(ex))
-            raise 
-        
+        conn = lite.connect(self.database_file)
+        dd_dao = DemoDemoDescriptionDAO(conn)
+        last_demodescription = dd_dao.get_ddl(int(demo_id))
+        conn.close()
+        return last_demodescription
       
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post

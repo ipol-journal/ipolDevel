@@ -527,7 +527,6 @@ class DemoDemoDescriptionDAO(object):
         """
         return last demo description entered for editorsdemoid.
         """
-        result = None
         try:
             self.cursor.execute('''SELECT ddl.DDL
                  FROM demodescription as ddl
@@ -536,17 +535,17 @@ class DemoDemoDescriptionDAO(object):
                  WHERE editor_demo_id = ?
                  ORDER BY ddl.creation DESC LIMIT 1''', (int(editorsdemoid),))
             
-            
             self.conn.commit()
             row = self.cursor.fetchone()
             if row:
-                result = {'ddl' : row[0]}
-
+                return {'ddl' : row[0]}
+            
         except Exception as ex:
-            error_string = ("get_ddl  e:%s" % (str(ex)))
+            error_string = "Failure in function get_ddl in model.py. Error = {}".format(str(ex))
             print error_string
+            raise 
         
-        return result
+        
 
 
     @validates(typ(int))
@@ -1158,8 +1157,6 @@ def createDb(database_name):
                 modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 stateID INTEGER,
                 FOREIGN KEY(stateID) REFERENCES state(id)
-
-
                 );"""
             )
 
@@ -1172,8 +1169,6 @@ def createDb(database_name):
                 FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE
                 );"""
             )
-
-
             cursor_db.execute(
                 """CREATE TABLE IF NOT EXISTS "author" (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
