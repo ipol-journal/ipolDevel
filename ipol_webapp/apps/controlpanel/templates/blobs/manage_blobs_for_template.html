@@ -57,7 +57,7 @@
                                 <p>Blobs:</p>
                                 <div class="image_files">
                                     {% for pos, blob in set.blobs.items %}
-                                        <a href="#">
+                                        <a href="{% url 'ipol.cp.blobs.edit_blob_template.page'%}?name={{ name }}&set={{ set.name }}&pos={{ pos }}">
                                             <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}" />
                                         </a>
                                     {% endfor %}

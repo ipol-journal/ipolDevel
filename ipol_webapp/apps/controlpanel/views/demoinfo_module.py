@@ -188,7 +188,7 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             data['title'] = demo_result['title']
             data['state'] = demo_result['state']
             data['abstract'] = demo_result['abstract']
-            data['ddl'] = ddl_result['last_demodescription']['json']
+            data['ddl'] = ddl_result['last_demodescription']['ddl']
             data['modification'] = demo_result['modification']
             data['zipURL'] = demo_result['zipURL']
             data['demoform'] = Demoform

@@ -700,7 +700,6 @@ def get_demo_owned_blobs(demo_id):
     Get the demo owned blobs
     """
     service_name = "get_demo_owned_blobs"
-    #[todo] Change blobs2 to blobs
     module = "blobs"
     serviceparams = {'demo_id': demo_id}
 
@@ -712,7 +711,6 @@ def get_demo_templates(demo_id):
     Get the demo owned blobs
     """
     service_name = "get_demo_templates"
-    #[todo] Change blobs2 to blobs
     module = "blobs"
     serviceparams = {'demo_id': demo_id}
 
@@ -789,13 +787,13 @@ def add_blob_to_demo(request,demo_id,tags,blob_set,pos_set,title,credit):
 
     return get_JSON_from_webservice(module, service_name, METHOD='POST', params=params, files=files)
 
-def remove_vr_from_demo(demo_id, set, pos):
+def delete_vr_from_blob(blob_id):
     """
     Remove the visual representation of the blob in the demo (in all the demos and templates)
     """
-    service_name = "remove_visual_representation_from_demo"
+    service_name = "delete_vr_from_blob"
     module = "blobs"
-    serviceparams = {'demo_id': demo_id, 'blob_set': set, 'pos_set': pos}
+    serviceparams = {'blob_id': blob_id}
     return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
 
 def get_all_templates():
@@ -846,15 +844,6 @@ def remove_blob_from_template(name, blob_set, pos_set):
     return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
 
 
-def remove_vr_from_template(name, set, pos):
-    """
-    Remove the visual representation of the blob in the template (in all the demos and templates)
-    """
-    service_name = "remove_visual_representation_from_template"
-    module = "blobs"
-    serviceparams = {'template_name': name, 'blob_set': set, 'pos_set': pos}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
-
 def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Edit blob info from template
@@ -886,7 +875,7 @@ def delete_template(name):
     """
     Get all the templates
     """
-    service_name = "remove_template"
+    service_name = "delete_template"
     module = "blobs"
     serviceparams = {'template_name': name}
     return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)

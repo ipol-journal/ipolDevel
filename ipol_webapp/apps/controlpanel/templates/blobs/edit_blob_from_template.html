@@ -85,7 +85,7 @@
                     </form>
                     <div style="padding-top: 15px;" align="right">
                         <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_template' %}','{{name}}')">Delete blob</a>
-                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.remove_vr_from_template'%}','{{name}}')">Remove visual representation</a>
+                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
                     </div>
                 </div>
 

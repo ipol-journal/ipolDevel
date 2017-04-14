@@ -231,29 +231,6 @@ class AddBlobToDemo(NavbarReusableMixinMF,TemplateView):
 
         return HttpResponseRedirect('/cp/blob_demo/'+id)
 
-class RemoveVRFromDemo(NavbarReusableMixinMF,TemplateView):
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(RemoveVRFromDemo, self).dispatch(*args, **kwargs)
-
-
-    def post(self, request, *args, **kwargs):
-        try:
-            response = self.request.POST
-            dict_response = dict(response.iterlists())
-            demo_id = dict_response['demo_id'][0]
-            set = dict_response['set'][0]
-            pos = dict_response['pos'][0]
-            ipolservices.remove_vr_from_demo(demo_id, set, pos)
-        except Exception as ex:
-            msg = "RemoveVRFromDemo. Error %s " % ex
-            logger.error(msg)
-            print(msg)
-
-        return HttpResponseRedirect("")
-
-
 # Templates
 class TemplatePageView(NavbarReusableMixinMF, TemplateView):
     template_name = "blobs/manage_blobs_for_template.html"
@@ -357,22 +334,20 @@ class EditBlobFromTemplate(NavbarReusableMixinMF, TemplateView):
 
         return context
 
-class RemoveVRFromTemplate(NavbarReusableMixinMF,TemplateView):
+class DeleteVRFromBlob(NavbarReusableMixinMF,TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
-        return super(RemoveVRFromTemplate, self).dispatch(*args, **kwargs)
+        return super(DeleteVRFromBlob, self).dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            name = dict_response['name'][0]
-            set = dict_response['set'][0]
-            pos = dict_response['pos'][0]
-            ipolservices.remove_vr_from_template(name, set, pos)
+            blob_id = dict_response['blob_id'][0]
+            ipolservices.delete_vr_from_blob(blob_id)
         except Exception as ex:
-            msg = "RemoveVRFromTemplate Error %s " % ex
+            msg = "DeleteVRFromBlob Error %s " % ex
             logger.error(msg)
             print(msg)
 
