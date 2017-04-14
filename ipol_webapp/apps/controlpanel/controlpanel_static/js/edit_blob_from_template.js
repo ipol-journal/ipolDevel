@@ -28,15 +28,10 @@ function deleteBlob(url, name){
     window.location.href = demo_url;
 }
 
-function deleteVR(url, name){
+function deleteVR(url, blob_id){
     var delvr = confirm('Deleting visual representation will afect other demos and templates.\nAre you sure you want to continue?');
     if (delvr == true) {
-       var values = {
-            'name': name,
-            'set': original_set,
-            'pos': original_pos
-        }
-        $.post(url, values, 'json');
+        $.post(url, {'blob_id':blob_id}, 'json');
         window.location.reload();
     }
 }

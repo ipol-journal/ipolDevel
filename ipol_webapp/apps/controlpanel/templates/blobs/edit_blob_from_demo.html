@@ -16,49 +16,48 @@
 {% block content %}
     {% with data=view.get_context_data %}
         <div class="container">
-            {% if data.status == 'OK' %}
-                <h2> {{data.blob.title}} </h2>
+            {% if status == 'OK' %}
+                <h2> {{blob.title}} </h2>
                 <div class="blob_file">
 
                     <form id="form" action="{% url 'ipol.cp.blobs.save_blob_info' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 
-                        <input name="demo"  style="display: none;" value="{{data.demo}}"/>
+                        <input name="demo"  style="display: none;" value="{{demo}}"/>
                         <div class="image_files">
-                            <a href="{{ data.blob.blob }}">
-                                <img src="{{ data.blob.thumbnail }}" alt="{{ data.blob.title }}" title="{{ data.blob.title }}">
+                            <a href="{{ blob.blob }}">
+                                <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}">
                             </a>
                         </div>
-
                         <!--TITLE-->
                         <div class="input-group">
                             <span class="input-group-addon" >Title</span>
-                            <input id="title" name ="title" type="text" class="form-control" value="{{ data.blob.title }}">
+                            <input id="title" name ="title" type="text" class="form-control" value="{{ blob.title }}">
                         </div>
 
                         <!--SET-->
                         <div class="input-group">
                             <span class="input-group-addon">SET </span>
-                            {% if data.set|slice:":2" == '__' %}
+                            {% if set|slice:":2" == '__' %}
                                 <input name ="new_set" type="text" class="form-control" value="">
                             {% else %}
-                                <input name ="new_set" type="text" class="form-control" value="{{data.set}}">
+                                <input name ="new_set" type="text" class="form-control" value="{{set}}">
                             {% endif %}
                         </div>
                         <!--Original SET-->
-                        <input id="set" name="set"  style="display: none;" value="{{data.set}}"/>
+                        <input id="set" name="set"  style="display: none;" value="{{set}}"/>
 
                         <!--POS-->
                         <div class="input-group">
                             <span class="input-group-addon">Position in set</span>
-                            <input id="pos" name ="new_pos" type="number" class="form-control" value="{{data.pos}}">
+                            <input id="pos" name ="new_pos" type="number" class="form-control" value="{{pos}}">
                         </div>
                         <!--Original POS-->
-                        <input name="pos"  style="display: none;" value="{{data.pos}}"/>
+                        <input name="pos"  style="display: none;" value="{{pos}}"/>
 
                         <!--CREDIT-->
                         <div class="input-group">
                             <span class="input-group-addon">Credit</span>
-                            <input id="credit" name ="credit" type="text" class="form-control" value="{{ data.blob.credit }}">
+                            <input id="credit" name ="credit" type="text" class="form-control" value="{{ blob.credit }}">
                         </div>
 
                         <!--TAGS-->
@@ -85,7 +84,7 @@
                     </form>
                     <div style="padding-top: 15px;" align="right">
                         <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{demo}}')">Delete blob</a>
-                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.remove_vr_from_demo'%}','{{demo}}')">Remove visual representation</a>
+                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
                     </div>
                 </div>
 
@@ -93,7 +92,7 @@
 
             {# Return to previous page button #}
             <div class="container">
-                <a class="btn btn-info" href="/cp/blob_demo/{{data.demo}}/">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                <a class="btn btn-info" href="/cp/blob_demo/{{demo}}/">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
             </div>
         </div>
     {% endwith %}
@@ -106,7 +105,7 @@
     <script src="{% static 'js/ajaxPost.js' %}"></script>
     <script>
         window.onload=function() {
-            var tags = [{% for tag in view.get_context_data.blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+            var tags = [{% for tag in view.get_context_blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
             tags_list = tags.join(", ")
             document.getElementById("tags").value = tags_list
         }

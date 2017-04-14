@@ -6,8 +6,8 @@ from apps.controlpanel.views.archive_module import ArchiveShutdownView, ArchiveD
         ArchivePageView, ExperimentDetails
 
 from apps.controlpanel.views.blobs_module import ManageBlobsForDemoView, EditBlobFromDemoView,DemoBlobSaveInfo,RemoveBlobFromDemo, \
-    RemoveTemplateFromDemo,AddBlobDemoView,AddBlobToDemo,RemoveVRFromDemo,AddTemplateToDemo,TemplatePageView, AddBlobTemplateView, \
-    AddBlobToTemplate,RemoveBlobFromDemo, EditBlobFromTemplate, RemoveVRFromTemplate, SaveBlobInfoFromTemplate, RemoveBlobFromTemplate, \
+    RemoveTemplateFromDemo,AddBlobDemoView,AddBlobToDemo,AddTemplateToDemo,TemplatePageView, AddBlobTemplateView, \
+    AddBlobToTemplate,RemoveBlobFromDemo, EditBlobFromTemplate, DeleteVRFromBlob, SaveBlobInfoFromTemplate, RemoveBlobFromTemplate, \
     TemplateListView,DeleteTemplate,CreateTemplate
 
 from apps.controlpanel.views.demo import DemosView
@@ -139,7 +139,6 @@ urlpatterns = [
     url(r'^add_blob_to_demo/(?P<id>[\-\d\w]+)/$', AddBlobDemoView.as_view(), name="ipol.cp.blobs.add_blob_to_demo_view"),
     url(r'^ajax_save_blob_info/$', DemoBlobSaveInfo.as_view(), name="ipol.cp.blobs.save_blob_info"),
     url(r'^ajax_remove_blob_from_demo/$', RemoveBlobFromDemo.as_view(), name="ipol.cp.blobs.remove_blob_from_demo"),
-    url(r'^ajax_remove_vr_from_demo/$', RemoveVRFromDemo.as_view(), name="ipol.cp.blobs.remove_vr_from_demo"),
     url(r'^ajax_remove_template_from_demo/$', RemoveTemplateFromDemo.as_view(), name="ipol.cp.blobs.remove_template_from_demo"),
     url(r'^ajax_add_template_to_demo/$', AddTemplateToDemo.as_view(), name="ipol.cp.blobs.add_template_to_demo"),
     url(r'^ajax_add_blob_to_demo/$', AddBlobToDemo.as_view(), name="ipol.cp.blobs.add_blob_to_demo"),
@@ -150,7 +149,7 @@ urlpatterns = [
     url(r'^ajax_add_blob_to_template/$', AddBlobToTemplate.as_view(), name="ipol.cp.blobs.add_blob_to_template"),
     url(r'^ajax_remove_blob_from_template/$', RemoveBlobFromTemplate.as_view(), name="ipol.cp.blobs.remove_blob_from_template"),
     url(r'^blob_template/$', EditBlobFromTemplate.as_view(), name="ipol.cp.blobs.edit_blob_template.page"),
-    url(r'^ajax_remove_vr_from_template/$', RemoveVRFromTemplate.as_view(), name="ipol.cp.blobs.remove_vr_from_template"),
+    url(r'^ajax_delete_vr_from_blob/$', DeleteVRFromBlob.as_view(), name="ipol.cp.blobs.delete_vr_from_blob"),
     url(r'^ajax_save_blob_info_from_template/$', SaveBlobInfoFromTemplate.as_view(), name="ipol.cp.blobs.save_blob_info_from_template"),
 
     url(r'^templates_list/$', TemplateListView.as_view(), name="ipol.cp.blobs.templates_list.page"),

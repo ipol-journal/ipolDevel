@@ -1,18 +1,17 @@
 from errors import IPOLBlobsDataBaseError
 
 
-def get_blob_tags(conn, blob_hash):
+def get_blob_tags(conn, blob_id):
     """
     returns the list of tags for the blob
     """
     cursor = conn.cursor()
     cursor.execute("""
     SELECT name
-    FROM tags,blobs_tags,blobs
-    WHERE hash = ?
-    AND blob_id = blobs.id
-    AND tag_id = tags.id
-    """, (blob_hash,))
+    FROM tags,blobs_tags
+    WHERE tag_id = tags.id
+    AND blob_id = ?
+    """, (blob_id,))
     tags = []
     for tag in cursor.fetchall():
         tags.append(tag[0])
@@ -22,7 +21,7 @@ def get_blob_tags(conn, blob_hash):
 
 def store_blob(conn, blob_hash, blob_format, extension, title, credit):
     """
-    Store the blob in the Blobs table
+    Store the blob in the Blobs table and returns the blob id
     """
     try:
         cursor = conn.cursor()
@@ -30,22 +29,7 @@ def store_blob(conn, blob_hash, blob_format, extension, title, credit):
             INSERT INTO blobs (hash, format, extension, title, credit)
             VALUES (?,?,?,?,?)
             """, (blob_hash, blob_format, extension, title, credit))
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def is_blob_in_db(conn, blob_hash):
-    """
-    Verify if the hash is already stored in the DB
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT EXISTS(SELECT *
-                        FROM blobs
-                        WHERE hash=?);
-            """, (blob_hash,))
-        return cursor.fetchone()[0] == 1
+        return cursor.lastrowid
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -80,7 +64,7 @@ def create_demo(conn, editor_demo_id):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_blob_to_demo(conn, editor_demo_id, blob_hash, blob_set, blob_pos):
+def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos):
     """
     Associates the blob to a demo in demos_blobs table
     """
@@ -90,10 +74,8 @@ def add_blob_to_demo(conn, editor_demo_id, blob_hash, blob_set, blob_pos):
             INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set)
             VALUES ((SELECT id
                     FROM demos
-                    WHERE editor_demo_id = ?),(SELECT id
-                                                FROM blobs
-                                                WHERE hash = ?),?,?)
-            """, (editor_demo_id, blob_hash, blob_set, blob_pos))
+                    WHERE editor_demo_id = ?), ?, ?,?)
+            """, (editor_demo_id, blob_id, blob_set, blob_pos))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -141,21 +123,18 @@ def create_template(conn, template_name):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_blob_to_template(conn, template_name, blob_hash, pos_set, blob_set):
+def add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set):
     """
     Associates the blob to a template in templates_blobs table
     """
-    print template_name, blob_hash, pos_set, blob_set
     try:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set)
             VALUES ((SELECT id
                     FROM templates
-                    WHERE name = ?),(SELECT id
-                                    FROM blobs
-                                    WHERE hash = ?),?,?)
-            """, (template_name, blob_hash, blob_set, pos_set))
+                    WHERE name = ?), ?,?,?)
+            """, (template_name, blob_id, blob_set, pos_set))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -188,7 +167,7 @@ def create_tags(conn, tags):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_tags_to_blob(conn, tags, blob_hash):
+def add_tags_to_blob(conn, tags, blob_id):
     """
     Associates all the tags to a blob in tags_blobs table
     """
@@ -201,22 +180,19 @@ def add_tags_to_blob(conn, tags, blob_hash):
                                 WHERE tag_id=(SELECT id
                                             FROM tags
                                             WHERE name=?)
-                                AND blob_id=(SELECT id
-                                            FROM blobs
-                                            WHERE hash=?));
-                    """, (tag, blob_hash))
+                                AND blob_id=?);
+                    """, (tag, blob_id))
 
+            # If the blob already have the tag continue with the next tag
             if cursor.fetchone()[0] == 1:
                 continue
 
             cursor.execute("""
                 INSERT INTO blobs_tags (blob_id, tag_id)
-                VALUES ((SELECT id
-                        FROM blobs
-                        WHERE hash = ?),(SELECT id
-                                        FROM tags
-                                        WHERE name = ?))
-                """, (blob_hash, tag))
+                VALUES (?,(SELECT id
+                           FROM tags
+                           WHERE name = ?))
+                """, (blob_id, tag))
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -261,7 +237,7 @@ def get_demo_owned_blobs(conn, editor_demo_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit, blob_set, pos_in_set
+            SELECT blobs.id, hash, format, extension, title, credit, blob_set, pos_in_set
             FROM blobs, demos, demos_blobs
             WHERE demo_id = demos.id
             AND blob_id = blobs.id
@@ -269,8 +245,9 @@ def get_demo_owned_blobs(conn, editor_demo_id):
             """, (editor_demo_id,))
         blobs = []
         for row in cursor.fetchall():
-            blobs.append({"hash": row[0], "format": row[1], "extension": row[2], "title": row[3], "credit": row[4],
-                          "blob_set": row[5], "pos_set": row[6], "tags": get_blob_tags(conn, row[0])})
+            blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
+                          "credit": row[5], "blob_set": row[6], "pos_set": row[7],
+                          "tags": get_blob_tags(conn, row[0])})
 
         return blobs
     except Exception as ex:
@@ -284,7 +261,7 @@ def get_template_blobs(conn, name):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit, blob_set, pos_in_set
+            SELECT blobs.id, hash, format, extension, title, credit, blob_set, pos_in_set
             FROM blobs, templates, templates_blobs
             WHERE template_id = templates.id
             AND blob_id = blobs.id
@@ -292,8 +269,10 @@ def get_template_blobs(conn, name):
             """, (name,))
         blobs = []
         for row in cursor.fetchall():
-            blobs.append({"hash": row[0], "format": row[1], "extension": row[2], "title": row[3], "credit": row[4],
-                          "blob_set": row[5], "pos_set": row[6], "tags": get_blob_tags(conn, row[0])})
+            blobs.append({"id": row[0], "hash": row[1], "format": row[2], "extension": row[3], "title": row[4],
+                          "credit": row[5], "blob_set": row[6], "pos_set": row[7],
+                          "tags": get_blob_tags(conn, row[0])})
+
         return blobs
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -322,6 +301,26 @@ def get_demo_templates(conn, editor_demo_id):
         raise IPOLBlobsDataBaseError(ex)
 
 
+def get_blob_data(conn, blob_id):
+    """
+    Return the blob data from blob_id or None if the id is wrong
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT hash, format, extension, title, credit
+            FROM blobs
+            WHERE id = ?
+            """, (blob_id,))
+        data = cursor.fetchone()
+        if data is None:
+            return None
+        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
+        return result
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+
 def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
     """
     Return the blob data from the position of the set in the demo or
@@ -330,7 +329,7 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit
+            SELECT blobs.id, hash, format, extension, title, credit
             FROM blobs, demos_blobs, demos
             WHERE editor_demo_id = ?
             AND blob_set = ?
@@ -341,7 +340,8 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
+        result = {'id': data[0], 'hash': data[1], 'format': data[2], 'extension': data[3],
+                  'title': data[4], 'credit': data[5]}
         return result
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
@@ -355,7 +355,7 @@ def get_blob_data_from_template(conn, template_name, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit
+            SELECT blobs.id, hash, format, extension, title, credit
             FROM blobs, templates_blobs, templates
             WHERE name = ?
             AND blob_set = ?
@@ -366,7 +366,8 @@ def get_blob_data_from_template(conn, template_name, blob_set, pos_set):
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
+        result = {'id': data[0], 'hash': data[1], 'format': data[2], 'extension': data[3],
+                  'title': data[4], 'credit': data[5]}
         return result
 
     except Exception as ex:
@@ -415,7 +416,7 @@ def remove_blob_from_template(conn, template_name, blob_set, pos_set):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def is_blob_used(conn, blob_hash):
+def is_blob_used(conn, blob_id):
     """
     Check if the blob is being used in any demo or template
     """
@@ -424,30 +425,30 @@ def is_blob_used(conn, blob_hash):
         cursor.execute("""
             SELECT COUNT(*)
             FROM blobs
-            WHERE (id IN (SELECT blob_id FROM templates_blobs) OR
-                   id IN(SELECT blob_id FROM demos_blobs))
-            AND hash = ?
-                """, (blob_hash,))
+            WHERE id = ?
+            AND (id IN (SELECT blob_id FROM templates_blobs) OR
+                 id IN(SELECT blob_id FROM demos_blobs))
+                """, (blob_id,))
         return cursor.fetchone()[0] >= 1
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
 
-def remove_blob(conn, blob_hash):
+def remove_blob(conn, blob_id):
     """
     Remove the blob from the DB and its tags
     """
     try:
         cursor = conn.cursor()
-        tags = get_blob_tags(conn, blob_hash)
+        tags = get_blob_tags(conn, blob_id)
 
         cursor.execute("""PRAGMA foreign_keys = ON""")
         cursor.execute("""
             DELETE
             FROM blobs
-            WHERE hash = ?
-            """, (blob_hash,))
+            WHERE id = ?
+            """, (blob_id,))
 
         for tag in tags:
             if not tag_is_used(conn, tag):
@@ -551,7 +552,7 @@ def remove_template_from_demo(conn, editor_demo_id, template_name):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def remove_tag_from_demo(conn, tag, editor_demo_id, blob_set, pos_set):
+def remove_tag_from_blob(conn, tag, blob_id):
     """
     Remove tag from demo
     """
@@ -564,38 +565,8 @@ def remove_tag_from_demo(conn, tag, editor_demo_id, blob_set, pos_set):
             WHERE  tag_id = (SELECT id
                             FROM tags
                             WHERE name = ?)
-            AND blob_id = (SELECT blob_id
-                            FROM demos, demos_blobs
-                            WHERE editor_demo_id = ?
-                            AND blob_set = ?
-                            AND pos_in_set = ? )
-            """, (tag, editor_demo_id, blob_set, pos_set))
-        if not tag_is_used(conn, (tag,)):
-            remove_tag(conn, (tag,))
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def remove_tag_from_template(conn, tag, template_name, blob_set, pos_set):
-    """
-    Remove tag from template
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""PRAGMA FOREIGN_KEYS = ON""")
-        cursor.execute("""
-            DELETE
-            FROM blobs_tags
-            WHERE  tag_id = (SELECT id
-                            FROM tags
-                            WHERE name = ?)
-            AND blob_id = (SELECT blob_id
-                            FROM templates, templates_blobs
-                            WHERE name = ?
-                            AND blob_set = ?
-                            AND pos_in_set = ? )
-            """, (tag, template_name, blob_set, pos_set))
-
+            AND blob_id = ?
+            """, (tag, blob_id))
         if not tag_is_used(conn, (tag,)):
             remove_tag(conn, (tag,))
     except Exception as ex:
@@ -820,72 +791,21 @@ def update_demo_id(conn, old_editor_demo_id, new_editor_demo_id):
         raise IPOLBlobsDataBaseError(ex)
 
 
-# ----------- DEPRECATED FUNCTIONS ---------------
-# This functions are for the OLD web interface and
-# they shouldn't be called by new methods.
-# [TODO] Get rid of these functions
-
-def get_demo_owned_blobs_deprecated(conn, editor_demo_id):
+def get_blob_id(conn, blob_hash):
     """
-    Get all the blobs owned by the demo
+    Return the blob id or None if the hash is not stored in the DB
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit, blob_set, pos_in_set, blobs.id
-            FROM blobs, demos, demos_blobs
-            WHERE demo_id = demos.id
-            AND blob_id = blobs.id
-            AND demos.editor_demo_id = ?
-            """, (editor_demo_id,))
-        blobs = []
-        for row in cursor.fetchall():
-            blobs.append({"hash": row[0], "format": row[1], "extension": row[2], "title": row[3], "credit": row[4],
-                          "blob_set": row[5], "pos_set": row[6], "id": row[7], "tags": get_blob_tags(conn, row[0])})
-
-        return blobs
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def get_template_blobs_deprecated(conn, name):
-    """
-    Get all the blobs owned by the template
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT hash, format, extension, title, credit, blob_set, pos_in_set, blobs.id
-            FROM blobs, templates, templates_blobs
-            WHERE template_id = templates.id
-            AND blob_id = blobs.id
-            AND templates.name = ?
-            """, (name,))
-        blobs = []
-        for row in cursor.fetchall():
-            blobs.append({"hash": row[0], "format": row[1], "extension": row[2], "title": row[3], "credit": row[4],
-                          "blob_set": row[5], "pos_set": row[6], "id": row[7], "tags": get_blob_tags(conn, row[0])})
-        return blobs
-    except Exception as ex:
-        raise IPOLBlobsDataBaseError(ex)
-
-
-def get_blob_data_deprecated(conn, blob_id):
-    """
-    Return the blob data from the position of the set in the demo or
-    None if there is not blob for the given parameters
-    """
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT hash, format, extension, title, credit
+            SELECT id
             FROM blobs
-            WHERE id = ?
-            """, (blob_id,))
+            WHERE hash = ?
+            """, (blob_hash,))
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
-        return result
+        return data[0]
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
+

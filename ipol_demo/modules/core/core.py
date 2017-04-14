@@ -744,49 +744,29 @@ workload of '{}'".format(dr_name)
         input parameters:
         returns:
         """
-        print "#### input_select_and_crop begin ####"
 
-        userdata = {'blob_ids': blobs_id_list}
-        resp = self.post(self.host_name, 'blobs', 'get_blobs_data_deprecated', userdata)
-
+        resp = self.post(self.host_name, 'blobs', 'get_blobs_location', {'blobs_ids': blobs_id_list})
         response = resp.json()
-        status = response['status']
 
-        if status == 'OK':
+        if response['status'] == 'OK':
 
-            physical_location = response['physical_location']
-            list_of_blobs = response['list_of_blobs']
-            # vr_physical_location = response['vr_location']
+            physical_locations = response['physical_locations']
 
             index = 0
-            for blob in list_of_blobs:
-
-                subdirs = blob['subdirs']
-                hash_of_blob = blob['hash']
-                extension = blob['extension']
-
-                complete_blob_without_extension = subdirs + hash_of_blob
-                complete_blob = complete_blob_without_extension + extension
-                complete_blob_folder = os.path.join(self.blobs_folder, physical_location)
-
-                original_blob_path = os.path.join(complete_blob_folder, complete_blob)
+            for blob_path in physical_locations:
 
                 try:
+                    extension = os.path.splitext(blob_path)[1]
                     final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
-                    shutil.copy(original_blob_path, final_path)
+                    shutil.copy(os.path.join(self.blobs_folder,blob_path), final_path)
                 except Exception as ex:
-                    s = "Copy blobs to physical location, \
-work_dir={}, original_blob_path={}". \
-                        format(work_dir, original_blob_path)
-                    self.logger.exception(s)
-                    print ex
+                    self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
+                    print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
 
                 index = index + 1
 
         else:
-            error_message = "KO copying the blobs from Blobs module"
-            error_message += " with copy_blobset_from_physical_location"
-            self.logger.exception(error_message)
+            self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
 
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
