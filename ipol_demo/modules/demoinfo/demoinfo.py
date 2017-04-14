@@ -1668,7 +1668,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def get_interface_ddl(self, demo_id):
         """
-        Service getting the DDL of a given demo. It returns the ddl without private fields
+        Service getting the DDL of a given demo. It returns the ddl without an unneeded fields
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
