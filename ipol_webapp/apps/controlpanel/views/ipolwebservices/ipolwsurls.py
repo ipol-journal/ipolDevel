@@ -61,7 +61,7 @@ demoinfo_ws_url_read_demo_description =  'read_demo_description'
 # params  demodescriptionID
 
 demoinfo_ws_url_last_demodescription_from_demo =  'get_ddl'
-# params  demoid, result = {'id': row[0], 'inproduction': row[1], 'creation': row[2], 'json': row[3]}
+# params  demoid, result = {'id': row[0], 'creation': row[2], 'ddl': row[3]}
 
 demoinfo_ws_url_save_demo_description =  'save_demo_description'
 # params demoid=None result: ["demo_description_id"] = demodescription_id ["added_to_demo_id"] = demoid ["status"] = "OK"

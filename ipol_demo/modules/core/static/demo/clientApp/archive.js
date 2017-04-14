@@ -159,12 +159,12 @@ ipol.setDemoPage = function (demo_id,origin,func) {
     if (demo_id > 0) {
         ipol.utils.ModuleService(
             'demoinfo',
-            'get_ddl',
+            'get_interface_ddl',
             'demo_id=' + demo_id,
             function(demo_ddl) {
 
                 if (demo_ddl.status == "OK") {
-                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.json);
+                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.ddl);
                 } else {
                     console.error(" --- failed to read DDL");
                 }

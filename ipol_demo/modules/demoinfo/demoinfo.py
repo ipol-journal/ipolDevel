@@ -658,7 +658,6 @@ class DemoInfo(object):
                 demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id),
                                                                          returnjsons=returnjsons)
 
-
             data["demodescription_list"] = demodescription_list
             data["status"] = "OK"
             conn.close()
@@ -793,8 +792,6 @@ class DemoInfo(object):
 
             conn.close()
 
-
-
             data["status"] = "OK"
             data["demoid"] = demoid
         except Exception as ex:
@@ -830,17 +827,7 @@ class DemoInfo(object):
             demo = demo_dao.read(int(demo_id))
 
             dd_dao = DemoDemoDescriptionDAO(conn)
-            print "demo id", demo_id
-            print "demo", demo.editorsdemoid
-            #read demo_demodescription
-            # demo_ddl_list = dd_dao.read_demo_demodescriptions(int(demo_id))
-            # print
-            # print "demo_ddl_list", demo_ddl_list
-            # print
-            # print "demoid to delete ", demo_id
-            # print
-            # print "demo: ", demo.__dict__
-
+            
             #delete demo decription history borra ddl id 3
             #d_dd con id 2 , y demoid=2, demodescpid 3 deberia no estar
             dd_dao.delete_all_demodescriptions_for_demo(int(demo_id))
@@ -881,8 +868,6 @@ class DemoInfo(object):
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state, p.creation)
         else:
             d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
-
-
         #update Demo
         try:
 
@@ -902,7 +887,6 @@ class DemoInfo(object):
 
             data["status"] = "OK"
         except OSError as ex:
-            data["status"] = "KO"
             data["error"] = "demoinfo update_demo error".format(ex)
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s"%(str(ex)))
@@ -1662,19 +1646,9 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
-            ddl, isproduction = dao.read(id)
-            del isproduction
-            # print type(ddl)
-            # print ddl
-            # print
-            # ddl is stored in db as blob, must be converted to str before dumping
-            # calling this ws from CP, dao.read(id) is buffer
-            # calling directly ths ws from python code is unicode.
-            # because data is serialized by request lib
+            ddl = dao.read(id)
             ddl = str(ddl)
-            # print type(ddl)
-            # print ddl
-
+            
             data["demo_description"] = ddl
             conn.close()
             data["status"] = "OK"
@@ -1692,37 +1666,64 @@ class DemoInfo(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    def get_interface_ddl(self, demo_id):
+        """
+        webservice getting the last description of a given demo
+        It returns the ddl without the fields run and build
+        """
+        data = {} 
+        try:
+
+            ddl = self.get_ddl_from_database(demo_id)
+            ddl = json.loads(ddl["ddl"])
+            del ddl['build']
+            del ddl['run']
+            data['last_demodescription'] = {"ddl": json.dumps(ddl)}
+            data['status'] = 'OK'
+                  
+        except Exception as ex:
+            error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
+            print error_string
+            self.logger.error(error_string)
+            data['error'] = error_string
+            data['status'] = 'KO'
+
+        return json.dumps(data)
+    
+    @cherrypy.expose
+    @authenticate
     def get_ddl(self, demo_id):
         """
         webservice getting last description of the demo.
         """
         data = {}
-        data["status"] = "KO"
-        data["last_demodescription"] = None
-        
         try:
-            #read all _demodescription for this demo
-            conn = lite.connect(self.database_file)
-            dd_dao = DemoDemoDescriptionDAO(conn)
-
-            last_demodescription = dd_dao.get_ddl(int(demo_id))
-            
-            data["last_demodescription"] = last_demodescription
-            data["status"] = "OK"
-            conn.close()
-
+            ddl = self.get_ddl_from_database(demo_id)
+            data['last_demodescription'] = ddl
+            data['status'] = "OK"
         except Exception as ex:
-            error_string = "demoinfo get_ddl error %s" % str(ex)
+            error_string = "Failure in function get_ddl, Error = {}".format(ex)
             print error_string
-            self.error_log("get_ddl", error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            #raise Exception
-            data["error"] = error_string
+            self.logger.error(error_string)
+            data['status'] = "KO"
+            
         return json.dumps(data)
 
+    def get_ddl_from_database(self, demo_id):
+        """
+        Method that gives the DDL directly from the database
+        """
+        try:
+            conn = lite.connect(self.database_file)
+            dd_dao = DemoDemoDescriptionDAO(conn)
+            last_demodescription = dd_dao.get_ddl(int(demo_id))
+            conn.close()
+            return last_demodescription
+        except Exception as ex:
+            self.logger.error("Failure in get_ddl_from_database, Error = {}".format(ex))
+            raise 
+        
+      
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
     @authenticate
@@ -1734,18 +1735,17 @@ class DemoInfo(object):
         #recieves a valid json as a string AS POST DATA
         #stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
 
-        inproduction = 1 #This shouldn't be necessary in the demoDescription and should be removed
         data = {}
         data["status"] = "KO"
 
         cl = cherrypy.request.headers['Content-Length']
-        demojson = cherrypy.request.body.read(int(cl))
+        ddl = cherrypy.request.body.read(int(cl))
 
-        if not is_json(demojson):
+        if not is_json(ddl):
             print
-            print "save_demo_description demojson is not a valid json "
-            print "+++++ demojson: ", demojson
-            print "+++++ demojson type: ", type(demojson)
+            print "save_demo_description ddl is not a valid json "
+            print "+++++ ddl: ", ddl
+            print "+++++ ddl type: ", type(ddl)
             raise Exception
 
         try:
@@ -1757,17 +1757,18 @@ class DemoInfo(object):
                 demodescription = dao.get_ddl(int(demoid))
                 del dao
                 dao = DemoDescriptionDAO(conn)
+                
                 if demodescription is None: # Check if is a new demo
-                    demodescription_id = dao.add(demojson, inproduction=inproduction)
+                    demodescription_id = dao.add(ddl)
+                    
                     dao = DemoDemoDescriptionDAO(conn)
                     dao.add(int(demoid), int(demodescription_id))
                 else:
-                    demodescription_id = demodescription['demodescriptionId']
-                    dao.update(int(demodescription_id), demojson)
-
+                    dao.update(ddl, demoid)
+                 
             else:           #Otherwise it's create a new one
                 dao = DemoDescriptionDAO(conn)
-                demodescription_id = dao.add(demojson, inproduction=inproduction)
+                demodescription_id = dao.add(ddl)
                 dao = DemoDemoDescriptionDAO(conn)
                 dao.add(int(demoid), int(demodescription_id))
 
