@@ -16,3 +16,8 @@ function deleteTemplate(url, name){
     }
 }
 
+function removeDemoFromTemplate(url,id,template){
+    var values = {'demo_id': id,'template': template};
+    $.post(url, values, 'json');
+    window.location.reload(true);
+}

@@ -244,13 +244,22 @@ class TemplatePageView(NavbarReusableMixinMF, TemplateView):
         context = super(TemplatePageView, self).get_context_data(**kwargs)
         name = self.kwargs['name']
 
-
         try:
 
             page_json = ipolservices.get_template_blobs(name)
             response_sets = json.loads(page_json, object_pairs_hook=collections.OrderedDict)
+            response = ipolservices.get_demos_using_the_template(name)
+            demos = json.loads(response)
+
+            demo_list = []
+            for demo in json.loads(ipolservices.demoinfo_demo_list())['demo_list']:
+                for demo_blob in demos['demos']:
+                    if demo_blob == demo['editorsdemoid']:
+                        demo_list.append({'id':demo['editorsdemoid'], 'title':demo['title']})
+
             context['status'] = response_sets['status']
             context['sets'] = response_sets['sets']
+            context['demos'] = demo_list
 
         except Exception as e:
             msg = "TemplatePageView. Error %s "%e

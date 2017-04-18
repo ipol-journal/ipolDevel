@@ -230,13 +230,13 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
 
 def demoinfo_delete_demo(demo_id):
 
-    service_name = demoinfo_ws_url_delete_demo
-    module = "demoinfo"
-
-    serviceparams = {'demo_id': demo_id}
-
-    servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    demoinfo_service = demoinfo_ws_url_delete_demo
+    demoinfo_resp = get_JSON_from_webservice("demoinfo", demoinfo_service, METHOD='POST', params={'demo_id': demo_id})
+    if json.loads(demoinfo_resp)['status'] == 'KO':
+        return demoinfo_resp
+    blobs_service = "delete_demo"
+    demoinfo_resp = get_JSON_from_webservice("blobs", blobs_service, METHOD='POST', params={'demo_id': demo_id})
+    return demoinfo_resp
 
 
 def demoinfo_read_demo(demo_id):
@@ -887,4 +887,13 @@ def create_template(name):
     service_name = "create_template"
     module = "blobs"
     serviceparams = {'template_name': name}
+    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+
+def get_demos_using_the_template(template_name):
+    """
+    Get the list of demos that uses the given template
+    """
+    service_name = "get_demos_using_the_template"
+    module = "blobs"
+    serviceparams = {'template_name': template_name}
     return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
