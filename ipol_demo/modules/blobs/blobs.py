@@ -1223,6 +1223,29 @@ class Blobs(object):
                 conn.close()
             return json.dumps(data)
 
+    @cherrypy.expose
+    def get_demos_using_the_template(self, template_name):
+        """
+        Return the list of demos that uses the given template
+        """
+        conn = None
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            data['demos'] = database.get_demos_using_the_template(conn, template_name)
+            data['status'] = 'OK'
+        except IPOLBlobsDataBaseError as ex:
+            self.logger.exception("DB operation failed while getting the list of demos that uses the template")
+            print "DB operation failed while getting the list of demos that uses the template. Error: {}".format(ex)
+        except Exception as ex:
+            conn.rollback()
+            self.logger.exception("*** Unhandled exception while getting the list of demos that uses the template")
+            print "*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
     # ----------- DEPRECATED FUNCTIONS ---------------
     # This functions are for the OLD web interface and
     # they shouldn't be called by new methods.

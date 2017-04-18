@@ -48,7 +48,7 @@ def do_read(demos):
                 print "ERROR: get_ddl returned KO for demo {}".format(editorsdemoid)
                 continue
             last_demodescription = response['last_demodescription']
-            ddl_json = last_demodescription['json']
+            ddl_json = last_demodescription['ddl']
 
             file = open("DDLs/" + str(editorsdemoid) + ".json", "wb")
             file.write(ddl_json)

@@ -29,6 +29,9 @@ import socket
 
 import ConfigParser
 
+
+from collections import OrderedDict
+
 from model import *
 from tools import is_json, Payload, convert_str_to_bool
 
@@ -1672,7 +1675,7 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            ddl = json.loads(ddl["ddl"])
+            ddl = json.loads(ddl["ddl"], object_pairs_hook=OrderedDict)
             del ddl['build']
             del ddl['run']
             return json.dumps({'status':'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
