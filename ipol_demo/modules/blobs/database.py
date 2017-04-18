@@ -809,3 +809,24 @@ def get_blob_id(conn, blob_hash):
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
+
+def get_demos_using_the_template(conn, template_name):
+    """
+    Return the list of demos that uses the given template
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+                SELECT editor_demo_id
+                FROM demos, templates, demos_templates
+                WHERE name = ?
+                AND templates.id = template_id
+                AND demos.id = demo_id
+                """, (template_name,))
+        demos = []
+        for demo in cursor.fetchall():
+            demos.append(demo[0])
+
+        return demos
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)

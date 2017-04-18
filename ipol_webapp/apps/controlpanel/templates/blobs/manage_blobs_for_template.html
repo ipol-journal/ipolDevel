@@ -24,14 +24,13 @@
             <div class="container">
                 <a class="btn btn-info" href="/cp/templates_list/">Return to Templates</a>
             </div>
-        {% if data.status == "OK" %}
-
-            <h3>Blobs list</h3>
+            {% if data.status == "OK" %}
+                <h3>Blobs list</h3>
                 <div class="container">
-            <a class="btn btn-info" href="{% url 'ipol.cp.add_blob_to_template.page' name%}">Add new Blob</a>
-            <a class="btn btn-danger" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{name}}')">Delete Template</a>
-            </div>
-                <div id="blocks_info_{{ experiment.id }}" class="blocks">
+                    <a class="btn btn-info" href="{% url 'ipol.cp.add_blob_to_template.page' name%}">Add new Blob</a>
+                    <a class="btn btn-danger" onclick="deleteTemplate('{% url 'ipol.cp.blobs.delete_template'%}','{{name}}')">Delete Template</a>
+                </div>
+                <div class="blocks">
                     {% for set in data.sets %}
                         {% if set.blobs|length == 1 %}
                             {% for pos, blob in set.blobs.items %}
@@ -66,9 +65,22 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-
+                <h3>Demos using this template</h3>
+                {% if demos|length > 0 %}
+                    <div class="blocks">
+                    {% for demo in demos %}
+                        <a href="{% url 'ipol.cp.blobs.page' demo.id %}"><div class="block">
+                            <h4>{{ demo.title}}</h4>
+                            <span class="badge">{{ demo.id }}</span>
+                            <div align="right">
+                                <a class="btn btn-primary" onclick="removeDemoFromTemplate('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{demo.id}}','{{name}}')">Remove Demo </a>
+                            </div>
+                        </div></a>
+                    {% endfor %}
+                {% else %}
+                    <p> There isn't any demo that uses this template</p>
+                {% endif %}
             {% endif %}
-
 		{% endwith %}
     </div>
 
