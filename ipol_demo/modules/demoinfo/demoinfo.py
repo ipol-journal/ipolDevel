@@ -1676,8 +1676,10 @@ class DemoInfo(object):
         try:
             ddl = self.get_stored_ddl(demo_id)
             ddl = json.loads(ddl["ddl"], object_pairs_hook=OrderedDict)
-            del ddl['build']
-            del ddl['run']
+            if 'build' in ddl:
+                del ddl['build']
+            if 'run' in ddl:
+                del ddl['run']
             return json.dumps({'status':'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
