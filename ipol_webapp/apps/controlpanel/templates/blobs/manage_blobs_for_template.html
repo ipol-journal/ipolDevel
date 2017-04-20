@@ -72,9 +72,6 @@
                         <a href="{% url 'ipol.cp.blobs.page' demo.id %}"><div class="block">
                             <h4>{{ demo.title}}</h4>
                             <span class="badge">{{ demo.id }}</span>
-                            <div align="right">
-                                <a class="btn btn-primary" onclick="removeDemoFromTemplate('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{demo.id}}','{{name}}')">Remove Demo </a>
-                            </div>
                         </div></a>
                     {% endfor %}
                 {% else %}
