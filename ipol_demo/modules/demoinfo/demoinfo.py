@@ -29,6 +29,9 @@ import socket
 
 import ConfigParser
 
+
+from collections import OrderedDict
+
 from model import *
 from tools import is_json, Payload, convert_str_to_bool
 
@@ -1672,9 +1675,11 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            ddl = json.loads(ddl["ddl"])
-            del ddl['build']
-            del ddl['run']
+            ddl = json.loads(ddl["ddl"], object_pairs_hook=OrderedDict)
+            if 'build' in ddl:
+                del ddl['build']
+            if 'run' in ddl:
+                del ddl['run']
             return json.dumps({'status':'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
