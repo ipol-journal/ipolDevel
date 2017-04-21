@@ -40,7 +40,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+}
+
+.blobSet-span {
+    text-align: center;
 }
 
 .blobSet img:not(:last-of-type){
@@ -86,4 +89,9 @@
 
 .upload-element:first-child {
     text-align: center;
+}
+
+.blobThumbnail {
+    width: auto;
+    height: 100%;
 }
