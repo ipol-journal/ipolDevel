@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 """
-Dispatcher: choose the best demorunner acording to a policy
+Dispatcher: choose the best demorunner according to a policy
 
 All exposed WS return JSON with a status OK/KO, along with an error
 description if that's the case.
@@ -17,18 +17,53 @@ import requests
 import ConfigParser
 import re
 
+
+def authenticate(func):
+    """
+    Wrapper to authenticate before using an exposed function
+    """
+
+    def authenticate_and_call(*args, **kwargs):
+        """
+        Invokes the wrapped function if authenticated
+        """
+        if not is_authorized_ip(cherrypy.request.remote.ip) or (
+                "X-Real-IP" in cherrypy.request.headers and not is_authorized_ip(
+                cherrypy.request.headers["X-Real-IP"])):
+            error = {"status": "KO", "error": "Authentication Failed"}
+            return json.dumps(error)
+        return func(*args, **kwargs)
+
+    def is_authorized_ip(ip):
+        """
+        Validates the given IP
+        """
+        dispatcher = Dispatcher.get_instance()
+        patterns = []
+        # Creates the patterns  with regular expressions
+        for authorized_pattern in dispatcher.authorized_patterns:
+            patterns.append(re.compile(authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
+        # Compare the IP with the patterns
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                return True
+        return False
+
+    return authenticate_and_call
+
+
 class Dispatcher(object):
-    '''
-    The Dispatcher chooses the best DR acording to a policy
-    '''
+    """
+    The Dispatcher chooses the best DR according to a policy
+    """
 
     instance = None
 
     @staticmethod
     def get_instance():
-        '''
+        """
         Singleton pattern
-        '''
+        """
         if Dispatcher.instance is None:
             Dispatcher.instance = Dispatcher()
         return Dispatcher.instance
@@ -57,45 +92,10 @@ class Dispatcher(object):
         except Exception as e:
             self.logger.exception("Failed to create log dir (using file dir) : %s".format(e))
 
-    def authenticate(func):
-        '''
-        Wrapper to authenticate before using an exposed function
-        '''
-        def authenticate_and_call(*args, **kwargs):
-            '''
-            Invokes the wrapped function if authenticated
-            '''
-            if not is_authorized_ip(cherrypy.request.remote.ip) or \
- ("X-Real-IP" in cherrypy.request.headers and \
-not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-                cherrypy.response.headers['Content-Type'] = "application/json"
-                error = {"status": "KO", "error": "Authentication Failed"}
-                return json.dumps(error)
-            return func(*args, **kwargs)
-
-        def is_authorized_ip(ip):
-            '''
-            Validates the given IP
-            '''
-            dispatcher = Dispatcher.get_instance()
-            patterns = []
-            # Creates the patterns  with regular expresions
-            for authorized_pattern in dispatcher.authorized_patterns:
-                patterns.append(re.compile(\
-authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
-            # Compare the IP with the patterns
-            for pattern in patterns:
-                if pattern.match(ip) is not None:
-                    return True
-            return False
-
-
-        return authenticate_and_call
-
     def read_authorized_patterns(self):
-        '''
+        """
         Read from the IPs conf file
-        '''
+        """
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
@@ -117,11 +117,10 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
 
     @cherrypy.expose
     def refresh_demorunners(self):
-        '''
+        """
         Refresh the value of the demorunners
-        '''
-        data = {}
-        data["status"] = "OK"
+        """
+        data = {"status": "OK"}
         try:
             url = 'http://{}/api/{}/{}'.format(
                 self.host_name,
@@ -147,7 +146,6 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
             print "Can not refresh the demorunners", ex
 
         return json.dumps(data)
-
 
     # ---------------------------------------------------------------------------
     def init_logging(self):
@@ -188,10 +186,7 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
         """
         Default method invoked when asked for non-existing service.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-        data["status"] = "KO"
-        data["message"] = "Unknown service '{}'".format(attr)
+        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data)
 
     @staticmethod
@@ -200,11 +195,7 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
         """
         Ping pong.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        data["status"] = "OK"
-        data["ping"] = "pong"
+        data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
 
     @cherrypy.expose
@@ -213,26 +204,23 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
         """
         Shutdown the module.
         """
-        data = {}
-        cherrypy.response.headers['Content-Type'] = "application/json"
-
-        data["status"] = "KO"
+        data = {"status": "KO"}
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.error("Failed to shutdown : " + ex)
+            self.logger.error("Failed to shutdown : ", ex)
             sys.exit(1)
         return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
     def set_policy(self, policy):
-        '''
-        Change the policy used. If the given name is not a known policy the original policy is not changed
-        '''
-        data = {}
-        data["status"] = "OK"
+        """
+        Change the policy used. If the given name is not a known policy
+        the original policy is not changed
+        """
+        data = {"status": "OK"}
 
         orig_policy = self.policy
 
@@ -246,18 +234,13 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
 
         return json.dumps(data)
 
-
     @cherrypy.expose
     def get_demorunner(self, demorunners_workload, requirements=None):
-        '''
-        Select a demorunner acording to policy and requirements
-        :param policy_name: policy name
-        :param requirements: list of requirements
-        :return: json
-        '''
+        """
+        Select a demorunner according to policy and requirements
+        """
 
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
         try:
             if self.demorunners is None:
                 self.refresh_demorunners()
@@ -277,34 +260,31 @@ authorized_pattern.replace(".", r"\.").replace("*", "[0-9]*")))
         return json.dumps(data)
 
 
-        # ---------------------------------------------------------------------------
-
-
 class Policy(object):
-    '''
+    """
     This class represents the policy used to pick a demoRunner at each
     execution.
-    '''
+    """
 
     @staticmethod
-    def factory(type):
-        '''
+    def factory(policy):
+        """
         Factory Method
-        '''
-        if type == "random":
+        """
+        if policy == "random":
             return RandomPolicy()
-        elif type == "sequential":
+        elif policy == "sequential":
             return SequentialPolicy()
-        elif type == "lowest_workload":
+        elif policy == "lowest_workload":
             return LowestWorkloadPolicy()
         else:
             return None
 
     @staticmethod
     def get_suitable_demorunners(requirements, demorunners):
-        '''
+        """
         Return all the suitable demorunners
-        '''
+        """
         if requirements is None:
             return demorunners
 
@@ -319,22 +299,20 @@ class Policy(object):
 
         return suitable_demorunners
 
-
     # Abstract methods
 
     def execute(self, demorunners, demorunners_workload, requirements=None):
-        '''
+        """
         Abstract method to choose a DemoRunner that matches the requirements
-        '''
+        """
         pass
 
 
 class RandomPolicy(Policy):
-
     def execute(self, demorunners, demorunners_workload, requirements=None):
-        '''
+        """
         Chooses a random DemoRunner that matches the requirements
-        '''
+        """
         try:
 
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
@@ -348,16 +326,15 @@ class RandomPolicy(Policy):
             print "Error in execute policy Random", ex
             raise
 
-class SequentialPolicy(Policy):
 
+class SequentialPolicy(Policy):
     def __init__(self):
         self.iterator = 0
 
-
     def execute(self, demorunners, demorunners_workload, requirements=None):
-        '''
+        """
         Chooses a random DemoRunner that matches the requirements
-        '''
+        """
 
         try:
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
@@ -375,7 +352,6 @@ class SequentialPolicy(Policy):
 
 
 class LowestWorkloadPolicy(Policy):
-
     def execute(self, demorunners, demorunners_workload, requirements=None):
         """
         Chooses the DemoRunner with the lowest workload which
@@ -409,9 +385,9 @@ class LowestWorkloadPolicy(Policy):
 
 
 class DemoRunnerInfo(object):
-    '''
+    """
     Demorunner information object
-    '''
+    """
 
     def __init__(self, server, name, capabilities=None):
         self.capabilities = [] if capabilities is None else capabilities
