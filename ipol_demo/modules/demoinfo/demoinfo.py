@@ -10,7 +10,6 @@ description if that's the case.
 To test the POST WS use the following:
         curl -d demo_id=1  -X POST 'http://127.0.0.1:9002/demo_get_authors_list'
         curl -d editorsdemoid=777 -d title='demo1' -d
-            abstract='demoabstract' -d zipURL='http://prueba.com'  -d
             state=published -X POST 'http://127.0.0.1:9002/add_demo'
         or use Ffox plugin: Poster
 
@@ -411,20 +410,13 @@ class DemoInfo(object):
             #filter or return all
             if qfilter:
                 for demo in complete_demo_list:
-                    #print "demo: ",demo
-                    if (qfilter.lower() in demo.title.lower()
-                            or qfilter.lower() in demo.abstract.lower()
-                                or qfilter == str(demo.editorsdemoid)):
+                    if (qfilter.lower() in demo.title.lower() or qfilter == str(demo.editorsdemoid)):
                         demo_list.append(demo.__dict__)
             else:
                 #convert to Demo class to json
                 for demo in complete_demo_list:
                     demo_list.append(demo.__dict__)
 
-            # print
-            # print " demo_list",demo_list
-            # print
-            # print " demo_list",len(demo_list)
 
             #if demos found, return pagination
             if demo_list:
@@ -733,8 +725,6 @@ class DemoInfo(object):
             # data["id"] = demo.id
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
-            data["abstract"] = demo.abstract
-            data["zipURL"] = demo.zipURL
             data["state"] = demo.state
             data["creation"] = demo.creation
             data["modification"] = demo.modification
@@ -752,7 +742,7 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST']) #allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, abstract, zipURL, state,
+    def add_demo(self, editorsdemoid, title, state,
                  demodescriptionID=None, demodescriptionJson=None):
         """
         Allows you to create a demo:
@@ -768,19 +758,17 @@ class DemoInfo(object):
             dao = DemoDAO(conn)
 
             if demodescriptionJson:
-                # print "demodescriptionJson"
                 #creates a demodescription and asigns it to demo
                 dddao = DemoDescriptionDAO(conn)
                 demodescriptionID = dddao.add(demodescriptionJson)
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, state)
+                d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
                 dddao.add(int(editorsdemoid), int(demodescriptionID))
 
             elif demodescriptionID:
-                # print "demodescriptionID"
                 #asigns to demo an existing demodescription
-                d = Demo(int(editorsdemoid), title, abstract, zipURL, state)
+                d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
                 ddddao.add(int(editorsdemoid), int(demodescriptionID))
@@ -788,10 +776,12 @@ class DemoInfo(object):
             else:
                 #demo created without demodescription
                 #careful with Demo init method's validation!
-                d = Demo(editorsdemoid=int(editorsdemoid), title=title, abstract=abstract,
-                         zipurl=zipURL, state=str(state))
+                print 0
+                d = Demo(editorsdemoid=int(editorsdemoid), title=title, state=str(state))
+                print 1
 
                 demoid = dao.add(d)
+                print 2
 
             conn.close()
 
@@ -805,7 +795,6 @@ class DemoInfo(object):
                 conn.close()
             except Exception as ex:
                 pass
-            #raise Exception
             data["error"] = error_string
 
         return json.dumps(data)
@@ -868,9 +857,9 @@ class DemoInfo(object):
         if hasattr(p, 'creation'):
             #update creatio ndate
 
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state, p.creation)
+            d = Demo(p.editorsdemoid, p.title, p.state, p.creation)
         else:
-            d = Demo(p.editorsdemoid, p.title, p.abstract, p.zipURL, p.state)
+            d = Demo(p.editorsdemoid, p.title, p.state)
         #update Demo
         try:
 
@@ -969,7 +958,6 @@ class DemoInfo(object):
             #filter or return all
             if qfilter:
                 for a in complete_author_list:
-                    #print "demo: ", demo
                     if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower():
                         author_list.append(a.__dict__)
             else:
@@ -1336,7 +1324,6 @@ class DemoInfo(object):
             #filter or return all
             if qfilter:
                 for a in complete_editor_list:
-                    #print "demo: ", demo
                     if qfilter.lower() in a.name.lower() or qfilter.lower() in a.mail.lower():
                         editor_list.append(a.__dict__)
             else:
@@ -1645,7 +1632,6 @@ class DemoInfo(object):
         data["demo_description"] = None
         try:
             id = int(demodescriptionID)
-            #print "---- read_demo_description"
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
@@ -1730,10 +1716,9 @@ class DemoInfo(object):
         ddl = cherrypy.request.body.read(int(cl))
 
         if not is_json(ddl):
-            print
-            print "save_demo_description ddl is not a valid json "
-            print "+++++ ddl: ", ddl
-            print "+++++ ddl type: ", type(ddl)
+            print "\n save_demo_description ddl is not a valid json "
+            print "ddl: ", ddl
+            print "ddl type: ", type(ddl)
             raise Exception
 
         try:

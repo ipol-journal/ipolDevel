@@ -8,24 +8,6 @@ import requests
 # from poster.encode import MultipartParam
 from django.core.files.base import ContentFile
 import logging
-from apps.controlpanel.views.ipolwebservices.ipolwsurls import archive_ws_url_stats, archive_ws_url_page, archive_ws_url_get_experiment, \
-        archive_ws_url_shutdown, archive_ws_url_delete_experiment, archive_ws_url_delete_blob_w_deps, archive_ws_url_add_experiment_test, \
-        archive_ws_url_demo_list, archive_ws_url_delete_demo, demoinfo_ws_url_stats, demoinfo_ws_url_demo_list, \
-        demoinfo_ws_url_author_list, demoinfo_ws_url_delete_demo, demoinfo_ws_url_read_demo_description, \
-        demoinfo_ws_url_last_demodescription_from_demo, \
-        demoinfo_ws_url_save_demo_description, demoinfo_ws_url_read_demo, demoinfo_ws_url_read_states, \
-        demoinfo_ws_url_update_demo, demoinfo_ws_url_add_demo, demoinfo_ws_url_demo_list_pagination_and_filter, \
-        demoinfo_ws_url_author_list_pagination_and_filter, demoinfo_ws_url_delete_author, demoinfo_ws_url_read_author, \
-        demoinfo_ws_url_update_author, demoinfo_ws_url_add_author, demoinfo_ws_url_add_author_to_demo, \
-        demoinfo_ws_url_author_list_for_demo, demoinfo_ws_url_available_author_list_for_demo, \
-        demoinfo_ws_url_delete_author_from_demo, demoinfo_ws_url_editor_list, demoinfo_ws_url_editor_list_for_demo, \
-        demoinfo_ws_url_available_editor_list_for_demo, demoinfo_ws_url_editor_list_pagination_and_filter, \
-        demoinfo_ws_url_delete_editor, demoinfo_ws_url_add_editor, demoinfo_ws_url_read_editor, \
-        demoinfo_ws_url_update_editor, demoinfo_ws_url_add_editor_to_demo, demoinfo_ws_url_delete_editor_from_demo,demoinfo_ws_url_demo_extras_for_demo, \
-        demoinfo_ws_url_delete_demo_extras_from_demo,demoinfo_ws_url_demo_list_by_demoeditorid, \
-        proxy_ws_url_stats,demoinfo_ws_url_add_demo_extra_to_demo,archive_ws_url_update_demo_id,blobs_update_demo_id, \
-        get_demo_owned_blobs, edit_blob_from_demo, remove_blob_from_demo,get_demo_templates,add_blob_to_demo, remove_vr_from_demo,\
-        get_all_templates
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +83,7 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
 
 def demoinfo_get_stats():
 
-    service_name = demoinfo_ws_url_stats
+    service_name = 'stats'
 
     serviceparams = None
     servicejson = None
@@ -111,7 +93,7 @@ def demoinfo_get_stats():
 
 def demoinfo_get_states():
 
-    service_name = demoinfo_ws_url_read_states
+    service_name = 'read_states'
 
     serviceparams = None
     servicejson = None
@@ -125,7 +107,7 @@ def demoinfo_get_states():
 def demoinfo_get_ddl(demo_id):
 
 
-    service_name = demoinfo_ws_url_last_demodescription_from_demo
+    service_name = 'get_ddl'
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
@@ -140,7 +122,7 @@ def demoinfo_get_ddl(demo_id):
 
 def demoinfo_read_demo_description(demo_descp_id):
 
-    service_name = demoinfo_ws_url_read_demo_description
+    service_name = 'read_demo_description'
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
@@ -154,7 +136,7 @@ def demoinfo_read_demo_description(demo_descp_id):
 
 def demoinfo_save_demo_description(pjson,demoid):
 
-    service_name = demoinfo_ws_url_save_demo_description
+    service_name = 'save_demo_description'
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
@@ -176,7 +158,7 @@ def demoinfo_demo_list():
     { return:OK or KO, list demos:
     """
 
-    service_name = demoinfo_ws_url_demo_list
+    service_name = 'demo_list'
     module = "demoinfo"
 
     serviceparams = None
@@ -195,7 +177,7 @@ def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
     { return:OK or KO, list demos:...
     """
 
-    service_name = demoinfo_ws_url_demo_list_by_demoeditorid
+    service_name = 'demo_list_by_demoeditorid'
     module = "demoinfo"
     result = None
 
@@ -214,12 +196,12 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
     list demos present in database
     demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
      demo list filtered and pagination {"status": "OK", "demo_list": [{"creation": "2015-12-29 15:03:07", "state": published,
-     "abstract": "DemoTEST3 Abstract", "title": "DemoTEST3 Title", "editorsdemoid": 25, "id": 3, "zipURL":
-     "https://DemoTEST3.html", "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
+     "title": "DemoTEST3 Title", "editorsdemoid": 25, "id": 3,
+     "modification": "2015-12-29 15:03:07"}], "next_page_number": null,
      "previous_page_number": 1, "number": 2.0}
     """
 
-    service_name = demoinfo_ws_url_demo_list_pagination_and_filter
+    service_name = 'demo_list_pagination_and_filter'
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
@@ -230,7 +212,7 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
 
 def demoinfo_delete_demo(demo_id):
 
-    demoinfo_service = demoinfo_ws_url_delete_demo
+    demoinfo_service = 'delete_demo'
     demoinfo_resp = get_JSON_from_webservice("demoinfo", demoinfo_service, METHOD='POST', params={'demo_id': demo_id})
     if json.loads(demoinfo_resp)['status'] == 'KO':
         return demoinfo_resp
@@ -241,7 +223,7 @@ def demoinfo_delete_demo(demo_id):
 
 def demoinfo_read_demo(demo_id):
 
-    service_name = demoinfo_ws_url_read_demo
+    service_name = 'read_demo_metainfo'
     module = "demoinfo"
 
     serviceparams = {"demoid": demo_id}
@@ -259,15 +241,15 @@ def demoinfo_update_demo(demo,old_editor_demoid):
     blobs_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
     archive_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
 
-    demoinfo_resp = get_JSON_from_webservice('demoinfo', demoinfo_ws_url_update_demo, METHOD='POST', params=demoinfo_params, json=None)
+    demoinfo_resp = get_JSON_from_webservice('demoinfo', 'update_demo', METHOD='POST', params=demoinfo_params, json=None)
     if json.loads(demoinfo_resp)['status'] == 'KO':
         return demoinfo_resp
 
-    blob_resp = get_JSON_from_webservice('blobs',blobs_update_demo_id,METHOD='POST',params=blobs_params,json=None)
+    blob_resp = get_JSON_from_webservice('blobs','update_demo_id',METHOD='POST',params=blobs_params,json=None)
     if json.loads(blob_resp)['status'] == 'KO':
         return blob_resp
 
-    archive_resp = get_JSON_from_webservice('archive',archive_ws_url_update_demo_id,METHOD='POST',params=archive_params,json=None)
+    archive_resp = get_JSON_from_webservice('archive','update_demo_id',METHOD='POST',params=archive_params,json=None)
     if json.loads(archive_resp)['status'] == 'KO':
         return archive_resp
 
@@ -275,13 +257,13 @@ def demoinfo_update_demo(demo,old_editor_demoid):
 
 
 
-def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,state):
+def demoinfo_add_demo(editorsdemoid ,title, state):
 
-    service_name = demoinfo_ws_url_add_demo
+    service_name = 'add_demo'
 
     #proxy can be called by GET or POST, prefer POST if submiting data to server
     module = "demoinfo"
-    serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'abstract': abstract,'zipURL': zipURL,'state': state}
+    serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'state': state}
     #send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None
@@ -294,7 +276,7 @@ def demoinfo_add_demo(editorsdemoid ,title ,abstract,zipURL ,state):
 
 def demoinfo_author_list():
 
-    service_name = demoinfo_ws_url_author_list
+    service_name = 'author_list'
     module = "demoinfo"
 
     serviceparams = None
@@ -304,7 +286,7 @@ def demoinfo_author_list():
 
 def demoinfo_author_list_for_demo(demo_id):
 
-    service_name = demoinfo_ws_url_author_list_for_demo
+    service_name = 'demo_get_authors_list'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -317,7 +299,7 @@ def demoinfo_author_list_for_demo(demo_id):
 
 def demoinfo_available_author_list_for_demo(demo_id = None):
 
-    service_name = demoinfo_ws_url_available_author_list_for_demo
+    service_name = 'demo_get_available_authors_list'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -330,7 +312,7 @@ def demoinfo_available_author_list_for_demo(demo_id = None):
 
 def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfilter):
 
-    service_name = demoinfo_ws_url_author_list_pagination_and_filter
+    service_name = 'author_list_pagination_and_filter'
     module = "demoinfo"
 
     serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
@@ -342,7 +324,7 @@ def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfil
 
 def demoinfo_delete_author(author_id):
 
-    service_name = demoinfo_ws_url_delete_author
+    service_name = 'remove_author'
     module = "demoinfo"
 
     serviceparams = {'author_id': author_id}
@@ -354,7 +336,7 @@ def demoinfo_delete_author(author_id):
 
 def demoinfo_add_author( name ,mail):
 
-    service_name = demoinfo_ws_url_add_author
+    service_name = 'add_author'
     module = "demoinfo"
 
     serviceparams = {'name': name,'mail': mail}
@@ -366,7 +348,7 @@ def demoinfo_add_author( name ,mail):
 
 def demoinfo_read_author(author_id):
 
-    service_name = demoinfo_ws_url_read_author
+    service_name = 'read_author'
     module = "demoinfo"
 
     serviceparams = {'authorid': author_id}
@@ -378,7 +360,7 @@ def demoinfo_read_author(author_id):
 
 def demoinfo_update_author(author):
 
-    service_name = demoinfo_ws_url_update_author
+    service_name = 'update_author'
     module = "demoinfo"
 
     serviceparams = {'author': json.dumps(author)}
@@ -390,7 +372,7 @@ def demoinfo_update_author(author):
 
 def demoinfo_add_author_to_demo( demo_id ,author_id):
 
-    service_name = demoinfo_ws_url_add_author_to_demo
+    service_name = 'add_author_to_demo'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id,'author_id': author_id}
@@ -401,7 +383,7 @@ def demoinfo_add_author_to_demo( demo_id ,author_id):
 
 def demoinfo_delete_author_from_demo(demo_id,author_id):
 
-    service_name = demoinfo_ws_url_delete_author_from_demo
+    service_name = 'remove_author_from_demo'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id,'author_id': author_id}
@@ -415,7 +397,7 @@ def demoinfo_delete_author_from_demo(demo_id,author_id):
 
 def demoinfo_editor_list():
 
-    service_name = demoinfo_ws_url_editor_list
+    service_name = 'editor_list'
     module = "demoinfo"
 
     serviceparams = None
@@ -425,7 +407,7 @@ def demoinfo_editor_list():
 
 def demoinfo_editor_list_for_demo(demo_id):
 
-    service_name = demoinfo_ws_url_editor_list_for_demo
+    service_name = 'demo_get_editors_list'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -437,7 +419,7 @@ def demoinfo_editor_list_for_demo(demo_id):
 
 def demoinfo_available_editor_list_for_demo(demo_id=None):
 
-    service_name = demoinfo_ws_url_available_editor_list_for_demo
+    service_name = 'demo_get_available_editors_list'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -449,7 +431,7 @@ def demoinfo_available_editor_list_for_demo(demo_id=None):
 
 def demoinfo_editor_list_pagination_and_filtering( num_elements_page, page, qfilter):
 
-    service_name = demoinfo_ws_url_editor_list_pagination_and_filter
+    service_name = 'editor_list_pagination_and_filter'
     module = "demoinfo"
 
 
@@ -462,7 +444,7 @@ def demoinfo_editor_list_pagination_and_filtering( num_elements_page, page, qfil
 
 def demoinfo_delete_editor(editor_id):
 
-    service_name = demoinfo_ws_url_delete_editor
+    service_name = 'remove_editor'
     module = "demoinfo"
 
     serviceparams = {'editor_id': editor_id}
@@ -473,7 +455,7 @@ def demoinfo_delete_editor(editor_id):
 
 def demoinfo_add_editor( name ,mail):
 
-    service_name = demoinfo_ws_url_add_editor
+    service_name = 'add_editor'
     module = "demoinfo"
 
     serviceparams = {'name': name,'mail': mail}
@@ -485,7 +467,7 @@ def demoinfo_add_editor( name ,mail):
 
 def demoinfo_read_editor(editor_id):
 
-    service_name = demoinfo_ws_url_read_editor
+    service_name = 'read_editor'
     module = "demoinfo"
 
     serviceparams = {'editorid': editor_id}
@@ -497,7 +479,7 @@ def demoinfo_read_editor(editor_id):
 
 def demoinfo_update_editor(editor):
 
-    service_name = demoinfo_ws_url_update_editor
+    service_name = 'update_editor'
     module = "demoinfo"
 
     serviceparams = {'editor': json.dumps(editor)}
@@ -508,7 +490,7 @@ def demoinfo_update_editor(editor):
 
 def demoinfo_add_editor_to_demo( demo_id ,editor_id):
 
-    service_name = demoinfo_ws_url_add_editor_to_demo
+    service_name = 'add_editor_to_demo'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
@@ -518,7 +500,7 @@ def demoinfo_add_editor_to_demo( demo_id ,editor_id):
 
 def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 
-    service_name = demoinfo_ws_url_delete_editor_from_demo
+    service_name = 'remove_editor_from_demo'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
@@ -530,7 +512,7 @@ def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 
 def demoinfo_demo_extras_for_demo(demo_id):
 
-    service_name = demoinfo_ws_url_demo_extras_for_demo
+    service_name = 'get_demo_extras_info'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -540,7 +522,7 @@ def demoinfo_demo_extras_for_demo(demo_id):
 
 def demoinfo_delete_demo_extras_from_demo(demo_id):
 
-    service_name = demoinfo_ws_url_delete_demo_extras_from_demo
+    service_name = 'delete_compressed_file_ws'
     module = "demoinfo"
 
     serviceparams = {'demo_id': demo_id}
@@ -550,7 +532,7 @@ def demoinfo_delete_demo_extras_from_demo(demo_id):
 
 def demoinfo_add_demo_extra_to_demo(demo_id, request):
 
-    service_name = demoinfo_ws_url_add_demo_extra_to_demo
+    service_name = 'add_compressed_file_ws'
     module = "demoinfo"
     files=None
     serviceparams = {'demo_id': demo_id}
@@ -575,7 +557,7 @@ def archive_get_page(experimentid , page='1'):
     the browser
     """
 
-    service_name = archive_ws_url_page
+    service_name = 'get_page'
     module = "archive"
 
     serviceparams = {'demo_id': experimentid, 'page': page}
@@ -588,7 +570,7 @@ def archive_get_experiment(experiment_id):
     The method returns a JSON response with all the data of the experiment with id=experiment_id
     """
 
-    service_name = archive_ws_url_get_experiment
+    service_name = 'get_experiment'
     module = "archive"
 
     serviceparams = {'experiment_id': experiment_id}
@@ -604,24 +586,9 @@ def archive_get_stats():
     the browser
     """
 
-    service_name = archive_ws_url_stats
+    service_name = 'stats'
     module = "archive"
 
-
-    serviceparams = None
-    servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
-
-
-#todo remove this method not used any more
-def archive_shutdown():
-    """
-    Shutdown archive
-    """
-
-    service_name = archive_ws_url_shutdown
-    module = "archive"
 
     serviceparams = None
     servicejson = None
@@ -635,7 +602,7 @@ def archive_demo_list():
     { return:OK or KO, list demos: {id,name, id template, template } }
     """
 
-    service_name = archive_ws_url_demo_list
+    service_name = 'demo_list'
     module = "archive"
 
     serviceparams = None
@@ -645,48 +612,44 @@ def archive_demo_list():
 
 
 def archive_add_experiment_to_test_demo():
-#todo delete should use POST
-    service_name = archive_ws_url_add_experiment_test
+    service_name = 'add_exp_test'
     module = "archive"
 
     serviceparams = None
     servicejson = None
 
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 
 def archive_delete_demo(demo_id):
-#todo delete should use POST
-    service_name = archive_ws_url_delete_demo
+    service_name = 'delete_demo'
     module = "archive"
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def archive_delete_experiment(experiment_id):
-#todo delete should use POST
-    service_name = archive_ws_url_delete_experiment
+    service_name = 'delete_experiment'
     module = "archive"
 
     serviceparams = {'experiment_id': experiment_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 
 def archive_delete_file(file_id):
-#todo delete should use POST
-    service_name = archive_ws_url_delete_blob_w_deps
+    service_name = 'delete_blob_w_deps'
     module = "archive"
     serviceparams = {'id_blob': file_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 

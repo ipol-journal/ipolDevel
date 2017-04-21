@@ -67,15 +67,11 @@
                         <h4>Last modification:</h4>
                         <p>{{ data.modification|slice:'19' }}</p>
                     </div>
-
-                    <!-- Zip URL -->
                     <div id="col-3" class="column-4">
-                        <h4>Zip URL:</h4>
-                        <p><a  href="{{ data.zipURL }}">{{ data.zipURL }}</a></p>
+                        <!--Space-->
                     </div>
-
                     <!-- Edit/Delete Demo -->
-                    <div id="col-4" class="column-4">
+                    <div id="col-4" class="column-4" align="right">
                         <a class="btn btn-primary options" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}  )" title="Edit information of this demo">{% trans 'Edit' %}</a>
                         <a class="btn btn-primary options" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}, '{{ data.title|addslashes }}', '{% url 'ipol.cp.demoinfo.demos' %}')" title="Delete this demo">{% trans 'Delete' %}</a>
                     </div>
@@ -108,9 +104,6 @@
                     </div>
 
                     <hr>
-
-                    <h4>Abstract:</h4>
-                    <p class="abstract">{{ data.abstract }}</p>
 
                 </div>
 

@@ -53,46 +53,6 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
 
         try:
 
-            #get data from WS, paginate and filter in CP (using django pagination)
-
-            #dl = ipolservices.demoinfo_demo_list()
-            # if dl:
-            #       result = DeserializeDemoinfoDemoList(dl)
-            # else:
-            #       raise ValueError("No response from WS")
-            #
-            # list_demos = result.demo_list
-            # status = result.status
-            #
-            # #filter result
-            # query = self.request.GET.get('q')
-            # # print "query",query
-            # list_demos_filtered = list()
-            # if query:
-            #       for demo in list_demos:
-            #               # print "demo: ",demo
-            #               if query in demo.title or query in demo.abstract :
-            #                       print "ok"
-            #                       list_demos_filtered.append(demo)
-            #
-            #       list_demos = list_demos_filtered
-            # context['q'] = query
-            #
-            # #pagination of result
-            # paginator = Paginator(list_demos, PAGINATION_ITEMS_PER_PAGE_DEMO_LIST)
-            # page = self.request.GET.get('page')
-            # try:
-            #       list_demos = paginator.page(page)
-            # except PageNotAnInteger:
-            #       # If page is not an integer, deliver first page.
-            #       list_demos = paginator.page(1)
-            # except EmptyPage:
-            #       # If page is out of range (e.g. 9999), deliver last page of results.
-            #       list_demos = paginator.page(paginator.num_pages)
-
-
-            #get data from WS paginated and filtered
-
             #filter result
             query = self.request.GET.get('q')
             context['q'] = query
@@ -187,10 +147,8 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             data['editorsdemoid'] = demo_id
             data['title'] = demo_result['title']
             data['state'] = demo_result['state']
-            data['abstract'] = demo_result['abstract']
             data['ddl'] = ddl_result['last_demodescription']['ddl']
             data['modification'] = demo_result['modification']
-            data['zipURL'] = demo_result['zipURL']
             data['demoform'] = Demoform
             data['status'] = 'OK'
 
@@ -413,10 +371,8 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
         # get form fields
             id = None
             title = None
-            abstract = None
             state = None
             editorsdemoid = None
-            zipURL = None
             # creation = None
             # modification = None
             # if form has id field set, I must update, if not, create a new demo
@@ -428,12 +384,10 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
             try:
                 title = form.cleaned_data['title']
-                abstract = form.cleaned_data['abstract']
                 state = form.cleaned_data['state']
                 editorsdemoid = form.cleaned_data['editorsdemoid']
                 editorsdemoid = int(editorsdemoid)
 
-                zipURL = form.cleaned_data['zipURL']
                 # creation = form.cleaned_data['creation']
                 # modification = form.cleaned_data['modification']
                 # print " title ",title
@@ -452,7 +406,7 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                     # print (" create demo")
                     # print
 
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title ,abstract, zipURL, state)
+                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state)
                     print "jsonresult", jsonresult
                     status, error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
@@ -480,17 +434,10 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                     print msg
             else:
                 try:
-                    # print (" update demo ")
-                    # print
                     demojson = {
                                             "title": title,
-                                            "abstract": abstract,
                                             "editorsdemoid": editorsdemoid,
-                                            "state": state,
-                                            # "id": id,
-                                            "zipURL": zipURL,
-                                            # "creation": creation,
-                                            # "modification": modification
+                                            "state": state
                     }
                     jsonresult = ipolservices.demoinfo_update_demo(demojson,old_editor_demoid)
                     status,error = get_status_and_error_from_json(jsonresult)
@@ -498,7 +445,6 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                     if error is not None:
                         jres['error'] = error
 
-                    #TODO todos los WS deben devolver status y errors, asi se lo paso directamente al html
                 except Exception as e:
                     msg = "update demo error: %s" % e
                     jres['error'] = msg

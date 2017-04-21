@@ -33,22 +33,17 @@ class Demo(object):
 
     editorsdemoid = None
     title = None
-    abstract = None
-    zipURL = None
     state = None
     creation = None
     modification = None
 
     @validates(editorsdemoid=typ(int),
                title=inst(basestring),
-               abstract=inst(basestring),
-               #zipurl=type(url),
-               zipurl=inst(basestring),
                stateid=typ(str),
                creation=Or(typ(datetime.datetime), inst(basestring)),
                modification=Or(typ(datetime.datetime), inst(basestring))
               )
-    def __init__(self, editorsdemoid, title, abstract, zipurl,
+    def __init__(self, editorsdemoid, title,
                  state, creation=None, modification=None):
         """
         Constructor.
@@ -56,8 +51,6 @@ class Demo(object):
 
         self.editorsdemoid = editorsdemoid
         self.title = title
-        self.abstract = abstract
-        self.zipURL = zipurl
         self.state = state
 
         if creation:
@@ -275,23 +268,15 @@ class DemoDAO(object):
         Add a demo.
         """
         try:
-
-            # print 'demo.editorsdemoid: ',demo.editorsdemoid
-            # print 'demo.title: ',demo.title
-            # print 'demo.abstract: ',demo.abstract
-            # print 'demo.zipURL: ',demo.zipURL
-            # print 'demo.state: ',demo.state
-            # print 'demo.demodescriptionID: ',demo.demodescriptionID
             self.cursor.execute('''SELECT ID
                                 FROM state
                                 WHERE state.name=?''', (demo.state,))
             self.conn.commit()
             state_id = self.cursor.fetchone()[0]
-            print state_id
             self.cursor.execute('''
-            INSERT INTO demo(editor_demo_id, title, abstract, zipURL, stateID)
-            VALUES(?,?,?,?,?)''', (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, state_id,))
+            INSERT INTO demo(editor_demo_id, title, stateID)
+            VALUES(?,?,?)''', (demo.editorsdemoid, demo.title, state_id,))
+            print "insertado"
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:
@@ -330,18 +315,16 @@ class DemoDAO(object):
             if demo.creation:
 
                 self.cursor.execute('''
-                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,
+                UPDATE demo SET editor_demo_id=?,title=?,
                 stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
-                                    (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, state_id, nowtmstmp,
+                                    (demo.editorsdemoid, demo.title, state_id, nowtmstmp,
                                      demo.creation, old_editor_demo_id))
 
             else:
                 self.cursor.execute('''
-                UPDATE demo SET editor_demo_id=?,title=?, abstract=?, zipURL=?,
+                UPDATE demo SET editor_demo_id=?,title=?,
                 stateID=?,modification=?,creation=? WHERE demo.editor_demo_id=?''',
-                                    (demo.editorsdemoid, demo.title, demo.abstract,
-                                     demo.zipURL, state_id, nowtmstmp,
+                                    (demo.editorsdemoid, demo.title, state_id, nowtmstmp,
                                      demo.creation, old_editor_demo_id))
             self.conn.commit()
         except Exception as ex:
@@ -356,7 +339,7 @@ class DemoDAO(object):
         """
         result = None
         try:
-            self.cursor.execute('''SELECT  d.editor_demo_id, d.title, d.abstract, d.zipURL, s.name, d.creation, d.modification
+            self.cursor.execute('''SELECT  d.editor_demo_id, d.title, s.name, d.creation, d.modification
                                 FROM demo as d, state as s
                                 WHERE d.editor_demo_id=?
                                 AND d.stateID = s.ID''', (int(editor_demo_id),))
@@ -364,7 +347,7 @@ class DemoDAO(object):
             self.conn.commit()
             row = self.cursor.fetchone()
             if row:
-                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+                d = Demo(row[0], row[1], row[2], row[3], row[4])
                 result = d
         except Exception as ex:
             error_string = ("read_demo  e:%s" % (str(ex)))
@@ -386,14 +369,14 @@ class DemoDAO(object):
         demo_list = list()
         try:
 
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, s.name, d.creation, d.modification
+            self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name, d.creation, d.modification
                                 FROM demo as d, state as s
                                 WHERE d.stateID = s.ID
                                 ORDER BY d.editor_demo_id DESC ''')
 
             self.conn.commit()
             for row in self.cursor.fetchall():
-                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+                d = Demo(row[0], row[1], row[2], row[3], row[4])
                 demo_list.append(d)
 
         except Exception as ex:
@@ -802,14 +785,14 @@ class DemoAuthorDAO(object):
         """
         demo_list = list()
         try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, s.name , d.creation, d.modification
+            self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name , d.creation, d.modification
                                 FROM demo as d, demo_author as da, state as s
                                 WHERE d.id=da.demoId
                                 AND d.stateID = s.ID
                                 AND da.authorId=?''', (int(authorid),))
             self.conn.commit()
             for row in self.cursor.fetchall():
-                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+                d = Demo(row[0], row[1], row[2], row[3], row[4])
                 demo_list.append(d)
 
         except Exception as ex:
@@ -1072,14 +1055,14 @@ class DemoEditorDAO(object):
         """
         demo_list = list()
         try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, d.abstract, d.zipURL, s.name, d.id, d.creation, d.modification
+            self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name, d.id, d.creation, d.modification
                                 FROM demo as d, demo_editor as de, state as s
                                 WHERE d.id=de.demoId
                                 AND d.stateID = s.ID
                                 AND de.editorId=?''', (int(editorid),))
             self.conn.commit()
             for row in self.cursor.fetchall():
-                d = Demo(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+                d = Demo(row[0], row[1], row[2], row[3], row[4])
                 demo_list.append(d)
 
         except Exception as ex:
@@ -1151,8 +1134,6 @@ def createDb(database_name):
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 editor_demo_id INTEGER UNIQUE NOT NULL,
                 title VARCHAR UNIQUE NOT NULL,
-                abstract TEXT,
-                zipURL VARCHAR,
                 creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 stateID INTEGER,
@@ -1288,15 +1269,12 @@ def testDb(database_name):
         demo_dao = DemoDAO(conn)
         editorsdemoid = 24
         title = 'Demo TEST Title'
-        abstract = 'Demo Abstract'
-        zipURL = 'https://www.sqlite.org/lang_createtable.html'
         stateID = 1
-        d = Demo(editorsdemoid, title, abstract, zipURL, stateID)
+        d = Demo(editorsdemoid, title, stateID)
         demo_dao.add(d)
         print d.__dict__
 
         d = demo_dao.read(1)
-        d.zipURL = 'https://www.sqlite.org'
         d.state = 2
         demo_dao.update(d)
         # demo.delete(1)
@@ -1305,10 +1283,8 @@ def testDb(database_name):
 
         editorsdemoid = 43
         title = 'Demo 2 TEST Title'
-        abstract = 'Demo2 Abstract'
-        zipURL = 'https://www.sqlite.org/demo2'
         stateID = 1
-        d2 = Demo(editorsdemoid, title, abstract, zipURL, stateID)
+        d2 = Demo(editorsdemoid, title, stateID)
         demo_dao.add(d2)
 
 
