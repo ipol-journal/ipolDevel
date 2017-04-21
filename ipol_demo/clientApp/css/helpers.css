@@ -37,6 +37,10 @@
     align-items: center;
 }
 
+.text-center {
+    text-align: center;
+}
+
 .fw {
     width: 100% !important;
 }

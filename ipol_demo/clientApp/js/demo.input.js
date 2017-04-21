@@ -35,8 +35,9 @@ function printSets(sets){
         var blobs = Object.keys(set);
         var name = sets[i].name;
 
-        $(".setContainer").append("<div class=blobSet_" + i + " id=" + name + "></div>");
-        var blobSet = $(".blobSet_" + i);
+        $(".setContainer").append("<div class=blobSet_" + i + " id=" + name + "></div>")
+                          .append("<div class=blobSet-body-" + i +"></div>");
+        var blobSet = $(".blobSet-body-" + i);
         var blobSetArray = [];
 
         blobSet.addClass("blobSet")
@@ -55,14 +56,16 @@ function printSets(sets){
         if (blobs.length > 1) { // +1 photo. last photo.
             blobSetArray += "<img src=" + set[blobs.length-1].thumbnail + ">";
         }
-        $(".blobSet_" + i + "> img").addClass("blobThumbnail");
-        if (blobs.length == 1) {
-            blobSetArray += "<br><span class=blobTitle>" + set[blobs].title + "</span>";
-        } else {
-            blobSetArray += "<br><span class=blobTitle>" + sets[i].name + "</span>";
-        }
         blobSet.html(blobSetArray);
+        $("#" + name).append($(".blobSet-body-" + i));
+        if (blobs.length == 1) {
+            $(".blobSet_" + i).append("<span class=blobTitle>" + set[blobs].title + "</span>");
+        } else {
+            $(".blobSet_" + i).append("<span class=blobTitle>" + sets[i].name + "</span>");
+        }
+        $(".blobSet_" + i).addClass("text-center");
     }
+    $(".blobSet > img").addClass("blobThumbnail");
 }
 
 // Demo input description dialog
