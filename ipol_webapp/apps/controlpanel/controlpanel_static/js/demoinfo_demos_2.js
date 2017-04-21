@@ -1,10 +1,6 @@
 /*  global vars */
 
-/*  modal abstract */
-$modal_abstract_id='#ShowAbstractModalID';
-$modal_abstract_body_id='#modalbodyabstractid';
-$modal_abstract_id='#ShowAbstractModalID';
-$modal_abstract_class='.abstractmodal';
+
 
 
 /*  modal demo */
@@ -18,8 +14,6 @@ $form_demo_field_demo_id="#Demoform #id_id";
 //normal
 $form_demo_field_editorsdemo_id="#Demoform #id_editorsdemoid";
 $form_demo_field_title_id="#Demoform #id_title";
-$form_demo_field_abstract_id="#Demoform #id_abstract";
-$form_demo_field_zipURL_id="#Demoform #id_zipURL";
 $form_demo_field_state="#Demoform #id_state";
 /*  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";*/
 var $demoform = $($form_demo_id);
@@ -260,8 +254,6 @@ function send_get_demo_request(wsurl,editor_demo_id){
         $($form_demo_field_demo_id).get(0).value = '';
         $($form_demo_field_editorsdemo_id).get(0).value = '';
         $($form_demo_field_title_id).get(0).value = '';
-        $($form_demo_field_abstract_id).get(0).value = '';
-        $($form_demo_field_zipURL_id).get(0).value = '';
         $($form_demo_field_state).get(0).value = '';
         $demoform.show();
         $($modal_demo_id).modal('show');
@@ -295,8 +287,6 @@ function send_get_demo_request(wsurl,editor_demo_id){
                         $($form_demo_field_demo_id).get(0).value = data.editorsdemoid;
                         $($form_demo_field_editorsdemo_id).get(0).value = data.editorsdemoid;
                         $($form_demo_field_title_id).get(0).value = data.title;
-                        $($form_demo_field_abstract_id).get(0).value = data.abstract;
-                        $($form_demo_field_zipURL_id).get(0).value = data.zipURL;
                         $($form_demo_field_state).get(0).value = data.state;
                         $($modal_demo_id).modal('show');
                         $demoform.show();
@@ -311,8 +301,6 @@ function send_get_demo_request(wsurl,editor_demo_id){
                         $($form_demo_field_demo_id).get(0).value = '';
                         $($form_demo_field_editorsdemo_id).get(0).value = '';
                         $($form_demo_field_title_id).get(0).value = '';
-                        $($form_demo_field_abstract_id).get(0).value = '';
-                        $($form_demo_field_zipURL_id).get(0).value = '';
                         $($form_demo_field_state).get(0).value = '';
                         $($modal_demo_id).modal('show');
                         //$demoform.show();
@@ -398,19 +386,11 @@ $($form_demo_id).validate({
             required: true,
             minlength: 5
         },
-        abstract: {
-            required: true,
-            minlength: 5
-        },
         state: {
             required: true
         },
         editorsdemoid: {
             required: true
-        },
-        zipURL: {
-            required: true,
-            minlength: 5
         }
     },
     messages: {
@@ -419,19 +399,11 @@ $($form_demo_id).validate({
             required: "please fill title field",
             minlength: "Your title must be at least 5 characters"
         },
-        abstract: {
-            required: "please fill abstract field",
-            minlength: "Your abstract must be at least 5 characters"
-        },
         state: {
             required: "please fill  state"
         },
         editorsdemoid: {
             required: "please fill  editorsdemoid"
-        },
-        zipURL: {
-            required: "please fill zipURL field",
-            minlength: "Your zipURL must be at least 5 characters"
         }
     },
     submitHandler: function() {
@@ -461,11 +433,3 @@ function prettyPrintundo(formfieldidtopretify) {
     document.getElementById(formfieldidtopretify).value = ugly;
 }
 
-
-/*  show abstract modal  */
-$(document).ready(function(){
-   $($modal_abstract_class).click(function(){ // Click to only happen on announce links
-     $($modal_abstract_body_id).html($(this).data('abstract'));
-     $($modal_abstract_id).modal('show');
-   });
-});

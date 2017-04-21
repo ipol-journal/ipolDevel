@@ -4,9 +4,8 @@ var clientApp = clientApp || {};
 var helpers = helpers || {};
 clientApp.helpers = helpers;
 
-clientApp.helpers.getFromAPI = function(module, method, parameters, funct){
-    var url = "/api/" + module + "/" + method + "?" + parameters;
-    $.get(url).done(funct);
+clientApp.helpers.getFromAPI = function(url, funct){
+    $.getJSON(url).done(funct);
 };
 
 clientApp.helpers.getJSON = function(json){
@@ -25,6 +24,7 @@ clientApp.helpers.removeItem = function(id) {
     sessionStorage.removeItem(id);
 }
 
+// Convert upload image to Base64.
 clientApp.helpers.getBase64Image = function(img) {
     var canvas = document.createElement("canvas");
     canvas.width = img.width;
@@ -40,4 +40,8 @@ clientApp.helpers.getBase64Image = function(img) {
 
 clientApp.helpers.setOrigin = function(origin) {
     helpers.addToStorage("origin", origin);
+}
+
+clientApp.helpers.getOrigin = function() {
+    helpers.getFromStorage("origin");
 }

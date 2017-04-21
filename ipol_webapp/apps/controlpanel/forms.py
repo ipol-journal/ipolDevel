@@ -10,9 +10,9 @@ __author__ = 'josearrecio'
 from django import forms
 
 """
-        Using Django-crispy-forms
-        http://django-crispy-forms.readthedocs.org/en/latest/
-        Forms use bootstrap clasess for layout
+Using Django-crispy-forms
+http://django-crispy-forms.readthedocs.org/en/latest/
+Forms use bootstrap clasess for layout
 
 """
 
@@ -44,14 +44,12 @@ class Demoform(forms.Form):
     #hidden
     id = forms.IntegerField(label='demoid',required=False)
     #normal
-    editorsdemoid = forms.IntegerField(label='Editors Demo ID',required=True)
+    editorsdemoid = forms.IntegerField(label='Demo ID',required=True)
     title = forms.CharField(label='Title',required=True)
-    zipURL = forms.URLField(label='Zip URL',required=True)
 
     # problems using bool in form, just use int...
 
     state = forms.ChoiceField(label='State',required=True)
-    abstract = forms.CharField(label='Abstract',widget=forms.Textarea,required=True)
 
 
     helper = FormHelper()
@@ -65,9 +63,7 @@ class Demoform(forms.Form):
             Field('id', type='hidden'),
             Field('editorsdemoid'),
             Field('title', css_class='form-control'),
-            Field('zipURL', css_class='form-control'),
             Field('state'),
-            Field('abstract', rows="8", css_class='form-control'),
             FormActions(
                     Submit('save_demo', 'Save', css_class="btn-primary"),
             )

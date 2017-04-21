@@ -18,24 +18,6 @@ logger = logging.getLogger(__name__)
 
 __author__ = 'josearrecio'
 
-#todo remove, this is used in terminal app
-class ArchiveShutdownView(NavbarReusableMixinMF,TemplateView):
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ArchiveShutdownView, self).dispatch(*args, **kwargs)
-
-    def render_to_response(self, context, **response_kwargs):
-        #just return the JSON from the ws, this json has no interesting data, no template is needed
-        result= ipolservices.archive_shutdown()
-        if result is None:
-            msg="ArchiveShutdownView: Something went wrong using archive shutdown WS"
-            logger.error(msg)
-            raise ValueError(msg)
-
-
-        return HttpResponse(result, content_type='application/json')
-
 
 class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
     template_name = "archive/archive.html"

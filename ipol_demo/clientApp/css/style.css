@@ -1,3 +1,11 @@
+/*html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}*/
+
 .header {
     margin: 0;
     font-size: 22px;

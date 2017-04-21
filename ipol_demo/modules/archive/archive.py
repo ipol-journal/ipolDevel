@@ -31,22 +31,56 @@ import ConfigParser
 import re
 
 
+def authenticate(func):
+    """
+    Wrapper to authenticate before using an exposed function
+    """
+
+    def authenticate_and_call(*args, **kwargs):
+        """
+        Invokes the wrapped function if authenticated
+        """
+        if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                ("X-Real-IP" in cherrypy.request.headers and not is_authorized_ip(
+                    cherrypy.request.headers["X-Real-IP"])):
+            error = {"status": "KO", "error": "Authentication Failed"}
+            return json.dumps(error)
+        return func(*args, **kwargs)
+
+    def is_authorized_ip(ip):
+        """
+        Validates the given IP
+        """
+        archive = Archive.get_instance()
+        patterns = []
+        # Creates the patterns  with regular expresions
+        for authorized_pattern in archive.authorized_patterns:
+            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+        # Compare the IP with the patterns
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                return True
+        return False
+
+    return authenticate_and_call
+
+
 class Archive(object):
     """
     This class implement an archive system for experiments and
     calculations done with the IPOL demo image system.
     """
-#####
-# initialization and static methods.
-#####
+    #####
+    # initialization and static methods.
+    #####
 
     instance = None
 
     @staticmethod
     def get_instance():
-        '''
+        """
         Singleton pattern
-        '''
+        """
         if Archive.instance is None:
             Archive.instance = Archive()
         return Archive.instance
@@ -72,10 +106,10 @@ class Archive(object):
         :rtype: bool
         """
         if not (cherrypy.config.has_key("blobs_dir") and
-                cherrypy.config.has_key("database_dir") and
-                cherrypy.config.has_key("blobs_thumbs_dir") and
-                cherrypy.config.has_key("logs_dir") and
-                cherrypy.config.has_key("url")):
+                    cherrypy.config.has_key("database_dir") and
+                    cherrypy.config.has_key("blobs_thumbs_dir") and
+                    cherrypy.config.has_key("logs_dir") and
+                    cherrypy.config.has_key("url")):
             print "Missing elements in configuration file."
             return False
         else:
@@ -102,7 +136,6 @@ class Archive(object):
         fileformat = mime.from_file(the_file)
         extension = fileformat.split('/')
         return extension[0]
-
 
     def __init__(self):
         """
@@ -132,7 +165,7 @@ class Archive(object):
 
         try:
             self.number_of_experiments_by_pages = \
-              int(cherrypy.config.get("number_of_experiments_by_pages"))
+                int(cherrypy.config.get("number_of_experiments_by_pages"))
         except Exception:
             self.number_of_experiments_by_pages = 12
 
@@ -155,43 +188,10 @@ class Archive(object):
         if not self.init_database():
             sys.exit("Initialization of database failed. Check the logs.")
 
-    def authenticate(func):
-        '''
-        Wrapper to authenticate before using an exposed function
-        '''
-        def authenticate_and_call(*args,**kwargs):
-            '''
-            Invokes the wrapped function if authenticated
-            '''
-            if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                    ("X-Real-IP" in cherrypy.request.headers and
-                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-                error = {"status": "KO", "error": "Authentication Failed"}
-                return json.dumps(error)
-            return func(*args,**kwargs)
-
-        def is_authorized_ip(ip):
-            '''
-            Validates the given IP
-            '''
-            archive = Archive.get_instance()
-            patterns = []
-            # Creates the patterns  with regular expresions
-            for authorized_pattern in archive.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
-            # Compare the IP with the patterns
-            for pattern in patterns:
-                if pattern.match(ip) is not None:
-                    return True
-            return False
-
-
-        return authenticate_and_call
-
     def read_authorized_patterns(self):
-        '''
+        """
         Read from the IPs conf file
-        '''
+        """
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
@@ -217,11 +217,8 @@ class Archive(object):
         """
         logger = logging.getLogger("archive_log")
         logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler(os.path.join(\
-          self.logs_dir, 'error.log'))
-        formatter = logging.Formatter(\
-          '%(asctime)s ERROR in %(message)s',\
-          datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler(os.path.join(self.logs_dir, 'error.log'))
+        formatter = logging.Formatter('%(asctime)s ERROR in %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
@@ -232,7 +229,6 @@ class Archive(object):
         """
         error_string = function_name + ": " + error
         self.logger.error(error_string)
-
 
     def init_database(self):
         """
@@ -267,7 +263,7 @@ class Archive(object):
 
                 sql_buffer = ""
 
-                with open(self.database_dir+'/drop_create_db_schema.sql', 'r') as sql_file:
+                with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
                     for line in sql_file:
 
                         sql_buffer += line
@@ -291,10 +287,9 @@ class Archive(object):
 
         return status
 
-
-#####
-# adding an experiment to the archive database
-#####
+    #####
+    # adding an experiment to the archive database
+    #####
 
 
     def get_new_path(self, main_directory, hash_name, file_extension, depth=2):
@@ -351,7 +346,7 @@ class Archive(object):
 
                 # The dictionary can be unordered.
                 # We need to ensure that the thumbnail is the second value.
-                #If not, we must order it correctly
+                # If not, we must order it correctly
                 if blob_thumbnail_name.find('_thumbnail') == -1:
                     # We correct the routes and the names.
                     blob_name = blob_thumbnail_name
@@ -360,8 +355,6 @@ class Archive(object):
                     blob_path = blob_path_aux
 
             id_blob = int()
-            path_new_file = str()
-
             hash_file = self.get_hash_blob(blob_path)
             format_file = self.file_format(blob_path)
 
@@ -373,9 +366,9 @@ class Archive(object):
             # Look for the given hash in the blobs table
             # Returns the blob id of the one with that hash (if exists)
             cursor_db = conn.cursor()
-            query = cursor_db.execute('''
+            query = cursor_db.execute("""
             SELECT id FROM blobs WHERE hash = ?
-            ''', (hash_file,))
+            """, (hash_file,))
             row = query.fetchone()
 
             # If hash already exists, use the blob id that was returned
@@ -386,9 +379,9 @@ class Archive(object):
             # If the hash was not found, it must be inserted into the blobs table
             else:
                 # insert the new blob
-                cursor_db.execute('''
+                cursor_db.execute("""
                 INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
-                ''', (hash_file, type_file, format_file,))
+                """, (hash_file, type_file, format_file,))
 
                 # get id of the blob previously inserted
                 id_blob = int(str(cursor_db.lastrowid))
@@ -416,10 +409,10 @@ class Archive(object):
         :rtype: integer.
         """
         cursor_db = conn.cursor()
-        cursor_db.execute('''
+        cursor_db.execute("""
         INSERT INTO
         experiments (id_demo, params)
-        VALUES (?, ?)''', (demo_id, parameters))
+        VALUES (?, ?)""", (demo_id, parameters))
 
         return int(cursor_db.lastrowid)
 
@@ -437,7 +430,7 @@ class Archive(object):
 
             for blob_element in dict_blobs:
                 id_blob, blob_name = self.add_to_blob_table(conn, blob_element, copied_files_list)
-                dict_corresp.append({'blob_id':id_blob, 'blob_name':blob_name})
+                dict_corresp.append({'blob_id': id_blob, 'blob_name': blob_name})
 
         except Exception as ex:
             self.error_log("update_blob_table", str(ex))
@@ -453,10 +446,10 @@ class Archive(object):
         cursor_db = conn.cursor()
 
         for item in dict_corresp:
-            cursor_db.execute('''
+            cursor_db.execute("""
             INSERT INTO
             correspondence (id_experiment, id_blob, name)
-            VALUES (?, ?, ?)''', (id_experiment, item['blob_id'], item['blob_name']))
+            VALUES (?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name']))
 
     @cherrypy.expose
     @authenticate
@@ -500,16 +493,16 @@ class Archive(object):
 
         return json.dumps(data)
 
-#####
-# displaying a single experiment of archive
-#####
+    #####
+    # displaying a single experiment of archive
+    #####
 
     @cherrypy.expose
     def get_experiment(self, experiment_id):
-        '''
+        """
         Get requested experiment
-        '''
-        #id_demo = int(demo_id)
+        """
+        # id_demo = int(demo_id)
         experiment_id = int(experiment_id)
 
         data = {}
@@ -519,8 +512,8 @@ class Archive(object):
 
             cursor_db = conn.cursor()
 
-            cursor_db.execute('''SELECT params, timestamp
-                FROM experiments WHERE id = ?''', (experiment_id, ))
+            cursor_db.execute("""SELECT params, timestamp
+                FROM experiments WHERE id = ?""", (experiment_id,))
 
             row = cursor_db.fetchone()
             data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1])
@@ -537,12 +530,11 @@ class Archive(object):
             except Exception:
                 pass
 
-
         return json.dumps(data)
 
-#####
-# displaying a page of archive
-#####
+    #####
+    # displaying a page of archive
+    #####
     def get_meta_info(self, conn, id_demo):
         """
         This function return the number of archive pages to be displayed
@@ -578,9 +570,9 @@ class Archive(object):
         else:
             pages_to_add = 0
 
-        number_of_pages =\
-        (number_of_experiments/self.number_of_experiments_by_pages) +\
-        pages_to_add
+        number_of_pages = \
+            (number_of_experiments / self.number_of_experiments_by_pages) + \
+            pages_to_add
 
         meta_info["first_date_of_an_experiment"] = first_date_of_an_experiment
         meta_info["number_of_pages"] = number_of_pages
@@ -623,7 +615,6 @@ class Archive(object):
         all_rows = cursor_db.fetchall()
 
         for row in all_rows:
-
             path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
             path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
             list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
@@ -645,8 +636,6 @@ class Archive(object):
         data_exp = []
         cursor_db = conn.cursor()
         starting_index = ((page - 1) * self.number_of_experiments_by_pages)
-
-
 
         cursor_db.execute("""
         SELECT id, params, timestamp
@@ -711,10 +700,9 @@ class Archive(object):
 
         return json.dumps(data)
 
-
-#####
-# deleting an experiment
-#####
+    #####
+    # deleting an experiment
+    #####
 
     def delete_blob(self, conn, id_blob):
         """
@@ -782,7 +770,7 @@ class Archive(object):
                 experiment.
         :rtype: JSON formatted string
         """
-        status = {"status" : "KO"}
+        status = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
             self.delete_exp_w_deps(conn, experiment_id)
@@ -800,9 +788,9 @@ class Archive(object):
 
         return json.dumps(status)
 
-#####
-# deleting a blob
-#####
+    #####
+    # deleting a blob
+    #####
 
     @cherrypy.expose
     @authenticate
@@ -814,15 +802,15 @@ class Archive(object):
         :return: status of experiment
         :rtype: JSON formatted string
         """
-        status = {"status" : "KO"}
+        status = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
             list_tmp = []
 
             for row in cursor_db.execute("""
-SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
-            (id_blob,)):
+SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
+                                         (id_blob,)):
                 tmp = unicode(str(row[0]), "utf-8")
                 list_tmp.append(tmp)
 
@@ -841,9 +829,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
                 pass
         return json.dumps(status)
 
-#####
-# admin mode for removing blobs
-#####
+    #####
+    # admin mode for removing blobs
+    #####
 
     @cherrypy.expose
     def archive_admin(self, demo_id, page):
@@ -891,9 +879,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
         else:
             return self.archive_admin(demo_id, 0)
 
-#####
-# web utilities
-#####
+            #####
+            # web utilities
+            #####
 
     @cherrypy.expose
     def ping(self):
@@ -970,21 +958,19 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
 
-
     @cherrypy.expose
     def add_exp_test(self):
         """
         Test for adding an experiment to the database.
         """
         tmp_dir = "blobs_tmp"
-        dict_blobs = {os.path.join(tmp_dir, "charmander") : "input",\
-                      os.path.join(tmp_dir, "squirtle") : "water"}
+        dict_blobs = {os.path.join(tmp_dir, "charmander"): "input", \
+                      os.path.join(tmp_dir, "squirtle"): "water"}
         str_blobs = json.dumps(dict_blobs)
         str_test = json.dumps("test")
         demo_id = -1
         test = self.add_experiment(unicode(demo_id), unicode(str_blobs), unicode(str_test))
         return str(test)
-
 
     @cherrypy.expose
     def demo_list(self):
@@ -1006,7 +992,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
             for row in cursor_db.fetchall():
                 print "loop"
                 demoid = row[0]
-                demo_list.append({'demo_id':demoid})
+                demo_list.append({'demo_id': demoid})
             data["demo_list"] = demo_list
             data["status"] = "OK"
         except Exception as ex:
@@ -1053,7 +1039,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
 
         return json.dumps(status)
 
-
     @cherrypy.expose
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
@@ -1076,7 +1061,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""",\
             status = {"status": "OK"}
 
             return json.dumps(status)
-            
+
         except Exception as ex:
             status = {"status": "KO"}
             status = {"error": "blobs update_demo_id error: {}".format(ex)}

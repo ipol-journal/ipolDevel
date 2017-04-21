@@ -60,6 +60,41 @@ from threading import Lock
 import ConfigParser
 import re
 
+
+def authenticate(func):
+    '''
+    Wrapper to authenticate before using an exposed function
+    '''
+
+    def authenticate_and_call(*args, **kwargs):
+        '''
+        Invokes the wrapped function if authenticated
+        '''
+        if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                ("X-Real-IP" in cherrypy.request.headers and
+                     not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+            error = {"status": "KO", "error": "Authentication Failed"}
+            return json.dumps(error)
+        return func(*args, **kwargs)
+
+    def is_authorized_ip(ip):
+        '''
+        Validates the given IP
+        '''
+        demorunner = DemoRunner.get_instance()
+        patterns = []
+        # Creates the patterns  with regular expresions
+        for authorized_pattern in demorunner.authorized_patterns:
+            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+        # Compare the IP with the patterns
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                return True
+        return False
+
+    return authenticate_and_call
+
+
 class DemoRunner(object):
     """
     This class implements Web services to run IPOL demos
@@ -153,38 +188,6 @@ class DemoRunner(object):
             # web utilities
             #####
 
-    def authenticate(func):
-        '''
-        Wrapper to authenticate before using an exposed function
-        '''
-        def authenticate_and_call(*args,**kwargs):
-            '''
-            Invokes the wrapped function if authenticated
-            '''
-            if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                    ("X-Real-IP" in cherrypy.request.headers and
-                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-                error = {"status": "KO", "error": "Authentication Failed"}
-                return json.dumps(error)
-            return func(*args,**kwargs)
-
-        def is_authorized_ip(ip):
-            '''
-            Validates the given IP
-            '''
-            demorunner = DemoRunner.get_instance()
-            patterns = []
-            # Creates the patterns  with regular expresions
-            for authorized_pattern in demorunner.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".","\.").replace("*","[0-9]*")))
-            # Compare the IP with the patterns
-            for pattern in patterns:
-                if pattern.match(ip) is not None:
-                    return True
-            return False
-
-
-        return authenticate_and_call
 
     def read_authorized_patterns(self):
         '''
