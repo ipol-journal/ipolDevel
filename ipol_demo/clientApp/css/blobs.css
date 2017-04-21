@@ -1,7 +1,6 @@
-.inputContainer {
-    margin: 5% 20px;
+.container {
+    margin: 5px 20px;
     padding: 5px;
-    border-bottom: 1px solid #cccccc;
 }
 
 .setContainer {
@@ -9,9 +8,23 @@
     max-height: 360px;
     border: 1px solid black;
     border-radius: 3px;
+    overflow-y: hidden;
+    overflow-x: auto;
+    width: auto;
+    padding: 0;
+    margin: 5px 0;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+/* Two rows. Vertical scroll. */
+/*.setContainer {
+    height: auto;
+    max-height: 360px;
+    border: 1px solid black;
+    border-radius: 3px;
     overflow-y: auto;
     overflow-x: auto;
-    /*white-space:nowrap;*/
     width: auto;
     padding: 0;
     margin: 5px 0;
@@ -19,7 +32,7 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-around;
-}
+}*/
 
 .blobSet{
     background-color: #EEE;
