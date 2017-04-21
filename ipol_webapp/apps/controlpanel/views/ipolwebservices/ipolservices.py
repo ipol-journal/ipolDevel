@@ -1,6 +1,6 @@
 # coding=utf-8
 from ipol_webapp.settings import IPOL_SERVICES_MODULE_PROXY, IPOL_SERVICES_MODULE_DEMOINFO, \
-        IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, HOST_NAME
+    IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, HOST_NAME
 
 __author__ = 'josearrecio'
 import json
@@ -11,6 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 ####################
 #     UTILITIES    #
 ####################
@@ -19,12 +20,13 @@ def is_json(myjson):
     try:
         json_object = json.loads(myjson)
     except Exception, e:
-        print("e:%s"%e)
+        print("e:%s" % e)
         return False
     return True
 
-#todo add param for html verb, get post etc
-def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None, files=None):
+
+# todo add param for html verb, get post etc
+def http_request(path, METHOD=None, params=None, json=None, files=None):
     """
     MAKES THE WEBSERVICE CALL using reuqests library, expects ws to return a valid JSON
 
@@ -33,16 +35,11 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
     (added in version 2.4.2) and it will be encoded automatically:
 
     """
-    #todo if needeed insert schema validation here
-    url = 'http://{}/api/{}/{}'.format(
-            HOST_NAME,
-            module,
-            service
-    )
+    url = 'http://{}/{}'.format(HOST_NAME, path)
     try:
-        if not METHOD or METHOD=='GET':
-            response = requests.get(url,params=params)
-        elif METHOD=='POST':
+        if not METHOD or METHOD == 'GET':
+            response = requests.get(url, params=params)
+        elif METHOD == 'POST':
             if json is not None:
                 if files is not None:
                     response = requests.post(url, params=params, data=json, files=files)
@@ -54,22 +51,23 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
                 else:
                     response = requests.post(url, params=params)
         else:
-            msg="get_JSON_from_webservice: Not valid METHOD: %s" % result
+            msg = "http_request: Not valid METHOD: %s" % result
             logger.error(msg)
             print(msg)
             raise ValueError(msg)
 
-        result =  response.content
+        result = response.content
 
         if not is_json(result):
-            msg="get_JSON_from_webservice: Not valid JSON: %s" % result
+            msg = "http_request: Not valid JSON: %s" % result
             logger.error(msg)
             print(msg)
             raise ValueError(msg)
     except Exception as e:
-        msg=" get_JSON_from_webservice: error=%s"%(e)
+        msg = " http_request: error=%s" % (e)
         print(msg)
         logger.error(msg)
+
     return result
 
 
@@ -82,90 +80,70 @@ def get_JSON_from_webservice(module,service, METHOD=None, params=None, json=None
 
 
 def demoinfo_get_stats():
-
-    service_name = 'stats'
+    path = '/api/demoinfo/stats'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice("demoinfo", service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_get_states():
-
-    service_name = 'read_states'
+    path = '/api/demoinfo/read_states'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice("demoinfo", service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 # DDL
 
 
 def demoinfo_get_ddl(demo_id):
+    path = '/api/demoinfo/get_ddl'
 
+    # proxy can be called by GET or POST, prefer POST if submiting data to server
 
-    service_name = 'get_ddl'
-
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
     serviceparams = {'demo_id': demo_id}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_read_demo_description(demo_descp_id):
+    path = '/api/demoinfo/read_demo_description'
 
-    service_name = 'read_demo_description'
-
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
     serviceparams = {'demodescriptionID': demo_descp_id}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
+def demoinfo_save_demo_description(pjson, demoid):
+    path = '/api/demoinfo/save_demo_description'
 
-def demoinfo_save_demo_description(pjson,demoid):
-
-    service_name = 'save_demo_description'
-
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
     serviceparams = {'demoid': demoid}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = pjson
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 # DEMO
 
-#todo se usa esto?
+# todo se usa esto?
 def demoinfo_demo_list():
     """
     list demos present in database
     { return:OK or KO, list demos:
     """
 
-    service_name = 'demo_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/demo_list'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
@@ -177,21 +155,19 @@ def demoinfo_demo_list_by_demoeditorid(demoeditorid_list):
     { return:OK or KO, list demos:...
     """
 
-    service_name = 'demo_list_by_demoeditorid'
-    module = "demoinfo"
+    path = '/api/demoinfo/demo_list_by_demoeditorid'
     result = None
 
-    if demoeditorid_list :
-
+    if demoeditorid_list:
         serviceparams = {'demoeditorid_list': json.dumps(demoeditorid_list)}
 
         servicejson = None
-        result = get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+        result = http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
     return result
 
 
-def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilter):
+def demoinfo_demo_list_pagination_and_filtering(num_elements_page, page, qfilter):
     """
     list demos present in database
     demo_list_pagination_and_filter(self,num_elements_page,page,qfilter):
@@ -201,340 +177,273 @@ def demoinfo_demo_list_pagination_and_filtering( num_elements_page, page, qfilte
      "previous_page_number": 1, "number": 2.0}
     """
 
-    service_name = 'demo_list_pagination_and_filter'
+    path = '/api/demoinfo/demo_list_pagination_and_filter'
 
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
-    serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # proxy can be called by GET or POST, prefer POST if submiting data to server
+    serviceparams = {'num_elements_page': num_elements_page, 'page': page, 'qfilter': qfilter}
+    # send as string to proxy, proxy will load this into a dict for the request lib call
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
+
 
 def demoinfo_delete_demo(demo_id):
-
-    demoinfo_service = 'delete_demo'
-    demoinfo_resp = get_JSON_from_webservice("demoinfo", demoinfo_service, METHOD='POST', params={'demo_id': demo_id})
+    demoinfo_path = '/api/demoinfo/delete_demo'
+    demoinfo_resp = http_request(demoinfo_path, METHOD='POST', params={'demo_id': demo_id})
     if json.loads(demoinfo_resp)['status'] == 'KO':
         return demoinfo_resp
-    blobs_service = "delete_demo"
-    demoinfo_resp = get_JSON_from_webservice("blobs", blobs_service, METHOD='POST', params={'demo_id': demo_id})
+    blobs_path = "/api/blobs/delete_demo"
+    demoinfo_resp = http_request(blobs_path, METHOD='POST', params={'demo_id': demo_id})
     return demoinfo_resp
 
 
 def demoinfo_read_demo(demo_id):
-
-    service_name = 'read_demo_metainfo'
-    module = "demoinfo"
+    path = '/api/demoinfo/read_demo_metainfo'
 
     serviceparams = {"demoid": demo_id}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
+def demoinfo_update_demo(demo, old_editor_demoid):
+    demoinfo_params = {'demo': json.dumps(demo), 'old_editor_demoid': old_editor_demoid}
+    blobs_params = {'new_demo_id': demo['editorsdemoid'], 'old_demo_id': old_editor_demoid}
+    archive_params = {'new_demo_id': demo['editorsdemoid'], 'old_demo_id': old_editor_demoid}
 
-
-def demoinfo_update_demo(demo,old_editor_demoid):
-
-    demoinfo_params = {'demo': json.dumps(demo),'old_editor_demoid':old_editor_demoid}
-    blobs_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
-    archive_params = {'new_demo_id': demo['editorsdemoid'],'old_demo_id':old_editor_demoid}
-
-    demoinfo_resp = get_JSON_from_webservice('demoinfo', 'update_demo', METHOD='POST', params=demoinfo_params, json=None)
+    demoinfo_resp = http_request('/api/demoinfo/update_demo', METHOD='POST', params=demoinfo_params, json=None)
     if json.loads(demoinfo_resp)['status'] == 'KO':
         return demoinfo_resp
 
-    blob_resp = get_JSON_from_webservice('blobs','update_demo_id',METHOD='POST',params=blobs_params,json=None)
+    blob_resp = http_request('/api/blobs/update_demo_id', METHOD='POST', params=blobs_params, json=None)
     if json.loads(blob_resp)['status'] == 'KO':
         return blob_resp
 
-    archive_resp = get_JSON_from_webservice('archive','update_demo_id',METHOD='POST',params=archive_params,json=None)
+    archive_resp = http_request('/api/archive/update_demo_id', METHOD='POST', params=archive_params, json=None)
     if json.loads(archive_resp)['status'] == 'KO':
         return archive_resp
 
     return demoinfo_resp
 
 
+def demoinfo_add_demo(editorsdemoid, title, state):
+    path = '/api/demoinfo/add_demo'
 
-def demoinfo_add_demo(editorsdemoid ,title, state):
-
-    service_name = 'add_demo'
-
-    #proxy can be called by GET or POST, prefer POST if submiting data to server
-    module = "demoinfo"
-    serviceparams = {'editorsdemoid': editorsdemoid,'title': title,'state': state}
-    #send as string to proxy, proxy will load this into a dict for the request lib call
+    # proxy can be called by GET or POST, prefer POST if submiting data to server
+    serviceparams = {'editorsdemoid': editorsdemoid, 'title': title, 'state': state}
+    # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 # AUTHOR
 
 
 def demoinfo_author_list():
-
-    service_name = 'author_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/author_list'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_author_list_for_demo(demo_id):
-
-    service_name = 'demo_get_authors_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/demo_get_authors_list'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
-
-
-def demoinfo_available_author_list_for_demo(demo_id = None):
-
-    service_name = 'demo_get_available_authors_list'
-    module = "demoinfo"
+def demoinfo_available_author_list_for_demo(demo_id=None):
+    path = '/api/demoinfo/demo_get_available_authors_list'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
+def demoinfo_author_list_pagination_and_filtering(num_elements_page, page, qfilter):
+    path = '/api/demoinfo/author_list_pagination_and_filter'
 
-
-def demoinfo_author_list_pagination_and_filtering( num_elements_page, page, qfilter):
-
-    service_name = 'author_list_pagination_and_filter'
-    module = "demoinfo"
-
-    serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+    serviceparams = {'num_elements_page': num_elements_page, 'page': page, 'qfilter': qfilter}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_delete_author(author_id):
-
-    service_name = 'remove_author'
-    module = "demoinfo"
+    path = '/api/demoinfo/remove_author'
 
     serviceparams = {'author_id': author_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
-
-def demoinfo_add_author( name ,mail):
-
-    service_name = 'add_author'
-    module = "demoinfo"
-
-    serviceparams = {'name': name,'mail': mail}
+def demoinfo_add_author(name, mail):
+    path = '/api/demoinfo/add_author'
+    serviceparams = {'name': name, 'mail': mail}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_read_author(author_id):
-
-    service_name = 'read_author'
-    module = "demoinfo"
+    path = '/api/demoinfo/read_author'
 
     serviceparams = {'authorid': author_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_update_author(author):
-
-    service_name = 'update_author'
-    module = "demoinfo"
+    path = '/api/demoinfo/update_author'
 
     serviceparams = {'author': json.dumps(author)}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
+def demoinfo_add_author_to_demo(demo_id, author_id):
+    path = '/api/demoinfo/add_author_to_demo'
 
-def demoinfo_add_author_to_demo( demo_id ,author_id):
-
-    service_name = 'add_author_to_demo'
-    module = "demoinfo"
-
-    serviceparams = {'demo_id': demo_id,'author_id': author_id}
+    serviceparams = {'demo_id': demo_id, 'author_id': author_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
-def demoinfo_delete_author_from_demo(demo_id,author_id):
+def demoinfo_delete_author_from_demo(demo_id, author_id):
+    path = '/api/demoinfo/remove_author_from_demo'
 
-    service_name = 'remove_author_from_demo'
-    module = "demoinfo"
-
-    serviceparams = {'demo_id': demo_id,'author_id': author_id}
+    serviceparams = {'demo_id': demo_id, 'author_id': author_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
-#EDITOR
+# EDITOR
 
 
 def demoinfo_editor_list():
-
-    service_name = 'editor_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/editor_list'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_editor_list_for_demo(demo_id):
-
-    service_name = 'demo_get_editors_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/demo_get_editors_list'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_available_editor_list_for_demo(demo_id=None):
-
-    service_name = 'demo_get_available_editors_list'
-    module = "demoinfo"
+    path = '/api/demoinfo/demo_get_available_editors_list'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
+def demoinfo_editor_list_pagination_and_filtering(num_elements_page, page, qfilter):
+    path = '/api/demoinfo/editor_list_pagination_and_filter'
 
-def demoinfo_editor_list_pagination_and_filtering( num_elements_page, page, qfilter):
-
-    service_name = 'editor_list_pagination_and_filter'
-    module = "demoinfo"
-
-
-    serviceparams = {'num_elements_page': num_elements_page,'page':page,'qfilter':qfilter}
+    serviceparams = {'num_elements_page': num_elements_page, 'page': page, 'qfilter': qfilter}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def demoinfo_delete_editor(editor_id):
-
-    service_name = 'remove_editor'
-    module = "demoinfo"
+    path = '/api/demoinfo/remove_editor'
 
     serviceparams = {'editor_id': editor_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
-def demoinfo_add_editor( name ,mail):
+def demoinfo_add_editor(name, mail):
+    path = '/api/demoinfo/add_editor'
 
-    service_name = 'add_editor'
-    module = "demoinfo"
-
-    serviceparams = {'name': name,'mail': mail}
+    serviceparams = {'name': name, 'mail': mail}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_read_editor(editor_id):
-
-    service_name = 'read_editor'
-    module = "demoinfo"
+    path = '/api/demoinfo/read_editor'
 
     serviceparams = {'editorid': editor_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def demoinfo_update_editor(editor):
-
-    service_name = 'update_editor'
-    module = "demoinfo"
+    path = '/api/demoinfo/update_editor'
 
     serviceparams = {'editor': json.dumps(editor)}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
-def demoinfo_add_editor_to_demo( demo_id ,editor_id):
+def demoinfo_add_editor_to_demo(demo_id, editor_id):
+    path = '/api/demoinfo/add_editor_to_demo'
 
-    service_name = 'add_editor_to_demo'
-    module = "demoinfo"
-
-    serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
+    serviceparams = {'demo_id': demo_id, 'editor_id': editor_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
-def demoinfo_delete_editor_from_demo(demo_id,editor_id):
 
-    service_name = 'remove_editor_from_demo'
-    module = "demoinfo"
+def demoinfo_delete_editor_from_demo(demo_id, editor_id):
+    path = '/api/demoinfo/remove_editor_from_demo'
 
-    serviceparams = {'demo_id': demo_id,'editor_id': editor_id}
+    serviceparams = {'demo_id': demo_id, 'editor_id': editor_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
-#DEMO EXTRAS
+
+# DEMO EXTRAS
 
 def demoinfo_demo_extras_for_demo(demo_id):
-
-    service_name = 'get_demo_extras_info'
-    module = "demoinfo"
+    path = '/api/demoinfo/get_demo_extras_info'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
+
 
 def demoinfo_delete_demo_extras_from_demo(demo_id):
-
-    service_name = 'delete_compressed_file_ws'
-    module = "demoinfo"
+    path = '/api/demoinfo/delete_compressed_file_ws'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
+
 
 def demoinfo_add_demo_extra_to_demo(demo_id, request):
+    path = '/api/demoinfo/add_compressed_file_ws'
 
-    service_name = 'add_compressed_file_ws'
-    module = "demoinfo"
-    files=None
+    files = None
     serviceparams = {'demo_id': demo_id}
 
     try:
@@ -543,40 +452,39 @@ def demoinfo_add_demo_extra_to_demo(demo_id, request):
     except Exception as ex:
         print ex
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson, files=files)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson, files=files)
 
 
 ####################
 #  ARCHIVE MODULE  #
 ####################
 
-def archive_get_page(experimentid , page='1'):
+def archive_get_page(experimentid, page='1'):
     """
     The method “page” returns a JSON response with, for a given page of a given demo, all the data of the experiments
     that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
     the browser
     """
 
-    service_name = 'get_page'
-    module = "archive"
+    path = '/api/archive/get_page'
 
     serviceparams = {'demo_id': experimentid, 'page': page}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
+
 
 def archive_get_experiment(experiment_id):
     """
     The method returns a JSON response with all the data of the experiment with id=experiment_id
     """
 
-    service_name = 'get_experiment'
-    module = "archive"
+    path = '/api/archive/get_experiment'
 
     serviceparams = {'experiment_id': experiment_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def archive_get_stats():
@@ -586,14 +494,11 @@ def archive_get_stats():
     the browser
     """
 
-    service_name = 'stats'
-    module = "archive"
-
+    path = '/api/archive/stats'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def archive_demo_list():
@@ -602,55 +507,47 @@ def archive_demo_list():
     { return:OK or KO, list demos: {id,name, id template, template } }
     """
 
-    service_name = 'demo_list'
-    module = "archive"
+    path = '/api/archive/demo_list'
 
     serviceparams = None
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
 
 def archive_add_experiment_to_test_demo():
-    service_name = 'add_exp_test'
-    module = "archive"
+    path = '/api/archive/add_exp_test'
 
     serviceparams = None
     servicejson = None
 
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def archive_delete_demo(demo_id):
-    service_name = 'delete_demo'
-    module = "archive"
+    path = '/api/archive/delete_demo'
 
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def archive_delete_experiment(experiment_id):
-    service_name = 'delete_experiment'
-    module = "archive"
+    path = '/api/archive/delete_experiment'
 
     serviceparams = {'experiment_id': experiment_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def archive_delete_file(file_id):
-    service_name = 'delete_blob_w_deps'
-    module = "archive"
+    path = '/api/archive/delete_blob_w_deps'
+
     serviceparams = {'id_blob': file_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, json=servicejson)
-
+    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 ####################
@@ -662,30 +559,31 @@ def get_demo_owned_blobs(demo_id):
     """
     Get the demo owned blobs
     """
-    service_name = "get_demo_owned_blobs"
-    module = "blobs"
+    path = "/api/blobs/get_demo_owned_blobs"
+
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET',params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
+
 
 def get_demo_templates(demo_id):
     """
     Get the demo owned blobs
     """
-    service_name = "get_demo_templates"
-    module = "blobs"
+    path = "/api/blobs/get_demo_templates"
+
     serviceparams = {'demo_id': demo_id}
 
     servicejson = None
-    return get_JSON_from_webservice(module, service_name, METHOD='GET',params=serviceparams, json=servicejson)
+    return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
 
-def edit_blob_from_demo(request,demo_id,tags,blob_set,new_blob_set,pos_set,new_pos_set,title,credit):
+
+def edit_blob_from_demo(request, demo_id, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Get the demo owned blobs
     """
-    service_name = "edit_blob_from_demo"
-    module = "blobs"
+    path = "/api/blobs/edit_blob_from_demo"
 
     files = None
     try:
@@ -694,125 +592,133 @@ def edit_blob_from_demo(request,demo_id,tags,blob_set,new_blob_set,pos_set,new_p
     except Exception as ex:
         print ex
 
-    serviceparams = {'demo_id': demo_id, 'tags':tags, 'blob_set':blob_set,'new_blob_set':new_blob_set,
-                     'pos_set':pos_set, 'new_pos_set':new_pos_set, 'title':title, 'credit':credit}
+    serviceparams = {'demo_id': demo_id, 'tags': tags, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
+                     'pos_set': pos_set, 'new_pos_set': new_pos_set, 'title': title, 'credit': credit}
 
-    return get_JSON_from_webservice(module, service_name, METHOD='POST',params=serviceparams, files=files)
+    return http_request(path, METHOD='POST', params=serviceparams, files=files)
+
 
 def remove_blob_from_demo(demo_id, blob_set, pos_set):
     """
     Remove blob from demo
     """
-    service_name = "remove_blob_from_demo"
-    module = "blobs"
+    path = "/api/blobs/remove_blob_from_demo"
+
     serviceparams = {'demo_id': demo_id, 'blob_set': blob_set, 'pos_set': pos_set}
 
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
+
 
 def remove_template_from_demo(demo_id, template):
     """
     Remove blob from demo
     """
-    service_name = "remove_template_from_demo"
-    module = "blobs"
-    serviceparams = {'demo_id': demo_id, 'template_name':template}
+    path = "/api/blobs/remove_template_from_demo"
 
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    serviceparams = {'demo_id': demo_id, 'template_name': template}
+
+    return http_request(path, METHOD='GET', params=serviceparams)
+
 
 def add_template_to_demo(demo_id, template):
     """
     Remove blob from demo
     """
-    service_name = "add_templates_to_demo"
-    module = "blobs"
-    serviceparams = {'demo_id': demo_id, 'template_names':template}
+    path = "/api/blobs/add_templates_to_demo"
 
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    serviceparams = {'demo_id': demo_id, 'template_names': template}
 
-def add_blob_to_demo(request,demo_id,tags,blob_set,pos_set,title,credit):
+    return http_request(path, METHOD='GET', params=serviceparams)
+
+
+def add_blob_to_demo(request, demo_id, tags, blob_set, pos_set, title, credit):
     """
     Add a new blob to the demo
     """
-    service_name = "add_blob_to_demo"
-    module = "blobs"
+    path = "/api/blobs/add_blob_to_demo"
+
     params = {'demo_id': demo_id, 'tags': tags, 'title': title, 'credit': credit}
 
-    if blob_set !="":
+    if blob_set != "":
         params['blob_set'] = blob_set
         params['pos_set'] = pos_set
 
     try:
         files = {'blob': request.FILES['blob'].file}
         if 'vr' in request.FILES:
-            files['blob_vr']= request.FILES['vr'].file
+            files['blob_vr'] = request.FILES['vr'].file
     except Exception as ex:
         print ex
 
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=params, files=files)
+    return http_request(path, METHOD='POST', params=params, files=files)
+
 
 def delete_vr_from_blob(blob_id):
     """
     Remove the visual representation of the blob in the demo (in all the demos and templates)
     """
-    service_name = "delete_vr_from_blob"
-    module = "blobs"
+    path = "/api/blobs/delete_vr_from_blob"
+
     serviceparams = {'blob_id': blob_id}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
+
 
 def get_all_templates():
     """
     Remove the visual representation of the blob in the demo (in all the demos and templates)
     """
-    service_name = "get_all_templates"
-    module = "blobs"
-    return get_JSON_from_webservice(module, service_name, METHOD='GET')
+    path = "/api/blobs/get_all_templates"
+
+    return http_request(path, METHOD='GET')
+
 
 def get_template_blobs(name):
     """
     Get template blobs
     """
-    service_name = "get_template_blobs"
-    module = "blobs"
-    serviceparams = {'template_name': name}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    path = "/api/blobs/get_template_blobs"
 
-def add_blob_to_template(request,name,tags,blob_set,pos_set,title,credit):
+    serviceparams = {'template_name': name}
+    return http_request(path, METHOD='GET', params=serviceparams)
+
+
+def add_blob_to_template(request, name, tags, blob_set, pos_set, title, credit):
     """
     Add a new blob to the template
     """
-    service_name = "add_blob_to_template"
-    module = "blobs"
+    path = "/api/blobs/add_blob_to_template"
+
     params = {'template_name': name, 'tags': tags, 'title': title, 'credit': credit}
 
-    if blob_set !="":
+    if blob_set != "":
         params['blob_set'] = blob_set
         params['pos_set'] = pos_set
 
     try:
         files = {'blob': request.FILES['blob'].file}
         if 'vr' in request.FILES:
-            files['blob_vr']= request.FILES['vr'].file
+            files['blob_vr'] = request.FILES['vr'].file
     except Exception as ex:
         print ex
 
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=params, files=files)
+    return http_request(path, METHOD='POST', params=params, files=files)
+
 
 def remove_blob_from_template(name, blob_set, pos_set):
     """
     Remove blob from template
     """
-    service_name = "remove_blob_from_template"
-    module = "blobs"
+    path = "/api/blobs/remove_blob_from_template"
+
     serviceparams = {'template_name': name, 'blob_set': blob_set, 'pos_set': pos_set}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
 
 
 def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit):
     """
     Edit blob info from template
     """
-    service_name = "edit_blob_from_template"
-    module = "blobs"
+    path = "/api/blobs/edit_blob_from_template"
 
     files = None
     try:
@@ -821,42 +727,46 @@ def edit_blob_from_template(request, name, tags, blob_set, new_blob_set, pos_set
     except Exception as ex:
         print ex
 
-    serviceparams = {'template_name': name, 'tags':tags, 'blob_set':blob_set, 'new_blob_set':new_blob_set,
-                     'pos_set':pos_set, 'new_pos_set':new_pos_set, 'title':title, 'credit':credit}
+    serviceparams = {'template_name': name, 'tags': tags, 'blob_set': blob_set, 'new_blob_set': new_blob_set,
+                     'pos_set': pos_set, 'new_pos_set': new_pos_set, 'title': title, 'credit': credit}
 
-    return get_JSON_from_webservice(module, service_name, METHOD='POST', params=serviceparams, files=files)
+    return http_request(path, METHOD='POST', params=serviceparams, files=files)
+
 
 def get_all_templates():
     """
     Get all the templates
     """
-    service_name = "get_all_templates"
-    module = "blobs"
-    return get_JSON_from_webservice(module, service_name, METHOD='GET')
+    path = "/api/blobs/get_all_templates"
+
+    return http_request(path, METHOD='GET')
+
 
 def delete_template(name):
     """
     Get all the templates
     """
-    service_name = "delete_template"
-    module = "blobs"
+    path = "/api/blobs/delete_template"
+
     serviceparams = {'template_name': name}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
+
 
 def create_template(name):
     """
     Get all the templates
     """
-    service_name = "create_template"
-    module = "blobs"
+    path = "/api/blobs/create_template"
+
     serviceparams = {'template_name': name}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
+
 
 def get_demos_using_the_template(template_name):
     """
     Get the list of demos that uses the given template
     """
-    service_name = "get_demos_using_the_template"
-    module = "blobs"
+    path = "/api/blobs/get_demos_using_the_template"
+
     serviceparams = {'template_name': template_name}
-    return get_JSON_from_webservice(module, service_name, METHOD='GET', params=serviceparams)
+    return http_request(path, METHOD='GET', params=serviceparams)
