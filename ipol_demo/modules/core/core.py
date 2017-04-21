@@ -54,6 +54,41 @@ import requests
 import cherrypy
 
 
+def authenticate(func):
+    """
+    Wrapper to authenticate before using an exposed function
+    """
+
+    def authenticate_and_call(*args, **kwargs):
+        """
+        Invokes the wrapped function if authenticated
+        """
+        if not is_authorized_ip(cherrypy.request.remote.ip) or \
+                ("X-Real-IP" in cherrypy.request.headers and not is_authorized_ip(
+                    cherrypy.request.headers["X-Real-IP"])):
+            error = {"status": "KO", "error": "Authentication Failed"}
+            return json.dumps(error)
+        return func(*args, **kwargs)
+
+    def is_authorized_ip(ip):
+        """
+        Validates the given IP
+        """
+        core = Core.get_instance()
+        patterns = []
+        # Creates the patterns  with regular expresions
+        for authorized_pattern in core.authorized_patterns:
+            patterns.append(re.compile(authorized_pattern.replace(".", "\.").
+                                       replace("*", "[0-9]*")))
+        # Compare the IP with the patterns
+        for pattern in patterns:
+            if pattern.match(ip) is not None:
+                return True
+        return False
+
+    return authenticate_and_call
+
+
 # -------------------------------------------------------------------------------
 class Core(object):
     """
@@ -147,40 +182,6 @@ class Core(object):
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
 
-    def authenticate(func):
-        """
-        Wrapper to authenticate before using an exposed function
-        """
-
-        def authenticate_and_call(*args, **kwargs):
-            """
-            Invokes the wrapped function if authenticated
-            """
-            if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                    ("X-Real-IP" in cherrypy.request.headers and
-                         not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
-                error = {"status": "KO", "error": "Authentication Failed"}
-                return json.dumps(error)
-            return func(*args,**kwargs)
-
-        def is_authorized_ip(ip):
-            """
-            Validates the given IP
-            """
-            core = Core.get_instance()
-            patterns = []
-            # Creates the patterns  with regular expresions
-            for authorized_pattern in core.authorized_patterns:
-                patterns.append(re.compile(authorized_pattern.replace(".", "\.").
-                                           replace("*", "[0-9]*")))
-            # Compare the IP with the patterns
-            for pattern in patterns:
-                if pattern.match(ip) is not None:
-                    return True
-            return False
-
-        return authenticate_and_call
-
     def read_authorized_patterns(self):
         """
         Read from the IPs conf file
@@ -232,8 +233,7 @@ class Core(object):
         """
         refresh demorunners information and alert the dispatcher module
         """
-        data = {}
-        data["status"] = "OK"
+        data = {"status": "OK"}
 
         try:
             # Reload DRs config
@@ -356,10 +356,10 @@ workload of '{}'".format(dr_name)
 
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
-                
+
                 demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                     editorsdemoid,
-                    "(private)" if editorsdemoid.startswith("33333") else "", 
+                    "(private)" if editorsdemoid.startswith("33333") else "",
                     editorsdemoid, demo_data['title'].encode('utf-8'))
 
         string = """
@@ -371,7 +371,8 @@ workload of '{}'".format(dr_name)
                  </head>
                  <body>
                  <h1>List of demos</h1>
-                 <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private. Test demos begin with '55555'.</h3><br>
+                 <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
+                 Test demos begin with '55555'.</h3><br>
                  {}
                  </body>
                  </html>
@@ -392,9 +393,7 @@ workload of '{}'".format(dr_name)
         """
         Ping service: answer with a PONG.
         """
-        data = {}
-        data["status"] = "OK"
-        data["ping"] = "pong"
+        data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
 
     @cherrypy.expose
@@ -403,8 +402,7 @@ workload of '{}'".format(dr_name)
         """
         Shutdown the module.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
@@ -675,7 +673,7 @@ workload of '{}'".format(dr_name)
                 if not inputs_desc[i]['type'] == "data":
                     return
                 if not 'ext' in inputs_desc[i]:
-                    raise IPOLProcessInputsError ("The DDL does not have extension field")
+                    raise IPOLProcessInputsError("The DDL does not have extension field")
 
                 ext = inputs_desc[i]['ext']
 
@@ -702,7 +700,7 @@ workload of '{}'".format(dr_name)
                 if not ('required' in inputs_desc[i].keys()) or \
                         inputs_desc[i]['required']:
                     ## missing file
-                    raise cherrypy.HTTPError(400,"Missing input file number {0}".format(i))
+                    raise cherrypy.HTTPError(400, "Missing input file number {0}".format(i))
                 else:
                     # skip this input
                     continue
@@ -711,7 +709,7 @@ workload of '{}'".format(dr_name)
             type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
 
             if not 'ext' in inputs_desc[i]:
-                raise IPOLInputUploadError ("The DDL does not have extension field")
+                raise IPOLInputUploadError("The DDL does not have extension field")
 
             if not 'type' in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL does not have type field")
@@ -733,7 +731,7 @@ workload of '{}'".format(dr_name)
                                 size > evaluate(str(inputs_desc[i]['max_weight'])):
                     # file too heavy
                     # Bad Request
-                    raise cherrypy.HTTPError(400,"File too large, resize or compress more")
+                    raise cherrypy.HTTPError(400, "File too large, resize or compress more")
 
                 file_save.write(data)
             file_save.close()
@@ -758,7 +756,7 @@ workload of '{}'".format(dr_name)
                 try:
                     extension = os.path.splitext(blob_path)[1]
                     final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
-                    shutil.copy(os.path.join(self.blobs_folder,blob_path), final_path)
+                    shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
                 except Exception as ex:
                     self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
                     print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
@@ -798,7 +796,6 @@ workload of '{}'".format(dr_name)
         file_handle = open(filename, 'w')
         file_handle.write(url_handle.read())
         file_handle.close()
-
 
     @staticmethod
     def extract(filename, target):
@@ -892,8 +889,8 @@ workload of '{}'".format(dr_name)
         else:
             if 'url' not in demoinfo_resp:
                 # DemoExtras was removed from demoinfo
-                shutil.rmtree(demoextras_compress_dir) # remove compress file
-                shutil.rmtree(os.path.join(self.demoExtrasMainDir, demo_id)) # remove decompress file
+                shutil.rmtree(demoextras_compress_dir)  # remove compress file
+                shutil.rmtree(os.path.join(self.demoExtrasMainDir, demo_id))  # remove decompress file
                 return
 
             demoinfo_demoextras_date = demoinfo_resp['date']
@@ -904,8 +901,6 @@ workload of '{}'".format(dr_name)
                 # DemoExtras needs an update
                 self.download(demoinfo_resp['url'], demoextras_file)
                 self.extract_demo_extra(demo_id, demoextras_file)
-
-
 
     @staticmethod
     def create_new_execution_key(logger):
@@ -935,8 +930,6 @@ workload of '{}'".format(dr_name)
         """
         If it not exist, create a run_dir for a demo
         then, create a folder for the execution
-        :param demo_id:   id demo
-        :param run_folder: key
         """
         demo_path = os.path.join(self.shared_folder_abs,
                                  self.share_run_dir_abs,
@@ -950,8 +943,7 @@ workload of '{}'".format(dr_name)
         Gets demo meta data given its editor's ID
         """
         userdata = {"demoid": demo_id}
-        resp = self.post(self.host_name, 'demoinfo', \
-                         'read_demo_metainfo', userdata)
+        resp = self.post(self.host_name, 'demoinfo', 'read_demo_metainfo', userdata)
         return resp.json()
 
     def get_demo_editor_list(self, demo_id):
@@ -1034,7 +1026,6 @@ workload of '{}'".format(dr_name)
         if len(emails) == 0:
             return
 
-
         # Send the email
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails, config_emails['sender'])
@@ -1090,7 +1081,6 @@ workload of '{}'".format(dr_name)
         if len(emails) == 0:
             return
 
-
         # Attach experiment in zip file and send the email
         hostname = socket.gethostname()
         hostbyname = socket.gethostbyname(hostname)
@@ -1132,7 +1122,7 @@ attached the failed experiment data.". \
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails, config_emails['sender'])
 
-    def send_not_demorunner_for_published_demo_email(self,demo_id):
+    def send_not_demorunner_for_published_demo_email(self, demo_id):
         """
         Send email to tech when there isn't any suitable demorunner for a published demo
         """
@@ -1148,7 +1138,7 @@ attached the failed experiment data.". \
 
         text = "This is the IPOL Core machine ({}, {}).\n" \
                "\nThere isn't any suitable demorunner for demo: {}.". \
-            format(hostname, hostbyname,demo_id)
+            format(hostname, hostbyname, demo_id)
         subject = '[IPOL Core] Not suitable demorunner'
         self.send_email(subject, text, emails, config_emails['sender'])
 
@@ -1162,6 +1152,7 @@ attached the failed experiment data.". \
         print "demo_id =", demo_id
         print "kwargs=", kwargs
 
+        input_type = None
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
         else:
@@ -1199,10 +1190,10 @@ attached the failed experiment data.". \
             resp = self.post(self.host_name, 'demoinfo',
                              'get_ddl', {"demo_id": demo_id})
             response = resp.json()
-            
+
             last_demodescription = response['last_demodescription']
             ddl_json = json.loads(last_demodescription['ddl'])
-            
+
             if 'build' in ddl_json:
                 ddl_build = ddl_json['build']
             else:
@@ -1392,8 +1383,8 @@ attached the failed experiment data.". \
             if original_exp == 'true' and 'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
-                SendArchive.prepare_archive(demo_id, \
-                                            work_dir, ddl_archive, demorunner_response, self.host_name)
+                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                            demorunner_response, self.host_name)
 
         except Exception as ex:
             s = "Failure in the run function of the \
@@ -1448,15 +1439,15 @@ demo #{} - {}".format(demo_id, str(ex))
         """
         Return an active demorunner for the requirements
         """
-        demorunner_data = { \
-            "demorunners_workload": str(demorunners_workload), \
-            "requirements": requirements}
+        demorunner_data = {
+            "demorunners_workload": str(demorunners_workload),
+            "requirements": requirements
+        }
         unresponsive_demorunners = set()
         # Try twice the length of the DR list before raising an exception
         for i in range(len(self.demorunners) * 2):
             # Get a demorunner for the requirements
-            dispatcher_response = self.post(self.host_name, \
-                                            'dispatcher', 'get_demorunner', demorunner_data)
+            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
             if not dispatcher_response.ok:
                 raise Exception("Dispatcher unresponsive")
 
@@ -1469,8 +1460,7 @@ demo #{} - {}".format(demo_id, str(ex))
 
             # Check if the DR is up. Otherwise add it to the
             # list of unresponsive DRs
-            demorunner_response = self.post(dr_server, \
-                                            'demorunner', 'ping')
+            demorunner_response = self.post(dr_server, 'demorunner', 'ping')
             if demorunner_response.ok:
                 if len(unresponsive_demorunners) > 0:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
@@ -1502,5 +1492,4 @@ demo #{} - {}".format(demo_id, str(ex))
         except Exception as ex:
             print "Failure in the post function of the CORE in the call \
               to {} module - {}".format(module, str(ex))
-            self.logger.exception(
-                "Failure in the post function of the CORE")
+            self.logger.exception("Failure in the post function of the CORE")

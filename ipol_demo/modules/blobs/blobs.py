@@ -3,7 +3,7 @@
 
 """
 This file implements the system core of the server
-It implements Blob object and manages web page and web service
+It implements Blob object and web service
 """
 import hashlib
 import json
@@ -66,6 +66,9 @@ def authenticate(func):
 
 
 class Blobs(object):
+    """
+    Blobs module
+    """
     instance = None
 
     @staticmethod
@@ -73,7 +76,6 @@ class Blobs(object):
         """
         Singleton pattern
         """
-
         if Blobs.instance is None:
             Blobs.instance = Blobs()
         return Blobs.instance
@@ -330,6 +332,7 @@ class Blobs(object):
         return res
 
     @cherrypy.expose
+    @authenticate
     def add_blob_to_demo(self, blob=None, demo_id=None, tags=None, blob_set=None, pos_set=None, title=None,
                          credit=None, blob_vr=None):
         """
@@ -343,6 +346,7 @@ class Blobs(object):
             return json.dumps({"status": "KO"})
 
     @cherrypy.expose
+    @authenticate
     def add_blob_to_template(self, blob=None, template_name=None, tags=None, blob_set=None, pos_set=None, title=None,
                              credit=None, blob_vr=None):
         """
@@ -486,6 +490,7 @@ class Blobs(object):
             raise
 
     @cherrypy.expose
+    @authenticate
     def create_template(self, template_name):
         """
         Creates a new empty template
@@ -516,6 +521,7 @@ class Blobs(object):
             return json.dumps(status)
 
     @cherrypy.expose
+    @authenticate
     def add_templates_to_demo(self, demo_id, template_names):
         """
         Associates the demo to the list of templates
@@ -746,6 +752,7 @@ class Blobs(object):
             return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def add_tags_to_blob(self, tags, blob_id):
         """
         Add a new to tag to the blob
@@ -817,6 +824,7 @@ class Blobs(object):
             return res
 
     @cherrypy.expose
+    @authenticate
     def remove_blob_from_demo(self, demo_id, blob_set, pos_set):
         """
         Remove a blob from the demo
@@ -828,6 +836,7 @@ class Blobs(object):
             return json.dumps({"status": "KO"})
 
     @cherrypy.expose
+    @authenticate
     def remove_blob_from_template(self, template_name, blob_set, pos_set):
         """
         Remove a blob from the template
@@ -888,6 +897,7 @@ class Blobs(object):
             return res
 
     @cherrypy.expose
+    @authenticate
     def delete_demo(self, demo_id):
         """
         Remove the demo and the blobs only used in that demo
@@ -899,6 +909,7 @@ class Blobs(object):
             return json.dumps({"status": "KO"})
 
     @cherrypy.expose
+    @authenticate
     def delete_template(self, template_name):
         """
         Remove the template and the blobs only used in that template
@@ -910,6 +921,7 @@ class Blobs(object):
             return json.dumps({"status": "KO"})
 
     @cherrypy.expose
+    @authenticate
     def remove_template_from_demo(self, demo_id, template_name):
         """
         Remove the template from the demo
@@ -935,6 +947,7 @@ class Blobs(object):
             return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def remove_tag_from_blob(self, tag, blob_id):
         """
         Remove the tag from a demo or template
@@ -1009,6 +1022,7 @@ class Blobs(object):
         return "__" + str(blob_id)
 
     @cherrypy.expose
+    @authenticate
     def edit_blob_from_demo(self, demo_id=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
                             new_pos_set=None, title=None, credit=None, vr=None):
         """
@@ -1021,6 +1035,7 @@ class Blobs(object):
             return json.dumps({"status": "KO"})
 
     @cherrypy.expose
+    @authenticate
     def edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
                                 new_pos_set=None, title=None, credit=None, vr=None):
         """
@@ -1119,6 +1134,7 @@ class Blobs(object):
             return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def delete_vr_from_blob(self, blob_id):
         """
         Remove the visual representation of the blob (in all the demos and templates)
@@ -1167,6 +1183,7 @@ class Blobs(object):
             return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
         Update the given old demo id by the given new demo id.
