@@ -10,11 +10,12 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/local.css">
     <link rel="stylesheet" href="css/blobs.css">
+    <link rel="stylesheet" href="css/editor.css">
     <link rel="stylesheet" href="css/helpers.css">
     <link rel="stylesheet" href="css/footer.css">
 
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-
+    <link rel="stylesheet" href="externalModules/cropper/cropper.min.css">
 
 </head>
 
@@ -22,7 +23,7 @@
 
     <div id="header"></div>
 
-    <div class="inputContainer">
+    <div class="inputContainer container">
         <h1 class="legendText">Select input(s)</h1>
         <button class="ui-button ui-corner-all ui-widget description-btn">Description</button>
 
@@ -33,6 +34,8 @@
 
         <div class="setContainer"></div>
     </div>
+
+    <div id="inputEditorContainer"></div>
 
     <div id="footer"></div>
 
@@ -48,8 +51,13 @@
     crossorigin="anonymous"></script>
 
     <script src="js/helpers.js"></script>
+    <script src="js/demo.js"></script>
     <script src="js/demo.input.js"></script>
     <script src="js/demo.upload.js"></script>
-    <script src="js/demo.js"></script>
+    <script src="js/demo.editor.js"></script>
+
+    <script src="externalModules/cropper/cropper.min.js">
+
+    </script>
 
 </body>

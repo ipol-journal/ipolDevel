@@ -1,0 +1,44 @@
+.editorContentWrapper {
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.inputs-text {
+    padding-bottom: 5px;
+    width: 90px;
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.leftContainer {
+    overflow: auto;
+    max-width: 100%;
+    max-height: auto;
+}
+.
+.blobContainer {
+    flex-shrink: 1;
+}
+
+.editor-container {
+  display: grid;
+  grid-template-columns: 6% 88% 6%;
+  width: 100%;
+  min-height: auto;
+}
+
+.image-grid-1 {
+  display: inline-grid;
+  grid-template-columns: 100%;
+}
+
+.image-grid-2 {
+  display: inline-grid;
+  grid-template-columns: 50% 50%;
+}
+
+.image-container {
+  overflow: auto;
+  max-width: 99%;
+  max-height: 500px;
+}

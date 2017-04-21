@@ -1,9 +1,23 @@
-.di{
+/* DISPLAY */
+
+.di-flex {
+    display: flex;
+}
+
+.di-none {
+    display: none;
+}
+
+.di-inline{
     display: inline;
 }
 
-.di-none{
-    display: none;
+.di-block {
+    display: block;
+}
+
+.di{
+    display: inline;
 }
 
 .p-x-10 {
@@ -14,7 +28,15 @@
     margin: 0 10px;
 }
 
+.m-r-10 {
+    margin-right: 10px;
+}
+
 
 .vertical-align {
     align-items: center;
+}
+
+.fw {
+    width: 100% !important;
 }
