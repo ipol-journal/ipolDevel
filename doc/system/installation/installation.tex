@@ -1,0 +1,78 @@
+\section{Installation of the project}
+
+
+These are the steps that new members in the team need to follow to set up their environment.
+
+\paragraph{General} \hspace{0pt} \\
+\begin{itemize}
+ \item Install Ubunto or Debian.
+ \item Signup in Trello, Github and Slack.
+ \item Add the new members emails to the servers list (PyLint and pdflatex) and Google Groups.
+ \item Make the pull of the repositorie in GitHub.
+  \begin{lstlisting}[language=Bash]
+  ~/ipolDevel/git pull
+  \end{lstlisting}
+ \item Download a python IDE. e.g. Pycharm.
+\end{itemize}
+
+\paragraph{RSA} \hspace{0pt} \\
+\begin{itemize}
+ \item Create private/public keys.
+  \begin{lstlisting}[language=Bash]
+  ~/ssh-keygen
+  \end{lstlisting}
+\end{itemize}
+
+\paragraph{SSH} \hspace{0pt} \\
+\begin{itemize}
+ \item Add your public key to the authorized\_keys file in the servers.
+ \item Optional: Install the SSH server in your machine and add your public key to your own authorized\_keys to start the modules with the terminal.py.
+\end{itemize}
+
+\paragraph{Documentation} \hspace{0pt} \\
+\begin{itemize}
+ \item Download LaTex compiler. e.g. Kile.
+ \item To be able to compile the documentation install texlive-full.
+  \begin{lstlisting}[language=Bash]
+  ~/sudo apt-get texlive-full
+  \end{lstlisting}
+ \item Generate all the pdfs of the documentation.
+\end{itemize}
+
+\paragraph{Libraries} \hspace{0pt} \\
+\begin{itemize}
+ \item Install all the python libraries with the follow command:
+  \begin{lstlisting}[language=Bash]
+  ~/pip install -r requirements.txt
+  \end{lstlisting}
+ \item Install all the libraries described in doc/system/ipol.pdf in the ``general\_notes'' section.
+\end{itemize}
+
+\paragraph{NGINX} \hspace{0pt} \\
+\begin{itemize}
+ \item Install nginx.
+  \begin{lstlisting}[language=Bash]
+  ~/sudo apt-get install nginx
+  \end{lstlisting}
+ \item Copy the config files that are in sysadmin/configs/nginx/default-local into the nginx folder /etc/nginx/sites-available/default and change the variable \$my\_user
+\end{itemize}
+
+\paragraph{Modules} \hspace{0pt} \\
+\begin{itemize}
+ \item Copy manually all the files that are not in the repo:
+ 
+  \begin{itemize}
+   \item ipol\_demo/modules/config\_common/authorized\_patterns.conf
+   \item ipol\_demo/modules/config\_common/emails.conf
+  \end{itemize}
+
+ \item Copy from integration the DB and the staticData from demoinfo and blobs.
+ \item Change the XML files in config\_common
+\end{itemize}
+
+\paragraph{CP} \hspace{0pt} \\
+\begin{itemize}
+ \item Add the hostname to the list ``local\_machines'' in the file ipol\_webapp/ipol\_webapp/ settings.py
+ \item Follow the stepts described in ipol\_webapp/docs
+ \item Create a new superuser in the local Control Panel
+\end{itemize}
