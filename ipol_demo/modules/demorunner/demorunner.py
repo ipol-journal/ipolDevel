@@ -184,9 +184,9 @@ class DemoRunner(object):
             print error_message
 
 
-            #####
-            # web utilities
-            #####
+    #####
+    # web utilities
+    #####
 
 
     def read_authorized_patterns(self):
@@ -330,51 +330,44 @@ class DemoRunner(object):
             for file in files_to_move.split(","):
                 files_path.append(path.join(bin_dir,os.path.basename(file.strip())))
 
+            # Download
+            extract_needed = build.download(url, tgz_file, username, password)
 
-            try:
-                # Download
-                extract_needed = build.download(url, tgz_file, username, password)
+            # Check if a rebuild is nedded
+            if extract_needed or not self.all_files_exist(files_path):
+                with self.lock_construct:
+                    if os.path.isdir(src_dir):
+                        shutil.rmtree(src_dir)
+                    self.mkdir_p(src_dir)
+                    # Move to the compilation directory, in case the
+                    # instructions in the move directive have changed it
+                    os.chdir(src_dir)
+                    # Extract source code
+                    build.extract(tgz_file, src_dir)
 
-                # Check if a rebuild is nedded
-                if extract_needed or not self.all_files_exist(files_path):
-                    with self.lock_construct:
-                        if os.path.isdir(src_dir):
-                            shutil.rmtree(src_dir)
-                        self.mkdir_p(src_dir)
-                        # Move to the compilation directory, in case the
-                        # instructions in the move directive have changed it
-                        os.chdir(src_dir)
-                        # Extract source code
-                        build.extract(tgz_file, src_dir)
+                    if construct is not None:
+                        # Execute the construct
+                        build.run(construct, log_file, cwd=src_dir)
 
-                        if construct is not None:
-                            # Execute the construct
-                            build.run(construct, log_file, cwd=src_dir)
+                    # Move files
+                    for file_to_move in files_to_move.split(","):
+                        # Remove possible white spaces
+                        file_to_move = file_to_move.strip()
+                        #
+                        path_from = path.join(src_dir,file_to_move)
+                        path_to = path.join(bin_dir, os.path.basename(file_to_move))
 
-                        # Move files
-                        for file_to_move in files_to_move.split(","):
-                            # Remove possible white spaces
-                            file_to_move = file_to_move.strip()
-                            #
-                            path_from = path.join(src_dir,file_to_move)
-                            path_to = path.join(bin_dir, os.path.basename(file_to_move))
+                        try:
+                            shutil.move(path_from, path_to)
+                        except (IOError, OSError):
+                            # If can't move, write in the log file, so
+                            # the user can see it
+                            f = open(log_file, 'w')
+                            f.write("Failed to move {} --> {}".\
+                              format(path_from, path_to))
+                            f.close()
+                            raise
 
-                            print "Moving {} --> {}".\
-                                  format(path_from, path_to)
-
-                            try:
-                                shutil.move(path_from, path_to)
-                            except (IOError, OSError):
-                                # If can't move, write in the log file, so
-                                # the user can see it
-                                f = open(log_file, 'w')
-                                f.write("Failed to move {} --> {}".\
-                                  format(path_from, path_to))
-                                f.close()
-                                raise
-            except Exception:
-                self.logger.exception("Build failed")
-                raise
 
 
     def all_files_exist(self, files):
@@ -391,7 +384,6 @@ class DemoRunner(object):
         Ensures that the source codes of the given demo are compiled and
         moved correcty.
         """
-        print "\nDEMO ID " + demo_id + " is in ensure_compilation\n"
         ddl_build = json.loads(ddl_build)
 
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
@@ -405,8 +397,6 @@ class DemoRunner(object):
 
         for build_block in builds:
             try:
-                print ddl_build
-                print type(ddl_build)
                 if 'build1' in ddl_build:
                     make_info = self.construct(path_for_the_compilation, build_block)
                 else:
@@ -414,7 +404,6 @@ class DemoRunner(object):
                     data['status'] = 'KO'
                     data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
                     return json.dumps(data)
-                print make_info
 
                 data = {}
                 data['status'] = "OK"
@@ -434,8 +423,7 @@ class DemoRunner(object):
                 return json.dumps(data)                
             except Exception as e:
                 print "Build failed with exception " + str(e) + " in demo " + demo_id
-                self.logger.exception("ensure_compilation")
-                
+
                 log_file = os.path.join(path_for_the_compilation, 'build.log')
                 #
                 lines = ""
@@ -457,7 +445,6 @@ class DemoRunner(object):
         """
         the core algo runner
         """
-        print "\n\n----- run_algo begin -----\n\n"
         rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger,timeout)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
@@ -478,7 +465,6 @@ class DemoRunner(object):
         res_data['params'] = rd.get_algo_params() # Should not be used
         # Info interface --> algo
         res_data['algo_info'] = rd.get_algo_info()
-        print "----- run_algo end -----"
         return 0
         
 
@@ -514,17 +500,11 @@ class DemoRunner(object):
         '''
         Called by the Core to run the algorithm
         '''
-        print "#### run demo ####"
-        print "demo_id = ", demo_id
         ddl_run = json.loads(ddl_run)
-        print "ddl_run = ", ddl_run
         params = json.loads(params)
-        print "params = ", params
 
         path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
-        print "path_with_the_binaries = ", path_with_the_binaries
         work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
-        print "run dir = ", work_dir
 
         res_data = {}
         res_data["key"] = key
@@ -536,7 +516,6 @@ class DemoRunner(object):
         try:
             run_time = time.time()
 
-            print "Demoid: ", demo_id
 
             timeout = float(timeout)            
             # A maximum of 10 min, regardless the config
@@ -561,15 +540,13 @@ class DemoRunner(object):
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
         except IPOLTimeoutError:
-            self.write_log("exec_and_wait", "IPOLTimeoutError, demo_id={}".format(demo_id))
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
             res_data['algo_info']['status'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
-            print res_data
+            print "exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id)
             return json.dumps(res_data)
         except RuntimeError as e:            
-            self.write_log("exec_and_wait", "RuntimeError, demo_id={}".format(demo_id))
-    
+
             # Read stderr and stdout
             stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
@@ -611,11 +588,9 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             ddl_config = json.loads(ddl_config)
             if 'info_from_file' in ddl_config.keys():
                 for info in ddl_config['info_from_file']:
-                    print "*** ", info
                     filename = ddl_config['info_from_file'][info]
                     try:
                         f = open(os.path.join(work_dir, filename))
-                        print "open ok"
                         file_lines = f.read().splitlines()
                         print file_lines
                         # remove empty lines and replace new lines with ' | '
@@ -628,5 +603,4 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
                         print "failed to get info ", info, " from file ", os.path.join(work_dir, filename)
                         print "Exception ", e
 
-        print res_data
         return json.dumps(res_data)

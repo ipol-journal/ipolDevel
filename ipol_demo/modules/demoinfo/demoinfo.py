@@ -386,11 +386,6 @@ class DemoInfo(object):
             # validate params
             num_elements_page = int(num_elements_page)
             page = int(page)
-            # print "demo_list_pagination_and_filter"
-            # print "num_elements_page",num_elements_page
-            # print "page",page
-            # print "qfilter",qfilter
-            # print
 
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
@@ -436,13 +431,6 @@ class DemoInfo(object):
                 start_element = (page - 1) * num_elements_page
 
                 demo_list = demo_list[start_element: start_element + num_elements_page]
-
-                # print " totalpages: ",totalpages
-                # print " page: ",page
-                # print " next_page_number: ",next_page_number
-                # print " previous_page_number: ",previous_page_number
-                # print " start_element: ", start_element
-                # print " demo_list",demo_list
 
             else:
                 totalpages = None
@@ -752,12 +740,9 @@ class DemoInfo(object):
             else:
                 # demo created without demodescription
                 # careful with Demo init method's validation!
-                print 0
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, state=str(state))
-                print 1
 
                 demoid = dao.add(d)
-                print 2
 
             conn.close()
 
@@ -1735,7 +1720,6 @@ class DemoInfo(object):
         data["ping"] = "pong"
         return json.dumps(data)
 
-    # TODO protect THIS
     @cherrypy.expose
     @authenticate
     def shutdown(self):

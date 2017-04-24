@@ -990,7 +990,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             SELECT DISTINCT id_demo FROM experiments""")
 
             for row in cursor_db.fetchall():
-                print "loop"
                 demoid = row[0]
                 demo_list.append({'demo_id': demoid})
             data["demo_list"] = demo_list
