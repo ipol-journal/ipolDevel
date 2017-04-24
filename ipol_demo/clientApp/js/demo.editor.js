@@ -2,6 +2,10 @@ var clientApp = clientApp || {};
 var editor = editor || {};
 var helpers = helpers || {};
 
+var isSyncingLeftScroll = false;
+var isSyncingRightScroll = false;
+
+
 // Print editor pannel.
 editor.printEditor = function(){
     printBlobs();
@@ -34,8 +38,8 @@ function printUploads(){
     $(".editor-image-right").attr("src", images[0].src);
     helpers.addToStorage("selectedInput", images[0].src);
 
-    // addScrollEvents();
     addCompareEvent();
+    addScrollingEvents();
 };
 
 function addCompareEvent() {
@@ -48,31 +52,29 @@ function addCompareEvent() {
     });
 }
 
-function addScrollEvents() {
+function addScrollingEvents() {
     var isSyncingLeftScroll = false;
     var isSyncingRightScroll = false;
-    var leftDiv = document.getElementById("left-container");
-    var rightDiv = document.getElementById("right-container");
-    leftDiv.onscroll(scrollLeft());
-    rightDiv.onscroll(scrollRight());
-}
+    var leftDiv = document.getElementById('left-container');
+    var rightDiv = document.getElementById('right-container');
 
-function scrollLeft() {
-    if (!isSyncingLeftScroll) {
-        isSyncingRightScroll = true;
-        rightDiv.scrollTop = this.scrollTop;
+    leftDiv.onscroll = function() {
+    	if (!isSyncingLeftScroll) {
+      	isSyncingRightScroll = true;
+      	rightDiv.scrollTop = this.scrollTop;
         rightDiv.scrollLeft = this.scrollLeft;
+      }
+      isSyncingLeftScroll = false;
     }
-    isSyncingLeftScroll = false;
-}
 
-function scrollRight() {
-    if (!isSyncingRightScroll) {
-        isSyncingLeftScroll = true;
-        leftDiv.scrollTop = this.scrollTop;
+    rightDiv.onscroll = function() {
+    	if (!isSyncingRightScroll) {
+      	isSyncingLeftScroll = true;
+      	leftDiv.scrollTop = this.scrollTop;
         leftDiv.scrollLeft = this.scrollLeft;
+      }
+      isSyncingRightScroll = false;
     }
-    isSyncingRightScroll = false;
 }
 
 // Initialize input mouseover, mouseout and click event to switch input image.
