@@ -20,9 +20,13 @@
     flex-shrink: 1;
 }
 
+.blobEditorImage {
+  image-rendering: pixelated;
+}
+
 .editor-container {
   display: grid;
-  grid-template-columns: 6% 88% 6%;
+  grid-template-columns: 10% 80% 10%;
   width: 100%;
   min-height: auto;
 }
@@ -41,4 +45,20 @@
   overflow: auto;
   max-width: 99%;
   max-height: 500px;
+}
+
+.editor-input:hover {
+  background-color: #BCD2EE;
+}
+
+.editor-input {
+  cursor: pointer;
+}
+
+.blobsList-right {
+  text-align: right;
+}
+
+.editor-input-selected {
+  background-color: #b6bcc4;
 }
