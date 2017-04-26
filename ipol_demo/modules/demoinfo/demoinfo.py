@@ -250,22 +250,18 @@ class DemoInfo(object):
         """
         WS for add a new compressed demo extra file to a demo
         """
-        data = {}
-        data['status'] = "KO"
-        given_file = None
+        data = {'status': "KO"}
         try:
             given_file = kwargs['file_0']
             extra_folder = os.path.join(self.dl_extras_dir, demo_id)
-
             if given_file is not None:
                 if os.path.exists(extra_folder):
                     shutil.rmtree(extra_folder)
 
                 os.makedirs(extra_folder)
-                with open(given_file.filename, 'wb') as the_file:
-                    shutil.copyfileobj(given_file.file, the_file)
-                    os.rename(given_file.name, self.demoExtrasFilename)
-                    shutil.move(self.demoExtrasFilename, extra_folder)
+                extras_path = os.path.join(extra_folder, self.demoExtrasFilename)
+                with open(extras_path, 'wb') as f:
+                    shutil.copyfileobj(given_file.file, f)
                 data['status'] = "OK"
             else:
                 print "File not found"
