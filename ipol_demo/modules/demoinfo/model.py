@@ -172,7 +172,6 @@ class DemoDescriptionDAO(object):
         try:
             self.cursor.execute('''INSERT INTO demodescription (DDL) VALUES(?)''', (ddl,))
             self.conn.commit()
-            print "INSERTADO"
             return self.cursor.lastrowid
         except Exception as ex:
             error_string = ("add demo_description  e:%s" % (str(ex)))
@@ -276,7 +275,6 @@ class DemoDAO(object):
             self.cursor.execute('''
             INSERT INTO demo(editor_demo_id, title, stateID)
             VALUES(?,?,?)''', (demo.editorsdemoid, demo.title, state_id,))
-            print "insertado"
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:

@@ -869,8 +869,8 @@ class Blobs(object):
                 self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                 return res
             for blob in blobs:
-                if not database.is_blob_used(conn, blob['hash']):
-                    database.remove_blob(conn, blob['hash'])
+                if not database.is_blob_used(conn, blob['id']):
+                    database.remove_blob(conn, blob['id'])
                     self.remove_files_associated_to_a_blob(blob['hash'])
 
             conn.commit()
