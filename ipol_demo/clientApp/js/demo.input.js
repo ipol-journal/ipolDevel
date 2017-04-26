@@ -14,6 +14,7 @@ input.printInput = function(blobs, demoInfo) {
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
     printSets(blobs.sets);
+    console.log(blobs);
     helpers.addToStorage("blobs", blobs.sets);
   });
 }
@@ -23,8 +24,9 @@ function getDemoinfo() {
   helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
     var response = helpers.getJSON(payload.last_demodescription.ddl);
     $("#pageTitle").html(response.general.demo_title);
+    $(".citation").html("<span>Please cite <a href=http://www.ipol.im/pub/art/2015/125/" + demo_id + ">the reference article</a> if you publish results obtained with this online demo.</span>");
     helpers.addToStorage("demoInfo", response);
-    console.log("pUTA");
+    console.log(response);
     addInputDescription(response.general.input_description);
     upload.printUploads(response.inputs);
   });

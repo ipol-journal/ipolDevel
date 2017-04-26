@@ -1,7 +1,69 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+  font-family: Verdana,Arial,Helvetica,Tahoma,sans-serif;
+}
+
+body {
+  margin: 0 auto;
+}
+
+h1,h2,h3,h4,h5 {
+  font-family: Verdana,Arial,Helvetica,Tahoma,sans-serif;
+  font-weight:normal;
+  color:#484848
+}
+
+h1 {
+  font-size:140%;
+  border:#adadad solid;
+  border-width:0 0 1px 0;
+}
+
+h2 {
+  font-size:120%;
+}
+
+h3 {
+  font-size:110%;
+}
+
+h4,h5 {
+  font-size:100%;
+}
+
+a:link {
+  color: #555555;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:visited {
+  color: #555555;
+}
+
+a:hover {
+  color: #5b4ba6;
+}
+
 #pageTitle {
   padding: 5px;
   margin: 5px 20px;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 20px;
   color: #484848;
+}
+
+.citation {
+  background: #e3f3ff;
+  margin: 15px 0;
+  padding: 0 25px;
+  font-size: 12px;
+  border-top: 1px #e4e4e4 solid;
+  border-bottom: 1px #e4e4e4 solid;
 }

@@ -46,17 +46,13 @@
     text-align: center;
 }
 
-.blobSet img:not(:last-of-type){
-    margin-right: 3px;
-}
-
-.blobSet:hover img{
+.blobSet:hover{
     background-color: #cd5757;
 }
 
 .blobSet img {
     height: 128px;
-    padding: 15px 15px;
+    margin: 15px 15px;
 }
 
 .blobTitle {
