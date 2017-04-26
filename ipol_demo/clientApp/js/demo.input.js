@@ -22,7 +22,9 @@ function getBlobSets() {
 function getDemoinfo() {
   helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
     var response = helpers.getJSON(payload.last_demodescription.ddl);
+    $("#pageTitle").html(response.general.demo_title);
     helpers.addToStorage("demoInfo", response);
+    console.log("pUTA");
     addInputDescription(response.general.input_description);
     upload.printUploads(response.inputs);
   });
