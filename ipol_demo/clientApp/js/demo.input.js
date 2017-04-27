@@ -73,7 +73,6 @@ function printSets(sets) {
       sq.attachEvent("onmousewheel", MouseWheelHandler());
   }
 
-
   $(".blobSet > img").addClass("blobThumbnail");
 }
 
@@ -84,9 +83,9 @@ function MouseWheelHandler() {
     var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 
     if (delta < 0) {
-      this.scrollLeft -= 20;
-    } else {
       this.scrollLeft += 20;
+    } else {
+      this.scrollLeft -= 20;
     }
     e.preventDefault();
     return false;
