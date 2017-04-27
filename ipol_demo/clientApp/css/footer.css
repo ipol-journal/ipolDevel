@@ -1,7 +1,9 @@
-footer *{
-  font-size: 12px;
-  color: #555;
+footer {
   text-decoration: none;
+
+  color: #555;
+
+  font-size: 12px;
 }
 
 footer a:hover {
@@ -10,13 +12,10 @@ footer a:hover {
 
 .footer-line a span {
   color: #000000;
+
   font-weight: bold;
 }
 
-.footer-line {
-  margin: 0 0 0 25px;
-}
-
-.footer-line *{
-  margin: 0;
+footer p {
+  margin: 0 auto;
 }

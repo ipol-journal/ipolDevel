@@ -45,6 +45,7 @@ function printBlobSet() {
   addScrollingEvents();
 
 };
+
 // Print uploads list and set image src with hover and click events.
 function printUploads() {
   $(".editor-container").removeClass("di-none");
@@ -80,8 +81,7 @@ function printUploads() {
 
 function addCompareEvent() {
   $("#compare-btn").change(function() {
-    $(".image-wrapper").toggleClass("image-grid-1");
-    $(".image-wrapper").toggleClass("image-grid-2");
+    $(".editor-container").toggleClass("space-between");
     $(".blobsList-right").toggleClass("di-inline");
     $("#right-container").toggleClass("di-none");
     $("#right-container").toggleClass("di-inline");

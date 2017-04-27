@@ -1,93 +1,124 @@
 .container {
-    margin: 5px 20px;
-    padding: 5px;
+  margin: 5px 20px;
+  padding: 5px;
 }
 
 .setContainer {
-    height: auto;
-    max-height: 360px;
-    border: 1px solid black;
-    border-radius: 3px;
-    overflow-y: hidden;
-    overflow-x: auto;
-    width: auto;
-    padding: 0;
-    margin: 5px 0;
-    display: flex;
-    flex-wrap: nowrap;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  width: auto;
+  height: auto;
+  max-height: 360px;
+  margin: 5px 0;
+  padding: 0;
+
+  border: 1px solid black;
+  border-radius: 3px;
+
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
 }
 
 /* Two rows. Vertical scroll. */
 /*.setContainer {
-    height: auto;
-    max-height: 360px;
-    border: 1px solid black;
-    border-radius: 3px;
-    overflow-y: auto;
-    overflow-x: auto;
-    width: auto;
-    padding: 0;
-    margin: 5px 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-around;
+height: auto;
+max-height: 360px;
+border: 1px solid black;
+border-radius: 3px;
+overflow-y: auto;
+overflow-x: auto;
+width: auto;
+padding: 0;
+margin: 5px 0;
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+justify-content: space-around;
 }*/
 
 .blobSet{
-    background-color: #EEE;
-    margin: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+
+  margin: 3px;
+
+  background-color: #EEE;
+
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
 }
 
 .blobSet-span {
-    text-align: center;
+  text-align: center;
 }
 
 .blobSet:hover{
-    background-color: #cd5757;
+  background-color: #cd5757;
 }
 
 .blobSet img {
-    height: 128px;
-    margin: 15px 15px;
+  height: 128px;
+  margin: 15px 15px;
 }
 
 .blobTitle {
-    flex: 0 1 100%;
-    text-align: center;
-    width: 1px;
+  width: 1px;
+
+  text-align: center;
+
+  -webkit-box-flex: 0;
+  -ms-flex: 0 1 100%;
+  flex: 0 1 100%;
 }
 
 .upload-row {
-    display: flex;
-    justify-content: space-between;
-    margin: 5px 0;
-    align-items: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+
+  margin: 5px 0;
+
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .upload-dialog > div:nth-of-type(odd) {
-    background-color: #e3e2e7;
+  background-color: #e3e2e7;
 }
 
 .upload-element {
-    flex-grow: 1;
-    flex-basis: 25%;
+  -webkit-box-flex: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
+  -ms-flex-preferred-size: 25%;
+  flex-basis: 25%;
 }
 
 .upload-row > img {
-    display: none;
-    width: 100%;
-    max-width: 160px;
+  display: none;
+
+  width: 100%;
+  max-width: 160px;
 }
 
 .upload-element:first-child {
-    text-align: center;
+  text-align: center;
 }
 
 .blobThumbnail {
-    width: auto;
-    height: 100%;
+  width: auto;
+  height: 100%;
 }
