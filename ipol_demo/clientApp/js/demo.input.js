@@ -64,7 +64,33 @@ function printSets(sets) {
     }
     $(".blobSet_" + i).addClass("text-center");
   }
+
+  if (document.addEventListener) {
+    var setsContainer = document.getElementById("sets");
+    setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
+    setsContainer.addEventListener("DOMMouseScroll", MouseWheelHandler(), false);
+  } else {
+      sq.attachEvent("onmousewheel", MouseWheelHandler());
+  }
+
+
   $(".blobSet > img").addClass("blobThumbnail");
+}
+
+function MouseWheelHandler() {
+  return function (e) {
+    // cross-browser wheel delta
+    var e = window.event || e;
+    var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+
+    if (delta < 0) {
+      this.scrollLeft -= 20;
+    } else {
+      this.scrollLeft += 20;
+    }
+    e.preventDefault();
+    return false;
+  }
 }
 
 function addSetClickEvent(blobSet, blobs){
