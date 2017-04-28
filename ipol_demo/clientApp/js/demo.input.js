@@ -67,26 +67,43 @@ function printSets(sets) {
 
   if (document.addEventListener) {
     var setsContainer = document.getElementById("sets");
-    setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
-    setsContainer.addEventListener("DOMMouseScroll", MouseWheelHandler(), false);
+    var isChrome = !!window.chrome && !!window.chrome.webstore;
+    var isFirefox = typeof InstallTrigger !== 'undefined';
+    var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+    if (isFirefox) {
+      setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
+    } else {
+      setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
+    }
   } else {
-      sq.attachEvent("onmousewheel", MouseWheelHandler());
+    // IE 6/7/8
+    sq.attachEvent("onmousewheel", MouseWheelHandler());
   }
 
   $(".blobSet > img").addClass("blobThumbnail");
+}
+
+function scrollHorizontally(e) {
+  e = window.event || e;
+  if (e.deltaY) deltaValue = e.deltaY;
+  else deltaValue = e.wheelDelta;
+  var delta = Math.max(-1, Math.min(1, (deltaValue || -e.detail)));
+  this.scrollLeft -= (delta*70);
+  e.preventDefault();
 }
 
 function MouseWheelHandler() {
   return function (e) {
     // cross-browser wheel delta
     var e = window.event || e;
-    var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    // Get delta value from deltaY instead of wheelDelta for trackpad support.
+    var deltaValue;
+    if (e.deltaY) deltaValue = e.deltaY;
+    else deltaValue = e.wheelDelta;
+    var delta = Math.max(-1, Math.min(1, (deltaValue || -e.detail)));
+    if (delta < 0) this.scrollLeft += 20;
+    else this.scrollLeft -= 20;
 
-    if (delta < 0) {
-      this.scrollLeft += 20;
-    } else {
-      this.scrollLeft -= 20;
-    }
     e.preventDefault();
     return false;
   }
