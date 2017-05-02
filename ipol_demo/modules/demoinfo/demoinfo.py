@@ -252,6 +252,11 @@ class DemoInfo(object):
         """
         data = {'status': "KO"}
         try:
+            conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            if not demo_dao.exist(demo_id):
+                return json.dumps(data)
+
             given_file = kwargs['file_0']
             extra_folder = os.path.join(self.dl_extras_dir, demo_id)
             if given_file is not None:
@@ -266,6 +271,7 @@ class DemoInfo(object):
             else:
                 print "File not found"
         except Exception as ex:
+            self.logger.exception("Fail adding demoetras")
             print ex
 
         return json.dumps(data)
@@ -462,6 +468,10 @@ class DemoInfo(object):
         author_list = list()
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            if not demo_dao.exist(demo_id):
+                return json.dumps(data)
+
             da_dao = DemoAuthorDAO(conn)
 
             for a in da_dao.read_demo_authors(int(demo_id)):
@@ -535,6 +545,11 @@ class DemoInfo(object):
         editor_list = list()
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+
+            if not demo_dao.exist(demo_id):
+                return json.dumps(data)
+
             de_dao = DemoEditorDAO(conn)
 
             for e in de_dao.read_demo_editors(int(demo_id)):
@@ -598,13 +613,13 @@ class DemoInfo(object):
         return json.dumps(data)
 
     @cherrypy.expose
+    @authenticate
     def demo_get_demodescriptions_list(self, demo_id, returnjsons=None):
         """
         return the descriptions of a given demo id.
         """
         data = {}
         data["status"] = "KO"
-        demodescription_list = list()
         try:
             # read all _demodescription for this demo
             conn = lite.connect(self.database_file)
@@ -829,8 +844,9 @@ class DemoInfo(object):
                     # If the destination path exists, it should be removed
                     shutil.rmtree(os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
 
-                os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
-                          os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
+                    os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
+                              os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
 
             data["status"] = "OK"
         except OSError as ex:
@@ -1018,6 +1034,11 @@ class DemoInfo(object):
         demo_list = list()
         try:
             conn = lite.connect(self.database_file)
+            author_dao = AuthorDAO(conn)
+
+            if not author_dao.exist(author_id):
+                return json.dumps(data)
+
             da_dao = DemoAuthorDAO(conn)
 
             for d in da_dao.read_author_demos(int(author_id)):
@@ -1080,6 +1101,12 @@ class DemoInfo(object):
         data["status"] = "KO"
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            author_dao = AuthorDAO(conn)
+
+            if not demo_dao.exist(demo_id) or not author_dao.exist(author_id):
+                return json.dumps(data)
+
             dao = DemoAuthorDAO(conn)
             dao.add(int(demo_id), int(author_id))
             conn.close()
@@ -1107,6 +1134,12 @@ class DemoInfo(object):
         data["status"] = "KO"
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            author_dao = AuthorDAO(conn)
+
+            if not demo_dao.exist(demo_id) or not author_dao.exist(author_id):
+                return json.dumps(data)
+
             dao = DemoAuthorDAO(conn)
             dao.remove_author_from_demo(int(demo_id), int(author_id))
             conn.close()
@@ -1188,6 +1221,10 @@ class DemoInfo(object):
 
             conn = lite.connect(self.database_file)
             dao = AuthorDAO(conn)
+
+            if not dao.exist(a.id):
+                return json.dumps(data)
+
             dao.update(a)
             conn.close()
             data["status"] = "OK"
@@ -1328,6 +1365,11 @@ class DemoInfo(object):
         demo_list = list()
         try:
             conn = lite.connect(self.database_file)
+            editor_dao = EditorDAO(conn)
+
+            if not editor_dao.exist(editor_id):
+                return json.dumps(data)
+
             de_dao = DemoEditorDAO(conn)
 
             for d in de_dao.read_editor_demos(int(editor_id)):
@@ -1433,6 +1475,12 @@ class DemoInfo(object):
         data["status"] = "KO"
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            editor_dao = EditorDAO(conn)
+
+            if not demo_dao.exist(demo_id) or not editor_dao.exist(editor_id):
+                return json.dumps(data)
+
             dao = DemoEditorDAO(conn)
             dao.add(int(demo_id), int(editor_id))
             conn.close()
@@ -1460,6 +1508,12 @@ class DemoInfo(object):
         data["status"] = "KO"
         try:
             conn = lite.connect(self.database_file)
+            demo_dao = DemoDAO(conn)
+            editor_dao = EditorDAO(conn)
+
+            if not demo_dao.exist(demo_id) or not editor_dao.exist(editor_id):
+                return json.dumps(data)
+
             dao = DemoEditorDAO(conn)
             dao.remove_editor_from_demo(int(demo_id), int(editor_id))
             conn.close()
@@ -1535,6 +1589,10 @@ class DemoInfo(object):
         try:
             conn = lite.connect(self.database_file)
             dao = EditorDAO(conn)
+
+            if not dao.exist(e.id):
+                return json.dumps(data)
+
             dao.update(e)
             conn.close()
             data["status"] = "OK"
@@ -1554,6 +1612,7 @@ class DemoInfo(object):
 
 
     @cherrypy.expose
+    @authenticate
     def read_demo_description(self, demodescriptionID):
         """
         webservice getting demo description.
