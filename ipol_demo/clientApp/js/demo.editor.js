@@ -25,7 +25,8 @@ function printBlobSet() {
   var demoInfo = helpers.getFromStorage("demoInfo");
   var blobs = Object.keys(selectedSet);
   for (let i = 0; i < blobs.length; i++) {
-    $(".blobsList-left").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
+    // $(".blobsList-left").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
+    $("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span><br>").insertBefore(".zoom-container");
     $(".blobsList-right").append("<span class=editor-input-right-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
     $(".editor-input-left-" + i).addClass('editor-input');
     $(".editor-input-right-" + i).addClass('editor-input');
@@ -43,7 +44,7 @@ function printBlobSet() {
 
   addCompareEvent();
   addScrollingEvents();
-
+  zoomController();
 };
 
 // Print uploads list and set image src with hover and click events.
@@ -77,7 +78,20 @@ function printUploads() {
 
   addCompareEvent();
   addScrollingEvents();
+  zoomController();
 };
+
+// Add zoom to editor images
+function zoomController () {
+  $("#zoom-select").change(function() {
+    var zoomValue = $("#zoom-select").val();
+    $(".editor-image-left").css({'transform': 'scale(' + zoomValue + ')'});
+    $(".image-container").css({'overflow': 'none'});
+    $(".editor-image-left").toggleClass("overflow-auto");
+    $(".editor-image-right").css({'transform': 'scale(' + zoomValue + ')'});
+    $(".editor-image-right").toggleClass("overflow-auto");
+  });
+}
 
 function addCompareEvent() {
   $("#compare-btn").change(function() {

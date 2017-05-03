@@ -29,11 +29,16 @@
 }
 
 .blobEditorImage {
+  -webkit-transform-origin: 1px 1px;
+          transform-origin: 1px 1px;
+
   -ms-interpolation-mode: nearest-neighbor;
 
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
   image-rendering: pixelated;
+  -webkit-filter: blur(0px);
+          filter: blur(0px);
 }
 
 .editor-container {
@@ -50,11 +55,16 @@
   flex-wrap: nowrap;
 }
 
+.zoom-container {
+  padding: 15px 0px 15px;
+}
+
 .image-wrapper {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
 
+  width: 100%;
   max-width: 80%;
 
   -ms-flex-wrap: nowrap;
@@ -64,6 +74,7 @@
 .image-container {
   overflow: auto;
 
+  width: 100%;
   max-width: 99%;
   max-height: 600px;
   margin: 5px;

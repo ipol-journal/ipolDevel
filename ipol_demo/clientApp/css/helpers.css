@@ -60,3 +60,7 @@
 .fw {
   width: 100% !important;
 }
+
+.overflow-auto {
+  overflow: auto;
+}
