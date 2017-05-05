@@ -2,6 +2,14 @@ var clientApp = clientApp || {};
 var helpers = clientApp.helpers || {};
 var upload = upload || {};
 var editor = editor || {};
+var uploadedFiles = {};
+
+clientApp.upload = upload;
+
+
+clientApp.upload.getUploadedFiles = function(){
+  return uploadedFiles;
+};
 
 // Upload dialog initialization.
 $(".upload-dialog").dialog({
@@ -103,7 +111,8 @@ function addInputListener(index) {
       });
       // onload needed since Google Chrome doesn't support addEventListener for FileReader
       fileReader.onload = function(evt) {
-        helpers.addToStorage(inputs[index].description, evt.target.result);
+        var inputName = inputs[index].description;
+        uploadedFiles[inputName] = {blob: evt.target.result};
       };
       fileReader.readAsDataURL(blob);
     }
