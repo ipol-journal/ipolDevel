@@ -1,42 +1,31 @@
 \section{Installation of the project}
-
-
-These are the steps that new members in the team need to follow to set up their environment.
+When new members arrive at the development team they need to set up their environment. This section lists the actions needed.
 
 \paragraph{General} \hspace{0pt} \\
 \begin{itemize}
- \item Install Ubuntu or Debian.
- \item Signup in Trello, Github and Slack.
- \item Add the new members emails to send\_to.txt  and Google Groups.
- \item Make the pull of the repository in GitHub.
-  \begin{lstlisting}[language=Bash]
-  ~/ipolDevel/git pull
-  \end{lstlisting}
- \item Download a python IDE. e.g. Pycharm.
-\end{itemize}
-
-\paragraph{RSA} \hspace{0pt} \\
-\begin{itemize}
- \item Create private/public keys.
-  \begin{lstlisting}[language=Bash]
-  ~/ssh-keygen
-  \end{lstlisting}
+ \item Install Debian Stable.
+ \item Signup in Trello, Github, and Slack.
+ \item Add the emails of the new members to the send\_to.txt file (in ipolDevel/ci\_tests/).
+ \item Sign up in our Demo Editing group in Google Groups
+ \item Create a new RSA key with {\tt ssh-keygen}
+ \item Clone the repository from GitHub: {\tt git clone git@github.com:mcolom/ipolDevel.git}
+ \item Download a good Python IDE. For example: Pycharm.
 \end{itemize}
 
 \paragraph{SSH} \hspace{0pt} \\
 \begin{itemize}
  \item Add your public key to the authorized\_keys file in the servers.
- \item Optional: Install the SSH server in your machine and add your public key to your own authorized\_keys to start the modules with the terminal.py.
+ \item Optional: Install the SSH server in your machine and add your public key to your own authorized\_keys to start the modules with the IPOL Terminal.
 \end{itemize}
 
 \paragraph{Documentation} \hspace{0pt} \\
 \begin{itemize}
- \item Download \LaTeX compiler. e.g. Kile.
+ \item Download a \LaTeX editor. For example: Kile.
  \item To be able to compile the documentation install texlive-full.
   \begin{lstlisting}[language=Bash]
   ~/sudo apt-get texlive-full
   \end{lstlisting}
- \item Generate all the pdfs of the documentation.
+ \item Generate all the PDFs of the documentation.
 \end{itemize}
 
 \paragraph{Libraries} \hspace{0pt} \\
@@ -59,18 +48,18 @@ These are the steps that new members in the team need to follow to set up their 
 
 \paragraph{Modules} \hspace{0pt} \\
 \begin{itemize}
- \item Copy manually all the files that are not in the repo:
+ \item Copy manually all the files that are not in the repository:
  
   \begin{itemize}
    \item ipol\_demo/modules/config\_common/authorized\_patterns.conf
    \item ipol\_demo/modules/config\_common/emails.conf
   \end{itemize}
 
- \item Copy from integration the DB and the staticData from demoinfo and blobs.
- \item Change the XML files in config\_common
+ \item Copy from integration the DB and the staticData from the demoinfo and blobs modules.
+ \item Update the XML files in config\_common
 \end{itemize}
 
-\paragraph{CP} \hspace{0pt} \\
+\paragraph{Control Panel} \hspace{0pt} \\
 \begin{itemize}
  \item Add the hostname to the list ``local\_machines'' in the file ipol\_webapp/ipol\_webapp/ settings.py
  \item Follow the steps described in ipol\_webapp/docs
