@@ -130,6 +130,8 @@ function loadInputEvents(index, side, image, editorBlobs) {
   htmlSelector.on('mouseout', function() {
     var inputName = helpers.getFromStorage("selectedInput-" + side);
     htmlImage.attr("src", editorBlobs[inputName.src].blob);
+    changeImageZoom(side);
+    setImageContainerScroll(side);
   });
   htmlSelector.on('click', function() {
     var selectedInput = helpers.getFromStorage("selectedInput-" + side)
