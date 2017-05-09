@@ -52,7 +52,7 @@ import png
 
 import requests
 import cherrypy
-
+import magic
 
 def authenticate(func):
     """
@@ -691,8 +691,9 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
-            content_type = file_up.content_type
-            type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
+            mime = magic.Magic(mime=True)
+            file_up.file.seek(0)
+            type_of_uploaded_blob, ext_of_uploaded_blob = mime.from_buffer(file_up.file.read()).split("/")
 
             if not 'ext' in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL does not have extension field")
@@ -708,6 +709,7 @@ workload of '{}'".format(dr_name)
             file_save = file(os.path.join(work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
 
             size = 0
+            file_up.file.seek(0)
             while True:
                 data = file_up.file.read(128)
                 if not data:
@@ -1132,7 +1134,6 @@ attached the failed experiment data.". \
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
-
         input_type = None
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
