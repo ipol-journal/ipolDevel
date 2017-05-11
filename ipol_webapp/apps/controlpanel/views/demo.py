@@ -4,8 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.http import HttpResponse
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList, \
-        DeserializeArchiveDemoList
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, DeserializeDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 

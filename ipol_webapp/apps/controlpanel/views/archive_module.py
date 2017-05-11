@@ -7,7 +7,7 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse
 from django.utils.six import BytesIO
 
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveDemoList, DeserializePage, \
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializePage, \
         DeserializeDemoList, DeserializeDemoinfoDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 
@@ -29,21 +29,21 @@ class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
 
 
     def list_demos(self):
-        result = None
+        demo_list = None
         result2 = None
         #for special demo with id= -1 for testing in archive
         archivetestdemo=False
         try:
             #get demos from archive module
-            page_json = ipolservices.archive_demo_list()
-            result = DeserializeArchiveDemoList(page_json)
-
+            # page_json = ipolservices.archive_demo_list()
+            response = ipolservices.archive_demo_list()
+            json_response = json.loads(response)
+            demo_list = json_response.get('demo_list')
             #get demo info for those demos from demoinfo module
-            if result:
+            if demo_list:
                 idlist=list()
 
-                for d in result.demo_list:
-                    demoid= d.demo_id
+                for demoid in demo_list:
                     #special case demo -1 in archive, this Id will not exist in demoinfo module
                     if demoid > 0 and isinstance( demoid, ( int, long ) ):
                         idlist.append(demoid)
@@ -55,10 +55,6 @@ class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
                 else:
                     # I expect a dict for template
                     result2 = {"status": "KO","error": "No demos in archive"}
-
-
-            # print "result2",result2
-
 
         except Exception as e:
             msg="Error %s"%e

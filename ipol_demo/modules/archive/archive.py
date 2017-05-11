@@ -993,7 +993,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
 
             for row in cursor_db.fetchall():
                 demoid = row[0]
-                demo_list.append({'demo_id': demoid})
+                demo_list.append(demoid)
             data["demo_list"] = demo_list
             data["status"] = "OK"
         except Exception as ex:

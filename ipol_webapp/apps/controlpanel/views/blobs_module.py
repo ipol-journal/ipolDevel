@@ -10,8 +10,6 @@ from django.http import HttpResponse
 from django.utils.six import BytesIO
 import collections
 
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveDemoList, DeserializePage, \
-        DeserializeDemoList, DeserializeDemoinfoDemoList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 
 import logging
