@@ -19,7 +19,7 @@ function printBlobs() {
   var editorBlobs;
   if (helpers.getOrigin() == "demo") editorBlobs = helpers.getFromStorage("demoSet");
   else editorBlobs = clientApp.upload.getUploadedFiles();
-
+  
   printBlobSet(editorBlobs);
 };
 
@@ -35,11 +35,25 @@ function printBlobSet(editorBlobs) {
     loadInputEvents(i, "left", editorBlobs[blobs[i]].blob, editorBlobs);
     loadInputEvents(i, "right", editorBlobs[blobs[i]].blob, editorBlobs);
   }
-
-  if (blobs.length > 1) $(".blobsList-left").append("<br><input type=checkbox id=compare-btn>Compare");
-  $(".editor-image-left").attr("src", editorBlobs[blobs[0]].blob);
+  
+  var $img = $(".editor-image-left");
+  if (blobs.length <= 1) $(".blobsList-left").append("<br><input type=checkbox id=crop-btn>Crop");
+  $img.attr("src", editorBlobs[blobs[0]].blob);
   $(".editor-image-right").attr("src", editorBlobs[blobs[0]].blob);
-
+  if (blobs.length > 1) {
+    $(".blobsList-left").append("<br><input type=checkbox id=compare-btn>Compare");
+    multipleZoomController();
+    addCompareEvent();
+  } else {
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: false,
+      dragMode: 'move',
+      wheelZoomRatio: 0.2
+    });
+    zoomController();
+  }
+  
   helpers.addToStorage("selectedInput-right", {
     text: "editor-input-right-0",
     src: Object.keys(editorBlobs)[0]
@@ -48,22 +62,63 @@ function printBlobSet(editorBlobs) {
     text: "editor-input-left-0",
     src: Object.keys(editorBlobs)[0]
   });
-
   $(".editor-input-right-0").addClass("editor-input-selected");
   $(".editor-input-left-0").addClass("editor-input-selected");
-
-  addCompareEvent();
+  
+  addCropEvent();
   addScrollingEvents();
-  zoomController();
+  
+  $("#left-container").attachDragger("left");
+  $("#right-container").attachDragger("right");
 };
 
-// Add zoom to editor images
-function zoomController () {
+// Drag editor image mouse events
+$.fn.attachDragger = function(side){
+  var attachment = false, lastPosition, position, difference;
+  $("#" + side + "-container").on("mousedown mouseup mousemove",function(e){
+    if( e.type == "mousedown" ) attachment = true, lastPosition = [e.clientX, e.clientY];
+    if( e.type == "mouseup" ) attachment = false;
+    if( e.type == "mousemove" && attachment == true ){
+      position = [e.clientX, e.clientY];
+      difference = [ (position[0]-lastPosition[0]), (position[1]-lastPosition[1]) ];
+      $(this).scrollLeft( $(this).scrollLeft() - difference[0] );
+      $(this).scrollTop( $(this).scrollTop() - difference[1] );
+      lastPosition = [e.clientX, e.clientY];
+    }
+  });
+  $(window).on("mouseup", function(){
+    attachment = false;
+  });
+}
+
+// Zoom controller for multime image sets
+function multipleZoomController() {
   $("#zoom-select").change(function() {
     changeImageZoom("left");
     changeImageZoom("right");
   });
 }
+
+function addCropEvent() {
+  $("#crop-btn").change(function() {
+    if($("#crop-btn").is(":checked")) {
+      $(".editor-image-left").cropper("crop");
+    } else {
+      $(".editor-image-left").cropper("clear");
+    }
+  });
+}
+
+// Add zoom to editor images
+function zoomController () {
+  $("#zoom-select").change(function() {
+    var $img = $(".editor-image-left");
+    var zoomValue = $("#zoom-select").val() || 1;
+    $img.cropper('zoomTo', zoomValue);
+  });
+}
+
+// Change zoom value for editor images
 function changeImageZoom(side) {
   var zoomValue = $("#zoom-select").val();
   var element = document.getElementsByClassName("editor-image-" + side)[0];
@@ -89,7 +144,7 @@ function addScrollingEvents() {
   var isSyncingRightScroll = false;
   var leftDiv = document.getElementById('left-container');
   var rightDiv = document.getElementById('right-container');
-
+  
   leftDiv.onscroll = function() {
     if (!isSyncingLeftScroll) {
       isSyncingRightScroll = true;
@@ -98,7 +153,7 @@ function addScrollingEvents() {
     }
     isSyncingLeftScroll = false;
   }
-
+  
   rightDiv.onscroll = function() {
     if (!isSyncingRightScroll) {
       isSyncingLeftScroll = true;
@@ -121,7 +176,7 @@ function setImageContainerScroll(side){
 function loadInputEvents(index, side, image, editorBlobs) {
   var htmlImage = $(".editor-image-" + side);
   var htmlSelector = $(".editor-input-" + side + "-" + index);
-
+  
   htmlSelector.on('mouseover', function() {
     htmlImage.attr("src", image);
     changeImageZoom(side);

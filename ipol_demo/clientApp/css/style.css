@@ -6,6 +6,8 @@ html {
   box-sizing: inherit;
 
   font-family: Verdana,Arial,Helvetica,Tahoma,sans-serif;
+
+  image-rendering: pixelated;
 }
 
 body {
@@ -13,7 +15,7 @@ body {
 }
 
 h1,h2,h3,h4,h5 {
-  color:#484848
+  color:#484848;
 
   font-family: Verdana,Arial,Helvetica,Tahoma,sans-serif;
   font-weight:normal;
@@ -70,4 +72,14 @@ a:hover {
   background: #e3f3ff;
 
   font-size: 12px;
+}
+
+/*Cropper image pixelated*/
+.cropper-view-box {
+  image-rendering: pixelated;
+}
+
+/*Cropper crop margin to avoid scrollbars*/
+.cropper-container {
+  margin: 10px;
 }
