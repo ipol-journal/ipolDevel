@@ -122,8 +122,15 @@ function addSetClickEvent(blobSet, blobs){
 $(".description-dialog").dialog({
   resizable: false,
   autoOpen: false,
-  width: 700
+  width: 700,
+  modal: true,
+  open: function() {
+    $('.ui-widget-overlay').bind('click', function() {
+      $('.description-dialog').dialog('close');
+    })
+  }  
 });
+
 $(".description-btn").click(function() {
   $(".description-dialog").dialog("open");
 });
