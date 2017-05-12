@@ -43,5 +43,5 @@ clientApp.helpers.setOrigin = function(origin) {
 }
 
 clientApp.helpers.getOrigin = function() {
-    helpers.getFromStorage("origin");
+    return helpers.getFromStorage("origin");
 }

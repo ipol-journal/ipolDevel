@@ -228,12 +228,9 @@ ipol.ArchiveDisplay = function()
         html += '<p>';
         html += nb_experiments+' public experiments since '+first_date+'.<br />';
         html += 'This archive is not moderated.';
-        html += 'In case you uploaded images that you don\'t want that appear in'+ 
-                'the archive, you can remove them by clicking on the corresponding key '+
-                'and then clicking over the "delete this entry" button. '+
-                'This button appears only for the experiments performed by the user '+
-                'during the last 24 hours.<br>';
-        html += 'In case of copyright infringement or similar problem, please '+
+        html += 'In case you uploaded images that you don\'t want that appear in '+ 
+                'the archive, please contact the editor in charge.';
+        html += 'In case of copyright infringement or similar problems, please '+
                 '<a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">'+
                 'contact us</a> to request the removal of some images.'+
                 'Some archived content may be deleted by the editorial board for size '+

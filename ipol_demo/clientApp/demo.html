@@ -6,9 +6,8 @@
     <meta http-equiv='content-type' content='text/html; charset=utf-8'/>
 
     <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/demo.css">
+    <link rel="stylesheet" href="css/tabs.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/local.css">
     <link rel="stylesheet" href="css/blobs.css">
     <link rel="stylesheet" href="css/editor.css">
     <link rel="stylesheet" href="css/helpers.css">
@@ -23,6 +22,16 @@
 
     <div id="header"></div>
 
+    <div id="pageTitle" class="container"></div>
+
+    <div class="tabs">
+      <a href="#">Article</a>
+      <a class="selectedTab" href="#">Demo</a>
+      <a href="#">Archive</a>
+    </div>
+
+    <div class="citation"></div>
+
     <div class="inputContainer container">
         <h1 class="legendText">Select input(s)</h1>
         <button class="ui-button ui-corner-all ui-widget description-btn">Description</button>
@@ -32,7 +41,7 @@
         <button class="ui-button ui-corner-all ui-widget upload-btn">Upload data</button>
         <div class="upload-dialog" title="Upload data"></div>
 
-        <div class="setContainer"></div>
+        <div id="sets" class="setContainer"></div>
     </div>
 
     <div id="inputEditorContainer"></div>

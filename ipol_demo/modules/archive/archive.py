@@ -759,8 +759,10 @@ class Archive(object):
         self.purge_unique_blobs(conn, ids_blobs, experiment_id)
 
         cursor_db.execute("DELETE FROM experiments WHERE id = ?", (experiment_id,))
+        n_changes = cursor_db.rowcount
         cursor_db.execute("DELETE FROM correspondence WHERE id_experiment = ?", (experiment_id,))
-        cursor_db.execute("VACUUM")
+        # cursor_db.execute("VACUUM")
+        return n_changes
 
     @cherrypy.expose
     @authenticate
@@ -773,10 +775,10 @@ class Archive(object):
         status = {"status": "KO"}
         try:
             conn = lite.connect(self.database_file)
-            self.delete_exp_w_deps(conn, experiment_id)
-            conn.commit()
-            conn.close()
-            status["status"] = "OK"
+            if self.delete_exp_w_deps(conn, experiment_id) > 0:
+                conn.commit()
+                conn.close()
+                status["status"] = "OK"
 
         except Exception as ex:
             self.error_log("delete_experiment", str(ex))
@@ -990,9 +992,8 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             SELECT DISTINCT id_demo FROM experiments""")
 
             for row in cursor_db.fetchall():
-                print "loop"
                 demoid = row[0]
-                demo_list.append({'demo_id': demoid})
+                demo_list.append(demoid)
             data["demo_list"] = demo_list
             data["status"] = "OK"
         except Exception as ex:
@@ -1020,6 +1021,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             cursor_db.execute("SELECT DISTINCT id FROM experiments WHERE id_demo = ?", (demo_id,))
 
             experiment_id_list = cursor_db.fetchall()
+
+            if len(experiment_id_list) == 0:
+                return json.dumps(status)
 
             # Delete experiments and files
             for experiment_id in experiment_id_list:

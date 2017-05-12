@@ -50,4 +50,6 @@
             border: 1px solid gray;
             border-radius: 5px !important;
         }
-
+        .validation_error {
+            color:#FF0000;  /* red */
+        }

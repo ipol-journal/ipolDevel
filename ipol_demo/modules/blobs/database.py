@@ -547,6 +547,7 @@ def remove_template_from_demo(conn, editor_demo_id, template_name):
                             FROM templates
                             WHERE name = ?)
             """, (editor_demo_id, template_name))
+        return cursor.rowcount > 0
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)

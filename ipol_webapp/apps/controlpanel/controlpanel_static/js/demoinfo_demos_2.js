@@ -380,7 +380,7 @@ function submitDemoformAJAX(){
 
 /*  Demo form validation */
 $($form_demo_id).validate({
-    errorClass: "validationerror",//for css
+    errorClass: "validation_error",//for css
     rules: {
         title: {
             required: true,

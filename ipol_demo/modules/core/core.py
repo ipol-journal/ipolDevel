@@ -52,7 +52,7 @@ import png
 
 import requests
 import cherrypy
-
+import magic
 
 def authenticate(func):
     """
@@ -177,7 +177,6 @@ class Core(object):
             # Configure
             self.png_compresslevel = 1
 
-            print "IPOL Core module started"
 
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
@@ -469,7 +468,6 @@ workload of '{}'".format(dr_name)
             if msg != "":
                 msg += "&"
             msg += " resized to {0}px ".format(max_pixels)
-            print "msg", msg
         return msg
 
     @cherrypy.expose
@@ -534,7 +532,6 @@ workload of '{}'".format(dr_name)
             inputs_desc
             crop_info
         """
-        print "#### crop_input ####"
         # for the moment, we can only crop the first image
 
         if idx != 0:
@@ -543,7 +540,6 @@ workload of '{}'".format(dr_name)
         filename = os.path.join(work_dir,
                                 'input_{0}.crop.png'.format(idx))
 
-        print "crop_info = {0}".format(crop_info)
         crop_info = json.loads(crop_info)
 
         if crop_info["enabled"]:
@@ -575,8 +571,6 @@ workload of '{}'".format(dr_name)
         """
         pre-process the input data
         """
-        print "#####  Entering process_inputs...  #####"
-
         msg = ""
         max_width = 0
         max_height = 0
@@ -597,8 +591,6 @@ workload of '{}'".format(dr_name)
                 else:
                     # optional input missing, end of inputs
                     break
-
-            print "Processing input {0}".format(i)
 
             if input_desc['type'] == 'image':
 
@@ -643,7 +635,6 @@ workload of '{}'".format(dr_name)
                     im_converted_filename = 'input_%i.orig.png' % i
 
                 if self.needs_convert_or_resize(im_converted, input_desc):
-                    print "need convertion or resize, input description: ", input_desc
                     output_msg = self.convert_and_resize(im_converted,
                                                          input_desc)
                     input_msg += " Input {0}:".format(i) + output_msg + " "
@@ -658,9 +649,6 @@ workload of '{}'".format(dr_name)
 
                 if im.size != im_converted.size:
                     input_msg += " {0} --> {1} ". \
-                        format(im.size, im_converted.size)
-                    print "The image has been resized for a reduced computation time ",
-                    print  "({0} --> {1})". \
                         format(im.size, im_converted.size)
                 # update maximal dimensions information
                 max_width = max(max_width, im_converted.size[0])
@@ -689,8 +677,6 @@ workload of '{}'".format(dr_name)
         file_0, file_1, ... are the input files
         ddl_input is the input section of the demo description
         """
-        print "#### input_upload ####"
-
         nb_inputs = len(inputs_desc)
 
         for i in range(nb_inputs):
@@ -705,8 +691,9 @@ workload of '{}'".format(dr_name)
                     # skip this input
                     continue
 
-            content_type = file_up.content_type
-            type_of_uploaded_blob, ext_of_uploaded_blob = str(content_type).split("/")
+            mime = magic.Magic(mime=True)
+            file_up.file.seek(0)
+            type_of_uploaded_blob, ext_of_uploaded_blob = mime.from_buffer(file_up.file.read()).split("/")
 
             if not 'ext' in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL does not have extension field")
@@ -722,6 +709,7 @@ workload of '{}'".format(dr_name)
             file_save = file(os.path.join(work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
 
             size = 0
+            file_up.file.seek(0)
             while True:
                 data = file_up.file.read(128)
                 if not data:
@@ -849,18 +837,16 @@ workload of '{}'".format(dr_name)
         """
         Extract a demo extra...
         input: demo_id and compressed file for the extraction
-        return: success or not 
+        return: success or not
         """
         try:
             demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
             if os.path.isdir(demoExtrasFolder):
-                print "Cleaning the original {} ".format(demoExtrasFolder)
                 shutil.rmtree(demoExtrasFolder)
 
             self.mkdir_p(demoExtrasFolder)
             self.extract(compressed_file, demoExtrasFolder)
         except Exception as ex:
-            print "Extraction failed for demo #{}. Error: {} ".format(demo_id, ex)
             raise IPOLDemoExtrasError(ex)
 
     def ensure_extras_updated(self, demo_id):
@@ -1148,10 +1134,6 @@ attached the failed experiment data.". \
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
-        print "### RUN in CORE ####"
-        print "demo_id =", demo_id
-        print "kwargs=", kwargs
-
         input_type = None
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type', None)
@@ -1206,12 +1188,11 @@ attached the failed experiment data.". \
 
         except Exception as ex:
             s = "Failed to obtain the DDL of demo {}".format(demo_id)
-            print s
+            print s, ex
             self.logger.exception(s)
             res_data = {}
             res_data['error'] = 'unable to read the DDL'
             res_data['status'] = 'KO'
-            print res_data
             return json.dumps(res_data)
         ## End block to obtain the DDL
 
@@ -1225,7 +1206,6 @@ attached the failed experiment data.". \
             return json.dumps(res_data)
 
         work_dir = self.create_run_dir(demo_id, key)
-        print "Run path is ", work_dir
 
         # Copy input blobs
         if input_type != 'noinputs':
@@ -1283,18 +1263,13 @@ attached the failed experiment data.". \
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
 
-            print "Entering dr.ensure_compilation()"
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post(dr_server, 'demorunner', 'ensure_compilation', userdata)
 
             demorunner_response = resp.json()
             status = demorunner_response['status']
-            print "ensure_compilation response --> " + status + " in demo = " + demo_id
             if status != 'OK':
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
-                self.error_log("ensure_compilation()",
-                               "ensure_compilation functions returns KO in the demorunner: " + \
-                               dr_name + " module")
 
                 # Send compilation message to the editors
                 text = "DR={}, {} - {}".format(dr_name,
@@ -1310,7 +1285,6 @@ attached the failed experiment data.". \
                 response["status"] = "KO"
                 return json.dumps(response)
 
-            print "Entering ensure_extras_updated()"
             try:
                 self.ensure_extras_updated(demo_id)
             except IPOLDemoExtrasError as ex:
@@ -1333,8 +1307,6 @@ attached the failed experiment data.". \
                 response['error'] = 'Save params.json'
                 return json.dumps(response)
 
-            print "dr.exec_and_wait()"
-
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
             if 'run' not in ddl_json:
@@ -1354,12 +1326,8 @@ attached the failed experiment data.". \
             resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
 
             demorunner_response = resp.json()
-            print userdata
-            print demorunner_response
-
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
-                self.error_log("dr.exec_and_wait()", "DR returned KO")
                 # Message for the web interface
                 website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"])
                 response = {"error": website_message,
@@ -1375,11 +1343,8 @@ attached the failed experiment data.". \
                 demo_id,
                 key) + '/'
 
-            print "resp ", demorunner_response
-
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
-            print "archive.store_experiment()"
             if original_exp == 'true' and 'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
@@ -1401,8 +1366,6 @@ demo #{} - {}".format(demo_id, str(ex))
         for name in dic:
             demorunner_response["algo_info"][name] = dic[name]
 
-        print "Run successful in demo = ", demo_id
-        print json.dumps(demorunner_response)
         return json.dumps(demorunner_response)
 
     def read_algo_info(self, work_dir):

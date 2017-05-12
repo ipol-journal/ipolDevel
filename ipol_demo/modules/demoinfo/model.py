@@ -172,7 +172,6 @@ class DemoDescriptionDAO(object):
         try:
             self.cursor.execute('''INSERT INTO demodescription (DDL) VALUES(?)''', (ddl,))
             self.conn.commit()
-            print "INSERTADO"
             return self.cursor.lastrowid
         except Exception as ex:
             error_string = ("add demo_description  e:%s" % (str(ex)))
@@ -276,7 +275,6 @@ class DemoDAO(object):
             self.cursor.execute('''
             INSERT INTO demo(editor_demo_id, title, stateID)
             VALUES(?,?,?)''', (demo.editorsdemoid, demo.title, state_id,))
-            print "insertado"
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:
@@ -384,6 +382,21 @@ class DemoDAO(object):
             print error_string
         return demo_list
 
+    def exist(self, editor_demo_id):
+        """
+        Returns whether the demo exists or not
+        """
+        try:
+            self.cursor.execute("""
+            SELECT EXISTS(SELECT *
+                        FROM demo
+                        WHERE editor_demo_id=?);
+            """, (editor_demo_id,))
+
+            return self.cursor.fetchone()[0] == 1
+        except Exception as ex:
+            print "demo exist. Error:",ex
+            return False
 
 class DemoDemoDescriptionDAO(object):
     """
@@ -666,6 +679,22 @@ class AuthorDAO(object):
             print error_string
         return author_list
 
+    def exist(self, id):
+        """
+        Returns whether the author exists or not
+        """
+        try:
+            self.cursor.execute("""
+            SELECT EXISTS(SELECT *
+                        FROM author
+                        WHERE id=?);
+            """, (id,))
+
+            return self.cursor.fetchone()[0] == 1
+        except Exception as ex:
+            print "demo exist. Error:",ex
+            return False
+
 
 class DemoAuthorDAO(object):
     """
@@ -936,6 +965,22 @@ class EditorDAO(object):
             error_string = ("list_editor  e:%s" % (str(ex)))
             print error_string
         return editor_list
+
+    def exist(self, id):
+        """
+        Returns whether the editor exists or not
+        """
+        try:
+            self.cursor.execute("""
+            SELECT EXISTS(SELECT *
+                        FROM editor
+                        WHERE id=?);
+            """, (id,))
+
+            return self.cursor.fetchone()[0] == 1
+        except Exception as ex:
+            print "demo exist. Error:",ex
+            return False
 
 
 class DemoEditorDAO(object):

@@ -383,6 +383,7 @@ class Blobs(object):
         Return format from blob
         """
         mime = magic.Magic(mime=True)
+        blob.seek(0)
         blob_format = mime.from_buffer(blob.read())
         return blob_format
 
@@ -869,8 +870,8 @@ class Blobs(object):
                 self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                 return res
             for blob in blobs:
-                if not database.is_blob_used(conn, blob['hash']):
-                    database.remove_blob(conn, blob['hash'])
+                if not database.is_blob_used(conn, blob['id']):
+                    database.remove_blob(conn, blob['id'])
                     self.remove_files_associated_to_a_blob(blob['hash'])
 
             conn.commit()
@@ -930,9 +931,9 @@ class Blobs(object):
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            database.remove_template_from_demo(conn, demo_id, template_name)
-            conn.commit()
-            data['status'] = 'OK'
+            if database.remove_template_from_demo(conn, demo_id, template_name):
+                conn.commit()
+                data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the template from the demo")
