@@ -120,8 +120,9 @@ function addSetClickEvent(blobSet, blobs){
 
 // Demo input description dialog
 $(".description-dialog").dialog({
+  resizable: false,
   autoOpen: false,
-  width: 600
+  width: 700
 });
 $(".description-btn").click(function() {
   $(".description-dialog").dialog("open");

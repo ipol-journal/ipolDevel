@@ -49,7 +49,8 @@ function printBlobSet(editorBlobs) {
       viewMode: 1,
       autoCrop: false,
       dragMode: 'move',
-      wheelZoomRatio: 0.2
+      wheelZoomRatio: 0.2,
+      toggleDragModeOnDblclick: false
     });
     zoomController();
   }
