@@ -26,9 +26,8 @@ $(document).ready(function() {
 
 // Get Demo_Id from URL.
 function getDemoId() {
-    var url = window.location.href;
-    var id = url.split("?")[1];
-    return id.split("=")[1];
+    var urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('id');
 }
 
 // Clear all sessionStorage.
