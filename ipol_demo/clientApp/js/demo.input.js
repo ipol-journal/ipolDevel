@@ -14,7 +14,7 @@ input.printInput = function(blobs, demoInfo) {
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
     printSets(blobs.sets);
-    console.log(blobs);
+    console.log("get_globs", blobs);
     helpers.addToStorage("blobs", blobs.sets);
   });
 }
@@ -27,7 +27,7 @@ function getDemoinfo() {
     $(".citation").html("<span>Please cite <a id=citation-link>the reference article</a> if you publish results obtained with this online demo.</span>");
     $("#citation-link").attr('href', response.general.xlink_article);
     helpers.addToStorage("demoInfo", response);
-    console.log(response);
+    console.log("get_interface_ddl", response);
     addInputDescription(response.general.input_description);
     upload.printUploads(response.inputs);
   });
@@ -66,22 +66,15 @@ function printSets(sets) {
     $(".blobSet_" + i).addClass("text-center");
   }
 
-  if (document.addEventListener) {
-    var setsContainer = document.getElementById("sets");
-    var isChrome = !!window.chrome && !!window.chrome.webstore;
-    var isFirefox = typeof InstallTrigger !== 'undefined';
-    var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
-    if (isFirefox) {
-      setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
-    } else {
-      setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
-    }
+  var setsContainer = document.getElementById("sets");
+  var isChrome = !!window.chrome && !!window.chrome.webstore;
+  var isFirefox = typeof InstallTrigger !== 'undefined';
+  var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+  if (isFirefox) {
+    setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   } else {
-    // IE 6/7/8
-    sq.attachEvent("onmousewheel", MouseWheelHandler());
+    setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
   }
-
-  $(".blobSet > img").addClass("blobThumbnail");
 }
 
 function scrollHorizontally(e) {
@@ -132,6 +125,7 @@ $(".description-dialog").dialog({
   }  
 });
 
+// Open description dialog event
 $(".description-btn").click(function() {
   $(".description-dialog").dialog("open");
 });

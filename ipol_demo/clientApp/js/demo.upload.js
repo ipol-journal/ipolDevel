@@ -49,14 +49,15 @@ upload.printUploads = function(inputs) {
   var uploadMaxSize = 0;
   for (var i = 0; i < inputs.length; i++) {
     var input = inputs[i];
+    var inputType = input.type;
     var input_weight = eval(input.max_weight) / 1024 / 1024;
     uploadMaxSize += input_weight;
     $(".upload-dialog").append("<div class=input-upload-" + i + "></div>");
     var uploadRow = $(".input-upload-" + i);
     var uploadRowArray = [];
     uploadRow.addClass("upload-row");
-    uploadRowArray += "<span class=upload-description>" + input.description + "</span>";
-    uploadRowArray += "<input type=file id=file-" + i + " name=file-" + i + " class=upload-btn-" + i + "/>";
+    uploadRowArray += "<span class=upload-description> <b>" + input.description + "</b> File type: " + inputType + "</span>";
+    uploadRowArray += "<input type=file id=file-" + i + " name=file-" + i + " class=upload-btn-" + i + " accept=" + inputType + "/* />";
     uploadRowArray += "<img id=img-" + i + " src=# />";
     uploadRowArray += "<span class=upload-resolution-" + i + ">" + getMaxPixels(input) + getMaxWeight(input_weight) + "</span>";
     uploadRow.html(uploadRowArray);
