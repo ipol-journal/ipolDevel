@@ -13,6 +13,11 @@ import sys
 import logging
 import sqlite3 as lite
 import glob
+import tempfile
+import matplotlib.pyplot as plt
+import numpy as np
+import av
+import mimetypes
 
 import operator
 from PIL import Image
@@ -270,14 +275,16 @@ class Blobs(object):
         try:
             conn = lite.connect(self.database_file)
             mime = self.get_blob_mime(blob.file)
-            blob_format, ext = mime.split('/')
-            ext = "." + ext
+
+            blob_format, ext = self.get_format_and_extension(mime)
+            # ext = "." + ext
+
             blob_hash = self.get_hash(blob.file)
 
             blob_id = self.store_blob(conn, blob.file, title, credit, blob_hash, ext, blob_format)
             try:
                 if blob_vr is not None:
-                    vr_ext = "." + self.get_blob_mime(blob_vr.file).split('/')[1]
+                    _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
                     self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
                     self.create_thumbnail(blob_vr.file, blob_hash, 'image')
                 else:
@@ -388,6 +395,12 @@ class Blobs(object):
         return blob_format
 
     @staticmethod
+    def get_format_and_extension(mime):
+        mime_format = mime.split('/')[0]
+        ext = mimetypes.guess_extension(mime)
+        return mime_format, ext
+
+    @staticmethod
     def get_hash(blob):
         """
         Return the sha1 hash from blob
@@ -450,10 +463,12 @@ class Blobs(object):
         """
         if blob_format == "image":
             self.create_image_thumbnail(blob, blob_hash)
-        else:
-            # Other blob types are not supported yet
-            # [Todo] Implement other types of thumbnail (video, audio...)
-            pass
+
+        elif blob_format == "video":
+            self.create_video_thumbnail(blob, blob_hash)
+
+        elif blob_format == "audio":
+            self.create_audio_thumbnail(blob, blob_hash)
 
     def create_image_thumbnail(self, blob, blob_hash):
         """
@@ -473,6 +488,71 @@ class Blobs(object):
             image.thumbnail((256, 256))
 
             image.save(thumb_path)
+        except Exception as ex:
+            raise IPOLBlobsThumbnailError(ex)
+
+    def create_video_thumbnail(self, blob, blob_hash):
+        """
+        Creates a video thumbnail
+        """
+        try:
+            subdir = self.get_subdir(blob_hash)
+            path = os.path.join(self.thumb_dir, subdir)
+
+            if not os.path.isdir(path):
+                self.mkdir_p(path)
+
+            thumb_path = os.path.join(path, blob_hash + ".jpg")
+
+            blob.seek(0)
+            temp_file = tempfile.NamedTemporaryFile()
+            temp_file.write(blob.read())
+
+            temp_file.seek(0)
+            container = av.open(temp_file.name)
+
+            frames = []
+            for frame in container.decode(video=0):
+                frames.append(frame)
+
+            image = frames[int(len(frames)/2)].to_image()
+            image.thumbnail((256, 256))
+            image.save(thumb_path)
+
+        except Exception as ex:
+            raise IPOLBlobsThumbnailError(ex)
+
+    def create_audio_thumbnail(self, blob, blob_hash):
+        """
+        Creates an audio thumbnail
+        """
+        try:
+            subdir = self.get_subdir(blob_hash)
+            path = os.path.join(self.thumb_dir, subdir)
+
+            if not os.path.isdir(path):
+                self.mkdir_p(path)
+
+            thumb_path = os.path.join(path, blob_hash + ".jpg")
+
+            blob.seek(0)
+            temp_file = tempfile.NamedTemporaryFile()
+            temp_file.write(blob.read())
+
+            temp_file.seek(0)
+            audio = av.open(temp_file.name)
+            audio_bytes = ''
+            for frame in audio.decode(audio=0):
+                audio_bytes += frame.planes[0].to_bytes()
+            signal = np.fromstring(audio_bytes, 'Int16')
+            # spf = wave.open(temp_file.name, 'r')
+            # signal = spf.readframes(-1)
+            # signal = np.fromstring(signal, 'Int16')
+            plt.plot(signal)
+            plt.savefig(thumb_path, dpi=50)
+
+            temp_file.close()
+
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
@@ -1083,7 +1163,7 @@ class Blobs(object):
             self.set_tags(conn, blob_id, tags)
 
             if blob_vr is not None:
-                vr_ext = "." + self.get_blob_mime(blob_vr.file).split('/')[1]
+                _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
 
                 self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
                 self.create_thumbnail(blob_vr.file, blob_hash, 'image')
@@ -1167,7 +1247,7 @@ class Blobs(object):
             blob_folder = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
             blob_path = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))[0]
             blob_file = open(blob_path)
-            blob_format = self.get_blob_mime(blob_file).split('/')[0]
+            blob_format, _ = self.get_format_and_extension(self.get_blob_mime(blob_file))
             self.create_thumbnail(blob_file, blob_hash, blob_format)
         except IPOLBlobsThumbnailError as ex:
             self.logger.exception("Error creating the thumbnail")
