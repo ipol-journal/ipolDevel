@@ -834,7 +834,7 @@ ipol.DrawParams.staticGetParamValue = function (params_ddl,index) {
             return parseFloat(value);
         case "text":
             var value = $("input[name="+name+"]").val();
-            return parseFloat(value);
+            return value;
         case "numeric":
             var value = $("input[name="+name+"]").val();
             return parseFloat(value);
