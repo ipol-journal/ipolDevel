@@ -14,6 +14,8 @@ import logging
 import sqlite3 as lite
 import glob
 import tempfile
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import av
@@ -545,9 +547,7 @@ class Blobs(object):
             for frame in audio.decode(audio=0):
                 audio_bytes += frame.planes[0].to_bytes()
             signal = np.fromstring(audio_bytes, 'Int16')
-            # spf = wave.open(temp_file.name, 'r')
-            # signal = spf.readframes(-1)
-            # signal = np.fromstring(signal, 'Int16')
+
             plt.plot(signal)
             plt.savefig(thumb_path, dpi=50)
 
