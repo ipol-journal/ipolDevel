@@ -483,7 +483,15 @@ To access the Control Panel the user will need to access the specified URL, and 
 \section{Virtual Machines}
 In order to allow members of the lab use the IPOL infrastructure for their computational research need, we create virtual machines (VM) with VirtualBox.
 
-First, the CPU priorities need to be added /etc/security/limits.conf:
+The VirtualBox package needs to be installed from the VirtualBox's repositories. First, add the GPG key:
+
+{\tt sudo su -c 'wget -q -O- http://download.virtualbox.org/virtualbox/debian/oracle\_vbox\_2016.asc | apt-key add -'}
+
+Then add the following line to the sources.list (change \emph{jessie} to the codename of the current stable distribution):
+
+{\tt deb http://download.virtualbox.org/virtualbox/debian jessie contrib}
+
+The CPU priorities need to be added /etc/security/limits.conf:
 \begin{verbatim}
 *               soft     priority            17
 ipol            soft     priority            0
