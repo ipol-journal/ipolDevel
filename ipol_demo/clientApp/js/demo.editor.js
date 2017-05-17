@@ -27,8 +27,8 @@ function printBlobSet(editorBlobs) {
   
   var $blob = $("#editor-blob-left");
   var blobType = editorBlobs[blobs[0]].format;
-  $('#left-container').printEditorBlob(blobType, editorBlobs[blobs[0]].blob, "left");
-  $('#right-container').printEditorBlob(blobType, editorBlobs[blobs[0]].blob, "right");
+  $('#left-container').printEditorBlob(blobType, editorBlobs[blobs[0]].blob, "left", editorBlobs[blobs[0]].thumbnail);
+  $('#right-container').printEditorBlob(blobType, editorBlobs[blobs[0]].blob, "right", editorBlobs[blobs[0]].thumbnail);
   
   // If there are blobs other than images, dont load zoom and crop
   if (areAllImages(editorBlobs)) {
@@ -98,25 +98,28 @@ function areAllImages(editorBlobs) {
   return true;
 }
 
-$.fn.printEditorBlob = function(blobType, blobSrc, side) {
+$.fn.printEditorBlob = function(blobType, blobSrc, side, thumbnail) {
   if (blobType == 'image') {
     $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
     $("#editor-blob-left").css('width', 'auto');
     $("#editor-blob-left").css('height', 'auto');
   } else if (blobType == 'video') {
-    $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage controls></video>');
+    $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
   } else if (blobType == 'audio') {
-    $(this).append('<audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage controls></audio>');
+    $(this).append('<img src=' + thumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   }
 }
 
-$.fn.replaceElement = function(blobType, blobSrc, side) {
+$.fn.replaceElement = function(blobType, blobSrc, side, thumbnail) {
+  var container = $('#' + side + '-container');
+  container.empty();
   if (blobType == 'image') {
-    $('#editor-blob-' + side).replaceWith('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
+    container.append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
   } else if (blobType == 'video') {
-    $('#editor-blob-' + side).replaceWith('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage controls></video>');
+    container.append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
   } else if (blobType == 'audio') {
-    $('#editor-blob-' + side).replaceWith('<audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage controls></audio>');
+    if (thumbnail) container.append('<img src=' + thumbnail + ' class=audioThumbnail><br>');
+    container.append('<audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   }
 }
 
@@ -228,7 +231,8 @@ function loadInputEvents(index, side, editorBlobs) {
   var htmlSelector = $(".editor-input-" + side + "-" + index);
   
   htmlSelector.on('mouseover', function() {
-    htmlImage.replaceElement(editorBlobs[index].format, editorBlobs[index].blob, side);
+    var thumbnail = editorBlobs[index].thumbnail;
+    htmlImage.replaceElement(editorBlobs[index].format, editorBlobs[index].blob, side, thumbnail);
     if (editorBlobs[index].format == 'image') {
       changeImageZoom(side);
       setImageContainerScroll(side);
@@ -236,7 +240,8 @@ function loadInputEvents(index, side, editorBlobs) {
   });
   htmlSelector.on('mouseout', function() {
     var inputName = helpers.getFromStorage("selectedInput-" + side);
-    htmlImage.replaceElement(editorBlobs[inputName.src].format, editorBlobs[inputName.src].blob, side);
+    var thumbnail = editorBlobs[index].thumbnail;    
+    htmlImage.replaceElement(editorBlobs[inputName.src].format, editorBlobs[inputName.src].blob, side, thumbnail);
     if (editorBlobs[inputName.src].format == 'image') {
       changeImageZoom(side);
       setImageContainerScroll(side);
@@ -246,7 +251,8 @@ function loadInputEvents(index, side, editorBlobs) {
     var selectedInput = helpers.getFromStorage("selectedInput-" + side)
     $("." + selectedInput.text).removeClass('editor-input-selected');
     htmlSelector.addClass("editor-input-selected");
-    htmlImage.replaceElement(editorBlobs[index].format, editorBlobs[index].blob, side);
+    var thumbnail = editorBlobs[index].thumbnail;    
+    htmlImage.replaceElement(editorBlobs[index].format, editorBlobs[index].blob, side, thumbnail);
     helpers.addToStorage("selectedInput-" + side, {
       text: "editor-input-" + side + "-" + index,
       src: Object.keys(editorBlobs)[index],

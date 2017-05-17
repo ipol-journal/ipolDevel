@@ -26,6 +26,7 @@ function getDemoinfo() {
     $("#pageTitle").html(response.general.demo_title);
     $(".citation").html("<span>Please cite <a id=citation-link>the reference article</a> if you publish results obtained with this online demo.</span>");
     $("#citation-link").attr('href', response.general.xlink_article);
+    $("#articleTab").attr('href', response.general.xlink_article);
     helpers.addToStorage("demoInfo", response);
     console.log("get_interface_ddl", response);
     addInputDescription(response.general.input_description);
