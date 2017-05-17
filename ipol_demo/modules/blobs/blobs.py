@@ -15,6 +15,8 @@ import sqlite3 as lite
 import glob
 import tempfile
 import matplotlib
+from cycler import cycler
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -89,6 +91,7 @@ class Blobs(object):
 
     def __init__(self):
 
+        matplotlib.rcParams['axes.prop_cycle'] = cycler('color', ['r', 'g', 'b', 'c', 'm', 'y', 'k', '#67d100'])
         # Paths
         self.blob_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
@@ -513,11 +516,10 @@ class Blobs(object):
             temp_file.seek(0)
             container = av.open(temp_file.name)
 
-            frames = []
-            for frame in container.decode(video=0):
-                frames.append(frame)
+            container.seek(int(container.duration/2) - 1)
+            middle_frame = container.decode(video=0).next()
 
-            image = frames[int(len(frames)/2)].to_image()
+            image = middle_frame.to_image()
             image.thumbnail((256, 256))
             image.save(thumb_path)
 
@@ -544,12 +546,26 @@ class Blobs(object):
             temp_file.seek(0)
             audio = av.open(temp_file.name)
             audio_bytes = ''
+            bit_depth = None
             for frame in audio.decode(audio=0):
                 audio_bytes += frame.planes[0].to_bytes()
-            signal = np.fromstring(audio_bytes, 'Int16')
+                bit_depth = frame.format.name
 
+            if bit_depth == 's16':
+                signal = np.fromstring(audio_bytes, dtype=np.int16)
+            elif bit_depth == 's8':
+                signal = np.fromstring(audio_bytes, dtype=np.int8)
+            elif bit_depth == 'u16':
+                signal = np.fromstring(audio_bytes, dtype=np.uint16)
+            elif bit_depth == 'u8':
+                signal = np.fromstring(audio_bytes, dtype=np.uint8)
+            else:
+                raise IPOLBlobsThumbnailError("Bit depth {} not supported".format(bit_depth))
+            
+            plt.close('all')
+            fig = plt.figure()
             plt.plot(signal)
-            plt.savefig(thumb_path, dpi=50)
+            fig.savefig(thumb_path, dpi=50)
 
             temp_file.close()
 
