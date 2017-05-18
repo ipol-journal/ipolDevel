@@ -25,7 +25,11 @@
                         <input name="demo"  style="display: none;" value="{{demo}}"/>
                         <div class="image_files">
                             <a href="{{ blob.blob }}">
-                                <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}">
+                                {% if blob.thumbnail %}
+                                    <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}">
+                                {% else %}
+                                    <img src="{% static 'images/non_viewable_data.png' %}" alt="{{ blob.title }}" title="{{ blob.title }}" />
+                                {% endif %}
                             </a>
                         </div>
                         <!--TITLE-->

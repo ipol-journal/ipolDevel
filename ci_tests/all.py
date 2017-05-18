@@ -6,16 +6,16 @@ import random
 from subprocess import Popen, PIPE
 import os
 
-system_test = 'system.py'
-archive_test = os.path.join('..', 'ipol_demo', 'modules', 'archive', 'test.py')
-blobs_test = os.path.join('..', 'ipol_demo', 'modules', 'blobs', 'test.py')
-demoinfo_test = os.path.join('..', 'ipol_demo', 'modules', 'demoinfo', 'test.py')
-dispatcher_test = os.path.join('..', 'ipol_demo', 'modules', 'dispatcher', 'test.py')
-demorunner_test = os.path.join('..', 'ipol_demo', 'modules', 'demorunner', 'test.py')
+system_test = '/home/ipol/ipolDevel/ci_tests/system.py'
+archive_test = '/home/ipol/ipolDevel/ipol_demo/modules/archive/test.py'
+blobs_test = '/home/ipol/ipolDevel/ipol_demo/modules/blobs/test.py'
+demoinfo_test = '/home/ipol/ipolDevel/ipol_demo/modules/demoinfo/test.py'
+dispatcher_test = '/home/ipol/ipolDevel/ipol_demo/modules/dispatcher/test.py'
+demorunner_test = '/home/ipol/ipolDevel/ipol_demo/modules/demorunner/test.py'
 
-resources = os.path.abspath("resources")
-demorunners = os.path.abspath(os.path.join('..', 'ipol_demo', 'modules', 'config_common', 'demorunners.xml'))
-shared_folder = os.path.abspath(os.path.join('..', 'shared_folder'))
+resources = '/home/ipol/ipolDevel/ci_tests/resources'
+demorunners = '/home/ipol/ipolDevel/ipol_demo/modules/config_common/demorunners.xml'
+shared_folder = '/home/ipol/ipolDevel/shared_folder'
 
 tests = [system_test, demoinfo_test, blobs_test, archive_test, dispatcher_test, demorunner_test]
 
@@ -31,17 +31,17 @@ def start():
 
         run_tests()
     finally:
-        os.remove('lock')
+        os.remove('test.lock')
 
 
 def can_execute():
     """
     Check if the test can be executed. Only 1 test can be executed simultaneously
     """
-    if os.path.isfile('lock'):
+    if os.path.isfile('test.lock'):
         return False
 
-    open('lock', 'w')
+    open('test.lock', 'w')
     return True
 
 
