@@ -57,13 +57,12 @@ upload.printUploads = function(inputs) {
     var uploadRowArray = [];
     uploadRow.addClass("upload-row");
     uploadRowArray += "<span class=upload-description> <b>" + input.description + "</b> File type: " + inputType + "</span>";
-    uploadRowArray += "<input type=file id=file-" + i + " name=file-" + i + " class=upload-btn-" + i + " accept=" + inputType + "/* />";
-    uploadRowArray += "<img id=img-" + i + " src=# />";
+    uploadRowArray += "<input type=file id=file-" + i + " name=upload-" + i + " class=upload-btn-" + i + " accept=" + inputType + "/* />";
+    uploadRowArray += "<img id=upload-thumbnail-" + i + " src=# />";
     uploadRowArray += "<span class=upload-resolution-" + i + ">" + getMaxPixels(input) + getMaxWeight(input_weight) + "</span>";
     uploadRow.html(uploadRowArray);
     $(".input-upload-" + i).children().addClass("upload-element m-x-10");
     appendRequired(input, i);
-    drawThumbnail(i);
     addInputListener(i);
   }
   printUploadFooter(uploadMaxSize);
@@ -83,7 +82,7 @@ function getMaxWeight(weight) {
   if (!weight) {
     return "";
   } else {
-    return "&le; " + weight + " Mb";
+    return "&le; " + Math.round(weight) + " Mb";
   }
 }
 
@@ -99,25 +98,49 @@ function appendRequired(input, index) {
 
 // Add event to upload files.
 function addInputListener(index) {
-  var input = document.getElementById("file-" + index);
-  input.addEventListener('change', function() {
+  document.getElementById("file-" + index).addEventListener('change', function() {
     var demoInfo = helpers.getFromStorage("demoInfo");
     var inputs = demoInfo.inputs;
-    upload = $("#file-" + index);
-    var file = upload[0].files[0];
-    var fileReader = new FileReader();
-    if (file) {
-      blob = new Blob([file], {
-        type: file.type
-      });
-      // onload needed since Google Chrome doesn't support addEventListener for FileReader
-      fileReader.onload = function(evt) {
-        var inputName = inputs[index].description;
-        uploadedFiles[inputName] = {blob: evt.target.result};
-      };
-      fileReader.readAsDataURL(blob);
+    var file = $("#file-" + index)[0].files[0];
+
+    var inputKey = this.name.split('-')[1];
+    var maxWeight = demoInfo.inputs[inputKey].max_weight;
+    if (this.files[0].size < maxWeight && file) {
+        var format = file.type.split('/')[0];
+        if (format == 'image') addThumbnail(event);
+        blob = new Blob([file], {
+          type: file.type
+        });
+        // onload needed since Google Chrome doesn't support addEventListener for FileReader
+        var fileReader = new FileReader();
+        fileReader.onload = function(evt) {
+          var inputName = inputs[index].description;
+          uploadedFiles[inputName] = {
+            blob: evt.target.result,
+            format: format,
+            thumbnail: ""
+          };
+        };
+        fileReader.readAsDataURL(blob);
+    } else {
+      clearUploadInput(inputKey);
+      alert("File upload size limit reached");
     }
   });
+}
+
+function addThumbnail(data) {
+  var id = data.target.id;
+  var file = id.split("-");
+  id = "upload-thumbnail-" + file[1];
+  if (data.target.files) {
+    var FR = new FileReader();
+    FR.addEventListener("load", function(e) {
+      document.getElementById(id).style.display = "inline";
+      document.getElementById(id).src = e.target.result;
+    });
+    FR.readAsDataURL(data.target.files[0]);
+  }
 }
 
 // Check if all required inputs are uploaded before continue.
@@ -136,30 +159,10 @@ function checkRequiredInputs() {
   return true;
 }
 
-// Draw thumbnail after upload.
-function drawThumbnail(index) {
-  document.getElementById("file-" + index).addEventListener("change", readFile, false);
-}
-
-// Add src to image.
-function readFile(data) {
-  var id = data.target.id;
-  var file = id.split("-");
-  var id = "img-" + file[1];
-  if (this.files && this.files[0]) {
-    var FR = new FileReader();
-    FR.addEventListener("load", function(e) {
-      document.getElementById(id).style.display = "inline";
-      document.getElementById(id).src = e.target.result;
-    });
-    FR.readAsDataURL(this.files[0]);
-  }
-}
-
 // Print upload dialog footer.
 function printUploadFooter(size) {
   var uploadDialog = $(".upload-dialog");
-  uploadDialog.append("<p>Upload size is limited to <b>" + size + "MB</b> for the whole upload set.</p>");
+  uploadDialog.append("<p>Upload size is limited to <b>" + Math.round(size) + "MB</b> for the whole upload set.</p>");
   uploadDialog.append("<p>The uploaded will be publicly archived unless you switch to private mode on the result page.</p>");
   uploadDialog.append("<p>Only upload <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">suitable images</a>. See the <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">copyright and legal conditions</a> for details.</p>");
 }
@@ -170,7 +173,7 @@ function clearUploads() {
   var inputs = demoInfo.inputs;
   var imgElement;
   for (var i = 0; i < inputs.length; i++) {
-    imgElement = $("#img-" + i);
+    imgElement = $("#upload-thumbnail-" + i);
     imgElement.attr("src", "#");
     imgElement.css("display", "none");
     $("#file-" + i).val("");
@@ -178,3 +181,18 @@ function clearUploads() {
   }
   helpers.removeItem("origin");
 }
+
+// Clear inputs.
+function clearUploadInput(id) {
+  var demoInfo = helpers.getFromStorage("demoInfo");
+  var inputs = demoInfo.inputs;
+  // for (var i = 0; i < inputs.length; i++) {
+    var imgElement = $("#upload-thumbnail-" + id);
+    imgElement.attr("src", "#");
+    imgElement.css("display", "none");
+    $("#file-" + id).val("");
+    helpers.removeItem(inputs[id].description);
+  // }
+  helpers.removeItem("origin");
+}
+
