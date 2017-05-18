@@ -21,7 +21,18 @@ class ArchiveTests(unittest.TestCase):
     #####################
     #       Tests       #
     #####################
+
+    def setUp(self):
+        """
+        Clean the DB from the tests
+        """
+        # Delete demo test
+        self.delete_demo(self.demo_id)
+
     def test_ping(self):
+        """
+        Test ping
+        """
         status = None
         try:
             response = self.post(self.module, 'ping')
@@ -31,6 +42,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_add_and_delete_experiment(self):
+        """
+        Test add and delete experiment
+        """
         add_status = None
         id_experiment = None
         del_status = None
@@ -49,6 +63,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(del_status, 'OK')
 
     def test_delete_non_existent_experiment(self):
+        """
+        Test delete non existent experiment
+        """
         status = None
         try:
             response = self.delete_experiment(0)
@@ -57,6 +74,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_get_experiment(self):
+        """
+        Test get experiment
+        """
         status = None
         abs_path = None
         parameters = None
@@ -90,6 +110,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue(url is not None)
 
     def test_get_page(self):
+        """
+        Test get page
+        """
         status = None
         experiments = None
         n_experiments = None
@@ -116,6 +139,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue(n_experiments == 1)
 
     def test_delete_demo(self):
+        """
+        Test delete demo
+        """
         status = None
         experiments = None
         n_experiments = None
@@ -141,6 +167,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue(n_experiments == 0)
 
     def test_delete_non_existent_demo(self):
+        """
+        Test delete non existent demo
+        """
         status = None
         try:
             response = self.delete_demo(self.demo_id)
@@ -150,6 +179,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_demo_list(self):
+        """
+        Test demo list
+        """
         status = None
         try:
             abs_path = os.path.abspath(self.blob_path)
@@ -168,6 +200,9 @@ class ArchiveTests(unittest.TestCase):
         self.assertTrue(len(demo_list) > 0)
 
     def test_update_demo_id(self):
+        """
+        Test update demo id
+        """
         new_demo_id = -2
         status = None
         id_experiment = None
@@ -198,6 +233,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertEqual(parameter_from_new_demo, parameters)
 
     def test_stats(self):
+        """
+        Test stats
+        """
         status = None
         nb_blobs = None
         nb_experiments = None
@@ -213,6 +251,9 @@ class ArchiveTests(unittest.TestCase):
             self.assertTrue(isinstance(nb_experiments, int))
 
     def test_delete_blob_w_deps(self):
+        """
+        Test delete blob w deps
+        """
         other_demo_id = -2
         status = None
         first_experiments = None
@@ -249,10 +290,16 @@ class ArchiveTests(unittest.TestCase):
     #####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+        post
+        """
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def add_experiment(self, demo_id, blobs_path, parameters):
+        """
+        add experiment
+        """
         blobs = []
         for path in blobs_path:
             blobs.append({os.path.basename(path): path})
@@ -261,16 +308,25 @@ class ArchiveTests(unittest.TestCase):
         return response.json()
 
     def get_experiment(self, experiment_id):
+        """
+        get experiment
+        """
         params = {'experiment_id': experiment_id}
         response = self.post(self.module, 'get_experiment', params=params)
         return response.json()
 
     def delete_experiment(self, experiment_id):
+        """
+        delete experiment
+        """
         params = {'experiment_id': experiment_id}
         response = self.post(self.module, 'delete_experiment', params=params)
         return response.json()
 
     def get_page(self, demo_id, page=None):
+        """
+        get page
+        """
         params = {'demo_id': demo_id}
         if page is not None:
             params['page'] = page
@@ -279,25 +335,40 @@ class ArchiveTests(unittest.TestCase):
         return response.json()
 
     def delete_blob_w_deps(self, id_blob):
+        """
+        delete blob w deps
+        """
         params = {'id_blob': id_blob}
         response = self.post(self.module, 'delete_blob_w_deps', params=params)
         return response.json()
 
     def delete_demo(self, demo_id):
+        """
+        delete demo
+        """
         params = {'demo_id': demo_id}
         response = self.post(self.module, 'delete_demo', params=params)
         return response.json()
 
     def demo_list(self):
+        """
+        demo list
+        """
         response = self.post(self.module, 'demo_list')
         return response.json()
 
     def update_demo_id(self, old_demo_id, new_demo_id):
+        """
+        update demo id
+        """
         params = {'old_demo_id': old_demo_id, 'new_demo_id': new_demo_id}
         response = self.post(self.module, 'update_demo_id', params=params)
         return response.json()
 
     def stats(self):
+        """
+        stats
+        """
         response = self.post(self.module, 'stats')
         return response.json()
 

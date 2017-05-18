@@ -34,6 +34,9 @@ def load_demorunners(demorunners_file):
     return dict_demorunners
 
 class DispatcherTests(unittest.TestCase):
+    """
+    Dispatcher tests
+    """
     HOST = '127.0.1.1'
     module = 'dispatcher'
 
@@ -43,6 +46,9 @@ class DispatcherTests(unittest.TestCase):
     #       Tests       #
     #####################
     def test_ping(self):
+        """
+        Test ping
+        """
         status = None
         try:
             response = self.post(self.module, 'ping')
@@ -52,6 +58,9 @@ class DispatcherTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_refresh_demorunners(self):
+        """
+        Test refresh demorunners
+        """
         status = None
         try:
             json_response = self.refresh_demorunners()
@@ -60,6 +69,9 @@ class DispatcherTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_get_demorunner(self):
+        """
+        Test get demorunner
+        """
         status = None
         demorunner_name = None
         lowest_demorunner = None
@@ -84,14 +96,23 @@ class DispatcherTests(unittest.TestCase):
     #####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+        Do a post
+        """
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def refresh_demorunners(self):
+        """
+        refresh demorunners
+        """
         response = self.post(self.module, 'refresh_demorunners')
         return response.json()
 
     def get_demorunner(self, demorunners_workload, requirements=None):
+        """
+        get demorunner
+        """
         params = {'demorunners_workload': demorunners_workload}
         if requirements is not None:
             params['requirements'] = requirements
