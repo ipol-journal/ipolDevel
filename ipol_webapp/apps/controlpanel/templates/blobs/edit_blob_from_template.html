@@ -24,7 +24,11 @@
                         <input name="name"  style="display: none;" value="{{data.name}}"/>
                         <div class="image_files">
                             <a href="{{ data.blob.blob }}">
-                                <img src="{{ data.blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}">
+                                {% if blob.thumbnail %}
+                                    <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}" />
+                                {% else %}
+                                    <img src="{% static 'images/non_viewable_data.png' %}" alt="{{ blob.title }}" title="{{ blob.title }}" />
+                                {% endif %}
                             </a>
                         </div>
 
