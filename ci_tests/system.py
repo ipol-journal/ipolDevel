@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import socket
 
 import requests
 import json
@@ -14,7 +15,7 @@ class IntegrationTests(unittest.TestCase):
     Integration Tests
     """
     # General
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
 
     # These variables are initialized in the __main__
     test_ddl_file = None

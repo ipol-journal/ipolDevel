@@ -3,6 +3,7 @@
 
 # Unit tests for the Blobs module
 import os
+import socket
 import unittest
 import requests
 import sys
@@ -10,7 +11,7 @@ import json
 
 
 class ArchiveTests(unittest.TestCase):
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'archive'
 
     # Blob info

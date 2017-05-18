@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Unit tests for the Blobs module
+import socket
 import unittest
 import requests
 import json
@@ -37,7 +38,7 @@ class DispatcherTests(unittest.TestCase):
     """
     Dispatcher tests
     """
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'dispatcher'
 
     demorunners = None

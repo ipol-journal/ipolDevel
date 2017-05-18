@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Unit tests for the Blobs module
+import socket
 import unittest
 import requests
 import os
@@ -12,7 +13,7 @@ class BlobsTests(unittest.TestCase):
     """
     
     """
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'blobs'
 
     # Blob info

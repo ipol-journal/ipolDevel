@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Unit tests for the DemoInfo module
+import socket
 import unittest
 import requests
 import json
@@ -14,7 +15,7 @@ class DemoinfoTests(unittest.TestCase):
     Demoinfo unit tests
     """
 
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'demoinfo'
 
     # Demo
