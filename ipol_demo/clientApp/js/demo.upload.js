@@ -57,7 +57,8 @@ upload.printUploads = function(inputs) {
     var uploadRowArray = [];
     uploadRow.addClass("upload-row");
     uploadRowArray += "<span class=upload-description> <b>" + input.description + "</b> File type: " + inputType + "</span>";
-    uploadRowArray += "<input type=file id=file-" + i + " name=upload-" + i + " class=upload-btn-" + i + " accept=" + inputType + "/* />";
+    uploadRowArray += "<input type=file id=file-" + i + " name=upload-" + i + " class=upload-btn-" + i + " accept=";
+    uploadRowArray += (inputType=="video") ? inputType + '/*,video/mp4,video/x-m4v />' :  inputType+"/* />";
     uploadRowArray += "<img id=upload-thumbnail-" + i + " src=# />";
     uploadRowArray += "<span class=upload-resolution-" + i + ">" + getMaxPixels(input) + getMaxWeight(input_weight) + "</span>";
     uploadRow.html(uploadRowArray);
@@ -115,7 +116,7 @@ function addInputListener(index) {
         var fileReader = new FileReader();
         fileReader.onload = function(evt) {
           var inputName = inputs[index].description;
-          uploadedFiles[inputName] = {
+          uploadedFiles[index] = {
             blob: evt.target.result,
             format: format,
             thumbnail: ""
@@ -195,4 +196,3 @@ function clearUploadInput(id) {
   // }
   helpers.removeItem("origin");
 }
-
