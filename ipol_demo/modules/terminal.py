@@ -294,7 +294,7 @@ class Terminal(object):
         """
         for server in self.pull_servers:
             print "\t * Pulling from {}".format(server)
-            os.system('ssh {} "cd polDevel/ci_tests && bash pull.sh"'.format(server))
+            os.system('ssh {} "cd ipolDevel/ci_tests && bash pull.sh"'.format(server))
             print
 
     def exec_loop(self):
