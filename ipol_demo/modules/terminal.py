@@ -271,7 +271,7 @@ class Terminal(object):
         """
         Help of the terminal
         """
-        print """List of availables commands:
+        print """List of available commands:
     startall          : Start all IPOL modules
     start <module>    : Start selected module
     stopall           : Stop all IPOL modules
@@ -294,8 +294,7 @@ class Terminal(object):
         """
         for server in self.pull_servers:
             print "\t * Pulling from {}".format(server)
-            os.system("ssh {} \"cd ipolDevel && git pull\"".\
-              format(server))
+            os.system('ssh {} "cd polDevel/ci_tests && bash pull.sh"'.format(server))
             print
 
     def exec_loop(self):
