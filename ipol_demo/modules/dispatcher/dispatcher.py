@@ -248,7 +248,7 @@ class Dispatcher(object):
             dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
 
             if dr_winner is None:
-                json.dumps(data)
+                return json.dumps(data)
 
             data["name"] = dr_winner.name
             data["status"] = "OK"
