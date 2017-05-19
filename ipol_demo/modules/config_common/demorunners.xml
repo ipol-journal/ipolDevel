@@ -12,7 +12,7 @@
   <demorunner name="dr1">
     <module>demorunner</module>
     <server>ns6659661.ip-5-196-85.eu</server>
-    <!--<capability>Matlab</capability>-->
+    <capability>DEBIAN_STABLE</capability>
     <serverSSH>ipol_dr1</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
@@ -20,7 +20,7 @@
   <demorunner name="dr_core">
     <module>demorunner</module>
     <server>ipolcore.ipol.im</server>
-    <!--<capability>Matlab</capability>-->
+    <capability>DEBIAN_STABLE</capability>
     <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
