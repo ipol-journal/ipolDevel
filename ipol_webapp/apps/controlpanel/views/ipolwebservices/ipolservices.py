@@ -226,15 +226,21 @@ def demoinfo_update_demo(demo, old_editor_demoid):
     return demoinfo_resp
 
 
-def demoinfo_add_demo(editorsdemoid, title, state):
-    path = '/api/demoinfo/add_demo'
+def demoinfo_add_demo(editorsdemoid, title, state, editor):
 
-    # proxy can be called by GET or POST, prefer POST if submiting data to server
-    serviceparams = {'editorsdemoid': editorsdemoid, 'title': title, 'state': state}
-    # send as string to proxy, proxy will load this into a dict for the request lib call
+    params = {'editorsdemoid': editorsdemoid, 'title': title, 'state': state}
 
-    servicejson = None
-    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
+    add_demo_resp = http_request('/api/demoinfo/add_demo', METHOD='POST', params=params)
+    if json.loads(add_demo_resp).get('status') == 'KO':
+        return add_demo_resp
+
+    params = {'demo_id': editorsdemoid, 'editor_id': editor}
+    editor_to_demo_resp = http_request('/api/demoinfo/add_editor_to_demo', METHOD='POST', params=params)
+
+    if json.loads(editor_to_demo_resp).get('status') == 'KO':
+        return editor_to_demo_resp
+
+    return add_demo_resp
 
 
 # AUTHOR
