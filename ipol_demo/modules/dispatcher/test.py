@@ -58,17 +58,6 @@ class DispatcherTests(unittest.TestCase):
         finally:
             self.assertEqual(status, 'OK')
 
-    def test_refresh_demorunners(self):
-        """
-        Test refresh demorunners
-        """
-        status = None
-        try:
-            json_response = self.refresh_demorunners()
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
-
     def test_get_demorunner(self):
         """
         Test get demorunner
@@ -103,12 +92,6 @@ class DispatcherTests(unittest.TestCase):
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
-    def refresh_demorunners(self):
-        """
-        refresh demorunners
-        """
-        response = self.post(self.module, 'refresh_demorunners')
-        return response.json()
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         """

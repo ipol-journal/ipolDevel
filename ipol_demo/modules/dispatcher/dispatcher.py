@@ -115,37 +115,51 @@ class Dispatcher(object):
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
-    @cherrypy.expose
     def refresh_demorunners(self):
         """
         Refresh the value of the demorunners
         """
-        data = {"status": "OK"}
+        url = 'http://{}/api/{}/{}'.format(
+            self.host_name,
+            'core',
+            'get_demorunners'
+        )
+        resp = requests.post(url)
+
+        self.demorunners = []
+        dict_demorunners = json.loads(resp.json()['demorunners'].replace('\'', '\"'))
+
+        for demorunner_name in list(dict_demorunners.keys()):
+            self.demorunners.append(DemoRunnerInfo(
+                dict_demorunners[demorunner_name]["server"],
+                demorunner_name,
+                dict_demorunners[demorunner_name]["capability"]
+            ))
+
+
+
+    @cherrypy.expose
+    def set_demorunners(self, demorunners):
+        """
+        Set the value of the demorunners
+        """
+        data = {"status":"KO"}
         try:
-            url = 'http://{}/api/{}/{}'.format(
-                self.host_name,
-                'core',
-                'get_demorunners'
-            )
-            resp = requests.post(url)
-
+            json_demorunners = json.loads(demorunners)
             self.demorunners = []
-            dict_demorunners = json.loads(resp.json()['demorunners'].replace('\'', '\"'))
-
-            for demorunner_name in list(dict_demorunners.keys()):
+            for demorunner in json_demorunners:
                 self.demorunners.append(DemoRunnerInfo(
-                    dict_demorunners[demorunner_name]["server"],
-                    demorunner_name,
-                    dict_demorunners[demorunner_name]["capability"]
+                    json_demorunners[demorunner]["server"],
+                    demorunner,
+                    json_demorunners[demorunner]["capability"]
                 ))
-
+            data["status"] = "OK"
         except Exception as ex:
-            data["status"] = "KO"
             data["message"] = "Can not refresh the demorunners"
             self.logger.exception("Can not refresh the demorunners")
             print "Can not refresh the demorunners", ex
-
-        return json.dumps(data)
+        finally:
+            return json.dumps(data)
 
     # ---------------------------------------------------------------------------
     def init_logging(self):
@@ -248,7 +262,7 @@ class Dispatcher(object):
             dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
 
             if dr_winner is None:
-                json.dumps(data)
+                return json.dumps(data)
 
             data["name"] = dr_winner.name
             data["status"] = "OK"

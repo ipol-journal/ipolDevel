@@ -232,19 +232,21 @@ class Core(object):
         """
         refresh demorunners information and alert the dispatcher module
         """
-        data = {"status": "OK"}
+        data = {"status": "KO"}
 
         try:
             # Reload DRs config
             self.load_demorunners()
 
-            # Ask Dispatcher to reload too
-            self.post(self.host_name, "dispatcher", "refresh_demorunners")
+            demorunners = {"demorunners": json.dumps(self.demorunners)}
+            response = self.post(self.host_name, "dispatcher", "set_demorunners", data=demorunners)
+            if response.json().get('status') == "OK":
+                data['status'] = 'OK'
+
         except Exception as ex:
             print ex
             self.logger.exception("refresh_demorunners")
-            data["status"] = "KO"
-            data["message"] = "Can not load demorunners.xml"
+            data["error"] = "Can not refresh demorunners"
 
         return json.dumps(data)
 

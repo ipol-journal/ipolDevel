@@ -17,7 +17,7 @@ resources = '/home/ipol/ipolDevel/ci_tests/resources'
 demorunners = '/home/ipol/ipolDevel/ipol_demo/modules/config_common/demorunners.xml'
 shared_folder = '/home/ipol/ipolDevel/shared_folder'
 
-tests = [system_test, demoinfo_test, blobs_test, archive_test, dispatcher_test, demorunner_test]
+tests = [demoinfo_test, blobs_test, archive_test, dispatcher_test, demorunner_test, system_test]
 
 
 def start():
