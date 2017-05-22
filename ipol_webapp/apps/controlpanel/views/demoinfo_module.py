@@ -363,18 +363,12 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
         Otherwise return super as expected.
         """
         if self.request.is_ajax():
-
-        # print "valid ajax form"
-        # print form
-        # print
-
-        # get form fields
             id = None
             title = None
             state = None
             editorsdemoid = None
-            # creation = None
-            # modification = None
+            editorid = None
+
             # if form has id field set, I must update, if not, create a new demo
             try:
                 old_editor_demoid = form.cleaned_data['id']
@@ -387,12 +381,8 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
                 state = form.cleaned_data['state']
                 editorsdemoid = form.cleaned_data['editorsdemoid']
                 editorsdemoid = int(editorsdemoid)
+                editorid = form.cleaned_data.get('editor')
 
-                # creation = form.cleaned_data['creation']
-                # modification = form.cleaned_data['modification']
-                # print " title ",title
-                # print
-                #print " json.dumps(ddlJSON) ",json.dumps(ddlJSON, indent=4)
             except Exception as e:
                 msg = "DemoinfoSaveDemoView form data error: %s" % e
                 print msg
@@ -403,11 +393,8 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
             if old_editor_demoid is None :
 
                 try:
-                    # print (" create demo")
-                    # print
 
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state)
-                    print "jsonresult", jsonresult
+                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
                     status, error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
                     if error is not None:
@@ -457,9 +444,6 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
 
 
         return HttpResponse(json.dumps(jres),content_type='application/json')
-        #
-        # print "not valid ajax form"
-        # return super(DemoinfoSaveDDLView, self).form_valid(form)
 
     def form_invalid(self, form):
         """
