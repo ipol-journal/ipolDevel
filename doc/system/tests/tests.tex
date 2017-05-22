@@ -1,0 +1,48 @@
+\section{Tests}
+\label{sec:Tests}
+\subsection{Introduction}
+
+The objective of the tests is to analyze automatically if the system fits the intended use. For that purpose the system is analized with two
+types of tests, the first one are the Integration Tests in which individual software modules are combined and tested as a group, this implies from
+the creation of a demo to its execution. The second one are the Unit Tests that are executed for each module and checks the response of all the
+exposed methods.
+
+Those tests are automatically executed in the integration and production enviroments every day by the crontab and every time a pull is made by 
+the terminal.py script. If any of those test fail, an email is sent to all the emails listed in the /ci\_tests/send\_to.txt file.
+
+
+\subsection{Integration Tests}
+
+The integration tests are located in the /ci\_tests/system.py script and are responsible for testing all the IPOL modules and the interactions
+between them. To accomplish that goal each test execute the full flow of the system, that goes from the creation of a demo, adding the DDL, blobs,
+demoExtras, etc. to the execution of it.
+
+Each test is independent from the others so the order in which it is executed is not important. To ensure that the state of the system has not been
+altered by other test, the function setUp() is executed before every test. This function is responsible for cleaning the database from the 
+remains of other tests.
+
+\subsection{Unit Tests}
+
+On each module there is a test.py script that executes all the unit test of the module. Each test check the correctness of every exposed method.
+
+In the same way as the integration tests, each test can be executed in any order since the state of the system should not change after the execution
+of the test.
+
+\subsection{All.py}
+
+This script is responsible for executing all the test, both the integration (system.py) and the unit test (test modules). To ensure
+That several tests are not executed simultaneously, which could cause failures in the tests, a blocking system is implemented by the creation 
+of the test.lock file, which if it exists implies that another instance of this script is running the tests.
+If the script is blocked by this file it waits a random time between 5 and 10 seconds and check it again until it can run.
+
+
+\subsection{Pull.sh}
+
+This script is responsible for executing the git pull and call the all.py script to start all the tests. If any of the executed test fails an email
+will be send to the email list reporting the failure.
+
+This script is executed periodically every day at 10:00 am by the following instruction in the crontab: \begin{lstlisting}[language=Bash]
+ 0 10 * * * /home/ipol/ipolDevel/ci_tests/pull.sh
+\end{lstlisting} in order to detect possible failures in the integration and production
+enviroments, e.g. down modules, lack of disk memory, etc. Or every time a pull is made from the terminal.py script to check if the added cahnges do not
+damage the system.
