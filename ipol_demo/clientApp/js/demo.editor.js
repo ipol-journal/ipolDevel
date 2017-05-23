@@ -23,9 +23,9 @@ function printEditorPanel() {
 
   printBlobsetList(demoInfo, blobs);
 
-  var $blob = $("#editor-blob-left");
   $('#left-container').printEditorBlob(editorBlobs[blobs[0]], "left");
   $('#right-container').printEditorBlob(editorBlobs[blobs[0]], "right");
+  var $blob = $("#editor-blob-left");
 
   // If there are blobs other than images, dont load zoom and crop
   if (areAllImages()) {
@@ -48,9 +48,10 @@ function printEditorPanel() {
 };
 
 function saveSelectedInput(side, index){
+  blobsKeys = Object.keys(editorBlobs);
   helpers.addToStorage("selectedInput-" + side, {
     text: "editor-input-" + side + "-" + index,
-    src: Object.keys(editorBlobs)[index],
+    src: blobsKeys[blobsKeys.indexOf(index)],
     format: editorBlobs[index].format
   });
 }
@@ -63,10 +64,10 @@ function printBlobsetList(demoInfo, blobs) {
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
     $(".editor-input-left-" + i).addClass('editor-input');
-    $(".editor-input-left-" + i).loadInputEvents(i, "left");
+    $(".editor-input-left-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "left");
     $(".inputListContainerRight").append("<span class=editor-input-right-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
     $(".editor-input-right-" + i).addClass('editor-input');
-    $(".editor-input-right-" + i).loadInputEvents(i, "right");
+    $(".editor-input-right-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "right");
   }
   $(".inputListContainerLeft").loadInputsContainerEvent("left");
   $(".inputListContainerRight").loadInputsContainerEvent("right");
@@ -102,7 +103,6 @@ function areAllImages() {
 }
 
 $.fn.printEditorBlob = function(editorBlob, side) {
-  console.log(editorBlob);
   var blobType = editorBlob.format;
   var blobSrc = editorBlob.blob;
   if (blobType == 'image') {
@@ -118,7 +118,8 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
   } else if (blobType == 'audio') {
     $(this).empty();
-    $(this).append('<img src=' + editorBlob.thumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
+    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "non_viewable_data.png";
+    $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   }
 }
 
