@@ -1,0 +1,158 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import socket
+import xml.etree.ElementTree as ET
+import errno
+import requests
+import json
+import os
+import shutil
+
+HOST = socket.gethostbyname(socket.gethostname())
+user = 'ipol'
+compilation_path = os.path.join("/", "home", user, "ipolDevel", "ci_tests", "compilation_folder")
+
+
+def main():
+    """
+    Main
+    """
+    all_success = True
+    delete_compilation_path(compilation_path)
+    demorunners = read_demorunners()
+    for demo_id in get_published_demos():
+        json_ddl = json.loads(get_ddl(demo_id))
+        build_section = json_ddl.get('build')
+
+        if build_section is None:
+            print "Demo #{} doesn't have build section".format(demo_id)
+            all_success = False
+            continue
+
+        demo_compilation_path = get_compilation_path(demo_id)
+
+        if not build(demo_id, build_section, demo_compilation_path, demorunners):
+            all_success = False
+
+    if not all_success:
+        exit(-1)
+
+
+def get_compilation_path(demo_id):
+    """
+    Get compilation path
+    """
+    path = os.path.join(compilation_path, str(demo_id))
+    create_dir(path)
+    return path
+
+
+def create_dir(path):
+    """
+    Implement the UNIX shell command "mkdir -p"
+    with given path as parameter.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def delete_compilation_path(path):
+    """
+    Delete compilation path
+    """
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        pass
+
+
+def get_published_demos():
+    """
+    Get demos
+    """
+    resp = post(HOST, 'demoinfo', 'demo_list')
+    response = resp.json()
+    demos = []
+    if response['status'] != 'OK':
+        print "ERROR: demo_list returned KO"
+        return []
+    for demo in response['demo_list']:
+        if demo.get('state') == "published":
+            demos.append(demo['editorsdemoid'])
+    return demos
+
+
+def get_ddl(demo_id):
+    """
+    Read the DDL of the demo
+    """
+    resp = post(HOST, 'demoinfo', 'get_ddl', params={"demo_id": demo_id})
+    response = resp.json()
+    if response['status'] != 'OK':
+        print "ERROR: get_ddl returned KO for demo {}".format(demo_id)
+    last_demodescription = response.get('last_demodescription')
+    return last_demodescription.get('ddl')
+
+
+def build(demo_id, build_section, path_for_the_compilation, demorunners):
+    """
+    Execute the build section. If any build fail the method returns a False
+    """
+    all_success = True
+    for demorunner in demorunners.keys():
+        demorunner_host = demorunners[demorunner].get('server')
+        params = {'ddl_build': json.dumps(build_section), 'path_for_the_compilation': path_for_the_compilation}
+        response = post(demorunner_host, 'demorunner', 'test_compilation', params)
+        json_response = response.json()
+        if json_response.get('status') != 'OK':
+            all_success = False
+            print "Couldn't build demo {} in {}.".format(demo_id, demorunner)
+    return all_success
+
+
+def read_demorunners():
+    """
+    Read demorunners xml
+    """
+    dict_demorunners = {}
+    tree = ET.parse(os.path.join("/", "home", user, "ipolDevel", "ipol_demo", "modules",
+                                 "config_common", "demorunners.xml"))
+    root = tree.getroot()
+
+    for demorunner in root.findall('demorunner'):
+        dict_tmp = {}
+        list_tmp = []
+
+        for capability in demorunner.findall('capability'):
+            list_tmp.append(capability.text)
+
+        dict_tmp["server"] = demorunner.find('server').text
+        dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
+        dict_tmp["capability"] = list_tmp
+
+        dict_demorunners[demorunner.get('name')] = dict_tmp
+
+    return dict_demorunners
+
+
+def post(host, module, service, params=None):
+    """
+    Post
+    """
+    try:
+        url = 'http://{}/api/{}/{}'.format(
+            host,
+            module,
+            service
+        )
+        return requests.post(url, params=params)
+    except Exception as ex:
+        print "ERROR: Failure in the post function - {}".format(str(ex))
+
+
+main()
