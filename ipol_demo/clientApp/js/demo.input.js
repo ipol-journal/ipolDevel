@@ -110,6 +110,7 @@ function addSetClickEvent(blobSet, blobs){
       helpers.addToStorage("demoSet", blobs);
       helpers.setOrigin("demo");
       editor.printEditor();
+      parameters.printParameters();
     });
 }
 

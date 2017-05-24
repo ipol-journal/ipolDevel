@@ -23,6 +23,8 @@ ipol_demo/modules/demorunner/binaries/
 
 # Testing
 ci_tests/*.txt
+ci_tests/compilation_folder/
+
 #
 # Sysadmin
 sysadmin/*.txt

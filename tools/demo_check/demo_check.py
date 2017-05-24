@@ -57,9 +57,10 @@ def read_DDL(editors_demoid):
         if response['status'] != 'OK':
             print "ERROR: get_ddl returned KO for demo {}".format(editors_demoid)
             return
-        if response['last_demodescription'] is None : return
+        if response['last_demodescription'] is None:
+            return
         last_demodescription = response['last_demodescription']
-        ddl_json = last_demodescription['json']
+        ddl_json = last_demodescription['ddl']
         return ddl_json
     except Exception as ex:
         print "ERROR: Failed to read DDL from {} - {}".format(editors_demoid, ex)

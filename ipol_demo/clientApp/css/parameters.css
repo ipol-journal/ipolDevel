@@ -1,0 +1,11 @@
+.param-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0px;
+}
+
+.param-container:nth-child(even) {
+  background-color: #E3E2E7;
+}

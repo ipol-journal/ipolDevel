@@ -31,6 +31,7 @@ $(".upload-dialog").dialog({
         $(this).dialog("close");
         helpers.setOrigin("upload");
         editor.printEditor();
+        parameters.printParameters();
       }
     },
     Clear: function() {
