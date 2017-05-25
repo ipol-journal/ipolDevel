@@ -6,8 +6,10 @@ var uploadedFiles = {};
 
 clientApp.upload = upload;
 
+var _URL = window.URL || window.webkitURL;
+var demoInfo = helpers.getFromStorage("demoInfo");
 
-clientApp.upload.getUploadedFiles = function(){
+clientApp.upload.getUploadedFiles = function() {
   return uploadedFiles;
 };
 
@@ -59,7 +61,7 @@ upload.printUploads = function(inputs) {
     uploadRow.addClass("upload-row");
     uploadRowArray += "<span class=upload-description> <b>" + input.description + "</b> File type: " + inputType + "</span>";
     uploadRowArray += "<input type=file id=file-" + i + " name=upload-" + i + " class=upload-btn-" + i + " accept=";
-    uploadRowArray += (inputType=="video") ? inputType + '/*,video/mp4,video/x-m4v />' :  inputType+"/* />";
+    uploadRowArray += (inputType == "video") ? inputType + '/*,video/mp4,video/x-m4v />' : inputType + "/* />";
     uploadRowArray += "<img id=upload-thumbnail-" + i + " src=# />";
     uploadRowArray += "<span class=upload-resolution-" + i + ">" + getMaxPixels(input) + getMaxWeight(input_weight) + "</span>";
     uploadRow.html(uploadRowArray);
@@ -75,7 +77,7 @@ function getMaxPixels(input) {
   if (!input.max_pixels) {
     return "";
   } else {
-    return "&le; " + input.max_pixels + " pixels. ";
+    return "&le; " + (eval(input.max_pixels) / 1000000).toFixed(2) + " Mpx. ";
   }
 }
 
@@ -100,35 +102,62 @@ function appendRequired(input, index) {
 
 // Add event to upload files.
 function addInputListener(index) {
-  document.getElementById("file-" + index).addEventListener('change', function() {
-    var demoInfo = helpers.getFromStorage("demoInfo");
-    var inputs = demoInfo.inputs;
+  document.getElementById("file-" + index).addEventListener('change', function(event) {
     var file = $("#file-" + index)[0].files[0];
 
-    var inputKey = this.name.split('-')[1];
-    var maxWeight = demoInfo.inputs[inputKey].max_weight;
-    if (this.files[0].size < maxWeight && file) {
-        var format = file.type.split('/')[0];
-        if (format == 'image') addThumbnail(event);
-        blob = new Blob([file], {
-          type: file.type
-        });
-        // onload needed since Google Chrome doesn't support addEventListener for FileReader
-        var fileReader = new FileReader();
-        fileReader.onload = function(evt) {
-          var inputName = inputs[index].description;
-          uploadedFiles[index] = {
-            blob: evt.target.result,
-            format: format,
-            thumbnail: ""
-          };
-        };
-        fileReader.readAsDataURL(blob);
-    } else {
-      clearUploadInput(inputKey);
-      alert("File upload size limit reached");
-    }
+    if (file.type.split('/')[0] == "image") uploadImg(index, event);
+    else upload(index, event);
+
   });
+}
+
+// if it's an Image, first of all it needs to convert the "file" to img to check resolution and upload it.
+function uploadImg(index, event) {
+  demoInfo = helpers.getFromStorage("demoInfo");
+  var file = $("#file-" + index)[0].files[0];
+  var inputKey = document.getElementById("file-" + index).name.split('-')[1];
+  var maxPixels = eval(demoInfo.inputs[inputKey].max_pixels);
+  var img = new Image();
+  img.onload = function() {
+    var uploadImgPixels = this.width * this.height;
+    if (uploadImgPixels > maxPixels) {
+      clearUploadInput(inputKey);
+      alert("File upload resolution limit reached");
+    } else{
+      upload(index, event);
+    }
+  };
+  img.src = _URL.createObjectURL(file);
+}
+
+// Upload the current Input
+function upload(index, event) {
+  demoInfo = helpers.getFromStorage("demoInfo");
+  var file = $("#file-" + index)[0].files[0];
+  var inputs = demoInfo.inputs;
+  var inputKey = document.getElementById("file-" + index).name.split('-')[1];
+  var maxWeight = demoInfo.inputs[inputKey].max_weight;
+  if ($("#file-" + index)[0].files[0].size < eval(maxWeight) && file) {
+    var format = file.type.split('/')[0];
+    if (format == 'image') addThumbnail(event);
+    blob = new Blob([file], {
+      type: file.type
+    });
+    // onload needed since Google Chrome doesn't support addEventListener for FileReader
+    var fileReader = new FileReader();
+    fileReader.onload = function(evt) {
+      var inputName = inputs[index].description;
+      uploadedFiles[index] = {
+        blob: evt.target.result,
+        format: format,
+        thumbnail: ""
+      };
+    };
+    fileReader.readAsDataURL(blob);
+  } else {
+    clearUploadInput(inputKey);
+    alert("File upload size limit reached");
+  }
 }
 
 function addThumbnail(data) {
@@ -147,7 +176,6 @@ function addThumbnail(data) {
 
 // Check if all required inputs are uploaded before continue.
 function checkRequiredInputs() {
-  var demoInfo = helpers.getFromStorage("demoInfo");
   var inputs = demoInfo.inputs;
   var upload;
   for (var i = 0; i < inputs.length; i++) {
@@ -171,7 +199,6 @@ function printUploadFooter(size) {
 
 // Clear inputs.
 function clearUploads() {
-  var demoInfo = helpers.getFromStorage("demoInfo");
   var inputs = demoInfo.inputs;
   var imgElement;
   for (var i = 0; i < inputs.length; i++) {
@@ -186,14 +213,11 @@ function clearUploads() {
 
 // Clear inputs.
 function clearUploadInput(id) {
-  var demoInfo = helpers.getFromStorage("demoInfo");
   var inputs = demoInfo.inputs;
-  // for (var i = 0; i < inputs.length; i++) {
-    var imgElement = $("#upload-thumbnail-" + id);
-    imgElement.attr("src", "#");
-    imgElement.css("display", "none");
-    $("#file-" + id).val("");
-    helpers.removeItem(inputs[id].description);
-  // }
+  var imgElement = $("#upload-thumbnail-" + id);
+  imgElement.attr("src", "#");
+  imgElement.css("display", "none");
+  $("#file-" + id).val("");
+  helpers.removeItem(inputs[id].description);
   helpers.removeItem("origin");
 }
