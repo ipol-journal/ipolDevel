@@ -111,10 +111,11 @@ class EditorAutocomplete(al.AutocompleteChoiceListBase):
 
     def choices_for_request(self):
 
-        editors_avilable_for_demo_id = self.request.session['editors_avilable_for_demo_id']
+        editors_avilable_for_demo_id = self.request.session.get('editors_avilable_for_demo_id')
 
         try:
-            editors_avilable_for_demo_id=int(editors_avilable_for_demo_id)
+            if editors_avilable_for_demo_id:
+                editors_avilable_for_demo_id=int(editors_avilable_for_demo_id)
             available_editor_list = get_demoinfo_available_editor_list(editors_avilable_for_demo_id)
         except Exception as e:
             available_editor_list = get_demoinfo_available_editor_list()
