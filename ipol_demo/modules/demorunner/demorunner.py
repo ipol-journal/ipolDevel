@@ -388,7 +388,69 @@ class DemoRunner(object):
 
         path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
         self.mkdir_p(path_for_the_compilation)
+        try:
+            if 'build1' in ddl_build:
+                # we should have a dict or a list of dict
+                self.do_compile(ddl_build, path_for_the_compilation)
+            else:
+                data = {}
+                data['status'] = 'KO'
+                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
+                return json.dumps(data)
+            data = {}
+            data['status'] = "OK"
+            data['message'] = "Build of demo {0} OK".format(demo_id)
+        except urllib2.HTTPError as e:
+            print "HTTPError"
+            self.logger.exception("ensure_compilation - HTTPError")
+            data = {}
 
+            build_name = build_block.keys()[0]
+            if 'password' in build_block[build_name]:
+                build_block[build_name]['password'] = "*****"
+                build_block[build_name]['username'] = "*****"
+            data['status'] = 'KO'
+            data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
+        except Exception as e:
+            print "Build failed with exception " + str(e) + " in demo " + demo_id
+
+            log_file = os.path.join(path_for_the_compilation, 'build.log')
+            #
+            lines = ""
+            if os.path.isfile(log_file):
+                with open(log_file) as f:
+                    lines = f.readlines()
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Build for demo {0} failed".format(demo_id)
+            data['buildlog'] = lines
+        return json.dumps(data)
+
+
+    @cherrypy.expose
+    def test_compilation(self, ddl_build, path_for_the_compilation):
+        """
+        Test the compilation in a test path, not in the demo path
+        """
+        data = {'status':'KO'}
+        ddl_build = json.loads(ddl_build)
+        try:
+            if 'build1' in ddl_build:
+                self.do_compile(ddl_build, path_for_the_compilation)
+            else:
+                data['status'] = 'KO'
+                data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
+                return json.dumps(data)
+
+            data['status'] = 'OK'
+        except Exception as ex:
+            data['status'] = 'KO'
+        return json.dumps(data)
+
+    def do_compile(self, ddl_build, path_for_the_compilation):
+        """
+        Do the compilation
+        """
         # we should have a dict or a list of dict
         if isinstance(ddl_build, dict):
             builds = [ddl_build]
@@ -396,47 +458,7 @@ class DemoRunner(object):
             builds = ddl_build
 
         for build_block in builds:
-            try:
-                if 'build1' in ddl_build:
-                    make_info = self.construct(path_for_the_compilation, build_block)
-                else:
-                    data = {}
-                    data['status'] = 'KO'
-                    data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
-                    return json.dumps(data)
-
-                data = {}
-                data['status'] = "OK"
-                data['message'] = "Build of demo {0} OK".format(demo_id)
-                data['info'] = make_info
-            except urllib2.HTTPError as e:
-                print "HTTPError"
-                self.logger.exception("ensure_compilation - HTTPError")
-                data = {}
-
-                build_name = build_block.keys()[0]
-                if 'password' in build_block[build_name]:
-                    build_block[build_name]['password'] = "*****"
-                    build_block[build_name]['username'] = "*****"
-                data['status'] = 'KO'
-                data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
-                return json.dumps(data)                
-            except Exception as e:
-                print "Build failed with exception " + str(e) + " in demo " + demo_id
-
-                log_file = os.path.join(path_for_the_compilation, 'build.log')
-                #
-                lines = ""
-                if os.path.isfile(log_file):
-                    with open(log_file) as f:
-                        lines = f.readlines()                
-                data = {}
-                data['status'] = 'KO'                
-                data['message'] = "Build for demo {0} failed".format(demo_id)
-                data['buildlog'] = lines
-                return json.dumps(data)
-
-        return json.dumps(data)
+            self.construct(path_for_the_compilation, build_block)
 
     # ---------------------------------------------------------------------------
     # Algorithm runner
