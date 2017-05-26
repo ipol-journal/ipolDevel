@@ -381,39 +381,39 @@ function submitDemoformAJAX(){
     });
 }
 
-////  Demo form validation
-//$($form_demo_id).validate({
-//    errorClass: "validationerror",//for css
-//    rules: {
-//        title: {
-//            required: true,
-//            minlength: 5
-//        },
-//        state: {
-//            required: true
-//        },
-//        editorsdemoid: {
-//            required: true
-//        },
-//    },
-//    messages: {
-//
-//        title: {
-//            required: "please fill title field",
-//            minlength: "Your title must be at least 5 characters"
-//        },
-//        state: {
-//            required: "please fill  state"
-//        },
-//        editorsdemoid: {
-//            required: "please fill  editorsdemoid"
-//        },
-//    },
-//    submitHandler: function() {
-//        console.log("validated ok submitDemoformAJAX");
-//        // your ajax loading logic
-//        // form.submit(); // use this to finally submit form data at the last step
-//        submitDemoformAJAX();
-//        return false;  // prevent form submit because you are doing the ajax
-//    }
-//});
+//  Demo form validation
+$($form_demo_id).validate({
+    errorClass: "validationerror",//for css
+    rules: {
+        title: {
+            required: true,
+            minlength: 5
+        },
+        state: {
+            required: true
+        },
+        editorsdemoid: {
+            required: true
+        },
+    },
+    messages: {
+
+        title: {
+            required: "please fill title field",
+            minlength: "Your title must be at least 5 characters"
+        },
+        state: {
+            required: "please fill  state"
+        },
+        editorsdemoid: {
+            required: "please fill  editorsdemoid"
+        },
+    },
+    submitHandler: function() {
+        console.log("validated ok submitDemoformAJAX");
+        // your ajax loading logic
+        // form.submit(); // use this to finally submit form data at the last step
+        submitDemoformAJAX();
+        return false;  // prevent form submit because you are doing the ajax
+    }
+});

@@ -375,6 +375,50 @@ function submitDemoformAJAX(){
 }
 
 
+/*  Demo form validation */
+$($form_demo_id).validate({
+    errorClass: "validation_error",//for css
+    rules: {
+        title: {
+            required: true,
+            minlength: 5
+        },
+        state: {
+            required: true
+        },
+        editor: {
+            required: true
+        },
+        editorsdemoid: {
+            required: true
+        }
+    },
+    messages: {
+
+        title: {
+            required: "please fill the title field",
+            minlength: "Your title must be at least 5 characters"
+        },
+        state: {
+            required: "please fill  state"
+        },
+        editor: {
+            required: "please fill  editor"
+        },
+        editorsdemoid: {
+            required: "please fill  editorsdemoid"
+        }
+    },
+    submitHandler: function() {
+        console.log("validated ok submitDemoformAJAX");
+        // your ajax loading logic
+        // form.submit(); // use this to finally submit form data at the last step
+        submitDemoformAJAX();
+        return false;  // prevent form submit because you are doing the ajax
+    }
+});
+
+
 /*  show pretty json  */
 function prettyPrint(formfieldidtopretify) {
     var ugly = document.getElementById(formfieldidtopretify).value;
