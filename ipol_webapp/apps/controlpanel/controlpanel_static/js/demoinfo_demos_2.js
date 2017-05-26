@@ -1,21 +1,16 @@
 /*  global vars */
 
-
-
-
 /*  modal demo */
 $modal_demo_msg_div='#createdemo_modal_errordiv';
 $modal_demo_id='#createDemoFormModalId';
 $modal_demo_header='div#createDemoModalheader';
-$form_demo_id='#Demoform';
+$form_demo_id='#CreateDemoform';
 //hidden
-$form_demo_field_demo_id="#Demoform #id_id";
-/* $form_demo_field_demoddlid_id="#Demoform #id_demoddlid";*/
-//normal
-$form_demo_field_editorsdemo_id="#Demoform #id_editorsdemoid";
-$form_demo_field_title_id="#Demoform #id_title";
-$form_demo_field_state="#Demoform #id_state";
-/*  $form_demo_field_ddljson_id="#Demoform #id_demoddlJSON";*/
+$form_demo_field_demo_id="#CreateDemoform #id_id";
+$form_demo_field_editorsdemo_id="#CreateDemoform #id_editorsdemoid";
+$form_demo_field_title_id="#CreateDemoform #id_title";
+$form_demo_field_state="#CreateDemoform #id_state";
+$form_demo_field_editor="#CreateDemoform #id_editor";
 var $demoform = $($form_demo_id);
 
 
@@ -255,6 +250,7 @@ function send_get_demo_request(wsurl,editor_demo_id){
         $($form_demo_field_editorsdemo_id).get(0).value = '';
         $($form_demo_field_title_id).get(0).value = '';
         $($form_demo_field_state).get(0).value = '';
+        $($form_demo_field_editor).get(0).value = '';
         $demoform.show();
         $($modal_demo_id).modal('show');
     }else{
@@ -302,8 +298,9 @@ function send_get_demo_request(wsurl,editor_demo_id){
                         $($form_demo_field_editorsdemo_id).get(0).value = '';
                         $($form_demo_field_title_id).get(0).value = '';
                         $($form_demo_field_state).get(0).value = '';
+                        $($form_demo_field_editor).get(0).value = '';
                         $($modal_demo_id).modal('show');
-                        //$demoform.show();
+//                        $demoform.show();
                     }
                 }else{
                     //error, no OK
@@ -376,44 +373,6 @@ function submitDemoformAJAX(){
         }
     });
 }
-
-
-/*  Demo form validation */
-$($form_demo_id).validate({
-    errorClass: "validation_error",//for css
-    rules: {
-        title: {
-            required: true,
-            minlength: 5
-        },
-        state: {
-            required: true
-        },
-        editorsdemoid: {
-            required: true
-        }
-    },
-    messages: {
-
-        title: {
-            required: "please fill title field",
-            minlength: "Your title must be at least 5 characters"
-        },
-        state: {
-            required: "please fill  state"
-        },
-        editorsdemoid: {
-            required: "please fill  editorsdemoid"
-        }
-    },
-    submitHandler: function() {
-        console.log("validated ok submitDemoformAJAX");
-        // your ajax loading logic
-        // form.submit(); // use this to finally submit form data at the last step
-        submitDemoformAJAX();
-        return false;  // prevent form submit because you are doing the ajax
-    }
-});
 
 
 /*  show pretty json  */

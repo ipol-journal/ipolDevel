@@ -2,7 +2,7 @@
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 from django.http import HttpResponse, HttpResponseRedirect
-from apps.controlpanel.forms import DDLform, Demoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
+from apps.controlpanel.forms import DDLform, CreateDemoform, UpdateDemoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
         DemoEditorform, ChooseEditorForDemoform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
@@ -97,7 +97,8 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
             context['status'] = status
             context['list_demos'] = list_demos
             context['ddlform'] = DDLform
-            context['demoform'] = Demoform
+            context['createdemoform'] = CreateDemoform
+            # context['updatedemoform'] = UpdateDemoform
             context['states'] = get_demoinfo_module_states()
 
         except Exception as e:
@@ -149,7 +150,7 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             data['state'] = demo_result['state']
             data['ddl'] = ddl_result['last_demodescription']['ddl']
             data['modification'] = demo_result['modification']
-            data['demoform'] = Demoform
+            data['updatedemoform'] = UpdateDemoform
             data['status'] = 'OK'
 
         except Exception as ex:
@@ -346,22 +347,68 @@ class DemoinfoGetDemoView(NavbarReusableMixinMF,TemplateView):
         return HttpResponse(result,content_type='application/json')
 
 
-class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
+class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
 
     template_name = ''
-    form_class = Demoform
+    form_class = CreateDemoform
 
-    logger.warning("________________DemoinfoSaveDemoView")
+    def form_valid(self, form):
+        jres = dict()
+        jres['status'] = 'KO'
+        if self.request.is_ajax():
+            id = None
+            title = None
+            state = None
+            editorsdemoid = None
+            editorid = None
+            try:
+                title = form.cleaned_data['title']
+                state = form.cleaned_data['state']
+                editorsdemoid = form.cleaned_data['editorsdemoid']
+                editorsdemoid = int(editorsdemoid)
+                editorid = form.cleaned_data.get('editor')
+                jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
+                status, error = get_status_and_error_from_json(jsonresult)
+                jres['status'] = status
+                if error is not None:
+                    jres['error'] = error
+
+                # insert a default (empty) DDL for the new Demo
+                try:
+                    defaultDDL = '{}'
+                    jsonresult = ipolservices.demoinfo_save_demo_description(pjson=defaultDDL, demoid=editorsdemoid)
+                    status, error = get_status_and_error_from_json(jsonresult)
+                    jres['status'] = status
+                    if error is not None:
+                        jres['error'] = error
+
+                except Exception as e:
+                    msg = "update ddl error: %s" % e
+                    logger.error(msg)
+                    print msg
+
+            except Exception as e:
+                msg = "DemoinfoSaveDemoView form data error: %s" % e
+                jres['error'] = msg
+                logger.error(msg)
+                print msg
+        else:
+            jres['error'] = 'form_valid no ajax'
+            logger.error('DemoinfoSaveDemoView form_valid no ajax')
+
+
+        return HttpResponse(json.dumps(jres),content_type='application/json')
+
+class DemoinfoUpdateDemo(NavbarReusableMixinMF, FormView):
+
+    template_name = ''
+    form_class = UpdateDemoform
 
     def form_valid(self, form):
 
         jres = dict()
         jres['status'] = 'KO'
 
-        """
-        If the request is ajax, save the form and return a json response.
-        Otherwise return super as expected.
-        """
         if self.request.is_ajax():
             id = None
             title = None
@@ -373,77 +420,37 @@ class DemoinfoSaveDemoView(NavbarReusableMixinMF,FormView):
             try:
                 old_editor_demoid = form.cleaned_data['id']
                 old_editor_demoid = int(old_editor_demoid)
-            except Exception :
+            except Exception:
                 pass
 
             try:
                 title = form.cleaned_data['title']
                 state = form.cleaned_data['state']
-                editorsdemoid = form.cleaned_data['editorsdemoid']
-                editorsdemoid = int(editorsdemoid)
+                editorsdemoid = int(form.cleaned_data['editorsdemoid'])
                 editorid = form.cleaned_data.get('editor')
 
+                demojson = {
+                    "title": title,
+                    "editorsdemoid": editorsdemoid,
+                    "state": state
+                }
+                jsonresult = ipolservices.demoinfo_update_demo(demojson, old_editor_demoid)
+                status, error = get_status_and_error_from_json(jsonresult)
+                jres['status'] = status
+                if error is not None:
+                    jres['error'] = error
+
             except Exception as e:
-                msg = "DemoinfoSaveDemoView form data error: %s" % e
-                print msg
+                msg = "update demo error: %s" % e
+                jres['error'] = msg
                 logger.error(msg)
-
-            #  send info to be saved in demoinfo module
-            # save
-            if old_editor_demoid is None :
-
-                try:
-
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
-                    status, error = get_status_and_error_from_json(jsonresult)
-                    jres['status'] = status
-                    if error is not None:
-                        jres['error'] = error
-
-                    # insert a default (empty) DDL for the new Demo
-                    try:
-                        defaultDDL = '{}'
-                        jsonresult = ipolservices.demoinfo_save_demo_description(pjson=defaultDDL, demoid=editorsdemoid)
-                        status, error = get_status_and_error_from_json(jsonresult)
-                        jres['status'] = status
-                        if error is not None:
-                            jres['error'] = error
-
-                    except Exception as e:
-                        msg = "update ddl error: %s" % e
-                        logger.error(msg)
-                        print msg
-
-                except Exception as e:
-                    msg = "create demo error: %s" % e
-                    jres['error'] = msg
-                    logger.error(msg)
-                    print msg
-            else:
-                try:
-                    demojson = {
-                                            "title": title,
-                                            "editorsdemoid": editorsdemoid,
-                                            "state": state
-                    }
-                    jsonresult = ipolservices.demoinfo_update_demo(demojson,old_editor_demoid)
-                    status,error = get_status_and_error_from_json(jsonresult)
-                    jres['status'] = status
-                    if error is not None:
-                        jres['error'] = error
-
-                except Exception as e:
-                    msg = "update demo error: %s" % e
-                    jres['error'] = msg
-                    logger.error(msg)
-                    print msg
+                print msg
 
         else:
             jres['error'] = 'form_valid no ajax'
-            logger.error('DemoinfoSaveDemoView form_valid no ajax')
+            logger.error('DemoinfoUpdateDemo form_valid no ajax')
 
-
-        return HttpResponse(json.dumps(jres),content_type='application/json')
+        return HttpResponse(json.dumps(jres), content_type='application/json')
 
     def form_invalid(self, form):
         """

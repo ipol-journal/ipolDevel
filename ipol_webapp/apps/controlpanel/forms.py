@@ -40,18 +40,18 @@ class DDLform(forms.Form):
     )
 
 
-class Demoform(forms.Form):
+class CreateDemoform(forms.Form):
     #hidden
     id = forms.IntegerField(label='demoid',required=False)
     #normal
     editorsdemoid = forms.IntegerField(label='Demo ID',required=True)
-    title = forms.CharField(label='Title',required=True)
+    title = forms.CharField(label='Title',required=True, min_length=5)
     editor = al.ChoiceField('EditorAutocomplete', label='Editor (name, email)', required=True)
 
     state = forms.ChoiceField(label='State',required=True)
 
     helper = FormHelper()
-    helper.form_id = "Demoform"
+    helper.form_id = "CreateDemoform"
     helper.form_action = reverse_lazy('ipol.cp.demoinfo.save_demo')
     helper.form_method = 'POST'
     helper.form_class = 'form-horizontal'
@@ -69,9 +69,37 @@ class Demoform(forms.Form):
     )
     def __init__(self, *args, **kwargs):
         #dinamic way to get staes of demo in demoinfo module
-        super(Demoform, self).__init__(*args, **kwargs)
+        super(CreateDemoform, self).__init__(*args, **kwargs)
         self.fields['state'] = forms.ChoiceField(label='state',required=True, choices=get_demoinfo_module_states() )
 
+class UpdateDemoform(forms.Form):
+    # hidden
+    id = forms.IntegerField(label='demoid', required=False)
+    # normal
+    editorsdemoid = forms.IntegerField(label='Demo ID', required=True)
+    title = forms.CharField(label='Title', required=True, min_length=5)
+    state = forms.ChoiceField(label='State', required=True)
+    helper = FormHelper()
+    helper.form_id = "UpdateDemoform"
+    helper.form_action = reverse_lazy('ipol.cp.demoinfo.update_demo')
+    helper.form_method = 'POST'
+    helper.form_class = 'form-horizontal'
+
+    helper.layout = Layout(
+
+        Field('id', type='hidden'),
+        Field('editorsdemoid'),
+        Field('title', css_class='form-control'),
+        Field('state'),
+        FormActions(
+            Submit('save_demo', 'Save', css_class="btn-primary"),
+        )
+    )
+
+    def __init__(self, *args, **kwargs):
+        # dinamic way to get staes of demo in demoinfo module
+        super(UpdateDemoform, self).__init__(*args, **kwargs)
+        self.fields['state'] = forms.ChoiceField(label='state', required=True, choices=get_demoinfo_module_states())
 
 # for edit Author
 class Authorform(forms.Form):

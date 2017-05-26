@@ -4,13 +4,13 @@
 $modal_demo_msg_div='#createdemo_modal_errordiv';
 $modal_demo_id='#createDemoFormModalId';
 $modal_demo_header='div#createDemoModalheader';
-$form_demo_id='#Demoform';
+$form_demo_id='#UpdateDemoform';
 //hidden
-$form_demo_field_demo_id="#Demoform #id_id";
+$form_demo_field_demo_id="#UpdateDemoform #id_id";
 //normal
-$form_demo_field_editorsdemo_id="#Demoform #id_editorsdemoid";
-$form_demo_field_title_id="#Demoform #id_title";
-$form_demo_field_state="#Demoform #id_state";
+$form_demo_field_editorsdemo_id="#UpdateDemoform #id_editorsdemoid";
+$form_demo_field_title_id="#UpdateDemoform #id_title";
+$form_demo_field_state="#UpdateDemoform #id_state";
 var $demoform = $($form_demo_id);
 
 /************ js error msgs *********/
@@ -381,39 +381,39 @@ function submitDemoformAJAX(){
     });
 }
 
-//  Demo form validation
-$($form_demo_id).validate({
-    errorClass: "validationerror",//for css
-    rules: {
-        title: {
-            required: true,
-            minlength: 5
-        },
-        state: {
-            required: true
-        },
-        editorsdemoid: {
-            required: true
-        },
-    },
-    messages: {
-
-        title: {
-            required: "please fill title field",
-            minlength: "Your title must be at least 5 characters"
-        },
-        state: {
-            required: "please fill  state"
-        },
-        editorsdemoid: {
-            required: "please fill  editorsdemoid"
-        },
-    },
-    submitHandler: function() {
-        console.log("validated ok submitDemoformAJAX");
-        // your ajax loading logic
-        // form.submit(); // use this to finally submit form data at the last step
-        submitDemoformAJAX();
-        return false;  // prevent form submit because you are doing the ajax
-    }
-});
+////  Demo form validation
+//$($form_demo_id).validate({
+//    errorClass: "validationerror",//for css
+//    rules: {
+//        title: {
+//            required: true,
+//            minlength: 5
+//        },
+//        state: {
+//            required: true
+//        },
+//        editorsdemoid: {
+//            required: true
+//        },
+//    },
+//    messages: {
+//
+//        title: {
+//            required: "please fill title field",
+//            minlength: "Your title must be at least 5 characters"
+//        },
+//        state: {
+//            required: "please fill  state"
+//        },
+//        editorsdemoid: {
+//            required: "please fill  editorsdemoid"
+//        },
+//    },
+//    submitHandler: function() {
+//        console.log("validated ok submitDemoformAJAX");
+//        // your ajax loading logic
+//        // form.submit(); // use this to finally submit form data at the last step
+//        submitDemoformAJAX();
+//        return false;  // prevent form submit because you are doing the ajax
+//    }
+//});
