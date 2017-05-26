@@ -45,3 +45,7 @@ clientApp.helpers.setOrigin = function(origin) {
 clientApp.helpers.getOrigin = function() {
     return helpers.getFromStorage("origin");
 }
+
+$.fn.exists = function () {
+    return this.length !== 0;
+}
