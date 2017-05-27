@@ -507,7 +507,17 @@ GRUB_CMDLINE_LINUX_DEFAULT="nosmap"
 GRUB_CMDLINE_LINUX="nosmap"
 \end{verbatim}
 
-And finally {\tt update-grub} and reboot the machine.
+Running {\tt update-grub} is needed to update the boot entries. For example:
+
+\begin{verbatim}
+Found linux image: /boot/bzImage-3.14.32-xxxx-grs-ipv6-64
+Found linux image: /boot/vmlinuz-3.16.0-4-amd64
+Found initrd image: /boot/initrd.img-3.16.0-4-amd64
+\end{verbatim}
+
+In {\tt /etc/default/grub} we should configure {\tt GRUB\_DEFAULT=2} (index begins at 0) before.
+
+Finally, reboot the machine.
 
 To start and stop the virtual machine called ``VM":
 
