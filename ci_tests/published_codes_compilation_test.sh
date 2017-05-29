@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+host=$(hostname)
 today=$(date)
 
 function send_email () {
