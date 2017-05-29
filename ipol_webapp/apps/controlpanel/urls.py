@@ -13,12 +13,13 @@ from apps.controlpanel.views.blobs_module import ManageBlobsForDemoView, EditBlo
 from apps.controlpanel.views.demo import DemosView
 
 from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoAuthorsView, DemoinfoEditorsView, \
-    DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemoView, \
-    DemoinfoDeleteAuthorView, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, DemoinfoDemoEditionView, \
-        DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView, DemoinfoAddExistingAuthorToDemoView, \
-        DemoinfoAddNewAuthorToDemoView, DemoinfoDeleteEditorView, DemoinfoGetEditorView, DemoinfoSaveEditorView, \
-        DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, DemoinfoAddExistingEditorToDemoView, \
-        DemoinfoDeleteEditorFromDemoView, DemoinfoGetDemoExtrasView, DemoinfoDeleteDemoExtrasView, DemoinfoAddDemoExtrasView
+    DemoinfoDeleteDemoView, DemoinfoGetDDLView, DemoinfoSaveDDLView, DemoinfoGetDemoView, DemoinfoSaveDemo, \
+    DemoinfoDeleteAuthorView, DemoinfoUpdateDemo, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, DemoinfoDemoEditionView, \
+    DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView, DemoinfoAddExistingAuthorToDemoView, \
+    DemoinfoAddNewAuthorToDemoView, DemoinfoDeleteEditorView, DemoinfoGetEditorView, DemoinfoSaveEditorView, \
+    DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, DemoinfoAddExistingEditorToDemoView, \
+    DemoinfoDeleteEditorFromDemoView, DemoinfoGetDemoExtrasView, DemoinfoDeleteDemoExtrasView, DemoinfoAddDemoExtrasView
+
 
 #Allouth
 from vendor.allauth.customviews.profile import ProfileView
@@ -56,7 +57,8 @@ urlpatterns = [
     url(r'^ajax_save_demoinfo_ddl/', DemoinfoSaveDDLView.as_view(), name="ipol.cp.demoinfo.save_ddl"),
     url(r'^ajax_get_demoinfo_demo/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.create_demo"),
     url(r'^ajax_get_demoinfo_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.edit_demo"),
-    url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemoView.as_view(), name="ipol.cp.demoinfo.save_demo"),
+    url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemo.as_view(), name="ipol.cp.demoinfo.save_demo"),
+    url(r'^ajax_update_demoinfo_demo/', DemoinfoUpdateDemo.as_view(), name="ipol.cp.demoinfo.update_demo"),
 
         # AUTHORS
 

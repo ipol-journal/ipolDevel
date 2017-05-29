@@ -22,6 +22,10 @@
   display: inline;
 }
 
+.di-inline-block{
+  display: inline-block;
+}
+
 .space-between {
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;

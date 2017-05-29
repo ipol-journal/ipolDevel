@@ -39,6 +39,9 @@ def load_demorunners(demorunners_file):
 
 
 class DemorunnerTests(unittest.TestCase):
+    """
+    Demorunner Tests
+    """
     module = 'demorunner'
 
     # Demo
@@ -61,6 +64,9 @@ class DemorunnerTests(unittest.TestCase):
     #####################
 
     def test_ping(self):
+        """
+        Test ping
+        """
         status_list = []
         try:
 
@@ -73,6 +79,9 @@ class DemorunnerTests(unittest.TestCase):
                 self.assertEqual(status, 'OK')
 
     def test_workload(self):
+        """
+        Test workload
+        """
         status_list = []
         workload_list = []
         try:
@@ -88,6 +97,9 @@ class DemorunnerTests(unittest.TestCase):
                 self.assertTrue(isinstance(workload, float))
 
     def test_ensure_compilation(self):
+        """
+        Test ensure compilation
+        """
         status_list = []
         try:
 
@@ -109,6 +121,9 @@ class DemorunnerTests(unittest.TestCase):
                 self.assertEqual(status, 'OK')
 
     def test_ensure_compilation_without_demo_extras_folder(self):
+        """
+        Test ensure compilation without demo extras folder
+        """
         status_list = []
         try:
 
@@ -128,6 +143,9 @@ class DemorunnerTests(unittest.TestCase):
                 self.assertEqual(status, 'OK')
 
     def test_exec_and_wait(self):
+        """
+        Test exec and wait
+        """
         status_list = []
         try:
 
@@ -157,6 +175,9 @@ class DemorunnerTests(unittest.TestCase):
                 self.assertEqual(status, 'OK')
 
     def test_exec_and_wait_without_execution_folder(self):
+        """
+        Test exec and wait without execution folder
+        """
         status_list = []
         try:
 
@@ -190,10 +211,16 @@ class DemorunnerTests(unittest.TestCase):
 
     @staticmethod
     def post(host, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+        post
+        """
         url = 'http://{}/api/{}/{}'.format(host, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def create_work_dir(self):
+        """
+        create work dir
+        """
         blob = open(self.blob_path, 'r')
         run_folder = os.path.join(self.shared_folder, 'run', str(self.demo_id))
         os.makedirs(os.path.join(run_folder, self.execution_folder))
@@ -203,10 +230,16 @@ class DemorunnerTests(unittest.TestCase):
         blob.close()
 
     def delete_workdir(self):
+        """
+        delete workdir
+        """
         run_folder = os.path.join(self.shared_folder, 'run', str(self.demo_id))
         shutil.rmtree(os.path.join(run_folder))
 
     def create_extras_folder(self):
+        """
+        create extras folder
+        """
         dl_extras_folder = os.path.join(self.shared_folder, 'dl_extras', str(self.demo_id))
         demo_extras_folder = os.path.join(self.shared_folder, 'demoExtras', str(self.demo_id))
 
@@ -221,21 +254,33 @@ class DemorunnerTests(unittest.TestCase):
         demo_extras.close()
 
     def delete_extras_folder(self):
+        """
+        delete extras folder
+        """
         dl_extras_folder = os.path.join(self.shared_folder, 'dl_extras', str(self.demo_id))
         demo_extras_folder = os.path.join(self.shared_folder, 'demoExtras', str(self.demo_id))
         shutil.rmtree(dl_extras_folder)
         shutil.rmtree(demo_extras_folder)
 
     def get_workload(self, host):
+        """
+        get workload
+        """
         response = self.post(host, self.module, 'get_workload')
         return response.json()
 
     def exec_and_wait(self, host, demo_id, key, params, ddl_run):
+        """
+        exec and wait
+        """
         data = {'demo_id': unicode(demo_id), 'key': key, 'params': params, 'ddl_run': ddl_run}
         response = self.post(host, self.module, 'exec_and_wait', data=data)
         return response.json()
 
     def ensure_compilation(self, host, demo_id, ddl_build):
+        """
+        ensure compilation
+        """
         data = {'demo_id': demo_id, 'ddl_build': ddl_build}
         response = self.post(host, self.module, 'ensure_compilation', data=data)
         return response.json()

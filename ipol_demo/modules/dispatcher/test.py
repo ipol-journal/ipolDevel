@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Unit tests for the Blobs module
+import socket
 import unittest
 import requests
 import json
@@ -34,7 +35,10 @@ def load_demorunners(demorunners_file):
     return dict_demorunners
 
 class DispatcherTests(unittest.TestCase):
-    HOST = '127.0.1.1'
+    """
+    Dispatcher tests
+    """
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'dispatcher'
 
     demorunners = None
@@ -43,6 +47,9 @@ class DispatcherTests(unittest.TestCase):
     #       Tests       #
     #####################
     def test_ping(self):
+        """
+        Test ping
+        """
         status = None
         try:
             response = self.post(self.module, 'ping')
@@ -51,15 +58,10 @@ class DispatcherTests(unittest.TestCase):
         finally:
             self.assertEqual(status, 'OK')
 
-    def test_refresh_demorunners(self):
-        status = None
-        try:
-            json_response = self.refresh_demorunners()
-            status = json_response.get('status')
-        finally:
-            self.assertEqual(status, 'OK')
-
     def test_get_demorunner(self):
+        """
+        Test get demorunner
+        """
         status = None
         demorunner_name = None
         lowest_demorunner = None
@@ -84,14 +86,17 @@ class DispatcherTests(unittest.TestCase):
     #####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+        Do a post
+        """
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
-    def refresh_demorunners(self):
-        response = self.post(self.module, 'refresh_demorunners')
-        return response.json()
 
     def get_demorunner(self, demorunners_workload, requirements=None):
+        """
+        get demorunner
+        """
         params = {'demorunners_workload': demorunners_workload}
         if requirements is not None:
             params['requirements'] = requirements

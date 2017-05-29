@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import socket
 
 import requests
 import json
@@ -9,10 +10,12 @@ import unittest
 import sys
 
 
-
 class IntegrationTests(unittest.TestCase):
+    """
+    Integration Tests
+    """
     # General
-    HOST = '127.0.1.1'
+    HOST = socket.gethostbyname(socket.gethostname())
 
     # These variables are initialized in the __main__
     test_ddl_file = None
@@ -30,6 +33,14 @@ class IntegrationTests(unittest.TestCase):
     #####################
     #       Tests       #
     #####################
+    def setUp(self):
+        """
+        Clean the DB from the tests
+        """
+        # Delete demo test
+        self.delete_demo_in_demoinfo(self.demo_id)
+        self.delete_demo_in_archive(self.demo_id)
+        self.delete_demo_in_blobs(self.demo_id)
 
     def test_execution_with_blobset(self):
         """
@@ -138,7 +149,6 @@ class IntegrationTests(unittest.TestCase):
             except Exception:
                 pass
 
-
             # Delete demo in Archive, Demoinfo and Blobs
             response = self.delete_demo_in_archive(self.demo_id)
             delete_demo_archive_status = response.get('status')
@@ -241,8 +251,8 @@ class IntegrationTests(unittest.TestCase):
                   'params': json.dumps(image_dimensions),
                   'input_type': 'upload',
                   'original': 'true'
-        }
-        files = {'file_0':blob}
+                  }
+        files = {'file_0': blob}
         response = self.post('core', 'run', data=params, files=files)
         return response.json()
 
@@ -262,9 +272,9 @@ class IntegrationTests(unittest.TestCase):
         response = self.post('blobs', 'delete_demo', params=params)
         return response.json()
 
-    def get_archive_experiments_by_page(self,demo_id, page=None):
+    def get_archive_experiments_by_page(self, demo_id, page=None):
         if page is None: page = 0
-        params = {'demo_id': demo_id, 'page':page}
+        params = {'demo_id': demo_id, 'page': page}
         response = self.post('archive', 'get_page', params=params)
         return response.json()
 
@@ -272,6 +282,7 @@ class IntegrationTests(unittest.TestCase):
         params = {'demo_id': demo_id}
         response = self.post('archive', 'delete_demo', params=params)
         return response.json()
+
 
 if __name__ == '__main__':
     shared_folder = sys.argv.pop()

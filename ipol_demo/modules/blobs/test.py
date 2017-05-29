@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Unit tests for the Blobs module
+import socket
 import unittest
 import requests
 import os
@@ -9,7 +10,10 @@ import sys
 
 
 class BlobsTests(unittest.TestCase):
-    HOST = '127.0.1.1'
+    """
+    
+    """
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'blobs'
 
     # Blob info
@@ -29,7 +33,17 @@ class BlobsTests(unittest.TestCase):
     #####################
     #       Tests       #
     #####################
+    def setUp(self):
+        """
+        Clean the DB from the tests
+        """
+        self.delete_demo(self.demo_id)
+        self.delete_template(self.template_name)
+
     def test_ping(self):
+        """
+        Test ping
+        """
         status = None
         try:
             response = self.post(self.module, 'ping')
@@ -39,6 +53,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_add_blob_to_demo_without_visual_representation(self):
+        """
+        Test add blob to demo without visual representation
+        """
         add_blob_status = None
         get_blob_status = None
         blob_title = None
@@ -74,6 +91,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(delete_demo_status, 'OK')
 
     def test_add_blob_to_demo_with_visual_representation(self):
+        """
+        Test add blob to demo with visual representation
+        """
         add_blob_status = None
         get_blob_status = None
         blob_title = None
@@ -111,6 +131,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(delete_demo_status, 'OK')
 
     def test_create_template(self):
+        """
+        Test create template
+        """
         create_status = None
         delete_status = None
         try:
@@ -126,6 +149,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(delete_status, 'OK')
 
     def test_add_blob_to_template_without_visual_representation(self):
+        """
+        Test add blob to template without visual representation
+        """
         add_blob_status = None
         get_blob_status = None
         blob_title = None
@@ -163,6 +189,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(delete_template_status, 'OK')
 
     def test_add_blob_to_template_with_visual_representation(self):
+        """
+        Test add blob to template with visual representation
+        """
         add_blob_status = None
         get_blob_status = None
         blob_title = None
@@ -202,6 +231,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(delete_template_status, 'OK')
 
     def test_add_blob_to_non_existent_template(self):
+        """
+        Test add blob to non existent template
+        """
         status = None
         try:
 
@@ -214,6 +246,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_remove_blob_from_demo(self):
+        """
+        Test remove blob from demo
+        """
         status = None
         set_list = None
         try:
@@ -233,6 +268,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(len(set_list), 0)
 
     def test_remove_blob_from_template(self):
+        """
+        Test remove blob from template
+        """
         status = None
         set_list = None
         try:
@@ -256,6 +294,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(len(set_list), 0)
 
     def test_remove_non_existent_blob_from_demo(self):
+        """
+        Test remove non existent blob from demo
+        """
         status = None
         try:
 
@@ -266,6 +307,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_remove_non_existent_blob_from_template(self):
+        """
+        Test remove non existent blob from template
+        """
         status = None
         try:
 
@@ -276,6 +320,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_get_blob_from_non_existent_demo(self):
+        """
+        Test get blob from non existent demo
+        """
         status = None
         try:
 
@@ -287,6 +334,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_get_blob_from_non_existent_template(self):
+        """
+        Test get blob from non existent template
+        """
         status = None
         try:
 
@@ -297,6 +347,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_add_template_to_demo(self):
+        """
+        Test add template to demo
+        """
         status = None
         template_list = None
         template = None
@@ -325,6 +378,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(template, self.template_name)
 
     def test_add_non_existent_template_to_demo(self):
+        """
+        Test add non existent template to demo
+        """
         status = None
         try:
             blob = open(self.blob_path, 'r')
@@ -341,6 +397,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_add_template_to_non_existent_demo(self):
+        """
+        Test add template to non existent demo
+        """
         status = None
         try:
 
@@ -356,6 +415,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_remove_template_from_demo(self):
+        """
+        Test remove template from demo
+        """
         status = None
         template_list = None
         try:
@@ -382,6 +444,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(len(template_list), 0)
 
     def test_remove_non_existent_template_from_demo(self):
+        """
+        Test remove non existent template from demo
+        """
         status = None
         try:
             blob = open(self.blob_path, 'r')
@@ -398,6 +463,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_remove_template_from_non_existent_demo(self):
+        """
+        Test remove template from non existent demo
+        """
         status = None
         try:
 
@@ -414,6 +482,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
 
     def test_edit_blob_from_demo(self):
+        """
+        Test edit blob from demo
+        """
         status = None
         tag_list = None
         tag = None
@@ -453,6 +524,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(new_set, set)
 
     def test_edit_non_existent_blob_from_demo(self):
+        """
+        Test edit non existent blob from demo
+        """
         status = None
         new_title = self.title + '_new'
         new_set = self.blob_set + '_new'
@@ -468,6 +542,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_edit_blob_from_template(self):
+        """
+        Test edit blob from template
+        """
         status = None
         tag_list = None
         tag = None
@@ -509,6 +586,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(new_set, set)
 
     def test_edit_non_existent_blob_from_template(self):
+        """
+        Test edit non existent blob from template
+        """
         status = None
         new_title = self.title + '_new'
         new_set = self.blob_set + '_new'
@@ -524,6 +604,9 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(status, 'KO')
 
     def test_get_all_templates(self):
+        """
+        Test get all templates
+        """
         status = None
         templates = None
         try:
@@ -540,6 +623,9 @@ class BlobsTests(unittest.TestCase):
             self.assertTrue(len(templates) > 0)
 
     def test_remove_visual_representation_from_blob(self):
+        """
+        Test remove visual representation from blob
+        """
         status = None
         blob_vr = None
         try:
@@ -574,6 +660,9 @@ class BlobsTests(unittest.TestCase):
             self.assertTrue(blob_vr is None)
 
     def test_remove_visual_representation_from_non_existent_blob(self):
+        """
+        Test remove visual representation from non existent blob
+        """
         status = None
         try:
             response = self.delete_vr_from_blob(0)
@@ -587,11 +676,17 @@ class BlobsTests(unittest.TestCase):
     #####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+            post
+        """
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
     def add_blob_to_demo(self, blob=None, demo_id=None, tags=None, blob_set=None, pos_set=None, title=None,
                          credit=None, blob_vr=None):
+        """
+        add blob to demo
+        """
         params = {}
         if demo_id is not None: params['demo_id'] = demo_id
         if tags is not None: params['tags'] = tags
@@ -607,6 +702,9 @@ class BlobsTests(unittest.TestCase):
 
     def add_blob_to_template(self, blob=None, template_name=None, tags=None, blob_set=None, pos_set=None, title=None,
                              credit=None, blob_vr=None):
+        """
+        add blob to template
+        """
         params = {}
         if template_name is not None: params['template_name'] = template_name
         if tags is not None: params['tags'] = tags
@@ -621,57 +719,90 @@ class BlobsTests(unittest.TestCase):
         return response.json()
 
     def delete_demo(self, demo_id):
+        """
+        delete demo
+        """
         params = {'demo_id': demo_id}
         response = self.post(self.module, 'delete_demo', params=params)
         return response.json()
 
     def get_blobs(self, demo_id):
+        """
+        get blobs
+        """
         params = {'demo_id': demo_id}
         response = self.post(self.module, 'get_blobs', params=params)
         return response.json()
 
     def get_template_blobs(self, template_name):
+        """
+        get template blobs
+        """
         params = {'template_name': template_name}
         response = self.post(self.module, 'get_template_blobs', params=params)
         return response.json()
 
     def remove_blob_from_demo(self, demo_id, blob_set, pos_set):
+        """
+        remove blob from demo
+        """
         params = {'demo_id': demo_id, 'blob_set': blob_set, 'pos_set': pos_set}
         response = self.post(self.module, 'remove_blob_from_demo', params=params)
         return response.json()
 
     def create_template(self, template_name):
+        """
+        create template
+        """
         params = {'template_name': template_name}
         response = self.post(self.module, 'create_template', params=params)
         return response.json()
 
     def delete_template(self, template_name):
+        """
+        delete template
+        """
         params = {'template_name': template_name}
         response = self.post(self.module, 'delete_template', params=params)
         return response.json()
 
     def remove_blob_from_template(self, template_name, blob_set, pos_set):
+        """
+        remove blob from template
+        """
         params = {'template_name': template_name, 'blob_set': blob_set, 'pos_set': pos_set}
         response = self.post(self.module, 'remove_blob_from_template', params=params)
         return response.json()
 
     def add_templates_to_demo(self, demo_id, template_names):
+        """
+        add templates to demo
+        """
         params = {'demo_id': demo_id, 'template_names': template_names}
         response = self.post(self.module, 'add_templates_to_demo', params=params)
         return response.json()
 
     def get_demo_templates(self, demo_id):
+        """
+        get demo templates
+        """
         params = {'demo_id': demo_id}
         response = self.post(self.module, 'get_demo_templates', params=params)
         return response.json()
 
     def remove_template_from_demo(self, demo_id, template_name):
+        """
+        remove template from demo
+        """
         params = {'demo_id': demo_id, 'template_name': template_name}
         response = self.post(self.module, 'remove_template_from_demo', params=params)
         return response.json()
 
     def edit_blob_from_demo(self, demo_id=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
                             new_pos_set=None, title=None, credit=None, vr=None):
+        """
+        edit blob from demo
+        """
         params = {}
         if demo_id is not None: params['demo_id'] = demo_id
         if tags is not None: params['tags'] = tags
@@ -688,6 +819,9 @@ class BlobsTests(unittest.TestCase):
 
     def edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,
                                 new_pos_set=None, title=None, credit=None, vr=None):
+        """
+        edit blob from template
+        """
         params = {}
         if template_name is not None: params['template_name'] = template_name
         if tags is not None: params['tags'] = tags
@@ -703,10 +837,16 @@ class BlobsTests(unittest.TestCase):
         return response.json()
 
     def get_all_templates(self):
+        """
+        get all templates
+        """
         response = self.post(self.module, 'get_all_templates')
         return response.json()
 
     def delete_vr_from_blob(self, blob_id):
+        """
+        delete vr from blob
+        """
         params = {'blob_id': blob_id}
         response = self.post(self.module, 'delete_vr_from_blob', params=params)
         return response.json()

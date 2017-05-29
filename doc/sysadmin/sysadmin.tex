@@ -487,7 +487,7 @@ The VirtualBox package needs to be installed from the VirtualBox's repositories.
 
 {\tt sudo su -c 'wget -q -O- http://download.virtualbox.org/virtualbox/debian/oracle\_vbox\_2016.asc | apt-key add -'}
 
-Then add the following line to the sources.list (change \emph{jessie} to the codename of the current stable distribution):
+Then add the following line to {\tt /etc/apt/sources.list} (change \emph{jessie} to the codename of the current stable distribution):
 
 {\tt deb http://download.virtualbox.org/virtualbox/debian jessie contrib}
 
@@ -498,7 +498,7 @@ ipol            soft     priority            0
 \end{verbatim}
 
 
-The following packages need to be installed with: sudo apt-get install virtualbox virtualbox-dkms virtualbox-guest-dkms virtualbox-guest-utils vde2 virtualbox-guest-additions-iso xfonts-100dpi xfonts-75dpi
+The following packages need to be installed with: sudo apt-get install virtualbox virtualbox-dkms virtualbox-guest-dkms virtualbox-guest-utils vde2 virtualbox-guest-additions-iso xfonts-100dpi xfonts-75dpi linux-headers-amd64 linux-image-amd64
 
 Then the ``nosmap" kernel option need to be added to the kernel options: sudo nano /etc/default/grub
 
@@ -507,7 +507,17 @@ GRUB_CMDLINE_LINUX_DEFAULT="nosmap"
 GRUB_CMDLINE_LINUX="nosmap"
 \end{verbatim}
 
-And finally {\tt update-grub} and reboot the machine.
+Running {\tt update-grub} is needed to update the boot entries. For example:
+
+\begin{verbatim}
+Found linux image: /boot/bzImage-3.14.32-xxxx-grs-ipv6-64
+Found linux image: /boot/vmlinuz-3.16.0-4-amd64
+Found initrd image: /boot/initrd.img-3.16.0-4-amd64
+\end{verbatim}
+
+In {\tt /etc/default/grub} we should configure {\tt GRUB\_DEFAULT=2} (index begins at 0) before.
+
+Finally, reboot the machine.
 
 To start and stop the virtual machine called ``VM":
 
@@ -526,6 +536,8 @@ This script contains the instructions to start again the VM:
 VBoxManage startvm VM --type headless
 \end{verbatim}
 
+To allow the external users to access the virtual machine, we need to configure a port forwarding rule.
+It can be done easily by running the virtual machine (with ssh -X ...) and in the VirtualBox: Settings / Network / Port Forwarding: protocol TCP, Host Post 2222, Guest Port 22.
 
 \bibliographystyle{plain}
 \bibliography{biblio}

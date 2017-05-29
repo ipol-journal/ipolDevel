@@ -118,7 +118,7 @@
                 </div>
                 <div class="modal-body" id="createDemoFormmodalbody">
                     <div id="createdemo_modal_errordiv"></div>
-                    {% crispy demoform %}
+                    {% crispy createdemoform %}
 
                 </div>
                 <div class="modal-footer">
@@ -134,7 +134,7 @@
 
 {% block functionsjs %}
     <script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
-
+    {% include 'autocomplete_light/static.html' %}
     <!-- include external script with required functions -->
     <script src="{% static 'js/demoinfo_demos_2.js' %}"></script>
 {% endblock %}

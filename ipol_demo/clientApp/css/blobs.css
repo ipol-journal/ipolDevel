@@ -117,8 +117,3 @@ justify-content: space-around;
 .upload-element:first-child {
   text-align: center;
 }
-
-.blobThumbnail {
-  width: auto;
-  height: 100%;
-}

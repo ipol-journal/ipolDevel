@@ -6,6 +6,7 @@ var demo_id;
 $(document).ready(function() {
     $( "#header" ).load( "header.html" );
     $( "#inputEditorContainer" ).load( "editor.html" );
+    $( "#parameters" ).load( "parameters.html" );
     $( "#footer" ).load( "footer.html" );
 
     var clientApp = (function(){
