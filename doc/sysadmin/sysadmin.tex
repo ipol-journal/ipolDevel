@@ -536,6 +536,8 @@ This script contains the instructions to start again the VM:
 VBoxManage startvm VM --type headless
 \end{verbatim}
 
+To allow the external users to access the virtual machine, we need to configure a port forwarding rule.
+It can be done easily by running the virtual machine (with ssh -X ...) and in the VirtualBox: Settings / Network / Port Forwarding: protocol TCP, Host Post 2222, Guest Port 22.
 
 \bibliographystyle{plain}
 \bibliography{biblio}
