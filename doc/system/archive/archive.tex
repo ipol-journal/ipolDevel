@@ -14,7 +14,7 @@ The archive module, written in Python, is using the Cherrypy framework for webse
 \subsection{Architecture}
 
 \paragraph{Module composition} \hspace{0pt} \\
-The module is composed of very few files, the code itself in ``module.py'', a cherrypy configuration file ``archive.conf'', two mako HTML templates, and a database. It will also need four directories, respectively for storing blobs, thumbnails, the database, and logs.
+The module is composed of very few files, the code itself in ``module.py'', a cherrypy configuration file ``archive.conf'', and a database. It will also need four directories, respectively for storing blobs, thumbnails, the database, and logs.
 
 \paragraph{Module architecture} \hspace{0pt} \\
 The module is composed of a class, 'Archive', encapsulating the data needed to function. The services offered by the module are all methods of this class. The cherrypy framework provide the abstraction for making the methods available as webservices. \\
@@ -129,13 +129,6 @@ The method ``page'' returns a JSON response with, for a given page of a given de
     nb_pages : nb_pages_example
 }
 \end{verbatim} 
-
-\paragraph{Administrator interface for removing blobs/experiments} \hspace{0pt} \\
-Example :
-\begin{verbatim}
-http://<localhost>:<port>/archive_admin?demo_id=42&page=3
-\end{verbatim}
-The only user interface furnished by the archive module is for removing blobs or experiment in a convenient manner. It uses the json response of the precedent service and renders the ``archive\_admin\_tmp.html'' template displaying a page of archives for given demo, allowing the deletion of both blobs and experiments by simply linking to two other services calling deletion methods and updating the template. In case of error, for example when invalid data is given through URL, ``error.html'' is rendered.
 
 \paragraph{Shutdown} \hspace{0pt} \\
 Example :
