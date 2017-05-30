@@ -214,25 +214,28 @@ parameters:
 */
 function send_delete_demo_request(wsurl, demo_editorsdemoid, demo_title, redirect_url) {
 
-    var deldemo = confirm("WARNING: this operation will remove completely demo with editor's id: "+
-            demo_editorsdemoid + " ("+ demo_title +") and all its associated data from the system. " +
-            "\n\nNote that you can, instead, change the state of the demo to testing, which is 'safe'.");
+    var deldemo = confirm("You're about to delete this demo."+
+    " Note that this operation is not reversible and all its data will be lost.");
 
     if (deldemo == true) {
+        var deldemo2 = confirm( "Please confirm that you indeed want to remove this demo."+
+        " This is the last opportunity to cancel before irreversible deletion.");
 
-        $.ajax({
-            type: 'POST',
-            url: wsurl,
-            dataType: 'json',
-            success: function(data) {
-                console.log(data.status);
-                window.location.replace(redirect_url);
-            },
-            error: function(data){
-                console.error(data.status);
-                alert('Demo not deleted: ' + $ws_down);
-            }
-        });
+        if (deldemo2 == true) {
+            $.ajax({
+                type: 'POST',
+                url: wsurl,
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data.status);
+                    window.location.replace(redirect_url);
+                },
+                error: function(data){
+                    console.error(data.status);
+                    alert('Demo not deleted: ' + $ws_down);
+                }
+            });
+        }
     }
 }
 
