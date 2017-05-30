@@ -44,11 +44,11 @@ class CreateDemoform(forms.Form):
     #hidden
     id = forms.IntegerField(label='demoid',required=False)
     #normal
-    editorsdemoid = forms.IntegerField(label='Demo ID',required=True)
-    title = forms.CharField(label='Title',required=True, min_length=5)
-    editor = al.ChoiceField('EditorAutocomplete', label='Editor (name, email)', required=True)
+    editorsdemoid = forms.IntegerField(label='Demo ID',required=False)
+    title = forms.CharField(label='Title',required=False)
+    editor = al.ChoiceField('EditorAutocomplete', label='Editor (name, email)', required=False)
 
-    state = forms.ChoiceField(label='State',required=True)
+    state = forms.ChoiceField(label='State',required=False)
 
     helper = FormHelper()
     helper.form_id = "CreateDemoform"
@@ -60,9 +60,9 @@ class CreateDemoform(forms.Form):
 
             Field('id', type='hidden'),
             Field('editorsdemoid'),
-            Field('editor', css_class='form-control'),
             Field('title', css_class='form-control'),
             Field('state'),
+            Field('editor', css_class='form-control'),
             FormActions(
                     Submit('save_demo', 'Save', css_class="btn-primary"),
             )
@@ -70,7 +70,7 @@ class CreateDemoform(forms.Form):
     def __init__(self, *args, **kwargs):
         #dinamic way to get staes of demo in demoinfo module
         super(CreateDemoform, self).__init__(*args, **kwargs)
-        self.fields['state'] = forms.ChoiceField(label='state',required=True, choices=get_demoinfo_module_states() )
+        self.fields['state'] = forms.ChoiceField(label='state',required=False, choices=get_demoinfo_module_states() )
 
 class UpdateDemoform(forms.Form):
     # hidden

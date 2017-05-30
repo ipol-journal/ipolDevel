@@ -23,6 +23,7 @@ def main():
     for demo_id in get_published_demos():
         json_ddl = json.loads(get_ddl(demo_id))
         build_section = json_ddl.get('build')
+        requirements = json_ddl.get('general').get('requirements')
 
         if build_section is None:
             print "Demo #{} doesn't have build section".format(demo_id)
@@ -30,8 +31,7 @@ def main():
             continue
 
         demo_compilation_path = get_compilation_path(demo_id)
-
-        if not build(demo_id, build_section, demo_compilation_path, demorunners):
+        if not build(demo_id, build_section, demo_compilation_path, requirements, demorunners):
             all_success = False
 
     if not all_success:
@@ -99,12 +99,13 @@ def get_ddl(demo_id):
     return last_demodescription.get('ddl')
 
 
-def build(demo_id, build_section, path_for_the_compilation, demorunners):
+def build(demo_id, build_section, path_for_the_compilation, requirements, demorunners):
     """
     Execute the build section. If any build fail the method returns a False
     """
     all_success = True
-    for demorunner in demorunners.keys():
+    suitable_demorunners = get_suitable_demorunners(requirements, demorunners)
+    for demorunner in suitable_demorunners.keys():
         demorunner_host = demorunners[demorunner].get('server')
         params = {'ddl_build': json.dumps(build_section), 'path_for_the_compilation': path_for_the_compilation}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
@@ -113,6 +114,25 @@ def build(demo_id, build_section, path_for_the_compilation, demorunners):
             all_success = False
             print "Couldn't build demo {} in {}.".format(demo_id, demorunner)
     return all_success
+
+
+def get_suitable_demorunners(requirements, demorunners):
+    """
+    Return all the suitable demorunners
+    """
+    if requirements is None:
+        return demorunners
+
+    suitable_demorunners = {}
+    requirements = requirements.lower().split(',')
+
+    for dr in demorunners.keys():
+        dr_capabilities = [cap.lower().strip() for cap in demorunners[dr].get('capability')]
+
+        if all([req.strip() in dr_capabilities for req in requirements]):
+            suitable_demorunners[dr] = demorunners[dr]
+
+    return suitable_demorunners
 
 
 def read_demorunners():
