@@ -1,15 +1,12 @@
 .param-container {
   display: flex;
+  font-size: 14px;
   flex-wrap: nowrap;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  padding: 10px 0px;
+  padding: 0 10%;
+  border-bottom: 0.5px solid rgba(225, 228, 241, 0.75);
 }
-
-/*.param-container:nth-child(even) {
-  background-color: #eee;
-}*/
-
 
 .range-slider {
   margin: 60px 0 0 0%;
@@ -27,11 +24,12 @@
   background: #d7dcdf;
   outline: none;
   padding: 0;
-  margin: 0;
+  margin: 0 5px 0 0 ;
 }
+
 .range-slider__range::-webkit-slider-thumb {
   -webkit-appearance: none;
-          appearance: none;
+  appearance: none;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -40,12 +38,15 @@
   -webkit-transition: background .15s ease-in-out;
   transition: background .15s ease-in-out;
 }
+
 .range-slider__range::-webkit-slider-thumb:hover {
   background: #1abc9c;
 }
+
 .range-slider__range:active::-webkit-slider-thumb {
   background: #1abc9c;
 }
+
 .range-slider__range::-moz-range-thumb {
   width: 20px;
   height: 20px;
@@ -56,14 +57,17 @@
   -webkit-transition: background .15s ease-in-out;
   transition: background .15s ease-in-out;
 }
+
 .range-slider__range::-moz-range-thumb:hover {
   background: #1abc9c;
 }
+
 .range-slider__range:active::-moz-range-thumb {
   background: #1abc9c;
 }
 
 .range-slider__value {
+  border: none;
   display: inline-block;
   position: relative;
   width: 60px;
@@ -73,8 +77,9 @@
   border-radius: 3px;
   background: #2c3e50;
   padding: 5px 10px;
-  margin-left: 8px;
+  /*margin-left: 8px;*/
 }
+
 .range-slider__value:after {
   position: absolute;
   top: 8px;
@@ -92,7 +97,28 @@
   border: 0;
 }
 
-input::-moz-focus-inner,
-input::-moz-focus-outer {
+input::-moz-focus-inner, input::-moz-focus-outer {
   border: 0;
+}
+
+.label-param{
+  width: 100%;
+  background-color: rgb(233, 233, 233);
+}
+
+.label-param *{
+  margin: 5px 0;
+}
+
+.checkbox-param{
+  margin: 0 25px;
+}
+
+.input-text-param{
+  width: 300px !important;
+}
+
+.param-container span {
+  justify-self: flex-start;
+  margin-right: auto;
 }

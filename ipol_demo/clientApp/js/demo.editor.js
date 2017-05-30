@@ -104,8 +104,15 @@ function areAllImages() {
 
 $.fn.printEditorBlob = function(editorBlob, side) {
   var blobType = editorBlob.format;
-  var blobSrc = editorBlob.blob;
-  if (blobType == 'image') {
+  var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
+  if (blobType == 'video') {
+    $(this).empty();
+    $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
+  } else if (blobType == 'audio') {
+    $(this).empty();
+    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "non_viewable_data.png";
+    $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
+  } else {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr('src', blobSrc);
     } else {
@@ -113,13 +120,6 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
       $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
     }
-  } else if (blobType == 'video') {
-    $(this).empty();
-    $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
-  } else if (blobType == 'audio') {
-    $(this).empty();
-    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "non_viewable_data.png";
-    $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   }
 }
 
