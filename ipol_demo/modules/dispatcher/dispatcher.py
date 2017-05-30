@@ -27,9 +27,8 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) or (
-                "X-Real-IP" in cherrypy.request.headers and not is_authorized_ip(
-                cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
+                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -136,14 +135,12 @@ class Dispatcher(object):
                 dict_demorunners[demorunner_name]["capability"]
             ))
 
-
-
     @cherrypy.expose
     def set_demorunners(self, demorunners):
         """
         Set the value of the demorunners
         """
-        data = {"status":"KO"}
+        data = {"status": "KO"}
         try:
             json_demorunners = json.loads(demorunners)
             self.demorunners = []

@@ -219,26 +219,20 @@ function send_delete_demo_request(wsurl, demo_editorsdemoid, demo_title, redirec
             "\n\nNote that you can, instead, change the state of the demo to testing, which is 'safe'.");
 
     if (deldemo == true) {
-        var deldemo2 = confirm( "Are you sure to delete completely this demo? " +
-            "\nPlease confirm if you want to remove it from the system");
 
-        if (deldemo2 == true) {
-            $.ajax({
-                type: 'POST',
-                url: wsurl,
-                dataType: 'json',
-                success: function(data) {
-                    console.log(data.status);
-                    alert('Demo ' + demo_editorsdemoid + ' deleted succesfully');
-                    // after the deletion, redirect to given URL (list of demos)
-                    window.location.replace(redirect_url);
-                },
-                error: function(data){
-                    console.error(data.status);
-                    alert('Demo not deleted: ' + $ws_down);
-                }
-            });
-        }
+        $.ajax({
+            type: 'POST',
+            url: wsurl,
+            dataType: 'json',
+            success: function(data) {
+                console.log(data.status);
+                window.location.replace(redirect_url);
+            },
+            error: function(data){
+                console.error(data.status);
+                alert('Demo not deleted: ' + $ws_down);
+            }
+        });
     }
 }
 
