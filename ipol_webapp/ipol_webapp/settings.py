@@ -186,6 +186,7 @@ INSTALLED_APPS = (
 
         # 'allauth.socialaccount.providers.linkedin',
 )
+EMAIL_HOST = 'localhost'
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
