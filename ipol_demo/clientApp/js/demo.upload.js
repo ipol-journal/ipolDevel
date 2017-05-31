@@ -40,7 +40,11 @@ $(".upload-dialog").dialog({
     Cancel: function() {
       $(this).dialog("close");
     }
-  }
+  },
+    create:function () {
+      $('.ui-dialog-buttonset').children().removeClass('ui-button ui-corner-all ui-widget');
+      $('.ui-dialog-buttonset').children().addClass('btn');
+    }
 });
 
 $(".upload-btn").click(function() {

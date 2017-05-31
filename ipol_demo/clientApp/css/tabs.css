@@ -1,9 +1,7 @@
 .tabs {
   display: inline-block;
-
   width: 100%;
   padding: 5px 0px;
-
   border-bottom: 0.5px solid #c6c6c6;
 }
 
@@ -13,19 +11,16 @@
 
 .tabs a {
   padding: 5px 10px;
-
   text-decoration: none;
-
   opacity: 0.7;
   color: #000000;
   border-radius: 5px 5px 0 0;
   background-color: #d4c9e9;
-
   font-family: Arial;
   font-size: 14px;
 }
 
-.tabs a:hover{
+.tabs a:hover {
   opacity: 1;
   border: 0.2px solid #88898b;
   border-bottom: none;
