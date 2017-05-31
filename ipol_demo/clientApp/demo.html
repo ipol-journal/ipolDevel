@@ -35,11 +35,13 @@
 
     <div class="inputContainer container">
         <h1 class="legendText">Select input(s)</h1>
-        <button class="ui-button ui-corner-all ui-widget description-btn">Description</button>
+        <button class="btn description-btn">Description</button>
+        <!-- <button class="ui-button ui-corner-all ui-widget description-btn">Description</button> -->
 
         <div class="description-dialog" title="Input description"></div>
 
-        <button class="ui-button ui-corner-all ui-widget upload-btn">Upload data</button>
+        <button class="btn upload-btn">Upload data</button>
+        <!-- <button class="ui-button ui-corner-all ui-widget upload-btn">Upload data</button> -->
         <div class="upload-dialog" title="Upload data"></div>
 
         <div id="sets" class="setContainer"></div>
@@ -47,10 +49,11 @@
 
     <div id="inputEditorContainer"></div>
 
-    <div id="parameters"></div>
+    <div id="parameters">
+      <div class="params-description-dialog" title="Params description"></div>
+    </div>
 
     <div id="footer"></div>
-
 
     <script
     src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -71,8 +74,6 @@
     <script src="js/demo.editor.scroll.js"></script>
     <script src="js/demo.parameters.js"></script>
 
-    <script src="externalModules/cropper/cropper.min.js">
-
-    </script>
+    <script src="externalModules/cropper/cropper.min.js"></script>
 
 </body>
