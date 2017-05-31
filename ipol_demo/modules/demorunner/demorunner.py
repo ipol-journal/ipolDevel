@@ -70,9 +70,8 @@ def authenticate(func):
         '''
         Invokes the wrapped function if authenticated
         '''
-        if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                ("X-Real-IP" in cherrypy.request.headers and
-                     not is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
+                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -604,25 +603,4 @@ stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
             res_data['error'] = 'Error: {}'.format(e)
             print res_data
             return json.dumps(res_data)
-
-        # check if new config fields
-        if ddl_config != None:
-            ddl_config = json.loads(ddl_config)
-            if 'info_from_file' in ddl_config.keys():
-                for info in ddl_config['info_from_file']:
-                    filename = ddl_config['info_from_file'][info]
-                    try:
-                        f = open(os.path.join(work_dir, filename))
-                        file_lines = f.read().splitlines()
-                        print file_lines
-                        # remove empty lines and replace new lines with ' | '
-                        new_string = " | ".join([ll.rstrip() for ll in file_lines if ll.strip()])
-                        print new_string
-                        res_data['algo_info'][info] = new_string
-                        f.close()
-                    except Exception as e:
-                        self.logger.exception("DDL - Failed to get info from {}".format(os.path.join(work_dir, filename)))
-                        print "failed to get info ", info, " from file ", os.path.join(work_dir, filename)
-                        print "Exception ", e
-
         return json.dumps(res_data)

@@ -40,9 +40,8 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) or \
-                ("X-Real-IP" in cherrypy.request.headers and not is_authorized_ip(
-                    cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
+                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -830,60 +829,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             except Exception as ex:
                 pass
         return json.dumps(status)
-
-    #####
-    # admin mode for removing blobs
-    #####
-
-    @cherrypy.expose
-    def archive_admin(self, demo_id, page):
-        """
-        Implement the administrator interface for removing blobs.
-        """
-        try:
-            demo_id = int(demo_id)
-            page = int(page)
-            test_json = self.echo_page(demo_id, page)
-            template = Template(filename='archive_admin_tmp.html')
-
-            return template.render(demo=demo_id,
-                                   test=test_json,
-                                   num_page=page,
-                                   url=self.url,
-                                   func_name="archive_admin")
-        except Exception:
-            template = Template(filename='error.html')
-            return template.render()
-
-    @cherrypy.expose
-    @authenticate
-    def delete_blob_w_deps_web(self, id_blob, demo_id):
-        """
-        HTML rendering for deleting blobs.
-        """
-        status = json.loads(self.delete_blob_w_deps(id_blob))
-        if status["status"] != "OK":
-            template = Template(filename='error.html')
-            return template.render()
-        else:
-            return self.archive_admin(demo_id, 0)
-
-    @cherrypy.expose
-    @authenticate
-    def delete_experiment_web(self, experiment_id, demo_id):
-        """
-        HTML rendering for deleting experiments.
-        """
-        status = json.loads(self.delete_experiment(experiment_id))
-        if status["status"] != "OK":
-            template = Template(filename='error.html')
-            return template.render()
-        else:
-            return self.archive_admin(demo_id, 0)
-
-            #####
-            # web utilities
-            #####
 
     @cherrypy.expose
     def ping(self):

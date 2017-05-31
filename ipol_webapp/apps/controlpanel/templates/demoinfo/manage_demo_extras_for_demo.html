@@ -27,7 +27,7 @@
 				<label class="extraFile" id="name" >  File...</label>
 				<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload</label>
 				<p></p>
-				<a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+				<a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
 			</div>
 
 			{% if data.status == "OK" %}
