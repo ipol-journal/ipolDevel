@@ -410,8 +410,8 @@ class Archive(object):
         cursor_db = conn.cursor()
         cursor_db.execute("""
         INSERT INTO
-        experiments (id_demo, params)
-        VALUES (?, ?)""", (demo_id, parameters))
+        experiments (id_demo, params, timestamp)
+        VALUES (?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters))
 
         return int(cursor_db.lastrowid)
 
