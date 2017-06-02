@@ -49,6 +49,8 @@ def run_tests():
     """
     Execute all the tests
     """
+    # wait 3 seconds to give time to restart the modules
+    time.sleep(3)
     for test in tests:
         # Print the tested module
         module_name = os.path.basename(os.path.split(test)[0]).title()
