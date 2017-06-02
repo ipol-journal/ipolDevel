@@ -47,7 +47,7 @@ hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox', 'hmc-ipol', 'matias-VirtualBox']
 dev_machines_hostname = ['integration.ipol.im']
 dev_machines = ['.ipol.im']
-production_machines = ['ipol_core', 'ipolcore.ipol.im']
+production_machines = ['ipolcore', 'ipolcore.ipol.im']
 
 #alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
@@ -134,7 +134,7 @@ elif hostname in production_machines:
 	#asi evito python manage.py collectstatic y servir con apache
 	DEBUG = False
 	TEMPLATEDEBUG = False
-	DBHOST = 'ipol_core'
+	DBHOST = 'ipolcore'
 	DBUSER = ''
 	DBPSSWD = ''
 	HTTPS = False
