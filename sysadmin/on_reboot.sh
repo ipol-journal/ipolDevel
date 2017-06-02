@@ -22,7 +22,7 @@ do
 done < ${modules}
 
 # Mount shared folder
-if [ $(hostname) != "ipol_core" ]
+if [ $(hostname) != "ipolcore" ]
 then
     sudo -u ${me} sshfs ipol_core:$sharedFolder $sharedFolder
 fi

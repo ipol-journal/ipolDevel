@@ -14,7 +14,7 @@ function send_email () {
 }
 
 # Executes all the tests for integration and production
-if [ $host == "integration.ipol.im" ] || [ $host == "ipol_core" ];then
+if [ $host == "integration.ipol.im" ] || [ $host == "ipolcore" ];then
     out=$(python /home/ipol/ipolDevel/ci_tests/all.py)
     if [ $? -ne 0 ];then
         send_email "$out"
