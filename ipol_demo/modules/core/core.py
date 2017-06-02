@@ -37,8 +37,8 @@ import os.path
 import urllib
 
 import hashlib
-from   datetime import datetime
-from   random import random
+from datetime import datetime
+from random import random
 import glob
 import time
 
@@ -54,6 +54,7 @@ import requests
 import cherrypy
 import magic
 
+
 def authenticate(func):
     """
     Wrapper to authenticate before using an exposed function
@@ -63,8 +64,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) \
+                and not ("X-Real-IP" in cherrypy.request.headers
+                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -75,10 +77,9 @@ def authenticate(func):
         """
         core = Core.get_instance()
         patterns = []
-        # Creates the patterns  with regular expresions
+        # Creates the patterns  with regular expressions
         for authorized_pattern in core.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\.").
-                                       replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -176,7 +177,6 @@ class Core(object):
             # Configure
             self.png_compresslevel = 1
 
-
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
 
@@ -272,14 +272,16 @@ class Core(object):
         dr_wl = {}
         for dr_name in self.demorunners:
             try:
-                resp = self.post(self.demorunners[dr_name]['server'],
-                                 'demorunner', 'get_workload')
+                resp = self.post(self.demorunners[dr_name]['server'], 'demorunner', 'get_workload')
+                if not resp.ok:
+                    self.error_log("demorunners_workload", "No response from DR='{}'".format(dr_name))
+                    continue
+
                 response = resp.json()
-                if response['status'] == 'OK':
-                    dr_wl[dr_name] = response['workload']
+                if response.get('status') == 'OK':
+                    dr_wl[dr_name] = response.get('workload')
                 else:
-                    self.error_log("demorunners_workload",
-                                   "get_workload returned KO for DR='{}'".
+                    self.error_log("demorunners_workload", "get_workload returned KO for DR='{}'".
                                    format(dr_name))
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
@@ -406,6 +408,7 @@ workload of '{}'".format(dr_name)
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
+
         except Exception:
             self.logger.exception("shutdown")
         return json.dumps(data)
@@ -416,9 +419,7 @@ workload of '{}'".format(dr_name)
         """
         Default method invoked when asked for non-existing service.
         """
-        data = {}
-        data["status"] = "KO"
-        data["message"] = "Unknown service '{}'".format(attr)
+        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data)
 
     # ---------------------------------------------------------------------------
@@ -448,8 +449,7 @@ workload of '{}'".format(dr_name)
         """
         # check max size
         max_pixels = evaluate(str(input_info['max_pixels']))
-        return self.needs_convert(im, input_info) or \
-               prod(im.size) > max_pixels
+        return self.needs_convert(im, input_info) or prod(im.size) > max_pixels
 
     # ---------------------------------------------------------------------------
     def convert_and_resize(self, im, input_info):
@@ -477,36 +477,35 @@ workload of '{}'".format(dr_name)
         Converts the input TIFF to PNG.
         This is used by the web interface for visualization purposes
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
         try:
             temp_file = tempfile.NamedTemporaryFile()
             temp_file.write(base64.b64decode(img))
             temp_file.seek(0)
 
-            tiffFile = TIFF.open(temp_file.name, mode='r')
-            tiffImage = tiffFile.read_image()
+            tiff_file = TIFF.open(temp_file.name, mode='r')
+            tiff_image = tiff_file.read_image()
 
             # Check if the image can be converted
-            if not ("uint" in tiffImage.dtype.name or "int" in tiffImage.dtype.name):
+            if not ("uint" in tiff_image.dtype.name or "int" in tiff_image.dtype.name):
                 path = os.path.join(self.project_folder, "ipol_demo", "modules", "core", "static",
                                     "demo", "clientApp", "images", "non_viewable_data.png")
-                with open(path, "rb") as image:
-                    data["img"] = base64.b64encode(image.read())
+                with open(path, "rb") as img:
+                    data["img"] = base64.b64encode(img.read())
                 data["status"] = "OK"
                 return json.dumps(data)
             # Get number of rows, columns, and channels
-            Nrow, Ncolumn, _ = tiffImage.shape
+            nrow, ncolumn, _ = tiff_image.shape
 
-            pixelMatrix = tiffImage[:, :, 0:3].reshape(
-                (Nrow, Ncolumn * 3), order='C').astype(tiffImage.dtype)
+            pixel_matrix = tiff_image[:, :, 0:3].reshape(
+                (nrow, ncolumn * 3), order='C').astype(tiff_image.dtype)
             tmp_file = tempfile.SpooledTemporaryFile()
 
-            bitdepth = int(tiffImage.dtype.name.split("uint")[1])
-            writer = png.Writer(Ncolumn, Nrow,
+            bitdepth = int(tiff_image.dtype.name.split("uint")[1])
+            writer = png.Writer(ncolumn, nrow,
                                 bitdepth=bitdepth, greyscale=False)
 
-            writer.write(tmp_file, pixelMatrix)
+            writer.write(tmp_file, pixel_matrix)
             tmp_file.seek(0)
             encoded_string = base64.b64encode(tmp_file.read())
 
@@ -517,13 +516,13 @@ workload of '{}'".format(dr_name)
             self.logger.exception("Failed to convert image from TIFF to PNG")
         return json.dumps(data)
 
-    ###--------------------------------------------------------------------------
-    ##          END BLOCK OF INPUT TOOLS
-    ###--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    #           END BLOCK OF INPUT TOOLS
+    # --------------------------------------------------------------------------
 
-    ##----------------------------
+    # ----------------------------
     #   OLD FUNCTIONS  - In the future, they should be refactored
-    ##-----------------------------
+    # -----------------------------
     def crop_input(self, img, idx, work_dir, inputs_desc, crop_info):
         """
         Crop input if selected
@@ -602,14 +601,13 @@ workload of '{}'".format(dr_name)
                     print "failed to read image " + input_files[0]
                     raise cherrypy.HTTPError(400,  # Bad Request
                                              "Bad input file")
-                ##-----------------------------
-                ## Save the original file as PNG
-                ##
-                ## Do a check before security attempting copy.
-                ## If the check fails, do a save instead
-                if im.im.format != "PNG" or \
-                                im.size[0] > 20000 or im.size[1] > 20000 or \
-                                len(im.im.getbands()) > 4:
+                # -----------------------------
+                # Save the original file as PNG
+                #
+                # Do a check before security attempting copy.
+                # If the check fails, do a save instead
+                if im.im.format != "PNG" \
+                        or im.size[0] > 20000 or im.size[1] > 20000 or len(im.im.getbands()) > 4:
                     # Save as PNG (slow)
                     self.save_image(im, os.path.join(work_dir,
                                                      'input_%i.orig.png' % i))
@@ -620,8 +618,8 @@ workload of '{}'".format(dr_name)
                     shutil.move(input_files[0],
                                 os.path.join(work_dir, 'input_%i.orig.png' % i))
 
-                ##-----------------------------
-                ## convert to the expected input format. TODO: do it if needed ...
+                # -----------------------------
+                # convert to the expected input format. TODO: do it if needed ...
                 if crop_info is not None:
                     status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
 
@@ -659,9 +657,9 @@ workload of '{}'".format(dr_name)
                     msg += input_msg + "<br/>\n"
                     # end if type is image
             else:
-                if not inputs_desc[i]['type'] == "data":
+                if inputs_desc[i]['type'] != "data":
                     return
-                if not 'ext' in inputs_desc[i]:
+                if 'ext' not in inputs_desc[i]:
                     raise IPOLProcessInputsError("The DDL does not have extension field")
 
                 ext = inputs_desc[i]['ext']
@@ -684,9 +682,9 @@ workload of '{}'".format(dr_name)
             file_up = blobs.pop('file_%i' % i, None)
 
             if file_up is None or file_up.filename == '':
-                if not ('required' in inputs_desc[i].keys()) or \
+                if 'required' not in inputs_desc[i].keys() or \
                         inputs_desc[i]['required']:
-                    ## missing file
+                    # missing file
                     raise cherrypy.HTTPError(400, "Missing input file number {0}".format(i))
                 else:
                     # skip this input
@@ -696,13 +694,13 @@ workload of '{}'".format(dr_name)
             file_up.file.seek(0)
             type_of_uploaded_blob, ext_of_uploaded_blob = mime.from_buffer(file_up.file.read()).split("/")
 
-            if not 'ext' in inputs_desc[i]:
+            if 'ext' not in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL does not have extension field")
 
-            if not 'type' in inputs_desc[i]:
+            if 'type' not in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL does not have type field")
 
-            if not inputs_desc[i]['type'] == type_of_uploaded_blob and not inputs_desc[i]['type'] == "data":
+            if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
                 raise IPOLInputUploadError("The DDL type does not match with the uploaded file")
 
             # We keep the file according it was uploaded
@@ -716,8 +714,7 @@ workload of '{}'".format(dr_name)
                 if not data:
                     break
                 size += len(data)
-                if 'max_weight' in inputs_desc[i] and \
-                                size > evaluate(str(inputs_desc[i]['max_weight'])):
+                if 'max_weight' in inputs_desc[i] and size > evaluate(str(inputs_desc[i]['max_weight'])):
                     # file too heavy
                     # Bad Request
                     raise cherrypy.HTTPError(400, "File too large, resize or compress more")
@@ -750,7 +747,7 @@ workload of '{}'".format(dr_name)
                     self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
                     print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
 
-                index = index + 1
+                index += 1
 
         else:
             self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
@@ -765,16 +762,15 @@ workload of '{}'".format(dr_name)
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
 
-            if not 'id_blobs' in blobs:
+            if 'id_blobs' not in blobs:
                 raise IPOLCopyBlobsError("There is not id blobs")
 
             blobs_id_list = blobs['id_blobs']
             self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
 
-    ##---------------
-    ### OLD FUNCTIONS BLOCK END -- Need a refactoring :)
+    # ---------------
+    #  OLD FUNCTIONS BLOCK END -- Need a refactoring :)
     # --------------
-
 
     @staticmethod
     def download(url_file, filename):
@@ -841,12 +837,12 @@ workload of '{}'".format(dr_name)
         return: success or not
         """
         try:
-            demoExtrasFolder = os.path.join(self.demoExtrasMainDir, demo_id)
-            if os.path.isdir(demoExtrasFolder):
-                shutil.rmtree(demoExtrasFolder)
+            demo_extras_folder = os.path.join(self.demoExtrasMainDir, demo_id)
+            if os.path.isdir(demo_extras_folder):
+                shutil.rmtree(demo_extras_folder)
 
-            self.mkdir_p(demoExtrasFolder)
-            self.extract(compressed_file, demoExtrasFolder)
+            self.mkdir_p(demo_extras_folder)
+            self.extract(compressed_file, demo_extras_folder)
         except Exception as ex:
             raise IPOLDemoExtrasError(ex)
 
@@ -868,7 +864,7 @@ workload of '{}'".format(dr_name)
             raise IPOLDemoExtrasError("Demoinfo responds with a KO")
 
         if not os.path.isfile(demoextras_file):
-            if not 'url' in demoinfo_resp:
+            if 'url' not in demoinfo_resp:
                 return
             # There is a new demoExtras in demoinfo
             self.download(demoinfo_resp['url'], demoextras_file)
@@ -988,7 +984,7 @@ workload of '{}'".format(dr_name)
             # Must pass only a list here
             s.sendmail(msg['From'], emails, msg.as_string())
             s.quit()
-        except:
+        except Exception:
             pass
 
     def send_compilation_error_email(self, demo_id, text):
@@ -1050,8 +1046,9 @@ workload of '{}'".format(dr_name)
                 ziph.write(os.path.join(root, f))
 
     def send_runtime_error_email(self, demo_id, key, message):
-        """ Send email to editor when the execution fails """
-        # emails = self.get_demo_editor_list(demo_id)
+        """
+        Send email to editor when the execution fails
+        """
         demo_state = self.get_demo_metadata(demo_id)["state"].lower()
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
@@ -1115,7 +1112,7 @@ attached the failed experiment data.". \
         """
         emails = []
         config_emails = self.read_emails_from_config()
-        if not self.serverEnvironment == 'production':
+        if self.serverEnvironment != 'production':
             emails += config_emails['tech']['email'].split(",")
         if len(emails) == 0:
             return
@@ -1135,26 +1132,18 @@ attached the failed experiment data.". \
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
-        input_type = None
         if 'input_type' in kwargs:
-            input_type = kwargs.get('input_type', None)
+            input_type = kwargs.get('input_type')
         else:
-            response = {}
-            response["status"] = "KO"
-            self.error_log("run",
-                           "There is not input_type in run function.")
+            response = {"status": "KO"}
+            self.error_log("run", "There is not input_type in run function.")
             return json.dumps(response)
 
-        if 'params' in kwargs:
-            params = kwargs.get('params', None)
+        params = kwargs.get('params')
 
-        if 'original' in kwargs:
-            original_exp = kwargs.get('original', None)
+        original_exp = kwargs.get('original')
 
-        if 'crop_info' in kwargs:
-            crop_info = kwargs.get('crop_info', None)
-        else:
-            crop_info = None
+        crop_info = kwargs.get('crop_info', None)
 
         blobs = {}
         if input_type == 'upload':
@@ -1168,7 +1157,7 @@ attached the failed experiment data.". \
         elif input_type == 'noinputs':
             pass
 
-        ## Start of block to obtain the DDL
+        # Start of block to obtain the DDL
         try:
             resp = self.post(self.host_name, 'demoinfo',
                              'get_ddl', {"demo_id": demo_id})
@@ -1180,29 +1169,23 @@ attached the failed experiment data.". \
             if 'build' in ddl_json:
                 ddl_build = ddl_json['build']
             else:
-                response = {}
-                response["status"] = "KO"
-                response["error"] = "no 'build' section found in the DDL"
+                response = {"status": "KO", "error": "no 'build' section found in the DDL"}
                 return json.dumps(response)
-            if 'inputs' in ddl_json:
-                ddl_inputs = ddl_json['inputs']
+
+            ddl_inputs = ddl_json.get('inputs')
 
         except Exception as ex:
             s = "Failed to obtain the DDL of demo {}".format(demo_id)
             print s, ex
             self.logger.exception(s)
-            res_data = {}
-            res_data['error'] = 'unable to read the DDL'
-            res_data['status'] = 'KO'
+            res_data = {'error': 'unable to read the DDL', 'status': 'KO'}
             return json.dumps(res_data)
-        ## End block to obtain the DDL
+        # End block to obtain the DDL
 
         # Create a new execution key
         key = self.create_new_execution_key(self.logger)
         if key is None:
-            res_data = {}
-            res_data['error'] = 'internal error. Failed to create a valid execution key'
-            res_data['status'] = 'KO'
+            res_data = {'error': 'internal error. Failed to create a valid execution key', 'status': 'KO'}
             self.logger.exception("Failed to create a valid key")
             return json.dumps(res_data)
 
@@ -1247,9 +1230,7 @@ attached the failed experiment data.". \
         try:
 
             if 'general' not in ddl_json:
-                response = {}
-                response["error"] = "bad DDL syntax: no 'general' section found"
-                response["status"] = "KO"
+                response = {"error": "bad DDL syntax: no 'general' section found", "status": "KO"}
                 return json.dumps(response)
 
             # Find a DR with satisfies the requirements
@@ -1273,17 +1254,13 @@ attached the failed experiment data.". \
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name,
-                                               demorunner_response["buildlog"] if 'buildlog' in demorunner_response \
-                                                   else "", demorunner_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", ""),
+                                               demorunner_response["message"])
 
                 self.send_compilation_error_email(demo_id, text)
 
                 # Message for the web interface
-                response = {}
-                response["error"] = " --- Compilation error. --- {}". \
-                    format(text)
-                response["status"] = "KO"
+                response = {"error": " --- Compilation error. --- {}".format(text), "status": "KO"}
                 return json.dumps(response)
 
             try:
@@ -1303,17 +1280,13 @@ attached the failed experiment data.". \
             except (OSError, IOError) as ex:
                 self.logger.exception("Save params.json, demo_id={}".format(demo_id))
                 print "Failed to save params.json file", ex
-                response = {}
-                response['status'] = 'KO'
-                response['error'] = 'Save params.json'
+                response = {'status': 'KO', 'error': 'Save params.json'}
                 return json.dumps(response)
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
             if 'run' not in ddl_json:
-                response = {}
-                response["error"] = "bad DDL syntax: no 'run' section found"
-                response["status"] = "KO"
+                response = {"error": "bad DDL syntax: no 'run' section found", "status": "KO"}
                 return json.dumps(response)
 
             userdata['ddl_run'] = json.dumps(ddl_json['run'])
@@ -1358,9 +1331,7 @@ CORE in demo #{}".format(demo_id)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
-            core_response = {}
-            core_response["status"] = "KO"
-            core_response["error"] = "{}".format(ex)
+            core_response = {"status": "KO", "error": "{}".format(ex)}
             return json.dumps(core_response)
 
         dic = self.read_algo_info(work_dir)

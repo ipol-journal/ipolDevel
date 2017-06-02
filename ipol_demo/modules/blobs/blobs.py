@@ -90,19 +90,15 @@ class Blobs(object):
 
     def __init__(self):
 
+        # Sound colors
         matplotlib.rcParams['axes.prop_cycle'] = cycler('color', ['r', 'g', 'b', 'c', 'm', 'y', 'k', '#67d100'])
+
         # Paths
         self.blob_dir = cherrypy.config['final.dir']
         self.thumb_dir = cherrypy.config['thumbnail.dir']
         self.vr_dir = cherrypy.config['visual_representation.dir']
         self.config_common_dir = cherrypy.config.get("config_common.dir")
         self.module_dir = cherrypy.config.get("module.dir")
-
-        # Lock
-        self.lock = Lock()
-
-        # Security: authorized IPs
-        self.authorized_patterns = self.read_authorized_patterns()
 
         # Logs
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -112,6 +108,12 @@ class Blobs(object):
             self.logger = self.init_logging()
         except Exception as ex:
             print "Failed to create log dir. Error: {}".format(ex)
+
+        # Lock
+        self.lock = Lock()
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
         # Database
         self.database_dir = cherrypy.config.get("database_dir")
