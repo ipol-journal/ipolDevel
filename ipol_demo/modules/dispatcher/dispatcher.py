@@ -77,19 +77,19 @@ class Dispatcher(object):
         self.demorunners = None
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-        # Security: authorized IPs
-        self.authorized_patterns = self.read_authorized_patterns()
-
         # Default policy: lowest_workload
         self.policy = Policy.factory('lowest_workload')
 
+        # Logs
         try:
             if not os.path.exists(self.logs_dir):
                 os.makedirs(self.logs_dir)
-
             self.logger = self.init_logging()
         except Exception as e:
             self.logger.exception("Failed to create log dir (using file dir) : %s".format(e))
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
     def read_authorized_patterns(self):
         """

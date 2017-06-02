@@ -2,6 +2,9 @@ import ast
 
 
 class IPOLEvaluateError(Exception):
+    """
+    IPOLEvaluateError
+    """
     pass
 
 

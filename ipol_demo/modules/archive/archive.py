@@ -154,8 +154,6 @@ class Archive(object):
         self.url = cherrypy.config.get("url")
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-        # Security: authorized IPs
-        self.authorized_patterns = self.read_authorized_patterns()
 
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))
@@ -176,6 +174,9 @@ class Archive(object):
         self.mkdir_p(self.blobs_thumbs_dir)
 
         self.logger = self.init_logging()
+
+        # Security: authorized IPs
+        self.authorized_patterns = self.read_authorized_patterns()
 
         try:
             self.database_name = cherrypy.config.get("database_name")
