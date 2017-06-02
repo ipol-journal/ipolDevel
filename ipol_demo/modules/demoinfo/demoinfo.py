@@ -103,9 +103,8 @@ class DemoInfo(object):
         self.config_common_dir = cherrypy.config.get("config_common_dir")
         self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
 
-        self.server_address = 'http://{0}:{1}'.format(
-            cherrypy.config['server.socket_host'],
-            cherrypy.config['server.socket_port'])
+        self.server_address = 'http://{0}/api/demoinfo/'.format(
+            cherrypy.config['server.socket_host'])
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -219,10 +218,7 @@ class DemoInfo(object):
         compressed_file = os.path.join(extras_folder, self.demoExtrasFilename)
 
         if os.path.isfile(compressed_file):
-            return os.path.join(self.server_address, \
-                                self.dl_extras_dir, \
-                                demo_id, \
-                                self.demoExtrasFilename)
+            return os.path.join(self.server_address, self.dl_extras_dir, demo_id, self.demoExtrasFilename)
         else:
             return None
 
@@ -289,8 +285,8 @@ class DemoInfo(object):
 
             demoExtras_path = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
             file_stats = os.stat(demoExtras_path)
-            data['date'] = float(file_stats.st_mtime)
-            data['size'] = float(file_stats.st_size)
+            data['date'] = file_stats.st_mtime
+            data['size'] = file_stats.st_size
             data['url'] = demoExtras_url
             data['status'] = 'OK'
             return json.dumps(data)
