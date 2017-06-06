@@ -2,11 +2,11 @@
 1 install requirements
 	cd ipolDevel/ipol_webapp
 
-2 apply migrations and create supersuser.
-	see howto_migrations
-
-3 install pip requirements
+2 install pip requirements
 	pip install  -r requirements.txt
+
+3 apply migrations and create supersuser.
+	see howto_migrations
 
 4 runserver
 	ipolDevel/ipol_webapp$ python manage.py runserver
@@ -22,4 +22,3 @@ http://127.0.1.1/cp/admin
 
 Login:
 	http://127.0.1.1/cp
-
