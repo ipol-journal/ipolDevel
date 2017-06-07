@@ -15,7 +15,6 @@
 {% block content %}
 	<div class="container">
 		<h2> {% blocktrans %} Manage Demo Extras for demo {{ demo_id }} {%  endblocktrans %}</h2>
-
 		{% with data=view.list_demo_extras_for_demo %}
 			{#  Add Demo Extras btn #}
 			<div class="container">
@@ -23,9 +22,11 @@
 					<input type="file" id="file"  style="display: none;" name="myfile" onchange="fileName()"/>
 					<input type="submit" id="submit" style="display: none;" value="Upload" />
 				</form>
-				<label class="btn btn-info" for="file"> Select file</label>
-				<label class="extraFile" id="name" >  File...</label>
-				<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload</label>
+				{% if data.registered %}
+					<label class="btn btn-info" for="file"> Select file</label>
+					<label class="extraFile" id="name" >  File...</label>
+					<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload </label>
+				{% endif %}
 				<p></p>
 				<a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
 			</div>
@@ -34,8 +35,12 @@
 				{% if data.name != "" %}
 					<div class="extra" id="demo_extra" >
 						<p class="griditem col-sm-7">{{ data.name }} </p>
-						<a class="btn btn-info" onclick="window.open('{{ data.url_compressed_file }}')" target="_self"> Download</a>
-                        <a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
+						<a class="btn btn-info" onclick="window.open('{{ data.url }}')" target="_self"> Download</a>
+						{% if data.registered %}
+                        	<a class="btn btn-primary" onclick="send_delete_demo_extra_request('{% url 'ipol.cp.demoinfo.delete_demo_extra_from_demo'  demo_id %}',{{ demo_id }} )">{% trans 'Delete' %}</a>
+						{% else %}
+							<a class="btn btn-primary disabled">{% trans 'Delete' %}</a>
+						{% endif %}
 					</div>
 
 				{% else %}

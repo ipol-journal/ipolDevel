@@ -18,6 +18,20 @@ logger = logging.getLogger(__name__)
 
 __author__ = 'josearrecio'
 
+def has_permission(demo_id, user):
+    try:
+        if user.is_staff or user.is_superuser:
+            return True
+
+        editors = json.loads(ipolservices.demoinfo_editor_list_for_demo(demo_id))
+        for editor in editors.get('editor_list'):
+            if editor.get('mail') == user.email:
+                return True
+        return False
+
+    except Exception:
+        print "has_permission failed"
+        return False
 
 class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
     template_name = "archive/archive.html"
@@ -175,8 +189,8 @@ class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
         try:
             # get the typed query, and cast into integer (should be an experiment ID)
             query = self.request.GET.get('search')
+            demo_id = self.request.GET.get('demo_id')
             query = int(query)
-
             context['status'] = 'OK'
             context['query'] = query
 
@@ -191,6 +205,7 @@ class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
 
                 context['status'] = parsed_data['status']
                 context['results'] = parsed_data['experiment']
+                context['registered'] = has_permission(demo_id, self.request.user)
 
             except Exception as e:
                 msg = "Error on JSON parsing: %s" %e
@@ -221,7 +236,6 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
         # get context
         context = super(ArchivePageView, self).get_context_data(**kwargs)
         demo_id = self.kwargs['id']
-
         try:
             query = self.request.GET.get('q')
             context['q'] = query
@@ -262,6 +276,7 @@ class ArchivePageView(NavbarReusableMixinMF,TemplateView):
             context['current_page_number'] = pages['current_page']
             context['previous_page_number'] = pages['previous_page']
             context['next_page_number'] = pages['next_page']
+            context['registered'] = has_permission(demo_id, self.request.user)
 
         except Exception as e:
             msg = "ArchivePageView Error %s "%e

@@ -102,3 +102,7 @@ h4{
     color: gray;
     text-align: right;
 }
+#warning{
+    color:red;
+    font-weight: bold;
+}

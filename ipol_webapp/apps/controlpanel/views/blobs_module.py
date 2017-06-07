@@ -17,6 +17,20 @@ from rest_framework.parsers import JSONParser
 
 logger = logging.getLogger(__name__)
 
+def has_permission(demo_id, user):
+    try:
+        if user.is_staff or user.is_superuser:
+            return True
+
+        editors = json.loads(ipolservices.demoinfo_editor_list_for_demo(demo_id))
+        for editor in editors.get('editor_list'):
+            if editor.get('mail') == user.email:
+                return True
+        return False
+
+    except Exception:
+        print "has_permission failed"
+        return False
 
 class EditBlobFromDemoView(NavbarReusableMixinMF, TemplateView):
     template_name = "blobs/edit_blob_from_demo.html"
@@ -37,6 +51,7 @@ class EditBlobFromDemoView(NavbarReusableMixinMF, TemplateView):
             context['demo'] = demo
             context['set'] = set
             context['pos'] = pos
+            context['registered'] = has_permission(demo, self.request.user)
 
             page_json = ipolservices.get_demo_owned_blobs(int(demo))
             response = json.loads(page_json)
@@ -105,6 +120,7 @@ class ManageBlobsForDemoView(NavbarReusableMixinMF, TemplateView):
             context['sets'] = response_sets['sets']
             context['templates'] = used_templates
             context['unused_templates'] = unused_templates
+            context['registered'] = has_permission(demo_id, self.request.user)
 
         except Exception as e:
             msg = "ManageBlobsForDemoView. Error %s "%e
@@ -139,7 +155,9 @@ class DemoBlobSaveInfo(NavbarReusableMixinMF, TemplateView):
             new_pos = dict_response['new_pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.edit_blob_from_demo(request,id,tags,set,new_set,pos,new_pos,title,credit)
+
+            if has_permission(id, self.request.user):
+                ipolservices.edit_blob_from_demo(request,id,tags,set,new_set,pos,new_pos,title,credit)
         except Exception as ex:
             msg = "DemoBlobSaveInfo. Error %s " % ex
             logger.error(msg)
@@ -158,7 +176,8 @@ class RemoveBlobFromDemo(NavbarReusableMixinMF,TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            ipolservices.remove_blob_from_demo(dict_response['demo_id'], dict_response['set'], dict_response['pos'])
+            if has_permission(dict_response['demo_id'], self.request.user):
+                ipolservices.remove_blob_from_demo(dict_response['demo_id'], dict_response['set'], dict_response['pos'])
         except Exception as ex:
             msg = "RemoveBlobFromDemo. Error %s " % ex
             logger.error(msg)
@@ -177,7 +196,8 @@ class RemoveTemplateFromDemo(NavbarReusableMixinMF, TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            ipolservices.remove_template_from_demo(dict_response['demo_id'], dict_response['template'])
+            if has_permission(dict_response['demo_id'], self.request.user):
+                ipolservices.remove_template_from_demo(dict_response['demo_id'], dict_response['template'])
         except Exception as ex:
             msg = "RemoveTemplateFromDemo. Error %s " % ex
             logger.error(msg)
@@ -196,7 +216,8 @@ class AddTemplateToDemo(NavbarReusableMixinMF,TemplateView):
         try:
             response = self.request.POST
             dict_response = dict(response.iterlists())
-            ipolservices.add_template_to_demo(dict_response['demo_id'], dict_response['template'])
+            if has_permission(dict_response['demo_id'], self.request.user):
+                ipolservices.add_template_to_demo(dict_response['demo_id'], dict_response['template'])
         except Exception as ex:
             msg = "AddTemplateToDemo. Error %s " % ex
             logger.error(msg)
@@ -221,7 +242,8 @@ class AddBlobToDemo(NavbarReusableMixinMF,TemplateView):
             pos = dict_response['pos'][0]
             title = dict_response['title'][0]
             credit = dict_response['credit'][0]
-            ipolservices.add_blob_to_demo(request, id, tags, set, pos, title, credit)
+            if has_permission(id, self.request.user):
+                ipolservices.add_blob_to_demo(request, id, tags, set, pos, title, credit)
         except Exception as ex:
             msg = "AddBlobToDemo. Error %s " % ex
             logger.error(msg)

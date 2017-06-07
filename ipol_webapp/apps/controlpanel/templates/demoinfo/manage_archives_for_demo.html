@@ -30,7 +30,6 @@
             <div class="container">
                 <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
             </div>
-
 			{% if data.status == "OK" %}
 				{% if data.meta.number_of_experiments > 0 %}
                     <p>First experiment: {{ data.meta.first_date_of_an_experiment  }}</p>
@@ -45,7 +44,7 @@
 
                         {% for experiment in data.experiments %}
                             <div id="experiment_file_info_{{ file.id }}" class="experiment_file">
-                                <a title="View more details" href="{% url 'ipol.cp.archive.experiment_details'%}?search={{ experiment.id }}">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
+                                <a title="View more details" href="{% url 'ipol.cp.archive.experiment_details'%}?search={{ experiment.id }}&demo_id={{id}}">Experiment ID: <span class="badge">{{ experiment.id }}</span></a>
                                 <p>Date: {{ experiment.date }}</p>
                                 <p>Parameters: {{ experiment.parameters }}</p>
 
@@ -72,7 +71,9 @@
 
                                 {# Delete experiment button#}
                                 <div style="padding-left: 20px; padding-top: 10px;" align="right">
-                                    <a class="btn btn-primary" onclick="send_delete_experiment_request( '{% url 'ipol.cp.archive.delete_experiment' experiment.id %}', {{ experiment.id  }} )">Delete this Experiment</a>
+                                    {% if data.registered %}
+                                        <a class="btn btn-primary" onclick="send_delete_experiment_request( '{% url 'ipol.cp.archive.delete_experiment' experiment.id %}', {{ experiment.id  }} )">Delete this Experiment</a>
+                                    {%endif%}
                                 </div>
                             </div>
                         {% endfor %}

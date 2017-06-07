@@ -1,36 +1,62 @@
 var clientApp = clientApp || {};
-var editor = editor || {};
 var helpers = clientApp.helpers || {};
-var upload = clientApp.upload || {};
 var parameters = parameters ||  {};
+var parametersType = parametersType || {};
 
-var editorBlobs;
+var params = {};
+var ddl_params = {};
 var demoInfo = helpers.getFromStorage('demoInfo');
-// clientApp.parameters = parameters;
 
 parameters.printParameters = function() {
+  params,
+  ddl_params = {};
   demoInfo = helpers.getFromStorage('demoInfo');
+
   if (demoInfo.params) {
-    var params = demoInfo.params;
-    addTopButtons();
+    var demoInfoParams = demoInfo.params;
+    addParametersSectionButtons();
     $('.param-container').remove();
-    for (var i = 0; i < params.length; i++) {
-      $('#parameters-container').append('<div class=param-' + i + '></div>');
-      $('.param-' + i).addClass('param-container');
-
-      var param = params[i];
-      var values = param.values;
-      var $paramElement = $('.param-' + i);
-
+    for (var i = 0; i < demoInfoParams.length; i++) {
+      var param = demoInfoParams[i];
       var functionName = $.fn[param.type];
+      ddl_params[param.id] = param;
+
       if ($.isFunction(functionName)) {
-        $paramElement[param.type](param);
-      } else {
-        console.error(param.type + ' param type is not correct');
-      }
+        addToParamsObject(param);
+        printParameter(param, i);
+      } else console.error(param.type + ' param type is not correct');
     }
     if (demoInfo.params_layout) addLayout();
   }
+}
+
+function printParameter(param, index) {
+  $('<div class=param-' + index + '></div>').appendTo('#parameters-container').addClass('param-container');
+  $('<div class=param-content-' + index + ' ></div>').appendTo('.param-' + index).addClass("param-content");
+
+  $('.param-content-' + index)[param.type](param, index);
+
+  $('.param-' + index).addClass(param.id);
+  $('.' + param.id).checkVisibility(param);
+
+  if (param.values) addMaxMin(param, index);
+  if (param.comments) addParamInfo(param, index);
+}
+
+function addToParamsObject(param) {
+  if (param.default_value != undefined ||  param.values != undefined) {
+    params[param.id] = param.default_value != undefined ? param.default_value : param.values.default;
+  }
+}
+
+function addMaxMin(param, index) {
+  $('.param-content-' + index).append("<div id=maxmin-" + index + " class=maxmin ></div>");
+  if (param.values.max) $('#maxmin-' + index).append("<span> Max: " + param.values.max + "</span>");
+  if (param.values.min) $('#maxmin-' + index).append("<span> Min: " + param.values.min + "</span>");
+}
+
+function addParamInfo(param, index) {
+  $('.param-' + index).append("<div class=param-comments >" + param.comments + "</div>");
 }
 
 function addLayout() {
@@ -40,46 +66,15 @@ function addLayout() {
   }
 }
 
-$(".params-description-dialog").dialog({
-  resizable: false,
-  autoOpen: false,
-  width: 700,
-  modal: true,
-  open: function() {
-    $('.ui-widget-overlay').bind('click', function() {
-      $('.params-description-dialog').dialog('close');
-    })
+function updateParamsArrayValue(param_id, value) {
+  params[param_id] = value;
+  checkParamsVisibility();
+}
+
+function checkParamsVisibility() {
+  for (let i = 0; i < Object.keys(params).length; i++) {
+    $('.' + Object.keys(params)[i]).checkVisibility(ddl_params[Object.keys(params)[i]]);
   }
-});
-
-function addTopButtons() {
-  $('.params-buttons').remove();
-  $('#parameters-container').append('<div class=params-buttons ></div>');
-  addDescriptionButton();
-  addResetButton();
-}
-
-function addDescriptionButton() {
-  $('.params-buttons').append('<button class=param-description-btn >Description</button>');
-  // $('.param-description-btn').addClass('ui-button ui-corner-all ui-widget');
-  $('.param-description-btn').addClass('btn');
-  $('.params-description-dialog').addParamsDescription();
-  $('.param-description-btn').click(function() {
-    $(".params-description-dialog").dialog("open");
-  });
-}
-
-function addResetButton() {
-  $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
-  // $('.param-reset-btn').addClass('ui-button ui-corner-all ui-widget');
-  $('.param-reset-btn').addClass('btn');
-  $('.param-reset-btn').click(function(event) {
-    parameters.printParameters();
-  });;
-}
-
-$.fn.addParamsDescription = function() {
-  $(this).empty().append(getConcatDescription());
 }
 
 function getConcatDescription() {
@@ -90,81 +85,56 @@ function getConcatDescription() {
   return description
 };
 
-$.fn.range = function(param) {
-  var values = param.values;
-  $(this).append('<span>' + param.label + '</span>');
-  $(this).append('<input id=range_' + param.id + ' class=range-slider__range type=' + param.type + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
-  $('#number_' + param.id).on('change input', function() {
-    $('#range_' + param.id).assignValue($(this).val());
-  });
-  $('#range_' + param.id).on('change input', function() {
-    $('#number_' + param.id).assignValue($(this).val());
-  });
+function addParametersSectionButtons() {
+  $('.params-buttons').remove();
+  $('#parameters-container').append('<div class=params-buttons ></div>');
+  addDescriptionButton();
+  addResetButton();
 }
 
-$.fn.range_scientific = function(param) {
-  var values = param.values;
-  $(this).append('<span>' + param.label + '</span>');
-  $(this).append('<input id=range_' + param.id + ' class=range-slider__range type=range min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.default+' />');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number value=' + values.default.toExponential(values.digits) + ' step=1 readonly/>');
-  $('#range_' + param.id).on('change input', function() {
-    $('#number_' + param.id).assignValue(parseFloat($(this).val()).toExponential(values.digits));
+function addDescriptionButton() {
+  $('.params-buttons').append('<button class=param-description-btn >Description</button>');
+  $('.param-description-btn').addClass('btn');
+  $('.params-description-dialog').addParamsDescription();
+  $('.param-description-btn').click(function() {
+    $(".params-description-dialog").dialog("open");
   });
 }
 
-$.fn.checkbox = function(param) {
-  $(this).append('<span>' + param.label + '</span>');
-  $(this).append('<input class=checkbox-param id=' + param.id + ' type=checkbox />');
-  $(param.id).prop('checked', param.default_value);
+function addResetButton() {
+  $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
+  $('.param-reset-btn').addClass('btn');
+  $('.param-reset-btn').click(function(event) {
+    parameters.printParameters();
+  });;
 }
 
-$.fn.selection_radio = function(param) {
-  var label = param.comments ? param.comments : param.label;
-  $(this).append('<span>' + label + '</span>');
-  var keys = Object.keys(param.values);
-  var values = Object.values(param.values);
-  $(this).append('<div id=param-' + param.id + '></div>');
-  for (var i = 0; i < keys.length; i++) {
-    $('#param-' + param.id).append('<input type=radio name=' + param.id + ' value=' + values[i] + '>' + keys[i] + '<br>');
-  }
+$.fn.addParamsDescription = function() {
+  $(this).empty().append(getConcatDescription());
 }
 
-$.fn.selection_collapsed = function(param) {
-  $(this).append('<span>' + param.label + '</span>');
-  var keys = Object.keys(param.values);
-  var values = Object.values(param.values);
-  $(this).append('<select id=select-' + param.id + '></select>');
-  var default_value = "";
-  for (var i = 0; i < keys.length; i++) {
-    if (param.default_value == values[i]) default_value = 'selected=selected';
-    else default_value = "";
-    $('#select-' + param.id).append('<option value=' + values[i] + ' ' + default_value + '>' + keys[i] + '</option>');
-  }
+$.fn.checkVisibility = function(param) {
+  if (param.visible != undefined)
+    if (!eval(param.visible)) $('.' + param.id).addClass('di-none');
+    else $('.' + param.id).removeClass('di-none');
+  else $('.' + param.id).removeClass('di-none');
 }
 
-$.fn.numeric = function(param) {
-  var values = param.values;
-  $(this).append('<span>' + param.label + '</span>');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number' + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
-}
-
-$.fn.text = function(param) {
-  var values = param.values;
-  $(this).append('<span>' + param.label + '</span>');
-  $(this).append('<input id=text_' + param.id + ' class=range-slider__value type=text />');
-  $("#text_" + param.id).addClass('input-text-param');
-}
-
-$.fn.label = function(param) {
-  $(this).append(param.label);
-  $(this).last().addClass('label-param');
-}
-
-$.fn.assignValue = function(value) {
-  $(this).val(value);
-}
-
+// Print upper the layout items the layout header.
 $.fn.addLayoutHeader = function(label) {
-  $("<span class=label-param>" + label + "</span>").insertBefore($(this)).addClass('param-container');
+  $("<div class=label-param></div>").insertBefore($(this))
+    .addClass('param-container')
+    .append('<h3>' + label + '</h3>');
 }
+
+$(".params-description-dialog").dialog({
+  resizable: false,
+  autoOpen: false,
+  width: 700,
+  modal: true,
+  open: function() {
+    $('.ui-widget-overlay').on('click', function() {
+      $('.params-description-dialog').dialog('close');
+    })
+  }
+});
