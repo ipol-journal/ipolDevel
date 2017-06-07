@@ -440,38 +440,6 @@ def DeserializeDemoinfoEditorList(jsonresult):
 
     return myel
 
-#DEMO EXTRAS
-
-def DeserializeDemoinfoDemoExtras(jsonresult):
-
-    class DemoExtra(object):
-        def __init__(self, status,url_compressed_file,name):
-            self.status = status
-            self.name = name
-            self.url_compressed_file = url_compressed_file
-
-
-    #Deserialization.
-    myel = None
-    try:
-
-        stream = BytesIO(jsonresult)
-        data = JSONParser().parse(stream)
-        if data['status'] == "OK":
-            if 'url' in data:
-                url = data['url']
-
-                myel = DemoExtra(data['status'],url, os.path.basename(url))
-            else:
-                myel = DemoExtra(data['status'], "", "")
-
-    except Exception,e:
-        msg="Error DeserializeEditorinfoDemoList  JSON Deserialization e: %s serializer.errors: " % e
-        logger.error(msg)
-        print(msg)
-        #logger.error(serializer.errors)
-
-    return myel
 
 
 ####################

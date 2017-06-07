@@ -60,7 +60,9 @@
 
                     {# Delete experiment button #}
                     <div style="padding-left: 20px; padding-top: 20px;" align="right">
-                        <a class="btn btn-primary" onclick="send_delete_experiment_request( '{% url 'ipol.cp.archive.delete_experiment' data.query %}', {{ data.query }}, '{{ request.META.HTTP_REFERER }}' )">Delete this Experiment</a>
+                        {% if data.registered %}
+                            <a class="btn btn-primary" onclick="send_delete_experiment_request( '{% url 'ipol.cp.archive.delete_experiment' data.query %}', {{ data.query }}, '{{ request.META.HTTP_REFERER }}' )">Delete this Experiment</a>
+                        {% endif %}
                     </div>
                 </div>
 

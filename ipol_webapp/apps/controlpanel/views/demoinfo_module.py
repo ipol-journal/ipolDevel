@@ -1,6 +1,7 @@
 # from crispy_forms.utils import render_crispy_form
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
+import os
 from django.http import HttpResponse, HttpResponseRedirect
 from apps.controlpanel.forms import DDLform, CreateDemoform, UpdateDemoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
         DemoEditorform, ChooseEditorForDemoform
@@ -12,7 +13,7 @@ from django.views.generic import TemplateView, FormView
 from apps.controlpanel.tools import get_status_and_error_from_json, convert_str_to_bool,get_demoinfo_available_author_list, \
         get_demoinfo_available_editor_list, get_demoinfo_module_states
 from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeDemoinfoDemoList, \
-        DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList,DeserializeDemoinfoDemoExtras
+        DeserializeDemoinfoAuthorList, DeserializeDemoinfoEditorList
 from apps.controlpanel.views.ipolwebservices import ipolservices
 import logging
 from apps.controlpanel.views.ipolwebservices.ipolservices import is_json, demoinfo_get_states
@@ -32,6 +33,21 @@ PAGINATION_ITEMS_PER_PAGE_DEMO_EXTRAS_LIST = 4
 
 
 # demos
+def has_permission(demo_id, user):
+    try:
+        if user.is_staff or user.is_superuser:
+            return True
+
+        editors = json.loads(ipolservices.demoinfo_editor_list_for_demo(demo_id))
+        for editor in editors.get('editor_list'):
+            if editor.get('mail') == user.email:
+                return True
+        return False
+
+    except Exception:
+        print "has_permission failed"
+        return False
+
 
 class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
     template_name = "demoinfo/demoinfo_demos_2.html"
@@ -125,7 +141,6 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
     def get_demo_details(self, **kwargs):
         data = {}
-
         try:
             try:
                 demo_id = int(self.kwargs['demo_id'])
@@ -136,6 +151,7 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
             demo_result = ipolservices.demoinfo_read_demo(demo_id)
             ddl_result = ipolservices.demoinfo_get_ddl(demo_id)
+            editors = ipolservices.demoinfo_editor_list_for_demo(demo_id)
 
             if demo_result == None or ddl_result == None:
                 msg = "DemoinfoDemoEditionView: Something went wrong using demoinfo WS"
@@ -144,7 +160,8 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
 
             demo_result = json.loads(demo_result)
             ddl_result = json.loads(ddl_result)
-
+            editors = json.loads(editors)
+            data['registered'] = has_permission(demo_id, self.request.user)
             data['editorsdemoid'] = demo_id
             data['title'] = demo_result['title']
             data['state'] = demo_result['state']
@@ -176,7 +193,9 @@ class DemoinfoDeleteDemoView(NavbarReusableMixinMF,TemplateView):
             logger.error(msg)
             raise ValueError(msg)
 
-        result= ipolservices.demoinfo_delete_demo(demo_id)
+        if has_permission(demo_id, self.request.user):
+            result= ipolservices.demoinfo_delete_demo(demo_id)
+
         if result == None:
             msg="DemoinfoDeleteDemoView: Something went wrong using demoinfo WS"
             logger.error(msg)
@@ -257,10 +276,10 @@ class DemoinfoSaveDDLView(NavbarReusableMixinMF,FormView):
             # save
             if ddlJSON is not None:
 
-                print "is_json(ddlJSON)",is_json(ddlJSON)
                 if is_json(ddlJSON):
                     try:
-                        jsonresult = ipolservices.demoinfo_save_demo_description(pjson=ddlJSON, demoid=demoid)
+                        if has_permission(demoid, self.request.user):
+                            jsonresult = ipolservices.demoinfo_save_demo_description(pjson=ddlJSON, demoid=demoid)
                         status, error = get_status_and_error_from_json(jsonresult)
                         jres['status'] = status
                         if error is not None:
@@ -367,7 +386,8 @@ class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
                 editorsdemoid = form.cleaned_data['editorsdemoid']
                 editorsdemoid = int(editorsdemoid)
                 editorid = form.cleaned_data.get('editor')
-                jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
+                if has_permission(editorsdemoid, self.request.user):
+                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
                 status, error = get_status_and_error_from_json(jsonresult)
                 jres['status'] = status
                 if error is not None:
@@ -434,7 +454,8 @@ class DemoinfoUpdateDemo(NavbarReusableMixinMF, FormView):
                     "editorsdemoid": editorsdemoid,
                     "state": state
                 }
-                jsonresult = ipolservices.demoinfo_update_demo(demojson, old_editor_demoid)
+                if has_permission(old_editor_demoid, self.request.user):
+                    jsonresult = ipolservices.demoinfo_update_demo(demojson, old_editor_demoid)
                 status, error = get_status_and_error_from_json(jsonresult)
                 jres['status'] = status
                 if error is not None:
@@ -738,7 +759,6 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
         return super(DemoinfoGetDemoAuthorView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
-
         #get context
         context = super(DemoinfoGetDemoAuthorView, self).get_context_data(**kwargs)
 
@@ -751,14 +771,6 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
             except Exception as e:
                 msg="Error getting param for list_authors_for_demo %s"%e
                 print(msg)
-
-            #send context vars for template
-            context['demo_id'] = demo_id
-
-            # ChooseAuthorForDemoform with dropdown select
-            # available_autor_list = get_demoinfo_available_author_list(demo_id)
-            # initial_author_choicedict={'author':available_autor_list }
-            # context['choosedemoauthorform'] = ChooseAuthorForDemoform(initial=initial_author_choicedict)
 
 
             # ChooseAuthorForDemoform with autocomplete
@@ -784,6 +796,7 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
     # no need for filtering and pagination
     def list_authors_for_demo(self):
         result = None
+        data = {}
         try:
             try:
                 demo_id = self.kwargs['demo_id']
@@ -794,15 +807,19 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
                 pass
 
             # print "  list_authors_for_demo demoid: ", demo_id
-            page_json = ipolservices.demoinfo_author_list_for_demo(demo_id)
-            result = DeserializeDemoinfoAuthorList(page_json)
+            data['registered'] = has_permission(demo_id, self.request.user)
+            page_json = json.loads(ipolservices.demoinfo_author_list_for_demo(demo_id))
+            print page_json
+            data['author_list'] = page_json.get('author_list')
+            data['status'] = page_json.get('status')
+            # result = DeserializeDemoinfoAuthorList(page_json)
 
         except Exception as e:
             msg="Error list_authors_for_demo %s"%e
             logger.error(msg)
             print(msg)
 
-        return result
+        return data
 
 
 class DemoinfoAddExistingAuthorToDemoView(NavbarReusableMixinMF,FormView):
@@ -1185,10 +1202,6 @@ class DemoinfoSaveEditorView(NavbarReusableMixinMF,FormView):
 
         if self.request.is_ajax():
 
-            print "valid ajax form"
-            print form
-            print
-
             # get form fields
             id = None
             name = None
@@ -1316,19 +1329,9 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
                 msg="Error getting param for list_editors_for_demo %s"%e
                 print(msg)
 
-            #send context vars for template
-            context['demo_id'] = demo_id
+            editors = ipolservices.demoinfo_editor_list_for_demo(demo_id)
+            editors = json.loads(editors)
 
-
-
-
-            # ChooseEditorForDemoform with dropdown select
-            # available_editor_list = get_demoinfo_available_editor_list(demo_id)
-            # initial_editor_choicedict={'editor':available_editor_list }
-            # context['choosedemoeditorform'] = ChooseEditorForDemoform(initial=initial_editor_choicedict)
-            #
-
-            # ChooseAuthorForDemoform with autocomplete
             self.request.session['editors_avilable_for_demo_id']=demo_id
             # context['choosedemoeditorform'] = ChooseEditorForDemoform()
             form = ChooseEditorForDemoform()
@@ -1354,6 +1357,7 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
     # no need for filtering and pagination
     def list_editors_for_demo(self):
         result = None
+        data = {}
         try:
             try:
                 demo_id = self.kwargs['demo_id']
@@ -1363,16 +1367,18 @@ class DemoinfoGetDemoEditorView(NavbarReusableMixinMF,TemplateView):
                 print(msg)
                 pass
 
-            # print "  list_editors_for_demo demoid: ", demo_id
-            page_json = ipolservices.demoinfo_editor_list_for_demo(demo_id)
-            result = DeserializeDemoinfoEditorList(page_json)
+            data['registered'] = has_permission(demo_id, self.request.user)
+            page_json = json.loads(ipolservices.demoinfo_editor_list_for_demo(demo_id))
+            # result = DeserializeDemoinfoEditorList(page_json)
+            data['status'] = page_json.get('status')
+            data['editor_list'] = page_json.get('editor_list')
 
         except Exception as e:
             msg="Error list_editors_for_demo %s"%e
             logger.error(msg)
             print(msg)
 
-        return result
+        return data
 
 
 class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
@@ -1421,7 +1427,8 @@ class DemoinfoAddExistingEditorToDemoView(NavbarReusableMixinMF,FormView):
             try:
 
                 if type(choicefielddata) is not list:
-                    jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
+                    if has_permission(demoid, self.request.user):
+                        jsonresult = ipolservices.demoinfo_add_editor_to_demo(demoid,editorid)
                     status,error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
                     if error is not None:
@@ -1514,8 +1521,8 @@ class DemoinfoAddNewEditorToDemoView(NavbarReusableMixinMF,FormView):
 
             # create editor
             try:
-
-                jsonresult = ipolservices.demoinfo_add_editor(name,mail)
+                if has_permission(demoid, self.request.user):
+                    jsonresult = ipolservices.demoinfo_add_editor(name,mail)
                 resultdict = json.loads(jsonresult)
                 status = resultdict['status']
                 editorid = resultdict['editorid']
@@ -1591,8 +1598,8 @@ class DemoinfoDeleteEditorFromDemoView(NavbarReusableMixinMF,TemplateView):
             msg= "Id is not an integer"
             logger.error(msg)
             raise ValueError(msg)
-
-        result= ipolservices.demoinfo_delete_editor_from_demo(demo_id,editor_id)
+        if has_permission(demo_id, self.request.user):
+            result= ipolservices.demoinfo_delete_editor_from_demo(demo_id,editor_id)
         if result == None:
             msg="DemoinfoDeleteEditorFromDemoView: Something went wrong using demoinfo WS"
             logger.error(msg)
@@ -1615,6 +1622,7 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
     # no need for filtering and pagination
     def list_demo_extras_for_demo(self):
+        data = {}
         result = None
         try:
             try:
@@ -1625,14 +1633,17 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
                 print(msg)
                 pass
 
-            page_json = ipolservices.demoinfo_demo_extras_for_demo(demo_id)
-            result = DeserializeDemoinfoDemoExtras(page_json)
+            json_result = json.loads(ipolservices.demoinfo_demo_extras_for_demo(demo_id))
+            data['registered'] = has_permission(demo_id, self.request.user)
+            data['url'] = json_result.get('url')
+            data['name'] = os.path.basename(json_result.get('url'))
+            data['status'] = json_result.get('status')
 
         except Exception as e:
             msg="Error list_demo_extras_for_demo %s"%e
             logger.error(msg)
             print(msg)
-        return result
+        return data
 
 class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
@@ -1648,8 +1659,8 @@ class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
         except ValueError:
             msg= "Id is not an integer"
             logger.error(msg)
-
-        result = ipolservices.demoinfo_delete_demo_extras_from_demo(demo_id)
+        if has_permission(demo_id, self.request.user):
+            result = ipolservices.demoinfo_delete_demo_extras_from_demo(demo_id)
         if result == None:
             msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
             logger.error(msg)
@@ -1675,8 +1686,8 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
         except ValueError:
             msg = "Id is not an integer"
             logger.error(msg)
-
-        result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
+        if has_permission(demo_id, self.request.user):
+            result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
 
         if result == None:
             msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"

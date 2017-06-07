@@ -53,15 +53,20 @@
 
         <h2> {% blocktrans %} Manage demo {{ demo_id }}'s Editors  {%  endblocktrans %}</h2>
 
-        {#  Add Editor btn #}
-        <div class="container">
-            <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
-            <a class="btn btn-primary" onclick="show_choosedemoeditor_form( {{ demo_id }} )">{% blocktrans %}Add existing Editor to this demo{%  endblocktrans %}</a>
-            <a class="btn btn-primary" onclick="show_demoeditor_form( {{ demo_id }})">{% blocktrans %}Add New Editor to demo{%  endblocktrans %}</a>
-        </div>
-
-        {#  Editor list for this demo#}
         {% with data=view.list_editors_for_demo %}
+            {#  Add Editor btn #}
+            <div class="container">
+                <a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                {% if data.registered %}
+                    <a class="btn btn-primary" onclick="show_choosedemoeditor_form( {{ demo_id }} )">{% blocktrans %}Add existing Editor to this demo{%  endblocktrans %}</a>
+                    <a class="btn btn-primary" onclick="show_demoeditor_form( {{ demo_id }})">{% blocktrans %}Add New Editor to demo{%  endblocktrans %}</a>
+                {% else %}
+                    <a class="btn btn-primary disabled" >{% blocktrans %}Add existing Editor to this demo{%  endblocktrans %}</a>
+                    <a class="btn btn-primary disabled" >{% blocktrans %}Add New Editor to demo{%  endblocktrans %}</a>
+                {% endif %}
+            </div>
+
+            {#  Editor list for this demo#}
             {% if data.status == "OK" %}
 
                 {% if data.editor_list %}
@@ -72,10 +77,13 @@
                             <div class="griditem col-sm-3">{% trans 'Email' %}: {{ editor.mail}} </div>
 
                             <div class="griditem col-sm-3">
-                                {#  btn Delete editor,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_editor_request('{% url 'ipol.cp.demoinfo.delete_editor_from_demo'  demo_id editor.id %}',{{ editor.id }}, '{{ editor.name }}', {{ demo_id }} )" title="Delete {{ editor.name }} from demo {{ demo_id }}">{% trans 'Delete Editor from demo' %}</a>
-                                {#  btn Edit editor #}
-                                <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )" title="Edit {{ editor.name }}'s information">{% trans 'Edit Editor' %}</a>
+                                {% if data.registered %}
+                                    <a class="btn btn-primary" onclick="send_delete_demo_editor_request('{% url 'ipol.cp.demoinfo.delete_editor_from_demo'  demo_id editor.id %}',{{ editor.id }}, '{{ editor.name }}', {{ demo_id }} )" title="Delete {{ editor.name }} from demo {{ demo_id }}">{% trans 'Delete Editor from demo' %}</a>
+                                    <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.edit_editor' editor.id %}', {{ editor.id }}  )" title="Edit {{ editor.name }}'s information">{% trans 'Edit Editor' %}</a>
+                                {% else %}
+                                    <a class="btn btn-primary disabled">{% trans 'Delete Editor from demo' %}</a>
+                                    <a class="btn btn-primary disabled">{% trans 'Edit Editor' %}</a>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}

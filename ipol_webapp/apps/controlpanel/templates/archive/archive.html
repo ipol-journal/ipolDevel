@@ -72,10 +72,10 @@
                         <p style="padding-left: 20px">title: test </p>
                     </a>
 
-                    {#  boton Delete demo#}
-                    <div style="padding-left: 20px" >
-                        <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' -1  %}',-1 )">Delete</a>
-                    </div>
+                    <!--{#  boton Delete demo#}-->
+                    <!--<div style="padding-left: 20px" >-->
+                        <!--<a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' -1  %}',-1 )">Delete</a>-->
+                    <!--</div>-->
 
                 </div>
             {% endif %}
@@ -94,10 +94,10 @@
                                 <p style="padding-left: 20px">title: {{ demo.title }} </p>
                             </a>
 
-                            {#  boton Delete demo#}
-                            <div style="padding-left: 20px" >
-                                <a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.editorsdemoid  %}',{{ demo.editorsdemoid  }} )">Delete</a>
-                            </div>
+                            <!--{#  boton Delete demo#}-->
+                            <!--<div style="padding-left: 20px" >-->
+                                <!--<a class="btn btn-primary" onclick="send_delete_demo_request('{% url 'ipol.cp.archive.delete_demo' demo.editorsdemoid  %}',{{ demo.editorsdemoid  }} )">Delete</a>-->
+                            <!--</div>-->
 
                         </div>
                     {% endfor %}
@@ -131,7 +131,7 @@
 {% block functionsjs %}
 
 
-        <script>
+    <script>
 
         function send_delete_demo_request(wsurl,demo_id) {
             var deldemo = confirm('Delete this demo from archive module: ' + demo_id + '?');

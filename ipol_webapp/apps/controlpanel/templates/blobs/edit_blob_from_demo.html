@@ -82,13 +82,22 @@
 
                         <div  align="right">
                             <input type="submit" id="submit" style="display: none;"value="Upload" />
-                            <label class="btn btn-primary " for="submit">Save changes</label>
+                            {% if data.registered %}
+                                <label class="btn btn-primary " for="submit">Save changes</label>
+                            {% else %}
+                                <label class="btn btn-primary disabled">Save changes</label>
+                            {% endif %}
                         </div>
 
                     </form>
                     <div style="padding-top: 15px;" align="right">
-                        <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{demo}}')">Delete blob</a>
-                        <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
+                        {% if data.registered %}
+                            <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{demo}}')">Delete blob</a>
+                            <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
+                        {% else %}
+                        <a class="btn btn-danger disabled">Delete blob</a>
+                            <a class="btn btn-danger disabled">Remove visual representation</a>
+                        {% endif %}
                     </div>
                 </div>
 

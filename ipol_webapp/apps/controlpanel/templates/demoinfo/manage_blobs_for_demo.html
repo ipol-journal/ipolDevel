@@ -28,15 +28,17 @@
         {% if data.status == "OK" %}
             <h3>Templates</h3>
             <div class="dropdown">
-              <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            {% if data.registered %}
+                <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                 Add Template
                 <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                   {%for template in data.unused_templates%}
                         <li><a onclick="addTemplateToDemo('{% url 'ipol.cp.blobs.add_template_to_demo'%}','{{id}}','{{template}}')">{{template}}</a></li>
                   {% endfor %}
-              </ul>
+                </ul>
+            {% endif %}
             </div>
             {% if  data.templates|length >= 1 %}
                 <h4>Used:</h4>
@@ -44,7 +46,9 @@
                     <div class="block">
                         <h4><a href="{% url 'ipol.cp.template.page' template %}"> {{template}} </a></h4>
                         <div align="right">
-                            <a class="btn btn-primary" onclick="removeTemplateFromDemo('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{id}}','{{template}}')">Unlink template</a>
+                            {% if data.registered %}
+                                <a class="btn btn-primary" onclick="removeTemplateFromDemo('{% url 'ipol.cp.blobs.remove_template_from_demo'%}','{{id}}','{{template}}')">Unlink template</a>
+                            {% endif %}
                         </div>
                     </div>
                 {%endfor%}
@@ -52,7 +56,9 @@
 
             <h3>Blobs list</h3>
                 <div class="container">
-            <a class="btn btn-info" href="{% url 'ipol.cp.blobs.add_blob_to_demo_view' id %}">Add new Blob</a>
+            {% if data.registered %}
+                <a class="btn btn-info" href="{% url 'ipol.cp.blobs.add_blob_to_demo_view' id %}">Add new Blob</a>
+            {% endif %}
             </div>
                 <div id="blocks_info_{{ experiment.id }}" class="blocks">
                     {% for set in data.sets %}
@@ -74,7 +80,9 @@
 
                                 {# Delete blob button#}
                                 <div align="right">
-                                    <a class="btn btn-primary" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{ id }}','{{ set.name }}','{{ pos }}')">Delete blob</a>
+                                    {% if data.registered %}
+                                        <a class="btn btn-primary" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{ id }}','{{ set.name }}','{{ pos }}')">Delete blob</a>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% endfor %}

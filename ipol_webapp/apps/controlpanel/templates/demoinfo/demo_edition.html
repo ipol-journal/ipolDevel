@@ -32,7 +32,9 @@
             
             {% if data.status == 'OK' %}
                 <div class="experiment_file">
-
+                    {% if not data.registered %}
+                        <p id="warning">Warning: any changes made to this demo will be discarded since you're not one of the assigned editors. You have only read access.</p>
+                    {% endif %}
                     <!-- DDL -->
                     <h4>DDL:</h4>
                     <p class="info">Press <i>Ctrl+F</i> to search</p>
@@ -42,16 +44,23 @@
                     <input id="demoid" name="demoid" type="hidden" value="{{ data.editorsdemoid }}"/>
 
                     <div id="save-ddl-container">
-                        <div class="column-4">
+                        {% if data.registered %}
+                            <div class="column-4">
                             <!-- button to check and submit the DDL -->
-                            <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
-                        </div>
-                        <div class="column-2">
-                            <!-- element to display messages about the DDL -->
-                            <ul>
-                                <li id="DDL_msg"></li>
-                            </ul>
-                        </div>
+                                <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
+                            </div>
+                            <div class="column-2">
+                                <!-- element to display messages about the DDL -->
+                                <ul>
+                                    <li id="DDL_msg"></li>
+                                </ul>
+                            </div>
+                        {% else %}
+                                <div class="column-4">
+                                    <a class="btn btn-primary disabled">{% trans 'Save DDL' %}</a>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <hr>
@@ -72,8 +81,13 @@
                     </div>
                     <!-- Edit/Delete Demo -->
                     <div id="col-4" class="column-4" align="right">
-                        <a class="btn btn-primary options" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}  )" title="Edit information of this demo">{% trans 'Edit' %}</a>
-                        <a class="btn btn-primary options" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}, '{{ data.title|addslashes }}', '{% url 'ipol.cp.demoinfo.demos' %}')" title="Delete this demo">{% trans 'Delete' %}</a>
+                        {% if data.registered %}
+                            <a class="btn btn-primary options" onclick="send_get_demo_request('{% url 'ipol.cp.demoinfo.edit_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}  )" title="Edit information of this demo">{% trans 'Edit' %}</a>
+                            <a class="btn btn-primary options" onclick="send_delete_demo_request('{% url 'ipol.cp.demoinfo.delete_demo' data.editorsdemoid %}', {{ data.editorsdemoid }}, '{{ data.title|addslashes }}', '{% url 'ipol.cp.demoinfo.demos' %}')" title="Delete this demo">{% trans 'Delete' %}</a>
+                        {% else %}
+                            <a class="btn btn-primary disabled">{% trans 'Edit' %}</a>
+                            <a class="btn btn-primary disabled" >{% trans 'Delete' %}</a>
+                        {% endif %}
                     </div>
 
                     <hr>

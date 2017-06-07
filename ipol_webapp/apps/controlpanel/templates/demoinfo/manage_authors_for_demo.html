@@ -47,15 +47,19 @@
 
         {#  Add Author btn #}
         <div class="container">
-            <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
-            <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
-            <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+            <a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+            {% if data.registered %}
+                <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
+                <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+            {% else %}
+            <a class="btn btn-primary disabled">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
+                <a class="btn btn-primary disabled" >{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+            {% endif %}
         </div>
 
         {#  Author list for this demo#}
         {% with data=view.list_authors_for_demo %}
             {% if data.status == "OK" %}
-
                 {% if data.author_list %}
                     {% for author in data.author_list %}
                         <div class="author row" id="author_info_{{ author.id }}" >
@@ -64,11 +68,13 @@
                             <div class="griditem col-sm-3">{% trans 'Email' %}: {{ author.mail}} </div>
 
                             <div class="griditem col-sm-3">
-                                {#  btn Delete author,ajax call, needs delete url for ajax call and  and htmlid to append result msg#}
-                                <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo'  demo_id author.id %}',{{ author.id }}, '{{ author.name }}', {{ demo_id }} )" title="Delete {{ author.name }} from demo {{ demo_id }}">{% trans 'Delete Author from demo' %}</a>
-
-                                {#  btn Edit author #}
-                                <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )" title="Edit {{ author.name }}'s information">{% trans 'Edit Author' %}</a>
+                                {% if data.registered %}
+                                    <a class="btn btn-primary" onclick="send_delete_demo_author_request('{% url 'ipol.cp.demoinfo.delete_author_from_demo'  demo_id author.id %}',{{ author.id }}, '{{ author.name }}', {{ demo_id }} )" title="Delete {{ author.name }} from demo {{ demo_id }}">{% trans 'Delete Author from demo' %}</a>
+                                    <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.edit_author' author.id %}', {{ author.id }}  )" title="Edit {{ author.name }}'s information">{% trans 'Edit Author' %}</a>
+                                {% else %}
+                                    <a class="btn btn-primary disabled">{% trans 'Delete Author from demo' %}</a>
+                                    <a class="btn btn-primary disabled">{% trans 'Edit Author' %}</a>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}
