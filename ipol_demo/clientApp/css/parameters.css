@@ -1,7 +1,7 @@
 .param-container {
   display: flex;
 
-  padding: 0 4%;
+  padding: 3px 4%;
 
   border-bottom: 0.5px solid rgba(225, 228, 241, 0.75);
 
@@ -82,7 +82,7 @@
 
   display: inline-block;
 
-  width: 60px;
+  width: 100px;
   padding: 5px 10px;
 
   text-align: center;
@@ -146,7 +146,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   display: flex;
   flex-direction: column;
 
-  min-width: 60px;
+  min-width: 80px;
   margin: 0 10px;
 
   flex-wrap: wrap;

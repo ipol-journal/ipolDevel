@@ -4,10 +4,11 @@ var parametersType = parametersType || {};
 
 $.fn.range = function(param, index) {
   var values = param.values;
+  var step = param.values.step || param.values.min;
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<input id=range_' + param.id + ' class=range-slider__range type=' + param.type + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.step + ' />');
+  $(this).append('<input id=range_' + param.id + ' class=range-slider__range type=' + param.type + ' min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + step + ' />');
+  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + step + ' />');
 
   $('#number_' + param.id).on('change input', function() {
     $('#range_' + param.id).val($(this).val());
@@ -15,19 +16,6 @@ $.fn.range = function(param, index) {
   });
   $('#range_' + param.id).on('change input', function() {
     $('#number_' + param.id).val($(this).val());
-    updateParamsArrayValue(param.id, $(this).val());
-  });
-}
-
-$.fn.range_scientific = function(param, index) {
-  var values = param.values;
-
-  $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<input id=range_' + param.id + ' class=range-slider__range type=range min=' + values.min + ' max=' + values.max + ' value=' + values.default+' step=' + values.default+' />');
-  $(this).append('<input id=number_' + param.id + ' class=range-slider__value type=number value=' + values.default.toExponential(values.digits) + ' step=1 readonly/>');
-
-  $('#range_' + param.id).on('change input', function() {
-    $('#number_' + param.id).val(parseFloat($(this).val()).toExponential(values.digits));
     updateParamsArrayValue(param.id, $(this).val());
   });
 }
