@@ -10,7 +10,7 @@ from the demo or blobs uploaded by the user.
 These are the main points describing the web interface:
 \begin{itemize}
   \item Modules.
-  \item Flux diagram.
+  \item Flow diagram.
   \item External modules.
   \item Async calls.
   \item Data types.
@@ -71,16 +71,28 @@ read the origin of the chosen blobs for the demo.
 
 %--------------------------------------------------------------------------------
 
-\section{Flux diagram}
+\section{Flow diagram}
 The first thing the application will do when loaded is look for an id which represents
 the demo id to be represented. This id will be a parameter inside the URL.
 At the same time the main file, demo.js will load the different html files into the DOM
 as they have been divided into various files to improve mantainability and coupling.
 
 After all this is loaded, the app will continue adding the main section to the DOM,
- containg in this case the blobs viewer and the blobs upload dialog.
+ containg in this case the blobs viewer and the blobs upload dialog. At the same time, the 
+ the information regarding the current demo, responses from blobs and demoInfo modules 
+ will be saved at sessionStorage.
  
-\includegraphics[width=\textwidth]{images/flux}
+\includegraphics[width=\textwidth]{images/flow}
+
+As the diagram shows, either input or upload modules will pass information to the following modules. Each will set a variable in sessionStorage 
+that will indicate if the user has chosen to upload blobs for the demo or a default blob from the list. 
+
+After the user chooses a blob, the editor and parameter modules will load independently and wait for changes. Editor will allow to either 
+zoom, crop and compare blobs when possible, as well as do inpainting operations when the demo requires it. The parameters will allow  
+tweaking according to ddl specification. Parameter values will be stored in a variable for refreshing feature purpose as the ddl states. 
+
+After the user hits the run button an http post will be executed to run the demo and send the necessary information and wait for a response. 
+When the response is obtained it will either print the results interface or the error message.
 
 %--------------------------------------------------------------------------------
 
@@ -102,10 +114,15 @@ The current version uses Async calls for:
 \begin{itemize}
 \item Get the demo ddl: Used to show the inputs description and the upload modal in the Inputs panel, also uses this information to show the parameters.
 \item Get blobs: Used to show the blobs in the inputs panel.
+\item Run demo: It will send all parameters needed to run the demo and will responde with either the results of the demo or an error response.
 \end{itemize}
-
 
 %--------------------------------------------------------------------------------
 
-\subsection{External modules}
-\subsection{}
+\subsection{Data types}
+The IPOL platform supports mainly images, but recent updates include audio and video files to use in demos. The new web interface 
+allows to choose a set with any combination of images, audio and video. Depending on the data types and sets length options will vary. 
+If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
+one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inprinting editing.
+
+In case of uploading an audio or video file, it wont have a visual representation at the moment, only videos and audio files in the default set from the demo will have a visual representation.
