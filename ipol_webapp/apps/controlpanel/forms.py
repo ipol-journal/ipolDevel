@@ -46,7 +46,7 @@ class CreateDemoform(forms.Form):
     #normal
     editorsdemoid = forms.IntegerField(label='Demo ID',required=False)
     title = forms.CharField(label='Title',required=False)
-    editor = al.ChoiceField('EditorAutocomplete', label='Editor (name, email)', required=False)
+    # editor = al.ChoiceField('EditorAutocomplete', label='Editor (name, email)', required=False)
 
     state = forms.ChoiceField(label='State',required=False)
 
@@ -62,7 +62,7 @@ class CreateDemoform(forms.Form):
             Field('editorsdemoid'),
             Field('title', css_class='form-control'),
             Field('state'),
-            Field('editor', css_class='form-control'),
+            # Field('editor', css_class='form-control'),
             FormActions(
                     Submit('save_demo', 'Save', css_class="btn-primary"),
             )

@@ -378,16 +378,27 @@ class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
             id = None
             title = None
             state = None
-            editorsdemoid = None
+            demo_id = None
             editorid = None
             try:
                 title = form.cleaned_data['title']
                 state = form.cleaned_data['state']
-                editorsdemoid = form.cleaned_data['editorsdemoid']
-                editorsdemoid = int(editorsdemoid)
-                editorid = form.cleaned_data.get('editor')
-                if has_permission(editorsdemoid, self.request.user):
-                    jsonresult= ipolservices.demoinfo_add_demo(editorsdemoid ,title, state, editorid)
+                demo_id = form.cleaned_data['editorsdemoid']
+                demo_id = int(demo_id)
+                user = self.request.user
+                editors = json.loads(ipolservices.demoinfo_editor_list())
+
+                for editor in editors.get('editor_list'):
+                    if editor.get('mail') == user.email:
+                        editorid = editor.get('id')
+
+                if editorid is None:
+                    editor_name = user.first_name +" "+user.last_name
+                    response = json.loads(ipolservices.demoinfo_add_editor(editor_name,user.email))
+                    editorid = response.get('editorid')
+
+                jsonresult= ipolservices.demoinfo_add_demo(demo_id ,title, state, editorid)
+
                 status, error = get_status_and_error_from_json(jsonresult)
                 jres['status'] = status
                 if error is not None:
@@ -396,7 +407,7 @@ class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
                 # insert a default (empty) DDL for the new Demo
                 try:
                     defaultDDL = '{}'
-                    jsonresult = ipolservices.demoinfo_save_demo_description(pjson=defaultDDL, demoid=editorsdemoid)
+                    jsonresult = ipolservices.demoinfo_save_demo_description(pjson=defaultDDL, demoid=demo_id)
                     status, error = get_status_and_error_from_json(jsonresult)
                     jres['status'] = status
                     if error is not None:
