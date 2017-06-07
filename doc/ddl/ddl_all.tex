@@ -256,35 +256,6 @@ scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
 \caption{Keys for the 'range' type.}
 \end{longtable}
 
-\subsubsection{ \emph{range\_scientific} type}
-
-The values of the range type are stored as numbers, so no double quotes are 
-required around the values. The default value is stored with the 'values' field.
-The 'range\_scientific' type differs from the 'range' type because it displays
-the values in scientific notation with mantissa and exponent, the 'digits' parameter
-sets the number of digits after the decimal points for the mantissa, the slider
-will also to change each digit.
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
-0.7\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type  & range\_scientific       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- id     & parameter name in lowercase letters  & yes \\ \hline
- label  & name and/or description of the parameter, appears on the left side. & yes
-                      \\ \hline
- comments & description of the parameter, appears on the right side. & no
-                      \\ \hline
- values & set min,max,step and default values using the following key/value 
-scheme \{ 'min':val, 'max':val, 'digits':val, 'default':val \} & yes
-                      \\ \hline
-\caption{Keys for the 'range\_scientific' type.}
-\end{longtable}
-
 
 \subsubsection{ \emph{selection\_collapsed} type}
 
@@ -364,25 +335,6 @@ The label  can be used as a title to separate groups of parameters.
 \caption{Common keys for the 'label' type.}
 \end{longtable}
 
-
-\subsubsection{ \emph{readonly} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
-0.58\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type  & readonly    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label & description of the parameter & yes \\ \hline
- id         & parameter name in lowercase letters  & yes \\ \hline
- value\_expr & Javascript/JQuery expression used to compute the parameter value, defined as an
-              array of strings that will be concatenated to a single string.
-            & yes \\ \hline
-\caption{Common keys for the 'readonly' type.}
-\end{longtable}
 
 \subsubsection{ \emph{checkbox} type}
 
@@ -1138,8 +1090,8 @@ ipol\_demo/\-static/\-JQuery\-App directory:
 
  \item \emph{ipol.drawparams.js}: renders and deals with the demo parameters:
   set events, set/reset/get values, evaluate expressions. The different parameter
-  types are: selection\_collapsed,  selection\_radio,  range,  ran\-ge\-\_scien\-ti\-fic, 
-  readonly,  label,  checkbox,  checkboxes.
+  types are: selection\_collapsed,  selection\_radio,  range,  label,  checkbox,  
+  checkboxes.
 
 
  \item \emph{ipol.drawresults.js}: implements the 'DrawResults' class. This
@@ -1384,8 +1336,8 @@ The functions related to the display of the parameters are located in the "ipol.
 file and are within the class "ipol.DrawParams". Default parameter values can be reset using
 the dedicated button.
 The static method ipol.DrawParams.staticUpdateParams() takes care to updating parameters
-that may have interdependencies. Currently, only the "visible" properties, and the 
-"readonly" type contents are evaluated using javascript eval() function.
+that may have interdependencies. Currently, only the "visible" property type contents are 
+evaluated using javascript eval() function.
 
 \subsubsection{Step 6: deal with 'run' events}
 

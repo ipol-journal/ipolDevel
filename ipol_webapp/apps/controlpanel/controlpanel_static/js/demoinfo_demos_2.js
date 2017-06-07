@@ -10,8 +10,9 @@ $form_demo_field_demo_id="#CreateDemoform #id_id";
 $form_demo_field_editorsdemo_id="#CreateDemoform #id_editorsdemoid";
 $form_demo_field_title_id="#CreateDemoform #id_title";
 $form_demo_field_state="#CreateDemoform #id_state";
-$form_demo_field_editor="#CreateDemoform #id_editor";
+//$form_demo_field_editor="#CreateDemoform #id_editor";
 var $demoform = $($form_demo_id);
+
 
 
 /*  modal ddl */
@@ -120,7 +121,6 @@ function send_get_demo_request(wsurl){
     $($form_demo_field_editorsdemo_id).get(0).value = '';
     $($form_demo_field_title_id).get(0).value = '';
     $($form_demo_field_state).get(0).value = '';
-    $($form_demo_field_editor).get(0).value = '';
     $demoform.show();
     $($modal_demo_id).modal('show');
 }
@@ -129,7 +129,6 @@ function validate(){
     var demo_id_validation =$($form_demo_field_editorsdemo_id).get(0).value
     var title_validation =$($form_demo_field_title_id).get(0).value
     var state_validation =$($form_demo_field_state).get(0).value
-    var editor_validation =$($form_demo_field_editor).get(0).value
     if (demo_id_validation == ""){
         var errorhtml="<p class=\"ststsnok\">Demo ID required"+"</p>";
         $($modal_demo_msg_div).html(errorhtml).show();
@@ -147,11 +146,6 @@ function validate(){
     }
     else if (state_validation == ""){
         var errorhtml="<p class=\"ststsnok\">State is required</p>";
-        $($modal_demo_msg_div).html(errorhtml).show();
-        return false;
-    }
-    else if (editor_validation == ""){
-        var errorhtml="<p class=\"ststsnok\">Editor is required</p>";
         $($modal_demo_msg_div).html(errorhtml).show();
         return false;
     }
