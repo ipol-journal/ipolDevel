@@ -1,6 +1,5 @@
 var scrollController = scrollController || {};
 
-
 // Drag editor image mouse events
 $.fn.attachDragger = function(side) {
   var attachment = false,

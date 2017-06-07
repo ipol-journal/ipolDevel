@@ -121,10 +121,10 @@ $(".description-dialog").dialog({
   width: 700,
   modal: true,
   open: function() {
-    $('.ui-widget-overlay').bind('click', function() {
+    $('.ui-widget-overlay').on('click', function() {
       $('.description-dialog').dialog('close');
     })
-  }  
+  }
 });
 
 // Open description dialog event
@@ -134,5 +134,13 @@ $(".description-btn").click(function() {
 
 // Add input description to dialog.
 function addInputDescription(inputDescription) {
-  $(".description-dialog").append(inputDescription);
+  $(".description-dialog").append(getConcatDescription);
+}
+
+function getConcatDescription(inputDescription){
+  var description = "";
+  for (let i = 0; i < inputDescription.length; i++) {
+    description += inputDescription[i];
+  }
+  return description;
 }

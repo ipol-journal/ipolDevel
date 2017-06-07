@@ -21,7 +21,7 @@ $(".upload-dialog").dialog({
   modal: true,
   // Click outside of dialog to close
   open: function() {
-    $('.ui-widget-overlay').bind('click', function() {
+    $('.ui-widget-overlay').on('click', function() {
       $('.upload-dialog').dialog('close');
     })
   },
