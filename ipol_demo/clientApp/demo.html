@@ -1,80 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<title>IPOL Journal · Image Processing On Line</title>
+  <title>IPOL Journal · Image Processing On Line</title>
 
-    <meta http-equiv='content-type' content='text/html; charset=utf-8'/>
+  <meta http-equiv='content-type' content='text/html; charset=utf-8' />
 
-    <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/tabs.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/blobs.css">
-    <link rel="stylesheet" href="css/editor.css">
-    <link rel="stylesheet" href="css/parameters.css">
-    <link rel="stylesheet" href="css/helpers.css">
-    <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/tabs.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/blobs.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/parameters.css">
+  <link rel="stylesheet" href="css/helpers.css">
+  <link rel="stylesheet" href="css/footer.css">
 
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="externalModules/cropper/cropper.min.css">
-
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="externalModules/cropper/cropper.min.css">
 </head>
 
 <body>
 
-    <div id="header"></div>
+  <div id="header"></div>
 
-    <div id="pageTitle" class="container"></div>
+  <div id="pageTitle" class="container"></div>
 
-    <div class="tabs">
-      <a href="#" id="articleTab">Article</a>
-      <a class="selectedTab" href="#">Demo</a>
-      <a href="#" id="archiveTab">Archive</a>
+  <div class="tabs">
+    <a href="#" id="articleTab">Article</a>
+    <a class="selectedTab" href="#">Demo</a>
+    <a href="#" id="archiveTab">Archive</a>
+  </div>
+
+  <div class="citation"></div>
+
+  <div class="inputContainer container">
+    <div class="container-header">
+      <h1 class="container-title m-y-5">Select input(s)</h1>
+      <img src="./information-icon.png" class="information-icon m-y-5" id="inputs-description">
     </div>
 
-    <div class="citation"></div>
+    <div class="description-dialog" title="Input description"></div>
 
-    <div class="inputContainer container">
-        <h1 class="legendText">Select input(s)</h1>
-        <button class="btn description-btn">Description</button>
-        <!-- <button class="ui-button ui-corner-all ui-widget description-btn">Description</button> -->
+    <button class="btn upload-btn">Upload data</button>
+    <div class="upload-dialog" title="Upload data"></div>
 
-        <div class="description-dialog" title="Input description"></div>
+    <div id="sets" class="setContainer"></div>
+  </div>
 
-        <button class="btn upload-btn">Upload data</button>
-        <!-- <button class="ui-button ui-corner-all ui-widget upload-btn">Upload data</button> -->
-        <div class="upload-dialog" title="Upload data"></div>
+  <div id="inputEditorContainer"></div>
 
-        <div id="sets" class="setContainer"></div>
-    </div>
+  <div id="parameters">
+    <div class="params-description-dialog" title="Params description"></div>
+  </div>
 
-    <div id="inputEditorContainer"></div>
+  <div id="footer"></div>
 
-    <div id="parameters">
-      <div class="params-description-dialog" title="Params description"></div>
-    </div>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 
-    <div id="footer"></div>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
 
-    <script
-    src="https://code.jquery.com/jquery-3.2.1.min.js"
-    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-    crossorigin="anonymous"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/demo.input.js"></script>
+  <script src="js/demo.upload.js"></script>
+  <script src="js/demo.editor.js"></script>
+  <script src="js/demo.editor.zoom.js"></script>
+  <script src="js/demo.editor.scroll.js"></script>
+  <script src="js/demo.parameters.js"></script>
+  <script src="js/demo.parameters.types.js"></script>
 
-    <script
-    src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-    integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-    crossorigin="anonymous"></script>
-
-    <script src="js/helpers.js"></script>
-    <script src="js/demo.js"></script>
-    <script src="js/demo.input.js"></script>
-    <script src="js/demo.upload.js"></script>
-    <script src="js/demo.editor.js"></script>
-    <script src="js/demo.editor.zoom.js"></script>
-    <script src="js/demo.editor.scroll.js"></script>
-    <script src="js/demo.parameters.js"></script>
-    <script src="js/demo.parameters.types.js"></script>
-
-    <script src="externalModules/cropper/cropper.min.js"></script>
+  <script src="externalModules/cropper/cropper.min.js"></script>
 
 </body>

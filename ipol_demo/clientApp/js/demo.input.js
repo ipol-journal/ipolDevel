@@ -27,9 +27,9 @@ function getDemoinfo() {
     $(".citation").html("<span>Please cite <a id=citation-link>the reference article</a> if you publish results obtained with this online demo.</span>");
     $("#citation-link").attr('href', response.general.xlink_article);
     $("#articleTab").attr('href', response.general.xlink_article);
+    addDescriptionTooltips(response.general);
     helpers.addToStorage("demoInfo", response);
     console.log("get_interface_ddl", response);
-    addInputDescription(response.general.input_description);
     upload.printUploads(response.inputs);
   });
 }
@@ -114,27 +114,14 @@ function addSetClickEvent(blobSet, blobs){
     });
 }
 
-// Demo input description dialog
-$(".description-dialog").dialog({
-  resizable: false,
-  autoOpen: false,
-  width: 700,
-  modal: true,
-  open: function() {
-    $('.ui-widget-overlay').on('click', function() {
-      $('.description-dialog').dialog('close');
-    })
-  }
-});
+function addDescriptionTooltips(ddl_general){
+  var param_desc = getConcatDescription(ddl_general.param_description);
+  var param_tooltip_text = (param_desc != "") ? param_desc : "No description provided";
+  $('#parameters-description').attr('title', param_tooltip_text);
 
-// Open description dialog event
-$(".description-btn").click(function() {
-  $(".description-dialog").dialog("open");
-});
-
-// Add input description to dialog.
-function addInputDescription(inputDescription) {
-  $(".description-dialog").append(getConcatDescription);
+  var input_desc = getConcatDescription(ddl_general.input_description);
+  var input_tooltip_text = (input_desc != "") ? input_desc : "No description provided";
+  $('#inputs-description').attr('title', input_tooltip_text);
 }
 
 function getConcatDescription(inputDescription){

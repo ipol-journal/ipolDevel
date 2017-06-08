@@ -14,7 +14,7 @@ parameters.printParameters = function() {
 
   if (demoInfo.params) {
     var demoInfoParams = demoInfo.params;
-    addParametersSectionButtons();
+    addResetButton();
     $('.param-container').remove();
     for (var i = 0; i < demoInfoParams.length; i++) {
       var param = demoInfoParams[i];
@@ -77,40 +77,14 @@ function checkParamsVisibility() {
   }
 }
 
-function getConcatDescription() {
-  var description = "";
-  for (let i = 0; i < demoInfo.general.param_description.length; i++) {
-    description += demoInfo.general.param_description[i];
-  }
-  return description
-};
-
-function addParametersSectionButtons() {
+function addResetButton() {
   $('.params-buttons').remove();
   $('#parameters-container').append('<div class=params-buttons ></div>');
-  addDescriptionButton();
-  addResetButton();
-}
-
-function addDescriptionButton() {
-  $('.params-buttons').append('<button class=param-description-btn >Description</button>');
-  $('.param-description-btn').addClass('btn');
-  $('.params-description-dialog').addParamsDescription();
-  $('.param-description-btn').click(function() {
-    $(".params-description-dialog").dialog("open");
-  });
-}
-
-function addResetButton() {
   $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
   $('.param-reset-btn').addClass('btn');
   $('.param-reset-btn').click(function(event) {
     parameters.printParameters();
   });;
-}
-
-$.fn.addParamsDescription = function() {
-  $(this).empty().append(getConcatDescription());
 }
 
 $.fn.checkVisibility = function(param) {
@@ -126,15 +100,3 @@ $.fn.addLayoutHeader = function(label) {
     .addClass('param-container')
     .append('<h3>' + label + '</h3>');
 }
-
-$(".params-description-dialog").dialog({
-  resizable: false,
-  autoOpen: false,
-  width: 700,
-  modal: true,
-  open: function() {
-    $('.ui-widget-overlay').on('click', function() {
-      $('.params-description-dialog').dialog('close');
-    })
-  }
-});
