@@ -14,10 +14,6 @@
 {% endblock %}
 
 
-{% block topmenu %}
-    <!-- topmenu Section for demoinfo   -->
-    {% include 'demoinfo/demoinfo_menu.html' %}
-{% endblock %}
 
 
 {% block content %}
@@ -38,6 +34,13 @@
 
         {#  Demo list #}
         {% with data=list_demos %}
+            {% block topmenu %}
+                {% if admin %}
+                    <!-- topmenu Section for demoinfo   -->
+                    {% include 'demoinfo/demoinfo_menu.html' %}
+                {% endif %}
+            {% endblock %}
+
             {% if status == "OK" %}
 
                 {% if data %}

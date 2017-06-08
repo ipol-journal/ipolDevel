@@ -26,14 +26,14 @@
             {% include 'demoinfo/searchbar.html' %}
         {% endwith %}
 
-        {#  Add Editor btn #}
-        <div class="container">
-            <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.create_editor' %}' )">{% blocktrans %}Add a new Editor{%  endblocktrans %}</a>
-        </div>
 
         {#  Editor list #}
         {% with data=list_editors %}
             {% if status == "OK" %}
+                {#  Add Editor btn #}
+                <div class="container">
+                    <a class="btn btn-primary" onclick="send_get_editor_request('{% url 'ipol.cp.demoinfo.create_editor' %}' )">{% blocktrans %}Add a new Editor{%  endblocktrans %}</a>
+                </div>
                 {% if data %}
                     {% for editor in data %}
                         <div class="editor row" id="editor_info_{{ editor.id }}" >

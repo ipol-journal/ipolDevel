@@ -53,12 +53,10 @@ $(".upload-btn").click(function() {
 
 // Print uploads dialog.
 upload.printUploads = function(inputs) {
-  var uploadMaxSize = 0;
   for (var i = 0; i < inputs.length; i++) {
     var input = inputs[i];
     var inputType = input.type;
     var input_weight = eval(input.max_weight) / 1024 / 1024;
-    uploadMaxSize += input_weight;
     $(".upload-dialog").append("<div class=input-upload-" + i + "></div>");
     var uploadRow = $(".input-upload-" + i);
     var uploadRowArray = [];
@@ -73,7 +71,7 @@ upload.printUploads = function(inputs) {
     appendRequired(input, i);
     addInputListener(i);
   }
-  printUploadFooter(uploadMaxSize);
+  printUploadFooter();
 }
 
 // Get input max pixels.
@@ -194,10 +192,8 @@ function checkRequiredInputs() {
 }
 
 // Print upload dialog footer.
-function printUploadFooter(size) {
+function printUploadFooter() {
   var uploadDialog = $(".upload-dialog");
-  uploadDialog.append("<p>Upload size is limited to <b>" + Math.round(size) + "MB</b> for the whole upload set.</p>");
-  uploadDialog.append("<p>The uploaded will be publicly archived unless you switch to private mode on the result page.</p>");
   uploadDialog.append("<p>Only upload <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">suitable images</a>. See the <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">copyright and legal conditions</a> for details.</p>");
 }
 
