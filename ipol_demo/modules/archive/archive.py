@@ -505,8 +505,8 @@ class Archive(object):
         # id_demo = int(demo_id)
         experiment_id = int(experiment_id)
 
-        data = {}
-        data["status"] = "OK"
+        data = {"status": "OK"}
+        conn = None
         try:
             conn = lite.connect(self.database_file)
 
@@ -525,10 +525,8 @@ class Archive(object):
             data["status"] = "KO"
             self.error_log("get_experiment", str(ex))
 
-            try:
+            if conn is not None:
                 conn.close()
-            except Exception:
-                pass
 
         return json.dumps(data)
 

@@ -236,7 +236,7 @@ class DemoInfo(object):
             shutil.rmtree(extras_folder)
         except Exception as ex:
             data['status'] = "KO"
-            self.error_log("Failure in delete_compressed_file_ws ", str(ex))
+            self.logger.exception(str(ex))
         return json.dumps(data)
 
     @cherrypy.expose
@@ -317,7 +317,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -357,7 +357,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list_by_demoeditorid error %s" % str(ex)
             print error_string
-            self.error_log("demo_list_by_demoeditorid", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -441,7 +441,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("demo_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()  # [ToDo] It seems that this should do in a
                 # finally clause, not in a nested try. Check all similar
@@ -479,7 +479,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_authors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_authors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -520,7 +520,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_available_authors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_available_authors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -557,7 +557,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -598,7 +598,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_available_editors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_available_editors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -633,7 +633,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_demodescriptions_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_demodescriptions_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -703,7 +703,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
             print error_string
-            self.error_log("read_demo_metainfo", error_string)
+            self.logger.exception(error_string)
             # raise Exception
             data["error"] = error_string
 
@@ -757,7 +757,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = " demoinfo add_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -797,7 +797,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo delete_demo error %s" % str(ex)
             print error_string
-            self.error_log("delete_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -884,7 +884,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_list error %s" % str(ex)
             print error_string
-            self.error_log("author_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -964,7 +964,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("author_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1009,7 +1009,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_author error %s" % str(ex)
             print error_string
-            self.error_log("read_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1047,7 +1047,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_get_demos_list error %s" % str(ex)
             print error_string
-            self.error_log("author_get_demos_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1076,7 +1076,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_author error %s" % str(ex)
             print error_string
-            self.error_log("add_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1109,7 +1109,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_author_to_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_author_to_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1142,7 +1142,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_author_from_demo error %s" % str(ex)
             print error_string
-            self.error_log("remove_author_from_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1182,7 +1182,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_author error %s" % str(ex)
             print error_string
-            self.error_log("remove_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1226,7 +1226,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo update_author error %s" % str(ex)
             print error_string
-            self.error_log("update_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1260,7 +1260,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_list error %s" % str(ex)
             print error_string
-            self.error_log("editor_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1340,7 +1340,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("editor_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1377,7 +1377,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_get_demos_list error %s" % str(ex)
             print error_string
-            self.error_log("editor_get_demos_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1420,7 +1420,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_editor error %s" % str(ex)
             print error_string
-            self.error_log("read_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1450,7 +1450,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_editor error %s" % str(ex)
             print error_string
-            self.error_log("add_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1483,7 +1483,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_editor_to_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_editor_to_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1516,7 +1516,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_editor_from_demo error %s" % str(ex)
             print error_string
-            self.error_log("remove_editor_from_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1554,7 +1554,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_editor error %s" % str(ex)
             print error_string
-            self.error_log("remove_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1594,7 +1594,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo update_editor error %s" % str(ex)
             print error_string
-            self.error_log("update_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1629,7 +1629,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_demo_description error %s" % str(ex)
             print error_string
-            self.error_log("read_demo_description", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1739,7 +1739,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo save_demo_description error %s" % str(ex)
             print error_string
-            self.error_log("save_demo_description", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1810,7 +1810,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo stats error %s" % str(ex)
             print error_string
-            self.error_log("stats", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1844,7 +1844,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_states error %s" % str(ex)
             print error_string
-            self.error_log("read_states", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:

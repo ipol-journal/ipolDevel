@@ -455,7 +455,7 @@ class Blobs(object):
         """
         try:
             if not database.template_exist(conn, template_name):
-                raise IPOLBlobsTemplateError
+                raise IPOLBlobsTemplateError("Template doesn't exist")
 
             database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set)
             conn.commit()
@@ -631,7 +631,7 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
 
             if not database.all_templates_exist(conn, template_names_list):
-                raise IPOLBlobsTemplateError
+                raise IPOLBlobsTemplateError("All the templates doesn't exist")
 
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
@@ -893,8 +893,11 @@ class Blobs(object):
                 self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                 return res
 
-            blob_hash = blob_data['hash']
-            blob_id = blob_data['id']
+            if blob_data is None:
+                return res
+
+            blob_hash = blob_data.get('hash')
+            blob_id = blob_data.get('id')
             if not database.is_blob_used(conn, blob_id):
                 database.remove_blob(conn, blob_id)
                 self.remove_files_associated_to_a_blob(blob_hash)
@@ -1175,8 +1178,12 @@ class Blobs(object):
             else:
                 self.logger.error("Failed to edit blob. Unknown dest: {}".format(dest["dest"]))
                 return res
-            blob_hash = blob_data['hash']
-            blob_id = blob_data['id']
+
+            if blob_data is None:
+                return res
+
+            blob_hash = blob_data.get('hash')
+            blob_id = blob_data.get('id')
             self.set_tags(conn, blob_id, tags)
 
             if blob_vr is not None:
@@ -1242,7 +1249,10 @@ class Blobs(object):
         try:
             conn = lite.connect(self.database_file)
             blob_data = database.get_blob_data(conn, blob_id)
-            blob_hash = blob_data['hash']
+            if blob_data is None:
+                return data
+
+            blob_hash = blob_data.get('hash')
 
             # Delete VR
             vr_folder = os.path.join(self.vr_dir, self.get_subdir(blob_hash))
