@@ -670,7 +670,7 @@ class DemoInfo(object):
             editordemoid = int(editor_demo_id)
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
-            demo = dao.read_by_editordemoid(editordemoid)
+            demo = dao.read(editordemoid)
             conn.close()
 
         except Exception as ex:
