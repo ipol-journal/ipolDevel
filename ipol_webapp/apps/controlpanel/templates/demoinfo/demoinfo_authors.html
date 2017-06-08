@@ -26,15 +26,15 @@
             {% include 'demoinfo/searchbar.html' %}
         {% endwith %}
 
-        {#  Add Author btn #}
-        <div class="container">
-            <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.create_author' %}' )">{% blocktrans %}Add a new Author{%  endblocktrans %}</a>
-        </div>
 
         {#  Author list #}
         {% with data=list_authors %}
 
             {% if status == "OK" %}
+                {#  Add Author btn #}
+                <div class="container">
+                    <a class="btn btn-primary" onclick="send_get_author_request('{% url 'ipol.cp.demoinfo.create_author' %}' )">{% blocktrans %}Add a new Author{%  endblocktrans %}</a>
+                </div>
                 {% if data %}
                     {% for author in data %}
                         <div class="author row" id="author_info_{{ author.id }}" >

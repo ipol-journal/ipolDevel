@@ -116,6 +116,8 @@ class DemoinfoDemosView(NavbarReusableMixinMF,TemplateView):
             context['createdemoform'] = CreateDemoform
             # context['updatedemoform'] = UpdateDemoform
             context['states'] = get_demoinfo_module_states()
+            user = self.request.user
+            context['admin'] = user.is_staff or user.is_superuser
 
         except Exception as e:
 
@@ -520,7 +522,12 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
 
         #get context
         context = super(DemoinfoAuthorsView, self).get_context_data(**kwargs)
-
+        user = self.request.user
+        if not (user.is_staff or user.is_superuser):
+            context['status'] = 'KO'
+            context['list_authors'] = []
+            context['authorform'] = None
+            return context
         try:
 
             #filter result
@@ -571,7 +578,6 @@ class DemoinfoAuthorsView(NavbarReusableMixinMF,TemplateView):
         except Exception as e:
 
             msg=" DemoinfoAuthorformView Error %s "%e
-            logger.error(msg)
             context['status'] = 'KO'
             context['list_authors'] = []
             context['authorform'] = None
@@ -1082,6 +1088,12 @@ class DemoinfoEditorsView(NavbarReusableMixinMF,TemplateView):
         #get context
         context = super(DemoinfoEditorsView, self).get_context_data(**kwargs)
 
+        user = self.request.user
+        if not (user.is_staff or user.is_superuser):
+            context['status'] = 'KO'
+            context['list_editors'] = []
+            context['editorform'] = None
+            return context
         try:
 
             #filter result
