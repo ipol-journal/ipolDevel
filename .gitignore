@@ -60,11 +60,10 @@ ipol_demo/modules/archive/logs/error.log
 
 
 #
-# ignore kile files
+# ignore editor temporal files
 *.kilepr
-#
-# ignore Pycharm files
 .idea
+.synctex.gz
 
 # Static data
 staticData/
