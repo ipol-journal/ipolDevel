@@ -170,7 +170,8 @@ class DemoDescriptionDAO(object):
         Add description for the given demo.
         """
         try:
-            self.cursor.execute('''INSERT INTO demodescription (DDL) VALUES(?)''', (ddl,))
+            self.cursor.execute('''INSERT INTO demodescription (creation, DDL)
+                                   VALUES(datetime(CURRENT_TIMESTAMP, 'localtime'),?)''', (ddl,))
             self.conn.commit()
             return self.cursor.lastrowid
         except Exception as ex:
@@ -201,7 +202,7 @@ class DemoDescriptionDAO(object):
         try:
             self.cursor.execute("""
                 UPDATE demodescription
-                SET ddl = ?
+                SET ddl = ?, creation = datetime(CURRENT_TIMESTAMP, 'localtime')
                 WHERE id = (SELECT  dd.id
                             FROM demo_demodescription AS ddd, demodescription AS dd, demo AS d 
                             WHERE dd.id = ddd.demodescriptionid AND ddd.demoid = d.id AND d.editor_demo_id = ?
@@ -273,8 +274,9 @@ class DemoDAO(object):
             self.conn.commit()
             state_id = self.cursor.fetchone()[0]
             self.cursor.execute('''
-            INSERT INTO demo(editor_demo_id, title, stateID)
-            VALUES(?,?,?)''', (demo.editorsdemoid, demo.title, state_id,))
+            INSERT INTO demo(editor_demo_id, title, creation, modification, stateID)
+            VALUES(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'), datetime(CURRENT_TIMESTAMP, 'localtime'),?)''',
+                                (demo.editorsdemoid, demo.title, state_id,))
             self.conn.commit()
             return demo.editorsdemoid
         except Exception as ex:
@@ -357,7 +359,7 @@ class DemoDAO(object):
         """
         Same as read, deprecated.
         """
-        #All calls to this function must be changed to read(editor_demo_id)
+        # All calls to this function must be changed to read(editor_demo_id)
         self.read(editor_demo_id)
 
     def list(self):
@@ -599,7 +601,8 @@ class AuthorDAO(object):
         try:
             # todo validate user input
             self.cursor.execute('''
-            INSERT INTO author(name, mail) VALUES(?,?)''', (author.name, author.mail,))
+            INSERT INTO author(name, mail, creation)
+            VALUES(?,?,datetime(CURRENT_TIMESTAMP, 'localtime'))''', (author.name, author.mail,))
             self.conn.commit()
             return self.cursor.lastrowid
 
@@ -882,7 +885,8 @@ class EditorDAO(object):
         try:
             # todo validate user input
             self.cursor.execute('''
-            INSERT INTO editor(name, mail) VALUES(?,?)''', (editor.name, editor.mail,))
+            INSERT INTO editor(name, mail, creation)
+            VALUES(?,?, datetime(CURRENT_TIMESTAMP, 'localtime'))''', (editor.name, editor.mail,))
             self.conn.commit()
             return self.cursor.lastrowid
         except Exception as ex:
