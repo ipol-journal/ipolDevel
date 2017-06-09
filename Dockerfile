@@ -26,6 +26,11 @@ COPY ./docker/nginx_clientApp_location /home/ipol/nginx_clientApp_location
 RUN sed -i 's@miguel@ipol@g; s@http://$host:@http://127.0.1.1:@g' /etc/nginx/sites-available/default
 RUN sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
 
+USER ipol
+RUN ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod og-wx ~/.ssh/authorized_keys
+USER root
+
+
 EXPOSE 80
 EXPOSE 22
 
