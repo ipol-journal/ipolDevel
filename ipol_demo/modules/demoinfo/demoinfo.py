@@ -344,7 +344,7 @@ class DemoInfo(object):
         else:
             print "demoeditorid_list is not a valid JSON"
             data["error"] = "demoeditorid_list is not a valid JSON"
-            return data
+            return json.dumps(data)
 
         try:
             conn = lite.connect(self.database_file)
@@ -696,7 +696,7 @@ class DemoInfo(object):
             if demo is None:
                 data['error'] = "No demo retrieved for this id"
                 print "No demo retrieved for this id"
-                return data
+                return json.dumps(data)
 
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
@@ -1008,7 +1008,7 @@ class DemoInfo(object):
 
             if author is None:
                 print "No author retrieved for this id"
-                return data
+                return json.dumps(data)
 
             data["id"] = author.id
             data["name"] = author.name
@@ -1423,7 +1423,7 @@ class DemoInfo(object):
             if editor is None:
                 print "No editor retrieved for this id"
                 data['error'] = "No editor retrieved for this id"
-                return data
+                return json.dumps(data)
 
             data["id"] = editor.id
             data["name"] = editor.name
@@ -1717,23 +1717,21 @@ class DemoInfo(object):
 
         data = {}
         data["status"] = "KO"
-
         cl = cherrypy.request.headers['Content-Length']
         ddl = cherrypy.request.body.read(int(cl))
-
         if not is_json(ddl):
             print "\n save_demo_description ddl is not a valid json "
             print "ddl: ", ddl
             print "ddl type: ", type(ddl)
             data['error'] = "save_demo_description ddl is not a valid json"
-            return data
+            return json.dumps(data)
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             demo = demo_dao.read(int(demoid))
             if demo is None:
                 data['error'] = 'There is no demo with that demoid'
-                return data
+                return json.dumps(data)
             state = demo_dao.read(int(demoid)).state
             if not state == "published":  # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
