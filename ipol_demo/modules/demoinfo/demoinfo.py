@@ -1731,7 +1731,7 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             demo = demo_dao.read(int(demoid))
-            if demo in None:
+            if demo is None:
                 data['error'] = 'There is no demo with that demoid'
                 return data
             state = demo_dao.read(int(demoid)).state
