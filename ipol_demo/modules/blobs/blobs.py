@@ -34,6 +34,7 @@ import magic
 from threading import Lock
 
 import database
+from sqlite3 import IntegrityError
 from errors import IPOLBlobsDataBaseError
 from errors import IPOLBlobsTemplateError
 from errors import IPOLBlobsThumbnailError
@@ -326,6 +327,8 @@ class Blobs(object):
             else:
                 self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IOError as ex:
             self.logger.exception("Error copying uploaded blob")
             print "Couldn't copy uploaded blob. Error: {}".format(ex)
@@ -386,7 +389,7 @@ class Blobs(object):
             blob_id = database.store_blob(conn, blob_hash, blob_format, ext, title, credit)
             conn.commit()
             return blob_id
-        except IPOLBlobsDataBaseError:
+        except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
             raise
 
@@ -444,7 +447,7 @@ class Blobs(object):
                 database.create_demo(conn, demo_id)
             database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set)
             conn.commit()
-        except IPOLBlobsDataBaseError:
+        except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
             raise
 
@@ -459,7 +462,7 @@ class Blobs(object):
 
             database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set)
             conn.commit()
-        except IPOLBlobsDataBaseError:
+        except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
             raise
 
@@ -583,7 +586,7 @@ class Blobs(object):
                 database.create_tags(conn, tag_list)
             database.add_tags_to_blob(conn, tag_list, blob_id)
             conn.commit()
-        except IPOLBlobsDataBaseError:
+        except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
             raise
 
@@ -602,6 +605,8 @@ class Blobs(object):
             conn.commit()
             status = {"status": "OK"}
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
                 conn.rollback()
@@ -640,6 +645,8 @@ class Blobs(object):
             conn.commit()
             status = {"status": "OK"}
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
                 conn.rollback()
@@ -681,6 +688,8 @@ class Blobs(object):
             data["sets"] = sets
             data["status"] = "OK"
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
             print "Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex)
@@ -736,6 +745,9 @@ class Blobs(object):
 
             data["sets"] = sets
             data["status"] = "OK"
+
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_name))
             print "Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_name, ex)
@@ -763,6 +775,9 @@ class Blobs(object):
             sets = self.prepare_list(blobs)
             data["sets"] = sets
             data["status"] = "OK"
+
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
             print "Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex)
@@ -836,6 +851,9 @@ class Blobs(object):
             db_response = database.get_demo_templates(conn, demo_id)
             data["templates"] = db_response
             data["status"] = "OK"
+
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned templates from demo #{}".format(demo_id))
             print "Couldn't obtain owned templates from demo #{}. Error: {}".format(demo_id, ex)
@@ -861,6 +879,9 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             self.associate_tags_to_blob(conn, blob_id, tags)
             data['status'] = 'OK'
+
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Failed to add the tags to blob")
             print "Failed to add the tags to blob. DB Error: {}".format(ex)
@@ -903,6 +924,8 @@ class Blobs(object):
                 self.remove_files_associated_to_a_blob(blob_hash)
             conn.commit()
             res = True
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing blob")
@@ -984,6 +1007,8 @@ class Blobs(object):
             # There is no need to do a rollback if the problem was deleting directories
             self.logger.exception("Failed to remove directories")
             print "Failed to remove directories. Error: {}".format(ex)
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the demo/template")
@@ -1034,6 +1059,8 @@ class Blobs(object):
             if database.remove_template_from_demo(conn, demo_id, template_name):
                 conn.commit()
                 data['status'] = 'OK'
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the template from the demo")
@@ -1061,6 +1088,8 @@ class Blobs(object):
             conn.commit()
             data['status'] = 'OK'
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the demo/template")
@@ -1194,6 +1223,8 @@ class Blobs(object):
             conn.commit()
             res = True
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while editing the blob")
@@ -1227,6 +1258,8 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             data['templates'] = database.get_all_templates(conn)
             data['status'] = 'OK'
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while reading all the templates")
             print "Failed reading all the templates. Error: {}".format(ex)
@@ -1279,6 +1312,8 @@ class Blobs(object):
         except IPOLBlobsThumbnailError as ex:
             self.logger.exception("Error creating the thumbnail")
             print "Couldn't create the thumbnail. Error: {}".format(ex)
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while removing the visual representation")
             print "Failed removing the visual representation. Error: {}".format(ex)
@@ -1303,6 +1338,8 @@ class Blobs(object):
             database.update_demo_id(conn, old_demo_id, new_demo_id)
             data['status'] = 'OK'
             conn.commit()
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while updating demo id")
@@ -1336,6 +1373,8 @@ class Blobs(object):
 
             data['physical_locations'] = physical_locations
             data['status'] = 'OK'
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting blob location")
             print "DB operation failed while getting blob location. Error: {}".format(ex)
@@ -1359,6 +1398,8 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             data['demos'] = database.get_demos_using_the_template(conn, template_name)
             data['status'] = 'OK'
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting the list of demos that uses the template")
             print "DB operation failed while getting the list of demos that uses the template. Error: {}".format(ex)
@@ -1401,6 +1442,8 @@ class Blobs(object):
             data["url_thumb"] = "/api/blobs/staticData/thumbnail/"
             data['physical_location'] = "staticData/blob_directory"
 
+        except IntegrityError as ex:
+            print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the blobs from demo #{}".format(demo_name))
             print "Couldn't obtain the blobs from demo #{}. Error: {}".format(demo_name, ex)
