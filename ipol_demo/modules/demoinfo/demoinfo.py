@@ -23,6 +23,7 @@ import json
 from math import ceil
 import cherrypy
 import re
+from sqlite3 import IntegrityError
 import socket
 
 import ConfigParser
@@ -341,7 +342,9 @@ class DemoInfo(object):
         if is_json(demoeditorid_list):
             demoeditorid_list = json.loads(demoeditorid_list)
         else:
-            raise ValueError("demoeditorid_list is not a valid JSON")
+            print "demoeditorid_list is not a valid JSON"
+            data["error"] = "demoeditorid_list is not a valid JSON"
+            return data
 
         try:
             conn = lite.connect(self.database_file)
@@ -691,8 +694,10 @@ class DemoInfo(object):
 
             demo = self.read_demo(demoid)
             if demo is None:
-                raise ValueError("No demo retrieved for this id")
-            # data["id"] = demo.id
+                data['error'] = "No demo retrieved for this id"
+                print "No demo retrieved for this id"
+                return data
+
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
             data["state"] = demo.state
@@ -720,9 +725,8 @@ class DemoInfo(object):
         - creating the demo and assigning an existing ddl (with id demodescriptionID) to it
         - create the demo and create a ddl , whith the json passed by param (demodescriptionJson)
         """
-        data = {}
-        data["status"] = "KO"
-
+        data = {"status": "KO"}
+        conn = None
         try:
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
@@ -749,11 +753,17 @@ class DemoInfo(object):
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, state=str(state))
 
                 demoid = dao.add(d)
+                data["demoid"] = demoid
 
             conn.close()
 
             data["status"] = "OK"
-            data["demoid"] = demoid
+
+        except IntegrityError as ex:
+            if conn is not None:
+                conn.close()
+            data['error'] = str(ex)
+
         except Exception as ex:
             error_string = " demoinfo add_demo error %s" % str(ex)
             print error_string
@@ -995,10 +1005,10 @@ class DemoInfo(object):
             except Exception as ex:
                 error_string = ("read_author  e:%s" % (str(ex)))
                 print error_string
-                # raise ValueError(error_string)
 
             if author is None:
-                raise ValueError("No author retrieved for this id")
+                print "No author retrieved for this id"
+                return data
 
             data["id"] = author.id
             data["name"] = author.name
@@ -1063,8 +1073,8 @@ class DemoInfo(object):
         """
         webservice adding author entry.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
+        conn = None
         try:
             a = Author(name, mail)
             conn = lite.connect(self.database_file)
@@ -1073,15 +1083,18 @@ class DemoInfo(object):
             conn.close()
             data["status"] = "OK"
             data["authorid"] = the_id
+
+        except IntegrityError as ex:
+            print ex
+            data['error'] = str(ex)
+            if conn is not None:
+                conn.close()
         except Exception as ex:
             error_string = "demoinfo add_author error %s" % str(ex)
             print error_string
             self.logger.exception(error_string)
-            try:
+            if conn is not None:
                 conn.close()
-            except Exception as ex:
-                pass
-            # raise Exception
             data["error"] = error_string
         return json.dumps(data)
 
@@ -1406,10 +1419,11 @@ class DemoInfo(object):
             except Exception as ex:
                 error_string = ("read_editor  e:%s" % (str(ex)))
                 print error_string
-                # raise ValueError(error_string)
 
             if editor is None:
-                raise ValueError("No editor retrieved for this id")
+                print "No editor retrieved for this id"
+                data['error'] = "No editor retrieved for this id"
+                return data
 
             data["id"] = editor.id
             data["name"] = editor.name
@@ -1437,8 +1451,8 @@ class DemoInfo(object):
         """
         webservice adding editor entry.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
+        conn = None
         try:
             e = Editor(name, mail)
             conn = lite.connect(self.database_file)
@@ -1447,15 +1461,19 @@ class DemoInfo(object):
             conn.close()
             data["status"] = "OK"
             data["editorid"] = the_id
+
+        except IntegrityError as ex:
+            print ex
+            data['error'] = str(ex)
+            if conn is not None:
+                conn.close()
         except Exception as ex:
             error_string = "demoinfo add_editor error %s" % str(ex)
             print error_string
             self.logger.exception(error_string)
-            try:
+            if conn is not None:
                 conn.close()
-            except Exception as ex:
-                pass
-            # raise Exception
+
             data["error"] = error_string
         return json.dumps(data)
 
@@ -1646,7 +1664,10 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            ddl = json.loads(ddl["ddl"], object_pairs_hook=OrderedDict)
+            if ddl is None:
+                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo"})
+
+            ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
             if 'build' in ddl:
                 del ddl['build']
             if 'run' in ddl:
@@ -1704,11 +1725,15 @@ class DemoInfo(object):
             print "\n save_demo_description ddl is not a valid json "
             print "ddl: ", ddl
             print "ddl type: ", type(ddl)
-            raise Exception
-
+            data['error'] = "save_demo_description ddl is not a valid json"
+            return data
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
+            demo = demo_dao.read(int(demoid))
+            if demo in None:
+                data['error'] = 'There is no demo with that demoid'
+                return data
             state = demo_dao.read(int(demoid)).state
             if not state == "published":  # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)

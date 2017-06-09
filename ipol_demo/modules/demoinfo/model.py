@@ -858,68 +858,48 @@ class DemoEditorDAO(object):
         """
         Add an entry to the demo_editor table.
         """
-        try:
-            self.cursor.execute('''
-            INSERT INTO demo_editor(editorId,demoID)
-            VALUES(?,(SELECT ID
-                FROM demo
-                WHERE demo.editor_demo_id=?))''', (int(editorid), int(editorsdemoid),))
-            self.conn.commit()
+        self.cursor.execute('''
+        INSERT INTO demo_editor(editorId,demoID)
+        VALUES(?,(SELECT ID
+            FROM demo
+            WHERE demo.editor_demo_id=?))''', (int(editorid), int(editorsdemoid),))
+        self.conn.commit()
 
-        except Exception as ex:
-            error_string = ("add_demo_editor  e:%s" % (str(ex)))
-            print error_string
-            raise Exception(error_string)
 
     @validates(typ(int))
     def delete(self, the_id):
         """
         delete an entry from id.
         """
-        try:
-            self.cursor.execute("DELETE FROM demo_editor WHERE id=?", (int(the_id),))
-            self.conn.commit()
-        except Exception as ex:
-            error_string = ("delete_demo_editor  e:%s" % (str(ex)))
-            print error_string
-            raise Exception(error_string)
+        self.cursor.execute("DELETE FROM demo_editor WHERE id=?", (int(the_id),))
+        self.conn.commit()
 
     @validates(typ(int))
     def delete_all_editors_for_demo(self, editorsdemoid):
         """
         remove editor from demos/editor correspondence.
         """
-        try:
-            self.cursor.execute('''
-            DELETE
-            FROM demo_editor
-            WHERE demoID=(SELECT ID
-                    FROM demo
-                    WHERE demo.editor_demo_id=?)''', (int(editorsdemoid),))
-            self.conn.commit()
-        except Exception as ex:
-            error_string = ("delete_all_editors_for_demo  e:%s" % (str(ex)))
-            print error_string
-            raise Exception(error_string)
+        self.cursor.execute('''
+        DELETE
+        FROM demo_editor
+        WHERE demoID=(SELECT ID
+                FROM demo
+                WHERE demo.editor_demo_id=?)''', (int(editorsdemoid),))
+        self.conn.commit()
 
     @validates(typ(int), typ(int))
     def remove_editor_from_demo(self, editorsdemoid, editorid):
         """
         remove editor from demos/editor correspondence and editor id.
         """
-        try:
-            self.cursor.execute('''
-            DELETE
-            FROM demo_editor
-            WHERE editorId=?
-            AND demoID=(SELECT ID
-                    FROM demo
-                    WHERE demo.editor_demo_id=?)''', (int(editorid), int(editorsdemoid),))
-            self.conn.commit()
-        except Exception as ex:
-            error_string = ("remove_editor_from_demo  e:%s" % (str(ex)))
-            print error_string
-            raise Exception(error_string)
+        self.cursor.execute('''
+        DELETE
+        FROM demo_editor
+        WHERE editorId=?
+        AND demoID=(SELECT ID
+                FROM demo
+                WHERE demo.editor_demo_id=?)''', (int(editorid), int(editorsdemoid),))
+        self.conn.commit()
 
     @validates(typ(int))
     def read(self, the_id):
@@ -927,20 +907,16 @@ class DemoEditorDAO(object):
         get editor from id.
         """
         result = None
-        try:
-            self.cursor.execute('''
-            SELECT demo_editor.ID,demo.editor_demo_id, demo_editor.editorId
-            FROM demo_editor , demo
-            WHERE demo_editor.demoID=demo.ID
-            AND demo_editor.ID=?''', (int(the_id),))
-            self.conn.commit()
-            row = self.cursor.fetchone()
-            if row:
-                result = {'id': row[0], 'editorDemoID': row[1], 'editorId': row[2]}
+        self.cursor.execute('''
+        SELECT demo_editor.ID,demo.editor_demo_id, demo_editor.editorId
+        FROM demo_editor , demo
+        WHERE demo_editor.demoID=demo.ID
+        AND demo_editor.ID=?''', (int(the_id),))
+        self.conn.commit()
+        row = self.cursor.fetchone()
+        if row:
+            result = {'id': row[0], 'editorDemoID': row[1], 'editorId': row[2]}
 
-        except Exception as ex:
-            error_string = ("read_demo_editor  e:%s" % (str(ex)))
-            print error_string
         return result
 
     @validates(typ(int))
@@ -949,20 +925,15 @@ class DemoEditorDAO(object):
         get list of demos from an editor id.
         """
         demo_list = list()
-        try:
-            self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name, d.id, d.creation, d.modification
-                                FROM demo as d, demo_editor as de, state as s
-                                WHERE d.id=de.demoId
-                                AND d.stateID = s.ID
-                                AND de.editorId=?''', (int(editorid),))
-            self.conn.commit()
-            for row in self.cursor.fetchall():
-                d = Demo(row[0], row[1], row[2], row[3], row[4])
-                demo_list.append(d)
-
-        except Exception as ex:
-            error_string = ("read_editor_demos  e:%s" % (str(ex)))
-            print error_string
+        self.cursor.execute('''SELECT d.editor_demo_id, d.title, s.name, d.id, d.creation, d.modification
+                            FROM demo as d, demo_editor as de, state as s
+                            WHERE d.id=de.demoId
+                            AND d.stateID = s.ID
+                            AND de.editorId=?''', (int(editorid),))
+        self.conn.commit()
+        for row in self.cursor.fetchall():
+            d = Demo(row[0], row[1], row[2], row[3], row[4])
+            demo_list.append(d)
         return demo_list
 
     @validates(typ(int))
@@ -971,23 +942,19 @@ class DemoEditorDAO(object):
         get list of editors from an editor-demo correspondence.
         """
         editor_list = list()
-        try:
-            # self.cursor.execute('''SELECT id,demoID,
-            # editorId FROM demo_editor WHERE demoID=?''', (int(demoid),))
-            self.cursor.execute('''
-                SELECT e.name, e.mail,e.id,e.creation
-                FROM editor as e, demo_editor as de , demo as d
-                WHERE e.id=de.editorId
-                AND de.demoID= d.ID
-                AND d.editor_demo_id=?''', (int(editordemoid),))
-            self.conn.commit()
-            for row in self.cursor.fetchall():
-                e = Editor(row[0], row[1], row[2], row[3])
-                editor_list.append(e)
+        # self.cursor.execute('''SELECT id,demoID,
+        # editorId FROM demo_editor WHERE demoID=?''', (int(demoid),))
+        self.cursor.execute('''
+            SELECT e.name, e.mail,e.id,e.creation
+            FROM editor as e, demo_editor as de , demo as d
+            WHERE e.id=de.editorId
+            AND de.demoID= d.ID
+            AND d.editor_demo_id=?''', (int(editordemoid),))
+        self.conn.commit()
+        for row in self.cursor.fetchall():
+            e = Editor(row[0], row[1], row[2], row[3])
+            editor_list.append(e)
 
-        except Exception as ex:
-            error_string = ("read_demo_editors  e:%s" % (str(ex)))
-            print error_string
         return editor_list
 
 
