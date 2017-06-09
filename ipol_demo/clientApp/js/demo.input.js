@@ -27,6 +27,7 @@ function getDemoinfo() {
     $(".citation").html("<span>Please cite <a id=citation-link>the reference article</a> if you publish results obtained with this online demo.</span>");
     $("#citation-link").attr('href', response.general.xlink_article);
     $("#articleTab").attr('href', response.general.xlink_article);
+    checkDescriptionIconsVisibility(response.general);
     addDescriptionTooltips(response.general);
     helpers.addToStorage("demoInfo", response);
     console.log("get_interface_ddl", response);
@@ -70,7 +71,9 @@ function printSets(sets) {
   var setsContainer = document.getElementById("sets");
   var isChrome = !!window.chrome && !!window.chrome.webstore;
   var isFirefox = typeof InstallTrigger !== 'undefined';
-  var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+  var isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
+    return p.toString() === "[object SafariRemoteNotification]";
+  })(!window['safari'] || safari.pushNotification);
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   } else {
@@ -83,12 +86,12 @@ function scrollHorizontally(e) {
   if (e.deltaY) deltaValue = e.deltaY;
   else deltaValue = e.wheelDelta;
   var delta = Math.max(-1, Math.min(1, (deltaValue || -e.detail)));
-  this.scrollLeft -= (delta*70);
+  this.scrollLeft -= (delta * 70);
   e.preventDefault();
 }
 
 function MouseWheelHandler() {
-  return function (e) {
+  return function(e) {
     // cross-browser wheel delta
     var e = window.event || e;
     // Get delta value from deltaY instead of wheelDelta for trackpad support.
@@ -104,9 +107,9 @@ function MouseWheelHandler() {
   }
 }
 
-function addSetClickEvent(blobSet, blobs){
+function addSetClickEvent(blobSet, blobs) {
   blobSet.addClass("blobSet")
-    .click( function() {
+    .click(function() {
       helpers.addToStorage("demoSet", blobs);
       helpers.setOrigin("demo");
       editor.printEditor();
@@ -114,17 +117,20 @@ function addSetClickEvent(blobSet, blobs){
     });
 }
 
-function addDescriptionTooltips(ddl_general){
-  var param_desc = getConcatDescription(ddl_general.param_description);
-  var param_tooltip_text = (param_desc != "") ? param_desc : "No description provided";
-  $('#parameters-description').attr('title', param_tooltip_text);
+function addDescriptionTooltips(ddl_general) {
+  if (ddl_general.param_description)
+    $('#parameters-description').attr('title', getConcatDescription(ddl_general.param_description));
 
-  var input_desc = getConcatDescription(ddl_general.input_description);
-  var input_tooltip_text = (input_desc != "") ? input_desc : "No description provided";
-  $('#inputs-description').attr('title', input_tooltip_text);
+  if (ddl_general.input_description)
+    $('#inputs-description').attr('title', getConcatDescription(ddl_general.input_description));
 }
 
-function getConcatDescription(inputDescription){
+function checkDescriptionIconsVisibility(ddl_general) {
+  if (ddl_general.param_description != undefined) $('#parameters-description').removeClass('di-none');
+  if (ddl_general.input_description != undefined) $('#inputs-description').removeClass('di-none');
+}
+
+function getConcatDescription(inputDescription) {
   var description = "";
   for (let i = 0; i < inputDescription.length; i++) {
     description += inputDescription[i];
