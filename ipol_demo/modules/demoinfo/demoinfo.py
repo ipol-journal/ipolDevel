@@ -23,6 +23,7 @@ import json
 from math import ceil
 import cherrypy
 import re
+from sqlite3 import IntegrityError
 import socket
 
 import ConfigParser
@@ -236,7 +237,7 @@ class DemoInfo(object):
             shutil.rmtree(extras_folder)
         except Exception as ex:
             data['status'] = "KO"
-            self.error_log("Failure in delete_compressed_file_ws ", str(ex))
+            self.logger.exception(str(ex))
         return json.dumps(data)
 
     @cherrypy.expose
@@ -317,7 +318,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -341,7 +342,9 @@ class DemoInfo(object):
         if is_json(demoeditorid_list):
             demoeditorid_list = json.loads(demoeditorid_list)
         else:
-            raise ValueError("demoeditorid_list is not a valid JSON")
+            print "demoeditorid_list is not a valid JSON"
+            data["error"] = "demoeditorid_list is not a valid JSON"
+            return json.dumps(data)
 
         try:
             conn = lite.connect(self.database_file)
@@ -357,7 +360,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list_by_demoeditorid error %s" % str(ex)
             print error_string
-            self.error_log("demo_list_by_demoeditorid", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -441,7 +444,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("demo_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()  # [ToDo] It seems that this should do in a
                 # finally clause, not in a nested try. Check all similar
@@ -479,7 +482,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_authors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_authors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -520,7 +523,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_available_authors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_available_authors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -557,7 +560,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -598,7 +601,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_available_editors_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_available_editors_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -633,7 +636,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo demo_get_demodescriptions_list error %s" % str(ex)
             print error_string
-            self.error_log("demo_get_demodescriptions_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -670,7 +673,7 @@ class DemoInfo(object):
             editordemoid = int(editor_demo_id)
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
-            demo = dao.read_by_editordemoid(editordemoid)
+            demo = dao.read(editordemoid)
             conn.close()
 
         except Exception as ex:
@@ -691,8 +694,10 @@ class DemoInfo(object):
 
             demo = self.read_demo(demoid)
             if demo is None:
-                raise ValueError("No demo retrieved for this id")
-            # data["id"] = demo.id
+                data['error'] = "No demo retrieved for this id"
+                print "No demo retrieved for this id"
+                return json.dumps(data)
+
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
             data["state"] = demo.state
@@ -703,7 +708,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
             print error_string
-            self.error_log("read_demo_metainfo", error_string)
+            self.logger.exception(error_string)
             # raise Exception
             data["error"] = error_string
 
@@ -720,9 +725,8 @@ class DemoInfo(object):
         - creating the demo and assigning an existing ddl (with id demodescriptionID) to it
         - create the demo and create a ddl , whith the json passed by param (demodescriptionJson)
         """
-        data = {}
-        data["status"] = "KO"
-
+        data = {"status": "KO"}
+        conn = None
         try:
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
@@ -749,15 +753,21 @@ class DemoInfo(object):
                 d = Demo(editorsdemoid=int(editorsdemoid), title=title, state=str(state))
 
                 demoid = dao.add(d)
+                data["demoid"] = demoid
 
             conn.close()
 
             data["status"] = "OK"
-            data["demoid"] = demoid
+
+        except IntegrityError as ex:
+            if conn is not None:
+                conn.close()
+            data['error'] = str(ex)
+
         except Exception as ex:
             error_string = " demoinfo add_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -797,7 +807,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo delete_demo error %s" % str(ex)
             print error_string
-            self.error_log("delete_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -884,7 +894,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_list error %s" % str(ex)
             print error_string
-            self.error_log("author_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -964,7 +974,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("author_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -995,10 +1005,10 @@ class DemoInfo(object):
             except Exception as ex:
                 error_string = ("read_author  e:%s" % (str(ex)))
                 print error_string
-                # raise ValueError(error_string)
 
             if author is None:
-                raise ValueError("No author retrieved for this id")
+                print "No author retrieved for this id"
+                return json.dumps(data)
 
             data["id"] = author.id
             data["name"] = author.name
@@ -1009,7 +1019,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_author error %s" % str(ex)
             print error_string
-            self.error_log("read_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1047,7 +1057,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo author_get_demos_list error %s" % str(ex)
             print error_string
-            self.error_log("author_get_demos_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1063,8 +1073,8 @@ class DemoInfo(object):
         """
         webservice adding author entry.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
+        conn = None
         try:
             a = Author(name, mail)
             conn = lite.connect(self.database_file)
@@ -1073,15 +1083,18 @@ class DemoInfo(object):
             conn.close()
             data["status"] = "OK"
             data["authorid"] = the_id
+
+        except IntegrityError as ex:
+            print ex
+            data['error'] = str(ex)
+            if conn is not None:
+                conn.close()
         except Exception as ex:
             error_string = "demoinfo add_author error %s" % str(ex)
             print error_string
-            self.error_log("add_author", error_string)
-            try:
+            self.logger.exception(error_string)
+            if conn is not None:
                 conn.close()
-            except Exception as ex:
-                pass
-            # raise Exception
             data["error"] = error_string
         return json.dumps(data)
 
@@ -1109,7 +1122,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_author_to_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_author_to_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1142,7 +1155,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_author_from_demo error %s" % str(ex)
             print error_string
-            self.error_log("remove_author_from_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1182,7 +1195,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_author error %s" % str(ex)
             print error_string
-            self.error_log("remove_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1226,7 +1239,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo update_author error %s" % str(ex)
             print error_string
-            self.error_log("update_author", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1260,7 +1273,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_list error %s" % str(ex)
             print error_string
-            self.error_log("editor_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1340,7 +1353,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_list_pagination_and_filter error %s" % str(ex)
             print error_string
-            self.error_log("editor_list_pagination_and_filter", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1377,7 +1390,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo editor_get_demos_list error %s" % str(ex)
             print error_string
-            self.error_log("editor_get_demos_list", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1406,10 +1419,11 @@ class DemoInfo(object):
             except Exception as ex:
                 error_string = ("read_editor  e:%s" % (str(ex)))
                 print error_string
-                # raise ValueError(error_string)
 
             if editor is None:
-                raise ValueError("No editor retrieved for this id")
+                print "No editor retrieved for this id"
+                data['error'] = "No editor retrieved for this id"
+                return json.dumps(data)
 
             data["id"] = editor.id
             data["name"] = editor.name
@@ -1420,7 +1434,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_editor error %s" % str(ex)
             print error_string
-            self.error_log("read_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1437,8 +1451,8 @@ class DemoInfo(object):
         """
         webservice adding editor entry.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
+        conn = None
         try:
             e = Editor(name, mail)
             conn = lite.connect(self.database_file)
@@ -1447,15 +1461,19 @@ class DemoInfo(object):
             conn.close()
             data["status"] = "OK"
             data["editorid"] = the_id
+
+        except IntegrityError as ex:
+            print ex
+            data['error'] = str(ex)
+            if conn is not None:
+                conn.close()
         except Exception as ex:
             error_string = "demoinfo add_editor error %s" % str(ex)
             print error_string
-            self.error_log("add_editor", error_string)
-            try:
+            self.logger.exception(error_string)
+            if conn is not None:
                 conn.close()
-            except Exception as ex:
-                pass
-            # raise Exception
+
             data["error"] = error_string
         return json.dumps(data)
 
@@ -1483,7 +1501,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo add_editor_to_demo error %s" % str(ex)
             print error_string
-            self.error_log("add_editor_to_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1516,7 +1534,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_editor_from_demo error %s" % str(ex)
             print error_string
-            self.error_log("remove_editor_from_demo", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1554,7 +1572,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo remove_editor error %s" % str(ex)
             print error_string
-            self.error_log("remove_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1594,7 +1612,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo update_editor error %s" % str(ex)
             print error_string
-            self.error_log("update_editor", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1629,7 +1647,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_demo_description error %s" % str(ex)
             print error_string
-            self.error_log("read_demo_description", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1646,7 +1664,10 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            ddl = json.loads(ddl["ddl"], object_pairs_hook=OrderedDict)
+            if ddl is None:
+                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo"})
+
+            ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
             if 'build' in ddl:
                 del ddl['build']
             if 'run' in ddl:
@@ -1696,19 +1717,21 @@ class DemoInfo(object):
 
         data = {}
         data["status"] = "KO"
-
         cl = cherrypy.request.headers['Content-Length']
         ddl = cherrypy.request.body.read(int(cl))
-
         if not is_json(ddl):
             print "\n save_demo_description ddl is not a valid json "
             print "ddl: ", ddl
             print "ddl type: ", type(ddl)
-            raise Exception
-
+            data['error'] = "save_demo_description ddl is not a valid json"
+            return json.dumps(data)
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
+            demo = demo_dao.read(int(demoid))
+            if demo is None:
+                data['error'] = 'There is no demo with that demoid'
+                return json.dumps(data)
             state = demo_dao.read(int(demoid)).state
             if not state == "published":  # If the demo is not published the DDL is overwritten
                 dao = DemoDemoDescriptionDAO(conn)
@@ -1739,7 +1762,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo save_demo_description error %s" % str(ex)
             print error_string
-            self.error_log("save_demo_description", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1810,7 +1833,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo stats error %s" % str(ex)
             print error_string
-            self.error_log("stats", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:
@@ -1844,7 +1867,7 @@ class DemoInfo(object):
         except Exception as ex:
             error_string = "demoinfo read_states error %s" % str(ex)
             print error_string
-            self.error_log("read_states", error_string)
+            self.logger.exception(error_string)
             try:
                 conn.close()
             except Exception as ex:

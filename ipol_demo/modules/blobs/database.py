@@ -1,5 +1,5 @@
 from errors import IPOLBlobsDataBaseError
-
+from sqlite3 import IntegrityError
 
 def get_blob_tags(conn, blob_id):
     """
@@ -30,6 +30,8 @@ def store_blob(conn, blob_hash, blob_format, extension, title, credit):
             VALUES (?,?,?,?,?)
             """, (blob_hash, blob_format, extension, title, credit))
         return cursor.lastrowid
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -46,6 +48,8 @@ def demo_exist(conn, editor_demo_id):
                         WHERE editor_demo_id=?);
             """, (editor_demo_id,))
         return cursor.fetchone()[0] == 1
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -60,6 +64,8 @@ def create_demo(conn, editor_demo_id):
             INSERT INTO demos (editor_demo_id)
             VALUES (?)
             """, (editor_demo_id,))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -76,6 +82,8 @@ def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos):
                     FROM demos
                     WHERE editor_demo_id = ?), ?, ?,?)
             """, (editor_demo_id, blob_id, blob_set, blob_pos))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -89,6 +97,8 @@ def all_templates_exist(conn, template_names):
             if not template_exist(conn, name):
                 return False
         return True
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -105,6 +115,8 @@ def template_exist(conn, template_name):
                 WHERE name = ?
                 """, (template_name,))
         return cursor.fetchone()[0] >= 1
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -119,6 +131,8 @@ def create_template(conn, template_name):
             INSERT INTO templates (name)
             VALUES (?)
             """, (template_name,))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -135,6 +149,8 @@ def add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set):
                     FROM templates
                     WHERE name = ?), ?,?,?)
             """, (template_name, blob_id, blob_set, pos_set))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -163,6 +179,8 @@ def create_tags(conn, tags):
                         INSERT INTO tags (name)
                         VALUES (?)
                         """, (tag,))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -193,6 +211,8 @@ def add_tags_to_blob(conn, tags, blob_id):
                            FROM tags
                            WHERE name = ?))
                 """, (blob_id, tag))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -226,6 +246,8 @@ def add_templates_to_demo(conn, template_names, editor_demo_id):
                                                     FROM templates
                                                     WHERE name = ?))
                                                     """, (editor_demo_id, name))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -250,6 +272,8 @@ def get_demo_owned_blobs(conn, editor_demo_id):
                           "tags": get_blob_tags(conn, row[0])})
 
         return blobs
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -274,6 +298,8 @@ def get_template_blobs(conn, name):
                           "tags": get_blob_tags(conn, row[0])})
 
         return blobs
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -297,6 +323,8 @@ def get_demo_templates(conn, editor_demo_id):
         for row in cursor.fetchall():
             templates.append(row[0])
         return templates
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -317,6 +345,8 @@ def get_blob_data(conn, blob_id):
             return None
         result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
         return result
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -343,6 +373,8 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
         result = {'id': data[0], 'hash': data[1], 'format': data[2], 'extension': data[3],
                   'title': data[4], 'credit': data[5]}
         return result
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -370,6 +402,8 @@ def get_blob_data_from_template(conn, template_name, blob_set, pos_set):
                   'title': data[4], 'credit': data[5]}
         return result
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -391,6 +425,8 @@ def remove_blob_from_demo(conn, editor_demo_id, blob_set, pos_set):
                 AND pos_in_set = ?
                 """, (editor_demo_id, blob_set, pos_set))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -412,6 +448,8 @@ def remove_blob_from_template(conn, template_name, blob_set, pos_set):
                 AND pos_in_set = ?
                 """, (template_name, blob_set, pos_set))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -431,6 +469,8 @@ def is_blob_used(conn, blob_id):
                 """, (blob_id,))
         return cursor.fetchone()[0] >= 1
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -454,6 +494,8 @@ def remove_blob(conn, blob_id):
             if not tag_is_used(conn, tag):
                 remove_tag(conn, tag)
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -471,6 +513,8 @@ def remove_demo(conn, editor_demo_id):
             WHERE editor_demo_id = ?
             """, (editor_demo_id,))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -488,6 +532,8 @@ def remove_template(conn, template_name):
             WHERE name = ?
             """, (template_name,))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -507,6 +553,8 @@ def remove_demo_blobs_association(conn, editor_demo_id):
                             WHERE editor_demo_id = ?)
             """, (editor_demo_id,))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -526,6 +574,8 @@ def remove_template_blobs_association(conn, template_name):
                             WHERE name = ?)
             """, (template_name,))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -549,6 +599,8 @@ def remove_template_from_demo(conn, editor_demo_id, template_name):
             """, (editor_demo_id, template_name))
         return cursor.rowcount > 0
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -570,6 +622,8 @@ def remove_tag_from_blob(conn, tag, blob_id):
             """, (tag, blob_id))
         if not tag_is_used(conn, (tag,)):
             remove_tag(conn, (tag,))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -589,6 +643,8 @@ def tag_is_used(conn, tag):
             """, (tag,))
         return cursor.fetchone()[0] >= 1
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -604,6 +660,8 @@ def remove_tag(conn, tag):
             FROM tags
             WHERE name = ?
             """, (tag,))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -638,6 +696,8 @@ def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_p
                             WHERE editor_demo_id = ?)
             """, (new_set_name, new_pos, set_name, pos, editor_demo_id))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -672,6 +732,8 @@ def edit_blob_from_template(conn, template_name, set_name, new_set_name, pos, ne
                                 WHERE name = ?)
             """, (new_set_name, new_pos, set_name, pos, template_name))
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -694,6 +756,8 @@ def is_pos_occupied_in_demo_set(conn, editor_demo_id, blob_set, pos):
 
         return cursor.fetchone()[0] >= 1
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -716,6 +780,8 @@ def is_pos_occupied_in_template_set(conn, template_name, blob_set, pos):
 
         return cursor.fetchone()[0] >= 1
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -737,6 +803,8 @@ def get_max_pos_in_demo_set(conn, editor_demo_id, blob_set):
 
         return cursor.fetchone()[0]
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -758,6 +826,8 @@ def get_max_pos_in_template_set(conn, template_name, blob_set):
 
         return cursor.fetchone()[0]
 
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -773,6 +843,8 @@ def get_all_templates(conn):
         for row in cursor.fetchall():
             templates.append(row[0])
         return templates
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -788,6 +860,8 @@ def update_demo_id(conn, old_editor_demo_id, new_editor_demo_id):
             SET editor_demo_id = ?
             WHERE editor_demo_id = ?
             """, (new_editor_demo_id, old_editor_demo_id))
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -807,6 +881,8 @@ def get_blob_id(conn, blob_hash):
         if data is None:
             return None
         return data[0]
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -829,5 +905,7 @@ def get_demos_using_the_template(conn, template_name):
             demos.append(demo[0])
 
         return demos
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)

@@ -21,12 +21,7 @@ h1, h2, h3, h4, h5 {
   font-weight: normal;
 }
 
-h1 {
-  border: #adadad solid;
-  border-width: 0 0 1px 0;
-
-  font-size: 140%;
-}
+h1 {}
 
 h2 {
   font-size: 120%;
@@ -112,4 +107,28 @@ a:hover {
   text-decoration: none;
 
   background: #d9d9d9;
+}
+
+.container-header {
+  display: flex;
+
+  margin-bottom: 10px;
+
+  border: #adadad solid;
+  border-width: 0 0 1px 0;
+
+  align-items: center;
+}
+
+.information-icon {
+  height: 18px;
+  margin-left: 15px !important;
+}
+
+.container-title {
+  font-size: 23px !important;
+}
+
+div.ui-tooltip {
+  max-width: 800px;
 }

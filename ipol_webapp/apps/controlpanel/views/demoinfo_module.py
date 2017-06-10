@@ -1658,8 +1658,9 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
 
             json_result = json.loads(ipolservices.demoinfo_demo_extras_for_demo(demo_id))
             data['registered'] = has_permission(demo_id, self.request.user)
-            data['url'] = json_result.get('url')
-            data['name'] = os.path.basename(json_result.get('url'))
+            if json_result.get('url') is not None:
+                data['url'] = json_result.get('url')
+                data['name'] = os.path.basename(json_result.get('url'))
             data['status'] = json_result.get('status')
 
         except Exception as e:

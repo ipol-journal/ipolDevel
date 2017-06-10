@@ -59,7 +59,7 @@ ipol.upload.CreateUploadHTML = function(ddl_json) {
         html += '</td>';
         html += '<td>';
           html += '<input type="file" name="file_'+i+'" id="file_'+i+'" size="40"';
-          html += 'accept="'+ddl_json.inputs[i].ext+',image/*,media_type"';
+          //html += 'accept="'+ddl_json.inputs[i].ext+',image/*,media_type"';
           html += ' />';
         html += '</td>';
         html += '<td > <img crossorigin="anonymous"  id="localdata_preview_'+i+

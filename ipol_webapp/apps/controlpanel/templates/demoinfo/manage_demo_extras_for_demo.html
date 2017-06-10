@@ -32,7 +32,7 @@
 			</div>
 
 			{% if data.status == "OK" %}
-				{% if data.name != "" %}
+				{% if data.name %}
 					<div class="extra" id="demo_extra" >
 						<p class="griditem col-sm-7">{{ data.name }} </p>
 						<a class="btn btn-info" onclick="window.open('{{ data.url }}')" target="_self"> Download</a>
