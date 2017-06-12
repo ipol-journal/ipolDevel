@@ -62,6 +62,15 @@ class DemorunnerTests(unittest.TestCase):
     #####################
     #       Tests       #
     #####################
+    def setUp(self):
+        """
+        Clean the DB from the tests
+        """
+        try:
+            self.delete_extras_folder()
+            self.delete_workdir()
+        except Exception:
+            pass
 
     def test_ping(self):
         """
