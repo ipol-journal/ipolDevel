@@ -826,7 +826,6 @@ class DemoinfoGetDemoAuthorView(NavbarReusableMixinMF,TemplateView):
             # print "  list_authors_for_demo demoid: ", demo_id
             data['registered'] = has_permission(demo_id, self.request.user)
             page_json = json.loads(ipolservices.demoinfo_author_list_for_demo(demo_id))
-            print page_json
             data['author_list'] = page_json.get('author_list')
             data['status'] = page_json.get('status')
             # result = DeserializeDemoinfoAuthorList(page_json)

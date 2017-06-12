@@ -45,20 +45,20 @@
 
         <h2> {% blocktrans %} Manage demo {{ demo_id }}'s Authors  {%  endblocktrans %}</h2>
 
-        {#  Add Author btn #}
-        <div class="container">
-            <a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
-            {% if data.registered %}
-                <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
-                <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
-            {% else %}
-            <a class="btn btn-primary disabled">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
-                <a class="btn btn-primary disabled" >{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
-            {% endif %}
-        </div>
 
         {#  Author list for this demo#}
         {% with data=view.list_authors_for_demo %}
+            {#  Add Author btn #}
+            <div class="container">
+                <a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                {% if data.registered %}
+                    <a class="btn btn-primary" onclick="show_choosedemoauthor_form( {{ demo_id }} )">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
+                    <a class="btn btn-primary" onclick="show_demoauthor_form( {{ demo_id }} )">{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+                {% else %}
+                <a class="btn btn-primary disabled">{% blocktrans %}Add existing Author to this demo{%  endblocktrans %}</a>
+                    <a class="btn btn-primary disabled" >{% blocktrans %}Add New Author to demo{%  endblocktrans %}</a>
+                {% endif %}
+            </div>
             {% if data.status == "OK" %}
                 {% if data.author_list %}
                     {% for author in data.author_list %}
