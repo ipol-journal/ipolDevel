@@ -545,7 +545,7 @@ class DemoRunner(object):
             timeout = max(timeout, 5)
             if not os.path.isdir(work_dir):
                 res_data['status'] = 'KO'
-                res_data['error'] = 'Error: {}'.format(ex)
+                res_data['error'] = 'Work directory is not created'
                 print res_data
                 return json.dumps(res_data)
             # Run algorithm and control exceptions
