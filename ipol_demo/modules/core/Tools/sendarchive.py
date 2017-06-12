@@ -22,7 +22,7 @@ class SendArchive:
     """
     #---------------------------------------------------------------------------
     @staticmethod
-    def file_format(the_file):
+    def get_mime_type(the_file):
         """
         Return format of the file
 
@@ -30,8 +30,14 @@ class SendArchive:
         :rtype: string
         """
         mimetype, encoding = mimetypes.guess_type(the_file)
-        extension =  mimetype.split('/')
-        return extension[0]
+        
+        if mimetype is None:
+            return ".dat" # Generic data
+
+        # MIME type found
+        main_type, _ =  mimetype.split('/')
+        return main_type
+        
     
     #---------------------------------------------------------------------------
     @staticmethod
@@ -65,28 +71,26 @@ class SendArchive:
         blobs_item = []
         blobs = {}
         if 'files' in desc.keys():
-            
-          
           for filename in desc['files']:
             file_complete_route = os.path.join(work_dir, filename)
             print "file route=",file_complete_route
             if os.path.exists(file_complete_route):
                 print "ok"
-                format_file = SendArchive.file_format(file_complete_route)
+                mime_type = SendArchive.get_mime_type(file_complete_route)
                 
                 file_description = desc['files'][filename]
                 # if empty file description, use filename 
-                if file_description=="":
+                if file_description == "":
                   file_description = filename
             
                 ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                 route, file_extension = os.path.splitext(file_complete_route)
-                if (format_file == 'image')and(file_extension in ['.png','.jpg','.jpeg']):
-                    thumbnail = SendArchive.make_thumbnail(file_complete_route,work_dir)
+                if mime_type == 'image' and file_extension in ['.png','.jpg','.jpeg']:
+                    thumbnail = SendArchive.make_thumbnail(file_complete_route, work_dir)
                     value = {file_description : file_complete_route,\
-                             thumbnail[1] : thumbnail[0]}
+                             thumbnail[1]: thumbnail[0]}
                 else:
-                    value = {file_description : file_complete_route}
+                    value = {file_description: file_complete_route}
                 
                 blobs_item.append(value)
         

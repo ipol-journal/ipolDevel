@@ -336,7 +336,6 @@ class Blobs(object):
             self.logger.exception("Error adding blob info to DB")
             print "Couldn't add blob info to DB. Error: {}".format(ex)
         except IPOLBlobsTemplateError as ex:
-            self.logger.exception("Error adding blob to template. Template does not exists")
             print "Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(ex)
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while adding the blob")
@@ -636,7 +635,7 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
 
             if not database.all_templates_exist(conn, template_names_list):
-                raise IPOLBlobsTemplateError("All the templates doesn't exist")
+                raise IPOLBlobsTemplateError("Not all the templates exist")
 
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
@@ -655,7 +654,6 @@ class Blobs(object):
         except IPOLBlobsTemplateError as ex:
             if conn is not None:
                 conn.rollback()
-            self.logger.exception("Some of the templates {} does not exist".format(template_names))
             print "Some of the templates {} does not exist. Error: {}".format(template_names, ex)
         except Exception as ex:
             if conn is not None:
