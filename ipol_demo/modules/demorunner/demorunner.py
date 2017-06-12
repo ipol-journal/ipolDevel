@@ -543,7 +543,11 @@ class DemoRunner(object):
             timeout = min(timeout, 10*60)
             # At least five seconds
             timeout = max(timeout, 5)
-
+            if not os.path.isdir(work_dir):
+                res_data['status'] = 'KO'
+                res_data['error'] = 'Error: {}'.format(ex)
+                print res_data
+                return json.dumps(res_data)
             # Run algorithm and control exceptions
             code = self.run_algo(demo_id, work_dir, \
                                  path_with_the_binaries, \

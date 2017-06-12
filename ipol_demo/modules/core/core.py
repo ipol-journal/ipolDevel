@@ -1188,8 +1188,14 @@ attached the failed experiment data.". \
             res_data = {'error': 'internal error. Failed to create a valid execution key', 'status': 'KO'}
             self.logger.exception("Failed to create a valid key")
             return json.dumps(res_data)
-
-        work_dir = self.create_run_dir(demo_id, key)
+        try:
+            work_dir = self.create_run_dir(demo_id, key)
+        except Exception as ex:
+            res_data = {'error': 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex),
+                        'status': 'KO'}
+            self.logger.exception("Could not create work_dir for demo {}".format(demo_id))
+            print 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex)
+            return json.dumps(res_data)
 
         # Copy input blobs
         if input_type != 'noinputs':
