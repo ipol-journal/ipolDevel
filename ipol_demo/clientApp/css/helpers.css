@@ -54,8 +54,12 @@
   margin-right: 10px;
 }
 
-.m-b-5{
+.m-b-5 {
   margin-bottom: 5px;
+}
+
+.m-0-a {
+  margin: 0 auto;
 }
 
 .vertical-align {
