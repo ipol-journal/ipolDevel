@@ -3,9 +3,12 @@ from os import path
 from subprocess import Popen
 import subprocess
 import time
+import psutil
 import re
 import math
 # importing image for python commands in DDL scripts
+import signal
+
 from image import image
 import PIL
 
@@ -212,7 +215,8 @@ class RunDemoBase:
             if run_time > self.timeout:
                 for p in process_list:
                     try:
-                        p.terminate()   # Send signal to stop the process
+                        self.kill_child_processes(p.pid)
+                        p.kill()   # Send signal to kill the process
                         p.communicate() # Needed to avoid that the process is left as a zombie
                     except OSError:
                         # could not stop the process
@@ -223,3 +227,16 @@ class RunDemoBase:
 
         if any([0 != p.returncode for p in process_list]):
             raise RuntimeError
+
+    @staticmethod
+    def kill_child_processes(parent_pid, sig=signal.SIGKILL):
+        """
+        kill all the child processes of the parent
+        """
+        try:
+            parent = psutil.Process(parent_pid)
+        except psutil.NoSuchProcess:
+            return
+        children = parent.children(recursive=True)
+        for process in children:
+            process.send_signal(sig)
