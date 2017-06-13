@@ -195,6 +195,7 @@ function checkRequiredInputs() {
 function printUploadFooter() {
   var uploadDialog = $(".upload-dialog");
   uploadDialog.append("<p>Only upload <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">suitable images</a>. See the <a href=\"https://tools.ipol.im/wiki/ref/demo_input/\">copyright and legal conditions</a> for details.</p>");
+  uploadDialog.append('<input id=privateSwitch class=m-0-a type=checkbox /> Switch to private mode.');
 }
 
 // Clear inputs.

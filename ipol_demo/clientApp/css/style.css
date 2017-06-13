@@ -80,7 +80,7 @@ a:hover {
 /*Cropper crop margin to avoid scrollbars*/
 
 .cropper-container {
-  margin: 10px;
+  margin: 0 10px 10px 10px;
 }
 
 .btn {
