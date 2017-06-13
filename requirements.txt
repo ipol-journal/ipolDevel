@@ -2,6 +2,7 @@
 # pip install -r "requirements.txt"
 
 # General
+psutils
 python-magic
 pypng
 numpy
@@ -22,6 +23,7 @@ utm
 mgrs
 requests
 av
+
 
 # Needed in one of our private projects on satellite imaging
 # The package libgeos-dev needs to be installed with apt-get first

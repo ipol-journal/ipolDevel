@@ -63,11 +63,6 @@
                 <li class="nav-item {% if request.session.menu == 'menu-demoinfo' %} active {% endif %}">
                     <a href="{% url 'ipol.cp.demoinfo.demos' %}">{% trans 'Demos' %}</a>
                 </li>
-
-                <li class="nav-item {% if request.session.menu == 'menu-archive' %} active {% endif %}">
-                    <a href="{% url 'ipol.cp.archive.demos' %}">{% trans 'Archives' %}</a>
-                </li>
-
                 <li class="nav-item {% if request.session.menu == 'menu-templates' %} active {% endif %}">
                     <a href="{% url 'ipol.cp.blobs.templates_list.page' %}">{% trans 'Templates' %}</a>
                 </li>
