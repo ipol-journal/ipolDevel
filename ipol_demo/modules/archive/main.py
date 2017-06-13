@@ -32,6 +32,6 @@ if __name__ == '__main__':
 
     BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
-
+    cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.quickstart(Archive.get_instance(), config=CONF_FILE_ABS)
