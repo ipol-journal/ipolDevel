@@ -33,51 +33,6 @@ def has_permission(demo_id, user):
         print "has_permission failed"
         return False
 
-class ArchiveDemosView(NavbarReusableMixinMF,TemplateView):
-    template_name = "archive/archive.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        self.request.session['menu'] = 'menu-archive'
-        return super(ArchiveDemosView, self).dispatch(*args, **kwargs)
-
-
-    def list_demos(self):
-        demo_list = None
-        result2 = None
-        #for special demo with id= -1 for testing in archive
-        archivetestdemo=False
-        try:
-            #get demos from archive module
-            # page_json = ipolservices.archive_demo_list()
-            response = ipolservices.archive_demo_list()
-            json_response = json.loads(response)
-            demo_list = json_response.get('demo_list')
-            #get demo info for those demos from demoinfo module
-            if demo_list:
-                idlist=list()
-
-                for demoid in demo_list:
-                    #special case demo -1 in archive, this Id will not exist in demoinfo module
-                    if demoid > 0 and isinstance( demoid, ( int, long ) ):
-                        idlist.append(demoid)
-                    else:
-                        archivetestdemo = True
-                result2json = ipolservices.demoinfo_demo_list_by_demoeditorid(idlist)
-                if result2json:
-                    result2 = DeserializeDemoinfoDemoList(result2json)
-                else:
-                    # I expect a dict for template
-                    result2 = {"status": "KO","error": "No demos in archive"}
-
-        except Exception as e:
-            msg="Error %s"%e
-            logger.error(msg)
-            print(msg)
-
-        return result2,archivetestdemo
-
-
 class ArchiveDeleteExperimentView(NavbarReusableMixinMF,TemplateView):
 
     @method_decorator(login_required)

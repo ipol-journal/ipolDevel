@@ -2,7 +2,7 @@ from django.conf.urls import  url
 from apps.controlpanel.views.Status import StatusView
 
 from apps.controlpanel.views.archive_module import ArchiveDeleteExperimentView, \
-        ArchiveAddExpToTestDemoView, ArchiveDeleteExperimentFileView, ArchiveDemosView, ArchiveDeleteDemoView, \
+        ArchiveAddExpToTestDemoView, ArchiveDeleteExperimentFileView, ArchiveDeleteDemoView, \
         ArchivePageView, ExperimentDetails
 
 from apps.controlpanel.views.blobs_module import ManageBlobsForDemoView, EditBlobFromDemoView,DemoBlobSaveInfo,RemoveBlobFromDemo, \
@@ -111,7 +111,6 @@ urlpatterns = [
     #todo, carefull, a demo can have negative id WTF!
     #todo list_demos should be nicer
 
-    url(r'^archive_module/', ArchiveDemosView.as_view(), name="ipol.cp.archive.demos"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/(?P<page>\d+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
     url(r'^archive_demo/(?P<id>[\-\d\w]+)/$', ArchivePageView.as_view(), name="ipol.cp.archive.page"),
     url(r'^archive_demo/(?P<q>\d+)/$', ExperimentDetails.as_view(), name="ipol.cp.archive.experiment_details"),
