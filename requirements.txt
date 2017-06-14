@@ -2,7 +2,7 @@
 # pip install -r "requirements.txt"
 
 # General
-psutils
+psutil
 python-magic
 pypng
 numpy
@@ -11,7 +11,7 @@ pillow
 simplejson
 matplotlib
 validoot
-future 
+future
 pyfftw
 sklearn
 cython
