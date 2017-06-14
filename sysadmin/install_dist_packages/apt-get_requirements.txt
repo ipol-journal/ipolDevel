@@ -1,3 +1,4 @@
+#All the commented lines must start with a "#"
 python2.7
 wget
 cmake
@@ -55,6 +56,5 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
-
 # The following packages are needed in our of our private projects on satellite imaging
 libgeos-dev
