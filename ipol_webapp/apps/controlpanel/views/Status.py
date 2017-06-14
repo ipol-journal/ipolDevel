@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 class StatusView(NavbarReusableMixinMF,TemplateView):
     template_name = "stats.html"
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        self.request.session['menu'] = 'menu-status'
+        return super(StatusView, self).dispatch(*args, **kwargs)
+
     def get_demoinfo_module_stats(self):
 
         try:

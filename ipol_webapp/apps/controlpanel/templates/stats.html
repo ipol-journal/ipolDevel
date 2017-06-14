@@ -15,7 +15,7 @@
 
     <div class="container">
         <h1>
-            <p>Control Panel: System Status</p>
+            <p>System Status</p>
         </h1>
 
         <!--Demorunners-->
@@ -23,12 +23,20 @@
             <div class="machine">
                 {% if data.status == 'OK' %}
                     <p class="ststsok"> <b>Demorunners are running</b></p>
-                    <div style="padding-left: 20px">
+                    <div>
                         {% for dr in data.demorunners %}
                             {% if dr.status == 'OK' %}
-                                <p>{{ dr.name }}: <b class="ststsok">{{ dr.status  }}</b></p>
+                                <div class="machine">
+                                    <p class="bold">{{ dr.name }}</p>
+                                    <p>Status: <b class="ststsok">{{ dr.status  }}</b></p>
+                                    <p>Workload: {{dr.workload}}</p>
+
+                                </div>
                             {% else %}
-                                <p>{{ dr.name }}: <b class="ststsnok">{{ dr.status  }}</b></p>
+                                <div class="machine">
+                                    <p class="bold">{{ dr.name }}</p>
+                                    <p>Status: <b class="ststsnok">{{ dr.status  }}</b></p>
+                                </div>
                             {% endif %}
                         {% endfor %}
                     </div>
