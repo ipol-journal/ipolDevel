@@ -94,13 +94,6 @@ On the other hand, the list of Python packages which need to be installed with p
 pip install -r requirements.txt
 \end{verbatim}
 
-They can be updated with the following command:
-
-\begin{verbatim}
-sudo sh -c 'pip freeze --local | grep -v '^\-e' | \
-cut -d = -f 1  | xargs -n1 pip install -U'
-\end{verbatim}
-
 
 \section{Crontab scripts}
 The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
