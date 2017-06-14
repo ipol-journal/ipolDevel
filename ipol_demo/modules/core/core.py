@@ -274,9 +274,18 @@ class Core(object):
         try:
             demorunners = []
             for dr in self.demorunners:
-                response = self.post(self.demorunners[dr].get('server'),'demorunner','ping')
+                response = self.post(self.demorunners[dr].get('server'),'demorunner','get_workload')
+                if not response.ok:
+                    demorunners.append({'name': dr, 'status': 'KO'})
+                    continue
+
                 json_response = response.json()
-                demorunners.append({'name':dr,'status':json_response.get('status')})
+                if json_response.get('status') == 'OK':
+                    demorunners.append({'name': dr,
+                                        'status': 'OK',
+                                        'workload':json_response.get('workload')})
+                else:
+                    demorunners.append({'name': dr,'status': 'KO'})
 
             data['demorunners'] = demorunners
         except Exception as ex:
