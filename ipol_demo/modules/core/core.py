@@ -283,7 +283,7 @@ class Core(object):
                 if json_response.get('status') == 'OK':
                     demorunners.append({'name': dr,
                                         'status': 'OK',
-                                        'workload':json_response.get('workload')})
+                                        'workload': float('%.2f' % (json_response.get('workload')))})
                 else:
                     demorunners.append({'name': dr,'status': 'KO'})
 
