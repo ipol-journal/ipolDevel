@@ -29,7 +29,7 @@
                                 <div class="machine">
                                     <p class="bold">{{ dr.name }}</p>
                                     <p>Status: <b class="ststsok">{{ dr.status  }}</b></p>
-                                    <p>Workload: {{dr.workload}}</p>
+                                    <p>Workload: {{dr.workload}} %</p>
 
                                 </div>
                             {% else %}
@@ -111,7 +111,7 @@
         {% endwith %}
 
          <!--Dispatcher-->
-        {%  with data=view.core_ping%}
+        {%  with data=view.dispatcher_ping%}
             <div class="machine">
                 {% if data.status == 'OK' %}
                     <p class="ststsok"> <b>Dispatcher is running</b></p>

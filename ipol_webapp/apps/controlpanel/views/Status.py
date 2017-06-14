@@ -88,7 +88,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
             response = ipolservices.dispatcher_ping()
             json_response = json.loads(response)
         except Exception, e:
-            msg = "Error core_ping %s" % e
+            msg = "Error dispatcher_ping %s" % e
             print(msg)
             logger.error(msg)
             return {'status':'KO'}
