@@ -70,6 +70,24 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
 
     return result
 
+#####################
+#    CORE MODULE    #
+#####################
+def core_ping():
+    path = '/api/core/ping'
+    return http_request(path, METHOD='GET')
+
+def get_demorunners_stats():
+    path = '/api/core/get_demorunners_stats'
+    return http_request(path, METHOD='GET')
+
+#####################
+# DISPATCHER MODULE #
+#####################
+def dispatcher_ping():
+    path = '/api/dispatcher/ping'
+    return http_request(path, METHOD='GET')
+
 
 #####################
 #  DEMOINFO MODULE  #
@@ -776,3 +794,10 @@ def get_demos_using_the_template(template_name):
 
     serviceparams = {'template_name': template_name}
     return http_request(path, METHOD='GET', params=serviceparams)
+
+def get_blobs_stats():
+    """
+    Return stats of the blobs module
+    """
+    path = "/api/blobs/stats"
+    return http_request(path, METHOD='GET')
