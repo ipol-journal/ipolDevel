@@ -1,4 +1,5 @@
-#All the commented lines must start with a "#"
+# All the commented lines must start with a "#"
+
 python2.7
 wget
 cmake
@@ -35,7 +36,6 @@ libgsl-dbg
 libblas-dev
 libblas3
 liblapack-dev
-liblapack
 liblapacke-dev
 liblapacke
 octave
@@ -56,5 +56,6 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
+
 # The following packages are needed in our of our private projects on satellite imaging
 libgeos-dev
