@@ -81,11 +81,28 @@ This document contains System Administration documentation for the IPOL Demo Sys
 \listoffigures
 \newpage
 
+\section{Installing the required packages}
+The system needs of several packages from the Debian Stable distribution and also from the official Python packages to work.
+
+The list of apt-get packages in apt-get\_requirements.txt, and they can be installed with the following command:
+\begin{verbatim}
+xargs sudo apt-get install < apt-get_requirements.txt
+\end{verbatim}
+
+On the other hand, the list of Python packages which need to be installed with pip is in requirements.txt and can be installed with
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+
+They can be updated with the following command:
+
+\begin{verbatim}
+sudo sh -c 'pip freeze --local | grep -v '^\-e' | \
+cut -d = -f 1  | xargs -n1 pip install -U'
+\end{verbatim}
 
 
-\section{System administration}
-
-\subsection{Crontab scripts}
+\section{Crontab scripts}
 The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
 
 To modify the crontab configuration, the command is {\tt crontab -e}. The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
