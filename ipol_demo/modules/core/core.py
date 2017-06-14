@@ -265,6 +265,28 @@ class Core(object):
 
         return json.dumps(data)
 
+    @cherrypy.expose
+    def get_demorunners_stats(self):
+        """
+        Get stats of all the demorunners to be used by the external tools like the CP
+        """
+        data = {"status": "OK"}
+        try:
+            demorunners = []
+            for dr in self.demorunners:
+                response = self.post(self.demorunners[dr].get('server'),'demorunner','ping')
+                json_response = response.json()
+                demorunners.append({'name':dr,'status':json_response.get('status')})
+
+            data['demorunners'] = demorunners
+        except Exception as ex:
+            print ex
+            self.logger.exception("Couldn't get demorunners stats")
+            data["status"] = "KO"
+            data["message"] = "Can not get demorunners stats"
+
+        return json.dumps(data)
+
     def demorunners_workload(self):
         """
         Get the workload of each DR

@@ -28,4 +28,5 @@ if __name__ == '__main__':
 
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
+    cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.quickstart(DemoRunner.get_instance(), config=CONF_FILE_ABS)

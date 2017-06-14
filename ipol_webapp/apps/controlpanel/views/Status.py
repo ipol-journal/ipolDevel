@@ -1,7 +1,7 @@
 from apps.controlpanel.mixings import NavbarReusableMixinMF
 
 __author__ = 'josearrecio'
-
+import json
 import logging
 from django.views.generic import TemplateView
 from apps.controlpanel.views.ipolwebservices import ipolservices
@@ -20,101 +20,91 @@ logger = logging.getLogger(__name__)
 class StatusView(NavbarReusableMixinMF,TemplateView):
     template_name = "stats.html"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        self.request.session['menu'] = 'menu-status'
-        return super(StatusView, self).dispatch(*args, **kwargs)
-
-    def get_proxy_module_stats(self):
-
-        result = None
-        try:
-            # Demoinfo Stats
-            proxy_stats_json = ipolservices.proxy_get_stats()
-            result = DeserializeProxyStatus(proxy_stats_json)
-
-            #print " get_proxy_module_stats result",result
-            #result = page_json
-
-        except Exception , e:
-            msg="Error get_proxy_module_stats %s"%e
-            print(msg)
-            logger.error(msg)
-
-        return result
-
-
     def get_demoinfo_module_stats(self):
 
-        result = None
         try:
             # Demoinfo Stats
-            demoinfo_stats_json = ipolservices.demoinfo_get_stats()
-            result = DeserializeDemoinfoStatus(demoinfo_stats_json)
-            #result = page_json
-
+            response = ipolservices.demoinfo_get_stats()
+            json_response = json.loads(response)
         except Exception , e:
             msg="Error get_demoinfo_module_stats %s"%e
             print(msg)
             logger.error(msg)
+            return {'status': 'KO'}
 
-        return result
+        return json_response
 
 
     def get_archive_module_stats(self):
-
-        result = None
         try:
             # Archive Stats
-            archive_stats_json = ipolservices.archive_get_stats()
-            result = DeserializeArchiveStatus(archive_stats_json)
-            #result = page_json
-
+            response = ipolservices.archive_get_stats()
+            json_response = json.loads(response)
         except Exception , e:
             msg="Error get_archive_module_stats %s"%e
             print(msg)
             logger.error(msg)
+            return {'status': 'KO'}
 
-        return result
+        return json_response
 
 
     def get_blobs_module_stats(self):
 
-        result = None
         try:
 
-            blobs_demo_list_json = ipolservices.get_blobs_demo_list()
-            result = DeserializeDemoList(blobs_demo_list_json)
-            #result = blobs_json
-
+            response = ipolservices.get_blobs_stats()
+            json_response = json.loads(response)
         except Exception , e:
             msg="Error get_blobs_module_stats %s"%e
             print(msg)
             logger.error(msg)
+            return {'status': 'KO'}
 
-        return result
+        return json_response
 
+    def core_ping(self):
+        try:
 
-    def get_demoinfo_machine(self):
-        return IPOL_SERVICES_MODULE_DEMOINFO
+            response = ipolservices.core_ping()
+            json_response = json.loads(response)
+        except Exception, e:
+            msg = "Error core_ping %s" % e
+            print(msg)
+            logger.error(msg)
+            return {'status': 'KO'}
 
-
-    def get_archive_machine(self):
-        return IPOL_SERVICES_MODULE_ACHIVE
-
-
-    def get_blob_machine(self):
-        return IPOL_SERVICES_MODULE_BLOBS
-
-
-    def get_demo_machine(self):
-        return IPOL_SERVICES_MODULE_DEMO
+        return json_response
 
 
-    def get_proxy_machine(self):
-        return IPOL_SERVICES_MODULE_PROXY
+    def dispatcher_ping(self):
+        try:
 
-    # def get_context_data(self, **kwargs):
-    #         context = super(StatusView, self).get_context_data(**kwargs)
-    #         self.request.session['menu'] = 'menu-status'
-    #         return context
+            response = ipolservices.dispatcher_ping()
+            json_response = json.loads(response)
+        except Exception, e:
+            msg = "Error core_ping %s" % e
+            print(msg)
+            logger.error(msg)
+            return {'status':'KO'}
+
+        return json_response
+
+    def demorunners_stats(self):
+        data = {'status': 'KO'}
+        try:
+            # Archive Stats
+            response = ipolservices.get_demorunners_stats()
+            json_response = json.loads(response)
+            for dr in json_response.get('demorunners'):
+                if dr.get('status') == 'OK':
+                    data['status'] = 'OK'
+                    break
+            data['demorunners'] = json_response.get('demorunners')
+        except Exception , e:
+            msg="Error get_archive_module_stats %s"%e
+            print(msg)
+            logger.error(msg)
+            return {'status': 'KO'}
+
+        return data

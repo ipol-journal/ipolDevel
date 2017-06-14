@@ -18,69 +18,101 @@
             <p>Control Panel: System Status</p>
         </h1>
 
-        {% with proxy_module_stats=view.get_proxy_module_stats proxymachine=view.get_proxy_machine archive_module_stats=view.get_archive_module_stats archivemachine=view.get_archive_machine blobs_module_stats=view.get_blobs_module_stats blobmachine=view.get_blob_machine demomachine=view.get_demo_machine  demoinfo_module_stats=view.get_demoinfo_module_stats  demoinfomachine=view.get_demoinfo_machine %}
+        <!--Demorunners-->
+        {%  with data=view.demorunners_stats%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Demorunners are running</b></p>
+                    <div style="padding-left: 20px">
+                        {% for dr in data.demorunners %}
+                            {% if dr.status == 'OK' %}
+                                <p>{{ dr.name }}: <b class="ststsok">{{ dr.status  }}</b></p>
+                            {% else %}
+                                <p>{{ dr.name }}: <b class="ststsnok">{{ dr.status  }}</b></p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="ststsnok bold">All Demorunners are not running!</p>
+                {% endif %}
+            </div>
+        {% endwith %}
 
-            {% if '127.0.0.1' in archivemachine or '127.0.0.1' in blobmachine or '127.0.0.1' in demomachine or '127.0.0.1' in proxymachine %}
-                <p> The purpose of this page is to monitor the status of the diferent modules that provide functionality (this is a microservices architecture) used by Control Panel</p>
-
-                <b class="ststsnok">Carefull! Some stuff is running locally</b>
-                <p> To RUN Locally PROXY: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python proxy.py  proxy.conf</p>
-                <p> Remember to change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally </p>
-
-                <p> To RUN Locally DEMO: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo$ python demo.py  (needs buil)</p>
-                <p> To RUN Locally ARCHIVE: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo/modules/archive$ python main.py archive.josearrecio.conf</p>
-                <p> To RUN Locally BLOBS: (v_env_ipol)josearrecio@Joses-MacBook-Pro:~/Projects/ipolDevel/ipol_demo/modules/blobs$ python main.py blobs.josearrecio.conf </p>
-{#                <p> Note: Some modules have .conf hardcoded, you have to: cp archive.josearrecio.conf archive.conf </p>#}
-
-            {% endif %}
-
-            <div id="demoinfo_module_info" class="machine">
-                {% if demoinfo_module_stats.status == "OK" %}
-                    <p class="ststsok"> <b>DemoInfo running at: {{ demoinfomachine }}</b></p>
+        <!--Demoinfo-->
+        {%  with data=view.get_demoinfo_module_stats%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>DemoInfo is running</b></p>
 
                     <div style="padding-left: 20px">
-                        <p>nb_demos: {{ demoinfo_module_stats.nb_demos  }}</p>
-                        <p>nb_authors: {{ demoinfo_module_stats.nb_authors  }}</p>
-                        <p>nb_editors: {{ demoinfo_module_stats.nb_editors  }}</p>
+                        <p>Number of demos: {{ data.nb_demos  }}</p>
+                        <p>Number of authors: {{ data.nb_authors  }}</p>
+                        <p>number of editors: {{ data.nb_editors  }}</p>
                     </div>
 
                 {% else %}
                     <p class="ststsnok bold">Demoinfo Module is not running!</p>
                 {% endif %}
             </div>
+        {% endwith %}
 
-
-            <div id="archive_module_info" class="machine">
-                {% if archive_module_stats.status == "OK" %}
-                    <p class="ststsok"> <b>Archive running at: {{ archivemachine }}</b></p>
+        <!--Archive-->
+        {%  with data=view.get_archive_module_stats%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Archive is running</b></p>
 
                     <div style="padding-left: 20px">
-                        <p>nb_blobs: {{ archive_module_stats.nb_blobs  }}</p>
-                        <p>nb_experiments: {{ archive_module_stats.nb_experiments  }}</p>
+                        <p>Number of blobs: {{ data.nb_blobs  }}</p>
+                        <p>Number of experiments: {{ data.nb_experiments  }}</p>
                     </div>
 
                 {% else %}
                     <p class="ststsnok bold">Archive Module is not running!</p>
                 {% endif %}
             </div>
+        {% endwith %}
 
-            <div id="blobs_module_info" class="machine">
-                {% if blobs_module_stats %}
-                    <p class="ststsok"><b>Blobs running at: {{ blobmachine }}</b></p>
+        <!--Blobs-->
+        {%  with data=view.get_blobs_module_stats%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Blobs is running</b></p>
+
                     <div style="padding-left: 20px">
-                        {% for demo in blobs_module_stats.list_demos%}
-                            ( demo_id:{{ demo.id }}, name:{{ demo.name }} )
-                            {#   <p style="padding-left: 20px">is_template:{{ is_template.id }} </p>#}
-                            {#   <p style="padding-left: 20px">template_id:{{ demo.template_id }} </p>#}
-                        {% endfor %}
+                        <p>Number of blobs: {{ data.nb_blobs  }}</p>
+                        <p>Number of templates: {{ data.nb_templates  }}</p>
+                        <p>Number of tags: {{ data.nb_tags  }}</p>
                     </div>
 
                 {% else %}
                     <p class="ststsnok bold">Blobs Module is not running!</p>
                 {% endif %}
             </div>
-
         {% endwith %}
+
+         <!--Core-->
+        {%  with data=view.core_ping%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Core is running</b></p>
+                {% else %}
+                    <p class="ststsnok bold">Core Module is not running!</p>
+                {% endif %}
+            </div>
+        {% endwith %}
+
+         <!--Dispatcher-->
+        {%  with data=view.core_ping%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Dispatcher is running</b></p>
+                {% else %}
+                    <p class="ststsnok bold">Dispatcher Module is not running!</p>
+                {% endif %}
+            </div>
+        {% endwith %}
+
     </div>
 {% endblock %}
 

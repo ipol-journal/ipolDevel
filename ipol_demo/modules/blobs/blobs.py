@@ -1410,6 +1410,27 @@ class Blobs(object):
                 conn.close()
             return json.dumps(data)
 
+    @cherrypy.expose
+    def stats(self):
+        """
+        Return module stats
+        """
+        conn = None
+        data = {'status': 'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            data['nb_templates'] = len(database.get_all_templates(conn))
+            data['nb_blobs'] = database.get_nb_of_blobs(conn)
+            data['nb_tags'] = database.get_nb_of_tags(conn)
+            data['status'] = 'OK'
+        except Exception as ex:
+            self.logger.exception("*** Unhandled exception while getting the blobs stats")
+            print "*** Unhandled exception while getting the blobs stats. Error: {}".format(ex)
+        finally:
+            if conn is not None:
+                conn.close()
+            return json.dumps(data)
+
     # ----------- DEPRECATED FUNCTIONS ---------------
     # This functions are for the OLD web interface and
     # they shouldn't be called by new methods.

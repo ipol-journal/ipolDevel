@@ -26,4 +26,5 @@ if __name__ == '__main__':
     CONF_FILE_ABS = os.path.join(BASE_DIR, CONF_FILE_REL)
 
     cherrypy.config.update(CONF_FILE_ABS)
+    cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.quickstart(Dispatcher.get_instance(), config=CONF_FILE_ABS)

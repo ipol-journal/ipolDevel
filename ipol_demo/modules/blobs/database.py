@@ -1,6 +1,7 @@
 from errors import IPOLBlobsDataBaseError
 from sqlite3 import IntegrityError
 
+
 def get_blob_tags(conn, blob_id):
     """
     returns the list of tags for the blob
@@ -905,6 +906,46 @@ def get_demos_using_the_template(conn, template_name):
             demos.append(demo[0])
 
         return demos
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+
+def get_nb_of_blobs(conn):
+    """
+    Return the number of blobs in the DB
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+               SELECT COUNT(*)
+               FROM blobs
+               """)
+        data = cursor.fetchone()
+        if data is None:
+            return 0
+        return data[0]
+    except IntegrityError as ex:
+        raise IntegrityError(ex)
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+
+def get_nb_of_tags(conn):
+    """
+    Return the number of blobs in the DB
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+               SELECT COUNT(*)
+               FROM tags
+               """)
+        data = cursor.fetchone()
+        if data is None:
+            return 0
+        return data[0]
     except IntegrityError as ex:
         raise IntegrityError(ex)
     except Exception as ex:

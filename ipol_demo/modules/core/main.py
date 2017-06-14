@@ -60,7 +60,7 @@ if __name__ == '__main__':
     if not os.path.isfile(CONF_FILE_ABS):
         print "Error: the conf file is missing, "
         sys.exit(-1)
-
     cherrypy.config.update(CONF_FILE_ABS)
+    cherrypy.log.error_log.setLevel('ERROR')
     cherrypy.tools.cgitb = cherrypy.Tool('before_error_response', err_tb)
     cherrypy.quickstart(Core.get_instance(), config=CONF_FILE_ABS)
