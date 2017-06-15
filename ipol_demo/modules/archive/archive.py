@@ -832,8 +832,8 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 pass
         return json.dumps(status)
 
-    @cherrypy.expose
     @staticmethod
+    @cherrypy.expose
     def ping():
         """
         Ping pong.
