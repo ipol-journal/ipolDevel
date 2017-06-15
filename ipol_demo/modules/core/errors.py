@@ -27,3 +27,10 @@ class IPOLProcessInputsError(Exception):
     IPOLProcessInputsError
     """
     pass
+
+class IPOLExtractError(Exception):
+    """
+    IPOLExtractError
+    """
+    pass
+
