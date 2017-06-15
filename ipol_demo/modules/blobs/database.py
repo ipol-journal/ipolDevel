@@ -1,5 +1,8 @@
-from errors import IPOLBlobsDataBaseError
+"""
+Blobs database
+"""
 from sqlite3 import IntegrityError
+from errors import IPOLBlobsDataBaseError
 
 
 def get_blob_tags(conn, blob_id):
@@ -834,6 +837,9 @@ def get_max_pos_in_template_set(conn, template_name, blob_set):
 
 
 def get_all_templates(conn):
+    """
+    get all templates
+    """
     try:
         cursor = conn.cursor()
         cursor.execute("""
