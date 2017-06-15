@@ -21,17 +21,27 @@ import logging
 import shutil
 import json
 from math import ceil
-import cherrypy
 import re
+import os
 from sqlite3 import IntegrityError
-import socket
-
+import sqlite3 as lite
 import ConfigParser
-
 from collections import OrderedDict
+import cherrypy
 
-from model import *
-from tools import is_json, Payload, convert_str_to_bool
+from model import Demo
+from model import Author
+from model import Editor
+from model import DemoDemoDescriptionDAO
+from model import DemoDAO
+from model import DemoDescriptionDAO
+from model import AuthorDAO
+from model import DemoAuthorDAO
+from model import EditorDAO
+from model import DemoEditorDAO
+from model import createDb
+from model import initDb
+from tools import is_json
 
 # GLOBAL VARS
 LOGNAME = "demoinfo_log"
@@ -46,8 +56,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) \
+                and not ("X-Real-IP" in cherrypy.request.headers
+                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -60,7 +71,7 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expresions
         for authorized_pattern in demo_info.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
 
         # Compare the IP with the patterns
         for pattern in patterns:
@@ -147,9 +158,8 @@ class DemoInfo(object):
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        if not (cherrypy.config.has_key("database_dir") and
-                    cherrypy.config.has_key("database_name") and
-                    cherrypy.config.has_key("logs_dir")):
+        if not (cherrypy.config.has_key("database_dir") and cherrypy.config.has_key(
+                "database_name") and cherrypy.config.has_key("logs_dir")):
             print "Missing elements in configuration file."
             return False
         else:
@@ -382,7 +392,6 @@ class DemoInfo(object):
         previous_page_number = None
 
         try:
-
             # validate params
             num_elements_page = int(num_elements_page)
             page = int(page)
@@ -395,7 +404,7 @@ class DemoInfo(object):
             # filter or return all
             if qfilter:
                 for demo in complete_demo_list:
-                    if (qfilter.lower() in demo.title.lower() or qfilter == str(demo.editorsdemoid)):
+                    if qfilter.lower() in demo.title.lower() or qfilter == str(demo.editorsdemoid):
                         demo_list.append(demo.__dict__)
             else:
                 # convert to Demo class to json
@@ -404,7 +413,6 @@ class DemoInfo(object):
 
             # if demos found, return pagination
             if demo_list:
-
                 # [ToDo] Check if the first float cast r=float(.) is
                 # really needed. It seems not, because the divisor is
                 # already a float and thus the result must be a float.
@@ -612,7 +620,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def demo_get_demodescriptions_list(self, demo_id, returnjsons=None):
+    def demo_get_demodescriptions_list(self, demo_id):
         """
         return the descriptions of a given demo id.
         """
@@ -623,11 +631,7 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dd_dao = DemoDemoDescriptionDAO(conn)
 
-            if returnjsons is None:
-                demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id))
-            else:
-                demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id),
-                                                                         returnjsons=returnjsons)
+            demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id))
 
             data["demodescription_list"] = demodescription_list
             data["status"] = "OK"
@@ -733,8 +737,8 @@ class DemoInfo(object):
 
             if demodescriptionJson:
                 # creates a demodescription and asigns it to demo
-                dddao = DemoDescriptionDAO(conn)
-                demodescriptionID = dddao.add(demodescriptionJson)
+                ddao = DemoDescriptionDAO(conn)
+                demodescriptionID = ddao.add(demodescriptionJson)
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
@@ -792,8 +796,6 @@ class DemoInfo(object):
 
             demo_dao = DemoDAO(conn)
             # read demo
-            demo = demo_dao.read(int(demo_id))
-
             dd_dao = DemoDemoDescriptionDAO(conn)
 
             # delete demo decription history borra ddl id 3
@@ -824,18 +826,18 @@ class DemoInfo(object):
         """
         webservice updating demo.
         """
-        data = {}
-        data["status"] = "KO"
-        # get payload from json object
-        p = Payload(demo)
+        data = {"status": "KO"}
 
-        if hasattr(p, 'creation'):
-            # update creatio ndate
+        demo_json = json.loads(demo)
 
-            d = Demo(p.editorsdemoid, p.title, p.state, p.creation)
+        if demo_json.has_key('creation'):
+            # Change creation date
+            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'),
+                     demo_json.get('creation'))
         else:
-            d = Demo(p.editorsdemoid, p.title, p.state)
-        # update Demo
+            # update Demo
+            d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'))
+
         try:
 
             conn = lite.connect(self.database_file)
@@ -843,19 +845,19 @@ class DemoInfo(object):
             dao.update(d, int(old_editor_demoid))
             conn.close()
 
-            if old_editor_demoid != p.editorsdemoid \
+            if old_editor_demoid != d.editorsdemoid \
                     and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
-                if os.path.isdir(os.path.join(self.dl_extras_dir, str(p.editorsdemoid))):
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(d.editorsdemoid))):
                     # If the destination path exists, it should be removed
-                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
 
                 if os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
                     os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
-                              os.path.join(self.dl_extras_dir, str(p.editorsdemoid)))
+                              os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
 
             data["status"] = "OK"
         except OSError as ex:
-            data["error"] = "demoinfo update_demo error".format(ex)
+            data["error"] = "demoinfo update_demo error {}".format(ex)
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s" % (str(ex)))
             print error_string
@@ -917,8 +919,6 @@ class DemoInfo(object):
         previous_page_number = None
 
         try:
-
-            # validate params
             num_elements_page = int(num_elements_page)
             page = int(page)
 
@@ -1211,18 +1211,14 @@ class DemoInfo(object):
         """
         webservice updating author entry.
         """
-        data = {}
-        data["status"] = "KO"
-        # get payload from json object
-        # #{"mail": "authoremail1@gmail.com", "creation": "2015-12-03 20:53:07",
-        # "id": 1, "name": "Author Name1"}
-        p = Payload(author)
+        data = {"status": "KO"}
 
-        # convert payload to Author object
-        if hasattr(p, 'creation'):
-            a = Author(p.name, p.mail, p.id, p.creation)
+        json_author = json.loads(author)
+        if json_author.has_key('creation'):
+            a = Author(json_author.get('name'), json_author.get('mail'), json_author.get('id'),
+                       json_author.get('creation'))
         else:
-            a = Author(p.name, p.mail, p.id)
+            a = Author(json_author.get('name'), json_author.get('mail'), json_author.get('id'))
 
         # update Author
         try:
@@ -1296,8 +1292,6 @@ class DemoInfo(object):
         previous_page_number = None
 
         try:
-
-            # validate params
             num_elements_page = int(num_elements_page)
             page = int(page)
 
@@ -1318,9 +1312,7 @@ class DemoInfo(object):
 
             # if demos found, return pagination
             if editor_list:
-
                 r = float(len(editor_list)) / float(num_elements_page)
-
                 totalpages = int(ceil(r))
 
                 if page is None:
@@ -1588,15 +1580,14 @@ class DemoInfo(object):
         """
         webservice updating editor entry in db.
         """
-        data = {}
-        data["status"] = "KO"
-        # get payload from json object
-        p = Payload(editor)
-        # convert payload to Editor object
-        if hasattr(p, 'creation'):
-            e = Editor(p.name, p.mail, p.id, p.creation)
+        data = {"status": "KO"}
+
+        json_editor = json.loads(editor)
+        if json_editor.has_key('creation'):
+            e = Editor(json_editor.get('name'), json_editor.get('mail'), json_editor.get('id'),
+                       json_editor.get('creation'))
         else:
-            e = Editor(p.name, p.mail, p.id)
+            e = Editor(json_editor.get('name'), json_editor.get('mail'), json_editor.get('id'))
 
         # update Editor
         try:
@@ -1634,14 +1625,14 @@ class DemoInfo(object):
         data["status"] = "KO"
         data["demo_description"] = None
         try:
-            id = int(demodescriptionID)
+            ddl_id = int(demodescriptionID)
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
-            ddl = dao.read(id)
-            ddl = str(ddl)
+            ddl = dao.read(ddl_id)
+            ddl_str = str(ddl)
 
-            data["demo_description"] = ddl
+            data["demo_description"] = ddl_str
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
@@ -1733,10 +1724,9 @@ class DemoInfo(object):
                 data['error'] = 'There is no demo with that demoid'
                 return json.dumps(data)
             state = demo_dao.read(int(demoid)).state
-            if not state == "published":  # If the demo is not published the DDL is overwritten
-                dao = DemoDemoDescriptionDAO(conn)
-                demodescription = dao.get_ddl(int(demoid))
-                del dao
+            if state != "published":  # If the demo is not published the DDL is overwritten
+                ddddao = DemoDemoDescriptionDAO(conn)
+                demodescription = ddddao.get_ddl(int(demoid))
                 dao = DemoDescriptionDAO(conn)
 
                 if demodescription is None:  # Check if is a new demo
