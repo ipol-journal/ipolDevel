@@ -1283,7 +1283,7 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             blob_data = database.get_blob_data(conn, blob_id)
             if blob_data is None:
-                return data
+                return json.dumps(data)
 
             blob_hash = blob_data.get('hash')
 
