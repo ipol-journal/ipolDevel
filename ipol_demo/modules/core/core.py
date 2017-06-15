@@ -1338,9 +1338,6 @@ attached the failed experiment data.". \
 
             userdata['ddl_run'] = json.dumps(ddl_json['run'])
 
-            if 'config' in ddl_json:
-                userdata['ddl_config'] = json.dumps(ddl_json['config'])
-
             if 'timeout' in ddl_json['general']:
                 userdata['timeout'] = ddl_json['general']['timeout']
 

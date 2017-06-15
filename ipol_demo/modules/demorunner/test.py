@@ -1,17 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+Demorunner test
+"""
 # Unit tests for the Blobs module
 import unittest
-import requests
 import os
 import xml.etree.ElementTree as ET
 import sys
 import json
 import shutil
 import tarfile
-
 from PIL import Image
+import requests
 
 
 def load_demorunners(demorunners_file):
