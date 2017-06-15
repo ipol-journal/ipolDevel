@@ -1,16 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+ArchiveTests
+"""
 # Unit tests for the Blobs module
 import os
 import socket
 import unittest
-import requests
 import sys
 import json
+import requests
 
 
 class ArchiveTests(unittest.TestCase):
+    """
+    ArchiveTests
+    """
     HOST = socket.gethostbyname(socket.gethostname())
     module = 'archive'
 
