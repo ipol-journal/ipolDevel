@@ -1,3 +1,6 @@
+"""
+Errors
+"""
 class IPOLDemoExtrasError(Exception):
     """
     IPOLDemoExtrasError

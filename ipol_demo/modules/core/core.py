@@ -6,7 +6,6 @@ IPOL Core module
 
 import base64
 import tempfile
-import sys
 import re
 # To send emails
 import smtplib
@@ -15,15 +14,6 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
 import xml.etree.ElementTree as ET
-
-from Tools.misc import prod
-from Tools.image import image
-from Tools.sendarchive import SendArchive
-from Tools.evaluator import *
-from errors import IPOLDemoExtrasError
-from errors import IPOLInputUploadError
-from errors import IPOLCopyBlobsError
-from errors import IPOLProcessInputsError
 
 import shutil
 import json
@@ -53,6 +43,16 @@ import png
 import requests
 import cherrypy
 import magic
+
+from Tools.misc import prod
+from Tools.image import image
+from Tools.sendarchive import SendArchive
+from Tools.evaluator import IPOLEvaluateError
+from Tools.evaluator import evaluate
+from errors import IPOLDemoExtrasError
+from errors import IPOLInputUploadError
+from errors import IPOLCopyBlobsError
+from errors import IPOLProcessInputsError
 
 
 def authenticate(func):
@@ -274,7 +274,7 @@ class Core(object):
         try:
             demorunners = []
             for dr in self.demorunners:
-                response = self.post(self.demorunners[dr].get('server'),'demorunner','get_workload')
+                response = self.post(self.demorunners[dr].get('server'), 'demorunner', 'get_workload')
                 if not response.ok:
                     demorunners.append({'name': dr, 'status': 'KO'})
                     continue
@@ -285,7 +285,7 @@ class Core(object):
                                         'status': 'OK',
                                         'workload': float('%.2f' % (json_response.get('workload')))})
                 else:
-                    demorunners.append({'name': dr,'status': 'KO'})
+                    demorunners.append({'name': dr, 'status': 'KO'})
 
             data['demorunners'] = demorunners
         except Exception as ex:
@@ -439,7 +439,6 @@ workload of '{}'".format(dr_name)
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
-
         except Exception:
             self.logger.exception("shutdown")
         return json.dumps(data)
@@ -813,8 +812,26 @@ workload of '{}'".format(dr_name)
         file_handle.write(url_handle.read())
         file_handle.close()
 
+
     @staticmethod
-    def extract(filename, target):
+    def get_compressed_file(filename):
+        """
+        return compressed file and content
+        """
+        if tarfile.is_tarfile(filename):
+            # start with tar
+            ar_tar = tarfile.open(filename)
+            content_tar = ar_tar.getnames()
+            return ar_tar, content_tar
+
+        elif zipfile.is_zipfile(filename):
+            ar_zip = zipfile.ZipFile(filename)
+            content_zip = ar_zip.namelist()
+            return ar_zip, content_zip
+        else:
+            return
+
+    def extract(self, filename, target):
         """
         extract tar, tgz, tbz and zip archives
 
@@ -823,15 +840,7 @@ workload of '{}'".format(dr_name)
 
         @return: the archive content
         """
-
-        try:
-            # start with tar
-            ar = tarfile.open(filename)
-            content = ar.getnames()
-        except tarfile.ReadError:
-            # retry with zip
-            ar = zipfile.ZipFile(filename)
-            content = ar.namelist()
+        ar, content = self.get_compressed_file(filename)
 
         # no absolute file name
         assert not any([os.path.isabs(f) for f in content])
