@@ -1,5 +1,6 @@
 # All the commented lines must start with a "#"
 
+git
 python2.7
 wget
 cmake
