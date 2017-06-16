@@ -39,7 +39,6 @@ from model import AuthorDAO
 from model import DemoAuthorDAO
 from model import EditorDAO
 from model import DemoEditorDAO
-from model import createDb
 from model import initDb
 from tools import is_json
 
@@ -125,19 +124,56 @@ class DemoInfo(object):
         self.database_dir = cherrypy.config.get("database_dir")
         self.database_name = cherrypy.config.get("database_name")
         self.database_file = os.path.join(self.database_dir, self.database_name)
+        if not self.create_datbase():
+            sys.exit("Initialization of database failed. Check the logs.")
 
-        # check if DB already exists
-        if not os.path.isfile(self.database_name):
+    def create_datbase(self):
+        """
+        Creates the database used by the module if it doesn't exist.
+        If the file is empty, the system delete it and create a new one.
+        """
+        if os.path.isfile(self.database_file):
 
-            statuscreateDb = createDb(self.database_name)
-            if not statuscreateDb:
-                print "DB not created correctly"
-                sys.exit(1)
+            file_info = os.stat(self.database_file)
 
-            statusinitDb = initDb(self.database_name)
-            if not statusinitDb:
-                print "DB not initialized correctly"
-                sys.exit(1)
+            if file_info.st_size == 0:
+                try:
+                    os.remove(self.database_file)
+                except Exception as ex:
+                    self.logger.exception("init_database: " + str(ex))
+                    return False
+
+        if not os.path.isfile(self.database_file):
+            try:
+                conn = lite.connect(self.database_file)
+                cursor_db = conn.cursor()
+
+                sql_buffer = ""
+
+                with open(self.database_dir + '/drop_create_db_schema.sql', 'r') as sql_file:
+                    for line in sql_file:
+
+                        sql_buffer += line
+                        if lite.complete_statement(sql_buffer):
+                            sql_buffer = sql_buffer.strip()
+                            cursor_db.execute(sql_buffer)
+                            sql_buffer = ""
+
+                conn.commit()
+                conn.close()
+                # Initializes the DB
+                initDb(self.database_file)
+            except Exception as ex:
+                self.logger.exception("init_database - " + (str(ex)))
+
+                if os.path.isfile(self.database_file):
+                    try:
+                        os.remove(self.database_file)
+                    except Exception as ex:
+                        self.logger.exception("init_database - " + str(ex))
+                        return False
+
+        return True
 
     @staticmethod
     def mkdir_p(path):
