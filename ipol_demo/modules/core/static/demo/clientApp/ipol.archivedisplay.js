@@ -101,10 +101,11 @@ ipol.ArchiveDisplay = function()
         var html_images = '';
         
         var HasVisualRepresentation = function(file) {
-            // for the moment, just check if the file ends with png
+            // for the moment, just check if the file ends with .png or .jpeg
             // later use url_thumb property to decide
             _infoMessage("file.url = ", file.url, " png?",file.url.endsWith('.png'));
-            return file.url.endsWith('.png');
+            filename = file.url.toLowerCase();
+            return filename.endsWith('.png') || filename.endsWith('.jpg');
         }.bind(this);
         
         $.each(exp.files,
