@@ -1,14 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+Dispatcher test
+"""
 # Unit tests for the Blobs module
 import socket
 import unittest
-import requests
 import json
 import sys
-import os
 import xml.etree.ElementTree as ET
+import requests
 
 
 def load_demorunners(demorunners_file):

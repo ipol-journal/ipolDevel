@@ -7,58 +7,26 @@ which takes care of running an IPOL demo using web services
 """
 
 # add lib path for import
-import os.path, sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
-
-
-import hashlib
-from   datetime import datetime
-
-import urllib2
-from   timeit   import default_timer as timer
-from   image    import thumbnail, image
-from   misc     import prod
-import PIL.ImageDraw
-
-import threading
-import cherrypy
+import os.path
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
+import urllib2
 import json
-import glob
 import shutil
 import time
-
-import  run_demo_base
-from    run_demo_base import RunDemoBase
-from    run_demo_base import IPOLTimeoutError
-
-import traceback
-
-
 import subprocess
 import errno
 import logging
-
-
 import urlparse
-import os, shutil
-
-from misc import ctime
-
-import shutil
-import stat
-import urlparse
-from os import path
-
-import build
-
-import tempfile
-import time
-
 from string import Template
 from threading import Lock
 import ConfigParser
 import re
+import cherrypy
+import Tools.build as build
+import Tools.run_demo_base as run_demo_base
+from Tools.run_demo_base import IPOLTimeoutError
 
 
 def authenticate(func):
@@ -67,11 +35,12 @@ def authenticate(func):
     '''
 
     def authenticate_and_call(*args, **kwargs):
-        '''
+        """
         Invokes the wrapped function if authenticated
-        '''
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        """
+        if not is_authorized_ip(cherrypy.request.remote.ip) \
+                and not ("X-Real-IP" in cherrypy.request.headers
+                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -84,7 +53,7 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expresions
         for authorized_pattern in demorunner.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -211,16 +180,17 @@ class DemoRunner(object):
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
-
+    @staticmethod
     @cherrypy.expose
-    def index(self):
+    def index():
         """
         HTML presentation page
         """
-        return ("This is the IPOL DemoRunner module")
+        return "This is the IPOL DemoRunner module"
 
+    @staticmethod
     @cherrypy.expose
-    def ping(self):
+    def ping():
         """
         Ping service: answer with a PONG.
         """
@@ -246,8 +216,9 @@ class DemoRunner(object):
 
         # ---------------------------------------------------------------------------
 
+    @staticmethod
     @cherrypy.expose
-    def default(self, attr):
+    def default(attr):
         """
         Default method invoked when asked for non-existing service.
         """
@@ -268,17 +239,11 @@ class DemoRunner(object):
         cmd = "ps -eo %U,%C| grep ipol | cut -d \",\" -f2"
         try:
             # Get the workload
-            processes, error = subprocess.Popen(cmd + " &",
-                                                shell=True,
-                                                executable="/bin/bash",
-                                                stdout=subprocess.PIPE,
-                                                stderr=subprocess.PIPE).communicate()
-            # Get the number of cores
-            nproc, error = subprocess.Popen("nproc &",
-                                            shell=True,
-                                            executable="/bin/bash",
-                                            stdout=subprocess.PIPE,
+            processes, _ = subprocess.Popen(cmd + " &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE).communicate()
+            # Get the number of cores
+            nproc, _ = subprocess.Popen("nproc &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE).communicate()
             total = 0.0
             # Get the total workload
             for process in processes.split("\n"):
@@ -301,7 +266,6 @@ class DemoRunner(object):
         src_dir = os.path.join(path_for_the_compilation, 'src/')
         bin_dir = os.path.join(path_for_the_compilation, 'bin/')
         log_file = os.path.join(path_for_the_compilation, 'build.log')
-        
         try:
             # Clear src/ folder
             self.mkdir_p(dl_dir)
@@ -322,12 +286,12 @@ class DemoRunner(object):
             password = build_item['password'] if 'password' in build_item else None
 
             zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
-            tgz_file = path.join(dl_dir, zip_filename)
+            tgz_file = os.path.join(dl_dir, zip_filename)
 
             # Get files to move path
             files_path = []
-            for file in files_to_move.split(","):
-                files_path.append(path.join(bin_dir,os.path.basename(file.strip())))
+            for f in files_to_move.split(","):
+                files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
 
             # Download
             extract_needed = build.download(url, tgz_file, username, password)
@@ -353,8 +317,8 @@ class DemoRunner(object):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
                         #
-                        path_from = path.join(src_dir,file_to_move)
-                        path_to = path.join(bin_dir, os.path.basename(file_to_move))
+                        path_from = os.path.join(src_dir, file_to_move)
+                        path_to = os.path.join(bin_dir, os.path.basename(file_to_move))
 
                         try:
                             shutil.move(path_from, path_to)
@@ -368,8 +332,8 @@ class DemoRunner(object):
                             raise
 
 
-
-    def all_files_exist(self, files):
+    @staticmethod
+    def all_files_exist(files):
         '''
         Checks if all given file names exist
         '''
@@ -394,7 +358,7 @@ class DemoRunner(object):
             else:
                 data = {}
                 data['status'] = 'KO'
-                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
+                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
                 return json.dumps(data)
             data = {}
             data['status'] = "OK"
@@ -404,12 +368,12 @@ class DemoRunner(object):
             self.logger.exception("ensure_compilation - HTTPError")
             data = {}
 
-            build_name = build_block.keys()[0]
-            if 'password' in build_block[build_name]:
-                build_block[build_name]['password'] = "*****"
-                build_block[build_name]['username'] = "*****"
+            build_name = ddl_build.keys()[0]
+            if 'password' in ddl_build[build_name]:
+                ddl_build[build_name]['password'] = "*****"
+                ddl_build[build_name]['username'] = "*****"
             data['status'] = 'KO'
-            data['message'] = "{}, build_block: {}".format(str(e), str(build_block))
+            data['message'] = "{}, ddl_build: {}".format(str(e), str(ddl_build))
         except Exception as e:
             print "Build failed with exception " + str(e) + " in demo " + demo_id
 
@@ -438,11 +402,11 @@ class DemoRunner(object):
                 self.do_compile(ddl_build, path_for_the_compilation)
             else:
                 data['status'] = 'KO'
-                data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(build_block))
+                data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
                 return json.dumps(data)
 
             data['status'] = 'OK'
-        except Exception as ex:
+        except Exception:
             data['status'] = 'KO'
         return json.dumps(data)
 
@@ -466,7 +430,7 @@ class DemoRunner(object):
         """
         the core algo runner
         """
-        rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger,timeout)
+        rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger, timeout)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
         rd.set_MATLAB_path(self.MATLAB_path)
@@ -480,14 +444,13 @@ class DemoRunner(object):
             return -1 # Bad run syntax: not a string
 
         # Substitute variables and run algorithm
-        cmd = self.variable_substitution(ddl_run,demo_id, params)
+        cmd = self.variable_substitution(ddl_run, demo_id, params)
         rd.run_algorithm(cmd, self.lock_run)
 
         res_data['params'] = rd.get_algo_params() # Should not be used
         # Info interface --> algo
         res_data['algo_info'] = rd.get_algo_info()
         return 0
-        
 
     def variable_substitution(self, ddl_run, demo_id, params):
         """
@@ -503,9 +466,9 @@ class DemoRunner(object):
         Returns the directory with the peer-reviewed author programs
         '''
         return os.path.join(self.main_bin_dir, demo_id, 'bin/')
-        
 
-    def read_workdir_file(self, work_dir, filename):
+    @staticmethod
+    def read_workdir_file(work_dir, filename):
         '''
         Reads a text files from the working directory
         '''
@@ -517,28 +480,23 @@ class DemoRunner(object):
         return lines
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, ddl_config=None, timeout=60):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
         '''
         Called by the Core to run the algorithm
         '''
         ddl_run = json.loads(ddl_run)
         params = json.loads(params)
-
         path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
         work_dir = os.path.join(self.share_running_dir, demo_id + '/' + key + "/")
-
         res_data = {}
         res_data["key"] = key
         res_data['params'] = params
         res_data['status'] = 'KO'
         res_data['algo_info'] = {}
-
         # run the algorithm
         try:
             run_time = time.time()
-
-
-            timeout = float(timeout)            
+            timeout = float(timeout)
             # A maximum of 10 min, regardless the config
             timeout = min(timeout, 10*60)
             # At least five seconds
@@ -570,12 +528,10 @@ class DemoRunner(object):
             res_data['algo_info']['status'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
             print "exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id)
             return json.dumps(res_data)
-        except RuntimeError as e:            
-
+        except RuntimeError as e:
             # Read stderr and stdout
             stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
-                        
             # Put them in the message for the web interface
             res_data['algo_info']['status'] = 'RuntimeError, \
 stderr={}, stdout={}'.format(stderr_lines, stdout_lines)

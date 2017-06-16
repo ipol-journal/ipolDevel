@@ -13,7 +13,7 @@ in the DB that will be used by the webservices,
 import os
 import sqlite3 as lite
 import datetime
-from validoot import validates, inst, typ, between, And, Or, email_address
+from validoot import validates, inst, typ, And, Or, email_address
 
 
 #####################
@@ -21,7 +21,6 @@ from validoot import validates, inst, typ, between, And, Or, email_address
 #####################
 
 class Demo(object):
-
     """
     Class representing a demo.
     """
@@ -36,8 +35,7 @@ class Demo(object):
                title=inst(basestring),
                stateid=typ(str),
                creation=Or(typ(datetime.datetime), inst(basestring)),
-               modification=Or(typ(datetime.datetime), inst(basestring))
-              )
+               modification=Or(typ(datetime.datetime), inst(basestring)))
     def __init__(self, editorsdemoid, title,
                  state, creation=None, modification=None):
         """
@@ -63,6 +61,7 @@ class Demo(object):
         """
         return self.__dict__ == other.__dict__
 
+
 class Author(object):
     """
     Object representing an author.
@@ -71,14 +70,15 @@ class Author(object):
     name = None
     mail = None
     creation = None
+
     # And(inst(basestring),len_between(4,100)),
     @validates(
         name=inst(basestring),
-        #mail=regex("[^@]+@[^@]+\.[^@]+"),
+        # mail=regex("[^@]+@[^@]+\.[^@]+"),
         mail=type(email_address),
         the_id=Or(typ(int), inst(basestring)),
         creation=Or(typ(datetime.datetime), inst(basestring))
-        )
+    )
     def __init__(self, name, mail, the_id=None, creation=None):
         """
         Constructor.
@@ -91,7 +91,6 @@ class Author(object):
         else:
             self.creation = datetime.datetime.now()
 
-
     def __eq__(self, other):
         """
         Equality operator overloading.
@@ -100,6 +99,7 @@ class Author(object):
         # print self.__dict__
         # print other.__dict__
         return self.__dict__ == other.__dict__
+
 
 class Editor(object):
     """
@@ -112,11 +112,11 @@ class Editor(object):
 
     @validates(
         name=inst(basestring),
-        #mail=regex("[^@]+@[^@]+\.[^@]+"),
+        # mail=regex("[^@]+@[^@]+\.[^@]+"),
         mail=type(email_address),
         the_id=Or(typ(int), inst(basestring)),
         creation=Or(typ(datetime.datetime), inst(basestring))
-        )
+    )
     def __init__(self, name, mail, the_id=None, creation=None):
         """
         Constructor.
@@ -135,6 +135,7 @@ class Editor(object):
         """
         return self.__dict__ == other.__dict__
 
+
 ##########################
 #  DAO (data access obj) #
 ##########################
@@ -143,6 +144,7 @@ class DemoDescriptionDAO(object):
     """
     DAO for demodescription table.
     """
+
     def __init__(self, conn):
         """
         Constructor.
@@ -159,7 +161,7 @@ class DemoDescriptionDAO(object):
 
     # conn.close()
 
-    #@validates(inst(Demo))
+    # @validates(inst(Demo))
     def add(self, ddl):
         """
         Add description for the given demo.
@@ -169,7 +171,6 @@ class DemoDescriptionDAO(object):
         self.conn.commit()
         return self.cursor.lastrowid
 
-
     @validates(typ(int))
     def delete(self, demo_description_id):
         """
@@ -178,7 +179,7 @@ class DemoDescriptionDAO(object):
         self.cursor.execute("DELETE FROM demodescription WHERE id=?", (int(demo_description_id),))
         self.conn.commit()
 
-    #@validates(inst(Demo))
+    # @validates(inst(Demo))
     def update(self, ddl, demo_id):
         """
         update description for a given demo.
@@ -199,7 +200,6 @@ class DemoDescriptionDAO(object):
             raise Exception(error_string)
 
         self.conn.commit()
-
 
     @validates(typ(int))
     def read(self, demo_description_id):
@@ -262,7 +262,6 @@ class DemoDAO(object):
         self.cursor.execute("DELETE FROM demo WHERE demo.editor_demo_id=?", (int(editor_demo_id),))
         self.conn.commit()
 
-
     @validates(inst(Demo), And(typ(int)))
     def update(self, demo, old_editor_demo_id):
         """
@@ -272,7 +271,7 @@ class DemoDAO(object):
         nowtmstmp = datetime.datetime.now()
         self.cursor.execute('''SELECT ID
                             FROM state
-                            WHERE state.name=?''',(demo.state,))
+                            WHERE state.name=?''', (demo.state,))
         self.conn.commit()
         state_id = self.cursor.fetchone()[0]
 
@@ -339,10 +338,12 @@ class DemoDAO(object):
 
         return self.cursor.fetchone()[0] == 1
 
+
 class DemoDemoDescriptionDAO(object):
     """
     DAO for the demo_demodescription junction table.
     """
+
     def __init__(self, conn):
         """
         Constructor.
@@ -399,7 +400,6 @@ class DemoDemoDescriptionDAO(object):
                         WHERE demo.editor_demo_id=?))''', (int(editorsdemoid),))
         self.conn.commit()
 
-
     @validates(typ(int), typ(int))
     def remove_demodescription_from_demo(self, editorsdemoid, demodescriptionid):
         """
@@ -413,7 +413,6 @@ class DemoDemoDescriptionDAO(object):
                 FROM demo
                 WHERE demo.editor_demo_id =?)''', (int(demodescriptionid), int(editorsdemoid),))
         self.conn.commit()
-
 
     @validates(typ(int))
     def read(self, editorsdemoid):
@@ -433,7 +432,6 @@ class DemoDemoDescriptionDAO(object):
 
         return result
 
-
     @validates(typ(int))
     def get_ddl(self, editorsdemoid):
         """
@@ -449,18 +447,13 @@ class DemoDemoDescriptionDAO(object):
         self.conn.commit()
         row = self.cursor.fetchone()
         if row:
-            return {'ddl' : row[0]}
-            
-
-        
-
+            return {'ddl': row[0]}
 
     @validates(typ(int))
-    def read_demo_demodescriptions(self, editorsdemoid, returnjsons=None):
+    def read_demo_demodescriptions(self, editorsdemoid):
         """
-        return list of demo descriptions from given editor.
+        Return list of demo descriptions from given editor.
         """
-        #returns ordered list, by default does not return jsons
 
         demodescription_list = list()
         self.cursor.execute('''
@@ -482,6 +475,7 @@ class AuthorDAO(object):
     """
     DAO for the author table.
     """
+
     def __init__(self, conn):
         """
         Constructor.
@@ -508,7 +502,6 @@ class AuthorDAO(object):
         VALUES(?,?,datetime(CURRENT_TIMESTAMP, 'localtime'))''', (author.name, author.mail,))
         self.conn.commit()
         return self.cursor.lastrowid
-
 
     @validates(typ(int))
     def delete(self, the_id):
@@ -560,7 +553,7 @@ class AuthorDAO(object):
 
         return author_list
 
-    def exist(self, id):
+    def exist(self, author_id):
         """
         Returns whether the author exists or not
         """
@@ -568,7 +561,7 @@ class AuthorDAO(object):
         SELECT EXISTS(SELECT *
                     FROM author
                     WHERE id=?);
-        """, (id,))
+        """, (author_id,))
 
         return self.cursor.fetchone()[0] == 1
 
@@ -734,6 +727,7 @@ class EditorDAO(object):
     """
     DAO for the editor table.
     """
+
     def __init__(self, conn):
         """
         Constructor.
@@ -789,7 +783,6 @@ class EditorDAO(object):
 
         self.conn.commit()
 
-
     @validates(typ(int))
     def read(self, the_id):
         """
@@ -820,7 +813,7 @@ class EditorDAO(object):
 
         return editor_list
 
-    def exist(self, id):
+    def exist(self, editor_id):
         """
         Returns whether the editor exists or not
         """
@@ -828,7 +821,7 @@ class EditorDAO(object):
         SELECT EXISTS(SELECT *
                     FROM editor
                     WHERE id=?);
-        """, (id,))
+        """, (editor_id,))
 
         return self.cursor.fetchone()[0] == 1
 
@@ -837,6 +830,7 @@ class DemoEditorDAO(object):
     """
     DAO for the demo_editor junction table.
     """
+
     def __init__(self, conn):
         """
         Constructor.
@@ -864,7 +858,6 @@ class DemoEditorDAO(object):
             FROM demo
             WHERE demo.editor_demo_id=?))''', (int(editorid), int(editorsdemoid),))
         self.conn.commit()
-
 
     @validates(typ(int))
     def delete(self, the_id):
@@ -961,114 +954,6 @@ class DemoEditorDAO(object):
 ###########################
 #    DB setup functions   #
 ###########################
-
-def createDb(database_name):
-    """
-    Initialize the database used by the module if it doesn't exist.
-    """
-    status = True
-    dbname = database_name
-
-    if not os.path.isfile(dbname):
-
-        try:
-            conn = lite.connect(dbname)
-            cursor_db = conn.cursor()
-            cursor_db.execute(""" PRAGMA foreign_keys=ON""")
-
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "state" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR(500) UNIQUE,
-                description TEXT,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "demodescription" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                DDL BLOB
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "demo" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                editor_demo_id INTEGER UNIQUE NOT NULL,
-                title VARCHAR UNIQUE NOT NULL,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                stateID INTEGER,
-                FOREIGN KEY(stateID) REFERENCES state(id)
-                );"""
-            )
-
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "demo_demodescription" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                demoID INTEGER NOT NULL,
-                demodescriptionId INTEGER NOT NULL,
-                FOREIGN KEY(demodescriptionId) REFERENCES demodescription(id) ON DELETE CASCADE,
-                FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "author" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR ,
-                mail VARCHAR(320) UNIQUE,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "editor" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR ,
-                mail VARCHAR(320) UNIQUE,
-                creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "demo_author" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                demoID INTEGER NOT NULL,
-                authorId INTEGER NOT NULL,
-                FOREIGN KEY(authorId) REFERENCES author(id) ON DELETE CASCADE,
-                FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
-                UNIQUE(demoID, authorId)
-
-                );"""
-            )
-            cursor_db.execute(
-                """CREATE TABLE IF NOT EXISTS "demo_editor" (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                demoID INTEGER,
-                editorId INTEGER,
-                FOREIGN KEY(editorId) REFERENCES editor(id) ON DELETE CASCADE,
-                FOREIGN KEY(demoID) REFERENCES demo(id) ON DELETE CASCADE,
-                UNIQUE(demoID, editorId)
-                );"""
-            )
-
-            conn.commit()
-            conn.close()
-        except Exception as ex:
-
-            error_string = ("createDb e:%s" % (str(ex)))
-            print error_string
-
-            if os.path.isfile(dbname):
-                try:
-                    os.remove(dbname)
-                except Exception as ex:
-                    error_string = ("createDb remove e:%s" % (str(ex)))
-                    print error_string
-                    status = False
-
-        print "DB Created"
-    else:
-        print "Create DB pass"
-    return status
 
 
 def initDb(database_name):

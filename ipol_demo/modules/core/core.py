@@ -50,6 +50,7 @@ from Tools.sendarchive import SendArchive
 from Tools.evaluator import IPOLEvaluateError
 from Tools.evaluator import evaluate
 from errors import IPOLDemoExtrasError
+from errors import IPOLExtractError
 from errors import IPOLInputUploadError
 from errors import IPOLCopyBlobsError
 from errors import IPOLProcessInputsError
@@ -829,7 +830,7 @@ workload of '{}'".format(dr_name)
             content_zip = ar_zip.namelist()
             return ar_zip, content_zip
         else:
-            return
+            raise IPOLExtractError('The filename is neither zip nor tar')
 
     def extract(self, filename, target):
         """
@@ -1336,9 +1337,6 @@ attached the failed experiment data.". \
                 return json.dumps(response)
 
             userdata['ddl_run'] = json.dumps(ddl_json['run'])
-
-            if 'config' in ddl_json:
-                userdata['ddl_config'] = json.dumps(ddl_json['config'])
 
             if 'timeout' in ddl_json['general']:
                 userdata['timeout'] = ddl_json['general']['timeout']

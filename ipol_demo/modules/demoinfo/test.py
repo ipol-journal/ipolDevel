@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+Demoinfo Test
+"""
 # Unit tests for the DemoInfo module
 import socket
 import unittest
-import requests
-import json
 import os
 import sys
+import json
+import requests
 
 
 class DemoinfoTests(unittest.TestCase):
@@ -224,12 +226,10 @@ class DemoinfoTests(unittest.TestCase):
         new_state = 'published'
         try:
             self.add_demo(self.demo_id, self.demo_title, self.state)
-            
             new_demo = {
                 "title": new_title,
                 "editorsdemoid": self.demo_id,
-                "state": new_state
-                        }
+                "state": new_state}
             json_response = self.update_demo(new_demo, self.demo_id)
             update_status = json_response.get('status')
 
