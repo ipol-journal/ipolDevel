@@ -104,7 +104,7 @@ ipol.ArchiveDisplay = function()
             // for the moment, just check if the file ends with .png or .jpeg
             // later use url_thumb property to decide
             _infoMessage("file.url = ", file.url, " png?",file.url.endsWith('.png'));
-            filename = file.url.toLowerCase();
+            var filename = file.url.toLowerCase();
             return filename.endsWith('.png') || filename.endsWith('.jpg');
         }.bind(this);
         
