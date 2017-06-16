@@ -1363,7 +1363,7 @@ attached the failed experiment data.". \
 
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
-            if original_exp == 'true' or input_type == 'noinputs' and  'archive' in ddl_json:
+            if (original_exp == 'true' or input_type == 'noinputs') and  'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
