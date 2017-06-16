@@ -8,14 +8,14 @@ description if that's the case.
 """
 
 import logging
-import cherrypy
 import os
 import json
 import random
 import sys
-import requests
 import ConfigParser
 import re
+import requests
+import cherrypy
 
 
 def authenticate(func):
@@ -86,7 +86,7 @@ class Dispatcher(object):
                 os.makedirs(self.logs_dir)
             self.logger = self.init_logging()
         except Exception as e:
-            self.logger.exception("Failed to create log dir (using file dir) : %s".format(e))
+            self.logger.exception("Failed to create log dir (using file dir) : {}".format(e))
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -155,8 +155,7 @@ class Dispatcher(object):
             data["message"] = "Can not refresh the demorunners"
             self.logger.exception("Can not refresh the demorunners")
             print "Can not refresh the demorunners", ex
-        finally:
-            return json.dumps(data)
+        return json.dumps(data)
 
     # ---------------------------------------------------------------------------
     def init_logging(self):
@@ -220,7 +219,7 @@ class Dispatcher(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.error("Failed to shutdown : ", ex)
+            self.logger.error("Failed to shutdown : {}".format(ex))
             sys.exit(1)
         return json.dumps(data)
 
@@ -320,6 +319,9 @@ class Policy(object):
 
 
 class RandomPolicy(Policy):
+    """
+    RandomPolicy
+    """
     def execute(self, demorunners, demorunners_workload, requirements=None):
         """
         Chooses a random DemoRunner that matches the requirements
@@ -339,6 +341,9 @@ class RandomPolicy(Policy):
 
 
 class SequentialPolicy(Policy):
+    """
+    SequentialPolicy
+    """
     def __init__(self):
         self.iterator = 0
 
@@ -363,6 +368,9 @@ class SequentialPolicy(Policy):
 
 
 class LowestWorkloadPolicy(Policy):
+    """
+    LowestWorkloadPolicy
+    """
     def execute(self, demorunners, demorunners_workload, requirements=None):
         """
         Chooses the DemoRunner with the lowest workload which

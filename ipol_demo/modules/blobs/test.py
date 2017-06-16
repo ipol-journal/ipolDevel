@@ -1,17 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+Blobs tests
+"""
 # Unit tests for the Blobs module
 import socket
 import unittest
-import requests
 import os
 import sys
-
+import requests
 
 class BlobsTests(unittest.TestCase):
     """
-    
+    BlobsTests
     """
     HOST = socket.gethostbyname(socket.gethostname())
     module = 'blobs'
@@ -76,7 +77,7 @@ class BlobsTests(unittest.TestCase):
                 blob_title = blob_list.get('title')
                 blob_url = blob_list.get('blob')
                 blob_vr = blob_list.get('vr')
-            except:
+            except Exception:
                 pass
 
             json_response = self.delete_demo(self.demo_id)
@@ -116,7 +117,7 @@ class BlobsTests(unittest.TestCase):
                 blob_title = blob_list.get('title')
                 blob_url = blob_list.get('blob')
                 blob_vr = blob_list.get('vr')
-            except:
+            except Exception:
                 pass
 
             json_response = self.delete_demo(self.demo_id)
@@ -174,7 +175,7 @@ class BlobsTests(unittest.TestCase):
                 blob_title = blob_list.get('title')
                 blob_url = blob_list.get('blob')
                 blob_vr = blob_list.get('vr')
-            except:
+            except Exception:
                 pass
 
             response = self.delete_template(self.template_name)
@@ -216,7 +217,7 @@ class BlobsTests(unittest.TestCase):
                 blob_title = blob_list.get('title')
                 blob_url = blob_list.get('blob')
                 blob_vr = blob_list.get('vr')
-            except:
+            except Exception:
                 pass
 
             response = self.delete_template(self.template_name)
@@ -491,7 +492,7 @@ class BlobsTests(unittest.TestCase):
         new_title = self.title + '_new'
         title = None
         new_set = self.blob_set + '_new'
-        set = None
+        the_set = None
         new_pos_in_set = self.pos_in_set + 1
         try:
             blob = open(self.blob_path, 'r')
@@ -499,18 +500,19 @@ class BlobsTests(unittest.TestCase):
             self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
                                   title=self.title)
 
-            response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set, new_blob_set=new_set,
-                                     pos_set=self.pos_in_set, new_pos_set=new_pos_in_set, title=new_title)
+            response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set,
+                                                new_blob_set=new_set, pos_set=self.pos_in_set,
+                                                new_pos_set=new_pos_in_set, title=new_title)
             status = response.get('status')
 
             json_response = self.get_blobs(self.demo_id)
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(new_pos_in_set))
-                set = json_response.get('sets')[0].get('name')
+                the_set = json_response.get('sets')[0].get('name')
                 title = blob_list.get('title')
                 tag_list = blob_list.get('tags')
                 tag = tag_list[0]
-            except:
+            except Exception:
                 pass
 
             self.delete_demo(self.demo_id)
@@ -521,7 +523,7 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(len(tag_list), 1)
             self.assertEqual(tag, self.tag)
             self.assertEqual(new_title, title)
-            self.assertEqual(new_set, set)
+            self.assertEqual(new_set, the_set)
 
     def test_edit_non_existent_blob_from_demo(self):
         """
@@ -551,7 +553,7 @@ class BlobsTests(unittest.TestCase):
         new_title = self.title + '_new'
         title = None
         new_set = self.blob_set + '_new'
-        set = None
+        the_set = None
         new_pos_in_set = self.pos_in_set + 1
         try:
             self.create_template(self.template_name)
@@ -562,17 +564,18 @@ class BlobsTests(unittest.TestCase):
 
             response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,
                                                     blob_set=self.blob_set, new_blob_set=new_set,
-                                                pos_set=self.pos_in_set, new_pos_set=new_pos_in_set, title=new_title)
+                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set,
+                                                    title=new_title)
             status = response.get('status')
 
             json_response = self.get_template_blobs(self.template_name)
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(new_pos_in_set))
-                set = json_response.get('sets')[0].get('name')
+                the_set = json_response.get('sets')[0].get('name')
                 title = blob_list.get('title')
                 tag_list = blob_list.get('tags')
                 tag = tag_list[0]
-            except:
+            except Exception:
                 pass
 
             self.delete_template(self.template_name)
@@ -583,7 +586,7 @@ class BlobsTests(unittest.TestCase):
             self.assertEqual(len(tag_list), 1)
             self.assertEqual(tag, self.tag)
             self.assertEqual(new_title, title)
-            self.assertEqual(new_set, set)
+            self.assertEqual(new_set, the_set)
 
     def test_edit_non_existent_blob_from_template(self):
         """
@@ -597,7 +600,8 @@ class BlobsTests(unittest.TestCase):
 
             response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,
                                                     blob_set=self.blob_set, new_blob_set=new_set,
-                                                pos_set=self.pos_in_set, new_pos_set=new_pos_in_set, title=new_title)
+                                                    pos_set=self.pos_in_set, new_pos_set=new_pos_in_set,
+                                                    title=new_title)
             status = response.get('status')
 
         finally:
@@ -633,14 +637,14 @@ class BlobsTests(unittest.TestCase):
             vr = open(self.blob_path, 'r')
 
             self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                                  blob_vr=vr)
+                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
+                                  blob_vr=vr)
             json_response = self.get_blobs(self.demo_id)
             blob_id = None
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(self.pos_in_set))
                 blob_id = blob_list.get('id')
-            except:
+            except Exception:
                 pass
 
             response = self.delete_vr_from_blob(blob_id)
@@ -650,7 +654,7 @@ class BlobsTests(unittest.TestCase):
             try:
                 blob_list = json_response.get('sets')[0].get('blobs').get(str(self.pos_in_set))
                 blob_vr = blob_list.get('vr')
-            except:
+            except Exception:
                 pass
 
             self.delete_demo(self.demo_id)
@@ -670,7 +674,6 @@ class BlobsTests(unittest.TestCase):
         finally:
             self.assertEqual(status, 'KO')
 
-
     #####################
     #       TOOLS       #
     #####################
@@ -688,15 +691,23 @@ class BlobsTests(unittest.TestCase):
         add blob to demo
         """
         params = {}
-        if demo_id is not None: params['demo_id'] = demo_id
-        if tags is not None: params['tags'] = tags
-        if blob_set is not None: params['blob_set'] = blob_set
-        if pos_set is not None: params['pos_set'] = pos_set
-        if title is not None: params['title'] = title
-        if credit is not None: params['credit'] = credit
+        if demo_id is not None:
+            params['demo_id'] = demo_id
+        if tags is not None:
+            params['tags'] = tags
+        if blob_set is not None:
+            params['blob_set'] = blob_set
+        if pos_set is not None:
+            params['pos_set'] = pos_set
+        if title is not None:
+            params['title'] = title
+        if credit is not None:
+            params['credit'] = credit
         files = {}
-        if blob is not None: files['blob'] = blob
-        if blob_vr is not None: files['blob_vr'] = blob_vr
+        if blob is not None:
+            files['blob'] = blob
+        if blob_vr is not None:
+            files['blob_vr'] = blob_vr
         response = self.post(self.module, 'add_blob_to_demo', params=params, files=files)
         return response.json()
 
@@ -706,15 +717,23 @@ class BlobsTests(unittest.TestCase):
         add blob to template
         """
         params = {}
-        if template_name is not None: params['template_name'] = template_name
-        if tags is not None: params['tags'] = tags
-        if blob_set is not None: params['blob_set'] = blob_set
-        if pos_set is not None: params['pos_set'] = pos_set
-        if title is not None: params['title'] = title
-        if credit is not None: params['credit'] = credit
+        if template_name is not None:
+            params['template_name'] = template_name
+        if tags is not None:
+            params['tags'] = tags
+        if blob_set is not None:
+            params['blob_set'] = blob_set
+        if pos_set is not None:
+            params['pos_set'] = pos_set
+        if title is not None:
+            params['title'] = title
+        if credit is not None:
+            params['credit'] = credit
         files = {}
-        if blob is not None: files['blob'] = blob
-        if blob_vr is not None: files['blob_vr'] = blob_vr
+        if blob is not None:
+            files['blob'] = blob
+        if blob_vr is not None:
+            files['blob_vr'] = blob_vr
         response = self.post(self.module, 'add_blob_to_template', params=params, files=files)
         return response.json()
 
@@ -804,16 +823,25 @@ class BlobsTests(unittest.TestCase):
         edit blob from demo
         """
         params = {}
-        if demo_id is not None: params['demo_id'] = demo_id
-        if tags is not None: params['tags'] = tags
-        if blob_set is not None: params['blob_set'] = blob_set
-        if new_blob_set is not None: params['new_blob_set'] = new_blob_set
-        if pos_set is not None: params['pos_set'] = pos_set
-        if new_pos_set is not None: params['new_pos_set'] = new_pos_set
-        if title is not None: params['title'] = title
-        if credit is not None: params['credit'] = credit
+        if demo_id is not None:
+            params['demo_id'] = demo_id
+        if tags is not None:
+            params['tags'] = tags
+        if blob_set is not None:
+            params['blob_set'] = blob_set
+        if new_blob_set is not None:
+            params['new_blob_set'] = new_blob_set
+        if pos_set is not None:
+            params['pos_set'] = pos_set
+        if new_pos_set is not None:
+            params['new_pos_set'] = new_pos_set
+        if title is not None:
+            params['title'] = title
+        if credit is not None:
+            params['credit'] = credit
         files = {}
-        if vr is not None: files['blob_vr'] = vr
+        if vr is not None:
+            files['blob_vr'] = vr
         response = self.post(self.module, 'edit_blob_from_demo', params=params, files=files)
         return response.json()
 
@@ -823,16 +851,25 @@ class BlobsTests(unittest.TestCase):
         edit blob from template
         """
         params = {}
-        if template_name is not None: params['template_name'] = template_name
-        if tags is not None: params['tags'] = tags
-        if blob_set is not None: params['blob_set'] = blob_set
-        if new_blob_set is not None: params['new_blob_set'] = new_blob_set
-        if pos_set is not None: params['pos_set'] = pos_set
-        if new_pos_set is not None: params['new_pos_set'] = new_pos_set
-        if title is not None: params['title'] = title
-        if credit is not None: params['credit'] = credit
+        if template_name is not None:
+            params['template_name'] = template_name
+        if tags is not None:
+            params['tags'] = tags
+        if blob_set is not None:
+            params['blob_set'] = blob_set
+        if new_blob_set is not None:
+            params['new_blob_set'] = new_blob_set
+        if pos_set is not None:
+            params['pos_set'] = pos_set
+        if new_pos_set is not None:
+            params['new_pos_set'] = new_pos_set
+        if title is not None:
+            params['title'] = title
+        if credit is not None:
+            params['credit'] = credit
         files = {}
-        if vr is not None: files['blob_vr'] = vr
+        if vr is not None:
+            files['blob_vr'] = vr
         response = self.post(self.module, 'edit_blob_from_template', params=params, files=files)
         return response.json()
 

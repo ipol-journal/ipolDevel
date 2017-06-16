@@ -11,30 +11,30 @@ import os
 import os.path
 import sys
 import logging
-import sqlite3 as lite
 import glob
 import tempfile
-import matplotlib
-from cycler import cycler
-
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
-import av
 import mimetypes
 
 import operator
-from PIL import Image
-import cherrypy
 import ConfigParser
 import re
 import shutil
 import errno
-import magic
 from threading import Lock
+import sqlite3 as lite
+from sqlite3 import IntegrityError
+import magic
+import cherrypy
+from PIL import Image
+import av
+import numpy as np
+import matplotlib
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from cycler import cycler
 
 import database
-from sqlite3 import IntegrityError
 from errors import IPOLBlobsDataBaseError
 from errors import IPOLBlobsTemplateError
 from errors import IPOLBlobsThumbnailError
@@ -50,8 +50,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) \
+                and not ("X-Real-IP" in cherrypy.request.headers
+                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -64,7 +65,7 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expressions
         for authorized_pattern in blobs.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -404,6 +405,9 @@ class Blobs(object):
 
     @staticmethod
     def get_format_and_extension(mime):
+        """
+        get format and extension from mime
+        """
         mime_format = mime.split('/')[0]
         ext = mimetypes.guess_extension(mime)
         return mime_format, ext
@@ -564,7 +568,6 @@ class Blobs(object):
                 signal = np.fromstring(audio_bytes, dtype=np.uint8)
             else:
                 raise IPOLBlobsThumbnailError("Bit depth {} not supported".format(bit_depth))
-            
             plt.close('all')
             fig = plt.figure()
             plt.plot(signal)
@@ -620,7 +623,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(status)
+        return json.dumps(status)
 
     @cherrypy.expose
     @authenticate
@@ -665,7 +668,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(status)
+        return json.dumps(status)
 
     @cherrypy.expose
     def get_blobs(self, demo_id):
@@ -699,7 +702,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     def prepare_list(self, blobs):
         """
@@ -757,7 +760,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     def get_demo_owned_blobs(self, demo_id):
@@ -787,7 +790,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     def get_blob_info(self, blob):
         """
@@ -830,7 +833,6 @@ class Blobs(object):
 
             file_without_extension = os.path.join(vr_dir, blob_hash)
             vr = glob.glob(file_without_extension + ".*")
-
             if len(vr) > 0:
                 _, vr_extension = os.path.splitext(vr[0])
 
@@ -863,7 +865,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
@@ -890,7 +892,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     def remove_blob(self, blob_set, pos_set, dest):
         """
@@ -943,7 +945,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return res
+        return res
 
     @cherrypy.expose
     @authenticate
@@ -1018,7 +1020,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return res
+        return res
 
     @cherrypy.expose
     @authenticate
@@ -1070,7 +1072,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
@@ -1099,7 +1101,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     def remove_files_associated_to_a_blob(self, blob_hash):
         """
@@ -1234,7 +1236,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return res
+        return res
 
     def set_tags(self, conn, blob_id, tags):
         """
@@ -1267,7 +1269,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
@@ -1281,7 +1283,7 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             blob_data = database.get_blob_data(conn, blob_id)
             if blob_data is None:
-                return data
+                return json.dumps(data)
 
             blob_hash = blob_data.get('hash')
 
@@ -1321,7 +1323,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
@@ -1349,7 +1351,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     def get_blobs_location(self, blobs_ids):
@@ -1383,7 +1385,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     def get_demos_using_the_template(self, template_name):
@@ -1408,7 +1410,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     @cherrypy.expose
     def stats(self):
@@ -1429,7 +1431,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     # ----------- DEPRECATED FUNCTIONS ---------------
     # This functions are for the OLD web interface and
@@ -1474,7 +1476,7 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
-            return json.dumps(data)
+        return json.dumps(data)
 
     def prepare_list_deprecated(self, blobs):
         """

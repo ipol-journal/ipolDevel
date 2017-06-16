@@ -36,7 +36,7 @@ def err_tb():
     replace the default error response
     with an cgitb HTML traceback
     """
-    import cgitb, sys
+    import cgitb
     tb = cgitb.html(sys.exc_info())
     def set_tb():
         """ set the traceback output """

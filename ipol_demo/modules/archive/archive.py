@@ -24,11 +24,10 @@ import json
 import os
 import os.path
 import shutil
-import cherrypy
-import magic
-from mako.template import Template
 import ConfigParser
 import re
+import magic
+import cherrypy
 
 
 def authenticate(func):
@@ -40,8 +39,9 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+        if not is_authorized_ip(cherrypy.request.remote.ip) \
+                and not ("X-Real-IP" in cherrypy.request.headers
+                         and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -54,7 +54,7 @@ def authenticate(func):
         patterns = []
         # Creates the patterns  with regular expresions
         for authorized_pattern in archive.authorized_patterns:
-            patterns.append(re.compile(authorized_pattern.replace(".", "\.").replace("*", "[0-9]*")))
+            patterns.append(re.compile(authorized_pattern.replace(".", "\\.").replace("*", "[0-9]*")))
         # Compare the IP with the patterns
         for pattern in patterns:
             if pattern.match(ip) is not None:
@@ -104,11 +104,11 @@ class Archive(object):
         Check if needed datas exist correctly in the config of cherrypy.
         :rtype: bool
         """
-        if not (cherrypy.config.has_key("blobs_dir") and
-                    cherrypy.config.has_key("database_dir") and
-                    cherrypy.config.has_key("blobs_thumbs_dir") and
-                    cherrypy.config.has_key("logs_dir") and
-                    cherrypy.config.has_key("url")):
+        if not (cherrypy.config.has_key("blobs_dir")
+                and cherrypy.config.has_key("database_dir")
+                and cherrypy.config.has_key("blobs_thumbs_dir")
+                and cherrypy.config.has_key("logs_dir")
+                and cherrypy.config.has_key("url")):
             print "Missing elements in configuration file."
             return False
         else:
@@ -153,7 +153,6 @@ class Archive(object):
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.url = cherrypy.config.get("url")
         self.config_common_dir = cherrypy.config.get("config_common_dir")
-
 
         try:
             thumbs_s = int(cherrypy.config.get("thumbs_size"))
@@ -291,8 +290,8 @@ class Archive(object):
     # adding an experiment to the archive database
     #####
 
-
-    def get_new_path(self, main_directory, hash_name, file_extension, depth=2):
+    @staticmethod
+    def get_new_path(main_directory, hash_name, file_extension, depth=2):
         """
         This method creates a new fullpath to store the blobs in the archive,
         where new directories are created for each 'depth' first letters
@@ -402,7 +401,8 @@ class Archive(object):
 
         return id_blob, blob_name
 
-    def update_exp_table(self, conn, demo_id, parameters):
+    @staticmethod
+    def update_exp_table(conn, demo_id, parameters):
         """
         This function update the experiment table.
         :return: Return the id of the newly created experiment in the database.
@@ -438,7 +438,8 @@ class Archive(object):
 
         return dict_corresp
 
-    def update_correspondence_table(self, conn, id_experiment, dict_corresp):
+    @staticmethod
+    def update_correspondence_table(conn, id_experiment, dict_corresp):
         """
         This function update the correspondence table, associating
                 blobs, experiments, and descriptions of blobs.
@@ -711,9 +712,11 @@ class Archive(object):
         tmp = cursor_db.fetchone()
 
         # get the new path of the blob and thumbnail
+        path_blob = None
+        path_thumb = None
         if tmp is not None:
-            path_blob, subdirs = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
-            path_thumb, subdirs = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
+            path_blob, _ = self.get_new_path(self.blobs_dir, tmp[1], tmp[2])
+            path_thumb, _ = self.get_new_path(self.blobs_thumbs_dir, tmp[1], 'jpeg')
 
         cursor_db.execute("DELETE FROM blobs WHERE id = ?", (id_blob,))
 
@@ -829,8 +832,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 pass
         return json.dumps(status)
 
+    @staticmethod
     @cherrypy.expose
-    def ping(self):
+    def ping():
         """
         Ping pong.
         :rtype: JSON formatted string
@@ -888,14 +892,16 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         return json.dumps(data)
 
     @cherrypy.expose
-    def index(self):
+    @staticmethod
+    def index():
         """
         Small index for the archive.
         """
         return "This is the IPOL Archive module"
 
     @cherrypy.expose
-    def default(self, attr):
+    @staticmethod
+    def default(attr):
         """
         Default method invoked when asked for non-existing service.
         """

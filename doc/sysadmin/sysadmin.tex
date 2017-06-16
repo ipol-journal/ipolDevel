@@ -94,13 +94,6 @@ On the other hand, the list of Python packages which need to be installed with p
 pip install -r requirements.txt
 \end{verbatim}
 
-They can be updated with the following command:
-
-\begin{verbatim}
-sudo sh -c 'pip freeze --local | grep -v '^\-e' | \
-cut -d = -f 1  | xargs -n1 pip install -U'
-\end{verbatim}
-
 
 \section{Crontab scripts}
 The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
@@ -494,6 +487,93 @@ To access the Control Panel the user will need to access the specified URL, and 
 
 \item Password: gy54g7x2 \miguel{Do we really want to write password in the public doc?}
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Docker}
+In order to allow members of IPOL get a development envirorment, we create a docker image.
+
+\paragraph{Usage}:
+The necessary commands in order to work with docker will be described in the next section. The first thing you should do is 
+build the Docker image, then you will be able to create as many containers as you want. Then run the container and you 
+will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already 
+configured and running.
+
+In order to run the Django server for the control panel you will have to make the migrations once per 
+container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
+ After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.1.1:8000. 
+
+
+\paragraph{Docker build}:\\
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker build ~/ipolDevel -t ipol -f ~/ipolDevel/docker/Dockerfile
+\end{lstlisting}
+
+With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. Explanation:
+\begin{itemize}
+\item docker build: command to build an image
+\item "~/ipolDevel" : The context of the image. Should always be the root of the project IPOL.
+\item -t ipol: Tag the image with the name ipol to reference it later.
+\item -f : flag to specify a Dockerfile
+\item ~/ipolDevel/docker/Dockerfile: Location of the Dockerfile defining the image.
+\end{itemize}
+
+\paragraph{Docker run}:\\
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.1.1 --name ipol ipol
+\end{lstlisting}
+
+This command will create a container and log us in the terminal. Explanation:
+\begin{itemize}
+\item docker run: command to create a container
+\item -it: makes the container interactive and attaches to a tty or terminal.
+\item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+\item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
+\item -h docker: defines the container's hostname
+\item --add-host docker:127.0.1.1: adds an entry to /etc/hosts mapping 127.0.1.1 to the host
+\item -name ipol: assigns the name ipol to the container for future reference
+\item ipol: tells docker to run a container from the image "ipol"
+\end{itemize}
+
+After this command we will be inside the containers tty. This command should be used each time after a docker build is done, 
+otherwise if the container is already exists, it will have to be removed or attached to. The orders to control containers and images are:
+
+\paragraph{Docker start}:\\
+In order to start the already created container.
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker start -i ipol
+\end{lstlisting}
+
+\paragraph{Docker exec}:\\
+In order to attach a new terminal to the container. Useful if you need more than one terminal access to the container.
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker exec -it ipol bash
+\end{lstlisting}
+
+\paragraph{Docker ps}:\\
+In order to get information about all the created containers.
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker ps -a
+\end{lstlisting}
+
+\paragraph{Docker images}:\\
+In order to get information about all the created images.
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker images
+\end{lstlisting}
+
+\paragraph{Docker rm}:\\
+In order to remove a container. The id or name provided will be available doing "docker ps -a"
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker rm 'docker_image_id'
+\end{lstlisting}
+
+\paragraph{Docker rmi}:\\
+In order to remove an image. The id or name provided will be available doing "docker images"
+\begin{lstlisting}[firstnumber=1,breaklines]
+$ docker rmi 'docker_image_id'
+\end{lstlisting}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
