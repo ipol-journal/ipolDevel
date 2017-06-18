@@ -1,5 +1,7 @@
 # All the commented lines must start with a "#"
 
+debian-keyring
+debian-archive-keyring
 git
 python2.7
 wget
