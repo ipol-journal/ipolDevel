@@ -11,7 +11,7 @@ parameters.printParameters = function() {
   params,
   ddl_params = {};
   demoInfo = helpers.getFromStorage('demoInfo');
-
+  printParamsInformationIcon(demoInfo);
   if (demoInfo.params) {
     var demoInfoParams = demoInfo.params;
     addResetButton();
@@ -28,6 +28,11 @@ parameters.printParameters = function() {
     }
     if (demoInfo.params_layout) addLayout();
   }
+}
+
+function printParamsInformationIcon(){
+  checkParamsDescriptionIconVisibility(demoInfo.general);
+  addParamsDescriptionTooltips(demoInfo.general);
 }
 
 function printParameter(param, index) {
@@ -85,6 +90,15 @@ function addResetButton() {
   $('.param-reset-btn').click(function(event) {
     parameters.printParameters();
   });;
+}
+
+function addParamsDescriptionTooltips(ddl_general) {
+  if (ddl_general.param_description)
+    $('#parameters-description').attr('title', getConcatDescription(ddl_general.param_description));
+}
+
+function checkParamsDescriptionIconVisibility(ddl_general) {
+  if (ddl_general.param_description != undefined) $('#parameters-description').removeClass('di-none');
 }
 
 $.fn.checkVisibility = function(param) {

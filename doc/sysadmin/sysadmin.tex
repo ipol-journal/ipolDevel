@@ -356,7 +356,8 @@ location @companyPasswd {
 
 \item Enable the site by creating a symbolic link to default configuration:
 \begin{lstlisting}[language=Bash]
-ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/default \
+/etc/nginx/sites-enabled/
 \end{lstlisting}
 
 \item Check Nginx configuration
@@ -478,20 +479,12 @@ Open the script and configure the parameters:
 
 
 \subsection{Accessing the Control Panel}
-To access the Control Panel the user will need to access the specified URL, and login with the following credentials:
-
-\begin{itemize}
-\item URL: \url{http://ipolcore.ipol.im/cp/login/}
-
-\item User: ipolcpadmin
-
-\item Password: gy54g7x2 \miguel{Do we really want to write password in the public doc?}
-\end{itemize}
+To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Docker}
-In order to allow members of IPOL get a development envirorment, we create a docker image.
+In order to allow members of IPOL get a development envirorment, we created a docker image.
 
 \paragraph{Usage}:
 The necessary commands in order to work with docker will be described in the next section. The first thing you should do is 
@@ -506,33 +499,33 @@ container before actually running the server. For this purpose there is a script
 
 \paragraph{Docker build}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker build ~/ipolDevel -t ipol -f ~/ipolDevel/docker/Dockerfile
+  $ docker build ~/ipolDevel -t ipol -f ~/ipolDevel/docker/Dockerfile
 \end{lstlisting}
 
 With this command we will have docker create an image from the Dockerfile in the root of the project. It will go through the creation and configuration of the development envirorment. Explanation:
 \begin{itemize}
-\item docker build: command to build an image
-\item "~/ipolDevel" : The context of the image. Should always be the root of the project IPOL.
-\item -t ipol: Tag the image with the name ipol to reference it later.
-\item -f : flag to specify a Dockerfile
-\item ~/ipolDevel/docker/Dockerfile: Location of the Dockerfile defining the image.
+  \item docker build: command to build an image
+  \item {\tt \~{}/ipolDevel} : The context of the image. Should always be the root of the project IPOL.
+  \item -t ipol: Tag the image with the name ipol to reference it later.
+  \item -f: flag to specify a Dockerfile
+  \item {\tt \~{}/ipolDevel/docker/Dockerfile}: Location of the Dockerfile defining the image.
 \end{itemize}
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.1.1 --name ipol ipol
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.1.1 --name ipol ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
-\item docker run: command to create a container
-\item -it: makes the container interactive and attaches to a tty or terminal.
-\item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
-\item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
-\item -h docker: defines the container's hostname
-\item --add-host docker:127.0.1.1: adds an entry to /etc/hosts mapping 127.0.1.1 to the host
-\item -name ipol: assigns the name ipol to the container for future reference
-\item ipol: tells docker to run a container from the image "ipol"
+  \item docker run: command to create a container
+  \item -it: makes the container interactive and attaches to a tty or terminal.
+  \item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
+  \item -h docker: defines the container's hostname
+  \item --add-host docker:127.0.1.1: adds an entry to /etc/hosts mapping 127.0.1.1 to the host
+  \item -name ipol: assigns the name ipol to the container for future reference
+  \item ipol: tells docker to run a container from the image "ipol"
 \end{itemize}
 
 After this command we will be inside the containers tty. This command should be used each time after a docker build is done, 
@@ -541,37 +534,37 @@ otherwise if the container is already exists, it will have to be removed or atta
 \paragraph{Docker start}:\\
 In order to start the already created container.
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker start -i ipol
+  $ docker start -i ipol
 \end{lstlisting}
 
 \paragraph{Docker exec}:\\
 In order to attach a new terminal to the container. Useful if you need more than one terminal access to the container.
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker exec -it ipol bash
+  $ docker exec -it ipol bash
 \end{lstlisting}
 
 \paragraph{Docker ps}:\\
 In order to get information about all the created containers.
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker ps -a
+  $ docker ps -a
 \end{lstlisting}
 
 \paragraph{Docker images}:\\
 In order to get information about all the created images.
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker images
+  $ docker images
 \end{lstlisting}
 
 \paragraph{Docker rm}:\\
 In order to remove a container. The id or name provided will be available doing "docker ps -a"
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker rm 'docker_image_id'
+  $ docker rm 'docker_image_id'
 \end{lstlisting}
 
 \paragraph{Docker rmi}:\\
 In order to remove an image. The id or name provided will be available doing "docker images"
 \begin{lstlisting}[firstnumber=1,breaklines]
-$ docker rmi 'docker_image_id'
+  $ docker rmi 'docker_image_id'
 \end{lstlisting}
 
 
@@ -582,11 +575,12 @@ In order to allow members of the lab use the IPOL infrastructure for their compu
 
 The VirtualBox package needs to be installed from the VirtualBox's repositories. First, add the GPG key:
 
-{\tt sudo su -c 'wget -q -O- http://download.virtualbox.org/virtualbox/debian/oracle\_vbox\_2016.asc | apt-key add -'}
+{\tt sudo su -c 'wget -q -O- http://download.virtualbox.org/virtualbox/\
+debian/oracle\_vbox\_2016.asc | apt-key add -'}
 
-Then add the following line to {\tt /etc/apt/sources.list} (change \emph{jessie} to the codename of the current stable distribution):
+Then add the following line to {\tt /etc/apt/sources.list} (change \emph{stretch} to the codename of the current stable distribution):
 
-{\tt deb http://download.virtualbox.org/virtualbox/debian jessie contrib}
+{\tt deb http://download.virtualbox.org/virtualbox/debian stretch contrib}
 
 The CPU priorities need to be added /etc/security/limits.conf:
 \begin{verbatim}
@@ -635,6 +629,36 @@ VBoxManage startvm VM --type headless
 
 To allow the external users to access the virtual machine, we need to configure a port forwarding rule.
 It can be done easily by running the virtual machine (with ssh -X ...) and in the VirtualBox: Settings / Network / Port Forwarding: protocol TCP, Host Post 2222, Guest Port 22.
+
+\section{Troubleshooting}
+
+\textbf{After a new release of Debian Stable the binaries of the methods of the demos no longer work}
+
+Probably it is because the binaries where staticly compiled againts libraries whose versions are no longer installed in our servers. Remove the directory {\tt ipolDevel/ipol\_demo/modules/demorunner/binaries} of all the machines where a demoRunner module has been installed.
+\vspace{0.5cm}
+
+
+\textbf{Python fails to import libtiff}
+
+It needs to generate a header in a directory at which only root can write. Thus, execute ipython as root and then execute {\tt import libtiff}. After this, non-privileged users will be able to import the library normally.
+\vspace{0.5cm}
+
+\textbf{After uploading a package Python complains about not being able to import a package because a system library is not at the correct version, even if I uninstall/install the package with {\tt pip}.}
+
+Normally the reason is that pip is not managing the cache correctly and it is installing an old version of the package which needs an old version of the system library. Remove the pip cache: {\tt rm -rf /root/.cache/pip}.
+\vspace{0.5cm}
+
+\textbf{VirtualBox does not work.}
+Check that you have installed the needed VirtualBox packages, specially the kernel module (virtualbox-guest-dkms).
+If you have everything installed and it is still not working, then execute {\tt dpkg-reconfigure virtualbox-guest-dkms} to force the re-compilation of the kernel module.
+
+If still does not work, then purge the packages and re-install:
+
+\begin{verbatim}
+apt-get purge virtualbox-dkms virtualbox-guest-dkms
+apt-get install linux-headers-amd64 virtualbox-5.1
+\end{verbatim}
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}

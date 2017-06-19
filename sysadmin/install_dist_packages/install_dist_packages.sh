@@ -1,4 +1,7 @@
 #!/bin/bash
+
+apt-get update
+
 while IFS='' read -r line || [[ -n "$line" ]]; do
     # Remove commented lines
     [[ "$line" =~ ^#.*$ ]] && continue

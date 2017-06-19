@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/editor.css">
   <link rel="stylesheet" href="css/parameters.css">
   <link rel="stylesheet" href="css/helpers.css">
+  <link rel="stylesheet" href="css/run.css">
   <link rel="stylesheet" href="css/footer.css">
 
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
@@ -33,7 +34,7 @@
 
   <div class="citation"></div>
 
-  <div class="inputContainer container">
+  <div class="inputContainer container di-none">
     <div class="container-header">
       <h1 class="container-title m-y-5">Select input(s)</h1>
       <img src="./information-icon.png" class="information-icon m-y-5 di-none" id="inputs-description">
@@ -47,10 +48,23 @@
     <div id="sets" class="setContainer"></div>
   </div>
 
-  <div id="inputEditorContainer"></div>
+  <div id="inputEditorContainer" class="di-none"></div>
 
   <div id="parameters">
     <div class="params-description-dialog" title="Params description"></div>
+  </div>
+
+  <div class="runContainer">
+    <button class="btn run-btn">Run</button>
+  </div>
+
+  <div class="loader di-none">
+    <span class="loader-text">Running algorithm...</span>
+    <div class="loader-cicles">
+      <span class="loader-first-circle loader-cicle"></span>
+      <span class="loader-second-circle loader-cicle"></span>
+      <span class="loader-third-circle loader-cicle"></span>
+    </div>
   </div>
 
   <div id="footer"></div>

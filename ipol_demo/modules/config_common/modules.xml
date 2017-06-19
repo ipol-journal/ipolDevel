@@ -55,5 +55,16 @@
     <command>restart</command>
     <command>ping</command>
   </module>
+  
+  <module name="conversion">
+    <module>conversion</module>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </module>
 
 </data>
