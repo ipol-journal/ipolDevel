@@ -58,8 +58,8 @@
   
   <module name="conversion">
     <module>conversion</module>
-    <server>integration.ipol.im</server>
-    <serverSSH>ipol_integration</serverSSH>
+    <server>ipolcore.ipol.im</server>
+    <serverSSH>ipol_core</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
     <command>start</command>
     <command>stop</command>
