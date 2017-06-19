@@ -4,39 +4,8 @@ var input = input || {};
 var upload = upload || {};
 var editor = editor || {};
 
-// Print imput pannel.
-input.printInput = function(blobs, demoInfo) {
-  getBlobSets();
-  getDemoinfo();
-}
-
-// Get blobsets from API.
-function getBlobSets() {
-  helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
-    printSets(blobs.sets);
-    console.log("get_globs", blobs);
-    helpers.addToStorage("blobs", blobs.sets);
-  });
-}
-
-// Get demoinfo from API.
-function getDemoinfo() {
-  helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
-    var response = helpers.getJSON(payload.last_demodescription.ddl);
-    $("#pageTitle").html(response.general.demo_title);
-    $(".citation").html("<span>Please cite <a id=citation-link>the reference article</a> if you publish results obtained with this online demo.</span>");
-    $("#citation-link").attr('href', response.general.xlink_article);
-    $("#articleTab").attr('href', response.general.xlink_article);
-    checkDescriptionIconsVisibility(response.general);
-    addDescriptionTooltips(response.general);
-    helpers.addToStorage("demoInfo", response);
-    console.log("get_interface_ddl", response);
-    upload.printUploads(response.inputs);
-  });
-}
-
 // Print in the web Interface the sets.
-function printSets(sets) {
+input.printSets = function(sets) {
   for (var i = 0; i < sets.length; i++) {
     var set = sets[i].blobs;
     var blobs = Object.keys(set);
@@ -81,6 +50,11 @@ function printSets(sets) {
   }
 }
 
+input.printInputInformationIcon = function(ddl_general){
+  checkInputDescriptionIconVisibility(ddl_general);
+  addInputDescriptionTooltips(ddl_general);
+}
+
 function scrollHorizontally(e) {
   e = window.event || e;
   if (e.deltaY) deltaValue = e.deltaY;
@@ -113,20 +87,15 @@ function addSetClickEvent(blobSet, blobs) {
       helpers.addToStorage("demoSet", blobs);
       helpers.setOrigin("demo");
       editor.printEditor();
-      parameters.printParameters();
     });
 }
 
-function addDescriptionTooltips(ddl_general) {
-  if (ddl_general.param_description)
-    $('#parameters-description').attr('title', getConcatDescription(ddl_general.param_description));
-
+function addInputDescriptionTooltips(ddl_general) {
   if (ddl_general.input_description)
     $('#inputs-description').attr('title', getConcatDescription(ddl_general.input_description));
 }
 
-function checkDescriptionIconsVisibility(ddl_general) {
-  if (ddl_general.param_description != undefined) $('#parameters-description').removeClass('di-none');
+function checkInputDescriptionIconVisibility(ddl_general) {
   if (ddl_general.input_description != undefined) $('#inputs-description').removeClass('di-none');
 }
 

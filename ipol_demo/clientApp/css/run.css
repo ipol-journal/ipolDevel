@@ -1,0 +1,158 @@
+.loader {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.loader-text {
+  margin-bottom: 10px;
+
+  text-align: center;
+
+  font-family: Verdana, "Geneva", sans-serif;
+}
+
+.loader-cicle {
+  position: absolute;
+  left: 50%;
+
+  display: inline-block;
+
+  width: 16px;
+  height: 16px;
+  margin-left: -10px;
+
+  -webkit-animation: 3s infinite ease-in-out;
+  -moz-animation: 3s infinite ease-in-out;
+  -o-animation: 3s infinite ease-in-out;
+
+  border-radius: 50%;
+}
+
+.loader-first-circle {
+  -webkit-animation: kiri 1.2s infinite ease-in-out;
+  -moz-animation: kiri 1.2s infinite ease-in-out;
+  -o-animation: kiri 1.2s infinite ease-in-out;
+
+  background: #5B4BA7;
+}
+
+.loader-second-circle {
+  z-index: 100;
+
+  background: #D4C9E9;
+}
+
+.loader-third-circle {
+  -webkit-animation: kanan 1.2s infinite ease-in-out;
+  -moz-animation: kanan 1.2s infinite ease-in-out;
+  -o-animation: kanan 1.2s infinite ease-in-out;
+
+  background: #8E77C2;
+}
+
+.element-appear {
+  -webkit-animation: element-appear 1.5s forwards ease-in;
+  -moz-animation: element-appear 1.5s forwards ease-in;
+  -o-animation: element-appear 1.5s forwards ease-in;
+}
+
+/* Animations */
+
+@keyframes element-appear {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes kanan {
+  0% {
+    -webkit-transform: translateX(20px);
+  }
+  50% {
+    -webkit-transform: translateX(-20px);
+  }
+  100% {
+    z-index: 200;
+
+    -webkit-transform: translateX(20px);
+  }
+}
+
+@-moz-keyframes kanan {
+  0% {
+    -moz-transform: translateX(20px);
+  }
+  50% {
+    -moz-transform: translateX(-20px);
+  }
+  100% {
+    z-index: 200;
+
+    -moz-transform: translateX(20px);
+  }
+}
+
+@-o-keyframes kanan {
+  0% {
+    -o-transform: translateX(20px);
+  }
+  50% {
+    -o-transform: translateX(-20px);
+  }
+  100% {
+    z-index: 200;
+
+    -o-transform: translateX(20px);
+  }
+}
+
+@-webkit-keyframes kiri {
+  0% {
+    z-index: 200;
+
+    -webkit-transform: translateX(-20px);
+  }
+  50% {
+    -webkit-transform: translateX(20px);
+  }
+  100% {
+    -webkit-transform: translateX(-20px);
+  }
+}
+
+@-moz-keyframes kiri {
+  0% {
+    z-index: 200;
+
+    -moz-transform: translateX(-20px);
+  }
+  50% {
+    -moz-transform: translateX(20px);
+  }
+  100% {
+    -moz-transform: translateX(-20px);
+  }
+}
+
+@-o-keyframes kiri {
+  0% {
+    z-index: 200;
+
+    -o-transform: translateX(-20px);
+  }
+  50% {
+    -o-transform: translateX(20px);
+  }
+  100% {
+    -o-transform: translateX(-20px);
+  }
+}
