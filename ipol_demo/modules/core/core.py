@@ -1168,11 +1168,221 @@ attached the failed experiment data.". \
         self.send_email(subject, text, emails, config_emails['sender'])
 
     @cherrypy.expose
+    def run2(self, demo_id, **kwargs):
+        """
+        Run a demo. The presentation layer requests the Core to
+        execute a demo.
+        """
+        print kwargs
+
+        origin = kwargs.get('origin', None)
+
+        params = kwargs.get('params')
+
+        crop_info = kwargs.get('crop_info', None)
+
+        blobs = {}
+        if origin == 'upload':
+            print "UPLOAD"
+            i = 0
+            while "file_{0}".format(i) in kwargs:
+                fname = "file_{0}".format(i)
+                blobs[fname] = kwargs[fname]
+                i += 1
+        elif origin == 'blobset':
+            print "DEMO"
+            blobs = json.loads(kwargs['blobs'])
+        else:
+            pass
+
+        # Obtain the DDL
+        try:
+            demoinfo_resp = self.post(self.host_name, 'demoinfo', 'get_ddl', {"demo_id": demo_id})
+            demoinfo_response = demoinfo_resp.json()
+
+            last_demodescription = demoinfo_response['last_demodescription']
+            ddl = json.loads(last_demodescription['ddl'])
+
+            if 'build' in ddl:
+                ddl_build = ddl['build']
+            else:
+                return json.dumps({"status": "KO", "error": "no 'build' section found in the DDL"})
+
+            ddl_inputs = ddl['inputs']
+
+        except Exception as ex:
+            s = "Failed to obtain the DDL of demo {}".format(demo_id)
+            print s, ex
+            self.logger.exception(s)
+            return json.dumps({'error': 'unable to read the DDL', 'status': 'KO'})
+
+        # Create a new execution key
+        key = self.create_new_execution_key(self.logger)
+        if key is None:
+            res_data = {'error': 'internal error. Failed to create a valid execution key', 'status': 'KO'}
+            self.logger.exception("Failed to create a valid key")
+            return json.dumps(res_data)
+        try:
+            work_dir = self.create_run_dir(demo_id, key)
+        except Exception as ex:
+            res_data = {'error': 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex),
+                        'status': 'KO'}
+            self.logger.exception("Could not create work_dir for demo {}".format(demo_id))
+            print 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex)
+            return json.dumps(res_data)
+
+        # Copy input blobs
+        if origin != None:
+            try:
+                self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
+                self.process_inputs(work_dir, ddl_inputs, crop_info)
+            except IPOLEvaluateError as ex:
+                res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print 'Invalid expression "{}" found in the DDL'.format(ex)
+                return json.dumps(res_data)
+            except IPOLCopyBlobsError as ex:
+                res_data = {'error': 'internal error copying blobs. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "Copy blobs failed. Error: {}".format(ex)
+                return json.dumps(res_data)
+            except IPOLInputUploadError as ex:
+                res_data = {'error': 'internal error uploading input. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "Input upload failed. Error: {}".format(ex)
+                return json.dumps(res_data)
+            except IPOLProcessInputsError as ex:
+                res_data = {'error': 'internal error processing inputs. Error: {}'.format(ex),
+                            'status': 'KO'}
+                self.logger.exception("Processing inputs failed. Error: {}".format(ex))
+                print "Input upload failed. Error: {}".format(ex)
+                return json.dumps(res_data)
+            except Exception as ex:
+                res_data = {'error': 'internal error. Blobs operations failed',
+                            'status': 'KO'}
+                self.logger.exception("copy_blobs/process_inputs FAILED")
+                print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
+                return json.dumps(res_data)
+
+        try:
+            if 'general' not in ddl:
+                response = {"error": "bad DDL syntax: no 'general' section found", "status": "KO"}
+                return json.dumps(response)
+
+            # Find a DR that satisfies the requirements
+            if 'requirements' in ddl['general']:
+                requirements = ddl['general']['requirements']
+            else:
+                requirements = None
+
+            dr_name, dr_server = self.get_demorunner(
+                self.demorunners_workload(), requirements)
+            if dr_name is None:
+                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                if self.get_demo_metadata(demo_id)["state"].lower() == "published":
+                    self.send_not_demorunner_for_published_demo_email(demo_id)
+                return json.dumps(response)
+
+            build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
+            dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
+
+            status = dr_response.json()['status']
+            if status != 'OK':
+                print "COMPILATION FAILURE in demo = ", demo_id
+
+                # Send compilation message to the editors
+                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", ""),
+                                               dr_response["message"])
+
+                self.send_compilation_error_email(demo_id, text)
+
+                # Message for the web interface
+                response = {"error": " --- Compilation error. --- {}".format(text), "status": "KO"}
+                return json.dumps(response)
+
+            try:
+                self.ensure_extras_updated(demo_id)
+            except IPOLDemoExtrasError as ex:
+                self.logger.exception("Ensure_extras_updated error, demo_id={}".format(demo_id))
+                print "Ensure_extras_updated failed for demo #{}. Error: {}".format(demo_id, ex)
+                response = {'status': 'KO',
+                            'error': 'An internal error occurred while retrieving the demoExtras: {}'.format(
+                                ex)}
+                return json.dumps(response)
+
+            # save parameters as a params.json file
+            try:
+                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                with open(os.path.join(work_dir, "params.json"), "w") as resfile:
+                    resfile.write(params)
+            except (OSError, IOError) as ex:
+                self.logger.exception("Save params.json, demo_id={}".format(demo_id))
+                print "Failed to save params.json file", ex
+                return json.dumps({'status': 'KO', 'error': 'Save params.json'})
+
+            userdata = {"demo_id": demo_id, "key": key, "params": params}
+
+            if 'run' not in ddl:
+                return json.dumps({"error": "bad DDL syntax: no 'run' section found", "status": "KO"})
+
+            userdata['ddl_run'] = json.dumps(ddl['run'])
+
+            if 'timeout' in ddl['general']:
+                userdata['timeout'] = ddl['general']['timeout']
+
+            resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
+
+            demorunner_response = resp.json()
+            if demorunner_response['status'] != 'OK':
+                print "DR answered KO for demo #{}".format(demo_id)
+                # Message for the web interface
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"])
+                response = {"error": website_message,
+                            "status": "KO"}
+                # Send email to the editors
+                self.send_runtime_error_email(demo_id, key, website_message)
+                return json.dumps(response)
+
+            demorunner_response['work_url'] = os.path.join(
+                "http://{}/api/core/".format(self.host_name),
+                self.shared_folder_rel,
+                self.share_run_dir_rel,
+                demo_id,
+                key) + '/'
+
+            # Archive the experiment, if the 'archive' section
+            # exists in the DDL
+            if origin != 'upload' and 'archive' in ddl:
+                ddl_archive = ddl['archive']
+                print ddl_archive
+                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                            demorunner_response, self.host_name)
+
+        except Exception as ex:
+            s = "Failure in the run function of the \
+CORE in demo #{}".format(demo_id)
+            self.logger.exception(s)
+            print "Failure in the run function of the CORE in \
+demo #{} - {}".format(demo_id, str(ex))
+            core_response = {"status": "KO", "error": "{}".format(ex)}
+            return json.dumps(core_response)
+
+        dic = self.read_algo_info(work_dir)
+        for name in dic:
+            demorunner_response["algo_info"][name] = dic[name]
+
+        return json.dumps(demorunner_response)
+
+    @cherrypy.expose
     def run(self, demo_id, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
+        print kwargs
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type')
         else:
