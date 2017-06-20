@@ -10,7 +10,7 @@ var editorBlobs;
 // Print editor pannel.
 editor.printEditor = function() {
   $("#inputEditorContainer").load("editor.html", function() {
-    if (helpers.getOrigin() == "demo") editorBlobs = helpers.getFromStorage("demoSet");
+    if (helpers.getOrigin() == "blobSet") editorBlobs = helpers.getFromStorage("demoSet");
     else editorBlobs = clientApp.upload.getUploadedFiles();
     printEditorPanel();
   });

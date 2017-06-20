@@ -57,6 +57,10 @@ justify-content: space-around;
   justify-content: center;
 }
 
+.setContainer > div {
+  margin: 10px 0;
+}
+
 .blobSet-span {
   text-align: center;
 }

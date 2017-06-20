@@ -55,17 +55,24 @@
   </div>
 
   <div class="runContainer">
-    <button class="btn run-btn">Run</button>
-  </div>
+    <div class="button-container">
+      <button class="btn run-btn">Run</button>
+    </div>
 
-  <div class="loader di-none">
-    <span class="loader-text">Running algorithm...</span>
-    <div class="loader-cicles">
-      <span class="loader-first-circle loader-cicle"></span>
-      <span class="loader-second-circle loader-cicle"></span>
-      <span class="loader-third-circle loader-cicle"></span>
+    <div class="loader di-none">
+      <span class="loader-text">Running algorithm...</span>
+      <div class="loader-cicles">
+        <span class="loader-first-circle loader-cicle"></span>
+        <span class="loader-second-circle loader-cicle"></span>
+        <span class="loader-third-circle loader-cicle"></span>
+      </div>
+    </div>
+
+    <div class="run-msg-box di-none">
+      <span class="run-msg"></span>
     </div>
   </div>
+
 
   <div id="footer"></div>
 
@@ -82,6 +89,7 @@
   <script src="js/demo.editor.scroll.js"></script>
   <script src="js/demo.parameters.js"></script>
   <script src="js/demo.parameters.types.js"></script>
+  <script src="js/demo.run.js"></script>
 
   <script src="externalModules/cropper/cropper.min.js"></script>
 

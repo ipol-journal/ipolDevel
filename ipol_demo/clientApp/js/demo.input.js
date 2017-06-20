@@ -85,7 +85,7 @@ function addSetClickEvent(blobSet, blobs) {
   blobSet.addClass("blobSet")
     .click(function() {
       helpers.addToStorage("demoSet", blobs);
-      helpers.setOrigin("demo");
+      helpers.setOrigin("blobSet");
       editor.printEditor();
     });
 }

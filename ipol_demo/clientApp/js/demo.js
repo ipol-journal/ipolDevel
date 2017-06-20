@@ -61,29 +61,6 @@ function clearStorage() {
   });
 }
 
-$(".run-btn").click(function(){
-  $(".run-btn").prop('disabled', "true");
-  $(".run-btn").css('background-color', 'gray');
-  $(".loader").removeClass('di-none');
-  $(".loader").addClass('element-appear');
-  $.ajax({
-    url: '/api/core/run2',
-    type: 'POST',
-    dataType: 'json',
-    data: {"demo_id": demo_id}
-  })
-  .done(function() {
-    console.log("success");
-  })
-  .fail(function() {
-    console.log("error");
-  })
-  .always(function() {
-    console.log("complete");
-  });
-
-});
-
 $(function() {
   $(document).tooltip({
     content: function() {
