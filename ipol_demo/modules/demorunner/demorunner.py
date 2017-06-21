@@ -534,7 +534,8 @@ class DemoRunner(object):
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
             res_data['algo_info']['status'] = 'RuntimeError, \
-stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+stderr={}, stdout={}'.format("\n".join(stderr_lines), \
+                             "\n".join(stdout_lines))
 
             res_data['status'] = 'KO'
             res_data['error'] = str(e)
