@@ -36,6 +36,7 @@
 
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
+  image-rendering: -o-pixelated;
   image-rendering: pixelated;
 }
 
@@ -48,9 +49,10 @@
 }
 
 .audioThumbnail {
-  margin-left: auto;
-  margin-right: auto;
   display: block;
+
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .editor-container {

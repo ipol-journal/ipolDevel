@@ -1,0 +1,39 @@
+@-webkit-keyframes element-appear {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes rightToLeft {
+  0% {
+    -webkit-transform: translateX(20px);
+  }
+  50% {
+    -webkit-transform: translateX(-20px);
+  }
+  100% {
+    z-index: 200;
+
+    -webkit-transform: translateX(20px);
+  }
+}
+
+@-webkit-keyframes leftToRight {
+  0% {
+    z-index: 200;
+
+    -webkit-transform: translateX(-20px);
+  }
+  50% {
+    -webkit-transform: translateX(20px);
+  }
+  100% {
+    -webkit-transform: translateX(-20px);
+  }
+}

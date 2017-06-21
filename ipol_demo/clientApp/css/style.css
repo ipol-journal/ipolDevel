@@ -1,12 +1,19 @@
 html {
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
 
 *, *:before, *:after {
+  -webkit-box-sizing: inherit;
   box-sizing: inherit;
+
+  -ms-interpolation-mode: nearest-neighbor;
 
   font-family: Verdana, Arial, Helvetica, Tahoma, sans-serif;
 
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-pixelated;
   image-rendering: pixelated;
 }
 
@@ -54,7 +61,8 @@ a:hover {
 #pageTitle {
   color: #484848;
 
-  font-size: 20px;
+  font-family: Arial,Helvetica,Tahoma,sans-serif;
+  font-size: 22px;
   font-weight: bold;
 }
 
@@ -73,6 +81,11 @@ a:hover {
 /*Cropper image pixelated*/
 
 .cropper-view-box {
+  -ms-interpolation-mode: nearest-neighbor;
+
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-pixelated;
   image-rendering: pixelated;
 }
 
@@ -91,12 +104,9 @@ a:hover {
 
   color: #333;
   border: none;
-  -webkit-border-radius: 5;
-  -moz-border-radius: 5;
   border-radius: 5px;
   background: #e6e6e6;
   -webkit-box-shadow: 1px 1px 2px #999799;
-  -moz-box-shadow: 1px 1px 2px #999799;
   box-shadow: 1px 1px 2px #999799;
 
   font-family: Arial;
@@ -110,6 +120,8 @@ a:hover {
 }
 
 .container-header {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
 
   margin-bottom: 10px;
@@ -117,6 +129,8 @@ a:hover {
   border: #adadad solid;
   border-width: 0 0 1px 0;
 
+  -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -131,22 +145,4 @@ a:hover {
 
 div.ui-tooltip {
   max-width: 800px;
-}
-
-.runContainer {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.run-btn {
-  background-color: #5d8cb1;
-  color: white;
-  padding: 5px 15px;
-  font-size: 18px;
-}
-
-.run-btn:hover{
-  background-color: #3776a8;
 }
