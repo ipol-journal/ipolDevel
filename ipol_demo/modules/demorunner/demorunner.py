@@ -386,7 +386,7 @@ class DemoRunner(object):
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id)
-            data['buildlog'] = "\n".join(lines)
+            data['buildlog'] = "\n".join(lines).encode('utf8')
         return json.dumps(data)
 
 
@@ -534,8 +534,8 @@ class DemoRunner(object):
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
             res_data['algo_info']['status'] = 'RuntimeError, \
-stderr={}, stdout={}'.format("\n".join(stderr_lines), \
-                             "\n".join(stdout_lines))
+stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
+                             "\n".join(stdout_lines).encode('utf8'))
 
             res_data['status'] = 'KO'
             res_data['error'] = str(e)
