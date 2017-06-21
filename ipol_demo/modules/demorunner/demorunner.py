@@ -386,7 +386,7 @@ class DemoRunner(object):
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id)
-            data['buildlog'] = lines
+            data['buildlog'] = "\n".join(lines)
         return json.dumps(data)
 
 
