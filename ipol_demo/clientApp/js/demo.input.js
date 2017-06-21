@@ -84,7 +84,12 @@ function MouseWheelHandler() {
 function addSetClickEvent(blobSet, blobs) {
   blobSet.addClass("blobSet")
     .click(function() {
+      var id_blobs = [];
+      for (let i = 0; i < Object.keys(blobs).length; i++) {
+        id_blobs.push(blobs[i].id);
+      }
       helpers.addToStorage("demoSet", blobs);
+      helpers.addToStorage("id_blobs", {"id_blobs" : id_blobs});
       helpers.setOrigin("blobSet");
       editor.printEditor();
     });

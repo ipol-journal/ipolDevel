@@ -46,9 +46,17 @@ function setRunPostData() {
   runData.demo_id = demo_id;
   runData.params = params;
   if (origin) runData.origin = origin;
-  if (origin == "blobSet") runData.blobs = helpers.getFromStorage("demoSet");
-  if (origin == "upload") runData.inputs = clientApp.upload.getUploadedFiles();
+  if (origin == "blobSet") runData.blobs = helpers.getFromStorage("id_blobs");
+  if (origin == "upload") setUploadedFiles();
   if ($("#crop-btn").is(":checked")) runData.crop_info = $("#editor-blob-left").cropper("getData");
+}
+
+function setUploadedFiles(){
+  var uploads = clientApp.upload.getUploadedFiles();
+  runData.blobs = {};
+  for (let i = 0; i < Object.keys(uploads).length; i++) {
+    runData.blobs["file_" + i] =  uploads[i];
+  }
 }
 
 function checkPostData() {
