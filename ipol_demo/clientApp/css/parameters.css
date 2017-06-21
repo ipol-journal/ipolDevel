@@ -1,4 +1,6 @@
 .param-container {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
 
   padding: 3px 4%;
@@ -7,8 +9,13 @@
 
   font-size: 14px;
 
+  -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
   justify-content: space-between;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -143,12 +150,18 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 }
 
 .maxmin {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   flex-direction: column;
 
   min-width: 80px;
   margin: 0 10px;
 
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  -ms-flex-wrap: wrap;
   flex-wrap: wrap;
 }
 
@@ -165,22 +178,29 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 }
 
 .param-label {
+  -ms-flex-preferred-size: 33%;
   flex-basis: 33%;
 }
 
 .param-content {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
 
+  -ms-flex-preferred-size: 53%;
   flex-basis: 53%;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
 }
 
-.param-comments{
+.param-comments {
   text-align: right;
 
   color: rgb(164, 164, 164);
 
   font-size: 12px;
 
+  -ms-flex-preferred-size: 33%;
   flex-basis: 33%;
 }
