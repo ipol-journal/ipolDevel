@@ -2,14 +2,14 @@ var clientApp = clientApp || {};
 var helpers = clientApp.helpers || {};
 
 var errorMsg = "Error.";
-var runData = {};
+var runData;
 
 $(".run-btn").click(function() {
   runDemo();
 });
 
 function runDemo() {
-  runData = {};
+  runData = new FormData();
   setRunPostData();
 
   // si no lo tiene 30. si lo tiene lo que especifique.
@@ -17,6 +17,8 @@ function runDemo() {
       url: '/api/core/run2',
       type: 'POST',
       dataType: 'json',
+      processData: false,
+      contentType: false,
       beforeSend: function() {
         hideRunningAnimation();
         hideStatusContainer();
@@ -43,20 +45,21 @@ function runDemo() {
 
 function setRunPostData() {
   var origin = helpers.getFromStorage("origin");
-  runData.demo_id = demo_id;
-  runData.params = params;
-  if (origin) runData.origin = origin;
-  if (origin == "blobSet") runData.blobs = helpers.getFromStorage("id_blobs");
-  if (origin == "upload") setUploadedFiles();
-  if ($("#crop-btn").is(":checked")) runData.crop_info = $("#editor-blob-left").cropper("getData");
+  runData.append("demo_id", demo_id);
+  runData.append("params", JSON.stringify(params));
+  if (origin) runData.append("origin", origin);
+  if (origin == "blobSet") runData.append("blobs", JSON.stringify(helpers.getFromStorage("id_blobs")));
+  if (origin == "upload") runData.append("blobs", JSON.stringify(getUploadedPostFiles()));
+  if ($("#crop-btn").is(":checked")) runData.append("crop_info", JSON.stringify($("#editor-blob-left").cropper("getData")));
 }
 
-function setUploadedFiles(){
+function getUploadedPostFiles(){
   var uploads = clientApp.upload.getUploadedFiles();
-  runData.blobs = {};
+  var uploadsPost = {};
   for (let i = 0; i < Object.keys(uploads).length; i++) {
-    runData.blobs["file_" + i] =  uploads[i];
+    uploadsPost["file_" + i] =  uploads[i];
   }
+  return uploadsPost;
 }
 
 function checkPostData() {
