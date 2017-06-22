@@ -11,7 +11,6 @@ import logging
 import os
 import glob
 import json
-import shutil
 import sys
 import math
 import ConfigParser
@@ -33,7 +32,8 @@ def authenticate(func):
         Invokes the wrapped function if authenticated
         """
         if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
+                        "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
+                    cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
@@ -188,16 +188,18 @@ class Conversion(object):
         1:  Conversion performed (ex: image resizing)
         2:  Conversion is not authorized
         """
-        # [TODO] Check if conversion is authorized (not yet in the DDL)
         data = {"status": "OK"}
         input_files = None
         try:
+
             inputs_description = json.loads(inputs_description)
+            info = {}
 
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
 
             for i in range(len(inputs_description)):
+                input_info = {}
                 input_desc = inputs_description[i]
                 input_name = os.path.join(work_dir, 'input_{}'.format(i))
                 input_files = glob.glob(input_name + '.*')
@@ -205,40 +207,44 @@ class Conversion(object):
                 if len(input_files) != 1:
                     if input_desc.get('required'):
                         # Problem here.
-                        data['status'] = 'KO'
                         data['error'] = "Wrong number of inputs for an image"
                         data['code'] = -1
-                        return json.dumps(data)
+                        break
                     else:
                         # Optional input missing, end of inputs
                         data['status'] = 'OK'
                         data['code'] = 0
-                        return json.dumps(data)
+                        break
+
                 if os.path.getsize(input_files[0]) > input_desc.get('max_weight'):
                     # Input is too large
-                    data['status'] = 'KO'
-                    data['error'] = "File too large"
-                    data['code'] = -1
-                    return json.dumps(data)
+                    input_info['error'] = "File {} too large".format(input_files[0])
+                    input_info['code'] = -1
+                    info[i] = input_info
+                    continue
+
+                if input_desc.get('conversion_authorized', 'true') == 'false':
+                    # [todo] this section is not yet in the DDL so the name 'conversion_authorized' can change
+                    input_info['code'] = 2
+                    info[i] = input_info
+                    continue
 
                 if input_desc.get('type') == 'image':
-                    code = self.convert_image(input_files[0], input_desc,crop_info)
-                    data['status'] = 'OK'
-                    data['code'] = code
-                    return json.dumps(data)
+                    input_info['code'] = self.convert_image(input_files[0], input_desc, crop_info)
 
                 elif input_desc.get('type') != "data":
-                    code = self.convert_data()
-                    data['status'] = 'OK'
-                    data['code'] = code
-                    return json.dumps(data)
+                    input_info['code'] = self.add_ext_to_data(input_files[0], input_desc)
 
                 else:
                     # [todo] Add more types
-                    data['status'] = 'KO'
-                    data['code'] = -1
-                    data['error'] = "Unknown input type"
-                    return json.dumps(data)
+                    input_info['code'] = -1
+                    input_info['error'] = "Unknown input type"
+
+                info[i] = input_info
+
+            data['info'] = json.dumps(info)
+            data['status'] = 'OK'
+            return json.dumps(data)
 
         except IOError as ex:
             error_msg = "Failed to read input {}. Error: {}".format(input_files[0], str(ex))
@@ -261,7 +267,7 @@ class Conversion(object):
             self.logger.error(error_msg)
             print error_msg
             data['status'] = 'KO'
-            data['code'] = -1
+            data['codes'] = -1
             data['error'] = error_msg
             return json.dumps(data)
         except Exception as ex:
@@ -281,7 +287,7 @@ class Conversion(object):
         im = Image.open(input_file)
         if os.path.splitext(input_file)[1] != input_desc.get('ext'):
             # Change ext needed
-            self.change_ext(input_file, input_desc.get('ext'))
+            self.change_image_ext(input_file, input_desc.get('ext'))
             code = 1
         if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
             # Resize needed
@@ -293,15 +299,20 @@ class Conversion(object):
             code = 1
         return code
 
-    def convert_data(self):
+    @staticmethod
+    def add_ext_to_data(input_file, input_desc):
         """
-        Convert data if needed
+        Add the specified extension to the data file
         """
-        # [TODO] is really needed to convert data?
+        ext = input_desc.get('ext')
+        if ext is None:
+            raise IPOLConvertInputError('The DDL does not have extension field')
+        input_with_extension = input_file + ext
+        os.rename(input_file, input_with_extension)
         return 0
 
     @staticmethod
-    def change_ext(input_file, ext):
+    def change_image_ext(input_file, ext):
         """
         Convert the image to the required extension
         """
@@ -309,7 +320,8 @@ class Conversion(object):
             im = Image.open(input_file)
             im.save(os.path.splitext(input_file)[0] + ext)
         except Exception as ex:
-            raise IPOLConvertInputError(ex)
+            raise IPOLConvertInputError(
+                'Failed changing the extension to the input {}. Error: {}'.format(input_file, ex))
 
     @staticmethod
     def crop_image(input_file, crop_info):
@@ -324,7 +336,7 @@ class Conversion(object):
             im = Image.open(input_file)
             im.crop((x0, y0, x1, y1)).save(input_file)
         except Exception as ex:
-            raise IPOLCropInputError(ex)
+            raise IPOLCropInputError('Failed cropping the input {}. Error: {}'.format(input_file, ex))
 
     @staticmethod
     def resize_image(input_file, max_pixels):
@@ -339,4 +351,4 @@ class Conversion(object):
             im.resize((new_width, new_height), Image.ANTIALIAS).save(input_file)
         except Exception as ex:
             print ex
-            raise IPOLConvertInputError(ex)
+            raise IPOLConvertInputError('Failed resizing the input {}. Error: {}'.format(input_file, ex))

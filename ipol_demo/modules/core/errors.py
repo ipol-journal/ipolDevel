@@ -1,6 +1,8 @@
 """
 Errors
 """
+
+
 class IPOLDemoExtrasError(Exception):
     """
     IPOLDemoExtrasError
@@ -28,9 +30,9 @@ class IPOLProcessInputsError(Exception):
     """
     pass
 
+
 class IPOLExtractError(Exception):
     """
     IPOLExtractError
     """
     pass
-
