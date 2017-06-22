@@ -357,11 +357,11 @@ class DemoRunner(object):
             else:
                 data = {}
                 data['status'] = 'KO'
-                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
+                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build)).encode('utf8')
                 return json.dumps(data)
             data = {}
             data['status'] = "OK"
-            data['message'] = "Build of demo {0} OK".format(demo_id)
+            data['message'] = "Build of demo {0} OK".format(demo_id).encode('utf8')
         except urllib2.HTTPError as e:
             print "HTTPError"
             self.logger.exception("ensure_compilation - HTTPError")
@@ -372,19 +372,26 @@ class DemoRunner(object):
                 ddl_build[build_name]['password'] = "*****"
                 ddl_build[build_name]['username'] = "*****"
             data['status'] = 'KO'
-            data['message'] = "{}, ddl_build: {}".format(str(e), str(ddl_build))
+            data['message'] = "{}, ddl_build: {}".format(str(e), str(ddl_build)).encode('utf8')
         except Exception as e:
             print "Build failed with exception " + str(e) + " in demo " + demo_id
 
-            log_file = os.path.join(path_for_the_compilation, 'build.log')
-            #
-            lines = ""
-            if os.path.isfile(log_file):
-                with open(log_file) as f:
-                    lines = f.readlines()
+            build_filename = 'build.log'
+            log_file = os.path.join(path_for_the_compilation, build_filename)
+            
+            if os.path.isfile(log_file):            
+                lines = DemoRunner.read_workdir_file(path_for_the_compilation, build_filename)
+            else:
+                lines = ""
+
+            #lines = ""
+            #if os.path.isfile(log_file):
+            #    with open(log_file) as f:
+            #        lines = f.readlines()
+                    
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Build for demo {0} failed".format(demo_id)
+            data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
             data['buildlog'] = "\n".join(lines).encode('utf8')
         return json.dumps(data)
 
