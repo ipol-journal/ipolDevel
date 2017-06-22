@@ -121,6 +121,17 @@
             </div>
         {% endwith %}
 
+         <!--Conversion-->
+        {%  with data=view.conversion_ping%}
+            <div class="machine">
+                {% if data.status == 'OK' %}
+                    <p class="ststsok"> <b>Conversion is running</b></p>
+                {% else %}
+                    <p class="ststsnok bold">Conversion Module is not running!</p>
+                {% endif %}
+            </div>
+        {% endwith %}
+
     </div>
 {% endblock %}
 
