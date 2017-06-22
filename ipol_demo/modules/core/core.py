@@ -1294,8 +1294,8 @@ attached the failed experiment data.". \
                 print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", ""),
-                                               dr_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", "").encode('utf8'),
+                                               dr_response["message"].encode('utf8'))
 
                 self.send_compilation_error_email(demo_id, text)
 
@@ -1511,8 +1511,8 @@ demo #{} - {}".format(demo_id, str(ex))
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", ""),
-                                               demorunner_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", "").encode('utf8'),
+                                               demorunner_response["message"].encode('utf8'))
 
                 self.send_compilation_error_email(demo_id, text)
 
@@ -1682,3 +1682,4 @@ demo #{} - {}".format(demo_id, str(ex))
             print "Failure in the post function of the CORE in the call \
               to {} module - {}".format(module, str(ex))
             self.logger.exception("Failure in the post function of the CORE")
+
