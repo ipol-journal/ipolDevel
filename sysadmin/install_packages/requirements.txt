@@ -31,3 +31,4 @@ geojson
 shapely
 planet
 rasterio
+netcdf

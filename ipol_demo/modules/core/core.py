@@ -1557,7 +1557,7 @@ demo #{} - {}".format(demo_id, str(ex))
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"])
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors

@@ -24,6 +24,7 @@ from threading import Lock
 import ConfigParser
 import re
 import cherrypy
+import codecs
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
 from Tools.run_demo_base import IPOLTimeoutError
@@ -386,7 +387,7 @@ class DemoRunner(object):
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id)
-            data['buildlog'] = lines
+            data['buildlog'] = "\n".join(lines).encode('utf8')
         return json.dumps(data)
 
 
@@ -475,7 +476,7 @@ class DemoRunner(object):
         full_file = os.path.join(work_dir, filename)
         lines = ""
         if os.path.isfile(full_file):
-            with open(full_file) as f:
+            with codecs.open(full_file, "r", "utf8") as f:
                 lines = f.readlines()
         return lines
 
@@ -534,7 +535,9 @@ class DemoRunner(object):
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
             res_data['algo_info']['status'] = 'RuntimeError, \
-stderr={}, stdout={}'.format(stderr_lines, stdout_lines)
+stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
+                             "\n".join(stdout_lines).encode('utf8'))
+
 
             res_data['status'] = 'KO'
             res_data['error'] = str(e)

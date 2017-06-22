@@ -239,6 +239,7 @@ ipol.RunDemo = function(ddl_json,input_origin, crop_info, blobset, drawfeature) 
                 }
                 else {
                     $('#execStatus').css('color', 'red');
+                    $('#execStatus').css('white-space', 'pre-wrap');
                     $("#execStatus").text("Execution failed: " + res.error);
                 }
                 
