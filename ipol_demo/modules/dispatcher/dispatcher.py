@@ -287,8 +287,8 @@ class Policy(object):
             return SequentialPolicy()
         elif policy == "lowest_workload":
             return LowestWorkloadPolicy()
-        else:
-            return None
+
+        return None
 
     @staticmethod
     def get_suitable_demorunners(requirements, demorunners):
@@ -329,11 +329,10 @@ class RandomPolicy(Policy):
         try:
 
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
-            if len(suitable_dr) > 0:
+            if suitable_dr:
                 return suitable_dr[random.randrange(0, len(suitable_dr), 1)]
-            else:
-                print "RandomPolicy could not find any DR available"
-                return None
+            print "RandomPolicy could not find any DR available"
+            return None
 
         except Exception as ex:
             print "Error in execute policy Random", ex
@@ -354,13 +353,12 @@ class SequentialPolicy(Policy):
 
         try:
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
-            if len(suitable_dr) > 0:
+            if suitable_dr:
                 dr_winner = suitable_dr[self.iterator % len(suitable_dr)]
                 self.iterator = (self.iterator + 1) % len(demorunners)
                 return dr_winner
-            else:
-                print "SequentialPolicy could not find any DR available"
-                return None
+            print "SequentialPolicy could not find any DR available"
+            return None
 
         except Exception as ex:
             print "Error in execute policy Sequential", ex
@@ -378,7 +376,7 @@ class LowestWorkloadPolicy(Policy):
         """
         try:
             suitable_drs = Policy().get_suitable_demorunners(requirements, demorunners)
-            if len(suitable_drs) == 0:
+            if not suitable_drs:
                 print "LowestWorkloadPolicy could not find any DR available"
                 return None
 

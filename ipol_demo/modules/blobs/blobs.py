@@ -28,11 +28,11 @@ import cherrypy
 from PIL import Image
 import av
 import numpy as np
+from cycler import cycler
 import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from cycler import cycler
 
 import database
 from errors import IPOLBlobsDataBaseError
@@ -358,8 +358,8 @@ class Blobs(object):
 
         if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+
+        return json.dumps({"status": "KO"})
 
     @cherrypy.expose
     @authenticate
@@ -372,8 +372,7 @@ class Blobs(object):
 
         if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     def store_blob(self, conn, blob, title, credit, blob_hash, ext, blob_format):
         """
@@ -833,7 +832,7 @@ class Blobs(object):
 
             file_without_extension = os.path.join(vr_dir, blob_hash)
             vr = glob.glob(file_without_extension + ".*")
-            if len(vr) > 0:
+            if vr:
                 _, vr_extension = os.path.splitext(vr[0])
 
         return vr_extension
@@ -956,8 +955,7 @@ class Blobs(object):
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.remove_blob(blob_set, pos_set, dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     @cherrypy.expose
     @authenticate
@@ -968,8 +966,7 @@ class Blobs(object):
         dest = {"dest": "template", "name": template_name}
         if self.remove_blob(blob_set, pos_set, dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     def delete_blob_container(self, dest):
         """
@@ -1031,8 +1028,7 @@ class Blobs(object):
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.delete_blob_container(dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     @cherrypy.expose
     @authenticate
@@ -1043,8 +1039,7 @@ class Blobs(object):
         dest = {"dest": "template", "name": template_name}
         if self.delete_blob_container(dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     @cherrypy.expose
     @authenticate
@@ -1119,17 +1114,17 @@ class Blobs(object):
         vr_file = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))
 
         # remove blob and its folder if necessary
-        if len(blob_file) > 0:
+        if blob_file:
             os.remove(blob_file[0])
             self.remove_dirs(blob_folder)
 
         # remove thumbnail and its folder if necessary
-        if len(thumb_file) > 0:
+        if thumb_file:
             os.remove(thumb_file[0])
             self.remove_dirs(thumb_folder)
 
         # remove visual representation and its folder if necessary
-        if len(vr_file) > 0:
+        if vr_file:
             os.remove(vr_file[0])
             self.remove_dirs(vr_folder)
 
@@ -1161,8 +1156,7 @@ class Blobs(object):
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     @cherrypy.expose
     @authenticate
@@ -1174,8 +1168,7 @@ class Blobs(object):
         dest = {"dest": "template", "name": template_name}
         if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
             return json.dumps({"status": "OK"})
-        else:
-            return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"})
 
     def edit_blob(self, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
         """

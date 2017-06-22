@@ -198,8 +198,7 @@ class DemoInfo(object):
                 "database_name") and cherrypy.config.has_key("logs_dir")):
             print "Missing elements in configuration file."
             return False
-        else:
-            return True
+        return True
 
     def read_authorized_patterns(self):
         """
@@ -266,8 +265,8 @@ class DemoInfo(object):
 
         if os.path.isfile(compressed_file):
             return os.path.join(self.server_address, self.dl_extras_dir, demo_id, self.demoExtrasFilename)
-        else:
-            return None
+
+        return None
 
     @cherrypy.expose
     @authenticate

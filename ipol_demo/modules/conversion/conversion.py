@@ -11,7 +11,6 @@ import logging
 import os
 import glob
 import json
-import shutil
 import sys
 import math
 import ConfigParser

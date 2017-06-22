@@ -9,8 +9,6 @@ which takes care of running an IPOL demo using web services
 # add lib path for import
 import os.path
 import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Tools"))
 import urllib2
 import json
 import shutil
