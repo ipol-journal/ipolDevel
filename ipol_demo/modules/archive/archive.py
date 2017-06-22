@@ -111,8 +111,7 @@ class Archive(object):
                 and cherrypy.config.has_key("url")):
             print "Missing elements in configuration file."
             return False
-        else:
-            return True
+        return True
 
     @staticmethod
     def get_hash_blob(path):
@@ -972,7 +971,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
 
             experiment_id_list = cursor_db.fetchall()
 
-            if len(experiment_id_list) == 0:
+            if not experiment_id_list:
                 return json.dumps(status)
 
             # Delete experiments and files

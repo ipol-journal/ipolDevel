@@ -521,8 +521,8 @@ workload of '{}'".format(dr_name)
             if not ("uint" in tiff_image.dtype.name or "int" in tiff_image.dtype.name):
                 path = os.path.join(self.project_folder, "ipol_demo", "modules", "core", "static",
                                     "demo", "clientApp", "images", "non_viewable_data.png")
-                with open(path, "rb") as img:
-                    data["img"] = base64.b64encode(img.read())
+                with open(path, "rb") as im:
+                    data["img"] = base64.b64encode(im.read())
                 data["status"] = "OK"
                 return json.dumps(data)
             # Get number of rows, columns, and channels
@@ -987,7 +987,7 @@ workload of '{}'".format(dr_name)
 
         editor_list = response['editor_list']
 
-        if len(editor_list) == 0:
+        if not editor_list:
             return ()  # No editors given
 
         # Get the names and emails of the editors
@@ -1047,7 +1047,7 @@ workload of '{}'".format(dr_name)
         if self.serverEnvironment == 'production' and demo_state == "published":
             emails += config_emails['tech']['email'].split(",")
             emails += config_emails['edit']['email'].split(",")
-        if len(emails) == 0:
+        if not emails:
             return
 
         # Send the email
@@ -1103,7 +1103,7 @@ workload of '{}'".format(dr_name)
             emails += config_emails['tech']['email'].split(",")
             emails += config_emails['edit']['email'].split(",")
 
-        if len(emails) == 0:
+        if not emails:
             return
 
         # Attach experiment in zip file and send the email
@@ -1132,7 +1132,7 @@ attached the failed experiment data.". \
         config_emails = self.read_emails_from_config()
         if self.serverEnvironment == 'production':
             emails += config_emails['tech']['email'].split(",")
-        if len(emails) == 0:
+        if not emails:
             return
 
         hostname = socket.gethostname()
@@ -1155,7 +1155,7 @@ attached the failed experiment data.". \
         config_emails = self.read_emails_from_config()
         if self.serverEnvironment != 'production':
             emails += config_emails['tech']['email'].split(",")
-        if len(emails) == 0:
+        if not emails:
             return
 
         hostname = socket.gethostname()
@@ -1294,8 +1294,8 @@ attached the failed experiment data.". \
                 print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", ""),
-                                               dr_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", "").encode('utf8'),
+                                               dr_response["message"].encode('utf8'))
 
                 self.send_compilation_error_email(demo_id, text)
 
@@ -1511,8 +1511,8 @@ demo #{} - {}".format(demo_id, str(ex))
                 print "FAILURE IN THE COMPILATION in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", ""),
-                                               demorunner_response["message"])
+                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", "").encode('utf8'),
+                                               demorunner_response["message"].encode('utf8'))
 
                 self.send_compilation_error_email(demo_id, text)
 
@@ -1651,7 +1651,7 @@ demo #{} - {}".format(demo_id, str(ex))
             # list of unresponsive DRs
             demorunner_response = self.post(dr_server, 'demorunner', 'ping')
             if demorunner_response.ok:
-                if len(unresponsive_demorunners) > 0:
+                if unresponsive_demorunners:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
                 return dr_name, dr_server
             else:
@@ -1682,3 +1682,4 @@ demo #{} - {}".format(demo_id, str(ex))
             print "Failure in the post function of the CORE in the call \
               to {} module - {}".format(module, str(ex))
             self.logger.exception("Failure in the post function of the CORE")
+
