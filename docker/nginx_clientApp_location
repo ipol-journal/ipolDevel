@@ -1,5 +1,12 @@
-    location /demo/clientApp/ {
-        alias  /home/$my_user/ipolDevel/ipol_demo/clientApp/;
-        add_header        Cache-Control private;
-        expires 1s;
-    }
+
+        location /demo/clientApp/ {
+            alias  /home/$my_user/ipolDevel/ipol_demo/clientApp/;
+            add_header        Cache-Control private;
+            expires 1s;
+        }
+
+        location /demo/clientAppOld/ {
+            alias   /home/$my_user/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
+            add_header      Cache-Control private;
+            expires 1s;
+        }
