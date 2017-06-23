@@ -16,19 +16,16 @@
 # Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-import optparse
+import argparse
 import sys
 import requests
 import json
 import os
 
-HOST = "integration.ipol.im"
-
-
-def post(service, params=None, json=None):
+def post(service, host, params=None, json=None):
     try:
         url = 'http://{}/api/demoinfo/{}'.format(
-            HOST,
+            host,
             service
         )
         return requests.post(url, params=params, data=json)
@@ -36,18 +33,25 @@ def post(service, params=None, json=None):
         print "ERROR: Failure in the post function - {}".format(str(ex))
 
 
-def do_read(demos):
+def do_read(demos, host):
     '''
     Read a DDL
     '''
     for editorsdemoid in demos:
         try:
-            resp = post('get_ddl', params={"demo_id": editorsdemoid})
+            file = None
+            resp = post('get_ddl', host, params={"demo_id": editorsdemoid})
             response = resp.json()
             if response['status'] != 'OK':
                 print "ERROR: get_ddl returned KO for demo {}".format(editorsdemoid)
                 continue
-            last_demodescription = response['last_demodescription']
+                
+            DDL = response['last_demodescription']
+            if not DDL:
+                print "ERROR: Empty or non-existing DDL for demo #{}".format(editorsdemoid)
+                continue
+                
+            last_demodescription = DDL
             ddl_json = last_demodescription['ddl']
 
             file = open("DDLs/" + str(editorsdemoid) + ".json", "wb")
@@ -55,14 +59,15 @@ def do_read(demos):
         except Exception as ex:
             print "ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex)
         finally:
-            file.close()
+            if file:
+                file.close()
 
 
-def do_read_all():
+def do_read_all(host):
     '''
     Read all DDLs
     '''
-    resp = post('demo_list')
+    resp = post('demo_list', host)
     response = resp.json()
     if response['status'] != 'OK':
         print "ERROR: demo_list returned KO"
@@ -70,10 +75,10 @@ def do_read_all():
     demos = []
     for demo in response['demo_list']:
         demos.append(demo['editorsdemoid'])
-    do_read(demos)
+    do_read(demos, host)
 
 
-def do_write(demos):
+def do_write(demos, host):
     '''
     Write a DDL
     '''
@@ -83,7 +88,7 @@ def do_write(demos):
             # Check if is a valid JSON
             json.loads(ddl_json)
 
-            resp = post('save_demo_description', params={"demoid": editorsdemoid}, json=ddl_json)
+            resp = post('save_demo_description', host, params={"demoid": editorsdemoid}, json=ddl_json)
             response = resp.json()
             if response['status'] != 'OK':
                 print "ERROR: save_demo_description returned KO for demo {}".format(editorsdemoid)
@@ -93,7 +98,7 @@ def do_write(demos):
             print "ERROR: Could not write DDL for demo {} - {}".format(editorsdemoid, ex)
 
 
-def do_write_all():
+def do_write_all(host):
     '''
     Write all DDLs
     '''
@@ -106,31 +111,34 @@ def do_write_all():
     demos = []
     for demo in response['demo_list']:
         demos.append(demo['editorsdemoid'])
-    do_write(demos)
+    do_write(demos, host)
 
 
 # Parse program arguments
-parser = optparse.OptionParser()
-(opts, args) = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--integration",
+  help="Use the Integration environment", action="store_true")
+parser.add_argument("command", nargs='*')
+  
+args = parser.parse_args()
 
-if len(args) < 1:
-    print "ERROR: no command specified!\n"
-    parser.print_help()
-    sys.exit(-1)
+# Get host
+host = "integration.ipol.im" if args.integration else "ipolcore.ipol.im"
 
+# Create output directory
 if not os.path.isdir("DDLs"):
     os.mkdir("DDLs")
 
-command = args[0].lower()
-# print command
+command = args.command[0].lower()
 
+# Execute command
 if command == 'readall' or command == 'getall':
-    do_read_all()
+    do_read_all(host)
 elif command == 'read' or command == 'get':
-    do_read(args[1:])
+    do_read(args.command[1:], host)
 elif command == 'write' or command == 'put':
-    do_write(args[1:])
+    do_write(args.command[1:], host)
 elif command == 'writeall' or command == 'putall':
-    do_write_all()
+    do_write_all(host)
 else:
     print "Unknown command '{}'".format(command)
