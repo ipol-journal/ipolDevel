@@ -363,10 +363,11 @@ class DemoRunner(object):
             data['status'] = "OK"
             data['message'] = "Build of demo {0} OK".format(demo_id).encode('utf8')
 
-        except IPOLHTTPMissingHeader as ex:
+        except build.IPOLHTTPMissingHeader as ex:
+            data = {}
             data['status'] = 'KO'
             data['message'] = "Incomplete HTTP response. {}. Hint: do not use GitHub, \
-GitLab, or Dropbox as a file server. ddl_build: {}".\
+GitLab, or Dropbox as a file server.\nddl_build: {}".\
 format(str(ex), str(ddl_build)).encode('utf8')
 
         except urllib2.HTTPError as ex:
