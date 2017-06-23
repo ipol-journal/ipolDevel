@@ -1238,7 +1238,8 @@ attached the failed experiment data.". \
         if origin is not None:
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
-                self.process_inputs(work_dir, ddl_inputs, crop_info)
+                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
+                self.post(self.host_name, 'conversion', 'convert', params_conv)
             except IPOLEvaluateError as ex:
                 res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
                             'status': 'KO'}
