@@ -48,7 +48,7 @@ function setRunPostData() {
   if (origin) runData.append("origin", origin);
   if (origin == "blobSet") runData.append("blobs", JSON.stringify(helpers.getFromStorage("id_blobs")));
   if (origin == "upload") setUploadedFiles();
-  if ($("#crop-btn").is(":checked")) runData.append("crop_info", $("#editor-blob-left").cropper("getData"));
+  if ($("#crop-btn").is(":checked")) runData.append("crop_info", JSON.stringify($("#editor-blob-left").cropper("getData")));
 }
 
 function setUploadedFiles() {
