@@ -362,7 +362,14 @@ class DemoRunner(object):
             data = {}
             data['status'] = "OK"
             data['message'] = "Build of demo {0} OK".format(demo_id).encode('utf8')
-        except urllib2.HTTPError as e:
+
+        except IPOLHTTPMissingHeader as ex:
+            data['status'] = 'KO'
+            data['message'] = "Incomplete HTTP response. {}. Hint: do not use GitHub, \
+GitLab, or Dropbox as a file server. ddl_build: {}".\
+format(str(ex), str(ddl_build)).encode('utf8')
+
+        except urllib2.HTTPError as ex:
             print "HTTPError"
             self.logger.exception("ensure_compilation - HTTPError")
             data = {}
@@ -372,9 +379,10 @@ class DemoRunner(object):
                 ddl_build[build_name]['password'] = "*****"
                 ddl_build[build_name]['username'] = "*****"
             data['status'] = 'KO'
-            data['message'] = "{}, ddl_build: {}".format(str(e), str(ddl_build)).encode('utf8')
-        except Exception as e:
-            print "Build failed with exception " + str(e) + " in demo " + demo_id
+            data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build)).encode('utf8')
+
+        except Exception as ex:
+            print "Build failed with exception " + str(ex) + " in demo " + demo_id
 
             build_filename = 'build.log'
             log_file = os.path.join(path_for_the_compilation, build_filename)

@@ -20,6 +20,13 @@ import os.path
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
 
+class IPOLHTTPMissingHeader(Exception):
+    """
+    IPOLHTTPMissingHeader
+    """
+    pass
+
+
 def download(url, fname, username=None, password=None):
     """
     download a file from the network if it is newer than the local
@@ -54,28 +61,25 @@ def download(url, fname, username=None, password=None):
         # only retrieve if a newer version is available
         url_info = url_handle.info()
 
-        if 'last-modified' in url_info:
-            last_modified = url_info['last-modified']
-            url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
-        else:
-            # The server didn't send any last-modified. Thus, assume that
-            # the file in the server is newer than ours
-            url_ctime = datetime.datetime.now()
+        if 'last-modified' not in url_info:
+            raise IPOLHTTPMissingHeader("Missing 'last-modified' HTTP header")
+
+        last_modified = url_info['last-modified']
+        url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
 
         url_size = int(url_info['content-length'])
         file_ctime = datetime.datetime.fromtimestamp(os.path.getctime(fname))
         file_size = os.path.getsize(fname)
 
-        if (url_size != file_size
-            or url_ctime > file_ctime):
+        need_download = url_size != file_size or url_ctime > file_ctime
+        if need_download:
             # download
             file_handle = open(fname, 'w')
             file_handle.write(url_handle.read())
             file_handle.close()
             print "Retrieved"
-            return True
-        else:
-            return False
+
+        return need_download
 
 
 def extract(fname, target):
