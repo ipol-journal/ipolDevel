@@ -1173,9 +1173,12 @@ attached the failed experiment data.". \
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
+        print 'KWARGS'
         print kwargs
 
         origin = kwargs.get('origin', None)
+        if origin is not None:
+            origin = origin.lower()
 
         params = kwargs.get('params')
 
@@ -1232,10 +1235,11 @@ attached the failed experiment data.". \
             return json.dumps(res_data)
 
         # Copy input blobs
-        if origin != None:
+        if origin is not None:
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
-                self.process_inputs(work_dir, ddl_inputs, crop_info)
+                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
+                self.post(self.host_name, 'conversion', 'convert', params_conv)
             except IPOLEvaluateError as ex:
                 res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
                             'status': 'KO'}

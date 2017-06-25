@@ -28,6 +28,13 @@ import Tools.run_demo_base as run_demo_base
 from Tools.run_demo_base import IPOLTimeoutError
 
 
+class IPOLMissingBuildItem(Exception):
+    """
+    IPOLMissingBuildItem
+    """
+    pass
+
+
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
@@ -276,13 +283,20 @@ class DemoRunner(object):
         for build_item in ddl_builds.items():
 
             build_item = build_item[1]
-            # Read DDL
-            url = build_item['url']
-            files_to_move = build_item['move']
-            construct = build_item['construct'] if 'construct' in build_item else None
 
-            username = build_item['username'] if 'username' in build_item else None
-            password = build_item['password'] if 'password' in build_item else None
+            # These are mandatory
+            url = build_item.get('url')
+            if not url:
+                raise IPOLMissingBuildItem("url")
+
+            files_to_move = build_item.get('move')
+            if not files_to_move:
+                raise IPOLMissingBuildItem("move")
+
+            # These are optional
+            construct = build_item.get('construct')
+            username = build_item.get('username')
+            password = build_item.get('password')
 
             zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
             tgz_file = os.path.join(dl_dir, zip_filename)
@@ -362,7 +376,21 @@ class DemoRunner(object):
             data = {}
             data['status'] = "OK"
             data['message'] = "Build of demo {0} OK".format(demo_id).encode('utf8')
-        except urllib2.HTTPError as e:
+
+        except build.IPOLHTTPMissingHeader as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Incomplete HTTP response. {}. Hint: do not use GitHub, \
+GitLab, or Dropbox as a file server.\nddl_build: {}".\
+format(str(ex), str(ddl_build)).encode('utf8')
+
+        except IPOLMissingBuildItem as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Missing build item: {}. ddl_build: {}".\
+format(str(ex), str(ddl_build)).encode('utf8')
+
+        except urllib2.HTTPError as ex:
             print "HTTPError"
             self.logger.exception("ensure_compilation - HTTPError")
             data = {}
@@ -372,9 +400,10 @@ class DemoRunner(object):
                 ddl_build[build_name]['password'] = "*****"
                 ddl_build[build_name]['username'] = "*****"
             data['status'] = 'KO'
-            data['message'] = "{}, ddl_build: {}".format(str(e), str(ddl_build)).encode('utf8')
-        except Exception as e:
-            print "Build failed with exception " + str(e) + " in demo " + demo_id
+            data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build)).encode('utf8')
+
+        except Exception as ex:
+            print "Build failed with exception " + str(ex) + " in demo " + demo_id
 
             build_filename = 'build.log'
             log_file = os.path.join(path_for_the_compilation, build_filename)

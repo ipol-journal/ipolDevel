@@ -113,3 +113,16 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
             return {'status': 'KO'}
 
         return data
+
+    def conversion_ping(self):
+        try:
+
+            response = ipolservices.conversion_ping()
+            json_response = json.loads(response)
+        except Exception, e:
+            msg = "Error conversion_ping %s" % e
+            print(msg)
+            logger.error(msg)
+            return {'status':'KO'}
+
+        return json_response

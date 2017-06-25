@@ -212,8 +212,6 @@ class Conversion(object):
                         break
                     else:
                         # Optional input missing, end of inputs
-                        data['status'] = 'OK'
-                        data['code'] = 0
                         break
 
                 if os.path.getsize(input_files[0]) > input_desc.get('max_weight'):
@@ -288,6 +286,7 @@ class Conversion(object):
         if os.path.splitext(input_file)[1] != input_desc.get('ext'):
             # Change ext needed
             self.change_image_ext(input_file, input_desc.get('ext'))
+            input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
             code = 1
         if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
             # Resize needed
@@ -329,10 +328,10 @@ class Conversion(object):
         Crop the image
         """
         try:
-            x0 = int(round(crop_info['x']))
-            y0 = int(round(crop_info['y']))
-            x1 = int(round(crop_info['x'] + crop_info['w']))
-            y1 = int(round(crop_info['y'] + crop_info['h']))
+            x0 = int(round(crop_info.get('x')))
+            y0 = int(round(crop_info.get('y')))
+            x1 = int(round(crop_info.get('x') + crop_info.get('width')))
+            y1 = int(round(crop_info.get('y') + crop_info.get('height')))
             im = Image.open(input_file)
             im.crop((x0, y0, x1, y1)).save(input_file)
         except Exception as ex:

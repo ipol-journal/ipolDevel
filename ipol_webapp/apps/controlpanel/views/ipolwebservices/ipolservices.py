@@ -88,6 +88,13 @@ def dispatcher_ping():
     path = '/api/dispatcher/ping'
     return http_request(path, METHOD='GET')
 
+#####################
+# CONVERSION MODULE #
+#####################
+def conversion_ping():
+    path = '/api/conversion/ping'
+    return http_request(path, METHOD='GET')
+
 
 #####################
 #  DEMOINFO MODULE  #

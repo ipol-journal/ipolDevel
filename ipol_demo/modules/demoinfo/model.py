@@ -193,6 +193,8 @@ class DemoDescriptionDAO(object):
                         ORDER by dd.creation DESC LIMIT 1
                        )
             """, (ddl, demo_id))
+        nowtmstmp = datetime.datetime.now()
+        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''',(nowtmstmp,demo_id))
 
         if self.cursor.rowcount == 0:
             error_string = ("Demo %s not updated in DemoDescriptionDAO" % (str(demo_id)))
@@ -370,6 +372,8 @@ class DemoDemoDescriptionDAO(object):
         VALUES(?,(SELECT ID
             FROM demo
             WHERE demo.editor_demo_id=?))''', (int(demodescriptionid), int(editorsdemoid),))
+        nowtmstmp = datetime.datetime.now()
+        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''',(nowtmstmp,editorsdemoid))
         self.conn.commit()
 
     @validates(typ(int))

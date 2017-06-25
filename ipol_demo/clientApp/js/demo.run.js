@@ -12,13 +12,12 @@ function runDemo() {
   runData = new FormData();
   setRunPostData();
 
-  // si no lo tiene 30. si lo tiene lo que especifique.
   $.ajax({
       url: '/api/core/run2',
       type: 'POST',
-      dataType: 'json',
       processData: false,
       contentType: false,
+      cache: false,
       beforeSend: function() {
         hideRunningAnimation();
         hideStatusContainer();
@@ -28,16 +27,15 @@ function runDemo() {
       data: runData
     })
     .done(function(res) {
-      console.log(res);
       if (res.status == "KO") displayError(res.error);
-      else displaySuccess("Excecution successful");
+      else displaySuccess("Execution successful");
       //Call drawResults function
     })
     .fail(function(res) {
-      console.log(res);
       displayError(res.responseText);
     })
     .always(function(res) {
+      console.log(res);
       hideRunningAnimation();
       enableRunButton();
     });
@@ -49,17 +47,15 @@ function setRunPostData() {
   runData.append("params", JSON.stringify(params));
   if (origin) runData.append("origin", origin);
   if (origin == "blobSet") runData.append("blobs", JSON.stringify(helpers.getFromStorage("id_blobs")));
-  if (origin == "upload") runData.append("blobs", JSON.stringify(getUploadedPostFiles()));
+  if (origin == "upload") setUploadedFiles();
   if ($("#crop-btn").is(":checked")) runData.append("crop_info", JSON.stringify($("#editor-blob-left").cropper("getData")));
 }
 
-function getUploadedPostFiles(){
+function setUploadedFiles() {
   var uploads = clientApp.upload.getUploadedFiles();
-  var uploadsPost = {};
   for (let i = 0; i < Object.keys(uploads).length; i++) {
-    uploadsPost["file_" + i] =  uploads[i];
+    runData.append("file_" + i, $("#file-" + i)[0].files[0]);
   }
-  return uploadsPost;
 }
 
 function checkPostData() {
