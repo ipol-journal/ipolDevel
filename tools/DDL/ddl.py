@@ -118,7 +118,7 @@ def do_write_all(host):
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--integration",
   help="Use the Integration environment", action="store_true")
-parser.add_argument("command", nargs='*')
+parser.add_argument("command", nargs='+')
   
 args = parser.parse_args()
 
@@ -141,4 +141,4 @@ elif command == 'write' or command == 'put':
 elif command == 'writeall' or command == 'putall':
     do_write_all(host)
 else:
-    print "Unknown command '{}'".format(command)
+    print "Error: unknown command '{}'".format(command)
