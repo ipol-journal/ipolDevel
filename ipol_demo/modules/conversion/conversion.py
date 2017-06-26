@@ -282,6 +282,7 @@ class Conversion(object):
         Convert image if needed
         """
         code = 0
+        print input_desc
         im = Image.open(input_file)
         if os.path.splitext(input_file)[1] != input_desc.get('ext'):
             # Change ext needed
@@ -296,6 +297,10 @@ class Conversion(object):
             # Crop is needed
             self.crop_image(input_file, crop_info)
             code = 1
+        if self.needs_convert(im, input_desc):
+            self.change_image_dtype(input_file, input_desc['dtype'])
+            code = 1
+
         return code
 
     @staticmethod
@@ -351,3 +356,29 @@ class Conversion(object):
         except Exception as ex:
             print ex
             raise IPOLConvertInputError('Failed resizing the input {}. Error: {}'.format(input_file, ex))
+
+
+    @staticmethod
+    def needs_convert(im, input_info):
+        """
+        checks if input image needs conversion
+        """
+        mode_kw = {'1x8i': 'L',
+                   '3x8i': 'RGB'}
+        # check max size
+        return im.mode != mode_kw[input_info['dtype']]
+
+    @staticmethod
+    def change_image_dtype(input_file, mode):
+        """
+        Convert the image pixel array to another numeric type
+        """
+        im = Image.open(input_file)
+        try:
+            # TODO handle other modes (binary, 16bits, 32bits int/float)
+            mode_kw = {'1x8i' : 'L',
+                       '3x8i' : 'RGB'}[mode]
+        except KeyError:
+            raise KeyError('mode must be "1x8i" or "3x8i"')
+        if im.mode != mode_kw:
+            im.convert(mode_kw).save(input_file)
