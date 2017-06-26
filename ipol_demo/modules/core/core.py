@@ -1293,7 +1293,8 @@ attached the failed experiment data.". \
             build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
 
-            status = dr_response.json()['status']
+            demorunner_response = dr_response.json()
+            status = demorunner_response['status']
             if status != 'OK':
                 print "COMPILATION FAILURE in demo = ", demo_id
 
