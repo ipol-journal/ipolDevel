@@ -24,19 +24,17 @@ clientApp.helpers.removeItem = function(id) {
     sessionStorage.removeItem(id);
 }
 
-// Convert upload image to Base64.
-clientApp.helpers.getBase64Image = function(img) {
-    var canvas = document.createElement("canvas");
-    canvas.width = img.width;
-    canvas.height = img.height;
-
-    var ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
-
-    var dataURL = canvas.toDataURL("image/png");
-
-    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-}
+clientApp.helpers.base64ToBlob = function(base64Img) {
+  var binary = atob(base64Img.split(',')[1]);
+  var type = base64Img.split('data:')[1].split(';base64')[0];
+  var len = binary.length;
+  var buffer = new ArrayBuffer(len);
+  var view = new Uint8Array(buffer);
+  for (var i = 0; i < len; i++) {
+    view[i] = binary.charCodeAt(i);
+  }
+  return new Blob([view], { type: type });;
+};
 
 clientApp.helpers.setOrigin = function(origin) {
     helpers.addToStorage("origin", origin);
