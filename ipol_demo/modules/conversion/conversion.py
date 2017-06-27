@@ -297,8 +297,9 @@ class Conversion(object):
             # Crop is needed
             self.crop_image(input_file, crop_info)
             code = 1
+
         if self.needs_convert(im, input_desc):
-            self.change_image_dtype(input_file, input_desc['dtype'])
+            self.change_image_dtype(input_file, input_desc.get('dtype'))
             code = 1
 
         return code
@@ -366,7 +367,10 @@ class Conversion(object):
         mode_kw = {'1x8i': 'L',
                    '3x8i': 'RGB'}
         # check max size
-        return im.mode != mode_kw[input_info['dtype']]
+        if not input_info.get('dtype'):
+            return False
+
+        return im.mode != mode_kw.get(input_info.get('dtype'))
 
     @staticmethod
     def change_image_dtype(input_file, mode):
@@ -375,6 +379,7 @@ class Conversion(object):
         """
         im = Image.open(input_file)
         try:
+            print mode
             # TODO handle other modes (binary, 16bits, 32bits int/float)
             mode_kw = {'1x8i' : 'L',
                        '3x8i' : 'RGB'}[mode]

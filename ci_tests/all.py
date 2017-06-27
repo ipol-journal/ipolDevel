@@ -1,24 +1,26 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import getpass
 import time
 import random
 from subprocess import Popen, PIPE
 import os
 
-system_test = '/home/ipol/ipolDevel/ci_tests/system.py'
-archive_test = '/home/ipol/ipolDevel/ipol_demo/modules/archive/test.py'
-blobs_test = '/home/ipol/ipolDevel/ipol_demo/modules/blobs/test.py'
-demoinfo_test = '/home/ipol/ipolDevel/ipol_demo/modules/demoinfo/test.py'
-dispatcher_test = '/home/ipol/ipolDevel/ipol_demo/modules/dispatcher/test.py'
-demorunner_test = '/home/ipol/ipolDevel/ipol_demo/modules/demorunner/test.py'
+user = getpass.getuser()
 
-resources = '/home/ipol/ipolDevel/ci_tests/resources'
-demorunners = '/home/ipol/ipolDevel/ipol_demo/modules/config_common/demorunners.xml'
-shared_folder = '/home/ipol/ipolDevel/shared_folder'
+system_test = '/home/{}/ipolDevel/ci_tests/system.py'.format(user)
+archive_test = '/home/{}/ipolDevel/ipol_demo/modules/archive/test.py'.format(user)
+blobs_test = '/home/{}/ipolDevel/ipol_demo/modules/blobs/test.py'.format(user)
+demoinfo_test = '/home/{}/ipolDevel/ipol_demo/modules/demoinfo/test.py'.format(user)
+dispatcher_test = '/home/{}/ipolDevel/ipol_demo/modules/dispatcher/test.py'.format(user)
+demorunner_test = '/home/{}/ipolDevel/ipol_demo/modules/demorunner/test.py'.format(user)
+conversion_test = '/home/{}/ipolDevel/ipol_demo/modules/conversion/test.py'.format(user)
 
-tests = [demoinfo_test, blobs_test, archive_test, dispatcher_test, demorunner_test, system_test]
+resources = '/home/{}/ipolDevel/ci_tests/resources'.format(user)
+demorunners = '/home/{}/ipolDevel/ipol_demo/modules/config_common/demorunners.xml'.format(user)
+shared_folder = '/home/{}/ipolDevel/shared_folder'.format(user)
 
+tests = [demoinfo_test, blobs_test, archive_test, dispatcher_test, demorunner_test, conversion_test, system_test]
 
 def start():
     """
