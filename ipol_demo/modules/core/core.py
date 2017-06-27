@@ -1184,6 +1184,8 @@ attached the failed experiment data.". \
 
         crop_info = kwargs.get('crop_info', None)
 
+        private_mode = kwargs.get('private_mode', None)
+
         blobs = {}
         if origin == 'upload':
             print "UPLOAD"
@@ -1361,7 +1363,8 @@ attached the failed experiment data.". \
 
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
-            if origin != 'upload' and 'archive' in ddl:
+
+            if origin != 'blobset'and private_mode is None and 'archive' in ddl:
                 ddl_archive = ddl['archive']
                 print ddl_archive
                 SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
