@@ -1293,13 +1293,14 @@ attached the failed experiment data.". \
             build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
 
-            status = dr_response.json()['status']
+            demorunner_response = dr_response.json()
+            status = demorunner_response['status']
             if status != 'OK':
                 print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
-                text = "DR={}, {} - {}".format(dr_name, dr_response.get("buildlog", "").encode('utf8'),
-                                               dr_response["message"].encode('utf8'))
+                text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", "").encode('utf8'),
+                                               demorunner_response["message"].encode('utf8'))
 
                 self.send_compilation_error_email(demo_id, text)
 

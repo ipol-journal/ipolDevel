@@ -12,7 +12,8 @@ parameters.printParameters = function() {
   ddl_params = {};
   demoInfo = helpers.getFromStorage('demoInfo');
   printParamsInformationIcon(demoInfo);
-  if (demoInfo.params) {
+  if (demoInfo.params && demoInfo.params.length != 0) {
+    $('#parameters').removeClass('di-none');
     var demoInfoParams = demoInfo.params;
     addResetButton();
     $('.param-container').remove();
@@ -45,7 +46,8 @@ function printParameter(param, index) {
   $('.' + param.id).checkVisibility(param);
 
   if (param.values) addMaxMin(param, index);
-  if (param.comments) addParamInfo(param, index);
+  var comment = param.comments || "";
+  $('.param-' + index).append("<div class=param-comments >" + comment + "</div>");
 }
 
 function addToParamsObject(param) {
@@ -58,10 +60,6 @@ function addMaxMin(param, index) {
   $('.param-content-' + index).append("<div id=maxmin-" + index + " class=maxmin ></div>");
   if (param.values.max) $('#maxmin-' + index).append("<span> Max: " + param.values.max + "</span>");
   if (param.values.min) $('#maxmin-' + index).append("<span> Min: " + param.values.min + "</span>");
-}
-
-function addParamInfo(param, index) {
-  $('.param-' + index).append("<div class=param-comments >" + param.comments + "</div>");
 }
 
 function addLayout() {
