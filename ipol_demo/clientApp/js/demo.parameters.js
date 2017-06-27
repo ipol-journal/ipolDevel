@@ -12,7 +12,8 @@ parameters.printParameters = function() {
   ddl_params = {};
   demoInfo = helpers.getFromStorage('demoInfo');
   printParamsInformationIcon(demoInfo);
-  if (demoInfo.params) {
+  if (demoInfo.params && demoInfo.params.length != 0) {
+    $('#parameters').removeClass('di-none');
     var demoInfoParams = demoInfo.params;
     addResetButton();
     $('.param-container').remove();
