@@ -159,7 +159,7 @@ class Conversion(object):
     @cherrypy.expose
     def ping():
         """
-        Ping pong.
+        Ping service: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)

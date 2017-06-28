@@ -136,7 +136,7 @@ def demoinfo_get_ddl(demo_id):
 
 
 def demoinfo_read_demo_description(demo_descp_id):
-    path = '/api/demoinfo/read_demo_description'
+    path = '/api/demoinfo/read_ddl'
 
     serviceparams = {'demodescriptionID': demo_descp_id}
     # send as string to proxy, proxy will load this into a dict for the request lib call
@@ -146,7 +146,7 @@ def demoinfo_read_demo_description(demo_descp_id):
 
 
 def demoinfo_save_demo_description(pjson, demoid):
-    path = '/api/demoinfo/save_demo_description'
+    path = '/api/demoinfo/save_ddl'
 
     serviceparams = {'demoid': demoid}
     # send as string to proxy, proxy will load this into a dict for the request lib call
@@ -463,7 +463,7 @@ def demoinfo_demo_extras_for_demo(demo_id):
 
 
 def demoinfo_delete_demo_extras_from_demo(demo_id):
-    path = '/api/demoinfo/delete_compressed_file_ws'
+    path = '/api/demoinfo/delete_demoextras'
 
     serviceparams = {'demo_id': demo_id}
 
@@ -472,14 +472,14 @@ def demoinfo_delete_demo_extras_from_demo(demo_id):
 
 
 def demoinfo_add_demo_extra_to_demo(demo_id, request):
-    path = '/api/demoinfo/add_compressed_file_ws'
+    path = '/api/demoinfo/add_demoextras'
 
     files = None
     serviceparams = {'demo_id': demo_id}
 
     try:
         myfile = request.FILES['myfile']
-        files = {'file_0': myfile.file}
+        files = {'demoextras': myfile.file}
     except Exception as ex:
         print ex
     servicejson = None
@@ -543,15 +543,6 @@ def archive_demo_list():
     serviceparams = None
     servicejson = None
     return http_request(path, METHOD='GET', params=serviceparams, json=servicejson)
-
-
-def archive_add_experiment_to_test_demo():
-    path = '/api/archive/add_exp_test'
-
-    serviceparams = None
-    servicejson = None
-
-    return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
 def archive_delete_demo(demo_id):

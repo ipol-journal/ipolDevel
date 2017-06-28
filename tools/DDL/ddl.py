@@ -88,10 +88,10 @@ def do_write(demos, host):
             # Check if is a valid JSON
             json.loads(ddl_json)
 
-            resp = post('save_demo_description', host, params={"demoid": editorsdemoid}, json=ddl_json)
+            resp = post('save_ddl', host, params={"demoid": editorsdemoid}, json=ddl_json)
             response = resp.json()
             if response['status'] != 'OK':
-                print "ERROR: save_demo_description returned KO for demo {}".format(editorsdemoid)
+                print "ERROR: save_ddl returned KO for demo {}".format(editorsdemoid)
         except ValueError:
             print "ERROR: Invalid JSON for demo {}".format(editorsdemoid)
         except Exception as ex:

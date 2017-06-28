@@ -138,7 +138,7 @@ class Dispatcher(object):
     @cherrypy.expose
     def set_demorunners(self, demorunners):
         """
-        Set the value of the demorunners
+        Set the list of demoRunners in the system.
         """
         data = {"status": "KO"}
         try:
@@ -203,7 +203,7 @@ class Dispatcher(object):
     @cherrypy.expose
     def ping():
         """
-        Ping pong.
+        Ping service: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
@@ -227,8 +227,7 @@ class Dispatcher(object):
     @authenticate
     def set_policy(self, policy):
         """
-        Change the policy used. If the given name is not a known policy
-        the original policy is not changed
+        Change the current execution policy. If the given name is not a known policy, it will remain unchanged.
         """
         data = {"status": "OK"}
 
@@ -247,7 +246,7 @@ class Dispatcher(object):
     @cherrypy.expose
     def get_demorunner(self, demorunners_workload, requirements=None):
         """
-        Select a demorunner according to policy and requirements
+        Choose a demoRunner meeting the specified requirements according to the current execution policy
         """
 
         data = {"status": "KO"}

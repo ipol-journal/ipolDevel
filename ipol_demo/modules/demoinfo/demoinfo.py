@@ -270,9 +270,9 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def delete_compressed_file_ws(self, demo_id):
+    def delete_demoextras(self, demo_id):
         """
-        WS for deleting the compressed demo extra file of a demo
+        Delete the demoextras from the demo
         """
         data = {}
         data['status'] = "OK"
@@ -287,9 +287,9 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def add_compressed_file_ws(self, demo_id, **kwargs):
+    def add_demoextras(self, demo_id, demoextras):
         """
-        WS for add a new compressed demo extra file to a demo
+        Add a new demoextras file to a demo
         """
         data = {'status': "KO"}
         try:
@@ -298,7 +298,7 @@ class DemoInfo(object):
             if not demo_dao.exist(demo_id):
                 return json.dumps(data)
 
-            given_file = kwargs['file_0']
+            given_file = demoextras
             extra_folder = os.path.join(self.dl_extras_dir, demo_id)
             if given_file is not None:
                 if os.path.exists(extra_folder):
@@ -653,37 +653,6 @@ class DemoInfo(object):
             data["error"] = error_string
         return json.dumps(data)
 
-    @cherrypy.expose
-    @authenticate
-    def demo_get_demodescriptions_list(self, demo_id):
-        """
-        return the descriptions of a given demo id.
-        """
-        data = {}
-        data["status"] = "KO"
-        try:
-            # read all _demodescription for this demo
-            conn = lite.connect(self.database_file)
-            dd_dao = DemoDemoDescriptionDAO(conn)
-
-            demodescription_list = dd_dao.read_demo_demodescriptions(int(demo_id))
-
-            data["demodescription_list"] = demodescription_list
-            data["status"] = "OK"
-            conn.close()
-
-        except Exception as ex:
-            error_string = "demoinfo demo_get_demodescriptions_list error %s" % str(ex)
-            print error_string
-            self.logger.exception(error_string)
-            try:
-                conn.close()
-            except Exception as ex:
-                pass
-            # raise Exception
-            data["error"] = error_string
-        return json.dumps(data)
-
     def read_demo(self, demoid):
         """
         Return DAO for given demo.
@@ -756,13 +725,9 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, state,
-                 demodescriptionID=None, demodescriptionJson=None):
+    def add_demo(self, editorsdemoid, title, state, demodescriptionID=None, demodescriptionJson=None):
         """
-        Allows you to create a demo:
-        - only creating the demo
-        - creating the demo and assigning an existing ddl (with id demodescriptionID) to it
-        - create the demo and create a ddl , whith the json passed by param (demodescriptionJson)
+        Create a demo
         """
         data = {"status": "KO"}
         conn = None
@@ -820,7 +785,7 @@ class DemoInfo(object):
     @authenticate
     def delete_demo(self, demo_id):
         """
-        webservice deleting given demo.
+        Delete the specified demo
         """
         data = {}
         data["status"] = "KO"
@@ -859,7 +824,7 @@ class DemoInfo(object):
     @authenticate
     def update_demo(self, demo, old_editor_demoid):
         """
-        webservice updating demo.
+        Update the demo.
         """
         data = {"status": "KO"}
 
@@ -913,7 +878,7 @@ class DemoInfo(object):
     @authenticate
     def author_list(self):
         """
-        webservice returning list of authors.
+        Returns the list of authors.
         """
         data = {}
         data["status"] = "KO"
@@ -945,7 +910,7 @@ class DemoInfo(object):
     def author_list_pagination_and_filter(self, num_elements_page, page,
                                           qfilter=None):
         """
-        webservice returning paginated and filtered list of authors.
+        Returns paginated and filtered list of authors.
         """
         data = {}
         data["status"] = "KO"
@@ -1023,7 +988,7 @@ class DemoInfo(object):
     @authenticate
     def read_author(self, authorid):
         """
-        webservice returning info on author from id in database.
+        Returns info of the author.
         """
         data = dict()
         data["status"] = "KO"
@@ -1067,7 +1032,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def author_get_demos_list(self, author_id):
         """
-        webservice returning list of demo associated to a given author.
+        Returns the list of demos associated to a given author.
         """
         data = {}
         data["status"] = "KO"
@@ -1106,7 +1071,7 @@ class DemoInfo(object):
     @authenticate
     def add_author(self, name, mail):
         """
-        webservice adding author entry.
+        Add an author
         """
         data = {"status": "KO"}
         conn = None
@@ -1138,7 +1103,7 @@ class DemoInfo(object):
     @authenticate
     def add_author_to_demo(self, demo_id, author_id):
         """
-        webservice adding author to demo.
+        Add an author to a demo.
         """
         data = {}
         data["status"] = "KO"
@@ -1171,7 +1136,7 @@ class DemoInfo(object):
     @authenticate
     def remove_author_from_demo(self, demo_id, author_id):
         """
-        webservice removing given author of given demo.
+        Remove the given author from the demo.
         """
         data = {}
         data["status"] = "KO"
@@ -1244,7 +1209,7 @@ class DemoInfo(object):
     @authenticate
     def update_author(self, author):
         """
-        webservice updating author entry.
+        Update author
         """
         data = {"status": "KO"}
 
@@ -1286,7 +1251,7 @@ class DemoInfo(object):
     @authenticate
     def editor_list(self):
         """
-        webservice returning editor list
+        Returns the editor list
         """
         data = {}
         data["status"] = "KO"
@@ -1318,7 +1283,7 @@ class DemoInfo(object):
     def editor_list_pagination_and_filter(self, num_elements_page, page,
                                           qfilter=None):
         """
-        webservice returning paginated and filtered list of editor
+        Returns paginated and filtered list of editor
         """
         data = {}
         data["status"] = "KO"
@@ -1393,7 +1358,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def editor_get_demos_list(self, editor_id):
         """
-        webservice getting a list of demo associated to given editor.
+        Returns a list of demos associated to given editor.
         """
         data = {}
         data["status"] = "KO"
@@ -1430,7 +1395,7 @@ class DemoInfo(object):
     @authenticate
     def read_editor(self, editorid):
         """
-        webservice getting info of editor from id.
+        Returns editor info.
         """
         data = dict()
         data["status"] = "KO"
@@ -1476,7 +1441,7 @@ class DemoInfo(object):
     @authenticate
     def add_editor(self, name, mail):
         """
-        webservice adding editor entry.
+        Add editor.
         """
         data = {"status": "KO"}
         conn = None
@@ -1509,7 +1474,7 @@ class DemoInfo(object):
     @authenticate
     def add_editor_to_demo(self, demo_id, editor_id):
         """
-        webservice adding given editor to given demo.
+        Add the given editor to the given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -1542,7 +1507,7 @@ class DemoInfo(object):
     @authenticate
     def remove_editor_from_demo(self, demo_id, editor_id):
         """
-        webservice removing given editor from given demo.
+        Remove the given editor from the given demo.
         """
         data = {}
         data["status"] = "KO"
@@ -1575,7 +1540,7 @@ class DemoInfo(object):
     @authenticate
     def remove_editor(self, editor_id):
         """
-        webservice deleting editor and its relationship with the demos
+        Delete editor
         """
 
         data = {}
@@ -1613,7 +1578,7 @@ class DemoInfo(object):
     @authenticate
     def update_editor(self, editor):
         """
-        webservice updating editor entry in db.
+        Update editor.
         """
         data = {"status": "KO"}
 
@@ -1652,9 +1617,9 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def read_demo_description(self, demodescriptionID):
+    def read_ddl(self, demodescriptionID):
         """
-        webservice getting demo description.
+        Return the DDL.
         """
         data = {}
         data["status"] = "KO"
@@ -1671,7 +1636,7 @@ class DemoInfo(object):
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
-            error_string = "demoinfo read_demo_description error %s" % str(ex)
+            error_string = "demoinfo read_ddl error %s" % str(ex)
             print error_string
             self.logger.exception(error_string)
             try:
@@ -1686,7 +1651,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def get_interface_ddl(self, demo_id):
         """
-        Service getting the DDL of a given demo. It returns the ddl without an unneeded fields
+        Read the DDL of the specified demo without unneeded or private fields. Used by the website interface.
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
@@ -1709,7 +1674,7 @@ class DemoInfo(object):
     @authenticate
     def get_ddl(self, demo_id):
         """
-        Service getting last description of the demo.
+        Reads the current DDL of the demo
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
@@ -1733,11 +1698,11 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def save_demo_description(self, demoid):
+    def save_ddl(self, demoid):
         """
-        Save the demo description.
+        Save the DDL.
         """
-        # def save_demo_description(self, demoid):
+        # def save_ddl(self, demoid):
         # recieves a valid json as a string AS POST DATA
         # stackoverflow.com/questions/3743769/how-to-receive-json-in-a-post-request-in-cherrypy
 
@@ -1746,10 +1711,10 @@ class DemoInfo(object):
         cl = cherrypy.request.headers['Content-Length']
         ddl = cherrypy.request.body.read(int(cl))
         if not is_json(ddl):
-            print "\n save_demo_description ddl is not a valid json "
+            print "\n save_ddl ddl is not a valid json "
             print "ddl: ", ddl
             print "ddl type: ", type(ddl)
-            data['error'] = "save_demo_description ddl is not a valid json"
+            data['error'] = "save_ddl ddl is not a valid json"
             return json.dumps(data)
         try:
             conn = lite.connect(self.database_file)
@@ -1785,7 +1750,7 @@ class DemoInfo(object):
             data["status"] = "OK"
 
         except Exception as ex:
-            error_string = "demoinfo save_demo_description error %s" % str(ex)
+            error_string = "demoinfo save_ddl error %s" % str(ex)
             print error_string
             self.logger.exception(error_string)
             try:
@@ -1811,7 +1776,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def ping():
         """
-        Return a simple information. Meant to check if the module is running.
+        Ping service: answer with a PONG.
         """
         data = {}
         data["status"] = "OK"
@@ -1837,7 +1802,7 @@ class DemoInfo(object):
     @cherrypy.expose
     def stats(self):
         """
-        return the count demos, authors and editors.
+        Returns usage statistics.
         """
         data = {}
         data["status"] = "KO"

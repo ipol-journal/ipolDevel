@@ -71,10 +71,10 @@ def do_write(editors_demoid, ddl):
     Write a DDL
     '''
     try:
-        resp = post('save_demo_description', params={"demoid": editors_demoid}, json = ddl)
+        resp = post('save_ddl', params={"demoid": editors_demoid}, json = ddl)
         response = resp.json()
         if response['status'] != 'OK':
-            print "ERROR: save_demo_description returned KO for demo {}".format(editors_demoid)
+            print "ERROR: save_ddl returned KO for demo {}".format(editors_demoid)
     except Exception as ex:
         print "ERROR: Could not write DDL for demo {} - {}".format(editors_demoid, ex)
 

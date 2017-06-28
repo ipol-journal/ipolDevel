@@ -1000,7 +1000,7 @@ class DemoinfoTests(unittest.TestCase):
         save ddl
         """
         params = {'demoid': demo_id}
-        response = self.post(self.module, 'save_demo_description', params=params, servicejson=json.loads(ddl))
+        response = self.post(self.module, 'save_ddl', params=params, servicejson=json.loads(ddl))
         return response.json()
 
     def get_ddl(self, demo_id):
@@ -1015,9 +1015,9 @@ class DemoinfoTests(unittest.TestCase):
         """
         add demoextras
         """
-        files = {'file_0': demo_extras}
+        files = {'demoextras': demo_extras}
         params = {'demo_id': demo_id}
-        response = self.post(self.module, 'add_compressed_file_ws', params=params, files=files)
+        response = self.post(self.module, 'add_demoextras', params=params, files=files)
         return response.json()
 
     def get_demoextras_info(self, demo_id):
