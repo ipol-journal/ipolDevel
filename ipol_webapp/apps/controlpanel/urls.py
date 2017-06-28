@@ -2,7 +2,7 @@ from django.conf.urls import  url
 from apps.controlpanel.views.Status import StatusView
 
 from apps.controlpanel.views.archive_module import ArchiveDeleteExperimentView, \
-        ArchiveAddExpToTestDemoView, ArchiveDeleteExperimentFileView, ArchiveDeleteDemoView, \
+        ArchiveDeleteExperimentFileView, ArchiveDeleteDemoView, \
         ArchivePageView, ExperimentDetails
 
 from apps.controlpanel.views.blobs_module import ManageBlobsForDemoView, EditBlobFromDemoView,DemoBlobSaveInfo,RemoveBlobFromDemo, \
@@ -117,7 +117,6 @@ urlpatterns = [
     url(r'^archive_demo/', ExperimentDetails.as_view(), name="ipol.cp.archive.experiment_details"),
 
     #ajax calls
-    url(r'^ajax_add_exp_to_test_demo/', ArchiveAddExpToTestDemoView.as_view(), name="ipol.cp.archive.add_exp_to_test_demo"),
     url(r'^ajax_delete_archive_demo/(?P<demo_id>[\-\d\w]+)/$', ArchiveDeleteDemoView.as_view(), name="ipol.cp.archive.delete_demo"),
     url(r'^ajax_delete_experiment/(?P<experiment_id>\d+)/$',
         ArchiveDeleteExperimentView.as_view(), name="ipol.cp.archive.delete_experiment"),

@@ -247,7 +247,7 @@ Also, we need to check absolutely that all the CASCADE DELETE are correct!
 - The demoInfo module returns \emph{Content-Type: text/html} instead of application/json:
 
 \begin{verbatim}
-curl --head http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359
+curl --head http://ns3018037.ip-151-80-24.eu:9002/read_ddl?demodescriptionID=359
 HTTP/1.1 200 OK
 Date: Sun, 21 Feb 2016 19:41:29 GMT
 Content-Length: 3545
@@ -259,7 +259,7 @@ Server: CherryPy/3.5.0
 Also, this module returns a JSON which contains a lots of backslashes!:
 
 \begin{verbatim}
-curl "http://ns3018037.ip-151-80-24.eu:9002/read_demo_description?demodescriptionID=359"
+curl "http://ns3018037.ip-151-80-24.eu:9002/read_ddl?demodescriptionID=359"
 
 {"status": "OK", "demo_description": "\"{\\\"archive\\\": {\\\"files\\\": {\\\"diffInputIHS.png\\\":
 \\\"difference input-IHS\\\", \\\"diffInputPanS.png\\\": \\\"difference input-pansharpened\\\",

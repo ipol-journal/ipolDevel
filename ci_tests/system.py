@@ -198,16 +198,16 @@ class IntegrationTests(unittest.TestCase):
         Add the ddl to the demo
         """
         params = {'demoid': demo_id}
-        response = self.post('demoinfo', 'save_demo_description', params=params, servicejson=json.loads(ddl))
+        response = self.post('demoinfo', 'save_ddl', params=params, servicejson=json.loads(ddl))
         return response.json()
 
     def add_demo_extras(self, demo_id, demo_extras):
         """
         Add DemoExtras to the demo
         """
-        files = {'file_0': demo_extras}
+        files = {'demoextras': demo_extras}
         params = {'demo_id': demo_id}
-        response = self.post('demoinfo', 'add_compressed_file_ws', params=params, files=files)
+        response = self.post('demoinfo', 'add_demoextras', params=params, files=files)
         return response.json()
 
     def add_blob(self, demo_id, blob, demo_title, set_name, pos_in_set):

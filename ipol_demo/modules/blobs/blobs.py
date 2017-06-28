@@ -1023,7 +1023,7 @@ class Blobs(object):
     @authenticate
     def delete_demo(self, demo_id):
         """
-        Remove the demo and the blobs only used in that demo
+        Remove the demo
         """
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.delete_blob_container(dest):
@@ -1034,7 +1034,7 @@ class Blobs(object):
     @authenticate
     def delete_template(self, template_name):
         """
-        Remove the template and the blobs only used in that template
+        Remove the template
         """
         dest = {"dest": "template", "name": template_name}
         if self.delete_blob_container(dest):
@@ -1073,7 +1073,7 @@ class Blobs(object):
     @authenticate
     def remove_tag_from_blob(self, tag, blob_id):
         """
-        Remove the tag from a demo or template
+        Remove the tag from the blob
         """
         data = {'status': 'KO'}
         conn = None
@@ -1383,7 +1383,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_demos_using_the_template(self, template_name):
         """
-        Return the list of demos that uses the given template
+        Return the list of demos that use the given template
         """
         conn = None
         data = {'status': 'KO'}

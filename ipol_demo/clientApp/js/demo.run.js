@@ -47,8 +47,9 @@ function setRunPostData() {
   runData.append("params", JSON.stringify(params));
   if (origin) runData.append("origin", origin);
   if (origin == "blobSet") runData.append("blobs", JSON.stringify(helpers.getFromStorage("id_blobs")));
-  if (origin == "upload") setUploadedFiles();
-  if ($("#crop-btn").is(":checked")) runData.append("crop_info", JSON.stringify($("#editor-blob-left").cropper("getData")));
+  if (origin == "upload" && !($("#crop-btn").is(":checked"))) setUploadedFiles();
+  if (origin == "upload" && $('#privateSwitch').is(":checked")) runData.append("private_mode", true);
+  if ($("#crop-btn").is(":checked")) checkCropper();
 }
 
 function setUploadedFiles() {
@@ -56,6 +57,12 @@ function setUploadedFiles() {
   for (let i = 0; i < Object.keys(uploads).length; i++) {
     runData.append("file_" + i, $("#file-" + i)[0].files[0]);
   }
+}
+
+function checkCropper() {
+  var origin = helpers.getFromStorage("origin");
+  if (origin == "blobSet") runData.append("crop_info", JSON.stringify($("#editor-blob-left").cropper("getData")));
+  if (origin == "upload") runData.append('file_0', helpers.base64ToBlob($("#editor-blob-left").cropper("getCroppedCanvas").toDataURL()));
 }
 
 function checkPostData() {

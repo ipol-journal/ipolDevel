@@ -102,7 +102,6 @@ class Archive(object):
     def check_config():
         """
         Check if needed datas exist correctly in the config of cherrypy.
-        :rtype: bool
         """
         if not (cherrypy.config.has_key("blobs_dir")
                 and cherrypy.config.has_key("database_dir")
@@ -117,8 +116,6 @@ class Archive(object):
     def get_hash_blob(path):
         """
         Return sha1 hash of given blob
-        :return: sha1 of the blob
-        :rtype: string
         """
         with open(path, 'rb') as the_file:
             return hashlib.sha1(the_file.read()).hexdigest()
@@ -127,8 +124,6 @@ class Archive(object):
     def file_format(the_file):
         """
         Return format of the file
-        :return: format of file (audio, image or video)
-        :rtype: string
         """
         mime = magic.Magic(mime=True)
         fileformat = mime.from_file(the_file)
@@ -232,8 +227,6 @@ class Archive(object):
         """
         Initialize the database used by the module if it doesn't exist.
         If the file is empty, the system delete it and create a new one.
-        :return: False if there was an error. True otherwise.
-        :rtype: bool
         """
         status = True
 
@@ -316,8 +309,6 @@ class Archive(object):
         """
         This function checks if a blob exists in the table. If it exists,
         the id is returned. If not, the blob is added, then the id is returned.
-        :return: id of the blob in the database, and blob name
-        :rtype: integer.
         """
 
         # List of copied files. Useful to delete them if an exception is thrown
@@ -404,8 +395,6 @@ class Archive(object):
     def update_exp_table(conn, demo_id, parameters):
         """
         This function update the experiment table.
-        :return: Return the id of the newly created experiment in the database.
-        :rtype: integer.
         """
         cursor_db = conn.cursor()
         cursor_db.execute("""
@@ -419,8 +408,6 @@ class Archive(object):
         """
         This function updates the blobs table.
         It return a dictionary of data to be added to the correspondences table.
-        :return: a dictionary of data to be added to the correspondences table.
-        :rtype: dict
         """
         try:
             id_blob = int()
@@ -456,12 +443,8 @@ class Archive(object):
     def add_experiment(self, demo_id, blobs, parameters):
         """
         This function adds an experiment with all its data to the archive.
-                In case of failure, False will be returned.
-        :return: status of the operation
-        :rtype: JSON formatted string.
         """
-        data = {}
-        data["status"] = "OK"
+        data = {"status": "OK"}
         # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
 
@@ -581,7 +564,6 @@ class Archive(object):
         """
         Build a dict containing the path to the file, the path to the thumb
                 and the name of the file.
-        :rtype: dict
         """
         dict_file = {}
         dict_file["url"] = self.url + path_file
@@ -594,8 +576,6 @@ class Archive(object):
         """
         Build a dictionnary containing all the datas needed on a given
                 experiment for building the archive page.
-        :return: dictionnary with infos on the given experiment.
-        :rtype: dict
         """
 
         dict_exp = {}
@@ -628,8 +608,6 @@ class Archive(object):
         """
         This function return a list of dicts with all the informations needed
                 for displaying the experiments on a given page.
-        :return: list with infos on experiments
-        :rtype: list
         """
         data_exp = []
         cursor_db = conn.cursor()
@@ -651,12 +629,10 @@ class Archive(object):
     @cherrypy.expose
     def get_page(self, demo_id, page='1'):
         """
-        This function return a JSON string with all the informations needed
-                to build the given page for the given demo.
-                if the page number is not in the range [1,number_of_pages],
-                the last page is used
-        :return: JSON string
-        :rtype: string
+        This function return all the information needed
+        to build the given page for the given demo.
+        if the page number is not in the range [1,number_of_pages],
+        the last page is used
         """
         id_demo = int(demo_id)
         page = int(page)
@@ -768,9 +744,7 @@ class Archive(object):
     @authenticate
     def delete_experiment(self, experiment_id):
         """
-        Encapsulation of the delete_exp_w_deps function for removing an
-                experiment.
-        :rtype: JSON formatted string
+        Remove an experiment
         """
         status = {"status": "KO"}
         try:
@@ -798,11 +772,7 @@ class Archive(object):
     @authenticate
     def delete_blob_w_deps(self, id_blob):
         """
-        Remove a blob, both physically and in the database,
-                with all its dependencies.
-        Encapsulation of the delete_exp_w_deps function for removing a blob.
-        :return: status of experiment
-        :rtype: JSON formatted string
+        Remove a blob
         """
         status = {"status": "KO"}
         try:
@@ -835,12 +805,9 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @cherrypy.expose
     def ping():
         """
-        Ping pong.
-        :rtype: JSON formatted string
+        Ping service: answer with a PONG.
         """
-        data = {}
-        data["status"] = "OK"
-        data["ping"] = "pong"
+        data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
 
     @cherrypy.expose
@@ -862,7 +829,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     def stats(self):
         """
         return the stats of the module.
-        :rtype: json formatted string
         """
         data = {}
         data["status"] = "KO"
@@ -909,29 +875,13 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
 
-    @cherrypy.expose
-    def add_exp_test(self):
-        """
-        Test for adding an experiment to the database.
-        """
-        tmp_dir = "blobs_tmp"
-        dict_blobs = {os.path.join(tmp_dir, "charmander"): "input", \
-                      os.path.join(tmp_dir, "squirtle"): "water"}
-        str_blobs = json.dumps(dict_blobs)
-        str_test = json.dumps("test")
-        demo_id = -1
-        test = self.add_experiment(unicode(demo_id), unicode(str_blobs), unicode(str_test))
-        return str(test)
 
     @cherrypy.expose
     def demo_list(self):
         """
-        return the demo_list of the module.
-        :rtype: json formatted string
-        {status: "OK",demo_list: [{demo_id: -1}]}
+        return the list of demos with experiments.
         """
-        data = {}
-        data["status"] = "KO"
+        data = {"status": "KO"}
         demo_list = list()
 
         try:
@@ -958,8 +908,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @authenticate
     def delete_demo(self, demo_id):
         """
-        Delete all the experiments and dependencies for the given demo_id
-        :rtype: JSON formatted string status:OK/KO
+        Delete the demo from the archive.
         """
 
         status = {"status": "KO"}
@@ -995,7 +944,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @cherrypy.expose
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
-        Change the given old demo id by the new demo id in all the experiments.
+        Change the given old demo id by the new demo id.
         """
 
         conn = None

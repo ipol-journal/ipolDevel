@@ -111,24 +111,6 @@ class ArchiveDeleteExperimentFileView(NavbarReusableMixinMF,TemplateView):
         return HttpResponse(result, content_type='application/json')
 
 
-class ArchiveAddExpToTestDemoView(NavbarReusableMixinMF,TemplateView):
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(ArchiveAddExpToTestDemoView, self).dispatch(*args, **kwargs)
-
-    def render_to_response(self, context, **response_kwargs):
-        #just return the JSON from the ws, no template is needed
-
-        result= ipolservices.archive_add_experiment_to_test_demo()
-        if result is None:
-            msg="AddExpToTestDemoView: Something went wrong using archive WS"
-            logger.error(msg)
-            raise ValueError(msg)
-
-        return HttpResponse(result, content_type='application/json')
-
-
 class ExperimentDetails(NavbarReusableMixinMF,TemplateView):
     template_name = "archive/experiment_details.html"
 

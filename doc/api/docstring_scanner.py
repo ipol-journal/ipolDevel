@@ -87,7 +87,7 @@ if len(args) > 1:
     exit(0)
 
 module = args[0].lower() if len(args) == 1 else None
-acepted_modules = ["core", "dispatcher", "demorunner", "demoinfo", "blobs", "archive"]
+acepted_modules = ["core", "dispatcher", "demorunner", "demoinfo", "blobs", "archive", "conversion"]
 date = time.strftime("%d/%m/%Y")
 modules = []
 

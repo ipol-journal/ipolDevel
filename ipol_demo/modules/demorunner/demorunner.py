@@ -517,7 +517,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
         '''
-        Called by the Core to run the algorithm
+        Run the algorithm
         '''
         ddl_run = json.loads(ddl_run)
         params = json.loads(params)
