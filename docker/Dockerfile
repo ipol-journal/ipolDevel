@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM debian:stable
 
 ENV home /home/ipol
 ENV ipolDevel ~/ipolDevel
@@ -14,6 +14,12 @@ WORKDIR /home/ipol
 # Apt and pip packages installation
 COPY ./docker/pkglist /home/ipol/pkglist
 COPY ./sysadmin/install_packages/requirements.txt /home/ipol/requirements.txt
+
+RUN echo # IPOL needs a more up-to-date version of nginx >> /etc/apt/sources.list && \
+    echo deb http://nginx.org/packages/debian/ stretch nginx >> /etc/apt/sources.list && \
+    echo deb-src http://nginx.org/packages/debian/ stretch nginx >> /etc/apt/sources.list
+
+
 
 RUN apt-get update && apt-get install -y $(cat pkglist)
 RUN pip install -r requirements.txt
