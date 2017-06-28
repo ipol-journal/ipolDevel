@@ -65,6 +65,7 @@ openssh-server
 bash-completion
 mailutils
 cron-apt
+ipython
 
 
 debian-keyring
@@ -72,6 +73,5 @@ debian-archive-keyring
 build-essential
 python-setuptools
 libfreetype6-dev
-libpng12-dev
 python-scipy
 libatlas-dev
