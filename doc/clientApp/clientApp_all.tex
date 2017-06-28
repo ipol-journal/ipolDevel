@@ -3,12 +3,11 @@
 current version is 3.0.
 
 \subsection{Introduction}
-The IPOL demo Web interface has been developed with HTML5, CSS3, and Jquery. 
-It allows the users to execute the IPOL algorithm's with an ergonomic interface. The users can use their own data or the examples offered by each of the demos. We shall describe the modules of which the web interface is made, its flow diagram, how the asynchronous calls work, and the data types accepted.
-
+The IPOL Demo Web Interface has been developed with HTML5, CSS3, and JQuery. 
+It allows the users to execute the IPOL algorithms with an ergonomic interface. The users can use their own data or the examples offered by each of the demos. We shall describe the modules of which the web interface is made, its flow diagram, how the asynchronous calls work, and the data types accepted.
 
 \section{Modules}
-This section will try to explain the different modules existing in the demo app. The Javascript application is made of several modules:
+The Javascript application is made of the following modules:
 
 \begin{itemize}
 	\item Inputs
@@ -20,17 +19,12 @@ This section will try to explain the different modules existing in the demo app.
 	\item Helpers 
 \end{itemize}
 
-Each of them is described in the following sections.
+Each of these items is described in the following sections.
 
 \subsection{Inputs}
-This module manages the blobList provided by the DDL and display them on the web page. This module is the first one loaded 
-so it will make the Async calls needed to obtaing demo information using the ID from the URL, it obtains this information from 
-the DemoInfo and blobs back-end modules, see figure \ref{fig:server_interaction} on page~\pageref{fig:server_interaction}. 
-These two calls will obtaing the information necessary to execute the demo, allowing 
-the user choose the input blobs, edit these blobs, and tweak demo execution parameters. This input module allows 
-the user choose among blobs that the demo provides. These blobs are either images, videos, or audio blobs primarily. It displays 
-a line of blobs or sets of blobs to choose from.
+This module manages the list of blobs used as examples in the demo and renders them on the web page. This module is the first which is loaded and it communicates with the DemoInfo and Blobs modules, see Fig. \ref{fig:server_interaction}.
 
+This input module allows the user to choose one or many blobs in the demo. These blobs are be for example images, videos, or audio blobs. It displays a line of blobs or sets of blobs to choose from.
 
 \subsection{Upload}
 If the users want to use their own blobs for the demo this module lets you upload them. Every demo has predefined 
@@ -52,17 +46,17 @@ Parameters have as many types DDL specifies, so the interface renders each type 
 \subsection{Run}
 This module will send all the blobs and requirements needed to run the demo on the servers and will send this information to 
 the core module. The answer will be either a success message with enough information to render the results or an error message 
-that will show an aproximation of what failed during execution.
+that will show an approximation of what failed during execution.
 
 \subsection{Results}
-This module will print the results the demorunner returns letting the user compare the input and results.
+This module will print the results the DemoRunner returns letting the user compare the input and results.
 
 \subsection{Helpers}
 This module act as an interface for common utility methods like read and write to sessionStorage, make HTTP requests and 
 read the origin of the chosen blobs for the demo, this could be blobset, meaning blobs are chosen from the ones offered by the 
 demo, and upload, meaning the user has uploaded his own blobs.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 	\centering
 	\includegraphics[width=\textwidth]{images/client_server_interaction}
 	\caption{Client-server interation} 
@@ -74,11 +68,10 @@ demo, and upload, meaning the user has uploaded his own blobs.
 \section{Flow diagram}
 When the application is loaded, the input module will locate the demo according to its ID. This ID is a get parameter from the URL.
 Once the demo has this ID parameter, the main file, demo.js will load the different html files into the DOM. They have been divided 
-into several files to improve mantainability and coupling.
+into several files to improve maintainability and coupling.
 
 After this process is done, the app will continue rendering the main section to the DOM, containing in this case the blobs viewer and 
-the blob upload dialog. The information regarding the DDL and the blobs specification will be saved in sessionStorage once it 
-has been retrieved by the async calls for easy access.
+the blob upload dialog. The information regarding the DDL and the blobs specification will be saved in sessionStorage once it has been retrieved by the asynchronous calls for easy access.
 
 \begin{figure}[h]
 	\centering
@@ -98,7 +91,7 @@ will allow to either zoom, crop, and compare blobs if it is possible, as well as
 The parameters will be modifiable according to the DDL specification values and will be stored in a variable in order to achieve 
 parameter visibility dependence and to send this data when the run button is pressed.
 
-After the user hits the run button an http post will be executed to run the demo and send the necessary information and wait for 
+After the user hits the run button an HTTP post will be executed to run the demo and send the necessary information and wait for 
 a response. When the response is obtained it will either print the results interface or the error message.
 
 %--------------------------------------------------------------------------------
@@ -115,13 +108,13 @@ Currently it uses:
 %--------------------------------------------------------------------------------
 
 \subsection{Async calls}
-The IPOL demo Web interface uses Async calls to get the necessary information from the IPOL server.
+The IPOL demo Web interface uses asynchronous calls to get the necessary information from the IPOL server.
 
-The current version uses Async calls for:
+The current version uses asynchronous calls for:
 \begin{itemize}
-\item Get the demo ddl: Used to show the inputs description and the upload modal in the Inputs panel, also uses this information to show the parameters.
+\item Get the demo DDL: Used to show the inputs description and the upload modal in the Inputs panel, also uses this information to show the parameters.
 \item Get blobs: Used to show the blobs in the inputs panel.
-\item Run demo: It will send all parameters needed to run the demo and will responde with either the results of the demo or an error response.
+\item Run demo: It will send all parameters needed to run the demo and will respond with either the results of the demo or an error response.
 \end{itemize}
 
 %--------------------------------------------------------------------------------
