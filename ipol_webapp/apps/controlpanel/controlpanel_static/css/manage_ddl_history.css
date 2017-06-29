@@ -1,0 +1,22 @@
+        .container{
+            margin: 20px;
+            padding: 10px;
+        }
+        .block{
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            margin: 20px;
+            padding: 15px;
+        }
+        pre {
+            border: 0;
+            background-color: transparent;
+            overflow:visible;
+        }
+        .ddl-modal{
+            height: 350px;
+        }
+        .modal-body{
+            resize: vertical;
+            overflow: auto;
+        }

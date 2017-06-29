@@ -145,6 +145,12 @@ def demoinfo_read_demo_description(demo_descp_id):
     return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
+def get_ddl_history(demo_id):
+    path = '/api/demoinfo/get_ddl_history'
+    serviceparams = {'demo_id': demo_id}
+    return http_request(path, METHOD='POST', params=serviceparams)
+
+
 def demoinfo_save_demo_description(pjson, demoid):
     path = '/api/demoinfo/save_ddl'
 
@@ -152,6 +158,8 @@ def demoinfo_save_demo_description(pjson, demoid):
     # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = pjson
+    print "json: ",pjson
+    print "demoid: ",demoid
     return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
