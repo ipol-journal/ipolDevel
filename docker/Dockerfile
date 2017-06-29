@@ -15,13 +15,7 @@ WORKDIR /home/ipol
 COPY ./docker/pkglist /home/ipol/pkglist
 COPY ./sysadmin/install_packages/requirements.txt /home/ipol/requirements.txt
 
-RUN echo # IPOL needs a more up-to-date version of nginx >> /etc/apt/sources.list && \
-    echo deb http://nginx.org/packages/debian/ stretch nginx >> /etc/apt/sources.list && \
-    echo deb-src http://nginx.org/packages/debian/ stretch nginx >> /etc/apt/sources.list
-
-
-
-RUN apt-get update && apt-get install -y $(cat pkglist)
+RUN apt update && apt install -y $(cat pkglist)
 RUN pip install -r requirements.txt
 
 # Nginx config file generation
@@ -32,6 +26,10 @@ RUN sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/defaul
 
 # Libtiff bugfix
 RUN python -c 'import libtiff'
+
+#Libpng version fix - Jessie and Stretch don't have it in the repos yet
+RUN echo deb http://deb.debian.org/debian wheezy main >> /etc/apt/sources.list && \
+    apt update && apt -t wheezy -y install libpng12-0
 
 USER ipol
 RUN ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod og-wx ~/.ssh/authorized_keys
