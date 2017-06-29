@@ -158,8 +158,6 @@ def demoinfo_save_demo_description(pjson, demoid):
     # send as string to proxy, proxy will load this into a dict for the request lib call
 
     servicejson = pjson
-    print "json: ",pjson
-    print "demoid: ",demoid
     return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 

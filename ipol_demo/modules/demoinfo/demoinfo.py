@@ -1735,8 +1735,6 @@ class DemoInfo(object):
         data["status"] = "KO"
         cl = cherrypy.request.headers['Content-Length']
         ddl = cherrypy.request.body.read(int(cl))
-        print "demoid:", demoid
-        print "ddl: ",ddl
         if not is_json(ddl):
             print "\n save_ddl ddl is not a valid json "
             print "ddl: ", ddl
