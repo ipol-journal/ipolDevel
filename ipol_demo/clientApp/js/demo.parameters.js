@@ -33,7 +33,7 @@ parameters.printParameters = function() {
 
 function printParamsInformationIcon(){
   checkParamsDescriptionIconVisibility(demoInfo.general);
-  addParamsDescriptionTooltips(demoInfo.general);
+  $('#parameters-description').addDescription(demoInfo.general.param_description);
 }
 
 function printParameter(param, index) {
@@ -82,17 +82,12 @@ function checkParamsVisibility() {
 
 function addResetButton() {
   $('.params-buttons').remove();
-  $('#parameters-container').append('<div class=params-buttons ></div>');
+  $('.params-header').append('<div class=params-buttons ></div>');
   $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
   $('.param-reset-btn').addClass('btn');
   $('.param-reset-btn').click(function(event) {
     parameters.printParameters();
-  });;
-}
-
-function addParamsDescriptionTooltips(ddl_general) {
-  if (ddl_general.param_description)
-    $('#parameters-description').attr('title', getConcatDescription(ddl_general.param_description));
+  });
 }
 
 function checkParamsDescriptionIconVisibility(ddl_general) {

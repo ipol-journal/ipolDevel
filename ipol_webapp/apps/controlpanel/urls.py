@@ -17,7 +17,7 @@ from apps.controlpanel.views.demoinfo_module import DemoinfoDemosView, DemoinfoA
     DemoinfoDeleteAuthorView, DemoinfoUpdateDemo, DemoinfoGetAuthorView, DemoinfoSaveAuthorView, DemoinfoDemoEditionView, \
     DemoinfoGetDemoAuthorView, DemoinfoDeleteAuthorFromDemoView, DemoinfoAddExistingAuthorToDemoView, \
     DemoinfoAddNewAuthorToDemoView, DemoinfoDeleteEditorView, DemoinfoGetEditorView, DemoinfoSaveEditorView, \
-    DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, DemoinfoAddExistingEditorToDemoView, \
+    DemoinfoGetDemoEditorView, DemoinfoAddNewEditorToDemoView, RestoreDDL, DemoinfoDDLHistoryView, DemoinfoAddExistingEditorToDemoView, \
     DemoinfoDeleteEditorFromDemoView, DemoinfoGetDemoExtrasView, DemoinfoDeleteDemoExtrasView, DemoinfoAddDemoExtrasView
 
 
@@ -55,6 +55,8 @@ urlpatterns = [
     url(r'^ajax_get_demoinfo_ddl/(?P<demo_id>\d+)/$', DemoinfoGetDDLView.as_view(), name="ipol.cp.demoinfo.get_ddl"),
     # Process the edit/new ddl form  (ajax jq call)
     url(r'^ajax_save_demoinfo_ddl/', DemoinfoSaveDDLView.as_view(), name="ipol.cp.demoinfo.save_ddl"),
+    url(r'^ddl_history/(?P<demo_id>\d+)/$', DemoinfoDDLHistoryView.as_view(), name="ipol.cp.demoinfo.ddl_history"),
+    url(r'^ajax_restore_ddl/$', RestoreDDL.as_view(), name="ipol.cp.demoinfo.restore_ddl"),
     url(r'^ajax_get_demoinfo_demo/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.create_demo"),
     url(r'^ajax_get_demoinfo_demo/(?P<demo_id>\d+)/$', DemoinfoGetDemoView.as_view(), name="ipol.cp.demoinfo.edit_demo"),
     url(r'^ajax_save_demoinfo_demo/', DemoinfoSaveDemo.as_view(), name="ipol.cp.demoinfo.save_demo"),

@@ -1,6 +1,11 @@
+debian-keyring
+debian-archive-keyring
+bash-completion
+mailutils
+cron-apt
+git
 python2.7
 wget
-git
 cmake
 ccache
 libtiff5-dev
@@ -24,7 +29,6 @@ python-jsonschema
 gnuplot
 gnuplot-nox
 python-pip
-python3-pip
 python-yaml
 libpq-dev
 libmagic-dev
@@ -55,6 +59,7 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
+
 libgeos-dev
 
 nano
@@ -65,13 +70,4 @@ openssh-server
 bash-completion
 mailutils
 cron-apt
-
-
-debian-keyring
-debian-archive-keyring
-build-essential
-python-setuptools
-libfreetype6-dev
-libpng12-dev
-python-scipy
-libatlas-dev
+ipython

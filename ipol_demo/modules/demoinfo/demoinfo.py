@@ -1672,6 +1672,31 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
+    def get_ddl_history(self, demo_id):
+        """
+        Return a list with all the DDLs
+        """
+        ddl_history = []
+        data = {'status':'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            dd_dao = DemoDemoDescriptionDAO(conn)
+            ddl_history = dd_dao.read_history(demo_id)
+            if not ddl_history:
+                data['error'] = "There isn't any DDL for demo {}".format(demo_id)
+                return json.dumps(data)
+            data['ddl_history'] = ddl_history
+            data['status'] = 'OK'
+            return json.dumps(data)
+        except Exception as ex:
+            error_msg = "Failure in function get_ddl_history. Error: {}".format(ex)
+            self.logger.exception(error_msg)
+            print error_msg
+            data['error'] = error_msg
+            return json.dumps(data)
+
+    @cherrypy.expose
+    @authenticate
     def get_ddl(self, demo_id):
         """
         Reads the current DDL of the demo

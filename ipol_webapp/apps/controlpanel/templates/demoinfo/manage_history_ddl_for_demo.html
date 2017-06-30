@@ -1,0 +1,85 @@
+{% extends 'base/base.html' %}
+{% load staticfiles %}
+
+{# load CSS for this page in particular #}
+{% block cssfiles %}
+    <!-- include external styles from static content -->
+    <link rel="stylesheet" href="{% static 'css/manage_ddl_history.css' %}"/>
+{% endblock %}
+
+{% load i18n %}
+{% block title %}
+	{% trans "Manage DDLs" %}
+{% endblock %}
+
+{% block content %}
+
+    {% with data=view.get_context_data %}
+	    <div class="container">
+
+		    <h2>  Manage DDL History for demo {{ data.demo_id }}</h2>
+
+            <!-- Return to previous page -->
+            <div class="container">
+                <a class="btn btn-info" href="/cp/demo_edition/{{data.demo_id}}">Go to demo page</a>
+            </div>
+
+            {% if data.status == "OK" %}
+            <h3>Current</h3>
+            <div>
+                {% for ddl in data.ddl_history %}
+                    {% if ddl == data.ddl_history.0 %}
+                        <div class="block">
+                            <a data-toggle="modal" data-target="#ddlmodal" onclick="showDDL({{ddl.ddl}},'{{ddl.creation}}')">Creation: {{ ddl.creation }}</a>
+                        </div>
+                        <h3>History</h3>
+                    {% else %}
+                        <div class="block">
+                            <a data-toggle="modal" data-target="#ddlmodal" onclick="showDDL({{ddl.ddl}},'{{ddl.creation}}')">Creation: {{ ddl.creation }}</a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+                <p>{{data.error}}</p>
+            {% endif %}
+
+        </div>
+
+        <!-- Modal -->
+        <div class="modal" id="ddlmodal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="title">DDL</h4>
+                    </div>
+
+                    <div class="modal-body" id="modal">
+                        <div class = "ddl-modal" style="">
+                            <div id="editor" name="editor"></div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="restoreDDL('{% url 'ipol.cp.demoinfo.restore_ddl' %}','{{data.demo_id}}')">Restore this version</button>
+                  </div>
+                </div>
+            </div>
+        </div>
+    {% endwith %}
+
+
+{% endblock %}
+
+{% block functionsjs %}
+	<script src="{% static 'js/min/jquery.validate.min.js' %}"></script>
+    <!-- load Ace JSON Editor-->
+    <script src="{% static 'ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+    <!-- include external script with required functions -->
+    <script src="{% static 'js/manage_ddl_history.js' %}"></script>
+    <script src="{% static 'js/ajaxPost.js' %}"></script>
+{% endblock %}
+

@@ -194,7 +194,7 @@ class DemoDescriptionDAO(object):
                        )
             """, (ddl, demo_id))
         nowtmstmp = datetime.datetime.now()
-        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''',(nowtmstmp,demo_id))
+        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''', (nowtmstmp, demo_id))
 
         if self.cursor.rowcount == 0:
             error_string = ("Demo %s not updated in DemoDescriptionDAO" % (str(demo_id)))
@@ -373,7 +373,7 @@ class DemoDemoDescriptionDAO(object):
             FROM demo
             WHERE demo.editor_demo_id=?))''', (int(demodescriptionid), int(editorsdemoid),))
         nowtmstmp = datetime.datetime.now()
-        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''',(nowtmstmp,editorsdemoid))
+        self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''', (nowtmstmp, editorsdemoid))
         self.conn.commit()
 
     @validates(typ(int))
@@ -473,6 +473,24 @@ class DemoDemoDescriptionDAO(object):
             demodescription_list.append(ddl)
 
         return demodescription_list
+
+    def read_history(self, demo_id):
+        """
+        Read the DDl history for the given demo
+        """
+        self.cursor.execute('''
+        SELECT  ddl , creation
+        FROM demodescription
+        WHERE id in (SELECT demodescriptionId
+                    FROM demo_demodescription, demo
+                    WHERE demoID = demo.id
+                    AND demo.editor_demo_id = ?)
+        ''', (int(demo_id),))
+        history = []
+        for row in self.cursor.fetchall():
+            history.append({"ddl": row[0], "creation": row[1]})
+
+        return history
 
 
 class AuthorDAO(object):

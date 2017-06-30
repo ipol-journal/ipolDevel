@@ -16,7 +16,7 @@
   margin: 5px 0;
   padding: 0;
 
-  border: 1px solid black;
+  border: 1px solid #cacaca;
   border-radius: 3px;
 
   -ms-flex-wrap: nowrap;
@@ -47,6 +47,7 @@ justify-content: space-around;
 
   margin: 3px;
 
+  border-radius: 5px;
   background-color: #EEE;
 
   -webkit-box-align: center;
@@ -71,7 +72,7 @@ justify-content: space-around;
 
 .blobSet img {
   height: 128px;
-  margin: 15px 15px;
+  margin: 10px 15px;
 }
 
 .blobTitle {
@@ -120,4 +121,22 @@ justify-content: space-around;
 
 .upload-element:first-child {
   text-align: center;
+}
+
+.ui-widget-header {
+    margin: 0;
+
+    text-align: center;
+
+    border: 0;
+    border-bottom: 2px solid rgb(162, 162, 162);
+    border-radius: 0;
+    background: #cecece;
+
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.ui-dialog-title {
+  width: 100% !important;
 }
