@@ -82,12 +82,12 @@ function checkParamsVisibility() {
 
 function addResetButton() {
   $('.params-buttons').remove();
-  $('#parameters-container').append('<div class=params-buttons ></div>');
+  $('.params-header').append('<div class=params-buttons ></div>');
   $('.params-buttons').append('<button class=param-reset-btn >Reset</button>');
   $('.param-reset-btn').addClass('btn');
   $('.param-reset-btn').click(function(event) {
     parameters.printParameters();
-  });;
+  });
 }
 
 function checkParamsDescriptionIconVisibility(ddl_general) {
