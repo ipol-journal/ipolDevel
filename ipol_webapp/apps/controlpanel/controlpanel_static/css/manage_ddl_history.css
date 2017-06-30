@@ -7,16 +7,17 @@
             border-radius: 5px;
             margin: 20px;
             padding: 15px;
+            max-width : 250px;
         }
-        pre {
-            border: 0;
-            background-color: transparent;
-            overflow:visible;
-        }
-        .ddl-modal{
-            height: 350px;
-        }
-        .modal-body{
+        #editor {
+            min-height: 400px;
+            font-size: 1em;
+            border: 1px solid lightgray;
+            border-radius: 5px;
             resize: vertical;
             overflow: auto;
+        }
+        a{
+            cursor: pointer;
+            font-size: 120%;
         }
