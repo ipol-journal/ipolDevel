@@ -59,13 +59,12 @@ function saveSelectedInput(side, index){
 // Print the chosen set blob list
 function printBlobsetList(demoInfo, blobs) {
   $("<div class=inputListContainerLeft></div>").insertBefore(".zoom-container");
-  $(".inputListContainerLeft").addClass('di-inline-block');
   $(".blobsList-right").append("<div class=inputListContainerRight></div>");
   for (let i = 0; i < blobs.length; i++) {
-    $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
+    $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span>");
     $(".editor-input-left-" + i).addClass('editor-input');
     $(".editor-input-left-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "left");
-    $(".inputListContainerRight").append("<span class=editor-input-right-" + i + ">" + demoInfo.inputs[i].description + "</span><br>");
+    $(".inputListContainerRight").append("<span class=editor-input-right-" + i + ">" + demoInfo.inputs[i].description + "</span>");
     $(".editor-input-right-" + i).addClass('editor-input');
     $(".editor-input-right-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "right");
   }
@@ -151,6 +150,7 @@ function addCompareEvent() {
     $(".blobsList-right").toggleClass("di-inline");
     $("#right-container").toggleClass("di-none");
     $("#right-container").toggleClass("di-inline");
+    $('.blobsList-right').toggleClass("di-none");
     scrollController.setImageContainerScroll("right");
   });
 }

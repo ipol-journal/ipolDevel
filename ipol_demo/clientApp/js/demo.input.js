@@ -52,7 +52,7 @@ input.printSets = function(sets) {
 
 input.printInputInformationIcon = function(ddl_general){
   checkInputDescriptionIconVisibility(ddl_general);
-  addInputDescriptionTooltips(ddl_general);
+  $('#inputs-description').addDescription(ddl_general.input_description);
 }
 
 function scrollHorizontally(e) {
@@ -95,19 +95,11 @@ function addSetClickEvent(blobSet, blobs) {
     });
 }
 
-function addInputDescriptionTooltips(ddl_general) {
-  if (ddl_general.input_description)
-    $('#inputs-description').attr('title', getConcatDescription(ddl_general.input_description));
+$.fn.addDescription = function(description) {
+  var text = typeof description != 'string' ? description.join('') : description;
+  if (description) $(this).attr('title', text);
 }
 
 function checkInputDescriptionIconVisibility(ddl_general) {
   if (ddl_general.input_description != undefined) $('#inputs-description').removeClass('di-none');
-}
-
-function getConcatDescription(inputDescription) {
-  var description = "";
-  for (let i = 0; i < inputDescription.length; i++) {
-    description += inputDescription[i];
-  }
-  return description;
 }
