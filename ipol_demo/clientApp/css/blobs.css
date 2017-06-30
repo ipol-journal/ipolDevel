@@ -46,6 +46,7 @@ justify-content: space-around;
   display: flex;
 
   margin: 3px;
+  border-radius: 5px;
 
   background-color: #EEE;
 
@@ -71,7 +72,7 @@ justify-content: space-around;
 
 .blobSet img {
   height: 128px;
-  margin: 15px 15px;
+  margin: 10px 15px;
 }
 
 .blobTitle {

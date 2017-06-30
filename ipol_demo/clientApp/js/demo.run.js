@@ -28,8 +28,10 @@ function runDemo() {
     })
     .done(function(res) {
       if (res.status == "KO") displayError(res.error);
-      else displaySuccess("Execution successful");
-      //Call drawResults function
+      else {
+        displaySuccess("Execution successful");
+        results.draw(res);
+      }
     })
     .fail(function(res) {
       displayError(res.responseText);
@@ -80,7 +82,7 @@ function checkPostInputs()  {
 
 function enableRunButton() {
   $(".run-btn").prop('disabled', false);
-  $(".run-btn").css('background-color', '#5d8cb1');
+  $(".run-btn").removeClass('disable-btn');
 }
 
 function hideRunningAnimation() {
@@ -94,7 +96,7 @@ function hideStatusContainer() {
 
 function displayRunningAnimation() {
   $(".run-btn").prop('disabled', true);
-  $(".run-btn").css('background-color', 'gray');
+  $(".run-btn").addClass('disable-btn');
   $(".loader").removeClass('di-none');
   $(".loader").addClass('element-appear');
 }

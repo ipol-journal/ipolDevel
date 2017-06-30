@@ -79,3 +79,7 @@
 .overflow-auto {
   overflow: auto;
 }
+
+.disable-btn {
+  background-color: gray !important;
+}
