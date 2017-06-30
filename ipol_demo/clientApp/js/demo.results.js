@@ -52,7 +52,7 @@ $.fn.file_download = function(result, index) {
       $('.download_' + index + '_' + idx).append('<a href=' + work_url + content + ' download><img src=./file.svg class=file-icon >' + eval(result.label) + '</a>')
     }
   } else {
-    $(this).append(result.label);
+    $(this).append('<h3>' + result.label + '</h3>');
     $(this).children().addClass('file_download_title');
     $(this).append('<div class=file_download_content_' + index + ' ></div>');
 
@@ -63,6 +63,22 @@ $.fn.file_download = function(result, index) {
       $('.download_' + index + '_' + i).append('<a href=' + work_url + result.contents[contentKeys[i]] + ' download><img src=./file.svg class=file-icon >' + contentKeys[i] + '</a>')
     }
   }
+}
+
+$.fn.text_file = function(result, index) {
+  var request = new XMLHttpRequest();
+  request.open('GET', work_url + result.contents , true);
+  request.responseType = 'blob';
+  request.onload = function() {
+    var reader = new FileReader();
+    reader.readAsText(request.response);
+    reader.onload = function(e) {
+      $('.result_' + index).append('<h3>' + result.label + '</h3>');
+      $('.result_' + index).append('<pre class=text_file_content id=text_file_' + index + ' >' + e.target.result + '</pre>');
+      if(result.style) $('#text_file_' + index).css(result.style);
+    };
+  };
+  request.send();
 }
 
 $.fn.html_text = function(result, index) {
