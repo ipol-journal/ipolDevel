@@ -725,7 +725,7 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, state, demodescriptionID=None, demodescriptionJson=None):
+    def add_demo(self, editorsdemoid, title, state, ddl_id=None, ddl=None):
         """
         Create a demo
         """
@@ -735,21 +735,21 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
 
-            if demodescriptionJson:
+            if ddl:
                 # creates a demodescription and asigns it to demo
                 ddao = DemoDescriptionDAO(conn)
-                demodescriptionID = ddao.add(demodescriptionJson)
+                ddl_id = ddao.add(ddl)
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
-                dddao.add(int(editorsdemoid), int(demodescriptionID))
+                dddao.add(int(editorsdemoid), int(ddl_id))
 
-            elif demodescriptionID:
+            elif ddl_id:
                 # asigns to demo an existing demodescription
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
-                ddddao.add(int(editorsdemoid), int(demodescriptionID))
+                ddddao.add(int(editorsdemoid), int(ddl_id))
 
             else:
                 # demo created without demodescription
@@ -1617,7 +1617,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def read_ddl(self, demodescriptionID):
+    def read_ddl(self, ddl_id):
         """
         Return the DDL.
         """
@@ -1625,7 +1625,7 @@ class DemoInfo(object):
         data["status"] = "KO"
         data["demo_description"] = None
         try:
-            ddl_id = int(demodescriptionID)
+            ddl_id = int(ddl_id)
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
