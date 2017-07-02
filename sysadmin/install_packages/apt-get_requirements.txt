@@ -41,6 +41,8 @@ libgsl-dev
 libgsl-dbg
 libblas-dev
 libblas3
+libopencv-dev
+python-opencv
 liblapack-dev
 liblapacke-dev
 liblapacke

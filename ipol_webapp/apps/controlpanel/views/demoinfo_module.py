@@ -1718,3 +1718,55 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
             raise ValueError(msg)
 
         return HttpResponseRedirect(url)
+
+class DemoinfoDDLHistoryView(NavbarReusableMixinMF, TemplateView):
+    template_name = "demoinfo/manage_history_ddl_for_demo.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(DemoinfoDDLHistoryView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        # get context
+        context = super(DemoinfoDDLHistoryView, self).get_context_data(**kwargs)
+        try:
+            demo_id = int(self.kwargs['demo_id'])
+            page_json = ipolservices.get_ddl_history(int(demo_id))
+            response = json.loads(page_json)
+
+            context['status'] = response['status']
+            if response['status'] != 'OK':
+                context['error'] = response['error']
+                return context
+            history = []
+            for ddl in response['ddl_history'][::-1]:
+                history.append({'creation':ddl.get('creation'),'ddl':json.dumps(ddl.get('ddl'))})
+            context['status'] = response['status']
+            context['demo_id'] = demo_id
+            context['ddl_history'] = history
+        except Exception as e:
+            print "DemoinfoDDLHistoryView. Error:", e
+            logger.error(e)
+
+        return context
+
+class RestoreDDL(NavbarReusableMixinMF,TemplateView):
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(RestoreDDL, self).dispatch(*args, **kwargs)
+
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = self.request.POST
+            dict_response = dict(response.iterlists())
+            ddl = dict_response['ddl'][0]
+            demo_id = dict_response['demo_id'][0]
+            ipolservices.demoinfo_save_demo_description(ddl, demo_id)
+        except Exception as ex:
+            msg = "RestoreDDL. Error %s " % ex
+            logger.error(msg)
+            print(msg)
+
+        return HttpResponseRedirect('')

@@ -145,6 +145,12 @@ def demoinfo_read_demo_description(demo_descp_id):
     return http_request(path, METHOD='POST', params=serviceparams, json=servicejson)
 
 
+def get_ddl_history(demo_id):
+    path = '/api/demoinfo/get_ddl_history'
+    serviceparams = {'demo_id': demo_id}
+    return http_request(path, METHOD='POST', params=serviceparams)
+
+
 def demoinfo_save_demo_description(pjson, demoid):
     path = '/api/demoinfo/save_ddl'
 

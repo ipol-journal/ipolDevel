@@ -1,0 +1,42 @@
+.file_download {
+  display: inline-block;
+
+  margin: 0 10px;
+  padding: 3px 5px;
+
+  cursor: pointer;
+  text-decoration: inherit;
+
+  border: 1px solid #8e8e8e;
+  border-radius: 5px;
+  background-color: #f7f5fb;
+  -webkit-box-shadow: 1px 1px 2px #999799;
+  box-shadow: 1px 1px 2px #999799;
+}
+
+.file_download:hover {
+  -webkit-transition: 0.2s ease-in;
+  transition: 0.2s ease-in;
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
+
+  -webkit-box-shadow: 2px 2px 3px #999799;
+  box-shadow: 2px 2px 3px #999799;
+}
+
+.file-icon {
+  height: 16px;
+  margin-right: 5px;
+  padding-top: 3px;
+}
+
+.text_file_content {
+  overflow: auto;
+
+  max-height: 500px;
+  padding: 10px;
+
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  background-color: #eceaec;
+}

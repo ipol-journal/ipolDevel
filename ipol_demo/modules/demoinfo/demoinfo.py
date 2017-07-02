@@ -725,7 +725,7 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, state, demodescriptionID=None, demodescriptionJson=None):
+    def add_demo(self, editorsdemoid, title, state, ddl_id=None, ddl=None):
         """
         Create a demo
         """
@@ -735,21 +735,21 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
 
-            if demodescriptionJson:
+            if ddl:
                 # creates a demodescription and asigns it to demo
                 ddao = DemoDescriptionDAO(conn)
-                demodescriptionID = ddao.add(demodescriptionJson)
+                ddl_id = ddao.add(ddl)
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
-                dddao.add(int(editorsdemoid), int(demodescriptionID))
+                dddao.add(int(editorsdemoid), int(ddl_id))
 
-            elif demodescriptionID:
+            elif ddl_id:
                 # asigns to demo an existing demodescription
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
-                ddddao.add(int(editorsdemoid), int(demodescriptionID))
+                ddddao.add(int(editorsdemoid), int(ddl_id))
 
             else:
                 # demo created without demodescription
@@ -1617,7 +1617,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def read_ddl(self, demodescriptionID):
+    def read_ddl(self, ddl_id):
         """
         Return the DDL.
         """
@@ -1625,7 +1625,7 @@ class DemoInfo(object):
         data["status"] = "KO"
         data["demo_description"] = None
         try:
-            ddl_id = int(demodescriptionID)
+            ddl_id = int(ddl_id)
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 
@@ -1669,6 +1669,31 @@ class DemoInfo(object):
             print error_string
             self.logger.exception(error_string)
             return json.dumps({'status': 'KO', 'error': error_string})
+
+    @cherrypy.expose
+    @authenticate
+    def get_ddl_history(self, demo_id):
+        """
+        Return a list with all the DDLs
+        """
+        ddl_history = []
+        data = {'status':'KO'}
+        try:
+            conn = lite.connect(self.database_file)
+            dd_dao = DemoDemoDescriptionDAO(conn)
+            ddl_history = dd_dao.read_history(demo_id)
+            if not ddl_history:
+                data['error'] = "There isn't any DDL for demo {}".format(demo_id)
+                return json.dumps(data)
+            data['ddl_history'] = ddl_history
+            data['status'] = 'OK'
+            return json.dumps(data)
+        except Exception as ex:
+            error_msg = "Failure in function get_ddl_history. Error: {}".format(ex)
+            self.logger.exception(error_msg)
+            print error_msg
+            data['error'] = error_msg
+            return json.dumps(data)
 
     @cherrypy.expose
     @authenticate
