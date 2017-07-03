@@ -124,10 +124,10 @@ class DemoInfo(object):
         self.database_dir = cherrypy.config.get("database_dir")
         self.database_name = cherrypy.config.get("database_name")
         self.database_file = os.path.join(self.database_dir, self.database_name)
-        if not self.create_datbase():
+        if not self.create_database():
             sys.exit("Initialization of database failed. Check the logs.")
 
-    def create_datbase(self):
+    def create_database(self):
         """
         Creates the database used by the module if it doesn't exist.
         If the file is empty, the system delete it and create a new one.
@@ -725,7 +725,7 @@ class DemoInfo(object):
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
     @authenticate
-    def add_demo(self, editorsdemoid, title, state, demodescriptionID=None, demodescriptionJson=None):
+    def add_demo(self, editorsdemoid, title, state, ddl_id=None, ddl=None):
         """
         Create a demo
         """
@@ -735,21 +735,21 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
 
-            if demodescriptionJson:
+            if ddl:
                 # creates a demodescription and asigns it to demo
                 ddao = DemoDescriptionDAO(conn)
-                demodescriptionID = ddao.add(demodescriptionJson)
+                ddl_id = ddao.add(ddl)
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 dddao = DemoDemoDescriptionDAO(conn)
-                dddao.add(int(editorsdemoid), int(demodescriptionID))
+                dddao.add(int(editorsdemoid), int(ddl_id))
 
-            elif demodescriptionID:
+            elif ddl_id:
                 # asigns to demo an existing demodescription
                 d = Demo(int(editorsdemoid), title, state)
                 editorsdemoid = dao.add(d)
                 ddddao = DemoDemoDescriptionDAO(conn)
-                ddddao.add(int(editorsdemoid), int(demodescriptionID))
+                ddddao.add(int(editorsdemoid), int(ddl_id))
 
             else:
                 # demo created without demodescription
@@ -839,21 +839,23 @@ class DemoInfo(object):
             d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'))
 
         try:
+            old_editor_demoid = int(old_editor_demoid)
+            d_editorsdemoid = int(d.editorsdemoid)
 
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
-            dao.update(d, int(old_editor_demoid))
+            dao.update(d, old_editor_demoid)
             conn.close()
-
-            if old_editor_demoid != d.editorsdemoid \
+    
+            if old_editor_demoid != d_editorsdemoid \
                     and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
-                if os.path.isdir(os.path.join(self.dl_extras_dir, str(d.editorsdemoid))):
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(d_editorsdemoid))):
                     # If the destination path exists, it should be removed
-                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
+                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(d_editorsdemoid)))
 
                 if os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
                     os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
-                              os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
+                              os.path.join(self.dl_extras_dir, str(d_editorsdemoid)))
 
             data["status"] = "OK"
         except OSError as ex:
@@ -865,7 +867,6 @@ class DemoInfo(object):
                 conn.close()
             except Exception as ex:
                 pass
-            # raise Exception
             data["error"] = error_string
 
         return json.dumps(data)
@@ -1617,7 +1618,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def read_ddl(self, demodescriptionID):
+    def read_ddl(self, ddl_id):
         """
         Return the DDL.
         """
@@ -1625,7 +1626,7 @@ class DemoInfo(object):
         data["status"] = "KO"
         data["demo_description"] = None
         try:
-            ddl_id = int(demodescriptionID)
+            ddl_id = int(ddl_id)
             conn = lite.connect(self.database_file)
             dao = DemoDescriptionDAO(conn)
 

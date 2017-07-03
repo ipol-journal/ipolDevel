@@ -25,6 +25,11 @@ h4{
 .column-4{
     width: 24.5%;
 }
+.column-5{
+    display: inline-block;
+    margin-top: 10px;
+    width: 70%;
+}
 #col-3{
     min-width: 33%;
 }

@@ -49,19 +49,21 @@
                             <!-- button to check and submit the DDL -->
                                 <a id="save-DDL-btn" class="btn btn-primary options" onclick="submitDDL('{% url 'ipol.cp.demoinfo.save_ddl' %}');" title="Save changes in the DDL">{% trans 'Save DDL' %}</a>
                             </div>
-                            <div class="column-2">
+                            <div class="column-5">
                                 <!-- element to display messages about the DDL -->
                                 <ul>
                                     <li id="DDL_msg"></li>
                                 </ul>
                             </div>
                         {% else %}
-                                <div class="column-4">
+                            <div class="column-4" >
                                     <a class="btn btn-primary disabled">{% trans 'Save DDL' %}</a>
                                 </div>
                             </div>
                         {% endif %}
-                        <a class="btn btn-info manage-btn" href="{% url 'ipol.cp.demoinfo.ddl_history' data.editorsdemoid %}" title="Manage the Blobs of this demo">{% trans 'DDL History' %}</a>
+                        <div class="column-4">
+                            <a class="btn btn-info manage-btn" href="{% url 'ipol.cp.demoinfo.ddl_history' data.editorsdemoid %}">{% trans 'DDL History' %}</a>
+                        </div>
                     </div>
 
                     <hr>

@@ -29,3 +29,14 @@
   margin-right: 5px;
   padding-top: 3px;
 }
+
+.text_file_content {
+  overflow: auto;
+
+  max-height: 500px;
+  padding: 10px;
+
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  background-color: #eceaec;
+}
