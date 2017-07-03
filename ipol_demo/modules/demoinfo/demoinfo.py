@@ -839,21 +839,23 @@ class DemoInfo(object):
             d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'))
 
         try:
+            old_editor_demoid = int(old_editor_demoid)
+            d_editorsdemoid = int(d.editorsdemoid)
 
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
-            dao.update(d, int(old_editor_demoid))
+            dao.update(d, old_editor_demoid)
             conn.close()
-
-            if old_editor_demoid != d.editorsdemoid \
+    
+            if old_editor_demoid != d_editorsdemoid \
                     and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
-                if os.path.isdir(os.path.join(self.dl_extras_dir, str(d.editorsdemoid))):
+                if os.path.isdir(os.path.join(self.dl_extras_dir, str(d_editorsdemoid))):
                     # If the destination path exists, it should be removed
-                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
+                    shutil.rmtree(os.path.join(self.dl_extras_dir, str(d_editorsdemoid)))
 
                 if os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
                     os.rename(os.path.join(self.dl_extras_dir, str(old_editor_demoid)),
-                              os.path.join(self.dl_extras_dir, str(d.editorsdemoid)))
+                              os.path.join(self.dl_extras_dir, str(d_editorsdemoid)))
 
             data["status"] = "OK"
         except OSError as ex:
@@ -865,7 +867,6 @@ class DemoInfo(object):
                 conn.close()
             except Exception as ex:
                 pass
-            # raise Exception
             data["error"] = error_string
 
         return json.dumps(data)
