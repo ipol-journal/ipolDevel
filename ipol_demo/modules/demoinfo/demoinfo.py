@@ -124,10 +124,10 @@ class DemoInfo(object):
         self.database_dir = cherrypy.config.get("database_dir")
         self.database_name = cherrypy.config.get("database_name")
         self.database_file = os.path.join(self.database_dir, self.database_name)
-        if not self.create_datbase():
+        if not self.create_database():
             sys.exit("Initialization of database failed. Check the logs.")
 
-    def create_datbase(self):
+    def create_database(self):
         """
         Creates the database used by the module if it doesn't exist.
         If the file is empty, the system delete it and create a new one.
