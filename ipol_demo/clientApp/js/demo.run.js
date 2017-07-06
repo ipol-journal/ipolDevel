@@ -91,7 +91,7 @@ function hideRunningAnimation() {
 }
 
 function hideStatusContainer() {
-  $(".run-msg-box").addClass('di-none');
+  $(".msg-box").addClass('di-none');
 }
 
 function displayRunningAnimation() {
@@ -102,19 +102,18 @@ function displayRunningAnimation() {
 }
 
 function displayError(msg) {
-  $(".run-msg-box").removeClass('di-none');
-  $(".run-msg-box").removeClass('run-success');
-  $(".run-msg-box").addClass('element-appear');
-  $(".run-msg-box").addClass('run-error');
-
+  $(".msg-box").removeClass('di-none');
+  $(".msg-box").removeClass('run-success');
+  $(".msg-box").addClass('element-appear');
+  $(".msg-box").addClass('run-error');
   $(".run-msg").html(msg || errorMsg);
 }
 
 function displaySuccess(msg) {
-  $(".run-msg-box").removeClass('di-none');
-  $(".run-msg-box").removeClass('run-error');
-  $(".run-msg-box").addClass('element-appear');
-  $(".run-msg-box").addClass('run-success');
+  $(".msg-box").removeClass('di-none');
+  $(".msg-box").removeClass('run-error');
+  $(".msg-box").addClass('element-appear');
+  $(".msg-box").addClass('run-success');
 
   $(".run-msg").html(msg);
 }

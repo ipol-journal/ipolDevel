@@ -5,7 +5,9 @@
   <title>IPOL Journal · Image Processing On Line</title>
 
   <meta http-equiv='content-type' content='text/html; charset=utf-8' />
-  
+
+  <link rel="shortcut icon" href="assets/favicon.ico" />
+
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
 
   <link rel="stylesheet" href="css/animations.css">
@@ -40,7 +42,7 @@
   <div class="inputContainer container di-none">
     <div class="container-header">
       <h1 class="container-title m-y-5">Select input(s)</h1>
-      <img src="./information-icon.png" class="information-icon m-y-5 di-none" id="inputs-description">
+      <img src="./assets/information-icon.png" class="information-icon m-y-5 di-none" id="inputs-description">
       <div class="description-dialog" title="Input description"></div>
 
       <button class="btn upload-btn">Upload data</button>
@@ -71,17 +73,22 @@
       </div>
     </div>
 
-    <div class="run-msg-box di-none">
+    <div class="msg-box di-none">
       <span class="run-msg"></span>
     </div>
   </div>
 
   <div class="results container di-none">
+
+    <hr class="separator">
+
     <div class="container-header">
       <h1 class="container-title m-y-5">Results</h1>
     </div>
     <div class="results-container"></div>
   </div>
+
+  <hr class="separator">
 
   <div id="footer"></div>
 

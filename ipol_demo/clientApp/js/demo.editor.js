@@ -109,7 +109,7 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
   } else if (blobType == 'audio') {
     $(this).empty();
-    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "non_viewable_data.png";
+    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
     $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   } else {
     if (isPreviousBlobImg(side)) {
