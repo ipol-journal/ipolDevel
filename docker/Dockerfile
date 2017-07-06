@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM debian:stable
 
 ENV home /home/ipol
 ENV ipolDevel ~/ipolDevel
@@ -21,7 +21,8 @@ RUN pip install -r requirements.txt
 # Nginx config file generation
 COPY ./sysadmin/configs/nginx/default-local /etc/nginx/sites-available/default
 COPY ./docker/nginx_clientApp_location /home/ipol/nginx_clientApp_location
-RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default && sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
+RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default && \
+    sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
 
 # Libtiff bugfix
 RUN python -c 'import libtiff'
@@ -34,4 +35,4 @@ USER root
 EXPOSE 80
 EXPOSE 22
 
-ENTRYPOINT service ssh start && bash
+ENTRYPOINT service ssh start && nginx && bash
