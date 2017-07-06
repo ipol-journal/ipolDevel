@@ -1616,7 +1616,7 @@ demo #{} - {}".format(demo_id, str(ex))
 
         dic = {}
         f = open(file_name, "r")
-        lines = f.readlines()
+        lines = f.read().splitlines()
         #
         for line in lines:
             # Read with format A = B, where B can contain the '=' sign
