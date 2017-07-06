@@ -13,7 +13,7 @@ def evaluate(expression):
     Evaluates a math expression
     """
     try:
-        node = ast.parse(expression, mode='eval')
+        node = ast.parse(str(expression), mode='eval')
         if isinstance(node.body, ast.Num):
             return float(node.body.n)
         return _evaluate(node)

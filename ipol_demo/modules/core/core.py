@@ -479,7 +479,7 @@ workload of '{}'".format(dr_name)
         Convert and resize an image object
         """
         # check max size
-        max_pixels = evaluate(str(input_info['max_pixels']))
+        max_pixels = evaluate(input_info['max_pixels'])
         return self.needs_convert(im, input_info) or prod(im.size) > max_pixels
 
     # ---------------------------------------------------------------------------
@@ -492,7 +492,7 @@ workload of '{}'".format(dr_name)
             im.convert(input_info['dtype'])
             msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
-        max_pixels = evaluate(str(input_info['max_pixels']))
+        max_pixels = evaluate(input_info['max_pixels'])
         resize = prod(im.size) > max_pixels
 
         if resize:
@@ -581,7 +581,7 @@ workload of '{}'".format(dr_name)
             y1 = int(round(crop_info['y'] + crop_info['h']))
             # save parameters
             try:
-                max_pixels = evaluate(str(inputs_desc[0]['max_pixels']))
+                max_pixels = evaluate(inputs_desc[0]['max_pixels'])
                 # Karl: here different from base_app approach
                 # crop coordinates are on original image size
                 img.crop((x0, y0, x1, y1))
@@ -745,7 +745,7 @@ workload of '{}'".format(dr_name)
                 if not data:
                     break
                 size += len(data)
-                if 'max_weight' in inputs_desc[i] and size > evaluate(str(inputs_desc[i]['max_weight'])):
+                if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
                     # file too heavy
                     # Bad Request
                     raise cherrypy.HTTPError(400, "File too large, resize or compress more")
@@ -1241,7 +1241,8 @@ attached the failed experiment data.". \
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
                 params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
-                self.post(self.host_name, 'conversion', 'convert', params_conv)
+                resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
+                print resp.json()
             except IPOLEvaluateError as ex:
                 res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
                             'status': 'KO'}
@@ -1691,4 +1692,3 @@ demo #{} - {}".format(demo_id, str(ex))
             print "Failure in the post function of the CORE in the call \
               to {} module - {}".format(module, str(ex))
             self.logger.exception("Failure in the post function of the CORE")
-
