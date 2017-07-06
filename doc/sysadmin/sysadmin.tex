@@ -131,7 +131,7 @@ The IPOL GitHub repository might be private. Thus, is any server needs to obtain
 For example:
 
 \begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config 
+ipol@smartalgo:~/ipolDevel$ cat ~/.ssh/config
 host github_deploy
       hostname github.com
       user git
@@ -141,7 +141,7 @@ host github_deploy
 \vspace{0.15cm}
 
 \begin{verbatim}
-ipol@smartalgo:~/ipolDevel$ cat .git/config 
+ipol@smartalgo:~/ipolDevel$ cat .git/config
 [core]
 	repositoryformatversion = 0
 	filemode = true
@@ -389,21 +389,21 @@ ln -s /etc/nginx/sites-available/default \
 
 
 \section{Control Panel}
-To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are 
-required for this purpose. The first one will work as the application server, while the second is a reverse proxy. 
+To operate in a production environment is necessary to install and configure some extra dependencies. In this case, Gunicorn and Nginx are
+required for this purpose. The first one will work as the application server, while the second is a reverse proxy.
 
 \begin{itemize}
-\item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers. 
-These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is 
+\item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers.
+These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is
 implemented with NGINX and is used to redirect requests from port 80 to the Control Panel listening port.
-\item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language. 
+\item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language.
 In this case the Gunicorn is the responsible of this purpose.
-\item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this 
+\item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this
 is implemented with Django.
 \end{itemize}
 
 \subsection{Communication between the Client and Control Panel}
-The communication between the client and the Control Panel varies according to the environment in which it is performed.  
+The communication between the client and the Control Panel varies according to the environment in which it is performed.
 The differences between them are described below.
 
 The communication between the client and the Control Panel in local is stablished by a reverse proxy. This reverse proxy is implemented with
@@ -418,9 +418,9 @@ The diagram of this configuration is represented by Figure ~\ref{fig:local_archi
 \label{fig:local_architecture}
 \end{figure}
 
-In the production and integration servers is where is located the most complete connection. As in the local server, a reverse proxy is needed to 
-make the redirections to hide to the client in wich port is Django running and to provide all the static files. In addition, in the production 
-and integration servers a WSGI is also needed to receive the http request and send them to Django. This WSGI is implemented with Gunicorn and 
+In the production and integration servers is where is located the most complete connection. As in the local server, a reverse proxy is needed to
+make the redirections to hide to the client in wich port is Django running and to provide all the static files. In addition, in the production
+and integration servers a WSGI is also needed to receive the http request and send them to Django. This WSGI is implemented with Gunicorn and
 communicates with the NGINX through a UNIX socket. The diagram of this configuration is represented by Figure ~\ref{fig:prod_int_architecture}.
 
 
@@ -487,14 +487,14 @@ To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im
 In order to allow members of IPOL get a development envirorment, we created a docker image.
 
 \paragraph{Usage}:
-The necessary commands in order to work with docker will be described in the next section. The first thing you should do is 
-build the Docker image, then you will be able to create as many containers as you want. Then run the container and you 
-will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already 
+The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
+build the Docker image, then you will be able to create as many containers as you want. Then run the container and you
+will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already
 configured and running.
 
-In order to run the Django server for the control panel you will have to make the migrations once per 
+In order to run the Django server for the control panel you will have to make the migrations once per
 container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
- After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.1.1:8000. 
+ After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.0.1:8000.
 
 
 \paragraph{Docker build}:\\
@@ -513,7 +513,7 @@ With this command we will have docker create an image from the Dockerfile in the
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.1.1 --name ipol ipol
+  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
@@ -523,12 +523,12 @@ This command will create a container and log us in the terminal. Explanation:
   \item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
   \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
   \item -h docker: defines the container's hostname
-  \item --add-host docker:127.0.1.1: adds an entry to /etc/hosts mapping 127.0.1.1 to the host
+  \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
   \item -name ipol: assigns the name ipol to the container for future reference
   \item ipol: tells docker to run a container from the image "ipol"
 \end{itemize}
 
-After this command we will be inside the containers tty. This command should be used each time after a docker build is done, 
+After this command we will be inside the containers tty. This command should be used each time after a docker build is done,
 otherwise if the container is already exists, it will have to be removed or attached to. The orders to control containers and images are:
 
 \paragraph{Docker start}:\\

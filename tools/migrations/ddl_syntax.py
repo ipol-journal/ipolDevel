@@ -20,7 +20,6 @@ import requests
 import json
 
 HOST = "integration.ipol.im"
-# HOST = "127.0.1.1"
 
 def post(service, params=None, json=None):
     """
@@ -168,5 +167,3 @@ if __name__ == '__main__':
             print "Demo #{} \"{}\" was modified".format(editors_demoid,title)
             # Stores the new DDL
             do_write(editors_demoid, new_ddl)
-
-

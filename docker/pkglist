@@ -60,6 +60,9 @@ libavresample-dev
 libavfilter-dev
 libavutil-dev
 
+libopencv-dev
+python-opencv
+
 libgeos-dev
 
 nano
@@ -71,3 +74,4 @@ bash-completion
 mailutils
 cron-apt
 ipython
+net-tools

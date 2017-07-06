@@ -17,8 +17,8 @@
 
 
 First create a superuser:
-python manage.py createsuperuser
-http://127.0.1.1/cp/admin
+	python manage.py createsuperuser
+	http://127.0.0.1/cp/admin
 
 Login:
-	http://127.0.1.1/cp
+	http://127.0.0.1/cp
