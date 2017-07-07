@@ -100,6 +100,7 @@ a:hover {
   margin: 5px 10px;
   padding: 8px;
 
+  cursor: pointer;
   text-decoration: none;
 
   color: #333;
@@ -125,8 +126,8 @@ a:hover {
   display: flex;
 
   margin-bottom: 10px;
-
   /*border: #adadad solid;*/
+
   border-width: 0 0 1px 0;
 
   -webkit-box-align: center;
@@ -148,11 +149,16 @@ div.ui-tooltip {
 }
 
 hr.separator {
-  padding: 0 10px;
-  border: 0;
   height: 1px;
+  padding: 0 10px;
+
+  border: 0;
   background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
   background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
   background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
   background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+}
+
+.hand, select {
+  cursor: pointer;
 }

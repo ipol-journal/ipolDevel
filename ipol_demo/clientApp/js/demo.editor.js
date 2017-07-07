@@ -74,7 +74,7 @@ function printBlobsetList(demoInfo, blobs) {
 
 // Single blob sets controlls
 function loadSingleBlobControlls($img) {
-  $(".blobsList-left").append("<br><input type=checkbox id=crop-btn>Crop")
+  $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>")
   $img.cropper({
     viewMode: 1,
     autoCrop: false,
@@ -129,7 +129,7 @@ function isPreviousBlobImg(side){
 }
 
 function addCropEvent() {
-  $("#crop-btn").change(function() {
+  $("#crop-btn").on('click', function() {
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
     } else {
