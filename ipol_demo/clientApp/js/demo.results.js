@@ -106,7 +106,7 @@ $.fn.html_text = function(result, index) {
 $.fn.message = function(result, index) {
   $(this).append("<div class=message_" + index + " ></div>");
   $('.message_' + index).html(eval(result.contents));
-  $('.message_' + index).addClass('msg-box');
+  $('.message_' + index).addClass('result-msg-box');
   if (result.backgroundColor) $('.message_' + index).css({
     backgroundColor: result.backgroundColor
   });

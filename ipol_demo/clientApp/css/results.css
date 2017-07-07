@@ -40,3 +40,19 @@
   border-radius: 5px;
   background-color: #eceaec;
 }
+
+.result-msg-box {
+  min-height: 20px;
+  margin: 10px 0;
+  padding: 15px;
+
+  border: 1px solid transparent;
+  border-radius: 4px;
+
+  color: #836F3A;
+  background-color: #edef83;
+}
+
+.results-container > div {
+  margin-bottom: 15px;
+}
