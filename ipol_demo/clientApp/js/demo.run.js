@@ -27,14 +27,14 @@ function runDemo() {
       data: runData
     })
     .done(function(res) {
-      if (res.status == "KO") displayError(res.error);
+      if (res.status == "KO") displayError(res.error, "server");
       else {
         displaySuccess("Execution successful");
         results.draw(res);
       }
     })
     .fail(function(res) {
-      displayError(res.responseText);
+      displayError(res.responseText, "client");
     })
     .always(function(res) {
       console.log(res);
@@ -101,11 +101,12 @@ function displayRunningAnimation() {
   $(".loader").addClass('element-appear');
 }
 
-function displayError(msg) {
+function displayError(msg, origin) {
   $(".msg-box").removeClass('di-none');
   $(".msg-box").removeClass('run-success');
   $(".msg-box").addClass('element-appear');
   $(".msg-box").addClass('run-error');
+  if(origin == "server") $('.msg-box').addClass('server-error');
   $(".run-msg").html(msg || errorMsg);
 }
 

@@ -94,11 +94,15 @@
 }
 
 .run-error {
-  text-align: left;
-  white-space: pre-line;
+  text-align: center;
 
   border-color: #ebccd1;
   background-color: #f2dede;
+}
+
+.server-error {
+  text-align: left;
+  white-space: pre-line;
 }
 
 .run-error span {
