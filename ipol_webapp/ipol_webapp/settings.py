@@ -80,17 +80,17 @@ if hostname in local_machines:
     DBHOST = 'localhost'
     DBUSER = ''
     DBPSSWD = ''
-    ALLOWED_HOSTS = ['127.0.1.1']
+    ALLOWED_HOSTS = ['127.0.0.1']
     HTTPS = False
 
     ####################################
     #            IPOL WS               #
     ####################################
-    HOST_NAME = '127.0.1.1'
+    HOST_NAME = '127.0.0.1'
     #Local ENV
-    IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
-    # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.1.1)
-    IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
+    IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+    # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
+    IPOL_SERVICES_MODULE_PROXY = 'http://127.0.0.1:9003/%s'
     #urls to access the modules by proxy
     IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
     IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY

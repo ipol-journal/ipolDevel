@@ -27,14 +27,14 @@ function runDemo() {
       data: runData
     })
     .done(function(res) {
-      if (res.status == "KO") displayError(res.error);
+      if (res.status == "KO") displayError(res.error, "server");
       else {
         displaySuccess("Execution successful");
         results.draw(res);
       }
     })
     .fail(function(res) {
-      displayError(res.responseText);
+      displayError(res.responseText, "client");
     })
     .always(function(res) {
       console.log(res);
@@ -91,7 +91,7 @@ function hideRunningAnimation() {
 }
 
 function hideStatusContainer() {
-  $(".run-msg-box").addClass('di-none');
+  $(".msg-box").addClass('di-none');
 }
 
 function displayRunningAnimation() {
@@ -101,20 +101,20 @@ function displayRunningAnimation() {
   $(".loader").addClass('element-appear');
 }
 
-function displayError(msg) {
-  $(".run-msg-box").removeClass('di-none');
-  $(".run-msg-box").removeClass('run-success');
-  $(".run-msg-box").addClass('element-appear');
-  $(".run-msg-box").addClass('run-error');
-
+function displayError(msg, origin) {
+  $(".msg-box").removeClass('di-none');
+  $(".msg-box").removeClass('run-success');
+  $(".msg-box").addClass('element-appear');
+  $(".msg-box").addClass('run-error');
+  if(origin == "server") $('.msg-box').addClass('server-error');
   $(".run-msg").html(msg || errorMsg);
 }
 
 function displaySuccess(msg) {
-  $(".run-msg-box").removeClass('di-none');
-  $(".run-msg-box").removeClass('run-error');
-  $(".run-msg-box").addClass('element-appear');
-  $(".run-msg-box").addClass('run-success');
+  $(".msg-box").removeClass('di-none');
+  $(".msg-box").removeClass('run-error');
+  $(".msg-box").addClass('element-appear');
+  $(".msg-box").addClass('run-success');
 
   $(".run-msg").html(msg);
 }

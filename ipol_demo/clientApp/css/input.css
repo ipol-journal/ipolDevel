@@ -47,6 +47,8 @@ justify-content: space-around;
 
   margin: 3px;
 
+  cursor: pointer;
+
   border-radius: 5px;
   background-color: #EEE;
 
@@ -67,7 +69,8 @@ justify-content: space-around;
 }
 
 .blobSet:hover{
-  background-color: #cd5757;
+  transition: all 0.3s ease-in-out;
+  background-color: #558ace;
 }
 
 .blobSet img {

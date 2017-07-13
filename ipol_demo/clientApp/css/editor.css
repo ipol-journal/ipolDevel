@@ -96,6 +96,8 @@
 
 .editor-input:hover {
   background-color: #ae9deb;
+
+  transition: all 0.3s ease-in;
 }
 
 .editor-input {

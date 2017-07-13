@@ -29,7 +29,7 @@
 .space-between {
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
-  justify-content: space-between;
+  justify-content: space-between !important;
 }
 
 .space-around {

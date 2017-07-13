@@ -9,6 +9,7 @@ $(document).ready(function() {
   $("#footer").load("footer.html");
   clearStorage();
   demo_id = getDemoId();
+  $('#archiveTab').attr('href', '/demo/clientApp/archive.html?id=' + demo_id);
   getBlobSets();
   getDemoinfo();
 });

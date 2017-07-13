@@ -21,15 +21,11 @@ RUN pip install -r requirements.txt
 # Nginx config file generation
 COPY ./sysadmin/configs/nginx/default-local /etc/nginx/sites-available/default
 COPY ./docker/nginx_clientApp_location /home/ipol/nginx_clientApp_location
-RUN sed -i 's@miguel@ipol@g; s@http://$host:@http://127.0.1.1:@g' /etc/nginx/sites-available/default
-RUN sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
+RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default && \
+    sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
 
 # Libtiff bugfix
 RUN python -c 'import libtiff'
-
-#Libpng version fix - Jessie and Stretch don't have it in the repos yet
-RUN echo deb http://deb.debian.org/debian wheezy main >> /etc/apt/sources.list && \
-    apt update && apt -t wheezy -y install libpng12-0
 
 USER ipol
 RUN ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod og-wx ~/.ssh/authorized_keys

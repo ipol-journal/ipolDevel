@@ -72,7 +72,7 @@ def check_ddl(ddl):
     """
     if ddl is None:
         return {"DDL": "This demo does not have any DDL"}
-        
+
     ddl_json = json.loads(ddl)
     if len(ddl_json.keys()) == 0:
         return {"DDL": "No sections found"}
@@ -253,41 +253,9 @@ if environment in ['integration', 'int', 'i']:
 elif environment in ['production', 'prod', 'p']:
     HOST = "ipolcore.ipol.im"
 elif environment in ['local', 'l']:
-    HOST = "127.0.1.1"
+    HOST = "127.0.0.1"
 else:
     print "Unknown environment '{}'".format(environment)
     exit (-1)
 
 start_test()
-            
-
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            

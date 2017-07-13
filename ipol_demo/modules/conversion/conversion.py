@@ -175,7 +175,7 @@ class Conversion(object):
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.error("Failed to shutdown : {}".format(ex))
+            self.logger.exception("Failed to shutdown : {}".format(ex))
             sys.exit(1)
         return json.dumps(data)
 
@@ -246,7 +246,7 @@ class Conversion(object):
 
         except IOError as ex:
             error_msg = "Failed to read input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.error(error_msg)
+            self.logger.exception(error_msg)
             print error_msg
             data['status'] = 'KO'
             data['code'] = -1
@@ -254,7 +254,7 @@ class Conversion(object):
             return json.dumps(data)
         except IPOLConvertInputError as ex:
             error_msg = "Failed to convert the input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.error(error_msg)
+            self.logger.exception(error_msg)
             print error_msg
             data['status'] = 'KO'
             data['code'] = -1
@@ -262,7 +262,7 @@ class Conversion(object):
             return json.dumps(data)
         except IPOLCropInputError as ex:
             error_msg = "Failed to crop the input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.error(error_msg)
+            self.logger.exception(error_msg)
             print error_msg
             data['status'] = 'KO'
             data['codes'] = -1
@@ -270,7 +270,7 @@ class Conversion(object):
             return json.dumps(data)
         except Exception as ex:
             error_msg = "Unhandled exception in the convert. Error: {}".format(str(ex))
-            self.logger.error(error_msg)
+            self.logger.exception(error_msg)
             print error_msg
             data['status'] = 'KO'
             data['code'] = -1

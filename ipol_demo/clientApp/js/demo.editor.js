@@ -74,7 +74,7 @@ function printBlobsetList(demoInfo, blobs) {
 
 // Single blob sets controlls
 function loadSingleBlobControlls($img) {
-  $(".blobsList-left").append("<br><input type=checkbox id=crop-btn>Crop")
+  $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>")
   $img.cropper({
     viewMode: 1,
     autoCrop: false,
@@ -109,7 +109,7 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
   } else if (blobType == 'audio') {
     $(this).empty();
-    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "non_viewable_data.png";
+    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
     $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
   } else {
     if (isPreviousBlobImg(side)) {
@@ -129,7 +129,7 @@ function isPreviousBlobImg(side){
 }
 
 function addCropEvent() {
-  $("#crop-btn").change(function() {
+  $("#crop-btn").on('click', function() {
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
     } else {
