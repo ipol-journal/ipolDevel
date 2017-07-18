@@ -77,7 +77,6 @@ linux-image-amd64
 
 # Machine learning workshops
 caffe-cpu
-caffe-doc
 caffe-tools-cpu
 libcaffe-cpu-dev
 libcaffe-cpu1
