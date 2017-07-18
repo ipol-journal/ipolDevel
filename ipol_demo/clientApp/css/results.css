@@ -106,8 +106,9 @@
   image-rendering: pixelated;
 }
 
-.gallery-img-container {
+.gallery-blob-container {
   overflow: auto;
+  min-height: 300px;
   margin: 0 5px 5px 5px;
   animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
 }

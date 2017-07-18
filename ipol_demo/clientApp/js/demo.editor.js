@@ -88,7 +88,7 @@ function loadSingleBlobControlls($img) {
 
 // Multiple blob sets controlls
 function loadMultiBlobControlls(blob) {
-  $(".blobsList-left").append("<br><input type=checkbox id=compare-btn>Compare");
+  $(".blobsList-left").append("<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>");
   zoomController.multiBlob();
   addCompareEvent();
 }
@@ -151,7 +151,6 @@ function addCompareEvent() {
     $("#right-container").toggleClass("di-none");
     $("#right-container").toggleClass("di-inline");
     $('.blobsList-right').toggleClass("di-none");
-    scrollController.setImageContainerScroll("right");
   });
 }
 
@@ -190,6 +189,5 @@ $.fn.loadInputsContainerEvent = function(side){
 function zoomSync(blob, side) {
   if (blob.format == 'image') {
     zoomController.changeImageZoom(side);
-    scrollController.setImageContainerScroll(side);
   }
 }
