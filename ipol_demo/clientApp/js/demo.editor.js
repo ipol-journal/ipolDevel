@@ -151,7 +151,6 @@ function addCompareEvent() {
     $("#right-container").toggleClass("di-none");
     $("#right-container").toggleClass("di-inline");
     $('.blobsList-right').toggleClass("di-none");
-    scrollController.setImageContainerScroll("right");
   });
 }
 
@@ -190,6 +189,5 @@ $.fn.loadInputsContainerEvent = function(side){
 function zoomSync(blob, side) {
   if (blob.format == 'image') {
     zoomController.changeImageZoom(side);
-    scrollController.setImageContainerScroll(side);
   }
 }

@@ -34,7 +34,7 @@ function isVisible(result) {
 $.fn.gallery = function(result, index)  {
   var contentKeys = Object.keys(result.contents);
 
-  $(this).append(result.label);
+  $(this).appendLabel(result.label);
   var gallerySelector = "gallery_" + index;
   $(this).append("<div class=" + gallerySelector + " ></div>");
   $("." + gallerySelector).addClass("gallery-container");
@@ -53,29 +53,31 @@ $.fn.gallery = function(result, index)  {
 
   // Evaluate key conditional.
   for (let i = 0; i < contentKeys.length; i++) {
-    $("." + leftItems).append("<span class=gallery-item-selector>" + contentKeys[i] + "</span>");
-    $("." + rightItems).append("<span class=gallery-item-selector>" + contentKeys[i] + "</span>");
+    $("." + leftItems).append("<span id=gallery-item-left-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+    $("." + rightItems).append("<span id=gallery-item-right-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+    $("#gallery-item-left-" +i).addHoverEvents(index, 'left', work_url + result.contents[contentKeys[i]]);
+    $("#gallery-item-right-" +i).addHoverEvents(index, 'right', work_url + result.contents[contentKeys[i]]);
   }
   $("." +leftItems+ " span:first-child").addClass("gallery-item-selected");
   $("." +rightItems+ " span:first-child").addClass("gallery-item-selected");
 
-  var imgContainerLeft = "gallery-img-container-left-" + index;
-  var imgContainerRight = "gallery-img-container-right-" + index;
-  $("." + blobsContainerSelector).append("<div class=" +imgContainerLeft+ "></div>");
-  $("." + blobsContainerSelector).append("<div class=" +imgContainerRight+ "></div>");
-  $("." + imgContainerLeft).addClass("gallery-img-container");
-  $("." + imgContainerRight).addClass("gallery-img-container di-none");
+  var imgContainerLeft = "gallery-blob-container-left-" + index;
+  var imgContainerRight = "gallery-blob-container-right-" + index;
+  $("." + blobsContainerSelector).append("<div id=" +imgContainerLeft+ "></div>");
+  $("." + blobsContainerSelector).append("<div id=" +imgContainerRight+ "></div>");
+  $("#" + imgContainerLeft).addClass("gallery-blob-container");
+  $("#" + imgContainerRight).addClass("gallery-blob-container di-none");
 
-  var imgHTML = '<img src=' + work_url + result.contents[contentKeys[0]] + ' class=gallery-img></img>';
-  $("." + imgContainerLeft).append(imgHTML);
-  $("." + imgContainerRight).append(imgHTML);
+  $("#" + imgContainerLeft).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' id=gallery-' +index+ '-blob-left class=gallery-img draggable=false></img>');
+  $("#" + imgContainerRight).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' id=gallery-' +index+ '-blob-right class=gallery-img draggable=false></img>');
 
-  $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
+  $("." + leftItems).appendZoom(index, leftItems);
+  $("." + leftItems).appendGalleryControlls(index, rightItems, imgContainerRight);
 
   checkOptions(result.type, index);
 }
 
-$.fn.appendCompare = function(index, rightItems, imgContainerRight) {
+$.fn.appendGalleryControlls = function(index, rightItems, imgContainerRight) {
   $(this).append("<div><input type=checkbox id=compare-btn-gallery-" +index+ "><label for=compare-btn-gallery-" +index+ ">Compare</label></div>");
   $("#compare-btn-gallery-" + index).on('click', function() {
     if ($(this).is(":checked")) {
@@ -85,11 +87,86 @@ $.fn.appendCompare = function(index, rightItems, imgContainerRight) {
       $(".gallery-img-container-left-" + index).css({"flex-basis": ""});
       $(".gallery-img-container-right-" + index).css({"flex-basis": ""});
     }
-    $("." + imgContainerRight).toggleClass("di-none");
+    $("#" + imgContainerRight).toggleClass("di-none");
     $(".gallery_" + index).toggleClass("space-between");
     $("." + rightItems).toggleClass("di-none");
   });
-};
+}
+
+$.fn.appendLabel = function(labelArray) {
+  var html = [""];
+  for (var i = 0; i < labelArray.length; i++) {
+    html += labelArray[i];
+  }
+  $(this).append(html);
+}
+
+// Add event listeners for gallery images lists
+$.fn.addHoverEvents = function(galleryIndex, side, src) {
+  var originalSrc = "";
+  var selector = '#gallery-' +galleryIndex+ '-blob-' + side;
+  $(this).mouseover(function() {
+    originalSrc = $('#gallery-' +galleryIndex+ '-blob-' + side).attr("src");
+    $(selector).attr("src", src);
+  });
+  $(this).mouseout(function() {
+    $(selector).attr("src", originalSrc);
+  });
+  $(this).on('click', function() {
+    var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
+    $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
+    $(this).toggleClass("gallery-item-selected");
+    originalSrc = $(selector).attr("src");
+  });
+}
+
+$.fn.appendZoom = function(index, leftItems) {
+  var zoom = $("#zoom-container").clone();
+  var newZoomID= "gallery-" +index+ "-zoom";
+  zoom.attr("id", newZoomID).appendTo("." + leftItems);
+  $("#" + newZoomID + " > select").addZoomEvents(index);
+  synqScroll(index);
+}
+
+$.fn.addZoomEvents = function(index, side){
+  $(this).on('change', function() {
+    var leftImg = $('#gallery-' +index+ '-blob-left');
+    var rightImg = $('#gallery-' +index+ '-blob-right');
+    var zoomLevel = $(this).val();
+    if (leftImg[0].naturalHeight || leftImg[0].naturalWidth) {
+      sideWidth = leftImg[0].naturalWidth * zoomLevel;
+      sideHeight = leftImg[0].naturalHeight * zoomLevel;
+      $('#gallery-' +index+ '-blob-left').css({'width': sideWidth, 'height' : sideHeight});
+      $('#gallery-' +index+ '-blob-right').css({'width': sideWidth, 'height' : sideHeight});
+    }
+  });
+}
+
+function synqScroll(index) {
+  var isSyncingLeftScroll = false;
+  var isSyncingRightScroll = false;
+  var leftDiv = document.getElementById('gallery-blob-container-left-' + index);
+  var rightDiv = document.getElementById('gallery-blob-container-right-' + index);
+  $('#gallery-blob-container-left-' + index).attachDragger();
+  $('#gallery-blob-container-right-' + index).attachDragger();
+
+  leftDiv.onscroll = function() {
+    if (!isSyncingLeftScroll) {
+      isSyncingRightScroll = true;
+      rightDiv.scrollTop = this.scrollTop;
+      rightDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingLeftScroll = false;
+  }
+  rightDiv.onscroll = function() {
+    if (!isSyncingRightScroll) {
+      isSyncingLeftScroll = true;
+      leftDiv.scrollTop = this.scrollTop;
+      leftDiv.scrollLeft = this.scrollLeft;
+    }
+    isSyncingRightScroll = false;
+  }
+}
 
 $.fn.file_download = function(result, index) {
   if (result.repeat) {
