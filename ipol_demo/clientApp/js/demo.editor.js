@@ -88,7 +88,7 @@ function loadSingleBlobControlls($img) {
 
 // Multiple blob sets controlls
 function loadMultiBlobControlls(blob) {
-  $(".blobsList-left").append("<br><input type=checkbox id=compare-btn>Compare");
+  $(".blobsList-left").append("<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>");
   zoomController.multiBlob();
   addCompareEvent();
 }
