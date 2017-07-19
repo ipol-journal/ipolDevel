@@ -97,6 +97,7 @@
 .gallery-img {
   -webkit-transform-origin: 1px 1px;
   transform-origin: 1px 1px;
+  flex-shrink: 0;
 
   -ms-interpolation-mode: nearest-neighbor;
 

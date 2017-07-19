@@ -34,7 +34,7 @@ function isVisible(result) {
 $.fn.gallery = function(result, index)  {
   var contentKeys = Object.keys(result.contents);
 
-  $(this).appendLabel(result.label);
+  if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = "gallery_" + index;
   $(this).append("<div class=" + gallerySelector + " ></div>");
   $("." + gallerySelector).addClass("gallery-container");
@@ -55,8 +55,13 @@ $.fn.gallery = function(result, index)  {
   for (let i = 0; i < contentKeys.length; i++) {
     $("." + leftItems).append("<span id=gallery-item-left-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
     $("." + rightItems).append("<span id=gallery-item-right-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
-    $("#gallery-item-left-" +i).addHoverEvents(index, 'left', work_url + result.contents[contentKeys[i]]);
-    $("#gallery-item-right-" +i).addHoverEvents(index, 'right', work_url + result.contents[contentKeys[i]]);
+    var src = result.contents[contentKeys[i]];
+    if (typeof(src) == "string") src = {0: src};
+    console.log(typeof(src));
+    if (typeof(src) == "array") src = {0: src};
+
+    $("#gallery-item-left-" +i).addHoverEvents(index, 'left', work_url, src);
+    $("#gallery-item-right-" +i).addHoverEvents(index, 'right', work_url, src);
   }
   $("." +leftItems+ " span:first-child").addClass("gallery-item-selected");
   $("." +rightItems+ " span:first-child").addClass("gallery-item-selected");
@@ -68,8 +73,25 @@ $.fn.gallery = function(result, index)  {
   $("#" + imgContainerLeft).addClass("gallery-blob-container");
   $("#" + imgContainerRight).addClass("gallery-blob-container di-none");
 
-  $("#" + imgContainerLeft).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' id=gallery-' +index+ '-blob-left class=gallery-img draggable=false></img>');
-  $("#" + imgContainerRight).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' id=gallery-' +index+ '-blob-right class=gallery-img draggable=false></img>');
+  var content = result.contents[contentKeys[0]];
+  var type = typeof(content);
+  if (type != "string") {
+    var obj = result.contents[contentKeys[0]];
+    var keys = Object.keys(obj);
+    for (var i = 0; i < keys.length; i++) {
+      $("#" + imgContainerLeft).append('<img src=' + work_url + obj[keys[i]] + ' class=gallery-img draggable=false></img>');
+      $("#" + imgContainerRight).append('<img src=' + work_url + obj[keys[i]] + ' class=gallery-img draggable=false></img>');
+      $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
+    }
+    $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
+    $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right');
+  } else {
+    $("#" + imgContainerLeft).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' class=gallery-img draggable=false></img>');
+    $("#" + imgContainerRight).append('<img src=' + work_url + result.contents[contentKeys[0]] + ' class=gallery-img draggable=false></img>');
+    $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
+    $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right');
+    $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-inline");
+  }
 
   $("." + leftItems).appendZoom(index, leftItems);
   $("." + leftItems).appendGalleryControlls(index, rightItems, imgContainerRight);
@@ -102,21 +124,33 @@ $.fn.appendLabel = function(labelArray) {
 }
 
 // Add event listeners for gallery images lists
-$.fn.addHoverEvents = function(galleryIndex, side, src) {
+$.fn.addHoverEvents = function(galleryIndex, side, work_url, src) {
   var originalSrc = "";
-  var selector = '#gallery-' +galleryIndex+ '-blob-' + side;
+  var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
+  var selector = '.gallery-blob-container-' +side+ '-' + galleryIndex;
+  var originalSrc = [];
   $(this).mouseover(function() {
-    originalSrc = $('#gallery-' +galleryIndex+ '-blob-' + side).attr("src");
-    $(selector).attr("src", src);
+    $(imgSelector).each(function(){
+      originalSrc.push($(this).attr("src"));
+    });
+    var keys = Object.keys(src);
+    $(imgSelector).each(function(i) {
+      $(this).attr("src", work_url + src[keys[i]]);
+    });
   });
   $(this).mouseout(function() {
-    $(selector).attr("src", originalSrc);
+    $(imgSelector).each(function(i){
+      $(this).attr("src", originalSrc[i])
+    });
   });
   $(this).on('click', function() {
     var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
     $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
-    originalSrc = $(selector).attr("src");
+    originalSrc = [];
+    $(imgSelector).each(function(){
+      originalSrc.push($(this).attr("src"));
+    });
   });
 }
 
@@ -128,17 +162,13 @@ $.fn.appendZoom = function(index, leftItems) {
   synqScroll(index);
 }
 
-$.fn.addZoomEvents = function(index, side){
+$.fn.addZoomEvents = function(index){
   $(this).on('change', function() {
-    var leftImg = $('#gallery-' +index+ '-blob-left');
-    var rightImg = $('#gallery-' +index+ '-blob-right');
     var zoomLevel = $(this).val();
-    if (leftImg[0].naturalHeight || leftImg[0].naturalWidth) {
-      sideWidth = leftImg[0].naturalWidth * zoomLevel;
-      sideHeight = leftImg[0].naturalHeight * zoomLevel;
-      $('#gallery-' +index+ '-blob-left').css({'width': sideWidth, 'height' : sideHeight});
-      $('#gallery-' +index+ '-blob-right').css({'width': sideWidth, 'height' : sideHeight});
-    }
+    $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
+      $(this).height($(this)[0].naturalHeight * zoomLevel);
+      $(this).width($(this)[0].naturalWidth * zoomLevel);
+    });
   });
 }
 
