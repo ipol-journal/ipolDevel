@@ -53,15 +53,15 @@ $.fn.gallery = function(result, index)  {
 
   // Evaluate key conditional.
   for (let i = 0; i < contentKeys.length; i++) {
-    $("." + leftItems).append("<span id=gallery-item-left-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
-    $("." + rightItems).append("<span id=gallery-item-right-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+    $("." + leftItems).append("<span id=gallery-" +index+ "-item-left-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+    $("." + rightItems).append("<span id=gallery-" +index+ "-item-right-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
     var src = result.contents[contentKeys[i]];
     if (typeof(src) == "string") src = {0: src};
     console.log(typeof(src));
     if (typeof(src) == "array") src = {0: src};
 
-    $("#gallery-item-left-" +i).addHoverEvents(index, 'left', work_url, src);
-    $("#gallery-item-right-" +i).addHoverEvents(index, 'right', work_url, src);
+    $("#gallery-" +index+ "-item-left-" +i).addHoverEvents(index, 'left', work_url, src);
+    $("#gallery-" +index+ "-item-right-" +i).addHoverEvents(index, 'right', work_url, src);
   }
   $("." +leftItems+ " span:first-child").addClass("gallery-item-selected");
   $("." +rightItems+ " span:first-child").addClass("gallery-item-selected");
@@ -99,18 +99,18 @@ $.fn.gallery = function(result, index)  {
   checkOptions(result.type, index);
 }
 
-$.fn.appendGalleryControlls = function(index, rightItems, imgContainerRight) {
-  $(this).append("<div><input type=checkbox id=compare-btn-gallery-" +index+ "><label for=compare-btn-gallery-" +index+ ">Compare</label></div>");
-  $("#compare-btn-gallery-" + index).on('click', function() {
+$.fn.appendGalleryControlls = function(galleryIndex, rightItems, imgContainerRight) {
+  $(this).append("<div><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
+  $("#compare-btn-gallery-" + galleryIndex).on('click', function() {
     if ($(this).is(":checked")) {
-      $(".gallery-img-container-left-" + index).css({"flex-basis": "50%"});
-      $(".gallery-img-container-right-" + index).css({"flex-basis": "50%"});
+      $(".gallery-blob-container-left-" + galleryIndex).css({"flex-basis": "50%"});
+      $(".gallery-blob-container-right-" + galleryIndex).css({"flex-basis": "50%"});
     } else {
-      $(".gallery-img-container-left-" + index).css({"flex-basis": ""});
-      $(".gallery-img-container-right-" + index).css({"flex-basis": ""});
+      $(".gallery-blob-container-left-" + galleryIndex).css({"flex-basis": ""});
+      $(".gallery-blob-container-right-" + galleryIndex).css({"flex-basis": ""});
     }
     $("#" + imgContainerRight).toggleClass("di-none");
-    $(".gallery_" + index).toggleClass("space-between");
+    $(".gallery_" + galleryIndex).toggleClass("space-between");
     $("." + rightItems).toggleClass("di-none");
   });
 }
@@ -135,12 +135,15 @@ $.fn.addHoverEvents = function(galleryIndex, side, work_url, src) {
     });
     var keys = Object.keys(src);
     $(imgSelector).each(function(i) {
+      console.log(src[keys[i]]);
       $(this).attr("src", work_url + src[keys[i]]);
+      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
     });
   });
   $(this).mouseout(function() {
     $(imgSelector).each(function(i){
-      $(this).attr("src", originalSrc[i])
+      $(this).attr("src", originalSrc[i]);
+      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
     });
   });
   $(this).on('click', function() {
@@ -169,6 +172,14 @@ $.fn.addZoomEvents = function(index){
       $(this).height($(this)[0].naturalHeight * zoomLevel);
       $(this).width($(this)[0].naturalWidth * zoomLevel);
     });
+  });
+}
+
+$.fn.updateSize = function(index) {
+  var zoomLevel = $(this).val();
+  $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
+    $(this).height($(this)[0].naturalHeight * zoomLevel);
+    $(this).width($(this)[0].naturalWidth * zoomLevel);
   });
 }
 
