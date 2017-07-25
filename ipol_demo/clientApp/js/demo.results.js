@@ -57,7 +57,6 @@ $.fn.gallery = function(result, index)  {
     $("." + rightItems).append("<span id=gallery-" +index+ "-item-right-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
     var src = result.contents[contentKeys[i]];
     if (typeof(src) == "string") src = {0: src};
-    console.log(typeof(src));
     if (typeof(src) == "array") src = {0: src};
 
     $("#gallery-" +index+ "-item-left-" +i).addHoverEvents(index, 'left', work_url, src);
