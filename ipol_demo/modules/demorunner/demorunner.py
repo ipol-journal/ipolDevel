@@ -34,7 +34,6 @@ class IPOLMissingBuildItem(Exception):
     """
     pass
 
-
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
@@ -402,13 +401,13 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
             data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build)).encode('utf8')
 
-        except Exception as ex:
+        except build.IPOLCompilationError as ex:
             print "Build failed with exception " + str(ex) + " in demo " + demo_id
 
             build_filename = 'build.log'
             log_file = os.path.join(path_for_the_compilation, build_filename)
-            
-            if os.path.isfile(log_file):            
+
+            if os.path.isfile(log_file):
                 lines = DemoRunner.read_workdir_file(path_for_the_compilation, build_filename)
             else:
                 lines = ""
@@ -417,11 +416,16 @@ format(str(ex), str(ddl_build)).encode('utf8')
             #if os.path.isfile(log_file):
             #    with open(log_file) as f:
             #        lines = f.readlines()
-                    
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
             data['buildlog'] = "\n".join(lines).encode('utf8')
+        except Exception as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Internal error while compiling"
+            self.logger.exception("Internal error while compiling demo {}".format(demo_id))
+
         return json.dumps(data)
 
 

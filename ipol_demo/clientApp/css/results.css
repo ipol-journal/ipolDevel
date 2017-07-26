@@ -97,7 +97,8 @@
 .gallery-img {
   -webkit-transform-origin: 1px 1px;
   transform-origin: 1px 1px;
-
+  flex-shrink: 0;
+  padding: 5px 5px;
   -ms-interpolation-mode: nearest-neighbor;
 
   image-rendering: -webkit-optimize-contrast;
