@@ -52,7 +52,7 @@ input.printSets = function(sets) {
 
 input.printInputInformationIcon = function(ddl_general){
   checkInputDescriptionIconVisibility(ddl_general);
-  if(ddl_general.input_description) $('#inputs-description').addDescription(ddl_general.input_description);
+  $('#inputs-description').addDescription(ddl_general.input_description);
 }
 
 function scrollHorizontally(e) {
@@ -96,6 +96,7 @@ function addSetClickEvent(blobSet, blobs) {
 }
 
 $.fn.addDescription = function(description) {
+  if(!description) return;
   var text = typeof description != 'string' ? description.join('') : description;
   if (description) $(this).attr('title', text);
 }
