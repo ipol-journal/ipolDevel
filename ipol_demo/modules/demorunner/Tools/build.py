@@ -26,6 +26,11 @@ class IPOLHTTPMissingHeader(Exception):
     """
     pass
 
+class IPOLCompilationError(Exception):
+    """
+    IPOLCompilationError
+    """
+    pass
 
 def download(url, fname, username=None, password=None):
     """
@@ -162,5 +167,5 @@ def run(command, stdout, cwd=None, env=None):
     process.wait()
     logfile.close()
     if 0 != process.returncode:
-        raise RuntimeError
+        raise IPOLCompilationError
     return process.returncode
