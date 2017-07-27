@@ -83,3 +83,7 @@
 .disable-btn {
   background-color: gray !important;
 }
+
+.flex-50 {
+  flex-basis: 50%;
+}

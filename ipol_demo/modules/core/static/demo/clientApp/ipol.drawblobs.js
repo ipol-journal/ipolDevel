@@ -1,5 +1,5 @@
 /**
- * @file 
+ * @file
  * this file contains the code that renders and deals with the demo blobs
  * associated with demo.html and ipol_demo.js
  * @author  Karl Krissian
@@ -23,7 +23,7 @@ var ipol = ipol || {};
 ipol.DrawBlobs = function(demoblobs, ddl_json)
 {
 
-    /** 
+    /**
      * By convention, we create a private variable '_this' to
      * make the object available to the private methods.
      * @var {object} _this
@@ -46,9 +46,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             console.info.apply(console,args);
         }
     }
-    
-    /** 
-     * Enable/Disable display of (tracing/debugging) 
+
+    /**
+     * Enable/Disable display of (tracing/debugging)
      * information in browser console.
      * @var {boolean} _verbose
      * @memberOf ipol.DrawBlobs~
@@ -57,32 +57,32 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     var _verbose=true;
     _infoMessage(" ipol.DrawBlobs started ");
     //_verbose=false;
-    
-    /** 
+
+    /**
      * list of demo blobs.
      * @var {object} _demoblobs
      * @memberOf ipol.DrawBlobs~
      * @private
      */
     var _demoblobs = demoblobs;
-    
-    /** 
+
+    /**
      * Demo Description Lines DDL information.
      * @var {object} _ddl_json
      * @memberOf ipol.DrawBlobs~
      * @private
      */
     var _ddl_json  = ddl_json;
-    
-    /** 
+
+    /**
      * Maximal ratio (height/width) of thumbnail dimensions to optimize display.
      * @var {number} _max_ratio
      * @memberOf ipol.DrawBlobs~
      * @private
      * @defaults 0.5
      */
-    var _max_ratio = 0.5; 
-        
+    var _max_ratio = 0.5;
+
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information
@@ -94,7 +94,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         _preprocessDemofromHTML();
         _preprocessDemoFormParam();
     }
-    
+
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information, sets each blobset html_params
@@ -104,19 +104,19 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _preprocessDemofromHTML = function() {
-        
+
         var blobs = _demoblobs.blobs;
-        
+
 	// preprocess HTML parameters string
         // for each blob set, in the form
         // html_params="url=XXXX&0:blob&1:blob&2:blob,blob etc ..."
         for(var i=0;i<blobs.length;i++)
         {
             var blobset = blobs[i];
-            
-	    blobset[0].html_params = "url=" + _demoblobs.url 
+
+	    blobset[0].html_params = "url=" + _demoblobs.url
             blobset[0].html_params += ("url_vr" + _demoblobs.url_visrep + "&")
-            
+
 	    // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
@@ -125,20 +125,20 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             var current_id = ""
             var extension  = ""
             var has_visual_representation = ""
-    
+
             console.info(blobset_contents)
-            
+
 
             for (var idx = 0; idx < blobset_contents.length; idx++) {
-                
+
 		extension = blobset_contents[idx].extension;
 	        has_visual_representation = "0:"
-	        
+
 		if (blobset_contents[idx].extension_visrep){
                    extension = blobset_contents[idx].extension_visrep;
 		   has_visual_representation = "1:"
 		}
-		
+
 	        if (idx == 0) {
                     blobset[0].html_params += blobset_contents[idx].pos_in_set + ":"
 		    + has_visual_representation;
@@ -148,20 +148,20 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         blobset[0].html_params += ",";
                     } else {
                         // else separate arguments
-                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":" + 
+                        blobset[0].html_params += "&" + blobset_contents[idx].pos_in_set + ":" +
 			has_visual_representation;
                     }
                 }
                 current_id = blobset_contents[idx].pos_in_set;
-	        
-	        blobset[0].html_params += blobset_contents[idx].subdirs + 
+
+	        blobset[0].html_params += blobset_contents[idx].subdirs +
                     blobset_contents[idx].hash + extension;
-		    
+
             }
         }
-       
+
     }
-    
+
     //--------------------------------------------------------------------------
     /**
      * Pre-processes the demo information, sets each blobset form_params
@@ -171,9 +171,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _preprocessDemoFormParam = function() {
-        
+
         var blobs = _demoblobs.blobs;
-        
+
 	// preprocess FormData blobset parameters as an object
         // for each blob set, in the form
         // form_params={url:XXXX,0:blob,1:blob,2:blob,blob etc ..."
@@ -184,13 +184,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             blobset[0].form_params["url"] = _demoblobs.url;
             blobset[0].form_params["physical_location"] = _demoblobs.physical_location;
             blobset[0].form_params["vr_physical_location"] = _demoblobs.vr_location;
-    
+
             var id_blobs_array = new Array();
             // extract only contents of interest
             var blobset_contents = blobset.slice(1);
             blobset_contents.sort(function(a, b) {
-                return (a.pos_in_set < b.pos_in_set ? 
-                        -1 : 
+                return (a.pos_in_set < b.pos_in_set ?
+                        -1 :
                         (a.pos_in_set > b.pos_in_set ? 1 : 0));
             });
             for (var idx = 0; idx < blobset_contents.length; idx++) {
@@ -200,11 +200,11 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 }
                 blobset[0].form_params[pos].push(
                     blobset_contents[idx].subdirs +
-                    blobset_contents[idx].hash + 
+                    blobset_contents[idx].hash +
                     blobset_contents[idx].extension);
-                
+
                 id_blobs_array[pos] = (blobset_contents[idx].id).toString();
-      
+
             }
             blobset[0].form_params["id_blobs"] = id_blobs_array;
         }
@@ -222,7 +222,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         $("#displayblobs").html(_createBlobSetDisplay());
         _demoBlobsEvents();
     }
-    
+
     //--------------------------------------------------------------------------
     /**
      * Displays demo blobs and create events
@@ -234,13 +234,13 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     var _createBlobSetDisplay = function()
     {
         var blobsets_html = "";
-        
+
         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
         var display_credits  = $("#ShowCreditsCheckbox").is(':checked');
         var display_titles   = $("#ShowTitlesCheckbox").is(':checked');
-        
+
         _infoMessage("ThumbailSize is  ",$("#ThumbnailSize option:selected").text());
-        
+
 	// loop over blobsets
         for(var i=0;i<_demoblobs.blobs.length;i++)
         {
@@ -263,14 +263,14 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                     show_blob = (idx===1)||(idx===blobset[0].size);
                     show_ellipsis = (idx===2);
                 }
-                
+
                 if (!show_blob) {
                     if (show_ellipsis) {
                         blobset_html += "<td style='margin:0px;padding:0px;'> &hellip; </td>";
                     }
                     continue;
                 }
-                
+
                 // blob display could be disabled ...
                 blobset_html += "<td style='margin:0px;padding:0px;' id='blob_"+i+"_"+idx+"'>"
                 // apply the selection ???
@@ -297,7 +297,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                              +  '   title="'+blobset[idx].title
                              +      ' (credits: '+blobset[idx].credit
                              +      ', tags:'+blobset[idx].tag
-                             +      ', '+idx+'/'+blobset[0].size+' )" >&nbsp;' 
+                             +      ', '+idx+'/'+blobset[0].size+' )" >&nbsp;'
                              +  "</div> "
                              +  "</td>";
             } // end for idx
@@ -309,7 +309,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 //          We could use the blob name but in general each image has the same title
                 //             which is a better name <span>{{blob_set[0].set_name}}</span>
                 if (display_titles) {
-                    if (blobset[0].set_name!="") {
+                    if (blobset[0].size != 1) {
                         blobset_html += '<font size="-1">'+blobset[0].set_name+'</font>';
                     } else {
                         blobset_html += '<font size="-1">'+blobset[1].title+'</font>';
@@ -328,11 +328,11 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             blobset_html += '</div>';
             blobsets_html += blobset_html;
         }
-        
+
         return blobsets_html;
     }
 
-    
+
     //--------------------------------------------------------------------------
     /**
      * Create demo blobs events
@@ -341,9 +341,9 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
      * @private
      */
     var _demoBlobsEvents = function() {
-        
+
         var blobs = _demoblobs.blobs;
-        
+
 	// compute the total number of images to load
         // to adapt the height once all images are loaded
         var images_to_process = 0;
@@ -351,18 +351,18 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             images_to_process += _demoblobs.blobs[i][0].size;
         }
         _infoMessage("images_to_process =", images_to_process);
-        
+
         for(var i=0;i<blobs.length;i++) {
             // set click events on blobsets
             $("#blobset_"+i).click( {blobset_id: i}, function(event) {
                 // empty results
                 $("#ResultsDisplay").empty();
                 $("#ResultsDisplay").removeData();
-                
+
                 // empty execution status
                 $("#execStatus").text("");
-                
-                
+
+
                 // create an instance of DrawInputs
                 var di = new ipol.DrawInputs(_ddl_json);
                 di.setBlobSet(_demoblobs.blobs[event.data.blobset_id]);
@@ -372,7 +372,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                 // prepare to run the demo
                 var run = new ipol.RunDemo(ddl_json,
                                            di.getInputOrigin(),
-                                           di.getCropInfo(), 
+                                           di.getCropInfo(),
                                            di.getBlobSet(),
                                            di.getDrawFeature()
                                           );
@@ -394,7 +394,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
             );
             // load thumbnails for this blobset
             var blobset = _demoblobs.blobs[i];
-            _max_ratio = 0.5; 
+            _max_ratio = 0.5;
             var processed_images = 0;
             for(var idx=1;idx<blobset[0].size+1;idx++)
             {
@@ -414,12 +414,12 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         _infoMessage("setting ratio to ",_max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
                         var new_height = thumbnail_size*_max_ratio;
-                        $(".select_input").css({'height'      :new_height+'px',               
+                        $(".select_input").css({'height'      :new_height+'px',
                                                 'line-height' :new_height+'px'});
                         // resize displayed blobs
                         $("#displayblobs").resize();
                     }
-                }; 
+                };
                 tester.onerror = function(i,idx) { return function() {
                     console.info("tester.onerror blobset:",i," blob index:",idx);
 		    $("#blob_"+i+"_"+idx).hide();
@@ -429,26 +429,26 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
                         _infoMessage("setting ratio to ",_max_ratio, " for blob ", i);
                         var thumbnail_size   = $("#ThumbnailSize option:selected").text();
                         var new_height = thumbnail_size*_max_ratio;
-                        $(".select_input").css({'height'      :new_height+'px',               
+                        $(".select_input").css({'height'      :new_height+'px',
                                                 'line-height' :new_height+'px'});
                         // resize displayed blobs
                         $("#displayblobs").resize();
                     }
                 }; }(i,idx);
-            } 
+            }
         }
     }
 
     //--------------------------------------------------------------------------
     // PUBLIC METHODS
     //--------------------------------------------------------------------------
-    
+
     //--------------------------------------------------------------------------
     /**
      * Appends blobs to the demo blobs
      * @function appendBlobs
      * @memberOf ipol.DrawBlobs~
-     * @param {object} db result from asking blob template 
+     * @param {object} db result from asking blob template
      * @public
      */
     this.appendBlobs = function(db) {
@@ -457,7 +457,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
         _this.updateDemoBlobs();
     }
 
-    
+
     //--------------------------------------------------------------------------
     /**
      * Displays demo blobs
@@ -468,28 +468,28 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
     this.updateDemoBlobs = function() {
 
         //_infoMessage("demoblobs.blobs.length=",_demoblobs.blobs.length);
-        
+
         var str = JSON.stringify(_demoblobs, undefined, 4);
 //         $("#tabs-blobs pre").html(ipol.utils.syntaxHighlight(str));
-        
+
 	_preprocessDemo();
         _drawDemoBlobs();
-        
-        $("#ThumbnailSize")      .unbind().change( function() { 
+
+        $("#ThumbnailSize")      .unbind().change( function() {
             _infoMessage("ThumbnailSize changed");
-            _drawDemoBlobs(); 
+            _drawDemoBlobs();
         });
-        $("#ShowCreditsCheckbox").unbind().change( function() { 
+        $("#ShowCreditsCheckbox").unbind().change( function() {
             _infoMessage("ShowCreditsCheckbox changed");
-            _drawDemoBlobs(); 
+            _drawDemoBlobs();
         });
-        $("#ShowTitlesCheckbox") .unbind().change( function() { 
+        $("#ShowTitlesCheckbox") .unbind().change( function() {
             _infoMessage("ShowTitlesCheckbox changed");
-            _drawDemoBlobs(); 
+            _drawDemoBlobs();
         });
     }
-        
-    
+
+
 };
 
 //------------------------------------------------------------------------------
@@ -507,7 +507,7 @@ ipol.DrawBlobs = function(demoblobs, ddl_json)
  */
 ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
     return function (demoblobs) {
-        
+
 //         console.info("*** OnDemoBlobs ", "demoblobs=",demoblobs);
 //         console.info("ddl_json=",ddl_json);
 
@@ -518,9 +518,9 @@ ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
             $("#ResultsDisplay").removeData();
             return;
         }
-        
+
         var bc = new ipol.DrawBlobs(demoblobs, ddl_json);
-        
+
         // Check for template
         if (demoblobs.use_template.hasOwnProperty('name')) {
             // get template blobs
@@ -535,6 +535,6 @@ ipol.DrawBlobs.staticOnDemoBlobs = function(ddl_json) {
         } else {
             bc.updateDemoBlobs();
         }
-        
+
     }
 }
