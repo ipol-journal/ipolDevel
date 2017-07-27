@@ -2,21 +2,20 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -ms-flex-align: center;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 
   padding: 3px 4%;
 
   border-bottom: 0.5px solid rgba(225, 228, 241, 0.75);
 
   font-size: 14px;
-
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
 }
 
 .range-slider {
@@ -56,11 +55,11 @@
 }
 
 .range-slider__range::-webkit-slider-thumb:hover {
-  background: #1abc9c;
+  background: #558ace;
 }
 
 .range-slider__range:active::-webkit-slider-thumb {
-  background: #1abc9c;
+  background: #558ace;
 }
 
 .range-slider__range::-moz-range-thumb {
@@ -77,11 +76,11 @@
 }
 
 .range-slider__range::-moz-range-thumb:hover {
-  background: #1abc9c;
+  background: #558ace;
 }
 
 .range-slider__range:active::-moz-range-thumb {
-  background: #1abc9c;
+  background: #558ace;
 }
 
 .range-slider__value {
@@ -153,16 +152,15 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  flex-direction: column;
-
-  min-width: 80px;
-  margin: 0 10px;
-
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
+  flex-direction: column;
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
+
+  min-width: 80px;
+  margin: 0 10px;
 }
 
 .maxmin span {
@@ -186,21 +184,41 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-
+  -webkit-box-align: center;
+  align-items: center;
+  -ms-flex-align: center;
   -ms-flex-preferred-size: 53%;
   flex-basis: 53%;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
 }
 
 .param-comments {
+  -ms-flex-preferred-size: 33%;
+  flex-basis: 33%;
+
   text-align: right;
 
   color: rgb(164, 164, 164);
 
   font-size: 12px;
+}
 
-  -ms-flex-preferred-size: 33%;
-  flex-basis: 33%;
+.select-param {
+  min-width: 80px;
+  height: 30px;
+
+  color: #fff;
+  border: none;
+  border-radius: 3px !important;
+  background: #2c3e50;
+}
+
+.select-param::after {
+  content: '\25BC';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 1em;
+  background: #34495e;
+  pointer-events: none;
 }
