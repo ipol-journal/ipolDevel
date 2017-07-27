@@ -55,7 +55,7 @@ $.fn.selection_collapsed = function(param, index) {
   var default_value = "";
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $(this).append('<select id=select-' + param.id + '></select>');
+  $(this).append('<select id=select-' + param.id + ' class=select-param ></select>');
   for (var i = 0; i < keys.length; i++) {
     if (param.default_value == values[i]) default_value = 'selected=selected';
     else default_value = "";

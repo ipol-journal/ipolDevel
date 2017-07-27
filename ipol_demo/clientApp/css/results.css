@@ -46,15 +46,18 @@
   margin: 10px 0;
   padding: 15px;
 
+  color: #382f18;
   border: 1px solid transparent;
   border-radius: 4px;
-
-  color: #382f18;
   background-color: #FFFDC1;
 }
 
 .results-container > div {
-  margin-bottom: 15px;
+  padding-bottom: 10px;
+}
+
+.results-container > div:not(:last-child)  {
+  border-bottom: 1px solid #eaeaea;
 }
 
 .gallery-item-selector:hover {
@@ -81,24 +84,26 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
 
   min-height: auto;
   max-height: 600px;
 
-  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
-
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
+  animation: container-entrance 0.5s cubic-bezier(.69, -0.02, .46, 1.28);
 }
 
 .gallery-img {
+  flex-shrink: 0;
+
+  padding: 5px 5px;
+
   -webkit-transform-origin: 1px 1px;
   transform-origin: 1px 1px;
-  flex-shrink: 0;
-  padding: 5px 5px;
+
   -ms-interpolation-mode: nearest-neighbor;
 
   image-rendering: -webkit-optimize-contrast;
@@ -109,9 +114,11 @@
 
 .gallery-blob-container {
   overflow: auto;
+
   min-height: 300px;
   margin: 0 5px 5px 5px;
-  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
+
+  animation: container-entrance 0.5s cubic-bezier(.69, -0.02, .46, 1.28);
 }
 
 .gallery-item-list {
@@ -119,13 +126,18 @@
   flex-flow: column;
 }
 
+.gallery-item-list-right {
+  min-width: 106px;
+  text-align: right;
+  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
+}
+
 .blobs-wrapper {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-
-  max-width: 80%;
-
   -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
+
+  max-width: 80%;
 }

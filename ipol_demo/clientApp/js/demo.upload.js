@@ -19,6 +19,16 @@ $(".upload-dialog").dialog({
   width: 1100,
   maxHeight: 500,
   modal: true,
+  show: {
+    effect: 'drop',
+    easing: 'easeInOutQuint',
+    direction: 'up',
+    duration: 400
+  },
+  hide: {
+    effect: 'fade',
+    duration: 300
+  },
   // Click outside of dialog to close
   open: function() {
     $('.ui-widget-overlay').on('click', function() {
@@ -41,10 +51,10 @@ $(".upload-dialog").dialog({
       $(this).dialog("close");
     }
   },
-    create:function () {
-      $('.ui-dialog-buttonset').children().removeClass('ui-button ui-corner-all ui-widget');
-      $('.ui-dialog-buttonset').children().addClass('btn');
-    }
+  create: function() {
+    $('.ui-dialog-buttonset').children().removeClass('ui-button ui-corner-all ui-widget');
+    $('.ui-dialog-buttonset').children().addClass('btn');
+  }
 });
 
 $(".upload-btn").click(function() {
@@ -125,7 +135,7 @@ function uploadImg(index, event) {
     if (uploadImgPixels > maxPixels) {
       clearUploadInput(inputKey);
       alert("File upload resolution limit reached");
-    } else{
+    } else {
       upload(index, event);
     }
   };
