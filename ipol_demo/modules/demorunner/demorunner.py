@@ -335,6 +335,7 @@ class DemoRunner(object):
                         try:
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
+                            self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
                             # If can't move, write in the log file, so
                             # the user can see it
                             f = open(log_file, 'w')
