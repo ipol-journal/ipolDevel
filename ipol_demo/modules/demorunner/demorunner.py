@@ -342,7 +342,7 @@ class DemoRunner(object):
                         if not os.path.exists(path_from):
                             raise IPOLConstructFileNotFound(\
 "Construct can't move file since it doesn't exist: {}".\
-format(error_message))
+format(path_from))
 
                         try:
                             shutil.move(path_from, path_to)
