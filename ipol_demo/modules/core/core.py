@@ -1300,7 +1300,7 @@ attached the failed experiment data.". \
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
@@ -1520,7 +1520,7 @@ demo #{} - {}".format(demo_id, str(ex))
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
