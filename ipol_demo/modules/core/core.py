@@ -878,7 +878,7 @@ workload of '{}'".format(dr_name)
         return: success or not
         """
         try:
-            demo_extras_folder = os.path.join(self.demoExtrasMainDir, demo_id)
+            demo_extras_folder = os.path.join(self.demoExtrasMainDir, str(demo_id))
             if os.path.isdir(demo_extras_folder):
                 shutil.rmtree(demo_extras_folder)
 
@@ -892,7 +892,7 @@ workload of '{}'".format(dr_name)
         Ensure that the demo extras of a given demo are updated respect to demoinfo information.
         and exists in the core folder.
         """
-        demoextras_compress_dir = os.path.join(self.dl_extras_dir, demo_id)
+        demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
 
         demoextras_file = os.path.join(demoextras_compress_dir, self.demoExtrasFilename)
 
@@ -914,7 +914,7 @@ workload of '{}'".format(dr_name)
             if 'url' not in demoinfo_resp:
                 # DemoExtras was removed from demoinfo
                 shutil.rmtree(demoextras_compress_dir)  # remove compress file
-                shutil.rmtree(os.path.join(self.demoExtrasMainDir, demo_id))  # remove decompress file
+                shutil.rmtree(os.path.join(self.demoExtrasMainDir, str(demo_id)))  # remove demoExtras file
                 return
 
             demoinfo_demoextras_date = demoinfo_resp['date']
@@ -957,7 +957,7 @@ workload of '{}'".format(dr_name)
         """
         demo_path = os.path.join(self.shared_folder_abs,
                                  self.share_run_dir_abs,
-                                 demo_id,
+                                 str(demo_id),
                                  key)
         self.mkdir_p(demo_path)
         return demo_path
@@ -1011,7 +1011,7 @@ workload of '{}'".format(dr_name)
         msg['From'] = "{} <{}>".format(sender["name"], sender["email"])
         msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
-
+        
         if zip_filename is not None:
             with open(zip_filename) as fp:
                 zip_data = MIMEApplication(fp.read())
@@ -1040,6 +1040,8 @@ workload of '{}'".format(dr_name)
         # the demo has been published
 
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
 
         for editor_mail in self.get_demo_editor_list(demo_id):
             emails.append(editor_mail['email'])
@@ -1065,7 +1067,7 @@ workload of '{}'".format(dr_name)
             if not os.path.isfile(emails_file_path):
                 self.error_log("read_emails_from_config",
                                "Can't open {}".format(emails_file_path))
-                return []
+                return {}
 
             emails = {}
             cfg.read([emails_file_path])
@@ -1095,6 +1097,8 @@ workload of '{}'".format(dr_name)
         # the demo has been published
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
 
         for editor in self.get_demo_editor_list(demo_id):
             emails.append(editor['email'])
@@ -1122,7 +1126,7 @@ attached the failed experiment data.". \
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
         self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
-
+        
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
         """
@@ -1130,6 +1134,9 @@ attached the failed experiment data.". \
         """
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
+        
         if self.serverEnvironment == 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
@@ -1153,6 +1160,9 @@ attached the failed experiment data.". \
         """
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
+
         if self.serverEnvironment != 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
@@ -1175,6 +1185,8 @@ attached the failed experiment data.". \
         """
         print 'KWARGS'
         print kwargs
+        
+        demo_id = int(demo_id)
 
         origin = kwargs.get('origin', None)
         if origin is not None:
@@ -1392,7 +1404,8 @@ demo #{} - {}".format(demo_id, str(ex))
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
-        print kwargs
+        demo_id = int(demo_id)
+        
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type')
         else:
@@ -1541,7 +1554,7 @@ demo #{} - {}".format(demo_id, str(ex))
 
             # save parameters as a params.json file
             try:
-                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 with open(os.path.join(work_dir, "params.json"), "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
@@ -1566,8 +1579,11 @@ demo #{} - {}".format(demo_id, str(ex))
             demorunner_response = resp.json()
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
+                print demorunner_response
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
+                                
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["error"].encode("utf8"))
+                print "website_message={}".format(website_message)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
