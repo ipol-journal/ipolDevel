@@ -118,12 +118,19 @@ def do_write_all(host):
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--integration",
   help="Use the Integration environment", action="store_true")
+parser.add_argument("-l", "--local",
+  help="Use the Local (127.0.1.1) environment", action="store_true")
 parser.add_argument("command", nargs='+')
   
 args = parser.parse_args()
 
 # Get host
-host = "integration.ipol.im" if args.integration else "ipolcore.ipol.im"
+if args.integration:
+    host = "integration.ipol.im"
+elif args.local:
+    host = "127.0.1.1"
+else:
+    host = "ipolcore.ipol.im"
 
 # Create output directory
 if not os.path.isdir("DDLs"):
