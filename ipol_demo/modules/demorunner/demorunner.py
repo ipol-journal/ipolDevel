@@ -542,7 +542,8 @@ format(str(ex), str(ddl_build)).encode('utf8')
             timeout = max(timeout, 5)
             if not os.path.isdir(work_dir):
                 res_data['status'] = 'KO'
-                res_data['error'] = 'Work directory is not created'
+                res_data['error'] = \
+                  'Work directory does not exist: {}'.format(work_dir)
                 print res_data
                 return json.dumps(res_data)
             # Run algorithm and control exceptions
