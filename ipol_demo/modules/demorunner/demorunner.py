@@ -437,7 +437,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed in demo {0}. {}".format(demo_id).encode('utf8', str(ex))
+            data['message'] = "Construct failed in demo {}. {}".format(demo_id).encode('utf8', str(ex))
             
         except Exception as ex:
             data = {}
