@@ -1335,7 +1335,7 @@ attached the failed experiment data.". \
 
             # save parameters as a params.json file
             try:
-                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 with open(os.path.join(work_dir, "params.json"), "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
@@ -1371,7 +1371,7 @@ attached the failed experiment data.". \
                 "http://{}/api/core/".format(self.host_name),
                 self.shared_folder_rel,
                 self.share_run_dir_rel,
-                demo_id,
+                str(demo_id),
                 key) + '/'
 
             # Archive the experiment, if the 'archive' section
@@ -1594,7 +1594,7 @@ demo #{} - {}".format(demo_id, str(ex))
                 "http://{}/api/core/".format(self.host_name),
                 self.shared_folder_rel,
                 self.share_run_dir_rel,
-                demo_id,
+                str(demo_id),
                 key) + '/'
 
             # Archive the experiment, if the 'archive' section
