@@ -34,6 +34,12 @@ class IPOLMissingBuildItem(Exception):
     """
     pass
 
+class IPOLConstructFileNotFound(Exception):
+    """
+    IPOLConstructFileNotFound
+    """
+    pass
+
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
@@ -331,6 +337,12 @@ class DemoRunner(object):
                         #
                         path_from = os.path.join(src_dir, file_to_move)
                         path_to = os.path.join(bin_dir, os.path.basename(file_to_move))
+                        
+                        # Check origin
+                        if not os.path.exists(path_from):
+                            raise IPOLConstructFileNotFound(\
+"Construct can't move file since it doesn't exist: {}".\
+format(error_message))
 
                         try:
                             shutil.move(path_from, path_to)
@@ -421,6 +433,12 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
             data['buildlog'] = "\n".join(lines).encode('utf8')
+
+        except IPOLConstructFileNotFound as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed in demo {0}. {}".format(demo_id).encode('utf8', str(ex))
+            
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
