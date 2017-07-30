@@ -1183,7 +1183,7 @@ attached the failed experiment data.". \
                 print "Input upload failed. Error: {}".format(ex)
                 return json.dumps(res_data)
             except Exception as ex:
-                res_data = {'error': 'internal error. Blobs operations failed',
+                res_data = {'error': 'internal error. Blobs operations failed - {}'.format(ex),
                             'status': 'KO'}
                 self.logger.exception("copy_blobs/process_inputs FAILED")
                 print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
