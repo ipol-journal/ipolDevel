@@ -362,7 +362,7 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>IPOL internal error: demoInfo module returned KO</h2><br>
+                 <h2>IPOL internal error: unable to get the list of demos</h2><br>
                  </body>
                  </html>
                  """
@@ -455,6 +455,8 @@ workload of '{}'".format(dr_name)
 
     # ---------------------------------------------------------------------------
     # INPUT HANDLING TOOLS (OLD with a few modifications)
+    # [Miguel] They're absolutely deprecated and need a full refactoring
+    # in the Conversion module.
     # ---------------------------------------------------------------------------
     def save_image(self, im, fullpath):
         """
@@ -463,44 +465,18 @@ workload of '{}'".format(dr_name)
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
     # ---------------------------------------------------------------------------
-    @staticmethod
-    def needs_convert(im, input_info):
-        """
-        checks if input image needs convertion
-        """
-        mode_kw = {'1x8i': 'L',
-                   '3x8i': 'RGB'}
-        # check max size
-        return im.im.mode != mode_kw[input_info['dtype']]
-
-    # ---------------------------------------------------------------------------
-    def needs_convert_or_resize(self, im, input_info):
-        """
-        Convert and resize an image object
-        """
-        # check max size
-        max_pixels = evaluate(input_info['max_pixels'])
-        return self.needs_convert(im, input_info) or prod(im.size) > max_pixels
-
-    # ---------------------------------------------------------------------------
     def convert_and_resize(self, im, input_info):
         """
-        Convert and resize an image object
+        Resize and convert the given image
         """
-        msg = ""
-        if self.needs_convert(im, input_info):
-            im.convert(input_info['dtype'])
-            msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
         max_pixels = evaluate(input_info['max_pixels'])
-        resize = prod(im.size) > max_pixels
-
-        if resize:
+        if prod(im.size) > max_pixels: # resize needed
             im.resize(int(max_pixels))
-            if msg != "":
-                msg += "&"
-            msg += " resized to {0}px ".format(max_pixels)
-        return msg
+            
+        im.convert(input_info['dtype'])
+        
+        return "msg (not used)"
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
@@ -624,7 +600,6 @@ workload of '{}'".format(dr_name)
                     break
 
             if input_desc['type'] == 'image':
-
                 # open the file as an image
                 try:
                     im = image(input_files[0])
@@ -664,18 +639,15 @@ workload of '{}'".format(dr_name)
                     im_converted = im.clone()
                     im_converted_filename = 'input_%i.orig.png' % i
 
-                if self.needs_convert_or_resize(im_converted, input_desc):
-                    output_msg = self.convert_and_resize(im_converted,
-                                                         input_desc)
-                    input_msg += " Input {0}:".format(i) + output_msg + " "
-                    # save a web viewable copy
-                    im_converted.save(os.path.join(work_dir,
-                                                   'input_%i.png' % i),
-                                      compresslevel=self.png_compresslevel)
-                else:
-                    # just create a symbolic link
-                    os.symlink(im_converted_filename,
-                               os.path.join(work_dir, 'input_%i.png' % i))
+
+                # Save image in the proper format/size
+                output_msg = self.convert_and_resize(im_converted, input_desc)
+                if 'ext' not in inputs_desc[i]:
+                    raise IPOLProcessInputsError("The DDL does not have a extension field")
+                ext = inputs_desc[i]['ext']
+                self.save_image(im, os.path.join(work_dir,
+                                                 'input_{}{}'.format(i, ext)))
+
 
                 if im.size != im_converted.size:
                     input_msg += " {0} --> {1} ". \
@@ -691,7 +663,7 @@ workload of '{}'".format(dr_name)
                 if inputs_desc[i]['type'] != "data":
                     return
                 if 'ext' not in inputs_desc[i]:
-                    raise IPOLProcessInputsError("The DDL does not have extension field")
+                    raise IPOLProcessInputsError("The DDL does not have a extension field")
 
                 ext = inputs_desc[i]['ext']
 
@@ -764,12 +736,10 @@ workload of '{}'".format(dr_name)
         response = resp.json()
 
         if response['status'] == 'OK':
-
             physical_locations = response['physical_locations']
 
             index = 0
             for blob_path in physical_locations:
-
                 try:
                     extension = os.path.splitext(blob_path)[1]
                     final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
@@ -779,7 +749,6 @@ workload of '{}'".format(dr_name)
                     print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
 
                 index += 1
-
         else:
             self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
 
@@ -878,7 +847,7 @@ workload of '{}'".format(dr_name)
         return: success or not
         """
         try:
-            demo_extras_folder = os.path.join(self.demoExtrasMainDir, demo_id)
+            demo_extras_folder = os.path.join(self.demoExtrasMainDir, str(demo_id))
             if os.path.isdir(demo_extras_folder):
                 shutil.rmtree(demo_extras_folder)
 
@@ -892,7 +861,7 @@ workload of '{}'".format(dr_name)
         Ensure that the demo extras of a given demo are updated respect to demoinfo information.
         and exists in the core folder.
         """
-        demoextras_compress_dir = os.path.join(self.dl_extras_dir, demo_id)
+        demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
 
         demoextras_file = os.path.join(demoextras_compress_dir, self.demoExtrasFilename)
 
@@ -914,7 +883,7 @@ workload of '{}'".format(dr_name)
             if 'url' not in demoinfo_resp:
                 # DemoExtras was removed from demoinfo
                 shutil.rmtree(demoextras_compress_dir)  # remove compress file
-                shutil.rmtree(os.path.join(self.demoExtrasMainDir, demo_id))  # remove decompress file
+                shutil.rmtree(os.path.join(self.demoExtrasMainDir, str(demo_id)))  # remove demoExtras file
                 return
 
             demoinfo_demoextras_date = demoinfo_resp['date']
@@ -957,7 +926,7 @@ workload of '{}'".format(dr_name)
         """
         demo_path = os.path.join(self.shared_folder_abs,
                                  self.share_run_dir_abs,
-                                 demo_id,
+                                 str(demo_id),
                                  key)
         self.mkdir_p(demo_path)
         return demo_path
@@ -1011,7 +980,7 @@ workload of '{}'".format(dr_name)
         msg['From'] = "{} <{}>".format(sender["name"], sender["email"])
         msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
-
+        
         if zip_filename is not None:
             with open(zip_filename) as fp:
                 zip_data = MIMEApplication(fp.read())
@@ -1040,6 +1009,8 @@ workload of '{}'".format(dr_name)
         # the demo has been published
 
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
 
         for editor_mail in self.get_demo_editor_list(demo_id):
             emails.append(editor_mail['email'])
@@ -1065,7 +1036,7 @@ workload of '{}'".format(dr_name)
             if not os.path.isfile(emails_file_path):
                 self.error_log("read_emails_from_config",
                                "Can't open {}".format(emails_file_path))
-                return []
+                return {}
 
             emails = {}
             cfg.read([emails_file_path])
@@ -1095,6 +1066,8 @@ workload of '{}'".format(dr_name)
         # the demo has been published
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
 
         for editor in self.get_demo_editor_list(demo_id):
             emails.append(editor['email'])
@@ -1122,7 +1095,7 @@ attached the failed experiment data.". \
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
         self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
-
+        
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
         """
@@ -1130,6 +1103,9 @@ attached the failed experiment data.". \
         """
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
+        
         if self.serverEnvironment == 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
@@ -1153,6 +1129,9 @@ attached the failed experiment data.". \
         """
         emails = []
         config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
+
         if self.serverEnvironment != 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
@@ -1175,6 +1154,8 @@ attached the failed experiment data.". \
         """
         print 'KWARGS'
         print kwargs
+        
+        demo_id = int(demo_id)
 
         origin = kwargs.get('origin', None)
         if origin is not None:
@@ -1288,7 +1269,7 @@ attached the failed experiment data.". \
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
@@ -1323,7 +1304,7 @@ attached the failed experiment data.". \
 
             # save parameters as a params.json file
             try:
-                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 with open(os.path.join(work_dir, "params.json"), "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
@@ -1359,7 +1340,7 @@ attached the failed experiment data.". \
                 "http://{}/api/core/".format(self.host_name),
                 self.shared_folder_rel,
                 self.share_run_dir_rel,
-                demo_id,
+                str(demo_id),
                 key) + '/'
 
             # Archive the experiment, if the 'archive' section
@@ -1392,7 +1373,8 @@ demo #{} - {}".format(demo_id, str(ex))
         Run a demo. The presentation layer requests the Core to
         execute a demo.
         """
-        print kwargs
+        demo_id = int(demo_id)
+        
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type')
         else:
@@ -1507,7 +1489,7 @@ demo #{} - {}".format(demo_id, str(ex))
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner for the requirements'}
+                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
@@ -1541,7 +1523,7 @@ demo #{} - {}".format(demo_id, str(ex))
 
             # save parameters as a params.json file
             try:
-                work_dir = os.path.join(self.share_run_dir_abs, demo_id, key)
+                work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 with open(os.path.join(work_dir, "params.json"), "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
@@ -1566,8 +1548,11 @@ demo #{} - {}".format(demo_id, str(ex))
             demorunner_response = resp.json()
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
+                print demorunner_response
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
+                                
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["error"].encode("utf8"))
+                print "website_message={}".format(website_message)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
@@ -1578,7 +1563,7 @@ demo #{} - {}".format(demo_id, str(ex))
                 "http://{}/api/core/".format(self.host_name),
                 self.shared_folder_rel,
                 self.share_run_dir_rel,
-                demo_id,
+                str(demo_id),
                 key) + '/'
 
             # Archive the experiment, if the 'archive' section

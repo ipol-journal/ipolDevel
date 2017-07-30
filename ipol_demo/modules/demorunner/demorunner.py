@@ -34,6 +34,12 @@ class IPOLMissingBuildItem(Exception):
     """
     pass
 
+class IPOLConstructFileNotFound(Exception):
+    """
+    IPOLConstructFileNotFound
+    """
+    pass
+
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
@@ -331,10 +337,17 @@ class DemoRunner(object):
                         #
                         path_from = os.path.join(src_dir, file_to_move)
                         path_to = os.path.join(bin_dir, os.path.basename(file_to_move))
+                        
+                        # Check origin
+                        if not os.path.exists(path_from):
+                            raise IPOLConstructFileNotFound(\
+"Construct can't move file since it doesn't exist: {}".\
+format(path_from))
 
                         try:
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
+                            self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
                             # If can't move, write in the log file, so
                             # the user can see it
                             f = open(log_file, 'w')
@@ -420,6 +433,12 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
             data['buildlog'] = "\n".join(lines).encode('utf8')
+
+        except IPOLConstructFileNotFound as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed in demo {}. {}".format(demo_id, str(ex))
+            
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
@@ -542,7 +561,8 @@ format(str(ex), str(ddl_build)).encode('utf8')
             timeout = max(timeout, 5)
             if not os.path.isdir(work_dir):
                 res_data['status'] = 'KO'
-                res_data['error'] = 'Work directory is not created'
+                res_data['error'] = \
+                  'Work directory does not exist: {}'.format(work_dir)
                 print res_data
                 return json.dumps(res_data)
             # Run algorithm and control exceptions
