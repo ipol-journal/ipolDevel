@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+
+  <commands>
+    <command>start</command>
+    <command>stop</command>
+    <command>restart</command>
+    <command>ping</command>
+  </commands>
+
+
+  <demorunner name="dr_integration">
+    <module>demorunner</module>
+    <server>integration.ipol.im</server>
+    <!--<capability>Matlab</capability>-->
+    <serverSSH>ipol_integration</serverSSH>
+    <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
+  </demorunner>
+
+
+</data>
