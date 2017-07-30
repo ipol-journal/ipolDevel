@@ -1288,7 +1288,7 @@ attached the failed experiment data.". \
 
         except Exception as ex:
             s = "Failure in the run function of the \
-CORE in demo #{}".format(demo_id)
+CORE in demo #{}: ex".format(demo_id, ex)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))
