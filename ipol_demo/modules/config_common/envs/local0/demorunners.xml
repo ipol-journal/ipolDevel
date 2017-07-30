@@ -9,7 +9,7 @@
   </commands>
 
 
-  <demorunner name="dr_integration">
+  <demorunner name="dr_local0">
     <module>demorunner</module>
     <server>127.0.0.1</server>
     <!--<capability>Matlab</capability>-->
