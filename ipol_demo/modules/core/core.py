@@ -43,6 +43,7 @@ import png
 import requests
 import cherrypy
 import magic
+import mimetypes
 
 from Tools.misc import prod
 from Tools.image import image
@@ -464,19 +465,6 @@ workload of '{}'".format(dr_name)
         """
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
-    # ---------------------------------------------------------------------------
-    def convert_and_resize(self, im, input_info):
-        """
-        Resize and convert the given image
-        """
-        # check max size
-        max_pixels = evaluate(input_info['max_pixels'])
-        if prod(im.size) > max_pixels: # resize needed
-            im.resize(int(max_pixels))
-            
-        im.convert(input_info['dtype'])
-        
-        return "msg (not used)"
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
@@ -527,150 +515,104 @@ workload of '{}'".format(dr_name)
     #           END BLOCK OF INPUT TOOLS
     # --------------------------------------------------------------------------
 
-    # ----------------------------
-    #   OLD FUNCTIONS  - In the future, they should be refactored
-    # -----------------------------
-    def crop_input(self, img, idx, work_dir, inputs_desc, crop_info):
-        """
-        Crop input if selected
-            img: input image to crop
-            idx: input position
-            work_dir
-            inputs_desc
-            crop_info
-        """
-        # for the moment, we can only crop the first image
+    def process_input_data(self, filename, work_dir, input_desc, crop_info):
+        '''
+        Process input of type 'data'
+        '''
+        if 'ext' not in input_desc:
+            raise IPOLProcessInputsError("The DDL does not have a 'ext' (extension) field")
+        ext = input_desc['ext']
 
-        if idx != 0:
-            return False, None
+        input_first_part, input_ext = os.path.splitext(filename)
+        if input_ext != ext:
+            os.rename(filename, input_first_part + ext)
+    
+    
+    def process_input_image(self, filename, work_dir, input_desc, crop_info):
+        '''
+        Process input of type 'image'
+        '''
+        # Read the image
+        im = image(filename)
+            
+        json_crop_info = json.loads(crop_info) if crop_info else None        
+        crop_enabled = json_crop_info and json_crop_info['enabled']
 
-        filename = os.path.join(work_dir,
-                                'input_{0}.crop.png'.format(idx))
+        # Get the expected extension for the file
+        if 'ext' not in input_desc:
+            raise IPOLProcessInputsError("The DDL does not have a 'ext' (extension) field")
+        ext = input_desc['ext']
 
-        crop_info = json.loads(crop_info)
+        # Check if the size and the format are OK
+        max_pixels = evaluate(input_desc['max_pixels'])
+        size_ok = prod(im.size) <= max_pixels
+        format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
+        
+        input_first_part, input_ext = os.path.splitext(filename)
+        
+        if not crop_enabled and size_ok and format_ok:
+            # This is the most favorable case.
+            # There is no crop and both the size and the format is the
+            # same as the original.
+            
+            # If the extension also coincides, everything is done            
+            if input_ext == ext:
+                return
 
-        if crop_info["enabled"]:
-            # define x0,y0,x1,y1
-            x0 = int(round(crop_info['x']))
-            y0 = int(round(crop_info['y']))
-            x1 = int(round(crop_info['x'] + crop_info['w']))
-            y1 = int(round(crop_info['y'] + crop_info['h']))
-            # save parameters
-            try:
-                max_pixels = evaluate(inputs_desc[0]['max_pixels'])
-                # Karl: here different from base_app approach
-                # crop coordinates are on original image size
-                img.crop((x0, y0, x1, y1))
-                # resize if cropped image is too big
-                if max_pixels and prod(img.size) > max_pixels:
-                    img.resize(int(max_pixels), method="antialias")
-                # save result
-                self.save_image(img, filename)
-            except ValueError:
-                return False, None
+            # If not, just change the extension and we're done
+            os.rename(filename, input_first_part + ext)
+            return
+        
 
-        else:
-            return False, None
+        # From now on, a conversion is needed
+        # Perform crop if needed
+        if crop_enabled:
+            x0 = int(round(json_crop_info['x']))
+            y0 = int(round(json_crop_info['y']))
+            x1 = int(round(json_crop_info['x'] + json_crop_info['w']))
+            y1 = int(round(json_crop_info['y'] + json_crop_info['h']))
+            im.crop((x0, y0, x1, y1))
+        
+        # resize if the (eventually) cropped image is too big
+        if max_pixels and prod(im.size) > max_pixels:
+            im.resize(int(max_pixels), method="antialias")
+        
+        # Finally, save the processed image
+        self.save_image(im, os.path.join(work_dir, input_first_part + ext))
 
-        return True, filename
 
+        
+        
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
-        """
-        pre-process the input data
-        """
-        msg = ""
-        max_width = 0
-        max_height = 0
+        '''
+        Process the inputs
+        '''
         nb_inputs = len(inputs_desc)
 
         for i in range(nb_inputs):
-            input_msg = ""
             # check the input type
             input_desc = inputs_desc[i]
             # find files starting with input_%
-            input_files = glob.glob(os.path.join(work_dir,
-                                                 'input_%i' % i + '.*'))
+            input_files = glob.glob(os.path.join(work_dir, 'input_{}.*'.format(i)))
 
             if len(input_files) != 1:
-                if ('required' in inputs_desc[i].keys()) and inputs_desc[i]['required']:
+                if 'required' in inputs_desc[i] and inputs_desc[i]['required']:
                     # problem here
                     raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
                 else:
                     # optional input missing, end of inputs
                     break
 
+            input_filename = input_files[0]
+            
             if input_desc['type'] == 'image':
-                # open the file as an image
-                try:
-                    im = image(input_files[0])
-                except IOError:
-                    print "failed to read image " + input_files[0]
-                    raise cherrypy.HTTPError(400,  # Bad Request
-                                             "Bad input file")
-                # -----------------------------
-                # Save the original file as PNG
-                #
-                # Do a check before security attempting copy.
-                # If the check fails, do a save instead
-                if im.im.format != "PNG" \
-                        or im.size[0] > 20000 or im.size[1] > 20000 or len(im.im.getbands()) > 4:
-                    # Save as PNG (slow)
-                    self.save_image(im, os.path.join(work_dir,
-                                                     'input_%i.orig.png' % i))
-                    # delete the original
-                    os.remove(input_files[0])
-                else:
-                    # Move file (fast)
-                    shutil.move(input_files[0],
-                                os.path.join(work_dir, 'input_%i.orig.png' % i))
-
-                # -----------------------------
-                # convert to the expected input format. TODO: do it if needed ...
-                if crop_info is not None:
-                    status, filename = self.crop_input(im, i, work_dir, inputs_desc, crop_info)
-
-                    if status:
-                        im_converted = image(filename)
-                        im_converted_filename = 'input_%i.crop.png' % i
-                    else:
-                        im_converted = im.clone()
-                        im_converted_filename = 'input_%i.orig.png' % i
-                else:
-                    im_converted = im.clone()
-                    im_converted_filename = 'input_%i.orig.png' % i
-
-
-                # Save image in the proper format/size
-                output_msg = self.convert_and_resize(im_converted, input_desc)
-                if 'ext' not in inputs_desc[i]:
-                    raise IPOLProcessInputsError("The DDL does not have a extension field")
-                ext = inputs_desc[i]['ext']
-                self.save_image(im, os.path.join(work_dir,
-                                                 'input_{}{}'.format(i, ext)))
-
-
-                if im.size != im_converted.size:
-                    input_msg += " {0} --> {1} ". \
-                        format(im.size, im_converted.size)
-                # update maximal dimensions information
-                max_width = max(max_width, im_converted.size[0])
-                max_height = max(max_height, im_converted.size[1])
-                if input_msg != "":
-                    # next line in html
-                    msg += input_msg + "<br/>\n"
-                    # end if type is image
+                self.process_input_image(input_filename, work_dir, inputs_desc[i], crop_info)
+            elif input_desc['type'] == 'data':
+                self.process_input_data(input_filename, work_dir, inputs_desc[i], crop_info)
             else:
-                if inputs_desc[i]['type'] != "data":
-                    return
-                if 'ext' not in inputs_desc[i]:
-                    raise IPOLProcessInputsError("The DDL does not have a extension field")
-
-                ext = inputs_desc[i]['ext']
-
-                blob_path_without_extension = os.path.splitext(input_files[0])
-
-                blob_with_ddl_extension = blob_path_without_extension[0] + ext
-                os.rename(input_files[0], blob_with_ddl_extension)
+                raise ValueError("Unknown input type '{}'".format(input_desc['type']))
+                
+        
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -695,20 +637,22 @@ workload of '{}'".format(dr_name)
 
             mime = magic.Magic(mime=True)
             file_up.file.seek(0)
-            type_of_uploaded_blob, ext_of_uploaded_blob = mime.from_buffer(file_up.file.read()).split("/")
+            mime_uploaded_blob = mime.from_buffer(file_up.file.read())
+            type_of_uploaded_blob, _ = mime_uploaded_blob.split('/')
+            ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
 
             if 'ext' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL does not have extension field")
+                raise IPOLInputUploadError("The DDL does not have 'ext' (extension) field")
 
             if 'type' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL does not have type field")
+                raise IPOLInputUploadError("The DDL does not have 'type' field")
 
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
                 raise IPOLInputUploadError("The DDL type does not match with the uploaded file")
 
             # We keep the file according it was uploaded
             # process_inputs will make the possible modifications
-            file_save = file(os.path.join(work_dir, 'input_%i.' % i + ext_of_uploaded_blob), 'wb')
+            file_save = file(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
 
             size = 0
             file_up.file.seek(0)
@@ -752,30 +696,25 @@ workload of '{}'".format(dr_name)
         else:
             self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
 
+
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
         """
-        copy the blobs in the run path.
-        The blobs can be uploaded by post method or a blobs from blob module
+        Copy the input blobs to the execution folder.
         """
-
         if input_type == 'upload':
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-
             if 'id_blobs' not in blobs:
                 raise IPOLCopyBlobsError("There is not id blobs")
 
             blobs_id_list = blobs['id_blobs']
             self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
 
-    # ---------------
-    #  OLD FUNCTIONS BLOCK END -- Need a refactoring :)
-    # --------------
 
     @staticmethod
     def download(url_file, filename):
         """
-        Downloads a file given its URL
+        Downloads a file from its URL
         """
         url_handle = urllib.urlopen(url_file)
         file_handle = open(filename, 'w')
@@ -786,7 +725,7 @@ workload of '{}'".format(dr_name)
     @staticmethod
     def get_compressed_file(filename):
         """
-        return compressed file and content
+        Return the demoExtras file and contained file names
         """
         if tarfile.is_tarfile(filename):
             # start with tar
@@ -804,11 +743,6 @@ workload of '{}'".format(dr_name)
     def extract(self, filename, target):
         """
         extract tar, tgz, tbz and zip archives
-
-        @param filename: archive file name
-        @param target: target extraction directory
-
-        @return: the archive content
         """
         ar, content = self.get_compressed_file(filename)
 
