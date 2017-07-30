@@ -106,7 +106,7 @@ class Terminal(object):
         the server where the module is, the directory of the module on the
         server, and a list of strings representing the commands available
         to the module.
-        """
+        """        
         dict_modules = {}
         tree = ET.parse(self.get_modules_xml_filename())
         root = tree.getroot()
@@ -181,6 +181,14 @@ class Terminal(object):
         '''
         Constructor
         '''
+        # Create the links to integration by default if absent
+        filename_modules = self.get_modules_xml_filename()
+        filename_demorunners = self.get_demorunners_xml_filename()
+        
+        if not (os.path.islink(filename_modules) and os.path.islink(filename_demorunners)):
+            self.set_ipol_environment("integration")
+        
+        # Reload the configuration
         self.reload_config()
     
     def get_active_modules(self):
