@@ -362,7 +362,7 @@ workload of '{}'".format(dr_name)
                  <title>IPOL demos</title>
                  </head>
                  <body>
-                 <h2>IPOL internal error: demoInfo module returned KO</h2><br>
+                 <h2>IPOL internal error: unable to get the list of demos</h2><br>
                  </body>
                  </html>
                  """
@@ -455,6 +455,8 @@ workload of '{}'".format(dr_name)
 
     # ---------------------------------------------------------------------------
     # INPUT HANDLING TOOLS (OLD with a few modifications)
+    # [Miguel] They're absolutely deprecated and need a full refactoring
+    # in the Conversion module.
     # ---------------------------------------------------------------------------
     def save_image(self, im, fullpath):
         """
@@ -463,44 +465,18 @@ workload of '{}'".format(dr_name)
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
     # ---------------------------------------------------------------------------
-    @staticmethod
-    def needs_convert(im, input_info):
-        """
-        checks if input image needs convertion
-        """
-        mode_kw = {'1x8i': 'L',
-                   '3x8i': 'RGB'}
-        # check max size
-        return im.im.mode != mode_kw[input_info['dtype']]
-
-    # ---------------------------------------------------------------------------
-    def needs_convert_or_resize(self, im, input_info):
-        """
-        Convert and resize an image object
-        """
-        # check max size
-        max_pixels = evaluate(input_info['max_pixels'])
-        return self.needs_convert(im, input_info) or prod(im.size) > max_pixels
-
-    # ---------------------------------------------------------------------------
     def convert_and_resize(self, im, input_info):
         """
-        Convert and resize an image object
+        Resize and convert the given image
         """
-        msg = ""
-        if self.needs_convert(im, input_info):
-            im.convert(input_info['dtype'])
-            msg += " converted to '{0}' ".format(input_info['dtype'])
         # check max size
         max_pixels = evaluate(input_info['max_pixels'])
-        resize = prod(im.size) > max_pixels
-
-        if resize:
+        if prod(im.size) > max_pixels: # resize needed
             im.resize(int(max_pixels))
-            if msg != "":
-                msg += "&"
-            msg += " resized to {0}px ".format(max_pixels)
-        return msg
+            
+        im.convert(input_info['dtype'])
+        
+        return "msg (not used)"
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
@@ -624,7 +600,6 @@ workload of '{}'".format(dr_name)
                     break
 
             if input_desc['type'] == 'image':
-
                 # open the file as an image
                 try:
                     im = image(input_files[0])
@@ -664,18 +639,15 @@ workload of '{}'".format(dr_name)
                     im_converted = im.clone()
                     im_converted_filename = 'input_%i.orig.png' % i
 
-                if self.needs_convert_or_resize(im_converted, input_desc):
-                    output_msg = self.convert_and_resize(im_converted,
-                                                         input_desc)
-                    input_msg += " Input {0}:".format(i) + output_msg + " "
-                    # save a web viewable copy
-                    im_converted.save(os.path.join(work_dir,
-                                                   'input_%i.png' % i),
-                                      compresslevel=self.png_compresslevel)
-                else:
-                    # just create a symbolic link
-                    os.symlink(im_converted_filename,
-                               os.path.join(work_dir, 'input_%i.png' % i))
+
+                # Save image in the proper format/size
+                output_msg = self.convert_and_resize(im_converted, input_desc)
+                if 'ext' not in inputs_desc[i]:
+                    raise IPOLProcessInputsError("The DDL does not have a extension field")
+                ext = inputs_desc[i]['ext']
+                self.save_image(im, os.path.join(work_dir,
+                                                 'input_{}{}'.format(i, ext)))
+
 
                 if im.size != im_converted.size:
                     input_msg += " {0} --> {1} ". \
@@ -691,7 +663,7 @@ workload of '{}'".format(dr_name)
                 if inputs_desc[i]['type'] != "data":
                     return
                 if 'ext' not in inputs_desc[i]:
-                    raise IPOLProcessInputsError("The DDL does not have extension field")
+                    raise IPOLProcessInputsError("The DDL does not have a extension field")
 
                 ext = inputs_desc[i]['ext']
 
@@ -764,12 +736,10 @@ workload of '{}'".format(dr_name)
         response = resp.json()
 
         if response['status'] == 'OK':
-
             physical_locations = response['physical_locations']
 
             index = 0
             for blob_path in physical_locations:
-
                 try:
                     extension = os.path.splitext(blob_path)[1]
                     final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
@@ -779,7 +749,6 @@ workload of '{}'".format(dr_name)
                     print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
 
                 index += 1
-
         else:
             self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
 
