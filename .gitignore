@@ -5,19 +5,19 @@
 ipol_demo/modules/archive/blobs/*
 ipol_demo/modules/archive/blobs_thumbs/*
 
-#shared_folder
+# Shared folder
 shared_folder/
 
-#demoextras in demoinfo
+# Demoextras in demoinfo
 ipol_demo/modules/demoinfo/demoExtras/*
 
-#DDLs from the ddl tool
+# DDLs from the ddl tool
 tools/DDL/DDLs
 
-#Binaries in demorunner
+# Binaries in demorunner
 ipol_demo/modules/demorunner/binaries/
 
-# Database
+# Databases
 *.db
 *.sqlite3
 
@@ -25,17 +25,19 @@ ipol_demo/modules/demorunner/binaries/
 ci_tests/*.txt
 ci_tests/compilation_folder/
 
-#
 # Sysadmin
 sysadmin/*.txt
 
 # Applications (to be moved to demoDispatcher/demoRunner!)
 app/
 
-# ignore backup files
+# Backup files
 *~
 *.bak
 *.backup
+
+# Mac OS cache
+*DS_Store
 
 # Documentation
 *.bst
@@ -46,6 +48,7 @@ app/
 *.toc
 *.out
 
+# Generated PDF and .tex files
 doc/api/api.pdf
 doc/api/docstrings.tex
 doc/system/ipol.pdf
@@ -59,27 +62,25 @@ logs/
 *.log
 ipol_demo/modules/archive/logs/error.log
 
-
-#
-# ignore editor temporal files
+# Editor temporal files
 *.kilepr
 .idea
 .synctex.gz
 
-# Static data
+# Static data in all modules
 staticData/
 
-# authentication
+# Authentication configuration
 ipol_demo/modules/config_common/authorized_patterns.conf
 
-# emails
+# Email configuration which contain personal data
 ipol_demo/modules/config_common/emails.conf
 
-# other
+# Links to the IPOL environment config files
+ipol_demo/modules/config_common/modules.xml
+ipol_demo/modules/config_common/demorunners.xml
+demorunners.xml
 
-ipol_demo/modules/blobs/blobs_nelson.conf
+# other
 changes*.txt
 ipol_demo/app_new/
-
-# Mac OS cache
-*DS_Store

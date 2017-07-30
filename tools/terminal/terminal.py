@@ -24,8 +24,80 @@ import xml.etree.ElementTree as ET
 
 class Terminal(object):
     """
-    This is the terminal.
+    IPOL Control Terminal Tool
     """
+
+    def get_modules_xml_filename(self):
+        '''
+        Gets the full path of the modules.xml configuration file
+        '''
+        return os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/modules.xml')
+
+    def get_demorunners_xml_filename(self):
+        '''
+        Gets the full path of the demorunners.xml configuration file
+        '''
+        return os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/demorunners.xml')
+
+    def get_ipol_environment(self):
+        '''
+        Returns the IPOL environment being currently used
+        '''
+        link = self.get_modules_xml_filename()
+        if not os.path.islink(link):
+            print "ERROR: file is not link! - {}".format(link)
+            sys.exit(0)
+        filename = os.path.normpath(os.path.realpath(link))
+        
+        # The environment is on the right of directory 'env':
+        dirs = filename.split(os.sep)
+        idx = dirs.index("envs")
+        return dirs[idx+1]
+
+    def set_ipol_environment(self, env):
+        '''
+        Sets the IPOL environment
+        '''
+        # Get targets
+        target_modules = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/modules.xml'.format(env))
+        if not os.path.isfile(target_modules):
+            print "ERROR. File not found: {}".format(target_modules)
+            return
+
+        target_demorunners = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/demorunners.xml'.format(env))
+        if not os.path.isfile(target_demorunners):
+            print "ERROR. File not found: {}".format(target_modules)
+            return
+
+        # Remove links
+        link_modules = self.get_modules_xml_filename()
+        if os.path.islink(link_modules):
+            os.remove(link_modules)
+        
+        link_demorunners = self.get_demorunners_xml_filename()
+        if os.path.islink(link_demorunners):
+            os.remove(link_demorunners)
+        
+        # Create the new links
+        os.symlink(target_modules, link_modules)
+        os.symlink(target_demorunners, link_demorunners)
+        
+        # Reload new configuration
+        self.reload_config()
+        
+    def env_command(self, args_array):
+        if len(args_array) == 0:
+            # Show environment
+            print self.get_ipol_environment()
+        elif len(args_array) == 1:
+            # Set environment
+            environment = args_array[0]
+            self.set_ipol_environment(environment)
+        else:
+            print "ERROR: wrong number or arguments"
+        
+        
+
 
     def add_modules(self):
         """
@@ -34,9 +106,9 @@ class Terminal(object):
         the server where the module is, the directory of the module on the
         server, and a list of strings representing the commands available
         to the module.
-        """
+        """        
         dict_modules = {}
-        tree = ET.parse('config_common/modules.xml')
+        tree = ET.parse(self.get_modules_xml_filename())
         root = tree.getroot()
 
         for module in root.findall('module'):
@@ -61,7 +133,7 @@ class Terminal(object):
         Read demorunners xml
         """
         dict_demorunners = {}
-        tree = ET.parse("config_common/demorunners.xml")
+        tree = ET.parse(self.get_demorunners_xml_filename())
         root = tree.getroot()
 
         list_tmp = []
@@ -87,8 +159,11 @@ class Terminal(object):
         Do nothing
         """
         pass
-
-    def __init__(self):
+        
+    def reload_config(self):
+        '''
+        Reloads the configuration files
+        '''
         # Read module's info
         self.dict_modules = {}
 
@@ -101,12 +176,31 @@ class Terminal(object):
         for module in self.dict_modules.keys():
             self.pull_servers.add(self.dict_modules[module]["serverSSH"])
 
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        # Create the links to integration by default if absent
+        filename_modules = self.get_modules_xml_filename()
+        filename_demorunners = self.get_demorunners_xml_filename()
+        
+        if not (os.path.islink(filename_modules) and os.path.islink(filename_demorunners)):
+            self.set_ipol_environment("integration")
+        
+        # Reload the configuration
+        self.reload_config()
+    
     def get_active_modules(self):
         """
         Print a list of the active modules.
         """
         modules_up = False
-        print "\nIPOL Control Terminal\n"
+        print "IPOL Control Terminal"
+        environment = self.get_ipol_environment()
+        print "Environment: \033[96m{}\033[0m".format(environment)
+        print
+
         for key, value in self.dict_modules.items():
             list_tmp = [key, ]
             if self.ping_module(list_tmp):
@@ -266,7 +360,8 @@ class Terminal(object):
     ping <module>     : Ping selected module
     info <module>     : List of the available commands for selected module
     modules           : List all IPOL modules
-    pull              : Git PULL
+    pull              : Git pull in all servers
+    env               : get or set the current IPOL environment
     help              : List available commands
     exit              : Exit the terminal
     """
@@ -297,6 +392,7 @@ class Terminal(object):
             "info": self.info_module,
             "modules": self.display_modules,
             "pull": self.pull,
+            "env": self.env_command,
             "help": self.display_help,
             "exit": self.do_nothing,
             "": self.do_nothing
