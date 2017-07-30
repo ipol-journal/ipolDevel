@@ -3,8 +3,8 @@
 
   <module name="archive">
     <module>archive</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/archive/</path>
     <command>start</command>
     <command>stop</command>
@@ -14,8 +14,8 @@
 
   <module name="blobs">
     <module>blobs</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/blobs/</path>
     <command>start</command>
     <command>stop</command>
@@ -25,8 +25,8 @@
 
   <module name="demoinfo">
     <module>demoinfo</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demoinfo/</path>
     <command>start</command>
     <command>stop</command>
@@ -36,8 +36,8 @@
 
   <module name="core">
     <module>core</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/core/</path>
     <command>start</command>
     <command>stop</command>
@@ -47,8 +47,8 @@
 
   <module name="dispatcher">
     <module>dispatcher</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/dispatcher/</path>
     <command>start</command>
     <command>stop</command>
@@ -58,8 +58,8 @@
   
   <module name="conversion">
     <module>conversion</module>
-    <server>ipolcore.ipol.im</server>
-    <serverSSH>ipol_core</serverSSH>
+    <server>integration.ipol.im</server>
+    <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/conversion/</path>
     <command>start</command>
     <command>stop</command>
