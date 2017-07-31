@@ -2,7 +2,7 @@
 # This configuration file should replace /etc/nginx/sites-available/default
 ##
 server {
-	listen 80;
+	listen *:80 default_server;
         proxy_send_timeout          600;
         proxy_read_timeout          600;
         send_timeout                600;

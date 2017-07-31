@@ -10,7 +10,7 @@ upstream ipol_webapp_server {
 }
 
 server {
-	listen 80 default_server;
+	listen *:80 default_server;
 	listen [::]:80 default_server;
         proxy_send_timeout          600;
         proxy_read_timeout          600;
