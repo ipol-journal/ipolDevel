@@ -1485,7 +1485,7 @@ demo #{} - {}".format(demo_id, str(ex))
                 print demorunner_response
                 # Message for the web interface
                                 
-                website_message = "DR={}, {}".format(dr_name, demorunner_response["error"].encode("utf8"))
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
                 print "website_message={}".format(website_message)
                 response = {"error": website_message,
                             "status": "KO"}
