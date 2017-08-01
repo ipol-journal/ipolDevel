@@ -65,6 +65,8 @@ libavresample-dev
 libavfilter-dev
 libavutil-dev
 
+###################################################################
+
 # The following packages are needed in our of our private projects on satellite imaging
 libgeos-dev
 
@@ -81,3 +83,6 @@ caffe-tools-cpu
 libcaffe-cpu-dev
 libcaffe-cpu1
 python3-caffe-cpu
+
+# JPEG processing workshops
+libjpeg-progs
