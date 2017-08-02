@@ -37,13 +37,15 @@ import zipfile
 
 import socket
 
+import mimetypes
+
 from libtiff import TIFF
 import png
 
 import requests
 import cherrypy
 import magic
-import mimetypes
+
 
 from Tools.misc import prod
 from Tools.image import image
@@ -383,10 +385,13 @@ workload of '{}'".format(dr_name)
                 'title': demo['title']
             })
 
+        # Sort demo list by demo ID
+        demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
+
         demos_string = ""
 
         # Show demos according to their state
-        for publication_state in demos_by_state.keys():
+        for publication_state in demos_by_state:
             demos_string += "<h2>{}</h2>".format(publication_state)
 
             for demo_data in demos_by_state[publication_state]:
@@ -515,7 +520,8 @@ workload of '{}'".format(dr_name)
     #           END BLOCK OF INPUT TOOLS
     # --------------------------------------------------------------------------
 
-    def process_input_data(self, filename, work_dir, input_desc, crop_info):
+    @staticmethod
+    def process_input_data(filename, input_desc):
         '''
         Process input of type 'data'
         '''
@@ -608,7 +614,7 @@ workload of '{}'".format(dr_name)
             if input_desc['type'] == 'image':
                 self.process_input_image(input_filename, work_dir, inputs_desc[i], crop_info)
             elif input_desc['type'] == 'data':
-                self.process_input_data(input_filename, work_dir, inputs_desc[i], crop_info)
+                self.process_input_data(input_filename, inputs_desc[i])
             else:
                 raise ValueError("Unknown input type '{}'".format(input_desc['type']))
                 
@@ -1288,7 +1294,7 @@ attached the failed experiment data.". \
 
         except Exception as ex:
             s = "Failure in the run function of the \
-CORE in demo #{}: ex".format(demo_id, ex)
+CORE in demo #{}: {}".format(demo_id, ex)
             self.logger.exception(s)
             print "Failure in the run function of the CORE in \
 demo #{} - {}".format(demo_id, str(ex))

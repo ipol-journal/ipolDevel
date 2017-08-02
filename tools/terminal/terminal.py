@@ -88,7 +88,7 @@ class Terminal(object):
     def env_command(self, args_array):
         if len(args_array) == 0:
             # Show environment
-            print self.get_ipol_environment()
+            print "\033[96m{}\033[0m".format(self.get_ipol_environment())
         elif len(args_array) == 1:
             # Set environment
             environment = args_array[0]
