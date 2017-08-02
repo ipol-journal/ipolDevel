@@ -385,6 +385,9 @@ workload of '{}'".format(dr_name)
                 'title': demo['title']
             })
 
+        # Sort demo list by demo ID
+        demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
+
         demos_string = ""
 
         # Show demos according to their state
