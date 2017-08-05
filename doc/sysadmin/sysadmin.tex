@@ -231,40 +231,40 @@ Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDev
 \item Debian
 
 \begin{enumerate}
-\item Uninstall previous nginx version
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ apt-get remove nginx-common
-\end{lstlisting}
+    \item Uninstall previous nginx version
+    \begin{lstlisting}[language=Bash]
+	{prod} ~/ipolDevel$ apt-get remove nginx-common
+    \end{lstlisting}
 
-\item Download the key from: \url{http://nginx.org/keys/nginx_signing.key} and execute the following command with it
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ sudo apt-key add nginx_signing.key
-\end{lstlisting}
+    \item Download the key from: \url{http://nginx.org/keys/nginx_signing.key} and execute the following command with it
+    \begin{lstlisting}[language=Bash]
+	{prod} ~/ipolDevel$ sudo apt-key add nginx_signing.key
+    \end{lstlisting}
 
-\item Replace codename with Debian distribution codename, and append the following to the end of the /etc/apt/sources.list file:
-\begin{enumerate}
-\item deb http://nginx.org/packages/debian/ codename nginx
-\item deb-src http://nginx.org/packages/debian/ codename nginx
-\end{enumerate}
+    \item Replace codename with Debian distribution codename, and append the following to the end of the /etc/apt/sources.list file:
+    \begin{enumerate}
+	\item deb http://nginx.org/packages/debian/ codename nginx
+	\item deb-src http://nginx.org/packages/debian/ codename nginx
+    \end{enumerate}
 
-\item Update repositories
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ apt-get update
-\end{lstlisting}
+    \item Update repositories
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ apt-get update
+    \end{lstlisting}
 
-\item Install nginx from the repository
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ apt-get install nginx
-\end{lstlisting}
-
-\end{enumerate}
-\item Ubuntu
-\begin{enumerate}
-\item Install nginx from the repository
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ apt-get install nginx
-\end{lstlisting}
-\end{enumerate}
+    \item Install nginx from the repository
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ apt-get install nginx
+    \end{lstlisting}
+    \end{enumerate}
+    
+    \item Ubuntu
+    \begin{enumerate}
+	\item Install nginx from the repository
+	\begin{lstlisting}[language=Bash]
+	{prod} ~/ipolDevel$ apt-get install nginx
+	\end{lstlisting}
+    \end{enumerate}    
 \end{enumerate}
 
 \subsection{Configuration}
@@ -276,115 +276,115 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
 \end{lstlisting}
 
 \begin{enumerate}
-\item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http subsection:
-\begin{lstlisting}[language=Bash]
-include /etc/nginx/sites-enabled/*;
-\end{lstlisting}
-\item Edit the site configuration file: sites-available/default, configuring the subsections:
-\begin{enumerate}
-\item Upstream
-\begin{enumerate}
-\item Upstream name. E.g.: ipol\_webapp\_server
-\item Gunicorn socket file absolute location.
-\end{enumerate}
-\item Server
-\begin{enumerate}
-\item Listening port. The port to serve the site with static files. E.g.: 8000
-\item Server name. E.g.: ipolcore.ipol.im
-\item A resolver, necessary to set variables in the configuration for Debian distributions.
-\begin{lstlisting}[language=Bash]
-resolver 213.186.33.99;
-\end{lstlisting}
-\item Increase timeout for send and receive requests.
-\begin{lstlisting}[language=Bash]
-proxy_send_timeout	600;
-proxy_read_timeout	600;
-send_timeout		600;
-\end{lstlisting}
-\item Access log absolute location.
-\item A location for each module.
-\begin{lstlisting}[language=Bash]
-location /api/<module>/ {
-  rewrite ^/api/<module>/(.*) /$1 break;
-  proxy_pass  http://$host:<port>;
-}
-\end{lstlisting}
-\item Static files absolute location.
-\begin{lstlisting}[language=Bash]
-location /cp/static/ {
-  alias  /home/<user>/IPOLWEBAPP_STATIC/;
-}
-\end{lstlisting}
-\item Proxy pass, using upstream name configured previously.
-E.g.:
-\begin{lstlisting}[language=Bash]
-proxy_pass http://ipol_webapp_server;
-\end{lstlisting}
+    \item Edit the config file /etc/nginx/nginx.conf, adding the following include at the end of the http subsection:
+    \begin{lstlisting}[language=Bash]
+    include /etc/nginx/sites-enabled/*;
+    \end{lstlisting}
+    \item Edit the site configuration file: sites-available/default, configuring the subsections:
+    \begin{enumerate}
+    \item Upstream
+    \begin{enumerate}
+    \item Upstream name. E.g.: ipol\_webapp\_server
+    \item Gunicorn socket file absolute location.
+    \end{enumerate}
+    \item Server
+    \begin{enumerate}
+    \item Listening port. The port to serve the site with static files. E.g.: 8000
+    \item Server name. E.g.: ipolcore.ipol.im
+    \item A resolver, necessary to set variables in the configuration for Debian distributions.
+    \begin{lstlisting}[language=Bash]
+    resolver 213.186.33.99;
+    \end{lstlisting}
+    \item Increase timeout for send and receive requests.
+    \begin{lstlisting}[language=Bash]
+    proxy_send_timeout	600;
+    proxy_read_timeout	600;
+    send_timeout		600;
+    \end{lstlisting}
+    \item Access log absolute location.
+    \item A location for each module.
+    \begin{lstlisting}[language=Bash]
+    location /api/<module>/ {
+      rewrite ^/api/<module>/(.*) /$1 break;
+      proxy_pass  http://$host:<port>;
+    }
+    \end{lstlisting}
+    \item Static files absolute location.
+    \begin{lstlisting}[language=Bash]
+    location /cp/static/ {
+      alias  /home/<user>/IPOLWEBAPP_STATIC/;
+    }
+    \end{lstlisting}
+    \item Proxy pass, using upstream name configured previously.
+    E.g.:
+    \begin{lstlisting}[language=Bash]
+    proxy_pass http://ipol_webapp_server;
+    \end{lstlisting}
 
-\end{enumerate}
-\end{enumerate}
-\item Add authentication for demos. Only in the machine which servers the static files of the demo, of course.
-\begin{enumerate}
-\item Create subfolder .passwd in /etc/nginx
-\begin{lstlisting}[language=Bash]
-mkdir /etc/nginx/.passwd
-\end{lstlisting}
-\item Install apache2-utils
-\begin{lstlisting}[language=Bash]
-sudo apt-get install apache2-utils
-\end{lstlisting}
-\item Creates username and password with htpasswd
-\begin{lstlisting}[language=Bash]
- sudo htpasswd -c /etc/nginx/.passwd/company company
-\end{lstlisting}
-\item Edit the default file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
-\begin{lstlisting}[language=Bash]
-location /demo/clientApp/demo.html {
-  if ($args ~ ".*id=33333999\d*") {
-    error_page 418 = @companyPasswd;
-    return 418;
-  }
-  proxy_pass  http://$host:8080;
-}
-location @companyPasswd {
-  auth_basic "Restricted";
-  auth_basic_user_file /etc/nginx/.passwd/company;
-  proxy_pass  http://$host:8080;
-}
-\end{lstlisting}
-\end{enumerate}
+    \end{enumerate}
+    \end{enumerate}
+    \item Add authentication for demos. Only in the machine which servers the static files of the demo, of course.
+    \begin{enumerate}
+    \item Create subfolder .passwd in /etc/nginx
+    \begin{lstlisting}[language=Bash]
+    mkdir /etc/nginx/.passwd
+    \end{lstlisting}
+    \item Install apache2-utils
+    \begin{lstlisting}[language=Bash]
+    sudo apt-get install apache2-utils
+    \end{lstlisting}
+    \item Creates username and password with htpasswd
+    \begin{lstlisting}[language=Bash]
+     sudo htpasswd -c /etc/nginx/.passwd/company company
+    \end{lstlisting}
+    \item Edit the default file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
+    \begin{lstlisting}[language=Bash]
+    location /demo/clientApp/demo.html {
+      if ($args ~ ".*id=33333999\d*") {
+	error_page 418 = @companyPasswd;
+	return 418;
+      }
+      proxy_pass  http://$host:8080;
+    }
+    location @companyPasswd {
+      auth_basic "Restricted";
+      auth_basic_user_file /etc/nginx/.passwd/company;
+      proxy_pass  http://$host:8080;
+    }
+    \end{lstlisting}
+    \end{enumerate}
 
-\item Enable the site by creating a symbolic link to default configuration:
-\begin{lstlisting}[language=Bash]
-ln -s /etc/nginx/sites-available/default \
-/etc/nginx/sites-enabled/
-\end{lstlisting}
+    \item Enable the site by creating a symbolic link to default configuration:
+    \begin{lstlisting}[language=Bash]
+    ln -s /etc/nginx/sites-available/default \
+    /etc/nginx/sites-enabled/
+    \end{lstlisting}
 
-\item Check Nginx configuration
-\begin{lstlisting}[language=Bash]
+    \item Check Nginx configuration
+    \begin{lstlisting}[language=Bash]
 
-\end{lstlisting}
+    \end{lstlisting}
 \end{enumerate}
 
 \subsection{Management}
 
 \begin{itemize}
-\item Start service:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ sudo nginx
-\end{lstlisting}
-\item Reload the configuration file:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ sudo nginx -s reload
-\end{lstlisting}
-\item Stop service:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ sudo nginx -s stop
-\end{lstlisting}
-\item Check configuration:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ sudo nginx -t
-\end{lstlisting}
+    \item Start service:
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ sudo nginx
+    \end{lstlisting}
+    \item Reload the configuration file:
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ sudo nginx -s reload
+    \end{lstlisting}
+    \item Stop service:
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ sudo nginx -s stop
+    \end{lstlisting}
+    \item Check configuration:
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ sudo nginx -t
+    \end{lstlisting}
 \end{itemize}
 
 
@@ -393,13 +393,13 @@ To operate in a production environment is necessary to install and configure som
 required for this purpose. The first one will work as the application server, while the second is a reverse proxy.
 
 \begin{itemize}
-\item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers.
-These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is
-implemented with NGINX and is used to redirect requests from port 80 to the Control Panel listening port.
-\item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language.
-In this case the Gunicorn is the responsible of this purpose.
-\item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this
-is implemented with Django.
+    \item \textbf{Reverse Proxy} is a type of proxy that retrieves resources on behalf of a client from one or more servers.
+    These resources are then returned to the client as if they originated from the proxy server itself. The reverse proxy in this case is
+    implemented with NGINX and is used to redirect requests from port 80 to the Control Panel listening port.
+    \item \textbf{WSGI} is a specification to connect web servers with web applications or frameworks for the Python programming language.
+    In this case the Gunicorn is the responsible of this purpose.
+    \item \textbf{Web Application} is a is a client–server software application in which the client runs in a web browser. In the Control Panel this
+    is implemented with Django.
 \end{itemize}
 
 \subsection{Communication between the Client and Control Panel}
@@ -412,10 +412,10 @@ port where Django is running. The other purpose of NGINX is to serve the static 
 The diagram of this configuration is represented by Figure ~\ref{fig:local_architecture}.
 
 \begin{figure}[!ht]
-\centering
-\includegraphics[width=0.7\columnwidth]{images/local}
-\caption{The communication between the client and the Django web server with the reverse proxy in the local server.}
-\label{fig:local_architecture}
+    \centering
+    \includegraphics[width=0.7\columnwidth]{images/local}
+    \caption{The communication between the client and the Django web server with the reverse proxy in the local server.}
+    \label{fig:local_architecture}
 \end{figure}
 
 In the production and integration servers is where is located the most complete connection. As in the local server, a reverse proxy is needed to
@@ -425,10 +425,10 @@ communicates with the NGINX through a UNIX socket. The diagram of this configura
 
 
 \begin{figure}[!ht]
-\centering
-\includegraphics[width=1\columnwidth]{images/prod_int}
-\caption{The communication between the client and the Django web server with the reverse proxy and the WSGI in the production and integration servers.}
-\label{fig:prod_int_architecture}
+    \centering
+    \includegraphics[width=1\columnwidth]{images/prod_int}
+    \caption{The communication between the client and the Django web server with the reverse proxy and the WSGI in the production and integration servers.}
+    \label{fig:prod_int_architecture}
 \end{figure}
 
 
@@ -442,9 +442,9 @@ Install from console:
 \subsection{Gunicorn: configuration}
 In order to manage the gunicorn service we will use a script, which is in charge of:
 \begin{itemize}
-\item Open the virtual environment, if used. If not, comment the line with \#
-\item Collect the static files.
-\item Start the web server.
+    \item Open the virtual environment, if used. If not, comment the line with \#
+    \item Collect the static files.
+    \item Start the web server.
 \end{itemize}
 
 In this guide we will use the following path/name for the mentioned script:
@@ -454,34 +454,32 @@ ipolDevel/gunicorn_start.sh
 
 Open the script and configure the parameters:
 \begin{itemize}
-\item NAME: Name of the application.
-\item DJANGODIR: Django project directory path (absolute).
-\item SOCKFILE: Gunicorn socket path (absolute).
-\item VENV: Virtual environment name (if used).
-\item USER, GROUP: User and group names, to run the server as. Both names must be valid at the current server.
-\item NUM\_WORKERS: Gunicorn worker processes number.
-\item DJANGO\_SETTINGS\_MODULE: Django settings name.
-\item DJANGO\_WSGI\_MODULE: Django WSGI module name.
-\item Gunicorn port number. In this guide we will use port 8001. Consider that this is NOT the port used to access the final site, because it will not serve the static files (DEBUG = False in settings.py). Another port will be configured in Nginx for that purpose.
-\item Finally, add execution permissions to the script.
+    \item NAME: Name of the application.
+    \item DJANGODIR: Django project directory path (absolute).
+    \item SOCKFILE: Gunicorn socket path (absolute).
+    \item VENV: Virtual environment name (if used).
+    \item USER, GROUP: User and group names, to run the server as. Both names must be valid at the current server.
+    \item NUM\_WORKERS: Gunicorn worker processes number.
+    \item DJANGO\_SETTINGS\_MODULE: Django settings name.
+    \item DJANGO\_WSGI\_MODULE: Django WSGI module name.
+    \item Gunicorn port number. In this guide we will use port 8001. Consider that this is NOT the port used to access the final site, because it will not serve the static files (DEBUG = False in settings.py). Another port will be configured in Nginx for that purpose.
+    \item Finally, add execution permissions to the script.
 \end{itemize}
 
 \subsection{Gunicorn: management}
 \begin{itemize}
-\item Start service by executing the script:
-\begin{lstlisting}[language=Bash]
-{prod} ~/ipolDevel$ ./gunicorn_start.sh
-\end{lstlisting}
+    \item Start service by executing the script:
+    \begin{lstlisting}[language=Bash]
+    {prod} ~/ipolDevel$ ./gunicorn_start.sh
+    \end{lstlisting}
 
-\item Stop service: Ctrl + C
+    \item Stop service: Ctrl + C
 \end{itemize}
 
 
 
 \subsection{Accessing the Control Panel}
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Docker}
 In order to allow members of IPOL get a development envirorment, we created a docker image.
