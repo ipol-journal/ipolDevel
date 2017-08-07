@@ -1,8 +1,10 @@
 var helpers = clientApp.helpers || {};
 
 $.fn.gallery_new = function(result, index)  {
-  var visible = eval(result.visible);
-  if (!visible) return;
+  if (result.visible) {
+    var visible = eval(result.visible);
+    if (!visible) return;
+  }
 
   var contentKeys = Object.keys(result.contents);
 
