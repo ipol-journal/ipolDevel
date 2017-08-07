@@ -46,6 +46,10 @@ $.fn.repeat_gallery = function(result, index)  {
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left di-inline');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   }
+  $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
+  $("." + leftItems).appendZoom(index, leftItems);
+  $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
+  // checkOptions(result.type, index);
 }
 
 function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, itemSelector, side, repeat, contentArray) {
@@ -60,22 +64,21 @@ function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, ite
   $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
 }
 
-$.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray, itemIndex) {
-  var originalSrc = "";
+$.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray, idx) {
+  helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, 0);
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
   var selector = '.gallery-blob-container-' +side+ '-' + galleryIndex;
-  var originalSrc = [];
   $(this).mouseover(function() {
     $(selector).addClass("flex-50");
     $(imgSelector).each(function(i) {
-      let idx = itemIndex;
       $(this).attr("src", work_url + eval(contentArray[i]));
       $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
     });
   });
   $(this).mouseout(function() {
+    var idx = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
     $(imgSelector).each(function(i){
-      $(this).attr("src", originalSrc[i]);
+      $(this).attr("src", work_url + eval(contentArray[i]));
       $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
     });
   });
@@ -83,9 +86,6 @@ $.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray
     var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
     $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
-    originalSrc = [];
-    $(imgSelector).each(function(){
-      originalSrc.push($(this).attr("src"));
-    });
+    helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, idx);
   });
 }
