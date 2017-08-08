@@ -132,9 +132,9 @@ $.fn.addHoverEvents = function(galleryIndex, side, work_url, src) {
     $(imgSelector).each(function(){
       originalSrc.push($(this).attr("src"));
     });
+    $(selector).addClass("flex-50");
     var keys = Object.keys(src);
     $(imgSelector).each(function(i) {
-      console.log(src[keys[i]]);
       $(this).attr("src", work_url + src[keys[i]]);
       $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
     });

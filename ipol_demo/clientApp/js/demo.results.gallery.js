@@ -1,6 +1,10 @@
+var helpers = clientApp.helpers || {};
+
 $.fn.gallery_new = function(result, index)  {
-  var visible = eval(result.visible);
-  if (!visible) return;
+  if (result.visible) {
+    var visible = eval(result.visible);
+    if (!visible) return;
+  }
 
   var contentKeys = Object.keys(result.contents);
 
@@ -53,14 +57,17 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
   $("." + gallerySelector).append("<div class=" + itemSelector + "></div>");
   $("." + itemSelector).addClass("gallery-item-list");
   var contents = result.contents;
+  var firstSrc = result.contents[contentKeys[0]].img;
+  if (typeof(firstSrc) == "string") {
+    firstSrc = [firstSrc];
+  }
   for (let i = 0; i < contentKeys.length; i++) {
     if (eval(contents[contentKeys[i]].visible)) {
       $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
       var content = result.contents[contentKeys[i]].img;
-      var firstSrc = result.contents[contentKeys[0]].img;
       if (typeof(content) == "string") {
         content = [content];
-        firstSrc = [result.contents[contentKeys[0]].img];
+        firstSrc = result.contents[contentKeys[0]].img;
       }
       $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, firstSrc, work_url, content);
     }
@@ -69,27 +76,23 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
 }
 
 $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src) {
-  var selectedSrc = [];
-  for (var i = 0; i < firstSrc.length; i++) {
-    selectedSrc.push(work_url + firstSrc[i]);
-  }
+  helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, firstSrc);
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
   var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
       $(selector).append('<img src=' + work_url + src[i] + ' class=gallery-img draggable=false></img>');
-      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-left');
-      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-right');
+      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
     $("#gallery-" +galleryIndex+ "-zoom > select").adjustSize(galleryIndex);
   });
   $(this).mouseout(function() {
     $(selector).empty();
+    var selectedSrc = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
     for (var i = 0; i < selectedSrc.length; i++) {
-      $(selector).append('<img src=' + selectedSrc[i] + ' class=gallery-img draggable=false></img>');
-      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-left');
-      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-right');
+      $(selector).append('<img src=' + work_url + selectedSrc[i] + ' class=gallery-img draggable=false></img>');
+      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
     $("#gallery-" +galleryIndex+ "-zoom > select").adjustSize(galleryIndex);
   });
@@ -97,10 +100,13 @@ $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src) {
     var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
     $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
-    selectedSrc = [];
+    var selectedSrc = [];
     $(imgSelector).each(function(i){
-      selectedSrc.push($(imgSelector)[i].src);
+      let src = $(imgSelector)[i].src.split("/");
+      let name = src[src.length - 1];
+      selectedSrc.push(name);
     });
+    helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, selectedSrc);
   });
 }
 
@@ -108,9 +114,9 @@ $.fn.renderGalleryControlls = function(galleryIndex, rightItems, imgContainerRig
   $(this).append("<div><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function() {
     if ($(this).is(":checked")) {
-      $(".gallery-blob-container-" + galleryIndex + " > div").css({"flex-basis": "50%"});
+      $(".gallery-blobs-container-" + galleryIndex + " > div").css({"flex-basis": "50%"});
     } else {
-      $(".gallery-blob-container-" + galleryIndex + " > div").css({"flex-basis": ""});
+      $(".gallery-blobs-container-" + galleryIndex + " > div").css({"flex-basis": ""});
     }
     $("#" + imgContainerRight).toggleClass("di-none");
     $(".gallery_" + galleryIndex).toggleClass("space-between");
