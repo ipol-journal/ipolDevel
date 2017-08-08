@@ -268,6 +268,15 @@ class DemoRunner(object):
 
         return json.dumps(data)
 
+    @staticmethod
+    def remove_path(path):
+        '''
+        Removes from disk the given path (a file or a directory)
+        '''
+        if os.path.isfile(path):
+            os.remove(path) # Remove file
+        elif os.path.isdir(path):
+           shutil.rmtree(path) # Remove directories recursively
 
     def construct(self, path_for_the_compilation, ddl_builds):
         """
@@ -345,6 +354,9 @@ class DemoRunner(object):
 format(path_from))
 
                         try:
+                            # Remove path_to if it exists
+                            self.remove_path(path_to)
+                            # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
                             self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
