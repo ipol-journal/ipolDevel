@@ -10,8 +10,14 @@ $.fn.repeat_gallery = function(result, index)  {
   var contentArray = result.contents[1];
   var repeatKey = result.repeat.split(".")[0];
   var repeatParam = result.repeat.split(".")[1];
-  var repeatValues = JSON.parse(runData.get(repeatKey));
-  var repeat = repeatValues[repeatParam];
+  if (repeatKey === "params") {
+    var repeatValues = JSON.parse(runData.get(repeatKey));
+    var repeat = repeatValues[repeatParam];
+  } else if (repeatKey === "info") {
+    repeat = info[repeatParam];
+  } else {
+    repeat = result.repeat;
+  }
 
   if (typeof(contentArray) == "string") {
     contentArray = [contentArray]
@@ -49,7 +55,7 @@ $.fn.repeat_gallery = function(result, index)  {
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $("." + leftItems).appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
-  // checkOptions(result.type, index);
+  checkOptions(result.type, index);
 }
 
 function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, itemSelector, side, repeat, contentArray) {
