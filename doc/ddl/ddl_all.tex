@@ -664,6 +664,64 @@ titles.
   },
 \end{lstlisting}
 
+%------ New gallery  ------
+\subsubsection{ \emph{gallery\_new} type}
+
+The gallery\_new type uses the gallery class to display images. Its parameters are:
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type       & gallery  & yes \\ \hline
+ visible    & Javascript/JQuery boolean expression evaluated in the context 
+              defined in \ref{sec:JavascriptEval}, that can hide the result if
+              evaluated to false (if undefined the result is visible)& no \\ \hline
+ label      & html label for the gallery, can be either a single string or 
+             a list of string that will be concatenated with whitespace character
+              in between. & no \\ \hline
+ contents   & inside has javascript objects with: img, repeat and visible parameters.
+ 				The key for every object can be an expression to be evaluated in case of repeat
+ 				functionallity.
+ 			    img wil have either a string with a filename or an array of strings with filenames.
+ 			    visible is the same a visible field for the gallery but for each item in the gallery.
+ 			    repeat is a range expression (evaluated in javascript): will create a loop in the 
+ 			    form idx=0..range-1.
+            & yes \\ \hline
+ options    & You can specify options for the ImageGallery object. Currently
+              'minwidth' and 'minheight' (in pixels) options are available to force
+              miminal size of image display. Default values are 300 for both.& no \\ \hline
+\caption{Keys for the 'gallery\_new' type.}
+\end{longtable}
+
+\paragraph{Examples}:\\
+Advaced example, mixing repeat, visible, using an array of filenames.
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+  	"type": "gallery_new",
+            "visible": "1==1",
+            "contents": {
+                "Input 0": {
+                    "img":  ["denoised_diff_0.png", "denoised_noiseCurves_L_0.png"],
+                    "visible": "1==1"
+                },
+                "'Scale'+idx": {
+                    "img":  [
+                        "'diff_'+idx+'.png'", 
+                        "'noiseC_L_'+idx+'.png'", 
+                        "'noiseC_H_'+idx+'.png'"
+                    ],
+                    "visible": "1==1",
+                    "repeat": "params.nbscales"
+                }
+            },
+            "label": [
+                "<p>New Gallery type.</p>"
+            ]
+        }
+\end{lstlisting}
+
+
 
 %------ file_download  ------
 \subsubsection{ \emph{file\_download} type}
