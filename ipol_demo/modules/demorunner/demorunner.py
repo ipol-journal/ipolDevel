@@ -21,8 +21,8 @@ from string import Template
 from threading import Lock
 import ConfigParser
 import re
-import cherrypy
 import codecs
+import cherrypy
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
 from Tools.run_demo_base import IPOLTimeoutError
@@ -276,7 +276,8 @@ class DemoRunner(object):
         if os.path.isfile(path):
             os.remove(path) # Remove file
         elif os.path.isdir(path):
-           shutil.rmtree(path) # Remove directories recursively
+            shutil.rmtree(path) # Remove directories recursively
+
 
     def construct(self, path_for_the_compilation, ddl_builds):
         """
@@ -346,7 +347,7 @@ class DemoRunner(object):
                         #
                         path_from = os.path.join(src_dir, file_to_move)
                         path_to = os.path.join(bin_dir, os.path.basename(file_to_move))
-                        
+
                         # Check origin
                         if not os.path.exists(path_from):
                             raise IPOLConstructFileNotFound(\
@@ -445,12 +446,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
             data['buildlog'] = "\n".join(lines).encode('utf8')
-
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed in demo {}. {}".format(demo_id, str(ex))
-            
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
