@@ -31,8 +31,8 @@ def authenticate(func):
         """
         Invokes the wrapped function if authenticated
         """
-        if not is_authorized_ip(cherrypy.request.remote.ip) and not (
-                        "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(
+        if not is_authorized_ip(cherrypy.request.remote.ip) and not (\
+                        "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(\
                     cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
             return json.dumps(error)
