@@ -848,9 +848,7 @@ expressions of the form '\{\{expression\}\}'. & \\ \hline
 
 %------ repeat_gallery  ------
 \subsubsection{ \emph{repeat\_gallery} type}
-The repeat\_gallery type is design to display a gallery with a number of images 
-that depend on a parameter, for example the number of scales used by the 
-algorithm.
+It displays a gallery with a number of images that depend on a parameter.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
@@ -896,8 +894,8 @@ algorithm.
 
 %------ message  ------
 \subsubsection{ \emph{message} type}
-The message type is design to display a text message with a predefined color. This can be 
-usefull for warning or error messages.
+It displays a text message with a predefined color. This can be 
+used for warning or error messages.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
@@ -905,10 +903,10 @@ usefull for warning or error messages.
 \hline \hline
  type       & message  & yes \\ \hline
  visible    & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that can hide the result if
+              defined in \ref{sec:JavascriptEval}, that hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
- contents   & a string that can be evaluated by javascript to form a message. & yes \\ \hline
- textColor    & the name of a color or a CSS compatible color. & no \\ \hline
+ contents   & a string which will be evaluated by Javascript to get the message. & yes \\ \hline
+ textColor    & the name of a color or a CSS-compatible color. & no \\ \hline
 \caption{Keys for the 'message' type.}
 \end{longtable}
 
@@ -917,7 +915,7 @@ usefull for warning or error messages.
   {    "contents": "'Image too small: the input image needs to be at least 42000 pixels to get a reliable estimate<br> Forced to use one bin for the estimation.'", 
         "type": "message", 
         "textColor": "red",
-         "visible": "info.sizeX * info.sizeY < 42000" }
+        "visible": "info.sizeX * info.sizeY < 42000" }
 \end{lstlisting}
 
 
