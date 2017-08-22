@@ -532,16 +532,15 @@ workload of '{}'".format(dr_name)
         input_first_part, input_ext = os.path.splitext(filename)
         if input_ext != ext:
             os.rename(filename, input_first_part + ext)
-    
-    
+
     def process_input_image(self, filename, work_dir, input_desc, crop_info):
         '''
         Process input of type 'image'
         '''
         # Read the image
         im = image(filename)
-            
-        json_crop_info = json.loads(crop_info) if crop_info else None        
+
+        json_crop_info = json.loads(crop_info) if crop_info else None
         crop_enabled = json_crop_info and json_crop_info['enabled']
 
         # Get the expected extension for the file
@@ -553,22 +552,22 @@ workload of '{}'".format(dr_name)
         max_pixels = evaluate(input_desc['max_pixels'])
         size_ok = prod(im.size) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
-        
+
         input_first_part, input_ext = os.path.splitext(filename)
-        
+
         if not crop_enabled and size_ok and format_ok:
             # This is the most favorable case.
             # There is no crop and both the size and the format is the
             # same as the original.
-            
-            # If the extension also coincides, everything is done            
+
+            # If the extension also coincides, everything is done
             if input_ext == ext:
                 return
 
             # If not, just change the extension and we're done
             os.rename(filename, input_first_part + ext)
             return
-        
+
 
         # From now on, a conversion is needed
         # Perform crop if needed
@@ -578,17 +577,14 @@ workload of '{}'".format(dr_name)
             x1 = int(round(json_crop_info['x'] + json_crop_info['w']))
             y1 = int(round(json_crop_info['y'] + json_crop_info['h']))
             im.crop((x0, y0, x1, y1))
-        
+
         # resize if the (eventually) cropped image is too big
         if max_pixels and prod(im.size) > max_pixels:
             im.resize(int(max_pixels), method="antialias")
-        
+
         # Finally, save the processed image
         self.save_image(im, os.path.join(work_dir, input_first_part + ext))
 
-
-        
-        
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         '''
         Process the inputs
@@ -610,15 +606,15 @@ workload of '{}'".format(dr_name)
                     break
 
             input_filename = input_files[0]
-            
+
             if input_desc['type'] == 'image':
                 self.process_input_image(input_filename, work_dir, inputs_desc[i], crop_info)
             elif input_desc['type'] == 'data':
                 self.process_input_data(input_filename, inputs_desc[i])
             else:
                 raise ValueError("Unknown input type '{}'".format(input_desc['type']))
-                
-        
+
+
 
     @staticmethod
     def input_upload(work_dir, blobs, inputs_desc):
@@ -920,7 +916,7 @@ workload of '{}'".format(dr_name)
         msg['From'] = "{} <{}>".format(sender["name"], sender["email"])
         msg['To'] = emails_str  # Must pass only a comma-separated string here
         msg.preamble = text
-        
+
         if zip_filename is not None:
             with open(zip_filename) as fp:
                 zip_data = MIMEApplication(fp.read())
@@ -1035,7 +1031,7 @@ attached the failed experiment data.". \
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
         self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
-        
+
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
         """
@@ -1045,7 +1041,7 @@ attached the failed experiment data.". \
         config_emails = self.read_emails_from_config()
         if not config_emails:
             return
-        
+
         if self.serverEnvironment == 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
@@ -1094,7 +1090,7 @@ attached the failed experiment data.". \
         """
         print 'KWARGS'
         print kwargs
-        
+
         demo_id = int(demo_id)
 
         origin = kwargs.get('origin', None)
@@ -1318,7 +1314,7 @@ demo #{} - {}".format(demo_id, str(ex))
         execute a demo.
         """
         demo_id = int(demo_id)
-        
+
         if 'input_type' in kwargs:
             input_type = kwargs.get('input_type')
         else:
@@ -1493,8 +1489,8 @@ demo #{} - {}".format(demo_id, str(ex))
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 print demorunner_response
+
                 # Message for the web interface
-                                
                 website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
                 print "website_message={}".format(website_message)
                 response = {"error": website_message,
