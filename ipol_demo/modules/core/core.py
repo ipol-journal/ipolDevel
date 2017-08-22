@@ -265,7 +265,7 @@ class Core(object):
             print ex
             self.logger.exception("get_demorunners")
             data["status"] = "KO"
-            data["message"] = "Can not get demorunners"
+            data["message"] = "Can't get demorunners"
 
         return json.dumps(data)
 
@@ -294,7 +294,7 @@ class Core(object):
             data['demorunners'] = demorunners
         except Exception as ex:
             print ex
-            self.logger.exception("Couldn't get demorunners stats")
+            self.logger.exception("Couldn't get DRs stats")
             data["status"] = "KO"
             data["message"] = "Can not get demorunners stats"
 
@@ -320,10 +320,10 @@ class Core(object):
                                    format(dr_name))
                     dr_wl[dr_name] = 100.0
             except Exception as ex:
-                s = "Error when trying to obtain the \
+                s = "Error when obtaining the \
 workload of '{}'".format(dr_name)
                 self.logger.exception(s)
-                print "Error when trying to obtain the workload of '{}' - {}".format(dr_name, ex)
+                print "Error when obtaining the workload of '{}' - {}".format(dr_name, ex)
         return dr_wl
 
     @staticmethod
@@ -526,7 +526,7 @@ workload of '{}'".format(dr_name)
         Process input of type 'data'
         '''
         if 'ext' not in input_desc:
-            raise IPOLProcessInputsError("The DDL does not have a 'ext' (extension) field")
+            raise IPOLProcessInputsError("The DDL does not have an 'ext' (extension) field")
         ext = input_desc['ext']
 
         input_first_part, input_ext = os.path.splitext(filename)
@@ -648,13 +648,13 @@ workload of '{}'".format(dr_name)
             ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
 
             if 'ext' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL does not have 'ext' (extension) field")
+                raise IPOLInputUploadError("The DDL doesn't have a 'ext' (extension) field")
 
             if 'type' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL does not have 'type' field")
+                raise IPOLInputUploadError("The DDL doesn't have a 'type' field")
 
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
-                raise IPOLInputUploadError("The DDL type does not match with the uploaded file")
+                raise IPOLInputUploadError("The DDL type doesn't match the uploaded file")
 
             # We keep the file according it was uploaded
             # process_inputs will make the possible modifications
@@ -700,7 +700,7 @@ workload of '{}'".format(dr_name)
 
                 index += 1
         else:
-            self.logger.exception("KO copying the blobs from Blobs module with copy_blobset_from_physical_location")
+            self.logger.exception("Blobs get_blobs_location returned KO at Core's copy_blobset_from_physical_location")
 
 
     def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
@@ -711,7 +711,7 @@ workload of '{}'".format(dr_name)
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
             if 'id_blobs' not in blobs:
-                raise IPOLCopyBlobsError("There is not id blobs")
+                raise IPOLCopyBlobsError("id_blobs absent")
 
             blobs_id_list = blobs['id_blobs']
             self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
@@ -744,7 +744,7 @@ workload of '{}'".format(dr_name)
             content_zip = ar_zip.namelist()
             return ar_zip, content_zip
         else:
-            raise IPOLExtractError('The filename is neither zip nor tar')
+            raise IPOLExtractError('The file is neither a ZIP nor TAR')
 
     def extract(self, filename, target):
         """
@@ -1081,9 +1081,9 @@ attached the failed experiment data.". \
         hostbyname = socket.gethostbyname(hostname)
 
         text = "This is the IPOL Core machine ({}, {}).\n" \
-               "\nThere isn't any suitable demorunner for demo: {}.". \
+               "\nThere isn't any suitable DR for demo: {}.". \
             format(hostname, hostbyname, demo_id)
-        subject = '[IPOL Core] Not suitable demorunner'
+        subject = '[IPOL Core] Not suitable DR'
         self.send_email(subject, text, emails, config_emails['sender'])
 
     @cherrypy.expose
@@ -1165,33 +1165,38 @@ attached the failed experiment data.". \
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 print resp.json()
             except IPOLEvaluateError as ex:
-                res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
+                message = 'invalid expression "{}" found in the DDL'.format(ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
+                self.logger.exception(message)
                 print 'Invalid expression "{}" found in the DDL'.format(ex)
                 return json.dumps(res_data)
             except IPOLCopyBlobsError as ex:
-                res_data = {'error': 'internal error copying blobs. Error: {}'.format(ex),
+                message = 'internal error copying blobs. Error: {}'.format(ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
+                self.logger.exception(message)
                 print "Copy blobs failed. Error: {}".format(ex)
                 return json.dumps(res_data)
             except IPOLInputUploadError as ex:
-                res_data = {'error': 'internal error uploading input. Error: {}'.format(ex),
+                message = 'internal error uploading input. Error: {}'.format(ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
+                self.logger.exception(message)
                 print "Input upload failed. Error: {}".format(ex)
                 return json.dumps(res_data)
             except IPOLProcessInputsError as ex:
-                res_data = {'error': 'internal error processing inputs. Error: {}'.format(ex),
+                message = 'Error while processing inputs {}'.format(ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("Processing inputs failed. Error: {}".format(ex))
+                self.logger.exception(message)
                 print "Input upload failed. Error: {}".format(ex)
                 return json.dumps(res_data)
             except Exception as ex:
-                res_data = {'error': 'internal error. Blobs operations failed - {}'.format(ex),
+                message = '**INTERNAL ERROR** - Blobs operations failed - {}'.format(ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
+                self.logger.exception(message)
                 print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
                 return json.dumps(res_data)
 
@@ -1209,7 +1214,7 @@ attached the failed experiment data.". \
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
+                response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
@@ -1238,8 +1243,7 @@ attached the failed experiment data.". \
                 self.logger.exception("Ensure_extras_updated error, demo_id={}".format(demo_id))
                 print "Ensure_extras_updated failed for demo #{}. Error: {}".format(demo_id, ex)
                 response = {'status': 'KO',
-                            'error': 'An internal error occurred while retrieving the demoExtras: {}'.format(
-                                ex)}
+                            'error': '**IUTERNAL ERROR** with demoExtras: {}'.format(ex)}
                 return json.dumps(response)
 
             # save parameters as a params.json file
@@ -1319,7 +1323,7 @@ demo #{} - {}".format(demo_id, str(ex))
             input_type = kwargs.get('input_type')
         else:
             response = {"status": "KO"}
-            self.error_log("run", "There is not input_type in run function.")
+            self.error_log("run", "No 'input_type' passed to the run function.")
             return json.dumps(response)
 
         params = kwargs.get('params')
