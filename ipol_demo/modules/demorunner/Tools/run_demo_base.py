@@ -128,10 +128,6 @@ class RunDemoBase:
             except OSError:
                 self.logger.exception("OSError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
                 raise
-            except RuntimeError:
-                self.logger.exception(
-                    "RuntimeError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
-                raise
 
         # This second try executes the command line
         try:
