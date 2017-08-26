@@ -123,22 +123,10 @@ class RunDemoBase:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split()
             print "prog_name_and_params ", prog_name_and_params
-            try:
-                p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file)
-            except OSError:
-                self.logger.exception("OSError when run_proc with prog_name_and_params={}".format(prog_name_and_params))
-                raise
+            p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file)
 
         # This second try executes the command line
-        try:
-            self.wait_proc(p)
-        except OSError:
-            self.logger.exception("OSError when wait_proc with prog_name_and_params={}".format(prog_name_and_params))
-            raise
-        except RuntimeError:
-            self.logger.exception(
-                "RuntimeError when run_proc with wait_name_and_params={}".format(prog_name_and_params))
-            raise
+        self.wait_proc(p)
 
         # Close files
         stderr_file.close()
