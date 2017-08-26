@@ -449,11 +449,15 @@ format(str(ex), str(ddl_build)).encode('utf8')
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed. File not found: {}".format(str(ex))
+            data['message'] = "Construct failed. File not found. {}".format(str(ex))
         except IOError as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed (I/O error): {}".format(str(ex))
+            data['message'] = "Construct failed. I/O error. {}".format(str(ex))
+        except URLError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed. URL problem. {}".format(str(ex))
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
