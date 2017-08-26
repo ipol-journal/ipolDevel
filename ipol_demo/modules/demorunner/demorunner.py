@@ -449,12 +449,16 @@ format(str(ex), str(ddl_build)).encode('utf8')
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed in demo {}. {}".format(demo_id, str(ex))
+            data['message'] = "Construct failed. File not found: {}".format(str(ex))
+        except IOError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed (I/O error): {}".format(str(ex))
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Internal error while compiling"
-            self.logger.exception("Internal error while compiling demo {}".format(demo_id))
+            data['message'] = "INTERNAL ERROR in ensure_compilation"
+            self.logger.exception("INTERNAL ERROR in ensure_compilation, demo {}".format(demo_id))
 
         return json.dumps(data)
 
