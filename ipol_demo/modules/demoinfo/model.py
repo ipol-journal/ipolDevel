@@ -10,7 +10,6 @@ in the DB that will be used by the webservices,
 
 """
 
-import os
 import sqlite3 as lite
 import datetime
 from validoot import validates, inst, typ, And, Or, email_address

@@ -26,6 +26,7 @@ This module manages the list of blobs used as examples in the demo and renders t
 
 This input module allows the user to choose one or many blobs in the demo. These blobs are be for example images, videos, or audio blobs. It displays a line of blobs or sets of blobs to choose from.
 
+
 \subsection{Upload}
 If the users want to use their own blobs for the demo this module lets you upload them. Every demo has predefined 
 upload slots each with their own characteristics like maximum file size and maximum image size. The user is able to upload the 
@@ -49,7 +50,8 @@ the core module. The answer will be either a success message with enough informa
 that will show an approximation of what failed during execution.
 
 \subsection{Results}
-This module will print the results the DemoRunner returns letting the user compare the input and results.
+This module renders the results returned by the core letting the user compare the input and results, based on the ddl results section. 
+
 
 \subsection{Helpers}
 This module act as an interface for common utility methods like read and write to sessionStorage, make HTTP requests and 
@@ -96,6 +98,16 @@ a response. When the response is obtained it will either print the results inter
 
 %--------------------------------------------------------------------------------
 
+\subsection{Sharing results}
+Every time you run a demo, the URL will change to include the run key. This key allows the user to share the relatively short URL 
+with anyone. Sharing will allow other users to see the parameters, results and inputs including crop information exactly just as the 
+demo was executed by the original user. 
+
+\subsection{Private mode}
+This functionality allows the user to do a private execution of the demo. This makes the system not to record anything in the archives when running 
+a demo. So nobody will see the execution results unless you share the URL with the execution key to someone. To activate private 
+mode there is a checkbox in the lower part of the upload dialog.
+
 \subsection{External modules}
 
 The IPOL demo Web interface uses external libraries for extra functionalities.
@@ -114,7 +126,8 @@ The current version uses asynchronous calls for:
 \begin{itemize}
 \item Get the demo DDL: Used to show the inputs description and the upload modal in the Inputs panel, also uses this information to show the parameters.
 \item Get blobs: Used to show the blobs in the inputs panel.
-\item Run demo: It will send all parameters needed to run the demo and will respond with either the results of the demo or an error response.
+\item Run demo: It will send all parameters needed to run the demo enclosed in the runData variable and will respond with either the results of 
+the demo or an error response.
 \end{itemize}
 
 %--------------------------------------------------------------------------------

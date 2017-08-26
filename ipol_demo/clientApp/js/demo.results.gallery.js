@@ -34,15 +34,16 @@ $.fn.gallery_new = function(result, index)  {
 
   var img = result.contents[contentKeys[0]].img;
   var contentType = typeof(img);
+  var idx = 0;
   if (contentType === "string") { // single image
-    $("#" + imgContainerLeft).append('<img src=' + work_url + img + ' class=gallery-img draggable=false></img>');
-    $("#" + imgContainerRight).append('<img src=' + work_url + img + ' class=gallery-img draggable=false></img>');
+    $("#" + imgContainerLeft).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img : eval(img)) + ' class=gallery-img draggable=false></img>');
+    $("#" + imgContainerRight).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img : eval(img)) + ' class=gallery-img draggable=false></img>');
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left di-inline');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   } else { // array of images
     for (var i = 0; i < img.length; i++) {
-      $("#" + imgContainerLeft).append('<img src=' + work_url + img[i] + ' class=gallery-img draggable=false></img>');
-      $("#" + imgContainerRight).append('<img src=' + work_url + img[i] + ' class=gallery-img draggable=false></img>');
+      $("#" + imgContainerLeft).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
+      $("#" + imgContainerRight).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
       $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
     }
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
@@ -51,6 +52,18 @@ $.fn.gallery_new = function(result, index)  {
   $("." + leftItems).appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
+}
+
+function checkRepeat(result, repeatKey, repeatParam) {
+  if (repeatKey === "params") {
+    var repeatValues = JSON.parse(runData.get(repeatKey));
+    var repeat = repeatValues[repeatParam];
+  } else if (repeatKey === "info") {
+    var repeat = info[repeatParam];
+  } else {
+    repeat = result.repeat;
+  }
+  return repeat;
 }
 
 function renderGalleryBlobList(index, contentKeys, gallerySelector, result, itemSelector, side) {
@@ -63,26 +76,36 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
   }
   for (let i = 0; i < contentKeys.length; i++) {
     if (eval(contents[contentKeys[i]].visible)) {
-      $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
       var content = result.contents[contentKeys[i]].img;
       if (typeof(content) == "string") {
         content = [content];
         firstSrc = result.contents[contentKeys[0]].img;
       }
-      $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, firstSrc, work_url, content);
+      if (contents[contentKeys[i]].repeat) {
+        contents[contentKeys[i]].repeat = contents[contentKeys[i]].repeat.toString();
+        var repeatSplit = contents[contentKeys[i]].repeat.split(".");
+        var repeat = checkRepeat(result, repeatSplit[0], repeatSplit[1]);
+        for (var idx = 0; idx < repeat; idx++) {
+          $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" + i +idx+ " class=gallery-item-selector>" + eval(contentKeys[i]) + "</span>");
+          $("#gallery-" +index+ "-item-" +side+ "-" + i +idx).addHoverFeature(index, side, firstSrc, work_url, content, idx);
+        }
+      } else {
+        $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+        $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, firstSrc, work_url, content, 0);
+      }
     }
   }
   $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
 }
 
-$.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src) {
+$.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx) {
   helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, firstSrc);
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
   var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
-      $(selector).append('<img src=' + work_url + src[i] + ' class=gallery-img draggable=false></img>');
+      $(selector).append('<img src=' + work_url + (src[i].indexOf("'") == -1 ? src[i] : eval(src[i])) + ' class=gallery-img draggable=false></img>');
       $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
     $("#gallery-" +galleryIndex+ "-zoom > select").adjustSize(galleryIndex);

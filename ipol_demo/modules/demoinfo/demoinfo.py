@@ -846,7 +846,7 @@ class DemoInfo(object):
             dao = DemoDAO(conn)
             dao.update(d, old_editor_demoid)
             conn.close()
-    
+
             if old_editor_demoid != d_editorsdemoid \
                     and os.path.isdir(os.path.join(self.dl_extras_dir, str(old_editor_demoid))):
                 if os.path.isdir(os.path.join(self.dl_extras_dir, str(d_editorsdemoid))):

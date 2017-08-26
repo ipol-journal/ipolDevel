@@ -333,7 +333,7 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \begin{lstlisting}[language=Bash]
     sudo apt-get install apache2-utils
     \end{lstlisting}
-    \item Creates username and password with htpasswd
+    \item Create username and password with htpasswd
     \begin{lstlisting}[language=Bash]
      sudo htpasswd -c /etc/nginx/.passwd/company company
     \end{lstlisting}
@@ -490,9 +490,13 @@ build the Docker image, then you will be able to create as many containers as yo
 will have a terminal inside so you will be able to execute the terminal.py and bring up all modules. Nginx and ssh will be already
 configured and running.
 
+Once inside the container tty there will be a user called ipol wich should be used to execute any task related to modules, ipol terminal, 
+cp or django. For sysadmin tasks that result in a change in the system imply that a change in the dockerfile is needed.
+ 
 In order to run the Django server for the control panel you will have to make the migrations once per
 container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
  After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.0.1:8000.
+ Every command should be executed inside ipolDevel.
 
 
 \paragraph{Docker build}:\\

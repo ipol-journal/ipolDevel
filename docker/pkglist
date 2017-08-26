@@ -59,6 +59,7 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
+povray
 
 libopencv-dev
 python-opencv
