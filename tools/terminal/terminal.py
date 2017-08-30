@@ -86,18 +86,18 @@ class Terminal(object):
         self.reload_config()
         
     def env_command(self, args_array):
-        if len(args_array) == 0:
+        # Remove empty arguments
+        args = [arg for arg in args_array if arg.strip() != ""]
+
+        if len(args) == 0:
             # Show environment
             print "\033[96m{}\033[0m".format(self.get_ipol_environment())
-        elif len(args_array) == 1:
+        elif len(args) == 1:
             # Set environment
-            environment = args_array[0]
+            environment = args[0]
             self.set_ipol_environment(environment)
         else:
             print "ERROR: wrong number or arguments"
-        
-        
-
 
     def add_modules(self):
         """

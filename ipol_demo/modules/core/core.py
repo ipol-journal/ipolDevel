@@ -1133,16 +1133,17 @@ attached the failed experiment data.". \
             ddl_inputs = ddl['inputs']
 
         except Exception as ex:
-            s = "Failed to obtain the DDL of demo {}".format(demo_id)
-            print s, ex
-            self.logger.exception(s)
-            return json.dumps({'error': 'unable to read the DDL', 'status': 'KO'})
+            message = "Failed to obtain the DDL of demo {}".format(demo_id)
+            print message, ex
+            self.logger.exception(message)
+            return json.dumps({'error': message, 'status': 'KO'})
 
         # Create a new execution key
         key = self.create_new_execution_key(self.logger)
         if key is None:
-            res_data = {'error': 'internal error. Failed to create a valid execution key', 'status': 'KO'}
-            self.logger.exception("Failed to create a valid key")
+            message = '**INTERNAL ERROR**. Failed to create a valid execution key'
+            res_data = {'error': message, 'status': 'KO'}
+            self.logger.exception(message)
             return json.dumps(res_data)
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1161,39 +1162,47 @@ attached the failed experiment data.". \
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 print resp.json()
             except IPOLEvaluateError as ex:
-                message = 'invalid expression "{}" found in the DDL'.format(ex)
+                message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print 'Invalid expression "{}" found in the DDL'.format(ex)
+                print message
                 return json.dumps(res_data)
             except IPOLCopyBlobsError as ex:
-                message = 'internal error copying blobs. Error: {}'.format(ex)
+                message = 'Error copying blobs of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print "Copy blobs failed. Error: {}".format(ex)
+                print message
                 return json.dumps(res_data)
             except IPOLInputUploadError as ex:
-                message = 'internal error uploading input. Error: {}'.format(ex)
+                message = 'Error uploading input of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print "Input upload failed. Error: {}".format(ex)
+                print message
                 return json.dumps(res_data)
             except IPOLProcessInputsError as ex:
-                message = 'Error while processing inputs {}'.format(ex)
+                message = 'Error processing inputs of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print "Input upload failed. Error: {}".format(ex)
+                print message
+                return json.dumps(res_data)
+            except IOError as ex:
+                message = 'I/O error processing inputs - {}'.format(ex)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
             except Exception as ex:
-                message = '**INTERNAL ERROR** - Blobs operations failed - {}'.format(ex)
+                # ToDo: send email
+                message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
+                print message
                 return json.dumps(res_data)
 
         try:
@@ -1236,21 +1245,25 @@ attached the failed experiment data.". \
             try:
                 self.ensure_extras_updated(demo_id)
             except IPOLDemoExtrasError as ex:
-                self.logger.exception("Ensure_extras_updated error, demo_id={}".format(demo_id))
-                print "Ensure_extras_updated failed for demo #{}. Error: {}".format(demo_id, ex)
+                message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
+                self.logger.exception(message)
+                print message
                 response = {'status': 'KO',
-                            'error': '**IUTERNAL ERROR** with demoExtras: {}'.format(ex)}
+                            'error': message}
                 return json.dumps(response)
 
             # save parameters as a params.json file
             try:
                 work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
-                with open(os.path.join(work_dir, "params.json"), "w") as resfile:
+                json_filename = os.path.join(work_dir, "params.json")
+                with open(json_filename, "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
-                self.logger.exception("Save params.json, demo_id={}".format(demo_id))
-                print "Failed to save params.json file", ex
-                return json.dumps({'status': 'KO', 'error': 'Save params.json'})
+                message = "Failed to save {} in demo {}".format(json_filename, demo_id)
+                self.logger.exception(message)
+                print message
+                response = {'status': 'KO', 'error': message}
+                return json.dumps(response)
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
@@ -1263,8 +1276,15 @@ attached the failed experiment data.". \
                 userdata['timeout'] = ddl['general']['timeout']
 
             resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
+            try:
+                demorunner_response = resp.json()
+            except Exception as ex:
+                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
+                self.logger.exception(message)
+                print message
+                core_response = {"status": "KO", "error": "{}".format(message)}
+                return json.dumps(core_response)
 
-            demorunner_response = resp.json()
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 # Message for the web interface
@@ -1293,12 +1313,10 @@ attached the failed experiment data.". \
                                             demorunner_response, self.host_name)
 
         except Exception as ex:
-            s = "Failure in the run function of the \
-CORE in demo #{}: {}".format(demo_id, ex)
-            self.logger.exception(s)
-            print "Failure in the run function of the CORE in \
-demo #{} - {}".format(demo_id, str(ex))
-            core_response = {"status": "KO", "error": "{}".format(ex)}
+            message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
+            self.logger.exception(message)
+            print message
+            core_response = {"status": "KO", "error": "{}".format(message)}
             return json.dumps(core_response)
 
         dic = self.read_algo_info(work_dir)
@@ -1358,18 +1376,19 @@ demo #{} - {}".format(demo_id, str(ex))
             ddl_inputs = ddl_json.get('inputs')
 
         except Exception as ex:
-            s = "Failed to obtain the DDL of demo {}".format(demo_id)
-            print s, ex
-            self.logger.exception(s)
-            res_data = {'error': 'unable to read the DDL', 'status': 'KO'}
+            message = "Failed to obtain the DDL of demo {}".format(demo_id)
+            print message, ex
+            self.logger.exception(message)
+            res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data)
         # End block to obtain the DDL
 
         # Create a new execution key
         key = self.create_new_execution_key(self.logger)
         if key is None:
-            res_data = {'error': 'internal error. Failed to create a valid execution key', 'status': 'KO'}
-            self.logger.exception("Failed to create a valid key")
+            message = '**INTERNAL ERROR**. Failed to create a valid execution key'
+            res_data = {'error': message, 'status': 'KO'}
+            self.logger.exception(message)
             return json.dumps(res_data)
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1386,34 +1405,47 @@ demo #{} - {}".format(demo_id, str(ex))
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
             except IPOLEvaluateError as ex:
-                res_data = {'error': 'invalid expression "{}" found in the DDL'.format(ex),
+                message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
-                print 'Invalid expression "{}" found in the DDL'.format(ex)
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
             except IPOLCopyBlobsError as ex:
-                res_data = {'error': 'internal error copying blobs. Error: {}'.format(ex),
+                message = 'Error copying blobs of demo {}: {}'.format(demo_id, ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
-                print "Copy blobs failed. Error: {}".format(ex)
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
             except IPOLInputUploadError as ex:
-                res_data = {'error': 'internal error uploading input. Error: {}'.format(ex),
+                message = 'Error uploading input of demo {}: {}'.format(demo_id, ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
-                print "Input upload failed. Error: {}".format(ex)
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
             except IPOLProcessInputsError as ex:
-                res_data = {'error': 'internal error processing inputs. Error: {}'.format(ex),
+                message = 'Error processing inputs of demo {}: {}'.format(demo_id, ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("Processing inputs failed. Error: {}".format(ex))
-                print "Input upload failed. Error: {}".format(ex)
+                self.logger.exception(message)
+                print message
+                return json.dumps(res_data)
+            except IOError as ex:
+                message = 'I/O error processing inputs - {}'.format(ex)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
             except Exception as ex:
-                res_data = {'error': 'internal error. Blobs operations failed - {}'.format(ex),
+                # ToDo: send email
+                message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
+                res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception("copy_blobs/process_inputs FAILED")
-                print "FAILURE in copy_blobs/process_inputs. demo_id = {}. Error: {}".format(demo_id, ex)
+                self.logger.exception(message)
+                print message
                 return json.dumps(res_data)
 
         try:
@@ -1429,7 +1461,7 @@ demo #{} - {}".format(demo_id, str(ex))
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
             if dr_name is None:
-                response = {'status': 'KO', 'error': 'No demorunner satisfying the requirements: {}'.format(requirements)}
+                response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_not_demorunner_for_published_demo_email(demo_id)
                 return json.dumps(response)
@@ -1440,7 +1472,7 @@ demo #{} - {}".format(demo_id, str(ex))
             demorunner_response = resp.json()
             status = demorunner_response['status']
             if status != 'OK':
-                print "FAILURE IN THE COMPILATION in demo = ", demo_id
+                print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
                 text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", "").encode('utf8'),
@@ -1455,28 +1487,30 @@ demo #{} - {}".format(demo_id, str(ex))
             try:
                 self.ensure_extras_updated(demo_id)
             except IPOLDemoExtrasError as ex:
-                self.logger.exception("Ensure_extras_updated error, demo_id={}".format(demo_id))
-                print "Ensure_extras_updated failed for demo #{}. Error: {}".format(demo_id, ex)
+                message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
+                self.logger.exception(message)
+                print message
                 response = {'status': 'KO',
-                            'error': 'An internal error occurred while retrieving the demoExtras: {}'.format(ex)}
+                            'error': message}
                 return json.dumps(response)
 
             # save parameters as a params.json file
             try:
                 work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
-                with open(os.path.join(work_dir, "params.json"), "w") as resfile:
+                json_filename = os.path.join(work_dir, "params.json")
+                with open(json_filename, "w") as resfile:
                     resfile.write(params)
             except (OSError, IOError) as ex:
-                self.logger.exception("Save params.json, demo_id={}".format(demo_id))
-                print "Failed to save params.json file", ex
-                response = {'status': 'KO', 'error': 'Save params.json'}
+                message = "Failed to save {} in demo {}".format(json_filename, demo_id)
+                self.logger.exception(message)
+                print message
+                response = {'status': 'KO', 'error': message}
                 return json.dumps(response)
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
             if 'run' not in ddl_json:
-                response = {"error": "bad DDL syntax: no 'run' section found", "status": "KO"}
-                return json.dumps(response)
+                return json.dumps({"error": "bad DDL syntax: no 'run' section found", "status": "KO"})
 
             userdata['ddl_run'] = json.dumps(ddl_json['run'])
 
@@ -1484,8 +1518,15 @@ demo #{} - {}".format(demo_id, str(ex))
                 userdata['timeout'] = ddl_json['general']['timeout']
 
             resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
+            try:
+                demorunner_response = resp.json()
+            except Exception as ex:
+                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {}".format(dr_server, demo_id, ex)
+                self.logger.exception(message)
+                print message
+                core_response = {"status": "KO", "error": "{}".format(message)}
+                return json.dumps(core_response)
 
-            demorunner_response = resp.json()
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 print demorunner_response
@@ -1515,12 +1556,10 @@ demo #{} - {}".format(demo_id, str(ex))
                                             demorunner_response, self.host_name)
 
         except Exception as ex:
-            s = "Failure in the run function of the \
-CORE in demo #{}".format(demo_id)
-            self.logger.exception(s)
-            print "Failure in the run function of the CORE in \
-demo #{} - {}".format(demo_id, str(ex))
-            core_response = {"status": "KO", "error": "{}".format(ex)}
+            message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
+            self.logger.exception(message)
+            print message
+            core_response = {"status": "KO", "error": "{}".format(message)}
             return json.dumps(core_response)
 
         dic = self.read_algo_info(work_dir)
