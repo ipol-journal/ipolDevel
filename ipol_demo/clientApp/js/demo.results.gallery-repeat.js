@@ -11,7 +11,7 @@ $.fn.repeat_gallery = function(result, index)  {
   var repeatKey = result.repeat.split(".")[0];
   var repeatParam = result.repeat.split(".")[1];
   if (repeatKey === "params") {
-    var repeatValues = JSON.parse(runData.get(repeatKey));
+    var repeatValues = JSON.stringify(params);
     var repeat = repeatValues[repeatParam];
   } else if (repeatKey === "info") {
     repeat = info[repeatParam];

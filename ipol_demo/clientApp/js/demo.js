@@ -20,6 +20,7 @@ function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
     input.printSets(blobs.sets);
     helpers.addToStorage("blobs", blobs.sets);
+    if (getKey()) loadExecution(getKey());
     console.log("get_globs", blobs);
   });
 }
@@ -31,7 +32,6 @@ function getDemoinfo() {
     printDemoHeader(response);
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
-    if (getKey()) loadExecution(getKey());
     console.log("get_interface_ddl", response);
   });
 }
