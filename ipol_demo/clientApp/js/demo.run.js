@@ -30,6 +30,7 @@ function runDemo() {
       if (res.status == "KO") displayError(res.error, "server");
       else {
         displaySuccess("Execution successful");
+        updateURL(res);
         results.draw(res);
       }
     })
@@ -43,12 +44,19 @@ function runDemo() {
     });
 }
 
+function updateURL(run_response){
+  var url = window.location.href;
+  if(url.includes('&key')) url = url.split("&")[0];
+  window.history.pushState({'result': run_response, 'params': params, 'origin': helpers.getFromStorage("origin") }, null, url + "&key=" + run_response.key);
+}
+
 function setRunPostData() {
   var origin = helpers.getFromStorage("origin");
   runData.append("demo_id", demo_id);
   runData.append("params", JSON.stringify(params));
   if (origin) runData.append("origin", origin);
   if (origin == "blobSet") runData.append("blobs", JSON.stringify(helpers.getFromStorage("id_blobs")));
+  if (origin == "blobSet") runData.append("setId", JSON.stringify(helpers.getFromStorage("setId")));
   if (origin == "upload" && !($("#crop-btn").is(":checked"))) setUploadedFiles();
   if (origin == "upload" && $('#privateSwitch').is(":checked")) runData.append("private_mode", true);
   if ($("#crop-btn").is(":checked")) checkCropper();
@@ -57,7 +65,7 @@ function setRunPostData() {
 function setUploadedFiles() {
   var uploads = clientApp.upload.getUploadedFiles();
   for (let i = 0; i < Object.keys(uploads).length; i++) {
-    runData.append("file_" + i, $("#file-" + i)[0].files[0]);
+    runData.append("file_" + i, files[i]);
   }
 }
 

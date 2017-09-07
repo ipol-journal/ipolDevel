@@ -31,6 +31,26 @@ parameters.printParameters = function() {
   }
 }
 
+parameters.setParametersValues = function(params_values){
+  for (var i = 0; i < demoInfo.params.length; i++) {
+    var param = demoInfo.params[i];
+    updateParamsArrayValue(param.id, params_values[param.id]);
+    if(param.type == "range"){
+      $('#number_' + param.id).val(parseFloat(params_values[param.id]));
+      $('#range_' + param.id).val(parseFloat(params_values[param.id]));
+    }
+    if(param.type == "selection_radio"){
+      $('#' + param.id + '_' + params_values[param.id]).attr('checked', 'checked');
+    }
+    if(param.type == "selection_collapsed" || param.type == "text"){
+      $('#select-' + param.id).val(params_values[param.id]);
+    }
+    if(param.type == "checkbox"){
+      $('#' + param.id).prop('checked', (params_values[param.id]));
+    }
+  }
+}
+
 function printParamsInformationIcon(){
   checkParamsDescriptionIconVisibility(demoInfo.general);
   $('#parameters-description').addDescription(demoInfo.general.param_description);

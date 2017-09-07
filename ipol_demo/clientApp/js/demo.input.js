@@ -4,8 +4,11 @@ var input = input || {};
 var upload = upload || {};
 var editor = editor || {};
 
+var demo_sets = {};
+
 // Print in the web Interface the sets.
 input.printSets = function(sets) {
+  demo_sets = sets;
   for (var i = 0; i < sets.length; i++) {
     var set = sets[i].blobs;
     var blobs = Object.keys(set);
@@ -15,7 +18,7 @@ input.printSets = function(sets) {
     var blobSet = $(".blobSet-body-" + i);
     var blobSetArray = [];
 
-    addSetClickEvent(blobSet, set);
+    addSetClickEvent(blobSet, i);
 
     blobSetArray += "<img src=" + set[0].thumbnail + ">"; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
@@ -50,7 +53,7 @@ input.printSets = function(sets) {
   }
 }
 
-input.printInputInformationIcon = function(ddl_general){
+input.printInputInformationIcon = function(ddl_general) {
   checkInputDescriptionIconVisibility(ddl_general);
   $('#inputs-description').addDescription(ddl_general.input_description);
 }
@@ -81,22 +84,44 @@ function MouseWheelHandler() {
   }
 }
 
-function addSetClickEvent(blobSet, blobs) {
+function addSetClickEvent(blobSet, index) {
   blobSet.addClass("blobSet")
     .click(function() {
-      var id_blobs = [];
-      for (let i = 0; i < Object.keys(blobs).length; i++) {
-        id_blobs.push(blobs[i].id);
-      }
-      helpers.addToStorage("demoSet", blobs);
-      helpers.addToStorage("id_blobs", {"id_blobs" : id_blobs});
-      helpers.setOrigin("blobSet");
-      editor.printEditor();
+      setEditor(index, null);
     });
 }
 
+function setEditor(index, crop_info) {
+  var blobs = demo_sets[index].blobs;
+  var id_blobs = [];
+  for (let i = 0; i < Object.keys(blobs).length; i++) {
+    id_blobs.push(blobs[i].id);
+  }
+  helpers.addToStorage("demoSet", blobs);
+  helpers.addToStorage("setId", parseInt(index));
+  helpers.addToStorage("id_blobs", {
+    "id_blobs": id_blobs
+  });
+  helpers.setOrigin("blobSet");
+  editor.printEditor(crop_info);
+}
+
+function setUploadEditor(files_count, blobs, crop_info) {
+  if (files_count == blobs.length) {
+    for (let i = 0; i < files.length; i++) {
+      uploadedFiles[i] = {
+        blob: blobs[i],
+        format: "image",
+        thumbnail: ""
+      };
+    }
+    helpers.setOrigin("upload");
+    editor.printEditor(crop_info);
+  }
+}
+
 $.fn.addDescription = function(description) {
-  if(!description) return;
+  if (!description) return;
   var text = typeof description != 'string' ? description.join('') : description;
   if (description) $(this).attr('title', text);
 }

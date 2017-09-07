@@ -144,6 +144,7 @@ function uploadImg(index, event) {
 
 // Upload the current Input
 function upload(index, event) {
+  files = [];
   demoInfo = helpers.getFromStorage("demoInfo");
   var file = $("#file-" + index)[0].files[0];
   var inputs = demoInfo.inputs;
@@ -158,6 +159,7 @@ function upload(index, event) {
     // onload needed since Google Chrome doesn't support addEventListener for FileReader
     var fileReader = new FileReader();
     fileReader.onload = function(evt) {
+      files.push(file);
       var inputName = inputs[index].description;
       uploadedFiles[index] = {
         blob: evt.target.result,

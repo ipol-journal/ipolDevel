@@ -1323,7 +1323,38 @@ attached the failed experiment data.". \
         for name in dic:
             demorunner_response["algo_info"][name] = dic[name]
 
+        self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
+
         return json.dumps(demorunner_response)
+
+    def save_execution(self, demo_id, request, response, work_dir):
+        """
+        Save the request and response json objects in a file to be
+        able to reload a execution.
+        """
+
+        if("origin" in request and request["origin"] == "upload"):
+            request["files"] = 0
+            for key in list(request.keys()):
+                if key.startswith("file_"):
+                    request["files"] = request["files"] + 1
+                    del request[key]
+
+        request = json.dumps(request)
+        request = str(request).replace('\\"', '"')
+        request = request.replace('"{', '{')
+        request = request.replace('}"', '}')
+
+        execution_json = {key: value for (key, value) in ({'demo_id': demo_id}.items() + {'request': request}.items() + {'response': response}.items())}
+        with open(os.path.join(work_dir, "execution.json"), 'w') as outfile:
+            json.dump(execution_json, outfile)
+
+    @cherrypy.expose
+    def get_execution(self, demo_id, key):
+        work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
+        f = open(os.path.join(work_dir, "execution.json"), "r")
+        lines = f.read()
+        return json.dumps(lines)
 
     @cherrypy.expose
     def run(self, demo_id, **kwargs):
