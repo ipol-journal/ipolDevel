@@ -11,16 +11,19 @@ $.fn.repeat_gallery = function(result, index)  {
   var repeatKey = result.repeat.split(".")[0];
   var repeatParam = result.repeat.split(".")[1];
   if (repeatKey === "params") {
-    var repeatValues = JSON.parse(runData.get(repeatKey));
+    var repeatValues = JSON.stringify(params);
     var repeat = repeatValues[repeatParam];
   } else if (repeatKey === "info") {
     repeat = info[repeatParam];
   } else {
     repeat = result.repeat;
   }
-
+  
   if (typeof(contentArray) == "string") {
     contentArray = [contentArray]
+  } else if (typeof(contentArray) == "object") {
+    let titles = Object.keys(contentArray);
+    contentArray = Object.values(contentArray);
   }
   if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = "gallery_" + index;
@@ -49,6 +52,8 @@ $.fn.repeat_gallery = function(result, index)  {
   for (var i = 0; i < contentArray.length; i++) {
     $("#" + imgContainerLeft).append('<img src=' + work_url + eval(contentArray[i]) + ' class=gallery-img draggable=false></img>');
     $("#" + imgContainerRight).append('<img src=' + work_url + eval(contentArray[i]) + ' class=gallery-img draggable=false></img>');
+    $("#" + imgContainerLeft).append('<p id=gallery-' +index+ '-blob-title-Left></p>');
+    $("#" + imgContainerRight).append('<p id=gallery-' +index+ '-blob-title-Right></p>');
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left di-inline');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   }

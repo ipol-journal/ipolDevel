@@ -56,7 +56,7 @@ $.fn.gallery_new = function(result, index)  {
 
 function checkRepeat(result, repeatKey, repeatParam) {
   if (repeatKey === "params") {
-    var repeatValues = JSON.parse(runData.get(repeatKey));
+    var repeatValues = JSON.stringify(params);
     var repeat = repeatValues[repeatParam];
   } else if (repeatKey === "info") {
     var repeat = info[repeatParam];
@@ -159,6 +159,7 @@ $.fn.appendZoom = function(index, leftItems) {
   var zoom = $("#zoom-container").clone();
   var newZoomID= "gallery-" +index+ "-zoom";
   zoom.attr("id", newZoomID).appendTo("." + leftItems);
+  zoom.removeClass("di-none");
   $("#" + newZoomID + " > select").on('change', function() {
     var zoomLevel = $(this).val();
     $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){

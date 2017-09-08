@@ -6,12 +6,14 @@ var zoomController = zoomController ||  {};
 var scrollController = scrollController ||  {};
 
 var editorBlobs;
+var crop_info;
 
 // Print editor pannel.
-editor.printEditor = function() {
+editor.printEditor = function(crop) {
   $("#inputEditorContainer").load("editor.html", function() {
     if (helpers.getOrigin() == "blobSet") editorBlobs = helpers.getFromStorage("demoSet");
     else editorBlobs = clientApp.upload.getUploadedFiles();
+    crop_info = crop;
     printEditorPanel();
   });
 };
@@ -47,7 +49,7 @@ function printEditorPanel() {
   $("#right-container").attachDragger("right");
 };
 
-function saveSelectedInput(side, index){
+function saveSelectedInput(side, index) {
   blobsKeys = Object.keys(editorBlobs);
   helpers.addToStorage("selectedInput-" + side, {
     text: "editor-input-" + side + "-" + index,
@@ -58,7 +60,7 @@ function saveSelectedInput(side, index){
 
 // Print the chosen set blob list
 function printBlobsetList(demoInfo, blobs) {
-  $("<div class=inputListContainerLeft></div>").insertBefore(".zoom-container");
+  $("<div class=inputListContainerLeft></div>").insertBefore("#zoom-container");
   $(".blobsList-right").append("<div class=inputListContainerRight></div>");
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span>");
@@ -75,13 +77,25 @@ function printBlobsetList(demoInfo, blobs) {
 // Single blob sets controlls
 function loadSingleBlobControlls($img) {
   $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>")
-  $img.cropper({
-    viewMode: 1,
-    autoCrop: false,
-    dragMode: 'move',
-    wheelZoomRatio: 0.2,
-    toggleDragModeOnDblclick: false
-  });
+  if (crop_info == null)
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: false,
+      dragMode: 'move',
+      wheelZoomRatio: 0.2,
+      toggleDragModeOnDblclick: false
+    });
+  else {
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: true,
+      dragMode: 'move',
+      wheelZoomRatio: 0.2,
+      data: crop_info,
+      toggleDragModeOnDblclick: false
+    });
+    $("#crop-btn").prop('checked', true);
+  }
   addCropEvent();
   zoomController.singleBlob();
 }
@@ -117,14 +131,17 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     } else {
       $(this).empty();
       $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
-      $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
+      $("#editor-blob-left").css({
+        'width': 'auto',
+        'height': 'auto'
+      });
     }
   }
 }
 
-function isPreviousBlobImg(side){
+function isPreviousBlobImg(side) {
   var previousBlob = document.getElementById("editor-blob-" + side);
-  if(previousBlob != null && $("#editor-blob-" + side).is("img")) return true;
+  if (previousBlob != null && $("#editor-blob-" + side).is("img")) return true;
   return false;
 }
 
@@ -173,7 +190,7 @@ $.fn.loadInputEvents = function(index, side) {
   });
 }
 
-$.fn.loadInputsContainerEvent = function(side){
+$.fn.loadInputsContainerEvent = function(side) {
   var container = $('#' + side + '-container');
   $(this).on('mouseout', function(event) {
     e = event.toElement || event.relatedTarget;

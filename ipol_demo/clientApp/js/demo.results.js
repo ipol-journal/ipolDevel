@@ -156,14 +156,6 @@ $.fn.addHoverEvents = function(galleryIndex, side, work_url, src) {
   });
 }
 
-$.fn.appendZoom = function(index, leftItems) {
-  var zoom = $("#zoom-container").clone();
-  var newZoomID= "gallery-" +index+ "-zoom";
-  zoom.attr("id", newZoomID).appendTo("." + leftItems);
-  $("#" + newZoomID + " > select").addZoomEvents(index);
-  synqScroll(index);
-}
-
 $.fn.addZoomEvents = function(index){
   $(this).on('change', function() {
     var zoomLevel = $(this).val();
