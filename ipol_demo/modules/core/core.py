@@ -1083,7 +1083,7 @@ attached the failed experiment data.". \
         self.send_email(subject, text, emails, config_emails['sender'])
 
     @cherrypy.expose
-    def run2(self, demo_id, **kwargs):
+    def run2(self, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to
         execute a demo.
@@ -1091,17 +1091,20 @@ attached the failed experiment data.". \
         print 'KWARGS'
         print kwargs
 
-        demo_id = int(demo_id)
+        clientData = kwargs['clientData']
+        clientData = json.loads(clientData)
 
-        origin = kwargs.get('origin', None)
+        demo_id = clientData['demo_id']
+
+        origin = clientData.get('origin', None)
         if origin is not None:
             origin = origin.lower()
 
-        params = kwargs.get('params')
+        params = clientData.get('params', None)
 
-        crop_info = kwargs.get('crop_info', None)
+        crop_info = clientData.get('crop_info', None)
 
-        private_mode = kwargs.get('private_mode', None)
+        private_mode = clientData.get('private_mode', None)
 
         blobs = {}
         if origin == 'upload':
@@ -1113,7 +1116,8 @@ attached the failed experiment data.". \
                 i += 1
         elif origin == 'blobset':
             print "DEMO"
-            blobs = json.loads(kwargs['blobs'])
+            print clientData
+            blobs = clientData['blobs']
         else:
             pass
 
@@ -1257,7 +1261,7 @@ attached the failed experiment data.". \
                 work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 json_filename = os.path.join(work_dir, "params.json")
                 with open(json_filename, "w") as resfile:
-                    resfile.write(params)
+                    resfile.write(json.dumps(params))
             except (OSError, IOError) as ex:
                 message = "Failed to save {} in demo {}".format(json_filename, demo_id)
                 self.logger.exception(message)
@@ -1265,7 +1269,7 @@ attached the failed experiment data.". \
                 response = {'status': 'KO', 'error': message}
                 return json.dumps(response)
 
-            userdata = {"demo_id": demo_id, "key": key, "params": params}
+            userdata = {"demo_id": demo_id, "key": key, "params": json.dumps(params)}
 
             if 'run' not in ddl:
                 return json.dumps({"error": "bad DDL syntax: no 'run' section found", "status": "KO"})
@@ -1312,6 +1316,12 @@ attached the failed experiment data.". \
                 SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
                                             demorunner_response, self.host_name)
 
+            dic = self.read_algo_info(work_dir)
+            for name in dic:
+                demorunner_response["algo_info"][name] = dic[name]
+
+            self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
+
         except Exception as ex:
             message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
             self.logger.exception(message)
@@ -1319,42 +1329,43 @@ attached the failed experiment data.". \
             core_response = {"status": "KO", "error": "{}".format(message)}
             return json.dumps(core_response)
 
-        dic = self.read_algo_info(work_dir)
-        for name in dic:
-            demorunner_response["algo_info"][name] = dic[name]
-
-        self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
-
         return json.dumps(demorunner_response)
 
     def save_execution(self, demo_id, request, response, work_dir):
         """
-        Save the request and response json objects in a file to be
-        able to reload a execution.
+        Save all needed data to recreate an execution.
         """
+        clientData = json.loads(request['clientData'])
 
-        if("origin" in request and request["origin"] == "upload"):
-            request["files"] = 0
+        if(clientData.get("origin", "") == "upload"):
+            clientData["files"] = 0
             for key in list(request.keys()):
                 if key.startswith("file_"):
-                    request["files"] = request["files"] + 1
+                    clientData["files"] = clientData["files"] + 1
                     del request[key]
 
-        request = json.dumps(request)
-        request = str(request).replace('\\"', '"')
-        request = request.replace('"{', '{')
-        request = request.replace('}"', '}')
+        clientData = json.dumps(clientData)
 
-        execution_json = {key: value for (key, value) in ({'demo_id': demo_id}.items() + {'request': request}.items() + {'response': response}.items())}
+        execution_json = {key: value for (key, value) in ({'demo_id': demo_id}.items() + {'request': clientData}.items() + {'response': response}.items())}
         with open(os.path.join(work_dir, "execution.json"), 'w') as outfile:
             json.dump(execution_json, outfile)
 
     @cherrypy.expose
-    def get_execution(self, demo_id, key):
-        work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
-        f = open(os.path.join(work_dir, "execution.json"), "r")
-        lines = f.read()
-        return json.dumps(lines)
+    def load_execution(self, demo_id, key):
+        """
+        Load the data needed to recreate an execution.
+        """
+
+        try:
+            work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
+            f = open(os.path.join(work_dir, "execution.json"), "r")
+            lines = f.read()
+
+        except Exception as ex:
+            res_data = {'error': 'Execution not found.', 'status': 'KO'}
+            return json.dumps(res_data)
+
+        return json.dumps({'status': 'OK', 'execution': lines})
 
     @cherrypy.expose
     def run(self, demo_id, **kwargs):

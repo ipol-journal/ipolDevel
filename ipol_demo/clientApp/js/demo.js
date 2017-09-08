@@ -65,14 +65,19 @@ function getKey() {
 }
 
 function loadExecution(key) {
-  helpers.getFromAPI("/api/core/get_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
-    var execution_json = JSON.parse(payload);
-    var request = JSON.parse(execution_json.request)
-    parameters.setParametersValues(request.params);
-    if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
-    if (request.origin == "upload") setFiles(request, execution_json.response)
-    if(request.private_mode) $('#privateSwitch').prop('checked', true);
-    results.draw(execution_json.response);
+  helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
+    if (payload.status == "OK") {
+      var execution_json = JSON.parse(payload.execution);
+      var request = JSON.parse(execution_json.request);
+      parameters.setParametersValues(request.params);
+      if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
+      if (request.origin == "upload") setFiles(request, execution_json.response)
+      if (request.private_mode) $('#privateSwitch').prop('checked', true);
+      results.draw(execution_json.response);
+    } else {
+      alert(payload.error);
+      window.location.href = "demo.html?id=" + demo_id;
+    }
   });
 }
 
