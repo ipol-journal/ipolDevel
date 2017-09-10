@@ -1355,7 +1355,6 @@ attached the failed experiment data.". \
         """
         Load the data needed to recreate an execution.
         """
-
         try:
             work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
             f = open(os.path.join(work_dir, "execution.json"), "r")
