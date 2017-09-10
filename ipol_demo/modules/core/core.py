@@ -1307,6 +1307,9 @@ attached the failed experiment data.". \
                 str(demo_id),
                 key) + '/'
 
+            dic = self.read_algo_info(work_dir)
+            for name in dic:
+                demorunner_response["algo_info"][name] = dic[name]
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
 
@@ -1316,10 +1319,7 @@ attached the failed experiment data.". \
                 SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
                                             demorunner_response, self.host_name)
 
-            dic = self.read_algo_info(work_dir)
-            for name in dic:
-                demorunner_response["algo_info"][name] = dic[name]
-
+            # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
 
         except Exception as ex:
@@ -1337,16 +1337,20 @@ attached the failed experiment data.". \
         """
         clientData = json.loads(request['clientData'])
 
-        if(clientData.get("origin", "") == "upload"):
-            clientData["files"] = 0
-            for key in list(request.keys()):
-                if key.startswith("file_"):
-                    clientData["files"] = clientData["files"] + 1
-                    del request[key]
+        if clientData.get("origin", "") == "upload":
+            # Count how many file entries and remove them
+            file_keys = [key for key in request if key.startswith("file_")]
+            map(request.pop, file_keys)
+            clientData["files"] = len(file_keys)
 
         clientData = json.dumps(clientData)
 
-        execution_json = {key: value for (key, value) in ({'demo_id': demo_id}.items() + {'request': clientData}.items() + {'response': response}.items())}
+        execution_json = {}
+        execution_json['demo_id'] = demo_id
+        execution_json['request'] = clientData
+        execution_json['response'] = response
+
+        # Save file
         with open(os.path.join(work_dir, "execution.json"), 'w') as outfile:
             json.dump(execution_json, outfile)
 
