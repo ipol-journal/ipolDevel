@@ -498,7 +498,7 @@ class Blobs(object):
             image = Image.open(blob).convert('RGB')
             image.thumbnail((256, 256))
 
-            image.save(thumb_path, transparency=255)
+            image.save(thumb_path)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
