@@ -495,7 +495,7 @@ class Blobs(object):
             thumb_path = os.path.join(path, blob_hash + ".jpg")
 
             blob.seek(0)
-            image = Image.open(blob).convert('RGBA')
+            image = Image.open(blob).convert('RGB')
             image.thumbnail((256, 256))
 
             image.save(thumb_path)
