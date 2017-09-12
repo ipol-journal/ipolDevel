@@ -1360,16 +1360,21 @@ attached the failed experiment data.". \
         """
         Load the data needed to recreate an execution.
         """
-        try:
-            work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
-            f = open(os.path.join(work_dir, "execution.json"), "r")
-            lines = f.read()
-
-        except Exception as ex:
-            message = "Execution not found."
+        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key,  "execution.json")
+        if not os.path.isfile(filename):
+            message = "Execution with key={} not found".format(key)
             res_data = {'error': message, 'status': 'KO'}
+            print message
+            return json.dumps(res_data)
+
+        try:
+            with open(filename, "r") as f:
+                lines = f.read()
+        except Exception as ex:
+            message = "** INTERNAL ERROR ** while reading execution with key={}: {}".format(key, ex)
             self.logger.exception(message)
-            print ex
+            res_data = {'error': message, 'status': 'KO'}
+            print message
             return json.dumps(res_data)
 
         return json.dumps({'status': 'OK', 'execution': lines})
