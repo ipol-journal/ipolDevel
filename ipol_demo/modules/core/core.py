@@ -1331,7 +1331,8 @@ attached the failed experiment data.". \
 
         return json.dumps(demorunner_response)
 
-    def save_execution(self, demo_id, request, response, work_dir):
+    @staticmethod
+    def save_execution(demo_id, request, response, work_dir):
         """
         Save all needed data to recreate an execution.
         """
@@ -1365,7 +1366,10 @@ attached the failed experiment data.". \
             lines = f.read()
 
         except Exception as ex:
-            res_data = {'error': 'Execution not found.', 'status': 'KO'}
+            message = "Execution not found."
+            res_data = {'error': message, 'status': 'KO'}
+            self.logger.exception(message)
+            print ex
             return json.dumps(res_data)
 
         return json.dumps({'status': 'OK', 'execution': lines})
