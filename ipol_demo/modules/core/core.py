@@ -1291,13 +1291,19 @@ attached the failed experiment data.". \
 
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
+                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+
                 # Message for the web interface
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
+                error = demorunner_response["algo_info"]["error"]).strip()
+
                 website_message = "DR={}, {}".format(dr_name, msg)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                self.send_runtime_error_email(demo_id, key, website_message)
+                # Unless it's a timeout in a published demo
+                if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
+                    self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
 
             demorunner_response['work_url'] = os.path.join(
