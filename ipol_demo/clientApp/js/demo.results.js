@@ -63,14 +63,20 @@ $.fn.gallery = function (result, index) {
   // Evaluate key conditional.
   for (let i = 0; i < contentKeys.length; i++) {
     var evalString = "";
+    var value = "";
     if (contentKeys[i].indexOf('?') != -1) {
       evalString = contentKeys[i].split('?')[0];
+      value = contentKeys[i].split('?')[1];
+    } else if (contentKeys[i].indexOf('?') == -1 && contentKeys[i].indexOf('\'') != -1) {
+      value = eval(contentKeys[i]);
+      evalString = true;
     } else {
+      value = contentKeys[i];
       evalString = true;
     }
     if (eval(evalString)) {
-      $("#" + "left-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-left-" + i + " class=gallery-item-selector>" + contentKeys[i] + "</span>");
-      $("#" + "right-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-right-" + i + " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+      $("#" + "left-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-left-" + i + " class=gallery-item-selector>" + value + "</span>");
+      $("#" + "right-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-right-" + i + " class=gallery-item-selector>" + value + "</span>");
       var src = result.contents[contentKeys[i]];
       if (typeof src == "string" || typeof src == "array") src = { 0: src };
       $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, src);
@@ -123,11 +129,14 @@ $.fn.appendGalleryControlls = function (galleryIndex, rightItems, imgContainerRi
 }
 
 $.fn.appendLabel = function (labelArray) {
-  var html = [""];
+  var html = '';
   for (var i = 0; i < labelArray.length; i++) {
     html += labelArray[i];
   }
-  $(this).append(html);
+  if (html.charAt(0) == '\'') html = eval(html);
+  else html = eval('\'' + html + '\'');
+
+  $(this).html("<div class=m-b-20>" + html + "</div>");
 }
 
 // Add event listeners for gallery images lists
