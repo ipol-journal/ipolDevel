@@ -1101,6 +1101,7 @@ attached the failed experiment data.". \
             origin = origin.lower()
 
         params = clientData.get('params', None)
+        print params
 
         crop_info = clientData.get('crop_info', None)
 
@@ -1291,13 +1292,19 @@ attached the failed experiment data.". \
 
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
+                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+
                 # Message for the web interface
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
+                error = demorunner_response["algo_info"].get("error", "").strip()
+
                 website_message = "DR={}, {}".format(dr_name, msg)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                self.send_runtime_error_email(demo_id, key, website_message)
+                # Unless it's a timeout in a published demo
+                if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
+                    self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
 
             demorunner_response['work_url'] = os.path.join(
@@ -1331,7 +1338,8 @@ attached the failed experiment data.". \
 
         return json.dumps(demorunner_response)
 
-    def save_execution(self, demo_id, request, response, work_dir):
+    @staticmethod
+    def save_execution(demo_id, request, response, work_dir):
         """
         Save all needed data to recreate an execution.
         """
@@ -1359,13 +1367,21 @@ attached the failed experiment data.". \
         """
         Load the data needed to recreate an execution.
         """
-        try:
-            work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
-            f = open(os.path.join(work_dir, "execution.json"), "r")
-            lines = f.read()
+        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key,  "execution.json")
+        if not os.path.isfile(filename):
+            message = "Execution with key={} not found".format(key)
+            res_data = {'error': message, 'status': 'KO'}
+            print message
+            return json.dumps(res_data)
 
+        try:
+            with open(filename, "r") as f:
+                lines = f.read()
         except Exception as ex:
-            res_data = {'error': 'Execution not found.', 'status': 'KO'}
+            message = "** INTERNAL ERROR ** while reading execution with key={}: {}".format(key, ex)
+            self.logger.exception(message)
+            res_data = {'error': message, 'status': 'KO'}
+            print message
             return json.dumps(res_data)
 
         return json.dumps({'status': 'OK', 'execution': lines})

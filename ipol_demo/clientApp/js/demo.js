@@ -32,6 +32,7 @@ function getDemoinfo() {
     printDemoHeader(response);
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
+    if (getKey()) loadExecution(getKey());
     console.log("get_interface_ddl", response);
   });
 }
@@ -65,20 +66,22 @@ function getKey() {
 }
 
 function loadExecution(key) {
-  helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
-    if (payload.status == "OK") {
-      var execution_json = JSON.parse(payload.execution);
-      var request = JSON.parse(execution_json.request);
-      parameters.setParametersValues(request.params);
-      if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
-      if (request.origin == "upload") setFiles(request, execution_json.response)
-      if (request.private_mode) $('#privateSwitch').prop('checked', true);
-      results.draw(execution_json.response);
-    } else {
-      alert(payload.error);
-      window.location.href = "demo.html?id=" + demo_id;
-    }
-  });
+  if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
+    helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
+      if (payload.status == "OK") {
+        var execution_json = JSON.parse(payload.execution);
+        var request = JSON.parse(execution_json.request);
+        parameters.setParametersValues(request.params);
+        if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
+        if (request.origin == "upload") setFiles(request, execution_json.response)
+        if (request.private_mode) $('#privateSwitch').prop('checked', true);
+        results.draw(execution_json.response);
+      } else {
+        alert(payload.error);
+        window.location.href = "demo.html?id=" + demo_id;
+      }
+    });
+  }
 }
 
 function setFiles(request, response) {

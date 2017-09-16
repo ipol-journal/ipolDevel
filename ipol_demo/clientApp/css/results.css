@@ -124,6 +124,8 @@
 .gallery-item-list {
   display: flex;
   flex-flow: column;
+  max-height: 500px;
+  overflow-x: auto;
 }
 
 .gallery-item-list-right {
