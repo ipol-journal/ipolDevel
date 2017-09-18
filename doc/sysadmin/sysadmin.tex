@@ -337,7 +337,7 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \begin{lstlisting}[language=Bash]
      sudo htpasswd -c /etc/nginx/.passwd/company company
     \end{lstlisting}
-    \item Edit the default file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
+    \item Edit the {\tt default} file to add authentication, e.g. add authentication to all the demos which its id starts with 33333999
     \begin{lstlisting}[language=Bash]
     location /demo/clientApp/demo.html {
       if ($args ~ ".*id=33333999\d*") {
