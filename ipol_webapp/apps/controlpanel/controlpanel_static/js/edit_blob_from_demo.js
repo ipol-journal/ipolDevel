@@ -23,9 +23,16 @@ function deleteBlob(url, demo_id){
         'set': original_set,
         'pos': original_pos
     }
-    $.post(url, values, 'json');
     demo_url = "/cp/blob_demo/" + demo_id;
-    window.location.href = demo_url;
+    $.post(url, values, 'json')
+    .done(function () {
+        console.log("Success");
+        window.location.href = demo_url;
+    })
+    .fail(function ()  {
+        console.log("Return code error");
+        window.location.href = demo_url;
+    });
 }
 
 function deleteVR(url, blob_id){
