@@ -75,6 +75,13 @@ $.fn.gallery = function (result, index) {
       evalString = true;
     }
     if (eval(evalString)) {
+      if (value.indexOf('+') != -1) {
+        let first = value.split('+')[0];
+        let second = value.split('+')[1];
+        value = eval(first) +" "+ eval(second);
+      } else {
+        value = eval("\"" + value + "\"");
+      }
       $("#" + "left-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-left-" + i + " class=gallery-item-selector>" + value + "</span>");
       $("#" + "right-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-right-" + i + " class=gallery-item-selector>" + value + "</span>");
       var src = result.contents[contentKeys[i]];
@@ -163,7 +170,7 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
     });
   });
   $(this).on('click', function () {
-    var listSelector = ".gallery-" + side + "-items-" + galleryIndex;
+    var listSelector = "#" + side + "-blobs-gallery-" + galleryIndex;
     $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
     originalSrc = [];
