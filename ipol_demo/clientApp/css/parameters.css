@@ -190,7 +190,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   -ms-flex-preferred-size: 53%;
   flex-basis: 53%;
 
-  height: 30px;
+  min-height: 30px;
 }
 
 .param-comments {

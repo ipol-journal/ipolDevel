@@ -40,7 +40,10 @@ parameters.setParametersValues = function(params_values){
       $('#range_' + param.id).val(parseFloat(params_values[param.id]));
     }
     if(param.type == "selection_radio"){
-      $('#' + param.id + '_' + params_values[param.id]).attr('checked', 'checked');
+      var values_keys = Object.keys(param.values);
+      for (let j = 0; j < values_keys.length; j++)
+        if(param.values[values_keys[j]] == params_values[param.id])
+          $('#' + param.id + '_' + j).prop('checked', true);
     }
     if(param.type == "selection_collapsed" || param.type == "text"){
       $('#select-' + param.id).val(params_values[param.id]);
