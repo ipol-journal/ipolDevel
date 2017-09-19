@@ -276,8 +276,8 @@ $.fn.html_text = function (result, index) {
   for (let i = 0; i < result.contents.length; i++)
     text += result.contents[i];
 
-  if (text.charAt(0) == '\'') text = eval(text);
-  else text = eval('\'' + text + '\'');
+  if (text.charAt(0) == '\'') text = eval(text.replace(/\n/g, "\\n"));
+  else text = eval('\'' + text.replace(/\n/g, "\\n") + '\'');
 
   $('.html_text_' + index).html(text);
 }
