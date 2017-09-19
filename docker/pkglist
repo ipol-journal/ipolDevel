@@ -1,3 +1,5 @@
+
+
 debian-keyring
 debian-archive-keyring
 bash-completion
@@ -38,6 +40,8 @@ libgsl-dev
 libgsl-dbg
 libblas-dev
 libblas3
+libopencv-dev
+python-opencv
 liblapack-dev
 liblapacke-dev
 liblapacke
@@ -61,10 +65,15 @@ libavfilter-dev
 libavutil-dev
 povray
 
-libopencv-dev
-python-opencv
-
 libgeos-dev
+
+caffe-cpu
+caffe-tools-cpu
+libcaffe-cpu-dev
+libcaffe-cpu1
+python3-caffe-cpu
+
+libjpeg-progs
 
 nano
 sudo
@@ -76,3 +85,4 @@ mailutils
 cron-apt
 ipython
 net-tools
+zsh

@@ -18,22 +18,22 @@ $(document).ready(function() {
 
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
+    console.log("get_globs", blobs);
     input.printSets(blobs.sets);
     helpers.addToStorage("blobs", blobs.sets);
     if (getKey()) loadExecution(getKey());
-    console.log("get_globs", blobs);
   });
 }
 
 function getDemoinfo() {
   helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
     var response = helpers.getJSON(payload.last_demodescription.ddl);
+    console.log("get_interface_ddl", response);
     displayInputHeaders(response);
     printDemoHeader(response);
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
     if (getKey()) loadExecution(getKey());
-    console.log("get_interface_ddl", response);
   });
 }
 

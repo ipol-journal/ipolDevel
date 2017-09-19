@@ -15,6 +15,7 @@ import sys
 import math
 import ConfigParser
 import re
+import mimetypes
 from PIL import Image
 import cherrypy
 from Tools.evaluator import evaluate
@@ -230,7 +231,7 @@ class Conversion(object):
                 if input_desc.get('type') == 'image':
                     input_info['code'] = self.convert_image(input_files[0], input_desc, crop_info)
 
-                elif input_desc.get('type') != "data":
+                elif input_desc.get('type') == "data":
                     input_info['code'] = self.add_ext_to_data(input_files[0], input_desc)
 
                 else:
@@ -282,9 +283,10 @@ class Conversion(object):
         Convert image if needed
         """
         code = 0
-        print input_desc
         im = Image.open(input_file)
-        if os.path.splitext(input_file)[1] != input_desc.get('ext'):
+        input_file_type, _ = mimetypes.guess_type(input_file)
+        input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
+        if input_file_type != input_desc_type:
             # Change ext needed
             self.change_image_ext(input_file, input_desc.get('ext'))
             input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
@@ -301,7 +303,6 @@ class Conversion(object):
         if self.needs_convert(im, input_desc):
             self.change_image_dtype(input_file, input_desc.get('dtype'))
             code = 1
-
         return code
 
     @staticmethod
@@ -312,7 +313,8 @@ class Conversion(object):
         ext = input_desc.get('ext')
         if ext is None:
             raise IPOLConvertInputError('The DDL does not have extension field')
-        input_with_extension = input_file + ext
+        filename_no_ext, _ = os.path.splitext(input_file)
+        input_with_extension = filename_no_ext + ext
         os.rename(input_file, input_with_extension)
         return 0
 

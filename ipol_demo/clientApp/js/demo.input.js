@@ -19,16 +19,16 @@ input.printSets = function(sets) {
     var blobSetArray = [];
 
     addSetClickEvent(blobSet, i);
-
-    blobSetArray += "<img src=" + set[0].thumbnail + ">"; // first photo
+    
+    blobSetArray += "<img src=" + set[blobs[0]].thumbnail + ">"; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
-      blobSetArray += "<img src=" + set[1].thumbnail + ">";
+      blobSetArray += "<img src=" + set[blobs[1]].thumbnail + ">";
     }
     if (blobs.length >= 4) { // +3 photo set. ···
       blobSetArray += "<span>···</span>";
     }
     if (blobs.length > 1) { // +1 photo. last photo.
-      blobSetArray += "<img src=" + set[blobs.length - 1].thumbnail + ">";
+      blobSetArray += "<img src=" + set[blobs[blobs.length - 1]].thumbnail + ">";
     }
     blobSet.html(blobSetArray);
     $(".blobSet_" + i).append($(".blobSet-body-" + i));
