@@ -137,3 +137,21 @@ The IPOL platform supports images, audio and video files to use in demos. The ne
 allows to choose a set with any combination of images, audio and video. Depending on the data types and sets length options will vary. 
 If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
 one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inprinting editing.
+
+\section{Implementation of Features}
+%
+\subsection{Load execution}
+The IPOL platform implements a reload execution functionality. It can recreate the demo web page with the same input/s (blobSet or upload), crop, parameters, and results of the specified execution.
+
+After demo execution it saves the run request and response in a file to be able to load it whenever it's needed. The file is saved in the execution folder, specified by the demo id and the execution key. Demo executions are removed periodically.
+
+In order to load an execution, it needs the demo id and the execution key in the URL.
+
+This functionality allows the user to reload an execution and share it. It also works with the browser history.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{images/execution_flow}
+	\caption{Execution flow diagram} 
+	\label{fig:execution_flow}
+\end{figure}
