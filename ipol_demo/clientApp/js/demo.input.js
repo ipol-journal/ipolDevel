@@ -19,7 +19,7 @@ input.printSets = function(sets) {
     var blobSetArray = [];
 
     addSetClickEvent(blobSet, i);
-    
+
     blobSetArray += "<img src=" + set[blobs[0]].thumbnail + ">"; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
       blobSetArray += "<img src=" + set[blobs[1]].thumbnail + ">";
@@ -95,7 +95,7 @@ function setEditor(index, crop_info) {
   var blobs = demo_sets[index].blobs;
   var id_blobs = [];
   for (let i = 0; i < Object.keys(blobs).length; i++) {
-    id_blobs.push(blobs[i].id);
+    id_blobs.push(blobs[Object.keys(blobs)[i]].id);
   }
   helpers.addToStorage("demoSet", blobs);
   helpers.addToStorage("setId", parseInt(index));
