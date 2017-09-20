@@ -74,9 +74,10 @@ function printParameter(param, index) {
 }
 
 function addToParamsObject(param) {
-  if (param.default_value != undefined ||  param.values != undefined) {
+  if (param.default_value != undefined ||  param.values != undefined)
     params[param.id] = param.default_value != undefined ? param.default_value : param.values.default;
-  }
+  if (param.type == "checkbox" &&  !param.default_value)
+    params[param.id] = false;
 }
 
 function addMaxMin(param, index) {
