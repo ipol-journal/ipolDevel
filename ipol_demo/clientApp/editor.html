@@ -5,26 +5,12 @@
   </div>
   <div class="editor-container di-none">
     <div class="blobsList blobsList-left">
-      <!-- spans -->
-      <!-- compare button -->
-      <div id="zoom-container" class="zoom-container di-none">
-        <label for="editor-zoom-select">Zoom</label>
-        <select id="editor-zoom-select" name="zoom-select" class="zoom-select">
-                <option value="0.25">x0.25</option>
-                <option value="0.5">x0.5</option>
-                <option value="1" selected="selected">x1</option>
-                <option value="2">x2</option>
-                <option value="3">x3</option>
-                <option value="4">x4</option>
-                <option value="8">x8</option>
-                <option value="10">x10</option>
-                <option value="12">x12</option>
-                <option value="14">x14</option>
-                <option value="16">x16</option>
-              </select>
+      <div class=inputListContainerLeft>
+        <!-- spans -->
       </div>
+      <!-- compare/crop button -->
     </div>
-
+    
     <div class="image-wrapper">
       <div id="left-container" class="image-container">
         <!--Img-->
@@ -33,10 +19,36 @@
         <!--Img-->
       </div>
     </div>
-
+    
     <div class="blobsList blobsList-right di-none">
-      <!-- spans compare -->
+      <div class=inputListContainerRight>
+        <!-- spans right -->
+      </div>
     </div>
   </div>
-
+  <div id="zoom-container" class="zoom-container di-none">
+    <label for="editor-zoom">Zoom <span id="editor-zoom-value">1x</span></label>
+    <input type="range" name="editor-zoom" id="editor-zoom" value="1" min="0.25" max="16" step="0.05" list="zoom-values">
+    <datalist id="zoom-values">
+      <option value="0.25">
+      <option value="0.5">
+      <option value="1" label="1x">
+      <option value="2">
+      <option value="3">
+      <option value="4">
+      <option value="5">
+      <option value="6">
+      <option value="7">
+      <option value="8">
+      <option value="9">
+      <option value="10">
+      <option value="11">
+      <option value="12">
+      <option value="13">
+      <option value="14">
+      <option value="15">
+      <option value="16" label="16x">
+    </datalist>
+  </div>
+  
 </div>

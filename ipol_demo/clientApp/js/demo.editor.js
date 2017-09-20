@@ -60,8 +60,6 @@ function saveSelectedInput(side, index) {
 
 // Print the chosen set blob list
 function printBlobsetList(demoInfo, blobs) {
-  $("<div class=inputListContainerLeft></div>").insertBefore("#zoom-container");
-  $(".blobsList-right").append("<div class=inputListContainerRight></div>");
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span>");
     $(".editor-input-left-" + i).addClass('editor-input');

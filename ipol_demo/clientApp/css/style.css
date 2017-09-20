@@ -162,3 +162,9 @@ hr.separator {
 .hand, select {
   cursor: pointer;
 }
+
+iframe {
+  width: 90%;
+  height: 500px;
+  margin-left: 5%;
+}
