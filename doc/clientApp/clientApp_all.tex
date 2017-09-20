@@ -139,19 +139,23 @@ If a set contains multiple images, the user will be able to compare and make zoo
 one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inprinting editing.
 
 \section{Implementation of Features}
+This section describes how particular features on the web interface are implemented.
+
 %
-\subsection{Load execution}
-The IPOL platform implements a reload execution functionality. It can recreate the demo web page with the same input/s (blobSet or upload), crop, parameters, and results of the specified execution.
+\subsection{Execution recovery}
+It is common that a researcher get an interesting result after executing a demo with some particular input and parameters and want to share with a colleague. The first intuition is to simple copy the URL shown in the browser and ask the other persons to paste it in their browsers, to get the same page. Note that this is different from browsing the archive or to recover an archived experiment.
 
-After demo execution it saves the run request and response in a file to be able to load it whenever it's needed. The file is saved in the execution folder, specified by the demo id and the execution key. Demo executions are removed periodically.
+The IPOL webpage is AJAX dynamic and therefore this need that the web interface and the backend do dome extra work. The idea is to save the \emph{state} of the page after the execution, including the origin of the blobs used (uploaded original content or examples from the demo), the crop, parameters, and the results displayed. In general, any data needed to recover the same page state.
 
-In order to load an execution, it needs the demo id and the execution key in the URL.
+After the execution of the demo the Core module saves the run request and the corresponding response into a {\tt execution.json} text file after the web interface requests the {\tt save\_execution} service. This file is saved at the temporal execution folder.
+%
+When the web interface needs to recover the state of the page it invokes the {\tt load\_execution} service of the Core along with the demo ID and the execution key. The Core reads the text file and sends back to the web interface all the information needed to put the demo page in the apropriate state.
 
-This functionality allows the user to reload an execution and share it. It also works with the browser history.
+The interaction diagram is shown in Fig. \ref{fig:execution_flow}.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{images/execution_flow}
-	\caption{Execution flow diagram} 
+	\caption{Execution flow diagram for the functionality of saving/recovering the state of the demo page.} 
 	\label{fig:execution_flow}
 \end{figure}
