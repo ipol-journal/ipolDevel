@@ -71,7 +71,7 @@ function loadExecution(key) {
       if (payload.status == "OK") {
         var execution_json = JSON.parse(payload.execution);
         var request = JSON.parse(execution_json.request);
-        parameters.setParametersValues(request.params);
+        if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
         if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
         if (request.origin == "upload") setFiles(request, execution_json.response)
         if (request.private_mode) $('#privateSwitch').prop('checked', true);
