@@ -1166,6 +1166,13 @@ attached the failed experiment data.". \
                 params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 print resp.json()
+                conversion_info = json.loads(resp.json()["info"])
+                for input_key in conversion_info:
+                    if conversion_info[input_key]["code"] == 2: # Conversion forbidden
+                        res_data = {'error': 'Input {} size too large and conversion forbidden'.format(input_key),
+                                    'status': 'KO'}
+                        return json.dumps(res_data)
+
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
