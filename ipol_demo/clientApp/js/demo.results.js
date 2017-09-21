@@ -36,7 +36,8 @@ $.fn.gallery = function (result, index) {
 
   if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = "gallery_" + index;
-  $(this).append("<div class=" + gallerySelector + " ></div>");
+  $(this).append("<div class=" + gallerySelector + "></div>");
+  $(this).append("<div class=gallery-" + index + "-zoom-container></div>");
   $("." + gallerySelector).addClass("gallery-container");
 
   var leftItems = "gallery-left-items-" + index;
@@ -113,14 +114,14 @@ $.fn.gallery = function (result, index) {
   $("#" + imgContainerLeft + " > img").addClass('gallery-' + index + '-blob-left');
   $("#" + imgContainerRight + " > img").addClass('gallery-' + index + '-blob-right');
 
-  $("." + leftItems).appendZoom(index, leftItems);
-  $("." + leftItems).appendGalleryControlls(index, rightItems, imgContainerRight);
+  $(".gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
+  $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
 
   checkOptions(result.type, index);
 }
 
-$.fn.appendGalleryControlls = function (galleryIndex, rightItems, imgContainerRight) {
-  $(this).append("<div><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
+$.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
+  $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function () {
     if ($(this).is(":checked")) {
       $(".gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "50%" });

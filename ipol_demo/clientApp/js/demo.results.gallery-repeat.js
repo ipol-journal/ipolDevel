@@ -57,7 +57,8 @@ $.fn.repeat_gallery = function(result, index)  {
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   }
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
-  $("." + leftItems).appendZoom(index, leftItems);
+  $(this).append("<div id=gallery-"+index+"-zoom-container></div>");
+  $("#gallery-"+index+"-zoom-container").appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
 }

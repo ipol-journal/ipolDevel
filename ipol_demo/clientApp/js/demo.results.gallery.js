@@ -49,19 +49,20 @@ $.fn.gallery_new = function(result, index)  {
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right');
   }
-  $("." + leftItems).appendZoom(index, leftItems);
+  $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
+  $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
 }
 
-function checkRepeat(result, repeatKey, repeatParam) {
+function checkRepeat(line, repeatKey, repeatParam) {
   if (repeatKey === "params") {
     var repeatValues = JSON.stringify(params);
     var repeat = repeatValues[repeatParam];
   } else if (repeatKey === "info") {
     var repeat = info[repeatParam];
   } else {
-    repeat = result.repeat;
+    repeat = eval(line.repeat);
   }
   return repeat;
 }
@@ -81,21 +82,31 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
         content = [content];
         firstSrc = result.contents[contentKeys[0]].img;
       }
-      if (contents[contentKeys[i]].repeat) {
-        contents[contentKeys[i]].repeat = contents[contentKeys[i]].repeat.toString();
-        var repeatSplit = contents[contentKeys[i]].repeat.split(".");
-        var repeat = checkRepeat(result, repeatSplit[0], repeatSplit[1]);
+      var line = contents[contentKeys[i]];
+      if (line.repeat) {
+        line.repeat = line.repeat.toString();
+        var repeatSplit = line.repeat.split(".");
+        var repeat = checkRepeat(line, repeatSplit[0], repeatSplit[1]);
         for (var idx = 0; idx < repeat; idx++) {
-          $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" + i +idx+ " class=gallery-item-selector>" + eval(contentKeys[i]) + "</span>");
+          var text = getEvalText(contentKeys[i]);
+          $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" + i +idx+ " class=gallery-item-selector>" + eval(text) + "</span>");
           $("#gallery-" +index+ "-item-" +side+ "-" + i +idx).addHoverFeature(index, side, firstSrc, work_url, content, idx);
         }
       } else {
-        $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + contentKeys[i] + "</span>");
+        $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + eval(text) + "</span>");
         $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, firstSrc, work_url, content, 0);
       }
     }
   }
   $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
+}
+
+function getEvalText(str) {
+  if (str.indexOf('+') != -1) {
+    return str;
+  } else {
+    return "\'"+str+"\'";
+  }
 }
 
 $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx) {
@@ -108,7 +119,7 @@ $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx
       $(selector).append('<img src=' + work_url + (src[i].indexOf("'") == -1 ? src[i] : eval(src[i])) + ' class=gallery-img draggable=false></img>');
       $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
-    $("#gallery-" +galleryIndex+ "-zoom > select").adjustSize(galleryIndex);
+    $("#gallery-" +galleryIndex+ "-zoom > input").adjustSize(galleryIndex);
   });
   $(this).mouseout(function() {
     $(selector).empty();
@@ -117,7 +128,7 @@ $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx
       $(selector).append('<img src=' + work_url + selectedSrc[i] + ' class=gallery-img draggable=false></img>');
       $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
-    $("#gallery-" +galleryIndex+ "-zoom > select").adjustSize(galleryIndex);
+    $("#gallery-" +galleryIndex+ "-zoom > input").adjustSize(galleryIndex);
   });
   $(this).on('click', function() {
     var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
@@ -134,7 +145,7 @@ $.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx
 }
 
 $.fn.renderGalleryControlls = function(galleryIndex, rightItems, imgContainerRight) {
-  $(this).append("<div><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
+  $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function() {
     if ($(this).is(":checked")) {
       $(".gallery-blobs-container-" + galleryIndex + " > div").css({"flex-basis": "50%"});
@@ -158,9 +169,9 @@ $.fn.updateGalleryWidth = function(galleryIndex) {
 $.fn.appendZoom = function(index, leftItems) {
   var zoom = $("#zoom-container").clone();
   var newZoomID= "gallery-" +index+ "-zoom";
-  zoom.attr("id", newZoomID).appendTo("." + leftItems);
+  zoom.attr("id", newZoomID).appendTo($(this));
   zoom.removeClass("di-none");
-  $("#" + newZoomID + " > select").on('change', function() {
+  $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
     $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
       $(this).height($(this)[0].naturalHeight * zoomLevel);
