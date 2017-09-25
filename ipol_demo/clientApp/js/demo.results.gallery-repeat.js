@@ -83,14 +83,14 @@ $.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray
     $(selector).addClass("flex-50");
     $(imgSelector).each(function(i) {
       $(this).attr("src", work_url + eval(contentArray[i]));
-      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
     });
   });
   $(this).mouseout(function() {
     var idx = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
     $(imgSelector).each(function(i){
       $(this).attr("src", work_url + eval(contentArray[i]));
-      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
     });
   });
   $(this).on('click', function() {

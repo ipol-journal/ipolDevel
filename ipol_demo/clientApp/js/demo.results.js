@@ -166,7 +166,7 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
       $(selector).append("<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>");
-      $("#gallery-" + galleryIndex + "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
     }
     $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
   });
@@ -189,7 +189,7 @@ $.fn.addMouseOutEvent = function(galleryIndex, side) {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
       $(selector).append("<img src="+ src[i] +" class=gallery-img draggable=false></img>");
-      $("#gallery-" + galleryIndex + "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
     }
     $(selector).children().addClass("gallery-" + galleryIndex + "-blob-" + side);
   });
