@@ -215,16 +215,10 @@ class Conversion(object):
                         # Optional input missing, end of inputs
                         break
 
-                if os.path.getsize(input_files[0]) > input_desc.get('max_weight'):
+                if input_desc.get('max_weight') and os.path.getsize(input_files[0]) > input_desc.get('max_weight'):
                     # Input is too large
                     input_info['error'] = "File {} too large".format(input_files[0])
                     input_info['code'] = -1
-                    info[i] = input_info
-                    continue
-
-                if input_desc.get('conversion_authorized', 'true') == 'false':
-                    # [todo] this section is not yet in the DDL so the name 'conversion_authorized' can change
-                    input_info['code'] = 2
                     info[i] = input_info
                     continue
 
