@@ -89,7 +89,11 @@ $.fn.gallery = function (result, index) {
       if (typeof src == "string" || typeof src == "array") src = { 0: src };
       $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, src);
       $("#gallery-" + index + "-item-right-" + i).addHoverEvents(index, 'right', work_url, src);
-
+      if ($("#" + "left-blobs-gallery-" + index).children().length == 1) {
+        helpers.addToStorage("gallery-" + index + "-left", [work_url + src[0]]);
+        helpers.addToStorage("gallery-" + index + "-right", [work_url + src[0]]);
+      }
+      
       if ($("#" + imgContainerLeft).children().length <= 0) {
         var content = result.contents[contentKeys[0]];
         var type = typeof (content);
@@ -108,6 +112,8 @@ $.fn.gallery = function (result, index) {
       }
     }
   }
+  $("#left-blobs-gallery-"+index).addMouseOutEvent(index, 'left');
+  $("#right-blobs-gallery-" + index).addMouseOutEvent(index, 'right');
   $("." + leftItems + " span:first-child").addClass("gallery-item-selected");
   $("." + rightItems + " span:first-child").addClass("gallery-item-selected");
 
@@ -149,14 +155,9 @@ $.fn.appendLabel = function (labelArray) {
 
 // Add event listeners for gallery images lists
 $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
-  var originalSrc = "";
   var imgSelector = '.gallery-' + galleryIndex + '-blob-' + side;
   var selector = '.gallery-blob-container-' + side + '-' + galleryIndex;
-  var originalSrc = [];
   $(this).mouseover(function () {
-    $(imgSelector).each(function () {
-      originalSrc.push($(this).attr("src"));
-    });
     $(selector).addClass("flex-50");
     var keys = Object.keys(src);
     $(imgSelector).each(function (i) {
@@ -164,19 +165,24 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
       $("#gallery-" + galleryIndex + "-zoom > select").updateSize(galleryIndex);
     });
   });
-  $(this).mouseout(function () {
-    $(imgSelector).each(function (i) {
-      $(this).attr("src", originalSrc[i]);
-      $("#gallery-" + galleryIndex + "-zoom > select").updateSize(galleryIndex);
-    });
-  });
   $(this).on('click', function () {
     var listSelector = "#" + side + "-blobs-gallery-" + galleryIndex;
     $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
-    originalSrc = [];
+    let saveSrc = [];
     $(imgSelector).each(function () {
-      originalSrc.push($(this).attr("src"));
+      saveSrc.push($(this).attr("src"));
+    });
+    helpers.addToStorage("gallery-"+galleryIndex+"-"+side, saveSrc);
+  });
+}
+
+$.fn.addMouseOutEvent = function(galleryIndex, side) {
+  $(this).mouseout(function () {
+    var src = helpers.getFromStorage("gallery-"+galleryIndex+ "-" + side);
+    $('.gallery-' + galleryIndex + '-blob-' + side).each(function (i) {
+      $(this).attr("src", src[i]);
+      $("#gallery-" + galleryIndex + "-zoom > select").updateSize(galleryIndex);
     });
   });
 }

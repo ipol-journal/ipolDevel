@@ -177,6 +177,7 @@ $.fn.appendZoom = function(index, leftItems) {
       $(this).height($(this)[0].naturalHeight * zoomLevel);
       $(this).width($(this)[0].naturalWidth * zoomLevel);
     });
+    $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
   });
   scrollSynq(index);
 }
