@@ -1168,7 +1168,11 @@ attached the failed experiment data.". \
                 print resp.json()
                 conversion_info = json.loads(resp.json()["info"])
                 for input_key in conversion_info:
-                    if conversion_info[input_key]["code"] == 2: # Conversion forbidden
+                    if conversion_info[input_key]["code"] == -1: # Conversion error
+                        res_data = {'error': 'Input #{}: {}'.format(input_key, conversion_info[input_key]["error"]) ,
+                                    'status': 'KO'}
+                        return json.dumps(res_data)
+                    elif conversion_info[input_key]["code"] == 2: # Conversion forbidden
                         res_data = {'error': 'Input #{} size too large but conversion forbidden'.format(input_key),
                                     'status': 'KO'}
                         return json.dumps(res_data)
