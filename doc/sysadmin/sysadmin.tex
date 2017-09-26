@@ -497,6 +497,13 @@ In order to run the Django server for the control panel you will have to make th
 container before actually running the server. For this purpose there is a script under the Docker folder called migrations\_cp.sh.
  After the migrations run the Django server as you would anywhere else: python manage.py runserver 127.0.0.1:8000.
  Every command should be executed inside ipolDevel.
+ 
+ To improve usage of the docker container, some alias have been created to gain easy access to the terminal and to execute the control panel:
+ \begin{itemize}
+ 	\item terminal: cd into the terminal directory and execute terminal.py
+ 	\item cp: cd into "ipol\_webapp" and execute "python manage.py runserver 127.0.0.1:8000" command
+ \end{itemize}
+ 
 
 
 \paragraph{Docker build}:\\
