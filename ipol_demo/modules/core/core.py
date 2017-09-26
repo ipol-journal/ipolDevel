@@ -1169,7 +1169,7 @@ attached the failed experiment data.". \
                 conversion_info = json.loads(resp.json()["info"])
                 for input_key in conversion_info:
                     if conversion_info[input_key]["code"] == -1: # Conversion error
-                        res_data = {'error': 'Input #{}: {}'.format(input_key, conversion_info[input_key]["error"]) ,
+                        res_data = {'error': 'Input #{}: {}'.format(input_key, conversion_info[input_key]["error"]),
                                     'status': 'KO'}
                         return json.dumps(res_data)
                     elif conversion_info[input_key]["code"] == 2: # Conversion forbidden
@@ -1378,7 +1378,7 @@ attached the failed experiment data.". \
         """
         Load the data needed to recreate an execution.
         """
-        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key,  "execution.json")
+        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key, "execution.json")
         if not os.path.isfile(filename):
             message = "Execution with key={} not found".format(key)
             res_data = {'error': message, 'status': 'KO'}
