@@ -67,6 +67,7 @@ function getKey() {
 
 function loadExecution(key) {
   if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
+    hideStatusContainer();
     helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
       if (payload.status == "OK") {
         var execution_json = JSON.parse(payload.execution);
@@ -124,7 +125,10 @@ $(function() {
 });
 
 window.onpopstate = function(e) {
-  if (getKey()) {
-    loadExecution(getKey());
+  hideStatusContainer();
+  if (getKey()) loadExecution(getKey());
+  else {
+    $('.results').addClass('di-none');
+    $('.results-container').empty();
   }
 };
