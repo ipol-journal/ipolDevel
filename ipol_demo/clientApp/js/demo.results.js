@@ -163,12 +163,25 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
   var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     var keys = Object.keys(src);
-    $(selector).empty();
+    var nImages = $(selector).children().length;
     for (var i = 0; i < src.length; i++) {
-      $(selector).append("<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>");
-      $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+      if (i < nImages) {
+        $(selector + " > img:nth-child("+(i+1)+")").attr("src", work_url + src[keys[i]]);
+      } else {
+          var elm = "<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>";
+          $(elm).appendTo(selector);
+          $(elm).on('load', function () {
+            $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+          });
+          $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
+      }
     }
-    $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
+    if (nImages > src.length) {
+      for (var i = src.length; i <= nImages; i++) {
+        if (i > src.length) $(selector + " > img:nth-child(" + i + ")").remove();
+      }
+    }
+    $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
   });
   $(this).on('click', function () {
     var listSelector = "#" + side + "-blobs-gallery-" + galleryIndex;
@@ -184,7 +197,11 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
 
 $.fn.addMouseOutEvent = function(galleryIndex, side) {
   var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
-  $(this).mouseout(function () {
+  $(this).mouseout(function (event) {
+    e = event.toElement || event.relatedTarget;
+    if (e != null && (e.parentNode == this || e == this)) {
+      return;
+    }
     var src = helpers.getFromStorage("gallery-"+galleryIndex+ "-" + side);
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
