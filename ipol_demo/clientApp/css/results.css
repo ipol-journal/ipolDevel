@@ -95,8 +95,7 @@
   -ms-flex-pack: start;
   justify-content: flex-start;
 
-  min-height: 500px;
-  max-height: 600px;
+  height: 600px;
 
   animation: container-entrance 0.5s cubic-bezier(.69, -0.02, .46, 1.28);
 }

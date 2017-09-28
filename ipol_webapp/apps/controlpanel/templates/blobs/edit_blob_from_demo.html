@@ -90,13 +90,18 @@
                         </div>
 
                     </form>
+                    
                     <div style="padding-top: 15px;" align="right">
                         {% if data.registered %}
                             <a class="btn btn-danger" onclick="deleteBlob('{% url 'ipol.cp.blobs.remove_blob_from_demo' %}','{{demo}}')">Delete blob</a>
-                            <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
-                        {% else %}
+                            {% if blob.vr %}
+                                <a class="btn btn-danger" onclick="deleteVR('{% url 'ipol.cp.blobs.delete_vr_from_blob'%}','{{blob.id}}')">Remove visual representation</a>
+                            {% endif %}
+                       {% else %}
                         <a class="btn btn-danger disabled">Delete blob</a>
-                            <a class="btn btn-danger disabled">Remove visual representation</a>
+                            {% if blob.vr %}
+                                <a class="btn btn-danger disabled">Remove visual representation</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
