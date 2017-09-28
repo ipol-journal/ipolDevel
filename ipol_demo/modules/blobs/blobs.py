@@ -224,7 +224,7 @@ class Blobs(object):
         """
         index of the module.
         """
-        return "Dispatcher module"
+        return "Blobs module"
 
     @staticmethod
     @cherrypy.expose
@@ -497,8 +497,8 @@ class Blobs(object):
             blob.seek(0)
             image = Image.open(blob).convert('RGB')
             image.thumbnail((256, 256))
-
             image.save(thumb_path)
+
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
@@ -1279,29 +1279,37 @@ class Blobs(object):
                 return json.dumps(data)
 
             blob_hash = blob_data.get('hash')
-
-            # Delete VR
-            vr_folder = os.path.join(self.vr_dir, self.get_subdir(blob_hash))
-            vr_file = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))[0]
-            os.remove(vr_file)
-            self.remove_dirs(vr_folder)
-
-            # Delete old Thumbnail
             subdir = self.get_subdir(blob_hash)
+            
+            # Delete VR
+            vr_folder = os.path.join(self.vr_dir, subdir)
+            if os.path.isdir(vr_folder):
+                files_in_dir = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))
+                if len(files_in_dir) > 0:
+                    os.remove(files_in_dir[0])
+                    self.remove_dirs(vr_folder)
+                
+            # Delete old Thumbnail
+            
             thumb_folder = os.path.join(self.module_dir, self.thumb_dir, subdir)
-            thumb_file = glob.glob(os.path.join(thumb_folder, blob_hash + ".*"))[0]
-            os.remove(thumb_file)
-            self.remove_dirs(thumb_folder)
+            if os.path.isdir(thumb_folder):
+                thumb_files_in_dir = glob.glob(os.path.join(thumb_folder, blob_hash + ".*")) 
+                if len(thumb_files_in_dir) > 0:
+                    os.remove(thumb_files_in_dir[0])
+                    self.remove_dirs(thumb_folder)
 
             # Even if it fails creating the thumbnail the response wil be OK
             data['status'] = 'OK'
 
             # Creates the new thumbnail with the blob (if it is possible)
-            blob_folder = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
-            blob_path = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))[0]
-            blob_file = open(blob_path)
-            blob_format, _ = self.get_format_and_extension(self.get_blob_mime(blob_file))
-            self.create_thumbnail(blob_file, blob_hash, blob_format)
+            blob_folder = os.path.join(self.blob_dir, subdir)
+            if os.path.isdir(blob_folder):
+                blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
+                if len(blobs_in_dir) > 0:
+                    blob_file = open(blobs_in_dir[0])
+                    blob_format, _ = self.get_format_and_extension(self.get_blob_mime(blob_file))
+                    self.create_thumbnail(blob_file, blob_hash, blob_format)
+        
         except IPOLBlobsThumbnailError as ex:
             self.logger.exception("Error creating the thumbnail")
             print "Couldn't create the thumbnail. Error: {}".format(ex)
