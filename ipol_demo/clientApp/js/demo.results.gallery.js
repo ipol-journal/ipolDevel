@@ -89,7 +89,6 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
         srcStorage[k] = work_url + (firstSrc[k].indexOf("'") == -1 ? firstSrc[k] : eval(firstSrc[k]));
       }
       if (firstVisibleBlob) {
-        console.log(srcStorage);
         helpers.addToStorage("gallery-" + index + "-" + side, srcStorage);
         firstVisibleBlob = false;
       }
@@ -131,10 +130,8 @@ $.fn.addMouseOut = function (galleryIndex, side) {
     if (e != null && (e.parentNode == this || e == this)) {
       return;
     }
-    console.log("OUT");
     var selectedSrc = helpers.getFromStorage("gallery-" + galleryIndex + "-" + side);
     $(selector).empty();
-    console.log(selectedSrc);
     for (var i = 0; i < selectedSrc.length; i++) {
       var elem = '<img src=' + (selectedSrc[i].indexOf("'") == -1 ? selectedSrc[i] : eval(selectedSrc[i])) + ' class=gallery-img draggable=false></img>';
       $(elem).appendTo(selector);
