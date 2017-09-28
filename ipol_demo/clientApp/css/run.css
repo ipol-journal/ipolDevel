@@ -50,6 +50,7 @@
   height: 16px;
   margin-left: -10px;
 
+  animation: 3s infinite ease-in-out;
   -webkit-animation: 3s infinite ease-in-out;
   -moz-animation: 3s infinite ease-in-out;
   -o-animation: 3s infinite ease-in-out;
@@ -58,6 +59,7 @@
 }
 
 .loader-first-circle {
+  animation: leftToRight 1.2s infinite ease-in-out;
   -webkit-animation: leftToRight 1.2s infinite ease-in-out;
   -moz-animation: leftToRight 1.2s infinite ease-in-out;
   -o-animation: leftToRight 1.2s infinite ease-in-out;
@@ -72,6 +74,7 @@
 }
 
 .loader-third-circle {
+  animation: rightToLeft 1.2s infinite ease-in-out;
   -webkit-animation: rightToLeft 1.2s infinite ease-in-out;
   -moz-animation: rightToLeft 1.2s infinite ease-in-out;
   -o-animation: rightToLeft 1.2s infinite ease-in-out;
@@ -80,6 +83,7 @@
 }
 
 .element-appear {
+  animation: element-appear 1s forwards ease-in;
   -webkit-animation: element-appear 1s forwards ease-in;
   -moz-animation: element-appear 1s forwards ease-in;
   -o-animation: element-appear 1s forwards ease-in;

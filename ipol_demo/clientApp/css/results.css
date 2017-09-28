@@ -148,3 +148,7 @@
 
   max-width: 80%;
 }
+
+div[class^="html_text_"] {
+  margin-top: 10px;
+}
