@@ -64,7 +64,8 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
-povray
+liblas-bin
+
 
 ###################################################################
 

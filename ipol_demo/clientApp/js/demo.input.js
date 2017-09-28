@@ -88,6 +88,7 @@ function addSetClickEvent(blobSet, index) {
   blobSet.addClass("blobSet")
     .click(function() {
       setEditor(index, null);
+      hideStatusContainer();
     });
 }
 

@@ -76,6 +76,15 @@
   padding: 15px 0px 15px;
 }
 
+#editor-zoom-value {
+  display: inline-block;
+  width: 100px;
+}
+
+#editor-zoom {
+  width: 80%;
+}
+
 .image-wrapper {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -112,6 +121,10 @@
   border-bottom: 1px solid #938fa6;
 }
 
+.blobsList-left {
+  min-width: 106px;
+}
+
 .blobsList-right {
   min-width: 106px;
 
@@ -127,6 +140,8 @@
   display: flex;
 
   flex-flow: column;
+
+  padding-bottom: 10px;
 }
 
 .inputListContainerRight {

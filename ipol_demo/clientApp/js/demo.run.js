@@ -29,8 +29,11 @@ function runDemo() {
       data: runData
     })
     .done(function(res) {
-      if (res.status == "KO") displayError(res.error, "server");
-      else {
+      if (res.status == "KO") {
+        $('.results').addClass('di-none');
+        $('.results-container').empty();
+        displayError(res.error, "server");
+      }else {
         displaySuccess("Execution successful");
         updateURL(res);
         results.draw(res);
@@ -125,6 +128,7 @@ function displayError(msg, origin) {
 function displaySuccess(msg) {
   $(".msg-box").removeClass('di-none');
   $(".msg-box").removeClass('run-error');
+  $(".msg-box").removeClass('server-error');
   $(".msg-box").addClass('element-appear');
   $(".msg-box").addClass('run-success');
 

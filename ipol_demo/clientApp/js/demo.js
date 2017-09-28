@@ -67,11 +67,12 @@ function getKey() {
 
 function loadExecution(key) {
   if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
+    hideStatusContainer();
     helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
       if (payload.status == "OK") {
         var execution_json = JSON.parse(payload.execution);
         var request = JSON.parse(execution_json.request);
-        parameters.setParametersValues(request.params);
+        if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
         if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
         if (request.origin == "upload") setFiles(request, execution_json.response)
         if (request.private_mode) $('#privateSwitch').prop('checked', true);
@@ -124,7 +125,10 @@ $(function() {
 });
 
 window.onpopstate = function(e) {
-  if (getKey()) {
-    loadExecution(getKey());
+  hideStatusContainer();
+  if (getKey()) loadExecution(getKey());
+  else {
+    $('.results').addClass('di-none');
+    $('.results-container').empty();
   }
 };

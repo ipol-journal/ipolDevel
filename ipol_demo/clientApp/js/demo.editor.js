@@ -29,12 +29,9 @@ function printEditorPanel() {
   $('#right-container').printEditorBlob(editorBlobs[blobs[0]], "right");
   var $blob = $("#editor-blob-left");
 
-  // If there are blobs other than images, dont load zoom and crop
-  if (areAllImages()) {
-    $("#zoom-container").removeClass('di-none');
-    if (blobs.length > 1) loadMultiBlobControlls(editorBlobs[blobs[0]].blob);
-    else loadSingleBlobControlls($blob);
-  }
+  if (areAllImages()) $("#zoom-container").removeClass('di-none');
+  if (blobs.length > 1) loadMultiBlobControlls(editorBlobs[blobs[0]].blob);
+  else if(blobs.length == 1 && editorBlobs[blobs[0]].format == "image") loadSingleBlobControlls($blob);
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -60,8 +57,6 @@ function saveSelectedInput(side, index) {
 
 // Print the chosen set blob list
 function printBlobsetList(demoInfo, blobs) {
-  $("<div class=inputListContainerLeft></div>").insertBefore("#zoom-container");
-  $(".blobsList-right").append("<div class=inputListContainerRight></div>");
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span>");
     $(".editor-input-left-" + i).addClass('editor-input');
@@ -107,10 +102,11 @@ function loadMultiBlobControlls(blob) {
   addCompareEvent();
 }
 
+// Check if all blobs are images or have visual representation (image)
 function areAllImages() {
   var blobs = Object.keys(editorBlobs);
   for (var i = 0; i < blobs.length; i++) {
-    if (editorBlobs[blobs[i]].format != "image") return false;
+    if (editorBlobs[blobs[i]].format != "image" && !editorBlobs[blobs[i]].vr) return false;
   }
   return true;
 }

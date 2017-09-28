@@ -57,7 +57,8 @@ $.fn.repeat_gallery = function(result, index)  {
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   }
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
-  $("." + leftItems).appendZoom(index, leftItems);
+  $(this).append("<div id=gallery-"+index+"-zoom-container></div>");
+  $("#gallery-"+index+"-zoom-container").appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
 }
@@ -82,14 +83,14 @@ $.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray
     $(selector).addClass("flex-50");
     $(imgSelector).each(function(i) {
       $(this).attr("src", work_url + eval(contentArray[i]));
-      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
     });
   });
   $(this).mouseout(function() {
     var idx = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
     $(imgSelector).each(function(i){
       $(this).attr("src", work_url + eval(contentArray[i]));
-      $("#gallery-" +galleryIndex+ "-zoom > select").updateSize(galleryIndex);
+      $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
     });
   });
   $(this).on('click', function() {

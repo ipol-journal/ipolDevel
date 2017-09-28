@@ -1,4 +1,4 @@
-@-webkit-keyframes element-appear {
+@keyframes element-appear {
   0% {
     opacity: 0;
   }
@@ -7,6 +7,19 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+@keyframes rightToLeft {
+  0% {
+    transform: translateX(20px);
+  }
+  50% {
+    transform: translateX(-20px);
+  }
+  100% {
+    z-index: 200;
+    transform: translateX(20px);
   }
 }
 
@@ -21,6 +34,20 @@
     z-index: 200;
 
     -webkit-transform: translateX(20px);
+  }
+}
+
+@keyframes leftToRight {
+  0% {
+    z-index: 200;
+
+    transform: translateX(-20px);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+  100% {
+    transform: translateX(-20px);
   }
 }
 

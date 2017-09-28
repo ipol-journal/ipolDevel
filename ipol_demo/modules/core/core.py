@@ -1163,9 +1163,20 @@ attached the failed experiment data.". \
         if origin is not None:
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
-                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
+                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": json.dumps(crop_info)}
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 print resp.json()
+                conversion_info = json.loads(resp.json()["info"])
+                for input_key in conversion_info:
+                    if conversion_info[input_key]["code"] == -1: # Conversion error
+                        res_data = {'error': 'Input #{}: {}'.format(input_key, conversion_info[input_key]["error"]),
+                                    'status': 'KO'}
+                        return json.dumps(res_data)
+                    elif conversion_info[input_key]["code"] == 2: # Conversion forbidden
+                        res_data = {'error': 'Input #{} size too large but conversion forbidden'.format(input_key),
+                                    'status': 'KO'}
+                        return json.dumps(res_data)
+
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
@@ -1367,7 +1378,7 @@ attached the failed experiment data.". \
         """
         Load the data needed to recreate an execution.
         """
-        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key,  "execution.json")
+        filename = os.path.join(self.share_run_dir_abs, str(demo_id), key, "execution.json")
         if not os.path.isfile(filename):
             message = "Execution with key={} not found".format(key)
             res_data = {'error': message, 'status': 'KO'}

@@ -3,7 +3,7 @@
 #MAC OX: instalar postgress driver, in your virtualenv shell, type 'export PATH=/Library/PostgreSQL/9.4/bin:$PATH'
 psycopg2
 
-django
+django==1.11.2
 djangorestframework
 django-crispy-forms
 
