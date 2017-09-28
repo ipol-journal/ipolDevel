@@ -10,14 +10,14 @@ $.fn.repeat_gallery = function(result, index)  {
   var contentArray = result.contents[1];
   var repeatKey = result.repeat.split(".")[0];
   var repeatParam = result.repeat.split(".")[1];
+  var repeat;
   if (repeatKey === "params") {
-    var repeat = params[repeatParam];
+    repeat = eval(result.repeat);
   } else if (repeatKey === "info") {
     repeat = info[repeatParam];
   } else {
     repeat = result.repeat;
   }
-  
   if (typeof(contentArray) == "string") {
     contentArray = [contentArray]
   } else if (typeof(contentArray) == "object") {
