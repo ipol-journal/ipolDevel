@@ -76,6 +76,11 @@
   border-bottom: 1px solid #938fa6;
 }
 
+.gallery-blobList-left{
+  display: flex;
+  flex-flow: column;
+}
+
 .gallery-item-selected {
   background-color: #e2dae6;
 }
@@ -142,4 +147,8 @@
   flex-wrap: nowrap;
 
   max-width: 80%;
+}
+
+div[class^="html_text_"] {
+  margin-top: 10px;
 }

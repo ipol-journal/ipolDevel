@@ -285,15 +285,18 @@ class Conversion(object):
             self.change_image_ext(input_file, input_desc.get('ext'))
             input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
             code = 1
+
+        if crop_info is not None:
+            # Crop is needed
+            self.crop_image(input_file, crop_info)
+            im = Image.open(input_file)
+            code = 1
+            
         if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
             # Resize needed
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
             self.resize_image(input_file, evaluate(input_desc.get('max_pixels')))
-            code = 1
-        if crop_info is not None:
-            # Crop is needed
-            self.crop_image(input_file, crop_info)
             code = 1
 
         if self.needs_convert(im, input_desc):

@@ -42,13 +42,13 @@ $.fn.gallery_new = function(result, index)  {
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
   } else { // array of images
     for (var i = 0; i < img.length; i++) {
-      $("#" + imgContainerLeft).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
-      $("#" + imgContainerRight).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
-      $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
+      $("#" + imgContainerLeft).append('<img src=' + work_url + (img[i].indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
+      $("#" + imgContainerRight).append('<img src=' + work_url + (img[i].indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
     }
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right');
   }
+  $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
   $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
   $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
@@ -72,6 +72,7 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
   $("." + itemSelector).addClass("gallery-item-list");
   var contents = result.contents;
   var firstSrc = result.contents[contentKeys[0]].img;
+  var firstVisibleBlob = true;
   if (typeof(firstSrc) == "string") {
     firstSrc = [firstSrc];
   }
@@ -80,25 +81,67 @@ function renderGalleryBlobList(index, contentKeys, gallerySelector, result, item
       var content = result.contents[contentKeys[i]].img;
       if (typeof(content) == "string") {
         content = [content];
-        firstSrc = result.contents[contentKeys[0]].img;
+        firstSrc = content;
+      }
+      var srcStorage = [];
+      for (let k = 0; k < firstSrc.length; k++) {
+        var idx = k;
+        srcStorage[k] = work_url + (firstSrc[k].indexOf("'") == -1 ? firstSrc[k] : eval(firstSrc[k]));
+      }
+      if (firstVisibleBlob) {
+        helpers.addToStorage("gallery-" + index + "-" + side, srcStorage);
+        firstVisibleBlob = false;
       }
       var line = contents[contentKeys[i]];
+      var spanContainer = "<div id=gallery-"+index+"-blobList-"+side+" class=gallery-blobList-left></div>";
+      $("." + itemSelector).append(spanContainer);
       if (line.repeat) {
         line.repeat = line.repeat.toString();
         var repeatSplit = line.repeat.split(".");
         var repeat = checkRepeat(line, repeatSplit[0], repeatSplit[1]);
         for (var idx = 0; idx < repeat; idx++) {
           var text = getEvalText(contentKeys[i]);
-          $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" + i +idx+ " class=gallery-item-selector>" + eval(text) + "</span>");
-          $("#gallery-" +index+ "-item-" +side+ "-" + i +idx).addHoverFeature(index, side, firstSrc, work_url, content, idx);
+          $("#gallery-"+index+"-blobList-"+side).append("<span id=gallery-" +index+ "-item-" +side+ "-" + i +idx+ " class=gallery-item-selector>" + eval(text) + "</span>");
+          var evalContents = [];
+          for (var j = 0; j < content.length; j++) {
+            evalContents[j] = work_url + (content[j].indexOf("'") == -1 ? content[j] : eval(content[j]));
+          }
+          $("#gallery-" +index+ "-item-" +side+ "-" + i +idx).addHoverFeature(index, side, work_url, evalContents, idx);
         }
       } else {
-        $("." + itemSelector).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + eval(text) + "</span>");
-        $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, firstSrc, work_url, content, 0);
+        var text = getEvalText(contentKeys[i]);        
+        $("#gallery-"+index+"-blobList-"+side).append("<span id=gallery-" +index+ "-item-" +side+ "-" +i+ " class=gallery-item-selector>" + eval(text) + "</span>");
+        var evalContents = [];
+        for (var j = 0; j < content.length; j++) {
+          evalContents[j] = work_url + (content[j].indexOf("'") == -1 ? content[j] : eval(content[j]));
+        }
+        $("#gallery-" +index+ "-item-" +side+ "-" +i).addHoverFeature(index, side, work_url, evalContents, 0);
       }
     }
   }
+  $(this).addMouseOut(index, side);
   $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
+}
+
+$.fn.addMouseOut = function (galleryIndex, side) {
+  var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
+  $("#gallery-" + galleryIndex + "-blobList-" + side).mouseout(function (event) {
+    e = event.toElement || event.relatedTarget;
+    if (e != null && (e.parentNode == this || e == this)) {
+      return;
+    }
+    var selectedSrc = helpers.getFromStorage("gallery-" + galleryIndex + "-" + side);
+    $(selector).empty();
+    for (var i = 0; i < selectedSrc.length; i++) {
+      var elem = '<img src=' + (selectedSrc[i].indexOf("'") == -1 ? selectedSrc[i] : eval(selectedSrc[i])) + ' class=gallery-img draggable=false></img>';
+      $(elem).appendTo(selector);
+      $(elem).on('load', function () {
+        $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
+      });
+      $(selector + " > img").addClass('gallery-' + galleryIndex + '-blob-' + side);
+    }
+    $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
+  });
 }
 
 function getEvalText(str) {
@@ -109,38 +152,30 @@ function getEvalText(str) {
   }
 }
 
-$.fn.addHoverFeature = function(galleryIndex, side, firstSrc, work_url, src, idx) {
-  helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, firstSrc);
+$.fn.addHoverFeature = function(galleryIndex, side, work_url, src, idx) {
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
   var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
-      $(selector).append('<img src=' + work_url + (src[i].indexOf("'") == -1 ? src[i] : eval(src[i])) + ' class=gallery-img draggable=false></img>');
-      $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
-    }
-    $("#gallery-" +galleryIndex+ "-zoom > input").adjustSize(galleryIndex);
-  });
-  $(this).mouseout(function() {
-    $(selector).empty();
-    var selectedSrc = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
-    for (var i = 0; i < selectedSrc.length; i++) {
-      $(selector).append('<img src=' + work_url + selectedSrc[i] + ' class=gallery-img draggable=false></img>');
+      var elem = '<img src=' + (src[i].indexOf("'") == -1 ? src[i] : eval(src[i])) + ' class=gallery-img draggable=false></img>';
+      $(elem).appendTo(selector);
+      $(elem).on('load', function () {
+        $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
+      });
       $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
     $("#gallery-" +galleryIndex+ "-zoom > input").adjustSize(galleryIndex);
   });
   $(this).on('click', function() {
     var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
-    $(listSelector + " > .gallery-item-selected").toggleClass("gallery-item-selected");
+    $("#gallery-" + galleryIndex + "-blobList-" + side + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
     var selectedSrc = [];
     $(imgSelector).each(function(i){
-      let src = $(imgSelector)[i].src.split("/");
-      let name = src[src.length - 1];
-      selectedSrc.push(name);
+      selectedSrc.push($(imgSelector)[i].src);
     });
-    helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, selectedSrc);
+    helpers.addToStorage("gallery-" +galleryIndex + "-" + side, selectedSrc);
   });
 }
 
@@ -158,14 +193,6 @@ $.fn.renderGalleryControlls = function(galleryIndex, rightItems, imgContainerRig
   });
 }
 
-$.fn.updateGalleryWidth = function(galleryIndex) {
-  if ($("#compare-btn-gallery-" + galleryIndex).is(":checked")) {
-    $(".gallery-blob-container-" + galleryIndex + " > div").toggleClass("flex-50");
-  } else {
-    $(".gallery-blob-container-" + galleryIndex + " > div").css({"flex-basis": ""});
-  }
-}
-
 $.fn.appendZoom = function(index, leftItems) {
   var zoom = $("#zoom-container").clone();
   var newZoomID= "gallery-" +index+ "-zoom";
@@ -173,10 +200,7 @@ $.fn.appendZoom = function(index, leftItems) {
   zoom.removeClass("di-none");
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
-    $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
-      $(this).height($(this)[0].naturalHeight * zoomLevel);
-      $(this).width($(this)[0].naturalWidth * zoomLevel);
-    });
+    $(this).adjustSize(index);
     $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
   });
   scrollSynq(index);

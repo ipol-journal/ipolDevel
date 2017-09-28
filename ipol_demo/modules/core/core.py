@@ -1163,7 +1163,7 @@ attached the failed experiment data.". \
         if origin is not None:
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
-                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": crop_info}
+                params_conv = {"work_dir": work_dir, "inputs_description": json.dumps(ddl_inputs), "crop_info": json.dumps(crop_info)}
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 print resp.json()
                 conversion_info = json.loads(resp.json()["info"])

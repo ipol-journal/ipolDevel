@@ -87,12 +87,20 @@ $.fn.gallery = function (result, index) {
       $("#" + "right-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-right-" + i + " class=gallery-item-selector>" + value + "</span>");
       var src = result.contents[contentKeys[i]];
       if (typeof src == "string") src = [src];
-      $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, src);
-      $("#gallery-" + index + "-item-right-" + i).addHoverEvents(index, 'right', work_url, src);
-      if ($("#" + "left-blobs-gallery-" + index).children().length == 1) {
+      $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, Object.values(src));
+      $("#gallery-" + index + "-item-right-" + i).addHoverEvents(index, 'right', work_url, Object.values(src));
+      if ($("#" + "left-blobs-gallery-" + index).children().length > 0 && !helpers.getFromStorage("gallery-" + index + "-left")) {
         let sources = [];
-        for (var key = 0; key < src.length; key++) {
-          sources.push(work_url + src[key]);
+        var keys = Object.keys(src);
+        if (typeof src == "object") {
+          sources = Object.values(src);
+          for (var l = 0; l < sources.length; l++) {
+            sources[l] = work_url + sources[l];
+          }
+        } else if (typeof src == "array") {
+          for (var k = 0; k < src.length; k++) {
+            sources.push(work_url + src[k]);
+          }
         }
         helpers.addToStorage("gallery-" + index + "-left", sources);
         helpers.addToStorage("gallery-" + index + "-right", sources);
@@ -167,13 +175,16 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
     for (var i = 0; i < src.length; i++) {
       if (i < nImages) {
         $(selector + " > img:nth-child("+(i+1)+")").attr("src", work_url + src[keys[i]]);
+        $(selector + " > img:nth-child(" + (i + 1) + ")").on('load', function () {
+          $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+        });
       } else {
-          var elm = "<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>";
-          $(elm).appendTo(selector);
-          $(elm).on('load', function () {
-            $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
-          });
-          $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
+        var elm = "<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>";
+        $(elm).appendTo(selector);
+        $(elm).on('load', function () {
+          $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+        });
+        $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
       }
     }
     if (nImages > src.length) {

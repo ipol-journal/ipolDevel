@@ -51,7 +51,6 @@
   background: #2c3e50;
 
   -webkit-appearance: none;
-  appearance: none;
 }
 
 .range-slider__range::-webkit-slider-thumb:hover {
@@ -144,8 +143,6 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 
 .param-container span {
   margin-right: auto;
-
-  justify-self: flex-start;
 }
 
 .maxmin {
