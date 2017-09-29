@@ -144,27 +144,26 @@ function uploadImg(index, event) {
 
 // Upload the current Input
 function upload(index, event) {
-  files = [];
   demoInfo = helpers.getFromStorage("demoInfo");
   var file = $("#file-" + index)[0].files[0];
   var inputs = demoInfo.inputs;
   var inputKey = document.getElementById("file-" + index).name.split('-')[1];
   var maxWeight = demoInfo.inputs[inputKey].max_weight;
-  if ($("#file-" + index)[0].files[0].size < eval(maxWeight) && file) {
+  if (file && (!demoInfo.inputs[inputKey].max_weight || $("#file-" + index)[0].files[0].size < eval(maxWeight))) {
     var format = file.type.split('/')[0];
     if (format == 'image') addThumbnail(event);
-    blob = new Blob([file], {
-      type: file.type
+    blob = new Blob([file], { 
+      type: file.type 
     });
     // onload needed since Google Chrome doesn't support addEventListener for FileReader
     var fileReader = new FileReader();
     fileReader.onload = function(evt) {
       files.push(file);
       var inputName = inputs[index].description;
-      uploadedFiles[index] = {
-        blob: evt.target.result,
-        format: format,
-        thumbnail: ""
+      uploadedFiles[index] = { 
+        blob: evt.target.result, 
+        format: format, 
+        thumbnail: "" 
       };
     };
     fileReader.readAsDataURL(blob);
