@@ -195,6 +195,8 @@ $.fn.renderGalleryControls = function(galleryIndex, rightItems, imgContainerRigh
 
 $.fn.appendZoom = function(index, leftItems) {
   var zoom = $("#zoom-container").clone();
+  zoom.find('input').val('1.0');
+  zoom.find('span').html('1x');
   var newZoomID= "gallery-" +index+ "-zoom";
   zoom.attr("id", newZoomID).appendTo($(this));
   zoom.removeClass("di-none");
