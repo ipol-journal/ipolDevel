@@ -133,7 +133,7 @@ $.fn.gallery = function (result, index) {
   $("#" + imgContainerRight + " > img").addClass('gallery-' + index + '-blob-right');
 
   $(".gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
-  $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
+  if ($("#left-blobs-gallery-" +index).children().length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
 
   checkOptions(result.type, index);
 }
@@ -160,7 +160,9 @@ $.fn.appendLabel = function (labelArray) {
     html += labelArray[i];
   }
   if (html.charAt(0) == '\'') html = eval(html);
-  else html = eval('\'' + html + '\'');
+  else {
+    console.log("LABEL GALLERY:  " + html);
+  }
 
   $(this).html("<div class=m-b-20>" + html + "</div>");
 }

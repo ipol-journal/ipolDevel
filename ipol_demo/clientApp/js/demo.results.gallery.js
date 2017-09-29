@@ -51,7 +51,7 @@ $.fn.gallery_new = function(result, index)  {
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
   $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
-  $("." + leftItems).renderGalleryControlls(index, rightItems, imgContainerRight);
+  if ($("#gallery-"+index+"-blobList-left").children().length > 1) $("." + leftItems).renderGalleryControls(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
 }
 
@@ -179,7 +179,7 @@ $.fn.addHoverFeature = function(galleryIndex, side, work_url, src, idx) {
   });
 }
 
-$.fn.renderGalleryControlls = function(galleryIndex, rightItems, imgContainerRight) {
+$.fn.renderGalleryControls = function(galleryIndex, rightItems, imgContainerRight) {
   $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function() {
     if ($(this).is(":checked")) {
