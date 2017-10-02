@@ -160,9 +160,6 @@ $.fn.appendLabel = function (labelArray) {
     html += labelArray[i];
   }
   if (html.charAt(0) == '\'') html = eval(html);
-  else {
-    console.log("LABEL GALLERY:  " + html);
-  }
 
   $(this).html("<div class=m-b-20>" + html + "</div>");
 }
