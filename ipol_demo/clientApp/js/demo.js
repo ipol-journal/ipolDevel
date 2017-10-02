@@ -1,6 +1,7 @@
 "use strict"
 var demo_id;
 
+var demoInfo;
 var execution;
 var files = [];
 // Initial trigger.
@@ -31,6 +32,7 @@ function getDemoinfo() {
     console.log("get_interface_ddl", response);
     displayInputHeaders(response);
     printDemoHeader(response);
+    demoInfo = response;
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
     if (getKey()) loadExecution(getKey());
@@ -67,7 +69,7 @@ function getKey() {
 
 function loadExecution(key) {
   if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
-    hideStatusContainer();
+    hideStatusContainer();  
     helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
       if (payload.status == "OK") {
         var execution_json = JSON.parse(payload.execution);
@@ -89,9 +91,15 @@ function setFiles(request, response) {
   var blobs = [];
   for (let i = 0; i < request.files; i++) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", response.work_url + 'input_' + i + '.png');
+    xhr.open("GET", response.work_url + 'input_' + i + demoInfo.inputs[i].ext);
     xhr.responseType = "blob";
     xhr.onload = function() {
+      if(xhr.status == 404){
+        console.log("Uploaded file not found.");
+        files = [];
+        blobs = [];
+        return;
+      }
       let blob = xhr.response;
       let myFile = new File([blob], "file_" + i, {
         type: blob.type
@@ -101,7 +109,7 @@ function setFiles(request, response) {
       let reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = function() {
-        blobs.push(reader.result);
+        blobs[i] = (reader.result);
         setUploadEditor(request.files, blobs);
       }
     }
@@ -126,6 +134,7 @@ $(function() {
 
 window.onpopstate = function(e) {
   hideStatusContainer();
+  $("#inputEditorContainer").empty();
   if (getKey()) loadExecution(getKey());
   else {
     $('.results').addClass('di-none');

@@ -5,7 +5,6 @@ var parametersType = parametersType || {};
 
 var params = {};
 var ddl_params = {};
-var demoInfo = helpers.getFromStorage('demoInfo');
 
 parameters.printParameters = function() {
   params,
