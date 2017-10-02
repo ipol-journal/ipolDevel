@@ -132,11 +132,12 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-" + side).attr('src', blobSrc);
     } else {
       $(this).empty();
-      $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false onerror=this.src()>');
-      $("#editor-blob-left").css({
-        'width': 'auto',
-        'height': 'auto'
+      $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false >');
+      $("#editor-blob-left").on("error", function () {
+        $(this).attr("src", "assets/non_viewable_data.png");
+        $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
       });
+      $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
     }
   }
 }
