@@ -78,13 +78,18 @@ This document contains System Administration documentation for the IPOL Demo Sys
 
 \tableofcontents
 \newpage
-\listoffigures
-\newpage
+% \listoffigures
+% \newpage
+
 
 \section{Installing the required packages}
-The system needs of several packages from the Debian Stable distribution and also from the official Python packages to work.
+The system needs several packages from the Debian Stable distribution and also from the official Python packages to work.
+Tools are provided to ease installation in : 
+\begin{verbatim}
+cd ipol/sysadmin/install_packages/
+\end{verbatim}
 
-The list of apt-get packages in apt-get\_requirements.txt, and they can be installed with the following command:
+Find and apply the list of apt-get packages, they can be installed with the following command:
 \begin{verbatim}
 xargs sudo apt-get install < apt-get_requirements.txt
 \end{verbatim}
