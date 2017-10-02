@@ -37,11 +37,19 @@ h2 {
 }
 
 h3 {
-  font-size: 110%;
+  font-size: 105%;
 }
 
 h4, h5 {
-  font-size: 100%;
+  font-size: 95%;
+}
+
+p {
+  font-size: 15px;
+}
+
+label {
+  font-size: 14px;
 }
 
 a:link {
@@ -143,7 +151,7 @@ a:hover {
 }
 
 .container-title {
-  font-size: 23px !important;
+  font-size: 19px !important;
 }
 
 div.ui-tooltip {

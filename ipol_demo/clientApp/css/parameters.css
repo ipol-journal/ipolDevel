@@ -175,6 +175,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 .param-label {
   -ms-flex-preferred-size: 33%;
   flex-basis: 33%;
+  font-size: 14px;
 }
 
 .param-content {
