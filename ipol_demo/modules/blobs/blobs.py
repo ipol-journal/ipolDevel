@@ -277,7 +277,17 @@ class Blobs(object):
         """
         Copies the blob and store it in the DB
         """
-
+        print "\n\n\n------ add_blob ---"
+        print "blob ", blob
+        print "tags ", tags
+        print "blob_set ", blob_set
+        print "pos_set  ", pos_set
+        print "title ", title
+        print "credit ", credit
+        print "dest ", dest
+        print "blob_vr  ", blob_vr
+        print "----------\n\n\n"
+        
         res = False
         conn = None
         try:
@@ -1285,7 +1295,7 @@ class Blobs(object):
             vr_folder = os.path.join(self.vr_dir, subdir)
             if os.path.isdir(vr_folder):
                 files_in_dir = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))
-                if len(files_in_dir) > 0:
+                if files_in_dir:
                     os.remove(files_in_dir[0])
                     self.remove_dirs(vr_folder)
                 
@@ -1294,7 +1304,7 @@ class Blobs(object):
             thumb_folder = os.path.join(self.module_dir, self.thumb_dir, subdir)
             if os.path.isdir(thumb_folder):
                 thumb_files_in_dir = glob.glob(os.path.join(thumb_folder, blob_hash + ".*")) 
-                if len(thumb_files_in_dir) > 0:
+                if thumb_files_in_dir:
                     os.remove(thumb_files_in_dir[0])
                     self.remove_dirs(thumb_folder)
 
@@ -1305,7 +1315,7 @@ class Blobs(object):
             blob_folder = os.path.join(self.blob_dir, subdir)
             if os.path.isdir(blob_folder):
                 blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
-                if len(blobs_in_dir) > 0:
+                if blobs_in_dir:
                     blob_file = open(blobs_in_dir[0])
                     blob_format, _ = self.get_format_and_extension(self.get_blob_mime(blob_file))
                     self.create_thumbnail(blob_file, blob_hash, blob_format)
