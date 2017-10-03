@@ -385,13 +385,13 @@ workload of '{}'".format(dr_name)
                 'title': demo['title']
             })
 
-        # Sort demo list by demo ID
-        demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
-
         demos_string = ""
 
         # Show demos according to their state
         for publication_state in demos_by_state:
+            # Sort demo list by demo ID
+            demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
+
             demos_string += "<h2>{}</h2>".format(publication_state)
 
             for demo_data in demos_by_state[publication_state]:
