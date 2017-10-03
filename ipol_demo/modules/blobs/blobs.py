@@ -277,17 +277,6 @@ class Blobs(object):
         """
         Copies the blob and store it in the DB
         """
-        print "\n\n\n------ add_blob ---"
-        print "blob ", blob
-        print "tags ", tags
-        print "blob_set ", blob_set
-        print "pos_set  ", pos_set
-        print "title ", title
-        print "credit ", credit
-        print "dest ", dest
-        print "blob_vr  ", blob_vr
-        print "----------\n\n\n"
-        
         res = False
         conn = None
         try:
