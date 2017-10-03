@@ -62,6 +62,7 @@ $.fn.gallery = function (result, index) {
   $("#" + imgContainerRight).addClass("gallery-blob-container di-none");
 
   // Evaluate key conditional.
+  helpers.removeItem("gallery-" + index + "-left");
   for (let i = 0; i < contentKeys.length; i++) {
     var evalString = "";
     var value = "";
