@@ -48,8 +48,6 @@ input.printSets = function(sets) {
   })(!window['safari'] || safari.pushNotification);
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
-  } else {
-    setsContainer.addEventListener("mousewheel", MouseWheelHandler(), false);
   }
 }
 
@@ -65,23 +63,6 @@ function scrollHorizontally(e) {
   var delta = Math.max(-1, Math.min(1, (deltaValue || -e.detail)));
   this.scrollLeft -= (delta * 70);
   e.preventDefault();
-}
-
-function MouseWheelHandler() {
-  return function(e) {
-    // cross-browser wheel delta
-    var e = window.event || e;
-    // Get delta value from deltaY instead of wheelDelta for trackpad support.
-    var deltaValue;
-    if (e.deltaY) deltaValue = e.deltaY;
-    else deltaValue = e.wheelDelta;
-    var delta = Math.max(-1, Math.min(1, (deltaValue || -e.detail)));
-    if (delta < 0) this.scrollLeft += 20;
-    else this.scrollLeft -= 20;
-
-    e.preventDefault();
-    return false;
-  }
 }
 
 function addSetClickEvent(blobSet, index) {
