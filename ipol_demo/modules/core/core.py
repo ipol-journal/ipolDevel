@@ -1605,11 +1605,11 @@ attached the failed experiment data.". \
 
                 # Message for the web interface
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
-                error = demorunner_response["algo_info"].get("error", "").strip()
-
+                error = demorunner_response.get("error", "").strip()
                 website_message = "DR={}, {}".format(dr_name, msg)
                 response = {"error": website_message,
                             "status": "KO"}
+                
                 # Send email to the editors
                 # (unless it's a timeout in a published demo)
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
