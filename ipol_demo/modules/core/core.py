@@ -1313,7 +1313,7 @@ attached the failed experiment data.". \
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                # (unless it's a timeout in a published demo)
+                # Unless it's a timeout in a published demo
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
                     self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
@@ -1601,21 +1601,16 @@ attached the failed experiment data.". \
 
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
-                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+                print demorunner_response
 
                 # Message for the web interface
-                msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
-                error = demorunner_response["algo_info"].get("error", "").strip()
-
-                website_message = "DR={}, {}".format(dr_name, msg)
+                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
+                print "website_message={}".format(website_message)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                # (unless it's a timeout in a published demo)
-                if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
-                    self.send_runtime_error_email(demo_id, key, website_message)
+                self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
-
 
             demorunner_response['work_url'] = os.path.join(
                 "http://{}/api/core/".format(self.host_name),
