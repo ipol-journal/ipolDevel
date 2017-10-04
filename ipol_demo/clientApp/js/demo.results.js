@@ -171,28 +171,27 @@ $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
   var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     var keys = Object.keys(src);
-    var nImages = $(selector).children().length;
+    var nImagesInDOM = $(selector).children().length;
     for (var i = 0; i < src.length; i++) {
-      if (i < nImages) {
-        $(selector + " > img:nth-child("+(i+1)+")").attr("src", work_url + src[keys[i]]);
-        $(selector + " > img:nth-child(" + (i + 1) + ")").on('load', function () {
-          $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+      if (i < nImagesInDOM) {
+        $(selector + " > img:nth-child(" +(i + 1)+ ")").attr("src", work_url + src[keys[i]]);
+        $(selector + " > img:nth-child(" +(i + 1)+ ")").on('load', function () {
+          $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex, side);
         });
       } else {
         var elm = "<img src=" + work_url + src[keys[i]] + " class=gallery-img draggable=false></img>";
         $(elm).appendTo(selector);
         $(elm).on('load', function () {
-          $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+          if(i == src.length) $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex, side);
         });
-        $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
       }
     }
-    if (nImages > src.length) {
-      for (var i = src.length; i <= nImages; i++) {
-        if (i > src.length) $(selector + " > img:nth-child(" + i + ")").remove();
+    for (var i = nImagesInDOM; i >= src.length; i--) {
+      if (i > src.length) {
+        $(selector + " > img:nth-child(" + i + ")").remove();
       }
     }
-    $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+    $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
   });
   $(this).on('click', function () {
     var listSelector = "#" + side + "-blobs-gallery-" + galleryIndex;
@@ -216,8 +215,11 @@ $.fn.addMouseOutEvent = function(galleryIndex, side) {
     var src = helpers.getFromStorage("gallery-"+galleryIndex+ "-" + side);
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
-      $(selector).append("<img src="+ src[i] +" class=gallery-img draggable=false></img>");
-      $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex);
+      var img = "<img src=" + src[i] + " class=gallery-img draggable=false></img>";
+      $(img).appendTo(selector);
+      $(img).on('load', function () {
+        if (i >= src.length) $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex, side);
+      });
     }
     $(selector).children().addClass("gallery-" + galleryIndex + "-blob-" + side);
   });
@@ -233,9 +235,9 @@ $.fn.addZoomEvents = function (index) {
   });
 }
 
-$.fn.updateSize = function (index)  {
+$.fn.updateSize = function (index, side)  {
   var zoomLevel = $(this).val();
-  $("#gallery-blob-container-left-" + index + ", #gallery-blob-container-right-" + index).children('img').each(function (i) {
+  $("#gallery-blob-container-" + side + "-" + index).children('img').each(function (i) {
     $(this).height($(this)[0].naturalHeight * zoomLevel);
     $(this).width($(this)[0].naturalWidth * zoomLevel);
   });
@@ -277,7 +279,7 @@ $.fn.file_download = function (result, index) {
       $('.download_' + index + '_' + idx).append('<a href=' + work_url + file + ' download><img src=./assets/file.svg class=file-icon >' + eval(result.label) + '</a>')
     }
   } else {
-    $(this).append('<h3>' + result.label + '</h3>');
+    $(this).append('<h4>' + result.label + '</h4>');
     $(this).children().addClass('file_download_title');
     $(this).append('<div class=file_download_content_' + index + ' ></div>');
 
