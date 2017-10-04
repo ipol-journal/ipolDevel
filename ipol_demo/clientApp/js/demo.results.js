@@ -62,6 +62,7 @@ $.fn.gallery = function (result, index) {
   $("#" + imgContainerRight).addClass("gallery-blob-container di-none");
 
   // Evaluate key conditional.
+  helpers.removeItem("gallery-" + index + "-left");
   for (let i = 0; i < contentKeys.length; i++) {
     var evalString = "";
     var value = "";
@@ -160,9 +161,6 @@ $.fn.appendLabel = function (labelArray) {
     html += labelArray[i];
   }
   if (html.charAt(0) == '\'') html = eval(html);
-  else {
-    console.log("LABEL GALLERY:  " + html);
-  }
 
   $(this).html("<div class=m-b-20>" + html + "</div>");
 }

@@ -385,13 +385,13 @@ workload of '{}'".format(dr_name)
                 'title': demo['title']
             })
 
-        # Sort demo list by demo ID
-        demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
-
         demos_string = ""
 
         # Show demos according to their state
         for publication_state in demos_by_state:
+            # Sort demo list by demo ID
+            demos_by_state[publication_state] = sorted(demos_by_state[publication_state], key=lambda(d): (d['editorsdemoid']), reverse=True)
+
             demos_string += "<h2>{}</h2>".format(publication_state)
 
             for demo_data in demos_by_state[publication_state]:
@@ -1313,7 +1313,7 @@ attached the failed experiment data.". \
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                # Unless it's a timeout in a published demo
+                # (unless it's a timeout in a published demo)
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
                     self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
@@ -1601,16 +1601,21 @@ attached the failed experiment data.". \
 
             if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
-                print demorunner_response
+                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
                 # Message for the web interface
-                website_message = "DR={}, {}".format(dr_name, demorunner_response["algo_info"]["status"].encode("utf8"))
-                print "website_message={}".format(website_message)
+                msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
+                error = demorunner_response["algo_info"].get("error", "").strip()
+
+                website_message = "DR={}, {}".format(dr_name, msg)
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
-                self.send_runtime_error_email(demo_id, key, website_message)
+                # (unless it's a timeout in a published demo)
+                if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
+                    self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
+
 
             demorunner_response['work_url'] = os.path.join(
                 "http://{}/api/core/".format(self.host_name),

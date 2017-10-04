@@ -70,6 +70,7 @@
 
   cursor: pointer;
   text-align: center;
+  font-size: 14px;
 }
 
 .gallery-item-selector:not(:last-child) {
@@ -95,7 +96,7 @@
   -ms-flex-pack: start;
   justify-content: flex-start;
 
-  height: 600px;
+  max-height: 600px;
 
   animation: container-entrance 0.5s cubic-bezier(.69, -0.02, .46, 1.28);
 }
@@ -119,7 +120,7 @@
 .gallery-blob-container {
   overflow: auto;
 
-  min-height: 300px;
+  /* min-height: 300px; */
   margin: 0 5px 5px 5px;
 
   animation: container-entrance 0.5s cubic-bezier(.69, -0.02, .46, 1.28);

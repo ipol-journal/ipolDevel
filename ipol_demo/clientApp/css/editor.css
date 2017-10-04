@@ -78,7 +78,7 @@
 
 #editor-zoom-value {
   display: inline-block;
-  width: 100px;
+  width: 68px;
 }
 
 #editor-zoom {
@@ -112,6 +112,7 @@
 .editor-input {
   max-width: 200px;
   padding: 5px;
+  font-size: 14px;
 
   cursor: pointer;
   text-align: center;
@@ -130,6 +131,11 @@
 
   text-align: right;
   animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
+}
+
+div[class^="blobSet_"] > span {
+  font-size: 14px;
+  font-family: sans-serif;
 }
 
 .editor-input-selected {

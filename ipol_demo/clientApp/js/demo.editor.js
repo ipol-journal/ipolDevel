@@ -30,8 +30,8 @@ function printEditorPanel() {
   var $blob = $("#editor-blob-left");
 
   if (areAllImages()) $("#zoom-container").removeClass('di-none');
-  if (blobs.length > 1) loadMultiBlobControlls(editorBlobs[blobs[0]].blob);
-  else if(blobs.length == 1 && editorBlobs[blobs[0]].format == "image") loadSingleBlobControlls($blob);
+  if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
+  else if(blobs.length == 1 && editorBlobs[blobs[0]].format == "image") loadSingleBlobControls($blob);
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -69,8 +69,8 @@ function printBlobsetList(demoInfo, blobs) {
   $(".inputListContainerRight").loadInputsContainerEvent("right");
 }
 
-// Single blob sets controlls
-function loadSingleBlobControlls($img) {
+// Single blob sets controls
+function loadSingleBlobControls($img) {
   $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>")
   if (crop_info == null)
     $img.cropper({
@@ -91,12 +91,18 @@ function loadSingleBlobControlls($img) {
     });
     $("#crop-btn").prop('checked', true);
   }
+  $img.on('cropmove cropstart cropend zoom', function (e) {
+    if ($("#crop-btn").prop('checked')) {
+      var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+      $("#canvas-container").html($(croppedImage));
+    }
+  });
   addCropEvent();
   zoomController.singleBlob();
 }
 
-// Multiple blob sets controlls
-function loadMultiBlobControlls(blob) {
+// Multiple blob sets controls
+function loadMultiBlobControls(blob) {
   $(".blobsList-left").append("<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>");
   zoomController.multiBlob();
   addCompareEvent();
@@ -126,11 +132,12 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-" + side).attr('src', blobSrc);
     } else {
       $(this).empty();
-      $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false>');
-      $("#editor-blob-left").css({
-        'width': 'auto',
-        'height': 'auto'
+      $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false >');
+      $("#editor-blob-left").on("error", function () {
+        $(this).attr("src", "assets/non_viewable_data.png");
+        $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
       });
+      $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
     }
   }
 }
@@ -145,8 +152,11 @@ function addCropEvent() {
   $("#crop-btn").on('click', function() {
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
+      var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+      $("#canvas-container").html($(croppedImage));
     } else {
       $("#editor-blob-left").cropper("clear");
+      $("#canvas-container").html("<div></div>");
     }
   });
 }
