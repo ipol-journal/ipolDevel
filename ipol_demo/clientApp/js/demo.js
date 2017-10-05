@@ -10,7 +10,7 @@ $(document).ready(function() {
   $("#inputEditorContainer").load("editor.html");
   $("#parameters").load("parameters.html");
   $("#footer").load("footer.html");
-  clearStorage();
+  sessionStorage.clear();
   demo_id = getDemoId();
   $('#archiveTab').attr('href', '/demo/clientApp/archive.html?id=' + demo_id);
   getBlobSets();
@@ -115,13 +115,6 @@ function setFiles(request, response) {
     }
     xhr.send();
   }
-}
-
-// Clear all sessionStorage.
-function clearStorage() {
-  Object.keys(sessionStorage).forEach(function(key) {
-    sessionStorage.removeItem(key);
-  });
 }
 
 $(function() {
