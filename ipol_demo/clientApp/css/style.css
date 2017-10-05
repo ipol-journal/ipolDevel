@@ -37,7 +37,7 @@ h2 {
 }
 
 h3 {
-  font-size: 105%;
+  font-size: 100%;
 }
 
 h4, h5 {
@@ -45,7 +45,7 @@ h4, h5 {
 }
 
 p {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 label {
@@ -108,7 +108,7 @@ a:hover {
 
 .btn {
   margin: 5px 10px;
-  padding: 8px;
+  padding: 5px;
 
   cursor: pointer;
   text-decoration: none;
@@ -121,7 +121,7 @@ a:hover {
   box-shadow: 1px 1px 2px #999799;
 
   font-family: Arial;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .btn:hover {

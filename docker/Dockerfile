@@ -27,6 +27,8 @@ COPY ./docker/nginx_clientApp_location /home/ipol/nginx_clientApp_location
 RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default && \
     sed -i '/ipol;/r nginx_clientApp_location' /etc/nginx/sites-available/default
 
+COPY ./ipol_demo/modules/config_common/authorized_patterns.conf.sample /home/ipol/ipolDevel/ipol_demo/modules/config_common/authorized_patterns.conf
+
 # Libtiff bugfix
 RUN python -c 'import libtiff'
 
