@@ -87,3 +87,4 @@ demorunners.xml
 # other
 changes*.txt
 ipol_demo/app_new/
+ipol_webapp/apps/controlpanel/migrations/*_auto_*.py
