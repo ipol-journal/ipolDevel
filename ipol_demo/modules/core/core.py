@@ -1307,7 +1307,7 @@ attached the failed experiment data.". \
 
                 # Message for the web interface
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
-                error = demorunner_response["algo_info"].get("error", "").strip()
+                error = demorunner_response.get("error", "").strip()
 
                 website_message = "DR={}, {}".format(dr_name, msg)
                 response = {"error": website_message,
