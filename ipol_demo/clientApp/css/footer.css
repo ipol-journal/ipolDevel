@@ -1,19 +1,19 @@
 footer {
+  font-size: 12px;
+
   text-decoration: none;
 
   color: #555;
-
-  font-size: 12px;
 }
 
 footer a:hover {
-  color: #5b4ba6;
+  color: #5B4BA6;
 }
 
 .footer-line a span {
-  color: #000000;
-
   font-weight: bold;
+
+  color: #000;
 }
 
 footer p {

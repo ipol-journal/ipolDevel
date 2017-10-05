@@ -1,19 +1,18 @@
 .editorContentWrapper {
-  flex-direction: row;
-
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -ms-flex-direction: row;
+      flex-direction: row;
   -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
+      flex-wrap: nowrap;
 }
 
 .inputs-text {
-  width: 90px;
-  padding-bottom: 5px;
-
   font-size: 20px;
   font-weight: 300;
+
+  width: 90px;
+  padding-bottom: 5px;
 }
 
 .leftContainer {
@@ -30,14 +29,14 @@
 
 .blobEditorImage {
   -webkit-transform-origin: 1px 1px;
-  transform-origin: 1px 1px;
+          transform-origin: 1px 1px;
 
   -ms-interpolation-mode: nearest-neighbor;
 
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
   image-rendering: -o-pixelated;
-  image-rendering: pixelated;
+  image-rendering:    pixelated;
 }
 
 .blobEditorVideo {
@@ -59,25 +58,25 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -ms-flex-wrap: nowrap;
+      flex-wrap: nowrap;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
 
   min-height: auto;
   max-height: 600px;
 
-  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
-
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
+  animation: container-entrance .5s cubic-bezier(.69,-.02,.46,1.28);
 }
 
 .zoom-container {
-  padding: 15px 0px 15px;
+  padding: 15px 0 15px;
 }
 
 #editor-zoom-value {
   display: inline-block;
+
   width: 68px;
 }
 
@@ -89,37 +88,38 @@
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -ms-flex-wrap: nowrap;
+      flex-wrap: nowrap;
 
   max-width: 80%;
-
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
 }
 
 .image-container {
   overflow: auto;
 
   margin: 0 5px 5px 5px;
-  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
+
+  animation: container-entrance .5s cubic-bezier(.69,-.02,.46,1.28);
 }
 
 .editor-input:hover {
-  background-color: #ae9deb;
+  transition: all .3s ease-in;
 
-  transition: all 0.3s ease-in;
+  background-color: #AE9DEB;
 }
 
 .editor-input {
+  font-size: 14px;
+
   max-width: 200px;
   padding: 5px;
-  font-size: 14px;
 
   cursor: pointer;
   text-align: center;
 }
 
 .editor-input:not(:last-child) {
-  border-bottom: 1px solid #938fa6;
+  border-bottom: 1px solid #938FA6;
 }
 
 .blobsList-left {
@@ -129,22 +129,21 @@
 .blobsList-right {
   min-width: 106px;
 
+  animation: container-entrance .5s cubic-bezier(.69,-.02,.46,1.28);
   text-align: right;
-  animation: container-entrance 0.5s cubic-bezier(.69,-0.02,.46,1.28);
 }
 
-div[class^="blobSet_"] > span {
-  font-size: 14px;
+div[class^='blobSet_'] > span {
   font-family: sans-serif;
+  font-size: 14px;
 }
 
 .editor-input-selected {
-  background-color: #e2dae6;
+  background-color: #E2DAE6;
 }
 
 .inputListContainerLeft {
   display: flex;
-
   flex-flow: column;
 
   padding-bottom: 10px;
@@ -152,6 +151,5 @@ div[class^="blobSet_"] > span {
 
 .inputListContainerRight {
   display: flex;
-
   flex-flow: column;
 }
