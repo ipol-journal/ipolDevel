@@ -1,0 +1,118 @@
+/* highlight color */
+.paging a  {
+  color: #5952A6;
+}
+/* soft color */
+.record .files b,
+.record b.id,
+.thumbs figcaption,
+table.pars,
+table.pars caption {
+  color: #484848;
+}
+
+/* border color */
+div.pars,
+.thumbs figure,
+.paging a:hover {
+  border-width: 1px;
+  border-color: #D1CAE8;
+}
+/* background color */
+table.pars tr:hover,
+table.pars caption {
+  background-color: #D1CAE8;
+}
+
+p {
+  max-width: 80ex;
+
+  text-align: justify;
+}
+#results,
+#results p {
+  font-size: 12px;
+}
+.record,
+#footer {
+  clear: both;
+}
+.record {
+  margin-bottom: 2rem;
+}
+.record header {
+  clear: both;
+}
+.record .legend {
+  display: inline-block;
+}
+.record .files {
+  display: inline-block;
+  float: right;
+}
+.record b.id {
+}
+.thumbs {
+}
+/* design shared by table of parameters and thumbnail */
+div.pars,
+.thumbs figure {
+  border-style: solid;
+  border-radius: 5px;
+  background-color: #EEE;
+}
+.thumbs figure {
+  display: inline-block;
+
+  margin: 0 10px 5px 0;
+  padding: 3px 3px 0 3px;
+}
+.thumbs figcaption {
+  text-align: center;
+}
+div.pars {
+  float: left;
+
+  margin-right: 1rem;
+  padding: 3px 3px 0 3px;
+}
+table.pars th {
+  padding: 0 1ex;
+
+  text-align: right;
+
+  font-weight: normal;
+}
+table.pars td {
+  max-width: 25ex;
+  padding: 0 1ex;
+
+  text-align: right;
+
+  color: #000;
+  background-color: #FFF;
+}
+table.pars tr:hover {
+  color: #000;
+}
+.record img {
+  height: 150px;
+}
+.paging {
+  background-color: #EEE;
+  padding: 2px;
+}
+.paging a {
+  font-weight: bold;
+  font-size: 14px;
+  padding: 1px 3px;
+  background-color: #FFFFFF;
+  border: 1px solid transparent;
+}
+.paging a:hover {
+  color: #000;
+}
+.paging .this {
+  color: #000;
+  border-color: #000;
+}
