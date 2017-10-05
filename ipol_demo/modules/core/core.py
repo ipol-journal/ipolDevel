@@ -1309,7 +1309,13 @@ attached the failed experiment data.". \
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
                 error = demorunner_response.get("error", "").strip()
 
-                website_message = "DR={}, {}".format(dr_name, msg)
+                # Prepare a message for the website.
+                # In case of a timeout, let it be human oriented.
+                if error == 'IPOLTimeoutError':
+                    website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
+                else:
+                    website_message = "DR={}, {}".format(dr_name, msg)
+
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
@@ -1608,7 +1614,7 @@ attached the failed experiment data.". \
                 error = demorunner_response.get("error", "").strip()
 
                 # Prepare a message for the website.
-                # More human-readable if it's a timeout.
+                # In case of a timeout, let it be human oriented.
                 if error == 'IPOLTimeoutError':
                     website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
                 else:
