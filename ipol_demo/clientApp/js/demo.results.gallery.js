@@ -205,7 +205,7 @@ $.fn.appendZoom = function(index, leftItems) {
     $(this).adjustSize(index);
     $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
   });
-  scrollSynq(index);
+  scrollSync(index);
 }
 
 $.fn.adjustSize = function(index) {
@@ -216,7 +216,7 @@ $.fn.adjustSize = function(index) {
   });
 }
 
-function scrollSynq(index) {
+function scrollSync(index) {
   var isSyncingLeftScroll = false;
   var isSyncingRightScroll = false;
   var leftDiv = document.getElementById('gallery-blob-container-left-' + index);
