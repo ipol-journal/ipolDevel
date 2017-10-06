@@ -12,7 +12,7 @@ $(document).ready(function() {
   $("#footer").load("footer.html");
   sessionStorage.clear();
   demo_id = getDemoId();
-  $('#archiveTab').attr('href', '/demo/clientApp/archive.html?id=' + demo_id);
+  $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
   getBlobSets();
   getDemoinfo();
 });
