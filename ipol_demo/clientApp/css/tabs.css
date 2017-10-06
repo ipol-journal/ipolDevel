@@ -26,13 +26,13 @@
 
 .tabs a:hover {
   opacity: 1;
-  border: .2px solid #88898B;
+  border: 1px solid #aaaaaa;
   border-bottom: none;
 }
 
 .selectedTab {
   opacity: 1;
-  border: .2px solid #88898B;
+  border: 1px solid #aaaaaa;
   border-bottom: none;
   background-color: #FFF !important;
 }
