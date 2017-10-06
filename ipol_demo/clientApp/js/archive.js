@@ -41,7 +41,7 @@ $(document).ready(function() {
     var html = '';
     html += '\n<header>';
     html += '\n<h3>'+data.meta.number_of_experiments+' public experiments since '+data.meta.first_date_of_an_experiment.substr(0, 10)+'</h3>';
-    html += '\n<p>This archive is not moderated. In case you uploaded images that you don’t want that appear in the archive, please contact the editor in charge. In case of copyright infringement or similar problems, please <a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images. Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.</p>';
+    html += '\n<p class="p">This archive is not moderated. In case you uploaded images that you don’t want that appear in the archive, please contact the editor in charge. In case of copyright infringement or similar problems, please <a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images. Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.</p>';
     html += '\n</header>';
     html += paging(data.meta);
     var max = data.experiments.length;

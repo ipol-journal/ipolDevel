@@ -24,7 +24,7 @@ table.pars caption {
   background-color: #D1CAE8;
 }
 
-p {
+p.p {
   max-width: 80ex;
 
   text-align: justify;
