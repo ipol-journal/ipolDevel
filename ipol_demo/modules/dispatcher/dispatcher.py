@@ -382,14 +382,11 @@ class LowestWorkloadPolicy(Policy):
             # Adds the workload of each demorunner to a dict
             dict_dr_wl = json.loads(demorunners_workload.replace('\'', '\"'))
 
-            # This number must be the highest workload possible
-            dr = suitable_drs[0]
-
-            min_workload = dict_dr_wl[dr.name]
-            lowest_workload_dr = dr
+            min_workload = float("inf")
+            lowest_workload_dr = None
             #
             for dr in suitable_drs:
-                if float(dict_dr_wl[dr.name]) < min_workload:
+                if dr.name in dict_dr_wl and float(dict_dr_wl[dr.name]) < min_workload:
                     min_workload = dict_dr_wl[dr.name]
                     lowest_workload_dr = dr
 
