@@ -153,3 +153,19 @@ div[class^='blobSet_'] > span {
   display: flex;
   flex-flow: column;
 }
+
+#canvas-container {
+  overflow: scroll;
+
+  max-width: 320px;
+  height: 180px;
+}
+
+#canvas-container > canvas {
+  height: 180px;
+
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-pixelated;
+  image-rendering:    pixelated;
+}
