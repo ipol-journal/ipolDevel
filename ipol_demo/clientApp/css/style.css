@@ -160,6 +160,7 @@ div.ui-tooltip {
 hr.separator {
   height: 1px;
   padding: 0 10px;
+  clear: both;
 
   border: 0;
   background-image: -webkit-linear-gradient(left, #F0F0F0, #8C8B8B, #F0F0F0);
