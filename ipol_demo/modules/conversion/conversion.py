@@ -299,7 +299,7 @@ class Conversion(object):
             self.resize_image(input_file, evaluate(input_desc.get('max_pixels')))
             code = 1
 
-        if self.needs_convert(im, input_desc):
+        if self.needs_dtype_convert(im, input_desc):
             self.change_image_dtype(input_file, input_desc.get('dtype'))
             code = 1
         return code
@@ -361,13 +361,17 @@ class Conversion(object):
 
 
     @staticmethod
-    def needs_convert(im, input_info):
+    def needs_dtype_convert(im, input_info):
         """
         checks if input image needs conversion
         """
-        mode_kw = {'1x8i': 'L',
-                   '3x8i': 'RGB'}
-        # check max size
+        mode_kw = {'1x1i': '1',
+                   '1x1': '1',
+                   '1x8i': 'L',
+                   '1x8': 'L',
+                   '3x8i': 'RGB',
+                   '3x8': 'RGB'}
+        # check mode
         if not input_info.get('dtype'):
             return False
 
@@ -382,9 +386,13 @@ class Conversion(object):
         try:
             print mode
             # TODO handle other modes (binary, 16bits, 32bits int/float)
-            mode_kw = {'1x8i' : 'L',
-                       '3x8i' : 'RGB'}[mode]
+            mode_kw = {'1x1i': '1',
+                       '1x1': '1',
+                       '1x8i': 'L',
+                       '1x8': 'L',
+                       '3x8i': 'RGB',
+                       '3x8': 'RGB'}[mode]
         except KeyError:
-            raise KeyError('mode must be "1x8i" or "3x8i"')
+            raise KeyError('Invalid mode {}'.format(mode))
         if im.mode != mode_kw:
             im.convert(mode_kw).save(input_file)
