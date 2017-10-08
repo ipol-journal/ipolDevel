@@ -23,6 +23,7 @@ import errno
 import logging
 import os
 import os.path
+import traceback
 
 import urllib
 
@@ -45,6 +46,7 @@ import png
 import requests
 import cherrypy
 import magic
+
 
 
 from Tools.misc import prod
@@ -357,6 +359,7 @@ workload of '{}'".format(dr_name)
 
         cherrypy.response.headers['Content-Type'] = 'text/html'
         if status == 'KO':
+            self.send_internal_error_email("Unable to get the list of demos")
             string = """
                  <!DOCTYPE html>
                  <html lang="en">
@@ -974,6 +977,30 @@ workload of '{}'".format(dr_name)
         subject = 'Compilation of demo #{} failed'.format(demo_id)
         self.send_email(subject, text, emails, config_emails['sender'])
 
+    def send_internal_error_email(self, message):
+        """
+        Send email to the IPOL team when an Internal Error has been detected
+        """
+        config_emails = self.read_emails_from_config()
+        if not config_emails:
+            return
+
+        emails = config_emails['tech']['email'].split(",")
+        if not emails:
+            return
+
+        # Send the email
+        subject = 'IPOL Internal Error'
+        text = "An Internal Error has been detected in IPOL.\n\n"
+        text += str(message) + "\n"
+        text += "Traceback follows:\n"
+        text += traceback.format_exc()
+
+        print "**** INTERNAL ERROR!\n\n"
+        print text
+
+        self.send_email(subject, text, emails, config_emails['sender'])
+
     def read_emails_from_config(self):
         """
         Read the list of emails from the configuration file
@@ -1072,7 +1099,7 @@ attached the failed experiment data.". \
         subject = '[IPOL Core] Demorunner unresponsive'
         self.send_email(subject, text, emails, config_emails['sender'])
 
-    def send_not_demorunner_for_published_demo_email(self, demo_id):
+    def send_email_no_DR(self, demo_id):
         """
         Send email to tech when there isn't any suitable demorunner for a published demo
         """
@@ -1160,8 +1187,9 @@ attached the failed experiment data.". \
         key = self.create_new_execution_key(self.logger)
         if key is None:
             message = '**INTERNAL ERROR**. Failed to create a valid execution key'
-            res_data = {'error': message, 'status': 'KO'}
             self.logger.exception(message)
+            self.send_internal_error_email(message)
+            res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data)
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1198,40 +1226,34 @@ attached the failed experiment data.". \
                 print message
                 return json.dumps(res_data)
             except IPOLCopyBlobsError as ex:
-                message = 'Error copying blobs of demo {}: {}'.format(demo_id, ex)
-                res_data = {'error': message,
-                            'status': 'KO'}
+                message = '** INTERNAL ERROR **. Error copying blobs of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
+                res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
             except IPOLInputUploadError as ex:
-                message = 'Error uploading input of demo {}: {}'.format(demo_id, ex)
-                res_data = {'error': message,
-                            'status': 'KO'}
+                message = '** INTERNAL ERROR **. Error uploading input of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
+                res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
             except IPOLProcessInputsError as ex:
-                message = 'Error processing inputs of demo {}: {}'.format(demo_id, ex)
-                res_data = {'error': message,
-                            'status': 'KO'}
+                message = '** INTERNAL ERROR **. Error processing inputs of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
+                res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
             except IOError as ex:
-                message = 'I/O error processing inputs - {}'.format(ex)
-                res_data = {'error': message,
-                            'status': 'KO'}
+                message = '** INTERNAL ERROR **. I/O error processing inputs - {}'.format(ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
+                res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
             except Exception as ex:
-                # ToDo: send email
                 message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
-                res_data = {'error': message,
-                            'status': 'KO'}
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
+                res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
 
         try:
@@ -1250,7 +1272,7 @@ attached the failed experiment data.". \
             if dr_name is None:
                 response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
-                    self.send_not_demorunner_for_published_demo_email(demo_id)
+                    self.send_email_no_DR(demo_id)
                 return json.dumps(response)
 
             build_data = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1310,7 +1332,7 @@ attached the failed experiment data.". \
             except Exception as ex:
                 message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
                 core_response = {"status": "KO", "error": "{}".format(message)}
                 return json.dumps(core_response)
 
@@ -1362,7 +1384,7 @@ attached the failed experiment data.". \
         except Exception as ex:
             message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
             self.logger.exception(message)
-            print message
+            self.send_internal_error_email(message)
             core_response = {"status": "KO", "error": "{}".format(message)}
             return json.dumps(core_response)
 
@@ -1410,8 +1432,8 @@ attached the failed experiment data.". \
         except Exception as ex:
             message = "** INTERNAL ERROR ** while reading execution with key={}: {}".format(key, ex)
             self.logger.exception(message)
+            self.send_internal_error_email(message)
             res_data = {'error': message, 'status': 'KO'}
-            print message
             return json.dumps(res_data)
 
         return json.dumps({'status': 'OK', 'execution': lines})
@@ -1478,8 +1500,9 @@ attached the failed experiment data.". \
         key = self.create_new_execution_key(self.logger)
         if key is None:
             message = '**INTERNAL ERROR**. Failed to create a valid execution key'
-            res_data = {'error': message, 'status': 'KO'}
             self.logger.exception(message)
+            self.send_internal_error_email(message)
+            res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data)
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1533,10 +1556,10 @@ attached the failed experiment data.". \
             except Exception as ex:
                 # ToDo: send email
                 message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
+                self.logger.exception(message)
+                self.send_internal_error_email(message)
                 res_data = {'error': message,
                             'status': 'KO'}
-                self.logger.exception(message)
-                print message
                 return json.dumps(res_data)
 
         try:
@@ -1554,7 +1577,7 @@ attached the failed experiment data.". \
             if dr_name is None:
                 response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
-                    self.send_not_demorunner_for_published_demo_email(demo_id)
+                    self.send_email_no_DR(demo_id)
                 return json.dumps(response)
 
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1614,7 +1637,7 @@ attached the failed experiment data.". \
             except Exception as ex:
                 message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {}".format(dr_server, demo_id, ex)
                 self.logger.exception(message)
-                print message
+                self.send_internal_error_email(message)
                 core_response = {"status": "KO", "error": "{}".format(message)}
                 return json.dumps(core_response)
 
@@ -1661,7 +1684,7 @@ attached the failed experiment data.". \
         except Exception as ex:
             message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
             self.logger.exception(message)
-            print message
+            self.send_internal_error_email(message)
             core_response = {"status": "KO", "error": "{}".format(message)}
             return json.dumps(core_response)
 
