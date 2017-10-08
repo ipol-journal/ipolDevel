@@ -276,10 +276,11 @@ class Core(object):
         """
         Get stats of all the demorunners to be used by the external tools like the CP
         """
-        data = {"status": "OK"}
-        try:
-            demorunners = []
-            for dr in self.demorunners:
+        response = {}
+        demorunners = []
+        #
+        for dr in self.demorunners:
+            try:
                 response = self.post(self.demorunners[dr].get('server'), 'demorunner', 'get_workload')
                 if not response.ok:
                     demorunners.append({'name': dr, 'status': 'KO'})
@@ -293,40 +294,51 @@ class Core(object):
                 else:
                     demorunners.append({'name': dr, 'status': 'KO'})
 
-            data['demorunners'] = demorunners
-        except Exception as ex:
-            print ex
-            self.logger.exception("Couldn't get DRs stats")
-            data["status"] = "KO"
-            data["message"] = "Can not get demorunners stats"
+            except ConnectionError:
+                self.logger.exception("Couldn't get DR={} workload".format(dr.get("name", "<?>")))
+                demorunners.append({'name': dr, 'status': 'KO'})
+                continue
+            except Exception as ex:
+                print ex
+                message = "Couldn't get the DRs workload"
+                self.logger.exception(message)
+                response["status"] = "KO"
+                response["message"] = message
 
-        return json.dumps(data)
+        # Return the DRs in the response
+        response['demorunners'] = demorunners
+        response["status"] = "OK"
+        return json.dumps(response)
 
     def demorunners_workload(self):
         """
         Get the workload of each DR
         """
-        dr_wl = {}
+        dr_workload = {}
         for dr_name in self.demorunners:
             try:
                 resp = self.post(self.demorunners[dr_name]['server'], 'demorunner', 'get_workload')
                 if not resp.ok:
-                    self.error_log("demorunners_workload", "No response from DR='{}'".format(dr_name))
+                    self.error_log("demorunners_workload", "Bad post response from DR='{}'".format(dr_name))
                     continue
 
                 response = resp.json()
-                if response.get('status') == 'OK':
-                    dr_wl[dr_name] = response.get('workload')
+                if response.get('status', '') == 'OK':
+                    dr_workload[dr_name] = response.get('workload')
                 else:
-                    self.error_log("demorunners_workload", "get_workload returned KO for DR='{}'".
-                                   format(dr_name))
-                    dr_wl[dr_name] = 100.0
-            except Exception as ex:
-                s = "Error when obtaining the \
-workload of '{}'".format(dr_name)
+                    self.error_log("demorunners_workload", "get_workload KO response for DR='{}'".format(dr_name))
+                    dr_workload[dr_name] = 100.0
+            except ConnectionError:
+                self.error_log("demorunners_workload", "get_workload ConnectionError for DR='{}'".format(dr_name))
+                continue
+            except Exception:
+                s = "Error when obtaining the workload of '{}'".format(dr_name)
                 self.logger.exception(s)
-                print "Error when obtaining the workload of '{}' - {}".format(dr_name, ex)
-        return dr_wl
+                dr_workload[dr_name] = 100.0
+                print s
+                continue
+
+        return dr_workload
 
     @staticmethod
     def mkdir_p(path):
@@ -1736,9 +1748,13 @@ attached the failed experiment data.". \
         # Try twice the length of the DR list before raising an exception
         for i in range(len(self.demorunners) * 2):
             # Get a demorunner for the requirements
-            dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
-            if not dispatcher_response.ok:
-                raise Exception("Dispatcher unresponsive")
+            try:
+                dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
+            except ConnectionError:
+                dispatcher_response = None
+
+            if not dispatcher_response or not dispatcher_response.ok:
+                raise Exception("Dispatcher unresponsive") # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
 
             # Check if there is a DR for the requirements
             if dispatcher_response.json()['status'] != 'OK':
@@ -1766,7 +1782,7 @@ attached the failed experiment data.". \
 
         # If there is no demorrunner active send an email with all the unresponsive DRs
         self.send_demorunner_unresponsive_email(unresponsive_demorunners)
-        raise Exception("No DR available after many tries")
+        raise Exception("No DR available after many tries")  # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
 
     def post(self, host, module, service, data=None):
         """
