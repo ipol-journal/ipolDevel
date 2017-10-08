@@ -115,11 +115,13 @@ def do_write_all(host):
 
 
 # Parse program arguments
+LOCAL_IP = '127.0.0.1'
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--integration",
   help="Use the Integration environment", action="store_true")
 parser.add_argument("-l", "--local",
-  help="Use the Local (127.0.1.1) environment", action="store_true")
+  help="Use the Local ({}) environment".format(LOCAL_IP), action="store_true")
 parser.add_argument("command", nargs='+')
   
 args = parser.parse_args()
@@ -128,7 +130,7 @@ args = parser.parse_args()
 if args.integration:
     host = "integration.ipol.im"
 elif args.local:
-    host = "127.0.1.1"
+    host = LOCAL_IP
 else:
     host = "ipolcore.ipol.im"
 

@@ -23,7 +23,7 @@
   display: inline;
 }
 
-.di-inline-block{
+.di-inline-block {
   display: inline-block;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .p-y-10 {
-  padding: 10px 0px;
+  padding: 10px 0;
 }
 
 .m-x-10 {
@@ -73,8 +73,8 @@
 
 .vertical-align {
   -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
+  -ms-flex-align: center;
 }
 
 .text-center {

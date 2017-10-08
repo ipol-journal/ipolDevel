@@ -5,39 +5,39 @@
 }
 
 .run-btn {
+  font-size: 18px;
+
   margin-top: 20px;
   padding: 5px 15px;
 
   color: white;
-  background-color: #5d8cb1;
-
-  font-size: 18px;
+  background-color: #5D8CB1;
 }
 
 .run-btn:hover {
-  transition: all 0.2s ease-in-out;
-  background-color: #558ace;
+  transition: all .2s ease-in-out;
+
+  background-color: #558ACE;
 }
 
 .loader {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  flex-direction: column;
-
-  margin-bottom: 30px;
-
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
+      flex-direction: column;
+
+  margin-bottom: 30px;
 }
 
 .loader-text {
+  font-family: Verdana, 'Geneva', sans-serif;
+
   margin-bottom: 10px;
 
   text-align: center;
-
-  font-family: Verdana, "Geneva", sans-serif;
 }
 
 .loader-cicle {
@@ -50,19 +50,19 @@
   height: 16px;
   margin-left: -10px;
 
-  animation: 3s infinite ease-in-out;
   -webkit-animation: 3s infinite ease-in-out;
-  -moz-animation: 3s infinite ease-in-out;
-  -o-animation: 3s infinite ease-in-out;
+     -moz-animation: 3s infinite ease-in-out;
+       -o-animation: 3s infinite ease-in-out;
+          animation: 3s infinite ease-in-out;
 
   border-radius: 50%;
 }
 
 .loader-first-circle {
-  animation: leftToRight 1.2s infinite ease-in-out;
   -webkit-animation: leftToRight 1.2s infinite ease-in-out;
-  -moz-animation: leftToRight 1.2s infinite ease-in-out;
-  -o-animation: leftToRight 1.2s infinite ease-in-out;
+     -moz-animation: leftToRight 1.2s infinite ease-in-out;
+       -o-animation: leftToRight 1.2s infinite ease-in-out;
+          animation: leftToRight 1.2s infinite ease-in-out;
 
   background: #5B4BA7;
 }
@@ -74,19 +74,19 @@
 }
 
 .loader-third-circle {
-  animation: rightToLeft 1.2s infinite ease-in-out;
   -webkit-animation: rightToLeft 1.2s infinite ease-in-out;
-  -moz-animation: rightToLeft 1.2s infinite ease-in-out;
-  -o-animation: rightToLeft 1.2s infinite ease-in-out;
+     -moz-animation: rightToLeft 1.2s infinite ease-in-out;
+       -o-animation: rightToLeft 1.2s infinite ease-in-out;
+          animation: rightToLeft 1.2s infinite ease-in-out;
 
   background: #8E77C2;
 }
 
 .element-appear {
-  animation: element-appear 1s forwards ease-in;
   -webkit-animation: element-appear 1s forwards ease-in;
-  -moz-animation: element-appear 1s forwards ease-in;
-  -o-animation: element-appear 1s forwards ease-in;
+     -moz-animation: element-appear 1s forwards ease-in;
+       -o-animation: element-appear 1s forwards ease-in;
+          animation: element-appear 1s forwards ease-in;
 }
 
 .msg-box {
@@ -101,8 +101,8 @@
 .run-error {
   text-align: center;
 
-  border-color: #ebccd1;
-  background-color: #f2dede;
+  border-color: #EBCCD1;
+  background-color: #F2DEDE;
 }
 
 .server-error {
@@ -111,16 +111,16 @@
 }
 
 .run-error span {
-  color: #a94442;
+  color: #A94442;
 }
 
 .run-success {
   text-align: center;
 
-  border-color: #d6e9c6;
-  background-color: #dff0d8;
+  border-color: #D6E9C6;
+  background-color: #DFF0D8;
 }
 
 .run-success span {
-  color: #3c763d;
+  color: #3C763D;
 }

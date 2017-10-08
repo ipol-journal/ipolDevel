@@ -81,6 +81,10 @@ ipol_demo/modules/config_common/modules.xml
 ipol_demo/modules/config_common/demorunners.xml
 demorunners.xml
 
+# ClientApp configs
+.csscomb.json
+
 # other
 changes*.txt
 ipol_demo/app_new/
+ipol_webapp/apps/controlpanel/migrations/*_auto_*.py

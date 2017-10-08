@@ -107,6 +107,8 @@ $.fn.gallery = function (result, index) {
         helpers.addToStorage("gallery-" + index + "-right", sources);
       }
 
+      $("." + gallerySelector).setGalleryMinHeight(work_url, src);
+
       if ($("#" + imgContainerLeft).children().length <= 0) {
         var content = result.contents[contentKeys[0]];
         var type = typeof (content);
@@ -139,6 +141,23 @@ $.fn.gallery = function (result, index) {
   checkOptions(result.type, index);
 }
 
+// Set gallery min-height to avoid jump loops.
+$.fn.setGalleryMinHeight = function(work_url, src) {
+  var minHeight;
+  var selector = $(this);
+  for (let i = 0; i < src.length; i++) {
+    let tmpImg = new Image();
+    tmpImg.src = work_url + src[i];
+    $(tmpImg).one("load", function() {
+      minHeight = parseInt(selector.css("min-height"));
+      if (minHeight < tmpImg.height) {
+        minHeight = tmpImg.height < 580 ? tmpImg.height : 580;
+        selector.css({ minHeight: minHeight + 20 + "px" });
+      }
+    });
+  }
+};
+
 $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
   $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function () {
@@ -155,15 +174,13 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
   });
 }
 
-$.fn.appendLabel = function (labelArray) {
-  var html = '';
-  for (var i = 0; i < labelArray.length; i++) {
-    html += labelArray[i];
-  }
-  if (html.charAt(0) == '\'') html = eval(html);
+$.fn.appendLabel = function(labelArray) {
+  var html = "";
+  for (var i = 0; i < labelArray.length; i++) html += labelArray[i];
+  if (html.charAt(0) == "'") html = eval(html);
 
   $(this).html("<div class=m-b-20>" + html + "</div>");
-}
+};
 
 // Add event listeners for gallery images lists
 $.fn.addHoverEvents = function (galleryIndex, side, work_url, src) {
@@ -225,48 +242,12 @@ $.fn.addMouseOutEvent = function(galleryIndex, side) {
   });
 }
 
-$.fn.addZoomEvents = function (index) {
-  $(this).on('change', function () {
-    var zoomLevel = $(this).val();
-    $("#gallery-blob-container-left-" + index + ", #gallery-blob-container-right-" + index).children('img').each(function (i) {
-      $(this).height($(this)[0].naturalHeight * zoomLevel);
-      $(this).width($(this)[0].naturalWidth * zoomLevel);
-    });
-  });
-}
-
 $.fn.updateSize = function (index, side)  {
   var zoomLevel = $(this).val();
   $("#gallery-blob-container-" + side + "-" + index).children('img').each(function (i) {
     $(this).height($(this)[0].naturalHeight * zoomLevel);
     $(this).width($(this)[0].naturalWidth * zoomLevel);
   });
-}
-
-function synqScroll(index) {
-  var isSyncingLeftScroll = false;
-  var isSyncingRightScroll = false;
-  var leftDiv = document.getElementById('gallery-blob-container-left-' + index);
-  var rightDiv = document.getElementById('gallery-blob-container-right-' + index);
-  $('#gallery-blob-container-left-' + index).attachDragger();
-  $('#gallery-blob-container-right-' + index).attachDragger();
-
-  leftDiv.onscroll = function () {
-    if (!isSyncingLeftScroll) {
-      isSyncingRightScroll = true;
-      rightDiv.scrollTop = this.scrollTop;
-      rightDiv.scrollLeft = this.scrollLeft;
-    }
-    isSyncingLeftScroll = false;
-  }
-  rightDiv.onscroll = function () {
-    if (!isSyncingRightScroll) {
-      isSyncingLeftScroll = true;
-      leftDiv.scrollTop = this.scrollTop;
-      leftDiv.scrollLeft = this.scrollLeft;
-    }
-    isSyncingRightScroll = false;
-  }
 }
 
 $.fn.file_download = function (result, index) {

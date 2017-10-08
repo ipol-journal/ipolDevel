@@ -3,7 +3,7 @@
     opacity: 0;
   }
   50% {
-    opacity: 0.5;
+    opacity: .5;
   }
   100% {
     opacity: 1;
@@ -19,6 +19,7 @@
   }
   100% {
     z-index: 200;
+
     transform: translateX(20px);
   }
 }
@@ -67,11 +68,13 @@
 
 @keyframes container-entrance {
   from {
-    opacity: 0;
     transform: translateY(-10px);
+
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: translateY(0px);
+
+    opacity: 1;
   }
 }

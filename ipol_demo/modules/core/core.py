@@ -537,6 +537,14 @@ workload of '{}'".format(dr_name)
         '''
         Process input of type 'image'
         '''
+        mode_kw = {'1x1i': '1',
+                   '1x1': '1',
+                   '1x8i': 'L',
+                   '1x8': 'L',
+                   '3x8i': 'RGB',
+                   '3x8': 'RGB'}
+        ddl_mode = mode_kw[input_desc['dtype']]
+
         # Read the image
         im = image(filename)
 
@@ -552,13 +560,14 @@ workload of '{}'".format(dr_name)
         max_pixels = evaluate(input_desc['max_pixels'])
         size_ok = prod(im.size) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
+        mode_ok = ddl_mode == im.im.mode
 
         input_first_part, input_ext = os.path.splitext(filename)
 
-        if not crop_enabled and size_ok and format_ok:
+        if not crop_enabled and size_ok and format_ok and mode_ok:
             # This is the most favorable case.
-            # There is no crop and both the size and the format is the
-            # same as the original.
+            # There is no crop and both the size and everything else
+            # is the same.
 
             # If the extension also coincides, everything is done
             if input_ext == ext:
@@ -577,6 +586,10 @@ workload of '{}'".format(dr_name)
             x1 = int(round(json_crop_info['x'] + json_crop_info['w']))
             y1 = int(round(json_crop_info['y'] + json_crop_info['h']))
             im.crop((x0, y0, x1, y1))
+
+        # Set the mode
+        if not mode_ok:
+            im.im = im.im.convert(ddl_mode)
 
         # resize if the (eventually) cropped image is too big
         if max_pixels and prod(im.size) > max_pixels:
@@ -1309,7 +1322,13 @@ attached the failed experiment data.". \
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
                 error = demorunner_response.get("error", "").strip()
 
-                website_message = "DR={}, {}".format(dr_name, msg)
+                # Prepare a message for the website.
+                # In case of a timeout, let it be human oriented.
+                if error == 'IPOLTimeoutError':
+                    website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
+                else:
+                    website_message = "DR={}, {}".format(dr_name, msg)
+
                 response = {"error": website_message,
                             "status": "KO"}
                 # Send email to the editors
@@ -1606,7 +1625,14 @@ attached the failed experiment data.". \
                 # Message for the web interface
                 msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
                 error = demorunner_response.get("error", "").strip()
-                website_message = "DR={}, {}".format(dr_name, msg)
+
+                # Prepare a message for the website.
+                # In case of a timeout, let it be human oriented.
+                if error == 'IPOLTimeoutError':
+                    website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
+                else:
+                    website_message = "DR={}, {}".format(dr_name, msg)
+
                 response = {"error": website_message,
                             "status": "KO"}
                 
