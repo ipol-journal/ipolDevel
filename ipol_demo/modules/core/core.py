@@ -305,8 +305,11 @@ class Core(object):
                 response["status"] = "KO"
                 response["message"] = message
 
+        print "\n\n\nHOLA"
+        print demorunners
+        print "----\n\n"
         # Return the DRs in the response
-        response['demorunners'] = demorunners
+        response["demorunners"] = demorunners
         response["status"] = "OK"
         return json.dumps(response)
 
@@ -1497,7 +1500,15 @@ attached the failed experiment data.". \
             else:
                 response = {"status": "KO", "error": "no 'build' section found in the DDL"}
                 return json.dumps(response)
-
+            
+            ### This a temporary fix to reject bad syntax if the ddl_archive is not correct.
+            ### If the archive syntax is not correct we stop the execution.
+            if 'archive' in ddl_json:
+                if 'params' in ddl_json['archive']:
+                    if type(ddl_json['archive']['params']) != list:
+                        response = {"status": "KO", "error": "The archive lines of your DDL are not correct. The parameters must be contained in a list. Please, check this in your demo."}
+                        return json.dumps(response)
+            
             ddl_inputs = ddl_json.get('inputs')
 
         except Exception as ex:
