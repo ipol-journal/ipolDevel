@@ -202,7 +202,7 @@ $.fn.appendZoom = function(index, leftItems) {
   zoom.removeClass("di-none");
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
-    $(".gallery_" + index).css({ height: parseInt($(".gallery_" + index).css('min-height')) * zoomLevel + "px" });
+    $(".gallery_" + index).css({ height: parseInt($(".gallery_" + index).css('min-height')) || parseInt($(".gallery_" + index).css('height')) * zoomLevel + "px" });
     $(this).adjustSize(index);
     $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
   });

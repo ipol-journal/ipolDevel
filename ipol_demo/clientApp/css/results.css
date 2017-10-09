@@ -99,7 +99,6 @@
   -ms-flex-pack: start;
   justify-content: flex-start;
 
-  min-height: 0;
   max-height: 600px;
 
   animation: container-entrance .5s cubic-bezier(.69, -.02, .46, 1.28);
