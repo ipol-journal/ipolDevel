@@ -1188,12 +1188,11 @@ attached the failed experiment data.". \
                 return json.dumps({"status": "KO", "error": "no 'build' section found in the DDL"})
 
             if 'archive' in ddl:
+                # The params must be a list
                 if 'params' in ddl['archive']:
                     if type(ddl['archive']['params']) != list:
-                        error_message =  "The archive lines of your DDL are not correct. "
-                        error_message += "The parameters must be contained in a list. Please, check this in your demo."
-                        response = {"status": "KO", "error": error_message}
-                        return json.dumps(response)
+                        message = "Bad DDL archive section: expected list for parameters, but found {}".format(type(ddl['archive']['params']))
+                        return json.dumps({"status": "KO", "error": message})
             
             
             ddl_inputs = ddl['inputs']
@@ -1507,16 +1506,13 @@ attached the failed experiment data.". \
                 response = {"status": "KO", "error": "no 'build' section found in the DDL"}
                 return json.dumps(response)
             
-            ### This a temporary fix to reject bad syntax if the ddl_archive is not correct.
-            ### If the archive syntax is not correct we stop the execution.
             if 'archive' in ddl_json:
                 if 'params' in ddl_json['archive']:
+                    # The params must be a list
                     if type(ddl_json['archive']['params']) != list:
-                        error_message =  "The archive lines of your DDL are not correct. "
-                        error_message += "The parameters must be contained in a list. Please, check this in your demo."
-                        response = {"status": "KO", "error": error_message}
-                        return json.dumps(response)
-            
+                        message = "Bad DDL archive section: expected list for parameters, but found {}".format(type(ddl['archive']['params']))
+                        return json.dumps({"status": "KO", "error": message})
+
             ddl_inputs = ddl_json.get('inputs')
 
         except Exception as ex:
