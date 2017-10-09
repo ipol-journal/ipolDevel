@@ -305,9 +305,6 @@ class Core(object):
                 response["status"] = "KO"
                 response["message"] = message
 
-        print "\n\n\nHOLA"
-        print demorunners
-        print "----\n\n"
         # Return the DRs in the response
         response["demorunners"] = demorunners
         response["status"] = "OK"
@@ -1190,6 +1187,15 @@ attached the failed experiment data.". \
             else:
                 return json.dumps({"status": "KO", "error": "no 'build' section found in the DDL"})
 
+            if 'archive' in ddl:
+                if 'params' in ddl['archive']:
+                    if type(ddl['archive']['params']) != list:
+                        error_message =  "The archive lines of your DDL are not correct. "
+                        error_message += "The parameters must be contained in a list. Please, check this in your demo."
+                        response = {"status": "KO", "error": error_message}
+                        return json.dumps(response)
+            
+            
             ddl_inputs = ddl['inputs']
 
         except Exception as ex:
@@ -1506,7 +1512,9 @@ attached the failed experiment data.". \
             if 'archive' in ddl_json:
                 if 'params' in ddl_json['archive']:
                     if type(ddl_json['archive']['params']) != list:
-                        response = {"status": "KO", "error": "The archive lines of your DDL are not correct. The parameters must be contained in a list. Please, check this in your demo."}
+                        error_message =  "The archive lines of your DDL are not correct. "
+                        error_message += "The parameters must be contained in a list. Please, check this in your demo."
+                        response = {"status": "KO", "error": error_message}
                         return json.dumps(response)
             
             ddl_inputs = ddl_json.get('inputs')
