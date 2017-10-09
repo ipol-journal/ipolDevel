@@ -102,8 +102,13 @@ clean: loop on thumbnail files, delete the ones with no correspondant source fil
     def image_thumb(src, dest):
         """ From src image path, create a thumbnail to dest path """
         im = Image.open(src)
+        """
+        Bug seen UserWarning: Palette images with Transparency   expressed in bytes should be converted to RGBA images
+        /f/0/f09a51e7c535e946d7ba80256550022fcb91c25b.png
+        """
         ArchiveThumbs.pil_thumb(im, dest)
 
+    @staticmethod
     def pil_thumb(im, dest):
         """ From a PIL image object, create a thumbnail to dest path, shared by image and video """
         width = int(round(im.width*ArchiveThumbs.height/im.height));
