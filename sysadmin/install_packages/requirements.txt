@@ -12,7 +12,6 @@ mgrs             # mgrs geo coordinates
 numpy            # math package
 pillow           # Python Image Library
 psutil           # system monitoring (load balancing demorunner)
-pydub            # sound, binding to ffmpeg
 pyfftw           # wrapper around FFTW, discrete Fourier transform (deps: fftw-3, macos bug)
 pypng            # native Python, clames for better support
 python-magic     # binding to libmagic, file identification (archive/thumbnails)
