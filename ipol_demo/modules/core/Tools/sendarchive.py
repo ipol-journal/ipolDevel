@@ -45,16 +45,18 @@ class SendArchive:
         """
         This function make a thumbnail of path.
         """
+        
         ### For the moment we are "hardcoring" this value.This will change with the CONVERSION module.
-        thumbs_size = '256'
         route, file_extension = os.path.splitext(path)
         name_for_the_thumbnail = route.split('/')[-1].lower() + '_thumbnail'
         name_and_extension_for_the_thumbnail = name_for_the_thumbnail + '.jpeg'
-        #img = Image.open(path).convert('RGB')
-        img = Image.open(path)
-        img.thumbnail(thumbs_size, Image.ANTIALIAS)
         thumbnail_path = os.path.join(work_dir, name_and_extension_for_the_thumbnail)
-        img.convert('RGB').save(thumbnail_path, "JPEG")
+        
+        image = Image.open(path).convert('RGB')
+        ##the size should be in the conf.file....
+        image.thumbnail((256, 256))
+        image.save(thumbnail_path)
+        
         return thumbnail_path, name_for_the_thumbnail
 
     #---------------------------------------------------------------------------
@@ -65,7 +67,6 @@ class SendArchive:
             puts the information in res_data['archive_blobs'] and 
             res_data['archive_params']
         """
-        print "prepare_archive"
         desc = ddl_archive
         
         blobs_item = []
@@ -77,18 +78,19 @@ class SendArchive:
             if os.path.exists(file_complete_route):
                 print "ok"
                 mime_type = SendArchive.get_mime_type(file_complete_route)
-                
+                print mime_type
                 file_description = desc['files'][filename]
                 # if empty file description, use filename 
                 if file_description == "":
                   file_description = filename
-            
+                
                 ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                 route, file_extension = os.path.splitext(file_complete_route)
                 if mime_type == 'image' and file_extension in ['.png','.jpg','.jpeg']:
                     thumbnail = SendArchive.make_thumbnail(file_complete_route, work_dir)
                     value = {file_description : file_complete_route,\
                              thumbnail[1]: thumbnail[0]}
+                
                 else:
                     value = {file_description: file_complete_route}
                 
