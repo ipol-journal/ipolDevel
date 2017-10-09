@@ -1191,7 +1191,7 @@ attached the failed experiment data.". \
                 # The params must be a list
                 if 'params' in ddl['archive']:
                     if type(ddl['archive']['params']) != list:
-                        message = "Bad DDL archive section: expected list for parameters, but found {}".format(type(ddl['archive']['params']))
+                        message = "Bad DDL archive section. Expected list for parameters, but found: {}".format(type(ddl['archive']['params']).__name__)
                         return json.dumps({"status": "KO", "error": message})
             
             
@@ -1510,7 +1510,7 @@ attached the failed experiment data.". \
                 if 'params' in ddl_json['archive']:
                     # The params must be a list
                     if type(ddl_json['archive']['params']) != list:
-                        message = "Bad DDL archive section: expected list for parameters, but found {}".format(type(ddl['archive']['params']))
+                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl_json['archive']['params']).__name__)
                         return json.dumps({"status": "KO", "error": message})
 
             ddl_inputs = ddl_json.get('inputs')
