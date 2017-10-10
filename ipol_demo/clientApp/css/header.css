@@ -40,7 +40,7 @@
 
 .header-motto {
   font-family: Arial,Helvetica,Tahoma,sans-serif;
-  font-size: 22px;
+  font-size: 23px;
 
   color: #555;
 }
@@ -54,6 +54,7 @@
   flex-basis: 100%;
 
   max-width: 922px;
+  margin-top: -10px;
 
   text-align: right;
 }
