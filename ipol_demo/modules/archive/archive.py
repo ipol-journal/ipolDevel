@@ -154,12 +154,17 @@ class Archive(object):
         except Exception:
             self.number_of_experiments_by_pages = 10
 
-        self.mkdir_p(self.logs_dir)
         self.mkdir_p(self.database_dir)
         self.mkdir_p(self.blobs_dir)
         self.mkdir_p(self.blobs_thumbs_dir)
 
-        self.logger = self.init_logging()
+        # Logs
+        try:
+            if not os.path.exists(self.logs_dir):
+                os.makedirs(self.logs_dir)
+            self.logger = self.init_logging()
+        except Exception as ex:
+            print "Failed to create log dir. Error: {}".format(ex)
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -268,7 +273,6 @@ class Archive(object):
                         self.logger.exception(message)
                         return False
 
-
         return True
 
     #####
@@ -298,8 +302,6 @@ class Archive(object):
 
         return new_path, subdirs
 
-    
-            
     def copy_file_in_folder(self, original_path, main_dir, hash_file, extension):
         """
         Write a file in its respective folder
@@ -308,59 +310,55 @@ class Archive(object):
             final_path, _ = self.get_new_path(main_dir, hash_file, extension)
             shutil.copyfile(original_path, final_path)
             return final_path
-        except Exception as ex: 
+        except Exception as ex:
             message = "Failure in copy_file_in_folder. Error={}".format(ex)
             self.logger.exception(message)
             print message
             raise
-        
-    
+
     def add_blob_in_the_database(self, conn, hash_file, type_file, format_file):
-        """    
+        """
         check if a blob already exists in the database. If not, we include it
-        return the id of the blob 
+        return the id of the blob
         """
         try:
             cursor_db = conn.cursor()
-            #First, we check if the blob is already in the database 
+            #First, we check if the blob is already in the database
             query = cursor_db.execute("""
                 SELECT id FROM blobs WHERE hash = ?
                 """, (hash_file,))
             row = query.fetchone()
             if row is not None:
                 return int(row[0])
-            else:
-                cursor_db.execute("""
+
+            cursor_db.execute("""
                 INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
                 """, (hash_file, type_file, format_file,))
-                # get id of the blob previously inserted
-                return int(str(cursor_db.lastrowid))
-        
+            # get id of the blob previously inserted
+            return int(str(cursor_db.lastrowid))
         except Exception as ex:
             message = "Failure in add_blob_in_the_database. Error = {}".format(ex)
             self.logger.exception(message)
             raise
-        
-    
+
     def add_blob(self, conn, blob_dict, copied_files_list):
         """
         This function checks if a blob exists in the table. If it exists,
         the id is returned. If not, the blob is added, then the id is returned.
         """
-
         # List of copied files. Useful to delete them if an exception is thrown
         # copied_files = []
         try:
-            thumb_key = list(key for key,value in blob_dict.iteritems() if 'thumbnail' in key)
-            if thumb_key: 
+            thumb_key = list(key for key, value in blob_dict.iteritems() if 'thumbnail' in key)
+            if thumb_key:
                 blob_thumbnail_name = thumb_key[0]
                 blob_thumbnail_path = blob_dict[blob_thumbnail_name]
-                del blob_dict[blob_thumbnail_name] 
-            
-            blob_name = blob_dict.keys()[0] 
+                del blob_dict[blob_thumbnail_name]
+
+            blob_name = blob_dict.keys()[0]
             blob_path = blob_dict.values()[0]
 
-            hash_file   = self.get_hash_blob(blob_path)
+            hash_file = self.get_hash_blob(blob_path)
             format_file = self.file_format(blob_path)
 
             _, type_file = os.path.splitext(blob_path)
@@ -368,41 +366,33 @@ class Archive(object):
             type_file.lower()
 
             id_blob = self.add_blob_in_the_database(conn, hash_file, type_file, format_file)
-            
             #copy the files in their respective folders
             path_new_blob = self.copy_file_in_folder(blob_path, self.blobs_dir, hash_file, type_file)
             copied_files_list.append(path_new_blob)
             if thumb_key:
                 path_new_thumbnail = self.copy_file_in_folder(blob_thumbnail_path, self.blobs_thumbs_dir, hash_file, "jpeg")
                 copied_files_list.append(path_new_thumbnail)
-            
+
             return id_blob, blob_name
         except Exception as ex:
-            message="Failure in add_blob. Error = {}".format(ex)
+            message = "Failure in add_blob. Error = {}".format(ex)
             self.logger.exception(message)
             print message
             raise
-
-        
 
     @staticmethod
     def update_exp_table(conn, demo_id, parameters):
         """
         This function update the experiment table
         """
-        try:
-            cursor_db = conn.cursor()
-            cursor_db.execute("""
-            INSERT INTO
-            experiments (id_demo, params, timestamp)
-            VALUES (?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters))
-            return int(cursor_db.lastrowid)
-        except Exception as ex:
-            message = "Failure in update_exp_table. Error = {}".format(ex)
-            self.logger.exception(message)        
-            print message
-            raise
-        
+        cursor_db = conn.cursor()
+        cursor_db.execute("""
+        INSERT INTO
+        experiments (id_demo, params, timestamp)
+        VALUES (?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters))
+        return int(cursor_db.lastrowid)
+
+
     def update_blob(self, conn, blobs, copied_files_list):
         """
         This function updates the blobs table.
@@ -429,20 +419,13 @@ class Archive(object):
         This function update the correspondence table, associating
                 blobs, experiments, and descriptions of blobs.
         """
-        try:
-            cursor_db = conn.cursor()
-            for item in dict_corresp:
-                cursor_db.execute("""
-                INSERT INTO
-                correspondence (id_experiment, id_blob, name)
-                VALUES (?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name']))
-    
-        except Exception as ex:
-            self.logger.exception("Failure in correspondence_table. Error {}".format(ex))
-            raise
-    
-    
-    
+        cursor_db = conn.cursor()
+        for item in dict_corresp:
+            cursor_db.execute("""
+            INSERT INTO
+            correspondence (id_experiment, id_blob, name)
+            VALUES (?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name']))
+
     @cherrypy.expose
     @authenticate
     def add_experiment(self, demo_id, blobs, parameters):
@@ -456,6 +439,7 @@ class Archive(object):
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
             id_experiment = self.update_exp_table(conn, demo_id, parameters)
+            dict_corresp = {}
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
@@ -476,7 +460,7 @@ class Archive(object):
 
             except Exception:
                 pass
-        
+
         return json.dumps(data)
 
     #####
@@ -568,7 +552,7 @@ class Archive(object):
         dict_file["id"] = id_blob
         if os.path.exists(path_thumb):
             dict_file["url_thumb"] = self.url + path_thumb
-        
+
         return dict_file
 
     def get_data_experiment(self, conn, id_exp, parameters, date):
@@ -576,12 +560,11 @@ class Archive(object):
         Build a dictionnary containing all the datas needed on a given
                 experiment for building the archive page.
         """
-
         dict_exp = {}
         list_files = []
         path_file = str()
         path_thumb = str()
-        
+
         try:
             cursor_db = conn.cursor()
             cursor_db.execute("""
@@ -591,17 +574,16 @@ class Archive(object):
                 WHERE id_experiment = ?""", (id_exp,))
 
             all_rows = cursor_db.fetchall()
- 
+
             for row in all_rows:
                 path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
                 path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
                 list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
-           
+
             dict_exp["id"] = id_exp
             dict_exp["date"] = date
             dict_exp["parameters"] = json.loads(parameters)
             dict_exp["files"] = list_files
-            
             return dict_exp
         except Exception as ex:
             message = "Failure in get_data_experiment. Error = {}".format(ex)
@@ -897,7 +879,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             for row in cursor_db.fetchall():
                 demoid = row[0]
                 demo_list.append(demoid)
-            
+
             data["demo_list"] = demo_list
             data["status"] = "OK"
         except Exception as ex:
