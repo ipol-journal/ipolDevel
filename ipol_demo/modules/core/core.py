@@ -276,11 +276,11 @@ class Core(object):
         """
         Get stats of all the demorunners to be used by the external tools like the CP
         """
-        response = {}
         demorunners = []
         #
         for dr in self.demorunners:
             try:
+                response = {}
                 response = self.post(self.demorunners[dr].get('server'), 'demorunner', 'get_workload')
                 if not response.ok:
                     demorunners.append({'name': dr, 'status': 'KO'})
@@ -299,16 +299,13 @@ class Core(object):
                 demorunners.append({'name': dr, 'status': 'KO'})
                 continue
             except Exception as ex:
-                print ex
-                message = "Couldn't get the DRs workload"
+                message = "Couldn't get the DRs workload. Error = {}".format(ex)
+                print message
                 self.logger.exception(message)
-                response["status"] = "KO"
-                response["message"] = message
+                return json.dumps({'status': 'KO', 'message': message})
 
         # Return the DRs in the response
-        response["demorunners"] = demorunners
-        response["status"] = "OK"
-        return json.dumps(response)
+        return json.dumps({'status': 'OK', 'demorunners': demorunners})
 
     def demorunners_workload(self):
         """
@@ -1190,11 +1187,11 @@ attached the failed experiment data.". \
             if 'archive' in ddl:
                 # The params must be a list
                 if 'params' in ddl['archive']:
-                    if type(ddl['archive']['params']) != list:
-                        message = "Bad DDL archive section. Expected list for parameters, but found: {}".format(type(ddl['archive']['params']).__name__)
+                    if not isinstance(ddl['archive']['params'], list):
+                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl['archive']['params']).__name__)
                         return json.dumps({"status": "KO", "error": message})
-            
-            
+
+
             ddl_inputs = ddl['inputs']
 
         except Exception as ex:
@@ -1510,11 +1507,11 @@ attached the failed experiment data.". \
             else:
                 response = {"status": "KO", "error": "no 'build' section found in the DDL"}
                 return json.dumps(response)
-            
+
             if 'archive' in ddl_json:
                 if 'params' in ddl_json['archive']:
                     # The params must be a list
-                    if type(ddl_json['archive']['params']) != list:
+                    if not isinstance(ddl_json['archive']['params'], list):
                         message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl_json['archive']['params']).__name__)
                         return json.dumps({"status": "KO", "error": message})
 
@@ -1690,7 +1687,7 @@ attached the failed experiment data.". \
 
                 response = {"error": website_message,
                             "status": "KO"}
-                
+
                 # Send email to the editors
                 # (unless it's a timeout in a published demo)
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
