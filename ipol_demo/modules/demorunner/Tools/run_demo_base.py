@@ -9,8 +9,8 @@ import math
 # importing image for python commands in DDL scripts
 import signal
 
-from image import image
-import PIL
+# from image import image
+# import PIL
 
 # -----------------------------------------------------------------------------
 from threading import Lock
