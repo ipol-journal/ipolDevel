@@ -1395,8 +1395,13 @@ attached the failed experiment data.". \
             if origin != 'blobset'and private_mode is None and 'archive' in ddl:
                 ddl_archive = ddl['archive']
                 print ddl_archive
-                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
-                                            demorunner_response, self.host_name)
+                try:
+                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                                demorunner_response, self.host_name)
+                except IOError as ex:
+                    message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
@@ -1705,8 +1710,13 @@ attached the failed experiment data.". \
             if (original_exp == 'true' or input_type == 'noinputs') and  'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
-                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
-                                            demorunner_response, self.host_name)
+                try:
+                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                                demorunner_response, self.host_name)
+                except IOError as ex:
+                    message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
 
         except Exception as ex:
             message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
