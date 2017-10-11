@@ -276,11 +276,11 @@ class Core(object):
         """
         Get stats of all the demorunners to be used by the external tools like the CP
         """
-        response = {}
         demorunners = []
         #
         for dr in self.demorunners:
             try:
+                response = {}
                 response = self.post(self.demorunners[dr].get('server'), 'demorunner', 'get_workload')
                 if not response.ok:
                     demorunners.append({'name': dr, 'status': 'KO'})
@@ -299,16 +299,13 @@ class Core(object):
                 demorunners.append({'name': dr, 'status': 'KO'})
                 continue
             except Exception as ex:
-                print ex
-                message = "Couldn't get the DRs workload"
+                message = "Couldn't get the DRs workload. Error = {}".format(ex)
+                print message
                 self.logger.exception(message)
-                response["status"] = "KO"
-                response["message"] = message
+                return json.dumps({'status': 'KO', 'message': message})
 
         # Return the DRs in the response
-        response['demorunners'] = demorunners
-        response["status"] = "OK"
-        return json.dumps(response)
+        return json.dumps({'status': 'OK', 'demorunners': demorunners})
 
     def demorunners_workload(self):
         """
@@ -1187,6 +1184,14 @@ attached the failed experiment data.". \
             else:
                 return json.dumps({"status": "KO", "error": "no 'build' section found in the DDL"})
 
+            if 'archive' in ddl:
+                # The params must be a list
+                if 'params' in ddl['archive']:
+                    if not isinstance(ddl['archive']['params'], list):
+                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl['archive']['params']).__name__)
+                        return json.dumps({"status": "KO", "error": message})
+
+
             ddl_inputs = ddl['inputs']
 
         except Exception as ex:
@@ -1387,8 +1392,13 @@ attached the failed experiment data.". \
             if origin != 'blobset'and private_mode is None and 'archive' in ddl:
                 ddl_archive = ddl['archive']
                 print ddl_archive
-                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
-                                            demorunner_response, self.host_name)
+                try:
+                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                                demorunner_response, self.host_name)
+                except IOError as ex:
+                    message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
@@ -1497,6 +1507,13 @@ attached the failed experiment data.". \
             else:
                 response = {"status": "KO", "error": "no 'build' section found in the DDL"}
                 return json.dumps(response)
+
+            if 'archive' in ddl_json:
+                if 'params' in ddl_json['archive']:
+                    # The params must be a list
+                    if not isinstance(ddl_json['archive']['params'], list):
+                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl_json['archive']['params']).__name__)
+                        return json.dumps({"status": "KO", "error": message})
 
             ddl_inputs = ddl_json.get('inputs')
 
@@ -1670,7 +1687,7 @@ attached the failed experiment data.". \
 
                 response = {"error": website_message,
                             "status": "KO"}
-                
+
                 # Send email to the editors
                 # (unless it's a timeout in a published demo)
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
@@ -1690,8 +1707,13 @@ attached the failed experiment data.". \
             if (original_exp == 'true' or input_type == 'noinputs') and  'archive' in ddl_json:
                 ddl_archive = ddl_json['archive']
                 print ddl_archive
-                SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
-                                            demorunner_response, self.host_name)
+                try:
+                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                                                demorunner_response, self.host_name)
+                except IOError as ex:
+                    message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
 
         except Exception as ex:
             message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)

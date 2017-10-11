@@ -127,8 +127,8 @@ class Archive(object):
         """
         mime = magic.Magic(mime=True)
         fileformat = mime.from_file(the_file)
-        extension = fileformat.split('/')
-        return extension[0]
+        fileformat = fileformat.split('/')[0]
+        return fileformat
 
     def __init__(self):
         """
@@ -149,24 +149,22 @@ class Archive(object):
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
         try:
-            thumbs_s = int(cherrypy.config.get("thumbs_size"))
-        except Exception:
-            thumbs_s = 256
-
-        try:
             self.number_of_experiments_by_pages = \
                 int(cherrypy.config.get("number_of_experiments_by_pages"))
         except Exception:
-            self.number_of_experiments_by_pages = 12
+            self.number_of_experiments_by_pages = 10
 
-        self.thumbs_size = (thumbs_s, thumbs_s)
-
-        self.mkdir_p(self.logs_dir)
         self.mkdir_p(self.database_dir)
         self.mkdir_p(self.blobs_dir)
         self.mkdir_p(self.blobs_thumbs_dir)
 
-        self.logger = self.init_logging()
+        # Logs
+        try:
+            if not os.path.exists(self.logs_dir):
+                os.makedirs(self.logs_dir)
+            self.logger = self.init_logging()
+        except Exception as ex:
+            print "Failed to create log dir. Error: {}".format(ex)
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -228,8 +226,6 @@ class Archive(object):
         Initialize the database used by the module if it doesn't exist.
         If the file is empty, the system delete it and create a new one.
         """
-        status = True
-
         if os.path.isfile(self.database_file):
 
             file_info = os.stat(self.database_file)
@@ -240,9 +236,9 @@ class Archive(object):
                     self.error_log("init_database", 'Database file was empty')
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.error_log("init_database", str(ex))
-                    status = False
-                    return status
+                    message = "Error in init_database. Error = {}".format(ex)
+                    self.logger.exception(message)
+                    return False
 
                 print "Creating a correct new database"
 
@@ -267,16 +263,17 @@ class Archive(object):
                 conn.close()
 
             except Exception as ex:
-                self.error_log("init_database", (str(ex)))
-
+                message = "Error in init_database. Error = {}".format(ex)
+                self.logger.exception(message)
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.error_log("init_database", str(ex))
-                        status = False
+                        message = "Error in init_database. Error = {}".format(ex)
+                        self.logger.exception(message)
+                        return False
 
-        return status
+        return True
 
     #####
     # adding an experiment to the archive database
@@ -305,106 +302,98 @@ class Archive(object):
 
         return new_path, subdirs
 
-    def add_to_blob_table(self, conn, blob_dict, copied_files_list):
+    def copy_file_in_folder(self, original_path, main_dir, hash_file, extension):
+        """
+        Write a file in its respective folder
+        """
+        try:
+            final_path, _ = self.get_new_path(main_dir, hash_file, extension)
+            shutil.copyfile(original_path, final_path)
+            return final_path
+        except Exception as ex:
+            message = "Failure in copy_file_in_folder. Error={}".format(ex)
+            self.logger.exception(message)
+            print message
+            raise
+
+    def add_blob_in_the_database(self, conn, hash_file, type_file, format_file):
+        """
+        check if a blob already exists in the database. If not, we include it
+        return the id of the blob
+        """
+        try:
+            cursor_db = conn.cursor()
+            #First, we check if the blob is already in the database
+            query = cursor_db.execute("""
+                SELECT id FROM blobs WHERE hash = ?
+                """, (hash_file,))
+            row = query.fetchone()
+            if row is not None:
+                return int(row[0])
+
+            cursor_db.execute("""
+                INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
+                """, (hash_file, type_file, format_file,))
+            # get id of the blob previously inserted
+            return int(str(cursor_db.lastrowid))
+        except Exception as ex:
+            message = "Failure in add_blob_in_the_database. Error = {}".format(ex)
+            self.logger.exception(message)
+            raise
+
+    def add_blob(self, conn, blob_dict, copied_files_list):
         """
         This function checks if a blob exists in the table. If it exists,
         the id is returned. If not, the blob is added, then the id is returned.
         """
-
         # List of copied files. Useful to delete them if an exception is thrown
         # copied_files = []
-
         try:
-            # len = 1 --> Non-image
-            # len = 2 --> Image and thumbnail
+            thumb_key = list(key for key, value in blob_dict.iteritems() if 'thumbnail' in key)
+            if thumb_key:
+                blob_thumbnail_name = thumb_key[0]
+                blob_thumbnail_path = blob_dict[blob_thumbnail_name]
+                del blob_dict[blob_thumbnail_name]
 
-            if len(blob_dict) == 1:
-                for key, value in blob_dict.items():
-                    blob_name = key
-                    blob_path = value
+            blob_name = blob_dict.keys()[0]
+            blob_path = blob_dict.values()[0]
 
-                copy_thumbnail = False
-
-            else:
-                blob, blob_thumbnail = blob_dict.items()
-                blob_name = blob[0]
-                blob_path = blob[1]
-                blob_thumbnail_name = blob_thumbnail[0]
-                blob_thumbnail_path = blob_thumbnail[1]
-                copy_thumbnail = True
-
-                # The dictionary can be unordered.
-                # We need to ensure that the thumbnail is the second value.
-                # If not, we must order it correctly
-                if blob_thumbnail_name.find('_thumbnail') == -1:
-                    # We correct the routes and the names.
-                    blob_name = blob_thumbnail_name
-                    blob_path_aux = blob_thumbnail_path
-                    blob_thumbnail_path = blob_path
-                    blob_path = blob_path_aux
-
-            id_blob = int()
             hash_file = self.get_hash_blob(blob_path)
             format_file = self.file_format(blob_path)
 
             _, type_file = os.path.splitext(blob_path)
-            extension = type_file.split('.')
-            type_file = extension[1]
+            type_file = type_file.split('.')[1]
             type_file.lower()
 
-            # Look for the given hash in the blobs table
-            # Returns the blob id of the one with that hash (if exists)
-            cursor_db = conn.cursor()
-            query = cursor_db.execute("""
-            SELECT id FROM blobs WHERE hash = ?
-            """, (hash_file,))
-            row = query.fetchone()
+            id_blob = self.add_blob_in_the_database(conn, hash_file, type_file, format_file)
+            #copy the files in their respective folders
+            path_new_blob = self.copy_file_in_folder(blob_path, self.blobs_dir, hash_file, type_file)
+            copied_files_list.append(path_new_blob)
+            if thumb_key:
+                path_new_thumbnail = self.copy_file_in_folder(blob_thumbnail_path, self.blobs_thumbs_dir, hash_file, "jpeg")
+                copied_files_list.append(path_new_thumbnail)
 
-            # If hash already exists, use the blob id that was returned
-            # Useful to reference the same blob from different experiments and
-            # to avoid storing the same hash with different blob id
-            if row is not None:
-                id_blob = int(row[0])
-            # If the hash was not found, it must be inserted into the blobs table
-            else:
-                # insert the new blob
-                cursor_db.execute("""
-                INSERT INTO blobs(hash, type, format) VALUES(?, ?, ?)
-                """, (hash_file, type_file, format_file,))
-
-                # get id of the blob previously inserted
-                id_blob = int(str(cursor_db.lastrowid))
-
-                # write blob file to disk
-                path_new_file, _ = self.get_new_path(self.blobs_dir, hash_file, type_file)
-                copied_files_list.append(path_new_file)
-                shutil.copyfile(blob_path, path_new_file)
-
-                # write thumbnail file to disk
-                if copy_thumbnail:
-                    path_new_thumbnail, _ = self.get_new_path(self.blobs_thumbs_dir, hash_file, "jpeg")
-                    copied_files_list.append(path_new_thumbnail)
-                    shutil.copyfile(blob_thumbnail_path, path_new_thumbnail)
-
+            return id_blob, blob_name
         except Exception as ex:
-            self.error_log("add_to_blob_table", str(ex))
-
-        return id_blob, blob_name
+            message = "Failure in add_blob. Error = {}".format(ex)
+            self.logger.exception(message)
+            print message
+            raise
 
     @staticmethod
     def update_exp_table(conn, demo_id, parameters):
         """
-        This function update the experiment table.
+        This function update the experiment table
         """
         cursor_db = conn.cursor()
         cursor_db.execute("""
         INSERT INTO
         experiments (id_demo, params, timestamp)
         VALUES (?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters))
-
         return int(cursor_db.lastrowid)
 
-    def update_blob_table(self, conn, blobs, copied_files_list):
+
+    def update_blob(self, conn, blobs, copied_files_list):
         """
         This function updates the blobs table.
         It return a dictionary of data to be added to the correspondences table.
@@ -415,11 +404,11 @@ class Archive(object):
             dict_corresp = []
 
             for blob_element in dict_blobs:
-                id_blob, blob_name = self.add_to_blob_table(conn, blob_element, copied_files_list)
+                id_blob, blob_name = self.add_blob(conn, blob_element, copied_files_list)
                 dict_corresp.append({'blob_id': id_blob, 'blob_name': blob_name})
 
         except Exception as ex:
-            self.error_log("update_blob_table", str(ex))
+            self.logger.exception("update_blob. Error {}".format(ex))
             raise
 
         return dict_corresp
@@ -431,7 +420,6 @@ class Archive(object):
                 blobs, experiments, and descriptions of blobs.
         """
         cursor_db = conn.cursor()
-
         for item in dict_corresp:
             cursor_db.execute("""
             INSERT INTO
@@ -447,21 +435,20 @@ class Archive(object):
         data = {"status": "OK"}
         # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
-
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
             id_experiment = self.update_exp_table(conn, demo_id, parameters)
-            dict_corresp = self.update_blob_table(conn, blobs, copied_files_list)
+            dict_corresp = {}
+            dict_corresp = self.update_blob(conn, blobs, copied_files_list)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
             conn.close()
             data["id_experiment"] = id_experiment
-
         except Exception as ex:
-            self.error_log("add_experiment", str(ex))
+            message = "Failure in add_experiment. Error = {}".format(ex)
+            self.logger.exception(message)
             data["status"] = "KO"
-
             try:
                 # Execute database rollback
                 conn.rollback()
@@ -492,19 +479,13 @@ class Archive(object):
         conn = None
         try:
             conn = lite.connect(self.database_file)
-
             cursor_db = conn.cursor()
-
             cursor_db.execute("""SELECT params, timestamp
                 FROM experiments WHERE id = ?""", (experiment_id,))
-
             row = cursor_db.fetchone()
             data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1])
-
             conn.close()
-
         except Exception as ex:
-
             data["status"] = "KO"
             self.error_log("get_experiment", str(ex))
 
@@ -567,9 +548,11 @@ class Archive(object):
         """
         dict_file = {}
         dict_file["url"] = self.url + path_file
-        dict_file["url_thumb"] = self.url + path_thumb
         dict_file["name"] = name
         dict_file["id"] = id_blob
+        if os.path.exists(path_thumb):
+            dict_file["url_thumb"] = self.url + path_thumb
+
         return dict_file
 
     def get_data_experiment(self, conn, id_exp, parameters, date):
@@ -577,32 +560,36 @@ class Archive(object):
         Build a dictionnary containing all the datas needed on a given
                 experiment for building the archive page.
         """
-
         dict_exp = {}
         list_files = []
         path_file = str()
         path_thumb = str()
-        cursor_db = conn.cursor()
 
-        cursor_db.execute("""
-            SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
-            INNER JOIN correspondence cor ON blb.id=cor.id_blob
-            INNER JOIN experiments exp ON cor.id_experiment=exp.id
-            WHERE id_experiment = ?""", (id_exp,))
+        try:
+            cursor_db = conn.cursor()
+            cursor_db.execute("""
+                SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
+                INNER JOIN correspondence cor ON blb.id=cor.id_blob
+                INNER JOIN experiments exp ON cor.id_experiment=exp.id
+                WHERE id_experiment = ?""", (id_exp,))
 
-        all_rows = cursor_db.fetchall()
+            all_rows = cursor_db.fetchall()
 
-        for row in all_rows:
-            path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
-            path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
-            list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
+            for row in all_rows:
+                path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
+                path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
+                list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
-        dict_exp["id"] = id_exp
-        dict_exp["date"] = date
-        dict_exp["parameters"] = json.loads(parameters)
-        dict_exp["files"] = list_files
-
-        return dict_exp
+            dict_exp["id"] = id_exp
+            dict_exp["date"] = date
+            dict_exp["parameters"] = json.loads(parameters)
+            dict_exp["files"] = list_files
+            return dict_exp
+        except Exception as ex:
+            message = "Failure in get_data_experiment. Error = {}".format(ex)
+            print message
+            self.logger.exception(message)
+            raise
 
     def get_experiment_page(self, conn, id_demo, page):
         """
@@ -662,9 +649,7 @@ class Archive(object):
 
             conn.close()
 
-
         except Exception as ex:
-
             data["status"] = "KO"
             self.error_log("get_page", str(ex))
             try:
@@ -832,6 +817,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         """
         data = {}
         data["status"] = "KO"
+        conn = None
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
@@ -844,16 +830,16 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             results = cursor_db.fetchall()
             data["nb_experiments"] = results[0][0]
             data["nb_blobs"] = results[0][1]
-
-            conn.close()
             data["status"] = "OK"
 
         except Exception as ex:
-            self.error_log("stats", str(ex))
-            try:
+            message = "Failure in stats function. Error: {}".format(ex)
+            print message
+            self.logger.exception(message)
+        finally:
+            if conn is not None:
                 conn.close()
-            except Exception as ex:
-                pass
+
         return json.dumps(data)
 
     @cherrypy.expose
@@ -893,11 +879,13 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             for row in cursor_db.fetchall():
                 demoid = row[0]
                 demo_list.append(demoid)
+
             data["demo_list"] = demo_list
             data["status"] = "OK"
         except Exception as ex:
-            self.error_log("demo_list", str(ex))
-            data["error"] = str(ex)
+            message = "Failure in demo_list. Error = {}".format(ex)
+            self.logger.exception(message)
+            data["error"] = message
             try:
                 conn.close()
             except Exception as ex:
@@ -910,7 +898,6 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         """
         Delete the demo from the archive.
         """
-
         status = {"status": "KO"}
         try:
             # Get all experiments for this demo

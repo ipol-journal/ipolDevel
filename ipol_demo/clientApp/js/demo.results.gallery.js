@@ -35,19 +35,24 @@ $.fn.gallery_new = function(result, index)  {
   var img = result.contents[contentKeys[0]].img;
   var contentType = typeof(img);
   var idx = 0;
+  var src = [];
   if (contentType === "string") { // single image
     $("#" + imgContainerLeft).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img : eval(img)) + ' class=gallery-img draggable=false></img>');
     $("#" + imgContainerRight).append('<img src=' + work_url + (img.indexOf("'") == -1 ? img : eval(img)) + ' class=gallery-img draggable=false></img>');
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left di-inline');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
+    src.push((img.indexOf("'") == -1 ? img : eval(img)));
   } else { // array of images
     for (var i = 0; i < img.length; i++) {
       $("#" + imgContainerLeft).append('<img src=' + work_url + (img[i].indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
       $("#" + imgContainerRight).append('<img src=' + work_url + (img[i].indexOf("'") == -1 ? img[i] : eval(img[i])) + ' class=gallery-img draggable=false></img>');
+      src.push(img[i].indexOf("'") == -1 ? img[i] : eval(img[i]));
     }
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right');
   }
+
+  $("." + gallerySelector).setGalleryMinHeight(work_url, src);
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
   $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
@@ -202,7 +207,7 @@ $.fn.appendZoom = function(index, leftItems) {
   zoom.removeClass("di-none");
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
-    $(".gallery_" + index).css({ height: parseInt($(".gallery_" + index).css('min-height')) * zoomLevel + "px" });
+    $(".gallery_" + index).css({ height: (parseInt($(".gallery_" + index).css('min-height')) || parseInt($(".gallery_" + index).css('height'))) * zoomLevel + "px" });
     $(this).adjustSize(index);
     $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
   });

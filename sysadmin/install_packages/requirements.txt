@@ -2,33 +2,33 @@
 # pip install -r "requirements.txt"
 
 # General
-psutil
-python-magic
-pypng
-numpy
-libtiff
-pillow
-simplejson
-matplotlib
-validoot
-future
-pyfftw
-sklearn
-cython
-sortedcontainers
-tifffile
-weightedstats
-bs4
-utm
-mgrs
-requests
-av
+av               # video, binding to ffmpeg (thumbnails)
+bs4              # Beautiful Soup, HTML & XML parser
+cython           # C for Python
+future           # Python 2 > 3 compatibility
+libtiff          # wrapper on C libtiff
+matplotlib       # plotting with python
+mgrs             # mgrs geo coordinates
+numpy            # math package
+pillow           # Python Image Library
+psutil           # system monitoring (load balancing demorunner)
+pyfftw           # wrapper around FFTW, discrete Fourier transform (deps: fftw-3, macos bug)
+pypng            # native Python, clames for better support
+python-magic     # binding to libmagic, file identification (archive/thumbnails)
+requests         # http for humans
+simplejson       # json parser
+sklearn          # scikit-learn, Machine Learning
+sortedcontainers # data structure
+tifffile         # tiff (core/core.py#convert_tiff_to_png)
+utm              # geo conversion
+validoot         # validator (demoinfo/model.py)
+weightedstats    # stats
 
 
 # Needed in one of our private projects on satellite imaging
 # The package libgeos-dev needs to be installed with apt-get first
 geojson
-shapely
+netcdf
 planet
 rasterio
-netcdf
+shapely

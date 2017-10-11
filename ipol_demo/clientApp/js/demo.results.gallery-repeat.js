@@ -48,6 +48,7 @@ $.fn.repeat_gallery = function(result, index)  {
   $("#" + imgContainerRight).addClass("gallery-blob-container di-none");
 
   let idx = 0;
+  var src = [];
   for (var i = 0; i < contentArray.length; i++) {
     $("#" + imgContainerLeft).append('<img src=' + work_url + eval(contentArray[i]) + ' class=gallery-img draggable=false></img>');
     $("#" + imgContainerRight).append('<img src=' + work_url + eval(contentArray[i]) + ' class=gallery-img draggable=false></img>');
@@ -55,7 +56,10 @@ $.fn.repeat_gallery = function(result, index)  {
     $("#" + imgContainerRight).append('<p id=gallery-' +index+ '-blob-title-Right></p>');
     $("#" + imgContainerLeft + " > img").addClass('gallery-' +index+ '-blob-left di-inline');
     $("#" + imgContainerRight + " > img").addClass('gallery-' +index+ '-blob-right di-inline');
+    src.push(eval(contentArray[i]));
   }
+  $("." + gallerySelector).setGalleryMinHeight(work_url, src);
+
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-"+index+"-zoom-container></div>");
   $("#gallery-"+index+"-zoom-container").appendZoom(index, leftItems);
