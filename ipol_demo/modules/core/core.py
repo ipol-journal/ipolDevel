@@ -58,6 +58,7 @@ from errors import IPOLDemoExtrasError
 from errors import IPOLExtractError
 from errors import IPOLInputUploadError
 from errors import IPOLCopyBlobsError
+from errors import IPOLInputUploadTooLargeError
 from errors import IPOLProcessInputsError
 
 
@@ -690,8 +691,7 @@ class Core(object):
                 size += len(data)
                 if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
                     # file too heavy
-                    # Bad Request
-                    raise cherrypy.HTTPError(400, "File too large, resize or compress more")
+                    raise IPOLInputUploadTooLargeError(i, evaluate(inputs_desc[i]['max_weight']))
 
                 file_save.write(data)
             file_save.close()
@@ -1235,6 +1235,11 @@ attached the failed experiment data.". \
                                     'status': 'KO'}
                         return json.dumps(res_data)
 
+            except IPOLInputUploadTooLargeError as ex:
+                message = 'Uploaded input #{} over the maximum allowed weight {} bytes'.format(ex.index, ex.max_weight)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                return json.dumps(res_data)
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
@@ -1547,6 +1552,11 @@ attached the failed experiment data.". \
             try:
                 self.copy_blobs(work_dir, input_type, blobs, ddl_inputs)
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
+            except IPOLInputUploadTooLargeError as ex:
+                message = 'Uploaded input #{} over the maximum allowed weight {} bytes'.format(ex.index, ex.max_weight)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                return json.dumps(res_data)
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,

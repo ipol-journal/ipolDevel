@@ -36,3 +36,13 @@ class IPOLExtractError(Exception):
     IPOLExtractError
     """
     pass
+    
+
+class IPOLInputUploadTooLargeError(Exception):
+    """
+    IPOLInputUploadTooLargeError
+    """
+    def __init__(self, index, max_weight):
+        self.index = index
+        self.max_weight = int(max_weight)
+        super(IPOLInputUploadTooLargeError, self)
