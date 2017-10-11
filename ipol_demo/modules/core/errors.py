@@ -46,3 +46,12 @@ class IPOLInputUploadTooLargeError(Exception):
         self.index = index
         self.max_weight = int(max_weight)
         super(IPOLInputUploadTooLargeError, self)
+
+
+class IPOLMissingRequiredInputError(Exception):
+    """
+    IPOLMissingRequiredInputError
+    """
+    def __init__(self, index):
+        self.index = index
+        super(IPOLMissingRequiredInputError, self)
