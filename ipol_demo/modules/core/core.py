@@ -59,6 +59,7 @@ from errors import IPOLExtractError
 from errors import IPOLInputUploadError
 from errors import IPOLCopyBlobsError
 from errors import IPOLInputUploadTooLargeError
+from errors import IPOLMissingRequiredInputError
 from errors import IPOLProcessInputsError
 
 
@@ -658,7 +659,7 @@ class Core(object):
                 if 'required' not in inputs_desc[i].keys() or \
                         inputs_desc[i]['required']:
                     # missing file
-                    raise cherrypy.HTTPError(400, "Missing input file number {0}".format(i))
+                    raise IPOLMissingRequiredInputError(i)
                 else:
                     # skip this input
                     continue
@@ -1240,6 +1241,11 @@ attached the failed experiment data.". \
                 res_data = {'error': message,
                             'status': 'KO'}
                 return json.dumps(res_data)
+            except IPOLMissingRequiredInputError as ex:
+                message = 'Missing required input #{}'.format(ex.index)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                return json.dumps(res_data)
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
@@ -1554,6 +1560,11 @@ attached the failed experiment data.". \
                 self.process_inputs(work_dir, ddl_inputs, crop_info)
             except IPOLInputUploadTooLargeError as ex:
                 message = 'Uploaded input #{} over the maximum allowed weight {} bytes'.format(ex.index, ex.max_weight)
+                res_data = {'error': message,
+                            'status': 'KO'}
+                return json.dumps(res_data)
+            except IPOLMissingRequiredInputError as ex:
+                message = 'Missing required input #{}'.format(ex.index)
                 res_data = {'error': message,
                             'status': 'KO'}
                 return json.dumps(res_data)
