@@ -24,19 +24,25 @@ from PIL import Image
 import av
 import numpy as np
 import matplotlib
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from pydub import AudioSegment
 
 
 
 # TOTHINK, multithreading, on the first level folders ? On a big list ?
 
 class ArchiveThumbs(object):
-    srcdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+"/ipol_demo/modules/archive/staticData/blobs/"
-    destdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+"/ipol_demo/modules/archive/staticData/blobs_thumbs"
-    # resize to a default height, deisgn : a band of pictures
-    height = 256
+    REFRESH = 1
+    REPLACE = 2
+    CLEAN = 4
+    action = 0
+    # Home dir, relative to this
+    home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+    # TODO better parametrization
+    srcdir = home+"/ipol_demo/modules/archive/staticData/blobs/"
+    # TODO better parametrization
+    destdir = home+"/ipol_demo/modules/archive/staticData/blobs_thumbs"
+    # resize to a default height, design : a band of pictures
+    height = 128
 
     @staticmethod
     def main():
@@ -52,9 +58,15 @@ replace: loop on all source files, force thumbnail creation
 clean: loop on thumbnail files, delete the ones with no correspondant source file'''
         )
         args = parser.parse_args()
-        if args.action == 'replace': print("replace")
-        elif args.action == 'refresh': print("refresh")
-        elif args.action == 'clean': print("clean")
+        if args.action == 'refresh':
+            ArchiveThumbs.action = ArchiveThumbs.REFRESH
+            print("refresh")
+        elif args.action == 'replace':
+            ArchiveThumbs.action = ArchiveThumbs.REPLACE
+            print("replace")
+        elif args.action == 'clean':
+            ArchiveThumbs.action = ArchiveThumbs.CLEAN
+            print("clean")
         ArchiveThumbs.walk(ArchiveThumbs.srcdir)
 
     @staticmethod
@@ -85,18 +97,17 @@ clean: loop on thumbnail files, delete the ones with no correspondant source fil
 
         if format == "image": dest = dest+".jpeg"
         elif format == "video": dest = dest+".jpeg"
-        elif format == "audio": dest = dest+".png" # matplot of
         else: return
 
         # Create dest folder
         if not os.path.isdir(os.path.dirname(dest)): os.makedirs(os.path.dirname(dest))
-        if os.path.exists(dest) and os.path.getmtime(dest) > os.path.getmtime(src): return
+        if ArchiveThumbs.action == ArchiveThumbs.REFRESH and os.path.exists(dest) and os.path.getmtime(dest) > os.path.getmtime(src): return
 
         print(format+" "+relpath)
         if format == "image": ArchiveThumbs.image_thumb(src, dest)
         elif format == "video": ArchiveThumbs.video_thumb(src, dest)
-        elif format == "audio": ArchiveThumbs.audio_thumb(src, dest)
-
+        # [FG] possible, implemented with a dependency to pydub
+        # elif format == "audio": ArchiveThumbs.audio_thumb(src, dest)
 
     @staticmethod
     def image_thumb(src, dest):
@@ -111,7 +122,7 @@ clean: loop on thumbnail files, delete the ones with no correspondant source fil
     @staticmethod
     def pil_thumb(im, dest):
         """ From a PIL image object, create a thumbnail to dest path, shared by image and video """
-        width = int(round(im.width*ArchiveThumbs.height/im.height));
+        width = int(round(float(im.width*ArchiveThumbs.height)/im.height));
         im = im.convert('RGB') # RGBA image imposible to convert to JPEG
         # .resize allow better control than thumbnail
         im = im.resize((width, ArchiveThumbs.height), Image.LANCZOS)
@@ -127,27 +138,6 @@ clean: loop on thumbnail files, delete the ones with no correspondant source fil
         im = frame.to_image()
         ArchiveThumbs.pil_thumb(im, dest)
         container.close()
-
-    @staticmethod
-    def audio_thumb(src, dest):
-        sound = AudioSegment.from_file(src)
-        samples = sound.get_array_of_samples()
-        signal = np.array(samples)
-
-        height = ArchiveThumbs.height
-        plt.close('all')
-        dpi = 50
-        fig = plt.figure(dpi=dpi)
-        plt.plot(signal, color="black", linewidth=0.1, alpha=0.9)
-        # set image size at the end
-        fig.set_size_inches((height*4/3)/dpi, height/dpi)
-        # not
-        plt.axis('off')
-        # important to frame around the graph with no margin
-        plt.subplots_adjust(left=-0.04, right=1.04, top=1.1, bottom=-0.1)
-        # DO NOT bbox_inches='tight', pad_inches=0, will change final size and layout upper
-        fig.savefig(dest, transparent=True)
-        plt.close('all')
 
 
 if __name__ == '__main__':
