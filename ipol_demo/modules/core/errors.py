@@ -16,6 +16,11 @@ class IPOLInputUploadError(Exception):
     """
     pass
 
+class IPOLUploadedInputRejectedError(Exception):
+    """
+    IPOLUploadedInputRejectedError
+    """
+    pass
 
 class IPOLCopyBlobsError(Exception):
     """

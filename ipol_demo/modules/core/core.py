@@ -59,6 +59,7 @@ from errors import IPOLExtractError
 from errors import IPOLInputUploadError
 from errors import IPOLCopyBlobsError
 from errors import IPOLInputUploadTooLargeError
+from errors import IPOLUploadedInputRejectedError
 from errors import IPOLMissingRequiredInputError
 from errors import IPOLProcessInputsError
 
@@ -681,7 +682,7 @@ class Core(object):
             # Reject the uploaded file it's not 'data' and it can't be guessed
             ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
             if inputs_desc[i]['type'] != "data" and ext_of_uploaded_blob is None:
-                raise IPOLInputUploadError("The type of the uploaded file could not be recognized and it has been rejected")
+                raise IPOLUploadedInputRejectedError("The type of the uploaded file could not be recognized and it has been rejected")
             # If it's data, we just put the extension given at the DDL
             if ext_of_uploaded_blob is None:
                 ext_of_uploaded_blob = inputs_desc[i]['ext']
@@ -1270,6 +1271,9 @@ attached the failed experiment data.". \
                 self.send_internal_error_email(message)
                 res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
+            except IPOLUploadedInputRejectedError as ex:
+                res_data = {'error': str(ex), 'status': 'KO'}
+                return json.dumps(res_data)
             except IPOLInputUploadError as ex:
                 message = '** INTERNAL ERROR **. Error uploading input of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
@@ -1592,6 +1596,9 @@ attached the failed experiment data.". \
                             'status': 'KO'}
                 self.logger.exception(message)
                 print message
+                return json.dumps(res_data)
+            except IPOLUploadedInputRejectedError as ex:
+                res_data = {'error': str(ex), 'status': 'KO'}
                 return json.dumps(res_data)
             except IPOLInputUploadError as ex:
                 message = 'Error uploading input of demo {}: {}'.format(demo_id, ex)
