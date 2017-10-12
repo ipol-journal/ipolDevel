@@ -668,7 +668,6 @@ class Core(object):
             file_up.file.seek(0)
             mime_uploaded_blob = mime.from_buffer(file_up.file.read())
             type_of_uploaded_blob, _ = mime_uploaded_blob.split('/')
-            ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
 
             if 'ext' not in inputs_desc[i]:
                 raise IPOLInputUploadError("The DDL doesn't have a 'ext' (extension) field")
@@ -678,6 +677,18 @@ class Core(object):
 
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
                 raise IPOLInputUploadError("The DDL type doesn't match the uploaded file")
+
+            # Reject the uploaded file it's not 'data' and it can't be guessed
+            ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
+            if inputs_desc[i]['type'] != "data" and ext_of_uploaded_blob is None:
+                raise IPOLInputUploadError("The type of the uploaded file could not be recognized and it has been rejected")
+            # If it's data, we just put the extension given at the DDL
+            if ext_of_uploaded_blob is None:
+                ext_of_uploaded_blob = inputs_desc[i]['ext']
+
+            if inputs_desc[i]['type'] == "data":
+                if ext_of_uploaded_blob is None:
+                    ext_of_uploaded_blob = ".dat"
 
             # We keep the file according it was uploaded
             # process_inputs will make the possible modifications
