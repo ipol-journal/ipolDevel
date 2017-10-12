@@ -61,6 +61,8 @@ p.p {
 }
 div.pars,
 a.thumb {
+  margin: 0 10px 5px 0;
+
   border-style: solid;
   border-radius: 5px;
   background-color: #EEE;
@@ -70,7 +72,6 @@ a.thumb {
   flex-basis: -moz-min-content;
   flex-basis: min-content;
 
-  margin: 0 10px 5px 0;
   padding: 3px 3px 0 3px;
 
   text-align: center;
@@ -81,6 +82,7 @@ a.thumb:hover {
 }
 img.thumb {
   display: block;
+  height: 128px;
 }
 div.pars {
   margin-right: 1rem;
