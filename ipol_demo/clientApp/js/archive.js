@@ -5,8 +5,6 @@ var demo_id = new URLSearchParams(window.location.search).get('id');
 var page = new URLSearchParams(window.location.search).get('page');
 // store the ddl object (?)
 var ddl;
-// file extensions with thumbnails, should change
-var thumbformat = { jpeg: true, jpg: true, png: true };
 
 /**
  * document.onload, global populate page
@@ -63,7 +61,7 @@ $(document).ready(function() {
 function paging(data) {
   var html = '';
   html += '\n<nav class="paging">';
-  for (var i=data.number_of_pages; i>0; i--) {
+  for (var i=1; i<=data.number_of_pages; i++) {
     html += '\n<a href="?id=' + demo_id + '&page=' + i + '"';
     if ( i == page ) html += ' class="this"';
     html += '>'+i+'</a>';
@@ -84,30 +82,19 @@ function record(data) {
   html += '\n<hr class="separator"/>';
   html += '\n<div class="record">';
   html += '\n<header>';
-  html += '\n<div class="legend"><b class="id">'+data.id+'</b> '+data.date;
+  html += '\n<div class="legend">Experiment <b class="id">#'+data.id+'</b>.<br/>'+data.date;
   // run time ? seconds ? important ?
   var runtime = data.parameters['run time']+0;
   if (runtime) {
     html += ' (done in '+runtime.toFixed(3)+' s)';
   }
-  html += '</div>';
+  html += '.</div>';
 
-  var files = "";
-  var max = data.files.length;
-  for (var i = 0; i < max; i++) {
-    var url = data.files[i].url;
-    var ext = url.substr(url.lastIndexOf('.')+1);
-    if (thumbformat[ext]) continue;
-    // not empty string, add comma.
-    if (files) files += ", ";
-    files += '<a class="'+ext+'" href="'+url+'">'+data.files[i].name+'</a>';
-  }
-  if (files) {
-    html += '\n<div class="files"><b>Files:</b> ';
-    html += files;
-    html += '</div>';
-  }
   html += '\n</header>';
+
+  // contain pars and thumbs
+  html += '\n<div class="middle">';
+
   // loop on parameters
   if (data.parameters) {
     var pars = "";
@@ -119,11 +106,13 @@ function record(data) {
       pars += '</tr>';
     }
     if (pars) { // maybe no parameters
+      html += '\n<div>'; // the flex container
       html += '\n<div class="pars">';
       html += '\n<table class="pars">';
       html += '\n<caption>Parameters</caption>';
       html += pars;
       html += '\n</table>';
+      html += '\n</div>';
       html += '\n</div>';
     }
   }
@@ -131,16 +120,34 @@ function record(data) {
   html += '\n<div class="thumbs">';
   var max = data.files.length;
   for (var i = 0; i < max; i++) {
+    if (!data.files[i].url_thumb) continue;
+    html += '\n<a href="'+data.files[i].url+'" target="_blank" class="thumb">';
+    html += '\n<img class="thumb" src="'+data.files[i].url_thumb+'"/>';
+    html += '\n'+data.files[i].name;
+    html += '\n</a>';
+  }
+  html += '\n</div>'; // thumbs
+
+  html += '\n</div>'; // middle
+
+
+
+  // other files, below thumbnails
+  var files = "";
+  var max = data.files.length;
+  for (var i = 0; i < max; i++) {
+    if (data.files[i].url_thumb) continue;
     var url = data.files[i].url;
     var ext = url.substr(url.lastIndexOf('.')+1);
-    if (!thumbformat[ext]) continue;
-    html += '\n<figure>';
-    html += '\n<a href="'+data.files[i].url+'"><img src="'+data.files[i].url_thumb+'"/></a>';
-    html += '\n<figcaption>'+data.files[i].name+'</figcaption>';
-    html += '\n</figure>';
+    // not empty string, add comma.
+    if (files) files += ", ";
+    files += '<a class="'+ext+'" target="_blank" href="'+url+'">'+data.files[i].name+'</a>';
   }
-  // loop on files for images
-  html += '\n</div>';
+  if (files) {
+    html += '\n<footer><b>Files</b>: ';
+    html += files;
+    html += '.</footer>';
+  }
   html += '\n</div>\n';
   return html;
 }

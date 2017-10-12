@@ -77,22 +77,30 @@ function loadSingleBlobControls($img) {
       viewMode: 1,
       autoCrop: false,
       dragMode: 'move',
-      wheelZoomRatio: 0.15,
-      toggleDragModeOnDblclick: false
+      wheelZoomRatio: 0.10,
+      responsive: true,
+      toggleDragModeOnDblclick: false     
     });
   else {
     $img.cropper({
       viewMode: 1,
       autoCrop: true,
       dragMode: 'move',
-      wheelZoomRatio: 0.15,
+      wheelZoomRatio: 0.10,
+      responsive: true,
       data: crop_info,
       toggleDragModeOnDblclick: false
     });
     $("#crop-btn").prop('checked', true);
   }
-  $img.on('cropmove cropstart cropend zoom', function (e) {
-    if (e.ratio > 0.25 && e.ratio < 16) {
+  $img.on('cropmove cropstart cropend', function (e) {
+    if ($("#crop-btn").prop('checked')) {
+      var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+      $("#canvas-container").html($(croppedImage));
+    }
+  });
+  $img.on('zoom', function (e) {
+    if (e.ratio >= 0.25 && e.ratio <= 16) {
       $("#editor-zoom").val(e.ratio);
       $("#editor-zoom-value").html(e.ratio.toFixed(2) + 'px');
       if ($("#crop-btn").prop('checked')) {
