@@ -1,11 +1,11 @@
 /* highlight color */
-.paging a  {
+.paging a,
+.record footer b,
+.record b.id {
   color: #5952A6;
 }
 /* soft color */
-.record .files b,
-.record b.id,
-.thumbs figcaption,
+a.thumb,
 table.pars,
 table.pars caption {
   color: #484848;
@@ -13,7 +13,7 @@ table.pars caption {
 
 /* border color */
 div.pars,
-.thumbs figure,
+a.thumb,
 .paging a:hover {
   border-width: 1px;
   border-color: #D1CAE8;
@@ -38,41 +38,51 @@ p.p {
   clear: both;
 }
 .record {
+  margin-top: 2rem;
   margin-bottom: 2rem;
 }
 .record header {
   clear: both;
+
+  margin-bottom: 10px;
+}
+.record footer {
+  margin-top: 5px;
 }
 .record .legend {
   display: inline-block;
 }
-.record .files {
-  display: inline-block;
-  float: right;
-}
-.record b.id {
+.record .middle {
+  display: flex;
 }
 .thumbs {
+  display: flex;
+  flex-wrap: wrap;
 }
-/* design shared by table of parameters and thumbnail */
 div.pars,
-.thumbs figure {
+a.thumb {
   border-style: solid;
   border-radius: 5px;
   background-color: #EEE;
 }
-.thumbs figure {
-  display: inline-block;
+a.thumb {
+  flex-basis: -webkit-min-content;
+  flex-basis: -moz-min-content;
+  flex-basis: min-content;
 
   margin: 0 10px 5px 0;
   padding: 3px 3px 0 3px;
-}
-.thumbs figcaption {
+
   text-align: center;
 }
+a.thumb:hover {
+  color: #000;
+  background-color: #D1CAE8;
+}
+img.thumb {
+  display: block;
+}
 div.pars {
-  float: left;
-
   margin-right: 1rem;
   padding: 3px 3px 0 3px;
 }
@@ -95,19 +105,19 @@ table.pars td {
 table.pars tr:hover {
   color: #000;
 }
-.record img {
-  height: 150px;
-}
 .paging {
-  background-color: #EEE;
   padding: 2px;
+
+  background-color: #EEE;
 }
 .paging a {
-  font-weight: bold;
-  font-size: 14px;
   padding: 1px 3px;
-  background-color: #FFFFFF;
+
   border: 1px solid transparent;
+  background-color: #FFFFFF;
+
+  font-size: 12px;
+  font-weight: bold;
 }
 .paging a:hover {
   color: #000;
