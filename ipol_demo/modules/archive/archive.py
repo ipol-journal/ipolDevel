@@ -358,6 +358,10 @@ class Archive(object):
             blob_name = blob_dict.keys()[0]
             blob_path = blob_dict.values()[0]
 
+            # If the file doesn't exist, just return None
+            if not os.path.isfile(blob_path):
+                return None, None
+
             hash_file = self.get_hash_blob(blob_path)
             format_file = self.file_format(blob_path)
 
