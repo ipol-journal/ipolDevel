@@ -141,7 +141,7 @@ function record(data) {
     var ext = url.substr(url.lastIndexOf('.')+1);
     // not empty string, add comma.
     if (files) files += ", ";
-    files += '<a class="'+ext+'" target="_blank" href="'+url+'">'+data.files[i].name+'</a>';
+    files += '<a class="file '+ext+'" target="_blank" href="'+url+'">'+data.files[i].name+'</a>';
   }
   if (files) {
     html += '\n<footer><b>Files</b>: ';
