@@ -1,10 +1,9 @@
 "use strict"
+
 // global, the demo id
-var demo_id = new URLSearchParams(window.location.search).get('id');
+var demo_id = getParameterByName('id');
 // global, the requested page, null if undefined
-var page = new URLSearchParams(window.location.search).get('page');
-// store the ddl object (?)
-var ddl;
+var page = getParameterByName('page');
 
 /**
  * document.onload, global populate page
@@ -18,10 +17,10 @@ $(document).ready(function() {
   var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id;
   $.getJSON(url, function(data) {
     // ddl is provided as a string (why ? isn't it correct json ?)
-    ddl = JSON.parse(data.last_demodescription.ddl);
+    var ddl = JSON.parse(data.last_demodescription.ddl);
     // console.log(ddl);
     $("#pageTitle").html(ddl.general.demo_title);
-    // this message is shares with demo.js
+    // this message is shared with demo.js
     $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
     $("#citation-link").attr('href', ddl.general.xlink_article);
     $("#articleTab").attr('href', ddl.general.xlink_article);
@@ -150,4 +149,14 @@ function record(data) {
   }
   html += '\n</div>\n';
   return html;
+}
+
+function getParameterByName(name) {
+  var url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+     results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
