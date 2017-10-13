@@ -57,14 +57,22 @@ function printDemoHeader(response) {
 
 // Get Demo_Id from URL.
 function getDemoId() {
-  var urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('id');
+  return getParameterByName('id');
 }
 
 // Get Key from URL.
 function getKey() {
-  var urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('key');
+  return getParameterByName('key');
+}
+
+function getParameterByName(name) {
+  var url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+    results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
 function loadExecution(key) {

@@ -61,6 +61,8 @@ p.p {
 }
 div.pars,
 a.thumb {
+  margin: 0 10px 5px 0;
+
   border-style: solid;
   border-radius: 5px;
   background-color: #EEE;
@@ -70,7 +72,6 @@ a.thumb {
   flex-basis: -moz-min-content;
   flex-basis: min-content;
 
-  margin: 0 10px 5px 0;
   padding: 3px 3px 0 3px;
 
   text-align: center;
@@ -81,6 +82,8 @@ a.thumb:hover {
 }
 img.thumb {
   display: block;
+
+  height: 128px;
 }
 div.pars {
   margin-right: 1rem;
@@ -125,4 +128,45 @@ table.pars tr:hover {
 .paging .this {
   color: #000;
   border-color: #000;
+}
+
+a.file:before {
+  margin-right: 2px;
+  padding: 1px 3px;
+
+  content: "\f016";
+  vertical-align: middle;
+
+  color: #5B4BA6;
+
+  font-family: "icons";
+  font-size: 20px;
+}
+a.file:hover:before {
+  color: #FFF;
+  background-color: #5B4BA6;
+}
+a.pdf:before {
+  content: "\f1c1";
+}
+a.txt:before {
+  content: "\f0f6";
+}
+a.svg:before {
+  content: "\f1c9";
+}
+a.eps:before,
+a.tif:before,
+a.tiff:before {
+  content: "\f03e";
+}
+a.uv:before,
+a.flo:before {
+  content: "\f1c0";
+}
+a.video:before,
+a.mpg:before,
+a.mpeg:before,
+a.avi:before {
+  content: "\f008";
 }
