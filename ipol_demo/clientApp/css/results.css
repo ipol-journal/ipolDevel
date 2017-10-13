@@ -122,7 +122,6 @@
 
 .gallery-blob-container {
   overflow: auto;
-  /* min-height: 300px; */
 
   margin: 0 5px 5px 5px;
 
@@ -151,7 +150,11 @@
   -ms-flex-wrap: nowrap;
       flex-wrap: nowrap;
 
-  max-width: 80%;
+  max-width: calc(100% - 175px);
+}
+
+.blobs-wrapper-compare {
+  max-width: calc(100% - 350px);
 }
 
 div[class^='html_text_'] {

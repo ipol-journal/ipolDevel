@@ -35,7 +35,9 @@ $.fn.checkbox = function(param, index) {
 $.fn.selection_radio = function(param, index) {
   var label = param.comments ? param.comments : param.label;
   var keys = Object.keys(param.values);
-  var values = Object.values(param.values);
+  var values = Object.keys(param.values).map(function(e) {
+    return param.values[e];
+  });
 
   $('.param-' + index).prepend('<span class=param-label >' + label + '</span>');
   $(this).append('<div id=param-' + param.id + '></div>');
@@ -53,7 +55,10 @@ $.fn.selection_radio = function(param, index) {
 
 $.fn.selection_collapsed = function(param, index) {
   var keys = Object.keys(param.values);
-  var values = Object.values(param.values);
+  var values = Object.keys(param.values).map(function(e) {
+    return param.values[e];
+  });
+
   var default_value = "";
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');

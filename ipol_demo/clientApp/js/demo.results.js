@@ -88,13 +88,19 @@ $.fn.gallery = function (result, index) {
       $("#" + "right-blobs-gallery-" + index).append("<span id=gallery-" + index + "-item-right-" + i + " class=gallery-item-selector>" + value + "</span>");
       var src = result.contents[contentKeys[i]];
       if (typeof src == "string") src = [src];
-      $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, Object.values(src));
-      $("#gallery-" + index + "-item-right-" + i).addHoverEvents(index, 'right', work_url, Object.values(src));
+      $("#gallery-" + index + "-item-left-" + i).addHoverEvents(index, 'left', work_url, Object.keys(src).map(function(e) {
+      return src[e];
+      }));
+      $("#gallery-" + index + "-item-right-" + i).addHoverEvents(index, 'right', work_url, Object.keys(src).map(function(e) {
+      return src[e];
+      }));
       if ($("#" + "left-blobs-gallery-" + index).children().length > 0 && !helpers.getFromStorage("gallery-" + index + "-left")) {
         let sources = [];
         var keys = Object.keys(src);
         if (typeof src == "object") {
-          sources = Object.values(src);
+          sources = Object.keys(src).map(function(e) {
+            return src[e];
+          });
           for (var l = 0; l < sources.length; l++) {
             sources[l] = work_url + sources[l];
           }
@@ -127,17 +133,21 @@ $.fn.gallery = function (result, index) {
       }
     }
   }
+
+  $("#left-blobs-gallery-" + index).addClass('blobsList');
+  $("#right-blobs-gallery-" + index).addClass('blobsList');
+  
   $("#left-blobs-gallery-"+index).addMouseOutEvent(index, 'left');
   $("#right-blobs-gallery-" + index).addMouseOutEvent(index, 'right');
   $("." + leftItems + " span:first-child").addClass("gallery-item-selected");
   $("." + rightItems + " span:first-child").addClass("gallery-item-selected");
-
+  
   $("#" + imgContainerLeft + " > img").addClass('gallery-' + index + '-blob-left');
   $("#" + imgContainerRight + " > img").addClass('gallery-' + index + '-blob-right');
-
+  
   $(".gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
   if ($("#left-blobs-gallery-" +index).children().length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
-
+  
   checkOptions(result.type, index);
 }
 
@@ -162,11 +172,14 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
   $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function () {
     if ($(this).is(":checked")) {
-      $(".gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "50%" });
-      $(".gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "50%" });
+      $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "50%" });
+      $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "50%" });
+      $(".gallery-blobs-container-" + galleryIndex).addClass('blobs-wrapper-compare');
+      
     } else {
-      $(".gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "" });
-      $(".gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "" });
+      $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "" });
+      $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "" });
+      $(".gallery-blobs-container-" + galleryIndex).removeClass("blobs-wrapper-compare");
     }
     $("#" + imgContainerRight).toggleClass("di-none");
     $(".gallery_" + galleryIndex).toggleClass("space-between");
@@ -300,10 +313,12 @@ $.fn.html_text = function (result, index) {
   var text = '';
 
   for (let i = 0; i < result.contents.length; i++)
-    text += result.contents[i];
+    if (result.contents[i].charAt(0) == "'" && result.contents[i].charAt(result.contents[i].length - 1) == "'") 
+      text += eval(result.contents[i].replace(/\n/g, "\\n"));
+    else text += result.contents[i].replace(/\n/g, "\\n");
 
-  if (text.charAt(0) == '\'') text = eval(text.replace(/\n/g, "\\n"));
-  else text = eval('\'' + text.replace(/\n/g, "\\n") + '\'');
+  if (text.charAt(0) == "'" && text.charAt(text.length - 1) == "'")
+    text = eval(text);
 
   $('.html_text_' + index).html(text);
 }
