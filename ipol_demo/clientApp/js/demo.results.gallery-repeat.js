@@ -22,7 +22,9 @@ $.fn.repeat_gallery = function(result, index)  {
     contentArray = [contentArray]
   } else if (typeof(contentArray) == "object") {
     let titles = Object.keys(contentArray);
-    contentArray = Object.values(contentArray);
+    contentArray = Object.keys(contentArray).map(function(e) {
+      return contentArray[e];
+    });
   }
   if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = "gallery_" + index;
