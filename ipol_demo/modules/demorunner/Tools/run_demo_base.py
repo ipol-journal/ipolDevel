@@ -123,10 +123,11 @@ class RunDemoBase:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split()
             print "prog_name_and_params ", prog_name_and_params
-            p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file)
+            p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file) if prog_name_and_params else None
 
-        # This second try executes the command line
-        self.wait_proc(p)
+        # Execute it
+        if p:
+            self.wait_proc(p)
 
         # Close files
         stderr_file.close()

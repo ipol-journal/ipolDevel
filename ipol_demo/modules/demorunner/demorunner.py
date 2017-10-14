@@ -638,8 +638,10 @@ stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
             print res_data
             return json.dumps(res_data)
         except Exception as e:
-            self.logger.exception("Uncatched Exception, demo_id={}".format(demo_id))
+            error_str = "Uncatched Exception, demo_id={}".format(demo_id)
+            self.logger.exception(error_str)
             res_data['status'] = 'KO'
+            res_data['algo_info']['status'] = error_str
             res_data['error'] = 'Error: {}'.format(e)
             print res_data
             return json.dumps(res_data)
