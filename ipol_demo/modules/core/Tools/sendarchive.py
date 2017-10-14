@@ -68,9 +68,9 @@ class SendArchive:
     @staticmethod
     def prepare_archive(demo_id, work_dir, ddl_archive, res_data, host_name):
         """
-            prepares everything to archive the inputs/results/parameters
-            puts the information in res_data['archive_blobs'] and
-            res_data['archive_params']
+        prepares everything to archive the inputs/results/parameters
+        puts the information in res_data['archive_blobs'] and
+        res_data['archive_params']
         """
         desc = ddl_archive
 
@@ -89,13 +89,14 @@ class SendArchive:
                 if file_description == "":
                   file_description = filename
 
-                ### THIS MUST BE CHANGED WHEN THE CONVERSION MODULE DEALS WITH THE TIFF IMAGES!
                 route, file_extension = os.path.splitext(file_complete_route)
                 if mime_type == 'image' and file_extension in ['.png','.jpg','.jpeg']:
-                    thumbnail = SendArchive.make_thumbnail(file_complete_route, work_dir)
-                    value = {file_description : file_complete_route,\
-                             thumbnail[1]: thumbnail[0]}
-
+                    try:
+                        thumbnail = SendArchive.make_thumbnail(file_complete_route, work_dir)
+                        value = {file_description : file_complete_route,\
+                                 thumbnail[1]: thumbnail[0]}
+                    except IOError: # Failed to create a thumbnail
+                        value = {file_description: file_complete_route}
                 else:
                     value = {file_description: file_complete_route}
 
