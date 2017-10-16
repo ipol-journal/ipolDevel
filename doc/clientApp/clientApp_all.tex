@@ -51,6 +51,19 @@ that will show an approximation of what failed during execution.
 
 \subsection{Results}
 This module renders the results returned by the core letting the user compare the input and results, based on the ddl results section. 
+It will use the ddl results section and the data returned by the run call with the execution results. These results include:
+
+\begin{itemize}
+	\item gallery: A gallery with compare capabilities.
+	\item gallery\textunderscore new: A gallery with evaluation, repeat, visibility capabilities.
+	\item repeat\textunderscore gallery: A gallery with repeat capabilities
+	\item file\textunderscore download: File download result.
+	\item html\textunderscore text: Html snippet to add in the results view.
+	\item text\textunderscore file: Text file dump in the results view.
+	\item message: Message with custom styling.
+\end{itemize}
+
+All of these result types are defined in the DDL documentation.
 
 
 \subsection{Helpers}
