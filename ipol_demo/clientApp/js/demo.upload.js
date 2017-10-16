@@ -152,7 +152,7 @@ function upload(index, event) {
     // onload needed since Google Chrome doesn't support addEventListener for FileReader
     var fileReader = new FileReader();
     fileReader.onload = function(evt) {
-      files.push(file);
+      files[index] = file;
       var inputName = inputs[index].description;
       uploadedFiles[index] = { 
         blob: evt.target.result, 

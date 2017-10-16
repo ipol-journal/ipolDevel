@@ -4,7 +4,7 @@
   width: 100%;
   padding: 3px 0;
 
-  border-bottom: .5px solid #C6C6C6;
+  border-bottom: 0.5px solid #C6C6C6;
 }
 
 .tabs a:first-child {
@@ -12,27 +12,32 @@
 }
 
 .tabs a {
-  font-family: Arial;
-  font-size: 14px;
-
   padding: 2px 6px;
 
   text-decoration: none;
 
   color: #000;
+  border-width: 1px 1px .5px 1px;
+  border-style: solid;
+  border-color: transparent;
   border-radius: 5px 5px 0 0;
   background-color: #D4C9E9;
+
+  font-family: Arial;
+  font-size: 14px;
 }
 
 .tabs a:hover {
   opacity: 1;
-  border: 1px solid #aaaaaa;
-  border-bottom: none;
+  color: #000000;
+  border-color: #aaaaaa;
+  border-bottom-color: transparent;
+  background-color: #FFF !important;
 }
 
-.selectedTab {
+a.selectedTab {
   opacity: 1;
-  border: 1px solid #aaaaaa;
-  border-bottom: none;
+  border-color: #aaaaaa;
+  border-bottom-color: transparent;
   background-color: #FFF !important;
 }
