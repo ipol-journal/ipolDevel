@@ -31,8 +31,8 @@ function printEditorPanel() {
 
   if (areAllImages()) $("#zoom-container").removeClass('di-none');
   if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if(blobs.length == 1 && editorBlobs[blobs[0]].format == "image") loadSingleBlobControls($blob);
-
+  else if(blobs.length == 1 && (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
+  
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
   saveSelectedInput("left", blobs[0]);
@@ -71,8 +71,8 @@ function printBlobsetList(demoInfo, blobs) {
 
 // Single blob sets controls
 function loadSingleBlobControls($img) {
-  $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>")
-  if (crop_info == null)
+  $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>");
+  if (crop_info == null) {
     $img.cropper({
       viewMode: 1,
       autoCrop: false,
@@ -81,7 +81,7 @@ function loadSingleBlobControls($img) {
       responsive: true,
       toggleDragModeOnDblclick: false     
     });
-  else {
+  } else {
     $img.cropper({
       viewMode: 1,
       autoCrop: true,

@@ -752,6 +752,48 @@ class Core(object):
 
 
     @staticmethod
+    def check_ddl(ddl):
+        """
+        Ensure that the DDL is correctly writen
+        """
+        if not 'general' in ddl:
+            error_message = "Bad DDL syntax: no 'general' section found."
+            return error_message
+        
+        if not 'build' in ddl:
+            error_message = "Bad DDL syntax: no 'build' section found."
+            return error_message
+
+        if not 'run' in ddl:
+            error_message = "Bad DDL syntax: no 'run' section found."
+            return error_message
+
+        if not 'results' in ddl:
+            error_message = "Bad DDL syntax: no 'results' section found."
+            return error_message
+
+        # run exists but is empty 
+        if not ddl['run']:
+            error_message = "Bad DDL run section. The run line is empty."
+            return error_message
+
+        # run exists but it only contains spaces
+        if ddl['run'].decode('utf-8').isspace():
+            error_message = "Bad DDL run section. The run line only contains spaces."
+            return error_message
+
+        if 'archive' in ddl:
+            if 'params' in ddl['archive']:
+                # The params must be a list
+                if not isinstance(ddl['archive']['params'], list):
+                    error_message = "Bad DDL archive section. Expected list for parameters, " \
+                        "but found {}".format(type(ddl['archive']['params']).__name__)
+                    return error_message
+        
+        
+        return None #Return None if the DDL is correct
+
+    @staticmethod
     def download(url_file, filename):
         """
         Downloads a file from its URL
@@ -1192,20 +1234,13 @@ attached the failed experiment data.". \
             last_demodescription = demoinfo_response['last_demodescription']
             ddl = json.loads(last_demodescription['ddl'])
 
-            if 'build' in ddl:
-                ddl_build = ddl['build']
-            else:
-                return json.dumps({"status": "KO", "error": "no 'build' section found in the DDL"})
-
-            if 'archive' in ddl:
-                # The params must be a list
-                if 'params' in ddl['archive']:
-                    if not isinstance(ddl['archive']['params'], list):
-                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl['archive']['params']).__name__)
-                        return json.dumps({"status": "KO", "error": message})
-
-
-            ddl_inputs = ddl['inputs']
+            error_message = self.check_ddl(ddl)
+            if error_message:
+                response = {"status": "KO", "error": error_message}
+                return json.dumps(response)
+            
+            ddl_build = ddl['build']
+            ddl_inputs = ddl.get('inputs')
 
         except Exception as ex:
             message = "Failed to obtain the DDL of demo {}".format(demo_id)
@@ -1300,10 +1335,7 @@ attached the failed experiment data.". \
                 return json.dumps(res_data)
 
         try:
-            if 'general' not in ddl:
-                response = {"error": "bad DDL syntax: no 'general' section found", "status": "KO"}
-                return json.dumps(response)
-
+            
             # Find a DR that satisfies the requirements
             if 'requirements' in ddl['general']:
                 requirements = ddl['general']['requirements']
@@ -1361,9 +1393,6 @@ attached the failed experiment data.". \
 
             userdata = {"demo_id": demo_id, "key": key, "params": json.dumps(params)}
 
-            if 'run' not in ddl:
-                return json.dumps({"error": "bad DDL syntax: no 'run' section found", "status": "KO"})
-
             userdata['ddl_run'] = json.dumps(ddl['run'])
 
             if 'timeout' in ddl['general']:
@@ -1417,7 +1446,6 @@ attached the failed experiment data.". \
 
             if origin != 'blobset'and private_mode is None and 'archive' in ddl:
                 ddl_archive = ddl['archive']
-                print ddl_archive
                 try:
                     SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
                                                 demorunner_response, self.host_name)
@@ -1486,6 +1514,8 @@ attached the failed experiment data.". \
 
         return json.dumps({'status': 'OK', 'execution': lines})
 
+        
+    
     @cherrypy.expose
     def run(self, demo_id, **kwargs):
         """
@@ -1526,22 +1556,15 @@ attached the failed experiment data.". \
             response = resp.json()
 
             last_demodescription = response['last_demodescription']
-            ddl_json = json.loads(last_demodescription['ddl'])
+            ddl = json.loads(last_demodescription['ddl'])
 
-            if 'build' in ddl_json:
-                ddl_build = ddl_json['build']
-            else:
-                response = {"status": "KO", "error": "no 'build' section found in the DDL"}
+            error_message = self.check_ddl(ddl)
+            if error_message:
+                response = {"status": "KO", "error": error_message}
                 return json.dumps(response)
-
-            if 'archive' in ddl_json:
-                if 'params' in ddl_json['archive']:
-                    # The params must be a list
-                    if not isinstance(ddl_json['archive']['params'], list):
-                        message = "Bad DDL archive section. Expected list for parameters, but found {}".format(type(ddl_json['archive']['params']).__name__)
-                        return json.dumps({"status": "KO", "error": message})
-
-            ddl_inputs = ddl_json.get('inputs')
+            
+            ddl_build = ddl['build']
+            ddl_inputs = ddl.get('inputs')
 
         except Exception as ex:
             message = "Failed to obtain the DDL of demo {}".format(demo_id)
@@ -1631,14 +1654,9 @@ attached the failed experiment data.". \
                 return json.dumps(res_data)
 
         try:
-
-            if 'general' not in ddl_json:
-                response = {"error": "bad DDL syntax: no 'general' section found", "status": "KO"}
-                return json.dumps(response)
-
             # Find a DR with satisfies the requirements
-            requirements = ddl_json['general']['requirements'] \
-                if 'requirements' in ddl_json['general'] else None
+            requirements = ddl['general']['requirements'] \
+                if 'requirements' in ddl['general'] else None
 
             dr_name, dr_server = self.get_demorunner(
                 self.demorunners_workload(), requirements)
@@ -1691,13 +1709,10 @@ attached the failed experiment data.". \
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
-            if 'run' not in ddl_json:
-                return json.dumps({"error": "bad DDL syntax: no 'run' section found", "status": "KO"})
+            userdata['ddl_run'] = json.dumps(ddl['run'])
 
-            userdata['ddl_run'] = json.dumps(ddl_json['run'])
-
-            if 'timeout' in ddl_json['general']:
-                userdata['timeout'] = ddl_json['general']['timeout']
+            if 'timeout' in ddl['general']:
+                userdata['timeout'] = ddl['general']['timeout']
 
             resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
             try:
@@ -1743,9 +1758,8 @@ attached the failed experiment data.". \
 
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
-            if (original_exp == 'true' or input_type == 'noinputs') and  'archive' in ddl_json:
-                ddl_archive = ddl_json['archive']
-                print ddl_archive
+            if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
+                ddl_archive = ddl['archive']
                 try:
                     SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
                                                 demorunner_response, self.host_name)

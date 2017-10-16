@@ -75,7 +75,7 @@ upload.printUploads = function(inputs) {
     uploadRowArray += "<input type=file id=file-" + i + " name=upload-" + i + " class=upload-btn-" + i + " accept=";
     uploadRowArray += (inputType == "video") ? inputType + '/*,video/mp4,video/x-m4v />' : inputType + "/* />";
     uploadRowArray += "<img id=upload-thumbnail-" + i + " src=# />";
-    uploadRowArray += "<span class=upload-resolution-" + i + ">" + getMaxPixels(input) + getMaxWeight(input_weight) + "</span>";
+    uploadRowArray += "<span class=upload-resolution-" + i + ">Max Weight: " + getMaxWeight(input_weight) + "</span>";
     uploadRow.html(uploadRowArray);
     $(".input-upload-" + i).children().addClass("upload-element m-x-10");
     appendRequired(input, i);
@@ -98,7 +98,7 @@ function getMaxWeight(weight) {
   if (!weight) {
     return "";
   } else {
-    return "&le; " + Math.round(weight) + " Mb";
+    return Math.round(weight) + " Mb";
   }
 }
 
@@ -131,13 +131,7 @@ function uploadImg(index, event) {
   var maxPixels = eval(demoInfo.inputs[inputKey].max_pixels);
   var img = new Image();
   img.onload = function() {
-    var uploadImgPixels = this.width * this.height;
-    if (uploadImgPixels > maxPixels) {
-      clearUploadInput(inputKey);
-      alert("File upload resolution limit reached");
-    } else {
-      upload(index, event);
-    }
+    upload(index, event);
   };
   img.src = _URL.createObjectURL(file);
 }
