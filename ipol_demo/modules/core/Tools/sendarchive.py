@@ -53,13 +53,22 @@ class SendArchive:
         thumbnail_path = os.path.join(work_dir, name_and_extension_for_the_thumbnail)
 
         im = Image.open(path).convert('RGB')
-        ## the size should be in the conf.file....
-        ## height:128px, preserve ratio
-        height = 128
-        width = int(round(float(im.width*height)/im.height));
         im = im.convert('RGB') # RGBA image imposible to convert to JPEG
+
+        # Desired height, preserve ratio as possible, except for some case (vertical line, horizontal line)
+        dest_height = 128
+        max_width = 2*dest_height
+
+        src_width = im.width
+        src_height = im.height
+        # if src image is for example a line of 1 pixel height, keep original height
+        dest_height = min(src_height, dest_height)
+        dest_width = int(round(float(src_width*dest_height)/src_height))
+        dest_width = min(dest_width, src_width, max_width)
+        if dest_width <= 0:
+            dest_width = src_width
         # .resize allow better control than thumbnail
-        im = im.resize((width, height), Image.LANCZOS)
+        im = im.resize((dest_width, dest_height), Image.LANCZOS)
         im.save(thumbnail_path, 'JPEG', progression=True, subsampling='4:4:4')
 
         return thumbnail_path, name_for_the_thumbnail
