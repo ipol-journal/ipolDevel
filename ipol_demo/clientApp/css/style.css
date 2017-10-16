@@ -1,14 +1,15 @@
 @font-face {
   font-family: 'icons';
+
   src: url('../assets/fontawesome-webfont.ttf') format('truetype');
 }
+
 html {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
 }
 
 *, *:before, *:after {
-
   -webkit-box-sizing: inherit;
           box-sizing: inherit;
 
@@ -22,6 +23,7 @@ html {
 
 body {
   font-family: Verdana, Arial, Helvetica, Tahoma, sans-serif;
+
   margin: 0 auto;
 }
 
@@ -161,9 +163,10 @@ div.ui-tooltip {
 }
 
 hr.separator {
+  clear: both;
+
   height: 1px;
   padding: 0 10px;
-  clear: both;
 
   border: 0;
   background-image: -webkit-linear-gradient(left, #F0F0F0, #8C8B8B, #F0F0F0);
