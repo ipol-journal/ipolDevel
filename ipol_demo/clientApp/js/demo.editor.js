@@ -2,8 +2,8 @@ var clientApp = clientApp || {};
 var editor = editor || {};
 var helpers = clientApp.helpers || {};
 var upload = clientApp.upload || {};
-var zoomController = zoomController ||  {};
-var scrollController = scrollController ||  {};
+var zoomController = zoomController || {};
+var scrollController = scrollController || {};
 
 var editorBlobs;
 var crop_info;
@@ -11,7 +11,8 @@ var crop_info;
 // Print editor pannel.
 editor.printEditor = function(crop) {
   $("#inputEditorContainer").load("editor.html", function() {
-    if (helpers.getOrigin() == "blobSet") editorBlobs = helpers.getFromStorage("demoSet");
+    if (helpers.getOrigin() == "blobSet")
+      editorBlobs = helpers.getFromStorage("demoSet");
     else editorBlobs = clientApp.upload.getUploadedFiles();
     crop_info = crop;
     printEditorPanel();
@@ -25,14 +26,18 @@ function printEditorPanel() {
 
   printBlobsetList(demoInfo, blobs);
 
-  $('#left-container').printEditorBlob(editorBlobs[blobs[0]], "left");
-  $('#right-container').printEditorBlob(editorBlobs[blobs[0]], "right");
+  $("#left-container").printEditorBlob(editorBlobs[blobs[0]], "left");
+  $("#right-container").printEditorBlob(editorBlobs[blobs[0]], "right");
   var $blob = $("#editor-blob-left");
 
-  if (areAllImages()) $("#zoom-container").removeClass('di-none');
+  if (areAllImages()) $("#zoom-container").removeClass("di-none");
   if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if(blobs.length == 1 && (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
-  
+  else if (
+    blobs.length == 1 &&
+    (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)
+  )
+    loadSingleBlobControls($blob);
+
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
   saveSelectedInput("left", blobs[0]);
@@ -44,7 +49,7 @@ function printEditorPanel() {
 
   $("#left-container").attachDragger("left");
   $("#right-container").attachDragger("right");
-};
+}
 
 function saveSelectedInput(side, index) {
   blobsKeys = Object.keys(editorBlobs);
@@ -58,12 +63,30 @@ function saveSelectedInput(side, index) {
 // Print the chosen set blob list
 function printBlobsetList(demoInfo, blobs) {
   for (let i = 0; i < blobs.length; i++) {
-    $(".inputListContainerLeft").append("<span class=editor-input-left-" + i + ">" + demoInfo.inputs[i].description + "</span>");
-    $(".editor-input-left-" + i).addClass('editor-input');
-    $(".editor-input-left-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "left");
-    $(".inputListContainerRight").append("<span class=editor-input-right-" + i + ">" + demoInfo.inputs[i].description + "</span>");
-    $(".editor-input-right-" + i).addClass('editor-input');
-    $(".editor-input-right-" + i).loadInputEvents(Object.keys(editorBlobs)[i], "right");
+    $(".inputListContainerLeft").append(
+      "<span class=editor-input-left-" +
+        i +
+        ">" +
+        demoInfo.inputs[i].description +
+        "</span>"
+    );
+    $(".editor-input-left-" + i).addClass("editor-input");
+    $(".editor-input-left-" + i).loadInputEvents(
+      Object.keys(editorBlobs)[i],
+      "left"
+    );
+    $(".inputListContainerRight").append(
+      "<span class=editor-input-right-" +
+        i +
+        ">" +
+        demoInfo.inputs[i].description +
+        "</span>"
+    );
+    $(".editor-input-right-" + i).addClass("editor-input");
+    $(".editor-input-right-" + i).loadInputEvents(
+      Object.keys(editorBlobs)[i],
+      "right"
+    );
   }
   $(".inputListContainerLeft").loadInputsContainerEvent("left");
   $(".inputListContainerRight").loadInputsContainerEvent("right");
@@ -71,56 +94,44 @@ function printBlobsetList(demoInfo, blobs) {
 
 // Single blob sets controls
 function loadSingleBlobControls($img) {
-  $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>");
-  var height = 100;
-  var width = 100;
+  $(".blobsList-left").append(
+    "<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>"
+  );
   if (crop_info == null) {
-    $("#editor-blob-left").on('load', function() {
-      width = $(this).width();
-      height = $(this).height();
-      console.log(height, width);
-      $img.cropper({
-        viewMode: 1,
-        autoCrop: false,
-        dragMode: 'move',
-        wheelZoomRatio: 0.10,
-        responsive: true,
-        minContainerHeight: height,
-        minContainerWidth: width,
-        toggleDragModeOnDblclick: false     
-      });
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: false,
+      dragMode: "move",
+      wheelZoomRatio: 0.1,
+      responsive: true,
+      toggleDragModeOnDblclick: false
     });
   } else {
-    $("#editor-blob-left").on('load', function () {
-      width = $(this).width();
-      height = $(this).height();
-      console.log(height, width);
-      $img.cropper({
-        viewMode: 1,
-        autoCrop: true,
-        dragMode: 'move',
-        wheelZoomRatio: 0.10,
-        responsive: true,
-        minContainerHeight: height,
-        minContainerWidth: width,
-        data: crop_info,
-        toggleDragModeOnDblclick: false
-      });
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: true,
+      dragMode: "move",
+      wheelZoomRatio: 0.1,
+      responsive: true,
+      data: crop_info,
+      toggleDragModeOnDblclick: false
     });
-    $("#crop-btn").prop('checked', true);
+    $("#crop-btn").prop("checked", true);
   }
-  $img.on('cropmove cropstart cropend', function (e) {
-    if ($("#crop-btn").prop('checked')) {
-      var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+  $img.on("cropmove cropstart cropend", function(e) {
+    if ($("#crop-btn").prop("checked")) {
+      var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
       $("#canvas-container").html($(croppedImage));
     }
   });
-  $img.on('zoom', function (e) {
+  $img.on("zoom", function(e) {
     if (e.ratio >= 0.25 && e.ratio <= 16) {
       $("#editor-zoom").val(e.ratio);
-      $("#editor-zoom-value").html(e.ratio.toFixed(2) + 'px');
-      if ($("#crop-btn").prop('checked')) {
-        var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+      $("#editor-zoom-value").html(e.ratio.toFixed(2) + "px");
+      if ($("#crop-btn").prop("checked")) {
+        var croppedImage = $("#left-container > img").cropper(
+          "getCroppedCanvas"
+        );
         $("#canvas-container").html($(croppedImage));
       }
     } else {
@@ -133,7 +144,9 @@ function loadSingleBlobControls($img) {
 
 // Multiple blob sets controls
 function loadMultiBlobControls(blob) {
-  $(".blobsList-left").append("<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>");
+  $(".blobsList-left").append(
+    "<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>"
+  );
   zoomController.multiBlob();
   addCompareEvent();
 }
@@ -142,7 +155,8 @@ function loadMultiBlobControls(blob) {
 function areAllImages() {
   var blobs = Object.keys(editorBlobs);
   for (var i = 0; i < blobs.length; i++) {
-    if (editorBlobs[blobs[i]].format != "image" && !editorBlobs[blobs[i]].vr) return false;
+    if (editorBlobs[blobs[i]].format != "image" && !editorBlobs[blobs[i]].vr)
+      return false;
   }
   return true;
 }
@@ -150,27 +164,49 @@ function areAllImages() {
 $.fn.printEditorBlob = function(editorBlob, side) {
   var blobType = editorBlob.format;
   var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
-  if (blobType == 'video') {
+  if (blobType == "video") {
     $(this).empty();
-    $(this).append('<video src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorVideo controls></video>');
-  } else if (blobType == 'audio') {
+    $(this).append(
+      "<video src=" +
+        blobSrc +
+        " id=editor-blob-" +
+        side +
+        " class=blobEditorVideo controls></video>"
+    );
+  } else if (blobType == "audio") {
     $(this).empty();
-    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
-    $(this).append('<img src=' + audioThumbnail + ' class=audioThumbnail><br><audio src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorAudio controls></audio>');
+    var audioThumbnail = editorBlob.thumbnail
+      ? editorBlob.thumbnail
+      : "assets/non_viewable_data.png";
+    $(this).append(
+      "<img src=" +
+        audioThumbnail +
+        " class=audioThumbnail><br><audio src=" +
+        blobSrc +
+        " id=editor-blob-" +
+        side +
+        " class=blobEditorAudio controls></audio>"
+    );
   } else {
     if (isPreviousBlobImg(side)) {
-      $("#editor-blob-" + side).attr('src', blobSrc);
+      $("#editor-blob-" + side).attr("src", blobSrc);
     } else {
       $(this).empty();
-      $(this).append('<img src=' + blobSrc + ' id=editor-blob-' + side + ' class=blobEditorImage draggable=false >');
-      $("#editor-blob-left").on("error", function () {
+      $(this).append(
+        "<img src=" +
+          blobSrc +
+          " id=editor-blob-" +
+          side +
+          " class=blobEditorImage draggable=false >"
+      );
+      $("#editor-blob-left").on("error", function() {
         $(this).attr("src", "assets/non_viewable_data.png");
-        $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
+        $("#editor-blob-left").css({ width: "auto", height: "auto" });
       });
-      $("#editor-blob-left").css({'width': 'auto', 'height': 'auto'});
+      $("#editor-blob-left").css({ width: "auto", height: "auto" });
     }
   }
-}
+};
 
 function isPreviousBlobImg(side) {
   var previousBlob = document.getElementById("editor-blob-" + side);
@@ -179,10 +215,10 @@ function isPreviousBlobImg(side) {
 }
 
 function addCropEvent() {
-  $("#crop-btn").on('click', function() {
+  $("#crop-btn").on("click", function() {
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
-      var croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
+      var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
       $("#canvas-container").html($(croppedImage));
     } else {
       $("#editor-blob-left").cropper("clear");
@@ -193,42 +229,44 @@ function addCropEvent() {
 
 function addCompareEvent() {
   $("#compare-btn").change(function() {
-    if ($("#compare-btn").is(":checked")) $(".image-container").css({
-      "flex-basis": "50%"
-    });
-    else $(".image-container").css({
-      "flex-basis": ""
-    });
+    if ($("#compare-btn").is(":checked"))
+      $(".image-container").css({
+        "flex-basis": "50%"
+      });
+    else
+      $(".image-container").css({
+        "flex-basis": ""
+      });
     $(".editor-container").toggleClass("space-between");
     $(".blobsList-right").toggleClass("di-inline");
     $("#right-container").toggleClass("di-none");
     $("#right-container").toggleClass("di-inline");
-    $('.blobsList-right').toggleClass("di-none");
+    $(".blobsList-right").toggleClass("di-none");
   });
 }
 
 // Initialize input mouseover, mouseout and click event to switch input image.
 $.fn.loadInputEvents = function(index, side) {
-  var container = $('#' + side + '-container');
+  var container = $("#" + side + "-container");
 
-  $(this).on('mouseover', function() {
+  $(this).on("mouseover", function() {
     container.printEditorBlob(editorBlobs[index], side);
     zoomSync(editorBlobs[index], side);
   });
 
-  $(this).on('click', function() {
-    var selectedInput = helpers.getFromStorage("selectedInput-" + side)
-    $("." + selectedInput.text).removeClass('editor-input-selected');
+  $(this).on("click", function() {
+    var selectedInput = helpers.getFromStorage("selectedInput-" + side);
+    $("." + selectedInput.text).removeClass("editor-input-selected");
     $(this).addClass("editor-input-selected");
     container.printEditorBlob(editorBlobs[index], side);
     saveSelectedInput(side, index);
-    zoomSync(editorBlobs[index], side)
+    zoomSync(editorBlobs[index], side);
   });
-}
+};
 
 $.fn.loadInputsContainerEvent = function(side) {
-  var container = $('#' + side + '-container');
-  $(this).on('mouseout', function(event) {
+  var container = $("#" + side + "-container");
+  $(this).on("mouseout", function(event) {
     e = event.toElement || event.relatedTarget;
     if (e != null && (e.parentNode == this || e == this)) {
       return;
@@ -237,10 +275,10 @@ $.fn.loadInputsContainerEvent = function(side) {
     container.printEditorBlob(editorBlobs[inputName.src], side);
     zoomSync(editorBlobs[inputName.src], side);
   });
-}
+};
 
 function zoomSync(blob, side) {
-  if (blob.format == 'image') {
+  if (blob.format == "image") {
     zoomController.changeImageZoom(side);
   }
 }
