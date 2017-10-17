@@ -6,12 +6,20 @@ var execution;
 var files = [];
 // Initial trigger.
 $(document).ready(function() {
+  demo_id = getDemoId();
+
+  // Workaround: use the old interface only for inpainting demos
+  if ($.inArray(parseInt(demo_id), [189, 198]) != -1) {
+      // Move to the old interface
+      window.location = "/demo/clientAppOld/demo.html?id=" + demo_id;
+  }
+
   $("#header").load("header.html");
   $("#inputEditorContainer").load("editor.html");
   $("#parameters").load("parameters.html");
   $("#footer").load("footer.html");
   sessionStorage.clear();
-  demo_id = getDemoId();
+
   $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
   getBlobSets();
   getDemoinfo();
