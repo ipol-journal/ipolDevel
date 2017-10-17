@@ -72,24 +72,40 @@ function printBlobsetList(demoInfo, blobs) {
 // Single blob sets controls
 function loadSingleBlobControls($img) {
   $(".blobsList-left").append("<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>");
+  var height = 100;
+  var width = 100;
   if (crop_info == null) {
-    $img.cropper({
-      viewMode: 1,
-      autoCrop: false,
-      dragMode: 'move',
-      wheelZoomRatio: 0.10,
-      responsive: true,
-      toggleDragModeOnDblclick: false     
+    $("#editor-blob-left").on('load', function() {
+      width = $(this).width();
+      height = $(this).height();
+      console.log(height, width);
+      $img.cropper({
+        viewMode: 1,
+        autoCrop: false,
+        dragMode: 'move',
+        wheelZoomRatio: 0.10,
+        responsive: true,
+        minContainerHeight: height,
+        minContainerWidth: width,
+        toggleDragModeOnDblclick: false     
+      });
     });
   } else {
-    $img.cropper({
-      viewMode: 1,
-      autoCrop: true,
-      dragMode: 'move',
-      wheelZoomRatio: 0.10,
-      responsive: true,
-      data: crop_info,
-      toggleDragModeOnDblclick: false
+    $("#editor-blob-left").on('load', function () {
+      width = $(this).width();
+      height = $(this).height();
+      console.log(height, width);
+      $img.cropper({
+        viewMode: 1,
+        autoCrop: true,
+        dragMode: 'move',
+        wheelZoomRatio: 0.10,
+        responsive: true,
+        minContainerHeight: height,
+        minContainerWidth: width,
+        data: crop_info,
+        toggleDragModeOnDblclick: false
+      });
     });
     $("#crop-btn").prop('checked', true);
   }
