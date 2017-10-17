@@ -317,7 +317,7 @@ $.fn.html_text = function (result, index) {
   else content = result.contents;
   
   for (let i = 0; i < content.length; i++)
-  text += content[i].replace(/\n/g, "\\n");
+  text += content[i];
   
   try {
     html_text = eval(text);

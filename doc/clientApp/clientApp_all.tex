@@ -19,12 +19,12 @@ The Javascript application is made of the following modules:
 	\item Helpers 
 \end{itemize}
 
-Each of these items is described in the following sections.
+Each of them is described in the following sections.
 
 \subsection{Inputs}
-This module manages the list of blobs used as examples in the demo and renders them on the web page. This module is the first which is loaded and it communicates with the DemoInfo and Blobs modules, see Fig. \ref{fig:server_interaction}.
+This module manages the list of blobs used as examples in the demo and renders them on the web page. This module is the first which is loaded and it communicates with the DemoInfo and Blobs modules, see Fig. \ref{fig:server_interaction}. Note that neither the web interface nor any of the modules in the IPOL's architecture of microservices needs to know of the existance of any module. Instead, a generic API providing services is used, without the need to reach a particular endpoint. The details of the backend architecture are hidden to both the interface and other modules.
 
-This input module allows the user to choose one or many blobs in the demo. These blobs are be for example images, videos, or audio blobs. It displays a line of blobs or sets of blobs to choose from.
+This Inputs module allows the user to choose one or many blobs in the demo. These blobs can be for example images, videos, or audio files. It displays a line of blobs or sets of blobs to choose from.
 
 
 \subsection{Upload}
@@ -50,24 +50,24 @@ the core module. The answer will be either a success message with enough informa
 that will show an approximation of what failed during execution.
 
 \subsection{Results}
-This module renders the results returned by the core letting the user compare the input and results, based on the ddl results section. 
-It will use the ddl results section and the data returned by the run call with the execution results. These results include:
+This module renders the results returned by the core letting the user compare the input and results, based on the DDL results section. 
+It will use the DDL results section and the data returned by the run call with the execution results. These results include:
 
 \begin{itemize}
-	\item gallery: A gallery with compare capabilities.
-	\item gallery\textunderscore new: A gallery with evaluation, repeat, visibility capabilities.
+	\item gallery: a gallery with compare capabilities
+	\item gallery\textunderscore new: A gallery with evaluation, repeat, visibility capabilities
 	\item repeat\textunderscore gallery: A gallery with repeat capabilities
-	\item file\textunderscore download: File download result.
-	\item html\textunderscore text: Html snippet to add in the results view.
-	\item text\textunderscore file: Text file dump in the results view.
-	\item message: Message with custom styling.
+	\item file\textunderscore download: file download result
+	\item html\textunderscore text: HTML snippet to add in the results view
+	\item text\textunderscore file: text file dump in the results view
+	\item message: message with custom styling
 \end{itemize}
 
 All of these result types are defined in the DDL documentation.
 
 
 \subsection{Helpers}
-This module act as an interface for common utility methods like read and write to sessionStorage, make HTTP requests and 
+This module acts as an interface for common utility methods like read and write to sessionStorage, make HTTP requests and 
 read the origin of the chosen blobs for the demo, this could be blobset, meaning blobs are chosen from the ones offered by the 
 demo, and upload, meaning the user has uploaded his own blobs.
 
@@ -112,7 +112,7 @@ a response. When the response is obtained it will either print the results inter
 %--------------------------------------------------------------------------------
 
 \subsection{Sharing results}
-Every time you run a demo, the URL will change to include the run key. This key allows the user to share the relatively short URL 
+Every time a demo is run, the URL will change to include the run key. This key allows the user to share the relatively short URL 
 with anyone. Sharing will allow other users to see the parameters, results and inputs including crop information exactly just as the 
 demo was executed by the original user. 
 
