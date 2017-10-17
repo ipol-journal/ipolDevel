@@ -47,8 +47,6 @@ import requests
 import cherrypy
 import magic
 
-
-
 from Tools.misc import prod
 from Tools.image import image
 from Tools.sendarchive import SendArchive
@@ -412,10 +410,12 @@ class Core(object):
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
 
-                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
+                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}&random={}'>{}</a><br>".format(
                     editorsdemoid,
                     "(private)" if editorsdemoid.startswith("33333") else "",
-                    editorsdemoid, demo_data['title'].encode('utf-8'))
+                    editorsdemoid,
+                    str(int(random()*100000)), # Temporary, to refresh the new interface static files
+                    demo_data['title'].encode('utf-8'))
 
         string = """
                  <!DOCTYPE html>
