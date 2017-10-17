@@ -1,7 +1,6 @@
 """
-Errors
+Custom error exception types
 """
-
 
 class IPOLDemoExtrasError(Exception):
     """
@@ -50,7 +49,6 @@ class IPOLInputUploadTooLargeError(Exception):
     def __init__(self, index, max_weight):
         self.index = index
         self.max_weight = int(max_weight)
-        super(IPOLInputUploadTooLargeError, self)
 
 
 class IPOLMissingRequiredInputError(Exception):
@@ -59,4 +57,3 @@ class IPOLMissingRequiredInputError(Exception):
     """
     def __init__(self, index):
         self.index = index
-        super(IPOLMissingRequiredInputError, self)
