@@ -15,11 +15,12 @@
   padding-bottom: 5px;
 }
 
-.leftContainer {
+#left-container {
+  display: inline;
+  float: left;
   overflow: auto;
 
   max-width: 100%;
-  max-height: auto;
 }
 
 .blobContainer {
@@ -85,13 +86,11 @@
 }
 
 .image-wrapper {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-wrap: nowrap;
-      flex-wrap: nowrap;
+  display: inline;
+  overflow: auto;
 
   max-width: 80%;
+  max-height: 600px;
 }
 
 .image-container {
@@ -153,6 +152,7 @@ div[class^='blobSet_'] > span {
 }
 
 #canvas-container {
+  float: right;
   overflow: scroll;
 
   max-width: 320px;
