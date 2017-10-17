@@ -107,7 +107,7 @@
 .gallery-img {
   flex-shrink: 0;
 
-  padding: 5px 5px;
+  margin: 5px 5px;
 
   -webkit-transform-origin: 1px 1px;
           transform-origin: 1px 1px;

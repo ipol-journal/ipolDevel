@@ -754,44 +754,26 @@ class Core(object):
     @staticmethod
     def check_ddl(ddl):
         """
-        Ensure that the DDL is correctly writen
+        Check for required DDL fields and their types.
         """
-        if not 'general' in ddl:
-            error_message = "Bad DDL syntax: no 'general' section found."
-            return error_message
-        
-        if not 'build' in ddl:
-            error_message = "Bad DDL syntax: no 'build' section found."
-            return error_message
+        # Check that all mandatory sections are present
+        sections = ['general', 'build', 'run', 'results']
+        #
+        for section in sections:
+            if not section in ddl:
+                return "Bad DDL syntax: missing '{}' section.".format(section)
 
-        if not 'run' in ddl:
-            error_message = "Bad DDL syntax: no 'run' section found."
-            return error_message
+        # Empty run
+        if not ddl['run'] or ddl['run'].decode('utf-8').isspace():
+            return "Bad DDL run section: run is empty."
 
-        if not 'results' in ddl:
-            error_message = "Bad DDL syntax: no 'results' section found."
-            return error_message
+        # The params must be a list
+        if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
+            return "Bad DDL archive section: expected list of parameters, but found {}".\
+              format(type(ddl['archive']['params']).__name__)
 
-        # run exists but is empty 
-        if not ddl['run']:
-            error_message = "Bad DDL run section. The run line is empty."
-            return error_message
-
-        # run exists but it only contains spaces
-        if ddl['run'].decode('utf-8').isspace():
-            error_message = "Bad DDL run section. The run line only contains spaces."
-            return error_message
-
-        if 'archive' in ddl:
-            if 'params' in ddl['archive']:
-                # The params must be a list
-                if not isinstance(ddl['archive']['params'], list):
-                    error_message = "Bad DDL archive section. Expected list for parameters, " \
-                        "but found {}".format(type(ddl['archive']['params']).__name__)
-                    return error_message
-        
-        
-        return None #Return None if the DDL is correct
+         # None = no errors detected
+        return None
 
     @staticmethod
     def download(url_file, filename):
@@ -1234,6 +1216,7 @@ attached the failed experiment data.". \
             last_demodescription = demoinfo_response['last_demodescription']
             ddl = json.loads(last_demodescription['ddl'])
 
+            # Check the DDL for missing required sections and their format
             error_message = self.check_ddl(ddl)
             if error_message:
                 response = {"status": "KO", "error": error_message}
@@ -1558,6 +1541,7 @@ attached the failed experiment data.". \
             last_demodescription = response['last_demodescription']
             ddl = json.loads(last_demodescription['ddl'])
 
+            # Check the DDL for missing required sections and their format
             error_message = self.check_ddl(ddl)
             if error_message:
                 response = {"status": "KO", "error": error_message}
