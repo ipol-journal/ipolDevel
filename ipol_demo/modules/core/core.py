@@ -297,7 +297,7 @@ class Core(object):
                 else:
                     demorunners.append({'name': dr, 'status': 'KO'})
 
-            except ConnectionError:
+            except requests.ConnectionError:
                 self.logger.exception("Couldn't get DR={} workload".format(dr.get("name", "<?>")))
                 demorunners.append({'name': dr, 'status': 'KO'})
                 continue
@@ -328,7 +328,7 @@ class Core(object):
                 else:
                     self.error_log("demorunners_workload", "get_workload KO response for DR='{}'".format(dr_name))
                     dr_workload[dr_name] = 100.0
-            except ConnectionError:
+            except requests.ConnectionError:
                 self.error_log("demorunners_workload", "get_workload ConnectionError for DR='{}'".format(dr_name))
                 continue
             except Exception:
@@ -1221,7 +1221,7 @@ attached the failed experiment data.". \
             if error_message:
                 response = {"status": "KO", "error": error_message}
                 return json.dumps(response)
-            
+
             ddl_build = ddl['build']
             ddl_inputs = ddl.get('inputs')
 
@@ -1317,8 +1317,7 @@ attached the failed experiment data.". \
                 res_data = {'error': message, 'status': 'KO'}
                 return json.dumps(res_data)
 
-        try:
-            
+        try:            
             # Find a DR that satisfies the requirements
             if 'requirements' in ddl['general']:
                 requirements = ddl['general']['requirements']
@@ -1497,8 +1496,8 @@ attached the failed experiment data.". \
 
         return json.dumps({'status': 'OK', 'execution': lines})
 
-        
-    
+
+
     @cherrypy.expose
     def run(self, demo_id, **kwargs):
         """
@@ -1546,7 +1545,7 @@ attached the failed experiment data.". \
             if error_message:
                 response = {"status": "KO", "error": error_message}
                 return json.dumps(response)
-            
+
             ddl_build = ddl['build']
             ddl_inputs = ddl.get('inputs')
 
@@ -1809,7 +1808,7 @@ attached the failed experiment data.". \
             # Get a demorunner for the requirements
             try:
                 dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
-            except ConnectionError:
+            except requests.ConnectionError:
                 dispatcher_response = None
 
             if not dispatcher_response or not dispatcher_response.ok:
