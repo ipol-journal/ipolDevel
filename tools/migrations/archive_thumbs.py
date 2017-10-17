@@ -15,130 +15,125 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 
-import os
-import sys
-import argparse
-import magic
-import mimetypes
-from PIL import Image
 import av
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+from PIL import Image
+import json # used to print dict
+import os
+import sqlite3
+import sys
 
 
+"""
+The archive module serves thumbnails for blobs.
+In 2017-10, it was detected that no thumbnails have been yet produced.
+The archive client page has been rewrited and needs thumbnail of 128px height, and ratio preserved.
+The script scan the archive.db for blobs,
+create a thubnail for found blob,
+or send a message for not found blob.
+"""
 
-# TOTHINK, multithreading, on the first level folders ? On a big list ?
+archive_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),
+    "ipol_demo/modules/archive/"
+)
+db_file = os.path.join(archive_dir, "db/archive.db")
+src_dir = os.path.join(archive_dir, "staticData/blobs/")
+dest_dir = os.path.join(archive_dir, "staticData/blobs_thumbs_new/")
 
-class ArchiveThumbs(object):
-    REFRESH = 1
-    REPLACE = 2
-    CLEAN = 4
-    action = 0
-    # Home dir, relative to this
-    home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-    # TODO better parametrization
-    srcdir = home+"/ipol_demo/modules/archive/staticData/blobs/"
-    # TODO better parametrization
-    destdir = home+"/ipol_demo/modules/archive/staticData/blobs_thumbs"
-    # resize to a default height, design : a band of pictures
-    height = 128
+def hash_subdir(hash_name):
+    """
+    This function return a relative folder for blobs in the archive, from a hash_name
+    input  abvddff
+    output a/b
+    """
+    l = min(len(hash_name), 2)
+    subdirs = '/'.join(list(hash_name[:l]))
+    return subdirs
 
-    @staticmethod
-    def main():
-        """ Command line parsing """
-        parser = argparse.ArgumentParser(description='IPOL, archive module, admin thumbnails.', formatter_class=argparse.RawTextHelpFormatter)
-        parser.add_argument(
-            "action",
-            nargs='?',
-            choices=['refresh', 'replace', 'clean'],
-            default='refresh',
-            help='''refresh: loop on all source files, create thumbnails for newer source
-replace: loop on all source files, force thumbnail creation
-clean: loop on thumbnail files, delete the ones with no correspondant source file'''
-        )
-        args = parser.parse_args()
-        if args.action == 'refresh':
-            ArchiveThumbs.action = ArchiveThumbs.REFRESH
-            print("refresh")
-        elif args.action == 'replace':
-            ArchiveThumbs.action = ArchiveThumbs.REPLACE
-            print("replace")
-        elif args.action == 'clean':
-            ArchiveThumbs.action = ArchiveThumbs.CLEAN
-            print("clean")
-        ArchiveThumbs.walk(ArchiveThumbs.srcdir)
+def image_thumb(src, dest):
+    """ From src image path, create a thumbnail to dest path """
+    im = Image.open(src)
+    """
+    Bug seen UserWarning: Palette images with Transparency   expressed in bytes should be converted to RGBA images
+    /f/0/f09a51e7c535e946d7ba80256550022fcb91c25b.png
+    """
+    return pil_thumb(im, dest)
 
-    @staticmethod
-    def walk(rootdir, relpath=""):
-        """ Recursive exploration of folder, keep relative path for parallel creation of thumbs """
-        # first call, normalize root folder
-        if not relpath and rootdir:
-            # no trailing / to rootdir, see below to optimize concat
-            rootdir = rootdir.rstrip('\\/')
-        if os.path.isdir(rootdir+relpath):
-            files = os.listdir(rootdir+relpath)
-            for entry in files:
-                ArchiveThumbs.walk(rootdir, relpath+'/'+entry)
-            return
+def video_thumb(src, dest):
+    """ From src video path, create a thumbnail to dest path """
+    container = av.open(src, mode='r')
+    container.seek(int(container.duration/4) - 1)
+    # hacky but I haven found way to make work a better writing like next()
+    for frame in container.decode(video=0): break
+    im = frame.to_image()
+    container.close()
+    return pil_thumb(im, dest)
 
-        src = rootdir+relpath
-        base, ext = os.path.splitext(relpath)
-        dest = ArchiveThumbs.destdir+base
-        # found in blobs.py, but what for?
-        # mimetypes.guess_extension(mime)
-        # for efficiency, src file may be open as a file descriptor
-        # mesure time before too soon optimisation
-        mime = magic.from_file(src, mime=True)
-        format = mime.split('/')[0]
+def pil_thumb(im, dest_jpeg, dest_height=128):
+    """
+    This function make a thumbnail from a pil image (can come from file or video)
+    General case: dest_height, preserve ratio
+    Special cases: src_height < dest_height, extreme ratios (horizontal or vertical lines)
+    Exactly same logic should be shared with the sendarchive logic
+    [2017-10-17] is in core/Tools/sendarchive.py
+    Should be in conversion module
+    Video will provide a PIL object
+    3D, ??? png ?
+    """
+    max_width = 2*dest_height # avoid extreme ratio
 
-        if mime == "image/svg+xml": return # image, not supported by PIL
-        if mime == "image/tiff": return # image, not supported by PIL
+    src_width = im.width
+    src_height = im.height
+    # if src image is for example a line of 1 pixel height, keep original height
+    dest_height = min(src_height, dest_height)
+    dest_width = int(round(float(src_width*dest_height)/src_height))
+    dest_width = min(dest_width, src_width, max_width)
+    if dest_width <= 0:
+        dest_width = src_width
+    # resize before RGB problems
+    im = im.resize((dest_width, dest_height), Image.LANCZOS)
 
-        if format == "image": dest = dest+".jpeg"
-        elif format == "video": dest = dest+".jpeg"
-        else: return
+    # im.info['transparency'], hack from image.py for palette with RGBA
+    if im.mode == "P" and "transparency" in im.info and im.info['transparency'] is not None:
+        im = im.convert('RGBA') # convert Palette with transparency to RGBA, handle just after
+    # RGBA, full colors with canal alpha, resolve transparency with a white background
+    if im.mode == "RGBA":
+        rgba = im
+        im = Image.new("RGB", rgba.size, (255, 255, 255))
+        im.paste(rgba, mask=rgba.split()[3]) # 3 is the alpha channel
+    if im.mode == "P":
+        im = im.convert("RGB")
 
-        # Create dest folder
-        if not os.path.isdir(os.path.dirname(dest)): os.makedirs(os.path.dirname(dest))
-        if ArchiveThumbs.action == ArchiveThumbs.REFRESH and os.path.exists(dest) and os.path.getmtime(dest) > os.path.getmtime(src): return
+    if not os.path.isdir(os.path.dirname(dest_jpeg)):
+        os.makedirs(os.path.dirname(dest_jpeg))
+    im.save(dest_jpeg, 'JPEG', progression=True, subsampling='4:4:4')
+    # return something ?
 
-        print(format+" "+relpath)
-        if format == "image": ArchiveThumbs.image_thumb(src, dest)
-        elif format == "video": ArchiveThumbs.video_thumb(src, dest)
-        # [FG] possible, implemented with a dependency to pydub
-        # elif format == "audio": ArchiveThumbs.audio_thumb(src, dest)
-
-    @staticmethod
-    def image_thumb(src, dest):
-        """ From src image path, create a thumbnail to dest path """
-        im = Image.open(src)
-        """
-        Bug seen UserWarning: Palette images with Transparency   expressed in bytes should be converted to RGBA images
-        /f/0/f09a51e7c535e946d7ba80256550022fcb91c25b.png
-        """
-        ArchiveThumbs.pil_thumb(im, dest)
-
-    @staticmethod
-    def pil_thumb(im, dest):
-        """ From a PIL image object, create a thumbnail to dest path, shared by image and video """
-        width = int(round(float(im.width*ArchiveThumbs.height)/im.height));
-        im = im.convert('RGB') # RGBA image imposible to convert to JPEG
-        # .resize allow better control than thumbnail
-        im = im.resize((width, ArchiveThumbs.height), Image.LANCZOS)
-        im.save(dest, 'JPEG', progression=True, subsampling='4:4:4')
-
-    @staticmethod
-    def video_thumb(src, dest):
-        """ From src video path, create a thumbnail to dest path """
-        container = av.open(src, mode='r')
-        container.seek(int(container.duration/4) - 1)
-        # hacky but I haven found way to make work a better writing like next()
-        for frame in container.decode(video=0): break
-        im = frame.to_image()
-        ArchiveThumbs.pil_thumb(im, dest)
-        container.close()
-
-
-if __name__ == '__main__':
-  ArchiveThumbs.main()
+conn = sqlite3.connect(db_file)
+cur = conn.cursor()
+for row in cur.execute("SELECT hash, type, format FROM blobs"):
+    hash = row[0]
+    type = row[1]
+    format = row[2]
+    src_path = os.path.join(src_dir, hash_subdir(hash), hash + '.' + type)
+    if not os.path.isfile(src_path):
+        sys.stderr.write("BLOB NOT FOUND: "+src_path)
+        continue
+    if format == 'image':
+        # TODO svg ?
+        # tiff is usually used as a container for data
+        if type not in ['png', 'jpeg', 'jpg']: continue
+        # for image, thumbnail is jpeg
+        dest_path = os.path.join(dest_dir, hash_subdir(hash), hash + '.jpeg')
+        image_thumb(src_path, dest_path)
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        continue
+    if format == 'video':
+        # for video, thumbnail is jpeg
+        dest_path = os.path.join(dest_dir, hash_subdir(hash), hash + '.jpeg')
+        video_thumb(src_path, dest_path)
+        sys.stdout.write('V')
+        sys.stdout.flush()
+        continue
+sys.stdout.write('\nFinished\n')
