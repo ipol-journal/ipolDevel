@@ -33,7 +33,7 @@ $.fn.checkbox = function(param, index) {
 }
 
 $.fn.selection_radio = function(param, index) {
-  var label = param.comments ? param.comments : param.label;
+  var label = param.label ? param.label : "";
   var keys = Object.keys(param.values);
   var values = Object.keys(param.values).map(function(e) {
     return param.values[e];

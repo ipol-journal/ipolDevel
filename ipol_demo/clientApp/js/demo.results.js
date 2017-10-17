@@ -309,18 +309,24 @@ $.fn.text_file = function (result, index) {
 }
 
 $.fn.html_text = function (result, index) {
-  $(this).append("<div class=html_text_" + index + " ></div>");
   var text = '';
-
-  for (let i = 0; i < result.contents.length; i++)
-    if (result.contents[i].charAt(0) == "'" && result.contents[i].charAt(result.contents[i].length - 1) == "'") 
-      text += eval(result.contents[i].replace(/\n/g, "\\n"));
-    else text += result.contents[i].replace(/\n/g, "\\n");
-
-  if (text.charAt(0) == "'" && text.charAt(text.length - 1) == "'")
-    text = eval(text);
-
-  $('.html_text_' + index).html(text);
+  var html_text = '';
+  
+  var content = []; 
+  if (!Array.isArray(result.contents)) content.push(result.contents);
+  else content = result.contents;
+  
+  for (let i = 0; i < content.length; i++)
+  text += content[i].replace(/\n/g, "\\n");
+  
+  try {
+    html_text = eval(text);
+  } catch (e) {
+    html_text = text;
+  }
+  
+  $(this).append("<div class=html_text_" + index + " ></div>");
+  $('.html_text_' + index).html(html_text);
 }
 
 $.fn.message = function (result, index) {
