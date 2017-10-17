@@ -14,13 +14,12 @@ import json
 import urllib
 import requests
 
-#-------------------------------------------------------------------------------
 class SendArchive:
     """
         This class creates all the information needed to send the demo
         results to the archive module
     """
-    #---------------------------------------------------------------------------
+
     @staticmethod
     def get_mime_type(the_file):
         """
@@ -39,7 +38,7 @@ class SendArchive:
         return main_type
 
 
-    #---------------------------------------------------------------------------
+
     @staticmethod
     def make_thumbnail(path, work_dir):
         """
@@ -52,12 +51,24 @@ class SendArchive:
         name_and_extension_for_the_thumbnail = name_for_the_thumbnail + '.jpeg'
         thumbnail_path = os.path.join(work_dir, name_and_extension_for_the_thumbnail)
 
-        im = Image.open(path).convert('RGB')
-        im = im.convert('RGB') # RGBA image imposible to convert to JPEG
+        im = Image.open(path)
+        SendArchive.pil_thumb(im, thumbnail_path)
 
-        # Desired height, preserve ratio as possible, except for some case (vertical line, horizontal line)
-        dest_height = 128
-        max_width = 2*dest_height
+        return thumbnail_path, name_for_the_thumbnail
+
+    @staticmethod
+    def pil_thumb(im, dest_jpeg, dest_height=128):
+        """
+        This function make a thumbnail from a pil image (can come from file or video)
+        General case: dest_height, preserve ratio
+        Special cases: src_height < dest_height, extreme ratios (horizontal or vertical lines)
+        Exactly same logic should be shared with the sendarchive logic
+        [2017-10-17] is in core/Tools/sendarchive.py
+        Should be in conversion module
+        Video will provide a PIL object
+        3D, ??? png ?
+        """
+        max_width = 2*dest_height # avoid extreme ratio
 
         src_width = im.width
         src_height = im.height
@@ -67,13 +78,26 @@ class SendArchive:
         dest_width = min(dest_width, src_width, max_width)
         if dest_width <= 0:
             dest_width = src_width
-        # .resize allow better control than thumbnail
+        # resize before RGB problems
         im = im.resize((dest_width, dest_height), Image.LANCZOS)
-        im.save(thumbnail_path, 'JPEG', progression=True, subsampling='4:4:4')
 
-        return thumbnail_path, name_for_the_thumbnail
+        # im.info['transparency'], hack from image.py for palette with RGBA
+        if im.mode == "P" and "transparency" in im.info and im.info['transparency'] is not None:
+            im = im.convert('RGBA') # convert Palette with transparency to RGBA, handle just after
+        # RGBA, full colors with canal alpha, resolve transparency with a white background
+        if im.mode == "RGBA":
+            rgba = im
+            im = Image.new("RGB", rgba.size, (255, 255, 255))
+            im.paste(rgba, mask=rgba.split()[3]) # 3 is the alpha channel
+        if im.mode == "P":
+            im = im.convert("RGB")
 
-    #---------------------------------------------------------------------------
+        if not os.path.isdir(os.path.dirname(dest_jpeg)):
+            os.makedirs(os.path.dirname(dest_jpeg))
+        im.save(dest_jpeg, 'JPEG', progression=True, subsampling='4:4:4')
+        # return something ?
+
+
     @staticmethod
     def prepare_archive(demo_id, work_dir, ddl_archive, res_data, host_name):
         """
