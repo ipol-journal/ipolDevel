@@ -216,6 +216,7 @@ function isPreviousBlobImg(side) {
 
 function addCropEvent() {
   $("#crop-btn").on("click", function() {
+    $("#canvas-container").toggleClass("di-none");
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
       var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
