@@ -35,8 +35,8 @@
 
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
-  image-rendering: -o-pixelated;
-  image-rendering:    pixelated;
+  /* image-rendering: -o-pixelated; */
+  /* image-rendering:    pixelated; */
 }
 
 .blobEditorVideo {
@@ -153,8 +153,6 @@ div[class^='blobSet_'] > span {
 }
 
 #canvas-container {
-  overflow: scroll;
-
   max-width: 320px;
   height: 180px;
 }
@@ -162,8 +160,22 @@ div[class^='blobSet_'] > span {
 #canvas-container > canvas {
   height: 180px;
 
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -o-pixelated;
-  image-rendering:    pixelated;
+  -ms-interpolation-mode: nearest-neighbor;   /* IE 7+ (non-standard property) */
+
+  image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
+  image-rendering: -webkit-crisp-edges;       /*  Safari 7+ */
+  image-rendering:    -moz-crisp-edges;       /*  Firefox 3.6+ */
+  image-rendering:      -o-crisp-edges;       /*  Opera 12 */
+  /* image-rendering: pixelated;                  Chrome 41+ and Opera 26+ */
+}
+
+.cropper-container img {
+  image-rendering: auto;
+  -ms-interpolation-mode: nearest-neighbor;   /* IE 7+ (non-standard property) */
+
+  image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
+  image-rendering: -webkit-crisp-edges;       /*  Safari 7+ */
+  image-rendering:    -moz-crisp-edges;       /*  Firefox 3.6+ */
+  image-rendering:      -o-crisp-edges;       /*  Opera 12 */
+  /* image-rendering: pixelated;                  Chrome 41+ and Opera 26+ */
 }
