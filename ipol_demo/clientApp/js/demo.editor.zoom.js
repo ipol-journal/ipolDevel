@@ -4,6 +4,8 @@ var zoomController = zoomController || {};
 zoomController.singleBlob = function() {
   $("#editor-zoom").on('input' ,function() {
     let zoomValue = $(this).val();
+    if(zoomValue != 1) $("#canvas-container > canvas, .blobEditorImage, .cropper-container img").css({'image-rendering': 'pixelated'});
+    else $("#canvas-container > canvas, .blobEditorImage, .cropper-container img").css({'image-rendering': ''});
     var $img = $("#editor-blob-left");
     $img.cropper('zoomTo', zoomValue);
     $("#editor-zoom-value").html(zoomValue + "x");
@@ -25,6 +27,8 @@ zoomController.multiBlob = function() {
 // Change zoom value for editor images
 zoomController.changeImageZoom = function(side) {
   var zoomValue = $("#editor-zoom").val();
+  if(zoomValue != 1) $("#canvas-container > canvas, .blobEditorImage").css({'image-rendering': 'pixelated'});
+  else $("#canvas-container > canvas, .blobEditorImage").css({'image-rendering': ''});
   var element = $("#editor-blob-" + side);
   $("#editor-zoom-value").html(zoomValue + "x");
   if (element[0].naturalHeight || element[0].naturalWidth) {

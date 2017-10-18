@@ -100,8 +100,8 @@ a:hover {
 
   image-rendering: -webkit-optimize-contrast;
   image-rendering: -moz-crisp-edges;
-  image-rendering: -o-pixelated;
-  image-rendering:    pixelated;
+  /* image-rendering: -o-pixelated;
+  image-rendering:    pixelated; */
 }
 
 
