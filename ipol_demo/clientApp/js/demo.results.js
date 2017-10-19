@@ -155,10 +155,15 @@ $.fn.gallery = function (result, index) {
 $.fn.setGalleryMinHeight = function(work_url, src) {
   var minHeight;
   var selector = $(this);
+  if (!Array.isArray(src)) {
+    src = Object.keys(src).map(function(e) {
+      return src[e];
+    });
+  }
   for (let i = 0; i < src.length; i++) {
     let tmpImg = new Image();
     tmpImg.src = work_url + src[i];
-    $(tmpImg).one("load", function() {
+    $(tmpImg).on("load", function() {
       minHeight = parseInt(selector.css("min-height"));
       if (minHeight < tmpImg.height) {
         minHeight = tmpImg.height < 580 ? tmpImg.height : 580;
