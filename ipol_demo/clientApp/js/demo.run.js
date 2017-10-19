@@ -84,12 +84,22 @@ function checkCropper() {
 
 function checkPostData() {
   if (!checkPostInputs()) return false;
+  if (!validCrop()) return false;
   return true;
 }
 
 function checkPostInputs()  {
   if (helpers.getFromStorage("demoInfo").inputs.length != 0 && !helpers.getFromStorage("origin")) {
     errorMsg = "Input/s required."
+    return false;
+  }
+  return true;
+}
+
+function validCrop()  {
+  var cropData = $("#editor-blob-left").cropper("getCroppedCanvas");
+  if (cropData.width * cropData.height === 0) {
+    errorMsg = "Cropped image is too small."
     return false;
   }
   return true;
