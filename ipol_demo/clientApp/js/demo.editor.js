@@ -115,6 +115,7 @@ function loadSingleBlobControls($img) {
         toggleDragModeOnDblclick: false
       });
       $("#crop-btn").prop("checked", true);
+      $("#canvas-container").removeClass("di-none");
     }
   $img.on("cropmove cropstart cropend", function(e) {
     if ($("#crop-btn").prop("checked")) {

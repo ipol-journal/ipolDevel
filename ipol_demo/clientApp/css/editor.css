@@ -153,6 +153,8 @@ div[class^='blobSet_'] > span {
 }
 
 #canvas-container {
+  overflow: auto;
+
   max-width: 320px;
   height: 180px;
 }
