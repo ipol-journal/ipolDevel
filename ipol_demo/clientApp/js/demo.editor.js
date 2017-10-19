@@ -32,11 +32,7 @@ function printEditorPanel() {
 
   if (areAllImages()) $("#zoom-container").removeClass("di-none");
   if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if (
-    blobs.length == 1 &&
-    (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)
-  )
-    loadSingleBlobControls($blob);
+  else if (blobs.length == 1 && (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -97,27 +93,30 @@ function loadSingleBlobControls($img) {
   $(".blobsList-left").append(
     "<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>"
   );
-  if (crop_info == null) {
-    $img.cropper({
-      viewMode: 1,
-      autoCrop: false,
-      dragMode: "move",
-      wheelZoomRatio: 0.1,
-      responsive: true,
-      toggleDragModeOnDblclick: false
-    });
-  } else {
-    $img.cropper({
-      viewMode: 1,
-      autoCrop: true,
-      dragMode: "move",
-      wheelZoomRatio: 0.1,
-      responsive: true,
-      data: crop_info,
-      toggleDragModeOnDblclick: false
-    });
-    $("#crop-btn").prop("checked", true);
-  }
+    if (crop_info == null) {
+      $img.cropper({
+        viewMode: 1,
+        autoCrop: false,
+        dragMode: "move",
+        wheelZoomRatio: 0.1,
+        responsive: true,
+        toggleDragModeOnDblclick: false,
+        ready: setNaturalZoom
+      });
+    } else {
+      $img.cropper({
+        viewMode: 1,
+        autoCrop: true,
+        dragMode: "move",
+        wheelZoomRatio: 0.1,
+        responsive: true,
+        data: crop_info,
+        ready: getData,
+        toggleDragModeOnDblclick: false
+      });
+      $("#crop-btn").prop("checked", true);
+      $("#canvas-container").removeClass("di-none");
+    }
   $img.on("cropmove cropstart cropend", function(e) {
     if ($("#crop-btn").prop("checked")) {
       var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
@@ -140,6 +139,18 @@ function loadSingleBlobControls($img) {
   });
   addCropEvent();
   zoomController.singleBlob();
+}
+
+function setNaturalZoom(e) {
+  $("#editor-blob-left").cropper('zoomTo', 1);
+}
+
+function getData(e) {
+  var imgData = $("#editor-blob-left").cropper("getImageData");
+  var zoom = imgData.height / imgData.naturalHeight;
+  $("#editor-zoom").val(zoom);
+  $("#editor-zoom-value").html(zoom.toFixed(2) + "px");
+  $("#editor-blob-left").cropper('zoomTo', zoom);
 }
 
 // Multiple blob sets controls
@@ -216,12 +227,13 @@ function isPreviousBlobImg(side) {
 
 function addCropEvent() {
   $("#crop-btn").on("click", function() {
-    $("#canvas-container").toggleClass("di-none");
     if ($("#crop-btn").is(":checked")) {
       $("#editor-blob-left").cropper("crop");
       var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
       $("#canvas-container").html($(croppedImage));
+      $("#canvas-container").removeClass("di-none");
     } else {
+      $("#canvas-container").addClass("di-none");
       $("#editor-blob-left").cropper("clear");
       $("#canvas-container").html("<div></div>");
     }
