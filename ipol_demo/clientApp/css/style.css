@@ -13,12 +13,6 @@ html {
   -webkit-box-sizing: inherit;
           box-sizing: inherit;
 
-  -ms-interpolation-mode: nearest-neighbor;
-
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: -o-pixelated;
-  image-rendering:    pixelated;
 }
 
 body {
@@ -98,10 +92,7 @@ a:hover {
 .cropper-view-box {
   -ms-interpolation-mode: nearest-neighbor;
 
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: -moz-crisp-edges;
-  /* image-rendering: -o-pixelated;
-  image-rendering:    pixelated; */
+  image-rendering: auto;
 }
 
 
@@ -183,4 +174,14 @@ iframe {
   width: 90%;
   height: 500px;
   margin-left: 5%;
+}
+
+.imageRendering {
+  -ms-interpolation-mode: nearest-neighbor !important;   /* IE 7+ (non-standard property) */
+
+  image-rendering: -webkit-optimize-contrast !important; /* Safari 6, UC Browser 9.9 */
+  image-rendering: -webkit-crisp-edges !important;       /* Safari 7+ */
+  image-rendering: -moz-crisp-edges !important;          /* Firefox 3.6+ */
+  image-rendering: -o-crisp-edges !important;            /* Opera 12 */
+  image-rendering: pixelated !important;                 /* Chrome 41+ and Opera 26+  */
 }

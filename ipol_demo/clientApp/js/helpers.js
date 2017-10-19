@@ -24,6 +24,14 @@ clientApp.helpers.removeItem = function(id) {
     sessionStorage.removeItem(id);
 }
 
+clientApp.helpers.checkInterpolation = function(zoomRatio, selector) {
+    if (zoomRatio <= 1){
+        $(selector).removeClass("imageRendering");
+        $(selector).css({ "image-rendering": "" });
+    } 
+    else $(selector).addClass('imageRendering');
+}
+
 clientApp.helpers.base64ToBlob = function(base64Img) {
   var binary = atob(base64Img.split(',')[1]);
   var type = base64Img.split('data:')[1].split(';base64')[0];
@@ -33,7 +41,7 @@ clientApp.helpers.base64ToBlob = function(base64Img) {
   for (var i = 0; i < len; i++) {
     view[i] = binary.charCodeAt(i);
   }
-  return new Blob([view], { type: type });;
+  return new Blob([view], { type: type });
 };
 
 clientApp.helpers.setOrigin = function(origin) {

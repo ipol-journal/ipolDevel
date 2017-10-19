@@ -125,6 +125,9 @@ function loadSingleBlobControls($img) {
   });
   $img.on("zoom", function(e) {
     if (e.ratio >= 0.25 && e.ratio <= 16) {
+      let selector = "#canvas-container > canvas, .blobEditorImage, .cropper-container img";
+      helpers.checkInterpolation(e.ratio, selector);
+     
       $("#editor-zoom").val(e.ratio);
       $("#editor-zoom-value").html(e.ratio.toFixed(2) + "px");
       if ($("#crop-btn").prop("checked")) {
