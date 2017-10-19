@@ -84,7 +84,9 @@ function checkCropper() {
 
 function checkPostData() {
   if (!checkPostInputs()) return false;
-  if (!validCrop()) return false;
+  if ($("#crop-btn").is(":checked")) {
+    if (!validCrop()) return false;
+  }
   return true;
 }
 

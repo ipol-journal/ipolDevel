@@ -14,7 +14,7 @@ pillow           # Python Image Library
 psutil           # system monitoring (load balancing demorunner)
 pyfftw           # wrapper around FFTW, discrete Fourier transform (deps: fftw-3, macos bug)
 pypng            # native Python, clames for better support
-python-magic     # binding to libmagic, file identification (archive/thumbnails)
+python-magic     # binding to libmagic, file identification
 requests         # http for humans
 simplejson       # json parser
 sklearn          # scikit-learn, Machine Learning
