@@ -29,7 +29,7 @@ In 2017-10, it was detected that no thumbnails have been yet produced.
 The archive client page has been rewrited and needs thumbnail of 128px height, and ratio preserved.
 The script scan the archive.db for blobs,
 create a thubnail for found blob,
-or send a message for not found blob.
+or send a message for not found blob on stderr.
 """
 
 archive_dir = os.path.join(
@@ -40,13 +40,13 @@ db_file = os.path.join(archive_dir, "db/archive.db")
 src_dir = os.path.join(archive_dir, "staticData/blobs/")
 dest_dir = os.path.join(archive_dir, "staticData/blobs_thumbs_new/")
 
-def hash_subdir(hash_name):
+def hash_subdir(hash_name, depth=2):
     """
     This function return a relative folder for blobs in the archive, from a hash_name
     input  abvddff
     output a/b
     """
-    l = min(len(hash_name), 2)
+    l = min(len(hash_name), depth)
     subdirs = '/'.join(list(hash_name[:l]))
     return subdirs
 
@@ -61,12 +61,14 @@ def image_thumb(src, dest):
 
 def video_thumb(src, dest):
     """ From src video path, create a thumbnail to dest path """
-    container = av.open(src, mode='r')
+    # av.open seems to not like unicode filepath
+    container = av.open(src.encode(sys.getfilesystemencoding()), mode='r')
     container.seek(int(container.duration/4) - 1)
     # hacky but I haven found way to make work a better writing like next()
     for frame in container.decode(video=0): break
     im = frame.to_image()
-    container.close()
+    # impossible to close the file descriptor ?
+    # 'av.container.input.InputContainer' object has no attribute 'close' ?
     return pil_thumb(im, dest)
 
 def pil_thumb(im, dest_jpeg, dest_height=128):
@@ -111,13 +113,14 @@ def pil_thumb(im, dest_jpeg, dest_height=128):
 
 conn = sqlite3.connect(db_file)
 cur = conn.cursor()
-for row in cur.execute("SELECT hash, type, format FROM blobs"):
+# order is inverse chronological
+for row in cur.execute("SELECT hash, type, format FROM blobs ORDER BY id DESC"):
     hash = row[0]
     type = row[1]
     format = row[2]
     src_path = os.path.join(src_dir, hash_subdir(hash), hash + '.' + type)
     if not os.path.isfile(src_path):
-        sys.stderr.write("BLOB NOT FOUND: "+src_path)
+        sys.stderr.write("\nBLOB NOT FOUND: {}\n".format(src_path))
         continue
     if format == 'image':
         # TODO svg ?
