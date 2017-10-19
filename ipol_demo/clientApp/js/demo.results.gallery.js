@@ -207,6 +207,8 @@ $.fn.appendZoom = function(index, leftItems) {
   zoom.removeClass("di-none");
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
+    let selector = ".gallery_" + index + " img";
+    helpers.checkInterpolation(zoomLevel, selector);
     $(".gallery_" + index).css({ height: (parseInt($(".gallery_" + index).css('min-height')) || parseInt($(".gallery_" + index).css('height'))) * zoomLevel + "px" });
     $(this).adjustSize(index);
     $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");

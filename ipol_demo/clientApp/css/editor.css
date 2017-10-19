@@ -30,13 +30,6 @@
 .blobEditorImage {
   -webkit-transform-origin: 1px 1px;
           transform-origin: 1px 1px;
-
-  -ms-interpolation-mode: nearest-neighbor;
-
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: -moz-crisp-edges;
-  /* image-rendering: -o-pixelated; */
-  /* image-rendering:    pixelated; */
 }
 
 .blobEditorVideo {
@@ -161,23 +154,9 @@ div[class^='blobSet_'] > span {
 
 #canvas-container > canvas {
   height: 180px;
-
-  -ms-interpolation-mode: nearest-neighbor;   /* IE 7+ (non-standard property) */
-
-  image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
-  image-rendering: -webkit-crisp-edges;       /*  Safari 7+ */
-  image-rendering:    -moz-crisp-edges;       /*  Firefox 3.6+ */
-  image-rendering:      -o-crisp-edges;       /*  Opera 12 */
-  /* image-rendering: pixelated;                  Chrome 41+ and Opera 26+ */
+  image-rendering: auto;
 }
 
 .cropper-container img {
-  -ms-interpolation-mode: nearest-neighbor;   /* IE 7+ (non-standard property) */
-
   image-rendering: auto;
-  image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
-  image-rendering: -webkit-crisp-edges;       /*  Safari 7+ */
-  image-rendering:    -moz-crisp-edges;       /*  Firefox 3.6+ */
-  image-rendering:      -o-crisp-edges;       /*  Opera 12 */
-  /* image-rendering: pixelated;                  Chrome 41+ and Opera 26+ */
 }
