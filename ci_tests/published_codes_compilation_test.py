@@ -8,7 +8,7 @@ import json
 import os
 import shutil
 
-HOST = socket.getfqdn()
+HOST = socket.gethostbyname(socket.gethostname())
 user = 'ipol'
 compilation_path = os.path.join("/", "home", user, "ipolDevel", "ci_tests", "compilation_folder")
 

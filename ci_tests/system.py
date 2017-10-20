@@ -15,7 +15,7 @@ class IntegrationTests(unittest.TestCase):
     Integration Tests
     """
     # General
-    HOST = socket.getfqdn()
+    HOST = socket.gethostbyname(socket.gethostname())
 
     # These variables are initialized in the __main__
     test_ddl_file = None
