@@ -206,13 +206,10 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-" + side).attr("src", blobSrc);
     } else {
       $(this).empty();
-      $(this).append(
-        "<img src=" +
-          blobSrc +
-          " id=editor-blob-" +
-          side +
-          " class=blobEditorImage draggable=false >"
-      );
+      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
+      // $(this).append("<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >");
+      $(img).appendTo($(this));
+      $(img).displayImageSize();
       $("#editor-blob-left").on("error", function() {
         $(this).attr("src", "assets/non_viewable_data.png");
         $("#editor-blob-left").css({ width: "auto", height: "auto" });
@@ -298,3 +295,10 @@ function zoomSync(blob, side) {
     zoomController.changeImageZoom(side);
   }
 }
+
+$.fn.displayImageSize = function() {
+  $(this).on('load', function() {
+    console.log($(this)[0].naturalHeight);
+    $("#editor-image-size").html($(this)[0].naturalWidth + " x " + $(this)[0].naturalHeight);
+  });
+};

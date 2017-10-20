@@ -64,7 +64,15 @@
 }
 
 .zoom-container {
+  display: flex;
+
   padding: 15px 0 15px;
+}
+
+.zoom-info {
+  font-size: 14px;
+
+  padding: 5px;
 }
 
 #editor-zoom-value {
@@ -154,6 +162,7 @@ div[class^='blobSet_'] > span {
 
 #canvas-container > canvas {
   height: 180px;
+
   image-rendering: auto;
 }
 
