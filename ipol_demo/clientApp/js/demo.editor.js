@@ -32,7 +32,7 @@ function printEditorPanel() {
 
   if (areAllImages()) $("#zoom-container").removeClass("di-none");
   if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if (blobs.length == 1 && (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
+  else if (blobs.length == 1 && ((editorBlobs[blobs[0]].format == "image" && !isTiff(editorBlobs[blobs[0]]))|| editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -54,6 +54,12 @@ function saveSelectedInput(side, index) {
     src: blobsKeys[blobsKeys.indexOf(index)],
     format: editorBlobs[index].format
   });
+}
+
+function isTiff(blob){
+  var type = blob.blob.split(";")[0].split("/")[1];
+  if (type === "tiff" || type === "tif") return true;
+  return false;
 }
 
 // Print the chosen set blob list
