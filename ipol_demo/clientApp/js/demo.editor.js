@@ -129,7 +129,7 @@ function loadSingleBlobControls($img) {
       helpers.checkInterpolation(e.ratio, selector);
      
       $("#editor-zoom").val(e.ratio);
-      $("#editor-zoom-value").html(e.ratio.toFixed(2) + "px");
+      $("#editor-zoom-value").html(e.ratio.toFixed(2) + "x");
       if ($("#crop-btn").prop("checked")) {
         var croppedImage = $("#left-container > img").cropper(
           "getCroppedCanvas"
