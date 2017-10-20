@@ -205,13 +205,14 @@ $.fn.appendZoom = function(index, leftItems) {
   var newZoomID= "gallery-" +index+ "-zoom";
   zoom.attr("id", newZoomID).appendTo($(this));
   zoom.removeClass("di-none");
+  $("#" + newZoomID + " > .zoom-info > #editor-image-size").remove();
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
     let selector = ".gallery_" + index + " img";
     helpers.checkInterpolation(zoomLevel, selector);
     $(".gallery_" + index).css({ height: (parseInt($(".gallery_" + index).css('min-height')) || parseInt($(".gallery_" + index).css('height'))) * zoomLevel + "px" });
     $(this).adjustSize(index);
-    $("#gallery-" + index + "-zoom > span").html(zoomLevel + "x");
+    $("#" + newZoomID + " > .zoom-info > #editor-zoom-value").html(zoomLevel + "x");
   });
   scrollSync(index);
 }

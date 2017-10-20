@@ -117,7 +117,7 @@ function addInputListener(index) {
   document.getElementById("file-" + index).addEventListener('change', function(event) {
     var file = $("#file-" + index)[0].files[0];
 
-    if (file.type.split('/')[0] == "image") uploadImg(index, event);
+    if (file.type.split("/")[0] == "image" && file.type.split("/")[1] != "tiff") uploadImg(index, event);
     else upload(index, event);
 
   });
@@ -145,7 +145,7 @@ function upload(index, event) {
   var maxWeight = demoInfo.inputs[inputKey].max_weight;
   if (file && (!demoInfo.inputs[inputKey].max_weight || $("#file-" + index)[0].files[0].size < eval(maxWeight))) {
     var format = file.type.split('/')[0];
-    if (format == 'image') addThumbnail(event);
+    if (format == "image" && file.type.split("/")[1] != "tiff") addThumbnail(event);
     blob = new Blob([file], { 
       type: file.type 
     });

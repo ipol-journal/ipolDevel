@@ -32,7 +32,7 @@ function printEditorPanel() {
 
   if (areAllImages()) $("#zoom-container").removeClass("di-none");
   if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if (blobs.length == 1 && (editorBlobs[blobs[0]].format == "image" || editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
+  else if (blobs.length == 1 && ((editorBlobs[blobs[0]].format == "image" && !isTiff(editorBlobs[blobs[0]]))|| editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -54,6 +54,12 @@ function saveSelectedInput(side, index) {
     src: blobsKeys[blobsKeys.indexOf(index)],
     format: editorBlobs[index].format
   });
+}
+
+function isTiff(blob){
+  var type = blob.blob.split(";")[0].split("/")[1];
+  if (type === "tiff" || type === "tif") return true;
+  return false;
 }
 
 // Print the chosen set blob list
@@ -129,7 +135,7 @@ function loadSingleBlobControls($img) {
       helpers.checkInterpolation(e.ratio, selector);
      
       $("#editor-zoom").val(e.ratio);
-      $("#editor-zoom-value").html(e.ratio.toFixed(2) + "px");
+      $("#editor-zoom-value").html(e.ratio.toFixed(2) + "x");
       if ($("#crop-btn").prop("checked")) {
         var croppedImage = $("#left-container > img").cropper(
           "getCroppedCanvas"
@@ -206,13 +212,10 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-" + side).attr("src", blobSrc);
     } else {
       $(this).empty();
-      $(this).append(
-        "<img src=" +
-          blobSrc +
-          " id=editor-blob-" +
-          side +
-          " class=blobEditorImage draggable=false >"
-      );
+      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
+      // $(this).append("<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >");
+      $(img).appendTo($(this));
+      $(img).displayImageSize();
       $("#editor-blob-left").on("error", function() {
         $(this).attr("src", "assets/non_viewable_data.png");
         $("#editor-blob-left").css({ width: "auto", height: "auto" });
@@ -298,3 +301,10 @@ function zoomSync(blob, side) {
     zoomController.changeImageZoom(side);
   }
 }
+
+$.fn.displayImageSize = function() {
+  $(this).on('load', function() {
+    console.log($(this)[0].naturalHeight);
+    $("#editor-image-size").html($(this)[0].naturalWidth + " x " + $(this)[0].naturalHeight);
+  });
+};
