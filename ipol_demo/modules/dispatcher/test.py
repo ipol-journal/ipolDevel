@@ -39,7 +39,7 @@ class DispatcherTests(unittest.TestCase):
     """
     Dispatcher tests
     """
-    HOST = socket.getfqdn()
+    HOST = socket.gethostbyname(socket.gethostname())
     module = 'dispatcher'
 
     demorunners = None
