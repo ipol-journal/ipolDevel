@@ -1,10 +1,40 @@
 upstream ipol_webapp_server {
-  # fail_timeout=0 means we always retry an upstream even if it failed
-  # to return a good HTTP response (in case the Unicorn master nukes a
-  # single worker for timing out).
+    # fail_timeout=0 means we always retry an upstream even if it failed
+    # to return a good HTTP response (in case the Unicorn master nukes a
+    # single worker for timing out).
 
-  server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
+    server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
 }
+
+# This is used by named sections since they can't have alias, but proxy
+# It simply serves static files
+server {
+        allow 5.196.85.84;
+        allow 127.0.0.1;
+        deny all;
+
+        listen *:81;
+        proxy_send_timeout          600;
+        proxy_read_timeout          600;
+        send_timeout                600;
+        client_max_body_size        500m;
+
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location /demo/clientAppProxy/ {
+                expires 1m;
+                resolver 127.0.0.1;
+                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+        }
+
+        location /demo/clientApp/ {
+                expires 1m;
+                resolver 127.0.0.1;
+                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+        }
+}
+
 
 server {
     listen       *:80 default_server;
@@ -22,39 +52,50 @@ server {
 
     # Path of the static content
     location /cp/static/ {
+        expires 24h;
         alias  /home/ipol/IPOLWEBAPP_STATIC/;
     }
 
+    # PRIVATE DEMOS
     # Change the CompanyName to the real name
-    location /demo/clientApp/demo.html {		
-	if ($args ~ ".*id=33333001\d*") {
-		error_page 418 = @CompanyNamePasswd;
-		return 418;
-	}
-	proxy_pass  http://$host:8080;
-    }
-    
-    location @CompanyNamePasswd {
-	auth_basic "Restricted";
-	auth_basic_user_file /etc/nginx/.passwd/CompanyName;
-	proxy_pass  http://$host:8080;
+    location /demo/clientApp/ {
+        expires 24h;
+        if ($args ~ ".*id=33333001\d*") {
+            error_page 418 = @CompanyNamePasswd;
+            return 418;
+        }
+        alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
     }
 
-    # DEMOS
+    location @CompanyNamePasswd {
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.passwd/CompanyName;
+        proxy_pass  http://$host:8080;
+    }
+
+    # DEMO INDEX FROM CORE
     location /demo/  {
-	resolver 127.0.0.1;
+        resolver 127.0.0.1;
         proxy_pass   http://$host:8080;
     }
 
+    # OLD WEB INTERFACE. Remove after migration
+    location /demo/clientAppOld/ {
+        expires 24h;
+        alias /home/ipol/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
+    }
+
+
     # CORE
     location /api/core/{
-	rewrite ^/api/core/(.*) /$1 break;
-	resolver 127.0.0.1;
-	proxy_pass  http://$host:8080;    
+        rewrite ^/api/core/(.*) /$1 break;
+        resolver 127.0.0.1;
+        proxy_pass  http://$host:8080;
     }
     #
     # shared_folder, run static data
     location /api/core/shared_folder/run/ {
+        expires 24h;
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/shared_folder/run/;
@@ -62,13 +103,14 @@ server {
 
     # BLOBS
     location /api/blobs/ {
-	rewrite ^/api/blobs/(.*) /$1 break;
-	resolver 127.0.0.1;
-	proxy_pass  http://$host:9001;
+        rewrite ^/api/blobs/(.*) /$1 break;
+        resolver 127.0.0.1;
+        proxy_pass  http://$host:9001;
     }
     #
     # BLOBS static data
     location /api/blobs/staticData/ {
+        expires 24h;
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/blobs/staticData/;
@@ -77,13 +119,14 @@ server {
 
     # ARCHIVE
     location /api/archive/ {
-	rewrite ^/api/archive/(.*) /$1 break;
-	resolver 127.0.0.1;
-	proxy_pass  http://$host:9000;
+        rewrite ^/api/archive/(.*) /$1 break;
+        resolver 127.0.0.1;
+        proxy_pass  http://$host:9000;
     }
     #
     # ARCHIVE static data
     location /api/archive/staticData/ {
+        expires 1y;
         add_header 'Access-Control-Allow-Origin' '*';
         add_header 'Access-Control-Allow-Methods' 'GET';
         alias  /home/ipol/ipolDevel/ipol_demo/modules/archive/staticData/;
@@ -92,9 +135,9 @@ server {
 
     # DEMOINFO
     location /api/demoinfo/ {
-	rewrite ^/api/demoinfo/(.*) /$1 break;
-	resolver 127.0.0.1;
-	proxy_pass  http://$host:9002;
+        rewrite ^/api/demoinfo/(.*) /$1 break;
+        resolver 127.0.0.1;
+        proxy_pass  http://$host:9002;
     }
 
     # DISPATCHER
@@ -121,17 +164,15 @@ server {
 
     # CP
     location /cp/ {
-	resolver 127.0.0.1;
-	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	proxy_set_header Host $http_host;		
-	if (!-f $request_filename) {
+        resolver 127.0.0.1;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        if (!-f $request_filename) {
             proxy_pass http://ipol_webapp_server;
             break;
         }
-
         proxy_pass  http://$host:8001;
     }
-
 
     error_page  404              /404.html;
  
@@ -143,9 +184,7 @@ server {
     }
     
     location /  {
-       	return  301 /demo/;
-       	proxy_pass  http://ipolcore.ipol.im:8080;
+        return  301 /demo/;
+        proxy_pass  http://ipolcore.ipol.im:8080;
     }
 }
-
-
