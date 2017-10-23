@@ -144,6 +144,8 @@ $.fn.addMouseOut = function (galleryIndex, side) {
       });
       $(selector + " > img").addClass('gallery-' + galleryIndex + '-blob-' + side);
     }
+    var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
+    helpers.checkInterpolation(zoomValue, ".gallery_" + galleryIndex + " img");
     $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
   });
 }
@@ -169,6 +171,8 @@ $.fn.addHoverFeature = function(galleryIndex, side, work_url, src, idx) {
       });
       $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
     }
+    var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
+    helpers.checkInterpolation(zoomValue, ".gallery_" + galleryIndex + " img");
     $("#gallery-" +galleryIndex+ "-zoom > input").adjustSize(galleryIndex);
   });
   $(this).on('click', function() {
