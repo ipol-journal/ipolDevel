@@ -31,6 +31,9 @@ $.fn.repeat_gallery = function(result, index)  {
   $(this).append("<div class=" + gallerySelector + " ></div>");
   $("." + gallerySelector).addClass("gallery-container");
 
+  // var blobsArray = getAllImages(repeat, contentArray, work_url);
+  // console.log(blobsArray);
+
   var leftItems = "gallery-left-items-" + index;
   var rightItems = "gallery-right-items-" + index;
   renderRepeatBlobList(index, blobListString, gallerySelector, leftItems, 'left', repeat, contentArray);
@@ -65,32 +68,45 @@ $.fn.repeat_gallery = function(result, index)  {
   $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-"+index+"-zoom-container></div>");
   $("#gallery-"+index+"-zoom-container").appendZoom(index, leftItems);
-  if ($(".gallery-left-items-" +index + " > span").length > 1) $("." + leftItems).renderGalleryControls(index, rightItems, imgContainerRight);
+  if ($(".gallery-left-items-" +index + " > span").length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
+}
+
+function getAllImages(repeat, contentArray, work_url) {
+  var allSrcEval = [];
+  let idx = 0;
+  for (var i = 0; i < repeat; i++) {
+    var blobs = [];
+    for (var j = 0; j < contentArray.length; j++) {
+      var img = "<img src=" + work_url + eval(contentArray[j]) + " class=gallery-img draggable=false></img>";
+      blobs.push($(img));
+    }
+    allSrcEval.push(blobs);
+    idx++;
+  }
+  return allSrcEval;
 }
 
 function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, itemSelector, side, repeat, contentArray) {
   $("." + gallerySelector).append("<div class=" + itemSelector + "></div>");
   $("." + itemSelector).addClass("gallery-item-list");
+  helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, 0);
   for (let idx = 0; idx < repeat; idx++) {
-    // if (eval(contents[contentArray[i]].visible)) {
       $("." + itemSelector).append("<span id=gallery-" +galleryIndex+ "-item-" +side+ "-" +idx+ " class=gallery-item-selector>" + eval(blobListString) + "</span>");
       $("#gallery-" +galleryIndex+ "-item-" +side+ "-" +idx).addHoverRepeatFeature(galleryIndex, side, work_url, contentArray, idx);
-    // }
   }
   $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
 }
 
 $.fn.addHoverRepeatFeature = function(galleryIndex, side, work_url, contentArray, idx) {
-  helpers.addToStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex, 0);
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
   var selector = '.gallery-blob-container-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).addClass("flex-50");
     $(imgSelector).each(function(i) {
       $(this).attr("src", work_url + eval(contentArray[i]));
-      $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
     });
+    $("#gallery-" +galleryIndex+ "-zoom > input").updateSize(galleryIndex);
   });
   $(this).mouseout(function() {
     var idx = helpers.getFromStorage("gallerySelectedSrc-" + side  + "-" + galleryIndex);
