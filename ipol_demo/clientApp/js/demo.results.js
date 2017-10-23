@@ -247,6 +247,7 @@ $.fn.addMouseOutEvent = function(galleryIndex, side) {
     if (e != null && (e.parentNode == this || e == this)) {
       return;
     }
+
     var src = helpers.getFromStorage("gallery-"+galleryIndex+ "-" + side);
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
@@ -256,6 +257,10 @@ $.fn.addMouseOutEvent = function(galleryIndex, side) {
         if (i >= src.length) $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex, side);
       });
     }
+    
+    var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
+    helpers.checkInterpolation(zoomValue, '.gallery_' + galleryIndex + ' img');
+    
     $(selector).children().addClass("gallery-" + galleryIndex + "-blob-" + side);
   });
 }
