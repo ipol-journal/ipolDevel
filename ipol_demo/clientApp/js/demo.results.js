@@ -49,10 +49,11 @@ $.fn.gallery = function (result, index) {
   $("." + blobsContainerSelector).addClass("blobs-wrapper");
 
   $("." + gallerySelector).append("<div class=" + rightItems + "></div>");
+  $("." + rightItems).addClass("di-none");
   $("." + leftItems).append("<div id=left-blobs-gallery-" + index + "></div>");
   $("." + rightItems).append("<div id=right-blobs-gallery-" + index + "></div>");
   $("#" + "left-blobs-gallery-" + index).addClass("gallery-item-list");
-  $("#" + "right-blobs-gallery-" + index).addClass("gallery-item-list di-none");
+  $("#" + "right-blobs-gallery-" + index).addClass("gallery-item-list");
 
   var imgContainerLeft = "gallery-blob-container-left-" + index;
   var imgContainerRight = "gallery-blob-container-right-" + index;
@@ -188,7 +189,7 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
     }
     $("#" + imgContainerRight).toggleClass("di-none");
     $(".gallery_" + galleryIndex).toggleClass("space-between");
-    $("#" + "right-blobs-gallery-" + galleryIndex).toggleClass("di-none");
+    $("." + rightItems).toggleClass("di-none");
   });
 }
 

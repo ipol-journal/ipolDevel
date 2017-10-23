@@ -186,34 +186,17 @@ $.fn.printEditorBlob = function(editorBlob, side) {
   var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
   if (blobType == "video") {
     $(this).empty();
-    $(this).append(
-      "<video src=" +
-        blobSrc +
-        " id=editor-blob-" +
-        side +
-        " class=blobEditorVideo controls></video>"
-    );
+    $(this).append("<video src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorVideo controls></video>");
   } else if (blobType == "audio") {
     $(this).empty();
-    var audioThumbnail = editorBlob.thumbnail
-      ? editorBlob.thumbnail
-      : "assets/non_viewable_data.png";
-    $(this).append(
-      "<img src=" +
-        audioThumbnail +
-        " class=audioThumbnail><br><audio src=" +
-        blobSrc +
-        " id=editor-blob-" +
-        side +
-        " class=blobEditorAudio controls></audio>"
-    );
+    var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
+    $(this).append("<img src=" + audioThumbnail + " class=audioThumbnail><br><audio src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorAudio controls></audio>");
   } else {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
     } else {
       $(this).empty();
       var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
-      // $(this).append("<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >");
       $(img).appendTo($(this));
       $(img).displayImageSize();
       $("#editor-blob-left").on("error", function() {
@@ -304,7 +287,6 @@ function zoomSync(blob, side) {
 
 $.fn.displayImageSize = function() {
   $(this).on('load', function() {
-    console.log($(this)[0].naturalHeight);
     $("#editor-image-size").html($(this)[0].naturalWidth + " x " + $(this)[0].naturalHeight);
   });
 };
