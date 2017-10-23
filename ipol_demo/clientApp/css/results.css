@@ -105,17 +105,19 @@
 }
 
 .gallery-img {
+  align-self: flex-start;
   flex-shrink: 0;
 
   margin: 5px 5px;
 
   -webkit-transform-origin: 1px 1px;
           transform-origin: 1px 1px;
-
 }
 
 .gallery-blob-container {
+  display: flex;
   overflow: auto;
+  align-items: center;
 
   margin: 0 5px 5px 5px;
 
@@ -127,12 +129,11 @@
   overflow-x: auto;
   flex-flow: column;
 
+  min-width: 175px;
   max-height: 500px;
 }
 
 .gallery-item-list-right {
-  min-width: 106px;
-
   animation: container-entrance .5s cubic-bezier(.69,-.02,.46,1.28);
   text-align: right;
 }

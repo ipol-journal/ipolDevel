@@ -53,10 +53,9 @@ $.fn.gallery_new = function(result, index)  {
   }
 
   $("." + gallerySelector).setGalleryMinHeight(work_url, src);
-  $("#" + imgContainerLeft + ", #" + imgContainerRight).addClass("di-flex");
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
   $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
-  if ($("#gallery-"+index+"-blobList-left").children().length > 1) $("." + leftItems).renderGalleryControls(index, rightItems, imgContainerRight);
+  if ($("#gallery-"+index+"-blobList-left").children().length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
   checkOptions(result.type, index);
 }
 
@@ -181,20 +180,6 @@ $.fn.addHoverFeature = function(galleryIndex, side, work_url, src, idx) {
       selectedSrc.push($(imgSelector)[i].src);
     });
     helpers.addToStorage("gallery-" +galleryIndex + "-" + side, selectedSrc);
-  });
-}
-
-$.fn.renderGalleryControls = function(galleryIndex, rightItems, imgContainerRight) {
-  $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" +galleryIndex+ "><label for=compare-btn-gallery-" +galleryIndex+ ">Compare</label></div>");
-  $("#compare-btn-gallery-" + galleryIndex).on('click', function() {
-    if ($(this).is(":checked")) {
-      $(".gallery-blobs-container-" + galleryIndex + " > div").css({"flex-basis": "50%"});
-    } else {
-      $(".gallery-blobs-container-" + galleryIndex + " > div").css({"flex-basis": ""});
-    }
-    $("#" + imgContainerRight).toggleClass("di-none");
-    $(".gallery_" + galleryIndex).toggleClass("space-between");
-    $("." + rightItems).toggleClass("di-none");
   });
 }
 
