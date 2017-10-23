@@ -145,10 +145,12 @@
   -ms-flex-wrap: nowrap;
       flex-wrap: nowrap;
 
+      width: calc(100% - 175px);
   max-width: calc(100% - 175px);
 }
 
 .blobs-wrapper-compare {
+      width: calc(100% - 350px);
   max-width: calc(100% - 350px);
 }
 
