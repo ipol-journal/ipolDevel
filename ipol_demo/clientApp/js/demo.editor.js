@@ -195,8 +195,8 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
       $("#editor-blob-" + side).on('load', function(e) {
-        $("#editor-blob-" + side).width($(this)[0].naturalWidth);
-        $("#editor-blob-" + side).height($(this)[0].naturalHeight);
+        $("#editor-blob-" + side).width($(this)[0].naturalWidth * $("#editor-zoom").val());
+        $("#editor-blob-" + side).height($(this)[0].naturalHeight * $("#editor-zoom").val());
       });
       $("#editor-blob-" + side).displayImageSize();
     } else {
