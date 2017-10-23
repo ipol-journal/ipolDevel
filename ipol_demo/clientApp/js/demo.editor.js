@@ -194,6 +194,11 @@ $.fn.printEditorBlob = function(editorBlob, side) {
   } else {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
+      $("#editor-blob-" + side).on('load', function(e) {
+        $("#editor-blob-" + side).width($(this)[0].naturalWidth);
+        $("#editor-blob-" + side).height($(this)[0].naturalHeight);
+        $("#editor-blob-" + side).displayImageSize();
+      });
     } else {
       $(this).empty();
       var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
