@@ -71,7 +71,7 @@ class ConversionTests(unittest.TestCase):
             crop_info = None
             response = self.convert(input_file, input_desc, crop_info)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')
@@ -88,7 +88,7 @@ class ConversionTests(unittest.TestCase):
             crop_info = None
             response = self.convert(input_file, input_desc, crop_info)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')
@@ -104,7 +104,7 @@ class ConversionTests(unittest.TestCase):
                            'type': 'image', 'max_weight': 5242880}]
             response = self.convert(input_file, input_desc, None)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')
@@ -121,7 +121,7 @@ class ConversionTests(unittest.TestCase):
             crop_info = json.dumps({"x":81, "y":9.2, "width":105, "height":79.6, "rotate":0, "scaleX":1, "scaleY":1})
             response = self.convert(input_file, input_desc, crop_info)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')
@@ -137,7 +137,7 @@ class ConversionTests(unittest.TestCase):
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
             response = self.convert(input_file, input_desc, None)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')
@@ -153,7 +153,7 @@ class ConversionTests(unittest.TestCase):
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
             response = self.convert(input_file, input_desc, None)
             status = response.get('status')
-            code = json.loads(response.get('info')).get('0').get('code')
+            code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
         finally:
             self.assertEqual(status, 'OK')

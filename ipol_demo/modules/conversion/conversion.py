@@ -87,8 +87,8 @@ class Conversion(object):
             if not os.path.exists(self.logs_dir):
                 os.makedirs(self.logs_dir)
             self.logger = self.init_logging()
-        except Exception as e:
-            self.logger.exception("Failed to create log dir (using file dir) : {}".format(e))
+        except Exception as ex:
+            self.logger.exception("Failed to create log dir (using file dir). {}: {}".format(type(ex).__name__, str(ex)))
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -176,7 +176,7 @@ class Conversion(object):
             cherrypy.engine.exit()
             data['status'] = 'OK'
         except Exception as ex:
-            self.logger.exception("Failed to shutdown : {}".format(ex))
+            self.logger.exception("Failed to shutdown. {}: {}".format(type(ex).__name__, str(ex)))
             sys.exit(1)
         return json.dumps(data)
 
@@ -242,25 +242,24 @@ class Conversion(object):
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
 
-        except Exception as e:
+        except Exception as ex:
             # KO for all exceptions
             data['status'] = 'KO'
-            if isinstance(e, OSError) or isinstance(e, IOError):
-                mess = "Input #{}. {}"
-            elif isinstance(e, IPOLConvertInputError):
-                mess = "Input #{}. {}"
-            elif isinstance(e, IPOLCropInputError):
-                mess = "Input #{}. {}"
+            if isinstance(ex, IPOLConvertInputError):
+                message = "Input #{}. {}".format(i, str(ex))
+            elif isinstance(ex, IPOLCropInputError):
+                message = "Input #{}. {}".format(i, str(ex))
+            elif isinstance(ex, OSError) or isinstance(ex, IOError):
+                message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             else:
-                mess = "Input #{}, unexpected error. {} file: {}"
-            mess = mess.format(i, str(e), input_file)
+                message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
             # what should be logged ? Only exceptions ?
-            self.logger.exception(mess)
+            self.logger.exception(message)
             # do not send full path to client
             dir = os.path.join(os.path.dirname(input_file), "") # hack to hav final slash /
-            data['error'] = mess.replace(dir, '')
+            data['error'] = message.replace(dir, '')
             print json.dumps(data, indent=2, ensure_ascii=False)
-            print mess
+            print message
             # Shall we send info in such case ?
             return json.dumps(data)
 
@@ -323,13 +322,11 @@ class Conversion(object):
             im.save(os.path.splitext(input_file)[0] + ext)
         except Exception as ex:
             # the exceptions will always provide full path of the file, no need to repeat
-            raise IPOLConvertInputError('Image format conversion error: {}'.format(ex))
+            raise IPOLConvertInputError("Image format conversion error. {}: {}".format(type(ex).__name__, str(ex)))
 
     @staticmethod
     def crop_image(input_file, crop_info):
-        """
-        Crop the image
-        """
+        """ Crop an image with info provide by client """
         try:
             x0 = int(round(crop_info.get('x')))
             y0 = int(round(crop_info.get('y')))
@@ -338,7 +335,7 @@ class Conversion(object):
             im = Image.open(input_file)
             im.crop((x0, y0, x1, y1)).save(input_file)
         except Exception as ex:
-            raise IPOLCropInputError('Image crop error. {}'.format(ex))
+            raise IPOLCropInputError("Image crop error. {}: {}".format(type(ex).__name__, str(ex)))
 
     @staticmethod
     def resize_image(input_file, max_pixels):
@@ -354,7 +351,7 @@ class Conversion(object):
         except Exception as ex:
             # Pillow will always provide a full path of the file
             print ex
-            raise IPOLConvertInputError('Image resize error. {}'.format(ex))
+            raise IPOLConvertInputError('Image resize error. {}: {}'.format(type(ex).__name__, str(ex)))
 
 
     @staticmethod

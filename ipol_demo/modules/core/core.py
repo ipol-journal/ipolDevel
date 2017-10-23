@@ -1066,7 +1066,7 @@ class Core(object):
                 emails[section] = {"name": cfg.get(section, "name"), "email": cfg.get(section, "email")}
 
             return emails
-        except Exception as e:
+        except Exception as ex:
             self.logger.exception("Can't read emails of journal staff")
             print "Fail reading emails config. Exception:", e
 
@@ -1241,13 +1241,13 @@ attached the failed experiment data.". \
             return json.dumps(res_data)
         try:
             work_dir = self.create_run_dir(demo_id, key)
-        except Exception as e:
-            mess = "Could not create work_dir for demo {}".format(demo_id)
+        except Exception as ex:
+            message = "Could not create work_dir for demo {}".format(demo_id)
             # do not output full path for public
-            data = {'status': 'KO', 'error': mess}
-            mess = (mess + ". {}").format(e)
-            self.logger.exception(mess)
-            print mess
+            data = {'status': 'KO', 'error': message}
+            message = (message + ". {}: {}").format(type(ex).__name__, str(ex))
+            self.logger.exception(message)
+            print message
             return json.dumps(data)
 
         # Copy input blobs
@@ -1272,56 +1272,43 @@ attached the failed experiment data.". \
                                     'status': 'KO'}
                         return json.dumps(data)
 
-            except IPOLInputUploadTooLargeError as ex:
-                message = "Uploaded input #{} over the maximum allowed weight {} bytes".format(ex.index, ex.max_weight)
-                res_data = {'error': message,
-                            'status': 'KO'}
-                return json.dumps(res_data)
-            except IPOLMissingRequiredInputError as ex:
-                message = "Missing required input #{}".format(ex.index)
-                res_data = {'error': message,
-                            'status': 'KO'}
-                return json.dumps(res_data)
-            except IPOLEvaluateError as ex:
-                message = "Invalid expression '{}' found in the DDL of demo {}".format(ex, demo_id)
-                res_data = {'error': message,
-                            'status': 'KO'}
-                self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
-            except IPOLCopyBlobsError as ex:
-                message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
-                self.logger.exception(message)
-                self.send_internal_error_email(message)
-                res_data = {'error': message, 'status': 'KO'}
-                return json.dumps(res_data)
-            except IPOLUploadedInputRejectedError as ex:
-                res_data = {'error': str(ex), 'status': 'KO'}
-                return json.dumps(res_data)
-            except IPOLInputUploadError as ex:
-                message = "** INTERNAL ERROR **. Error uploading input of demo {}: {}".format(demo_id, ex)
-                self.logger.exception(message)
-                self.send_internal_error_email(message)
-                res_data = {'error': message, 'status': 'KO'}
-                return json.dumps(res_data)
-            except IPOLProcessInputsError as ex:
-                message = "** INTERNAL ERROR **. Error processing inputs of demo {}: {}".format(demo_id, ex)
-                self.logger.exception(message)
-                self.send_internal_error_email(message)
-                res_data = {'error': message, 'status': 'KO'}
-                return json.dumps(res_data)
-            except IOError as ex:
-                message = "** INTERNAL ERROR **. I/O error processing inputs - {}".format(ex)
-                self.logger.exception(message)
-                self.send_internal_error_email(message)
-                res_data = {'error': message, 'status': 'KO'}
-                return json.dumps(res_data)
             except Exception as ex:
-                message = "**INTERNAL ERROR**. Blobs operations of demo {} failed - {}".format(demo_id, ex)
-                self.logger.exception(message)
-                self.send_internal_error_email(message)
-                res_data = {'error': message, 'status': 'KO'}
-                return json.dumps(res_data)
+                if isinstance(ex, IPOLInputUploadTooLargeError):
+                    message = "Uploaded input #{} over the maximum allowed weight {} bytes".format(ex.index, ex.max_weight)
+                elif isinstance(ex, IPOLMissingRequiredInputError):
+                    message = "Missing required input #{}".format(ex.index)
+                elif isinstance(ex, IPOLUploadedInputRejectedError):
+                    message = str(ex)
+                elif isinstance(ex, IPOLEvaluateError):
+                    message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
+                    self.logger.exception(message)
+                    print message
+                elif isinstance(ex, IPOLCopyBlobsError): # DDL error ?
+                    message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
+                elif isinstance(ex, IPOLInputUploadError): # ??? DDL errors
+                    message = "** INTERNAL ERROR **. Error uploading input of demo {}: {}".format(demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
+                elif isinstance(ex, IPOLProcessInputsError): # ??? "The DDL does not have an 'ext' (extension) field"
+                    message = "** INTERNAL ERROR **. Error processing inputs of demo {}: {}".format(demo_id, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
+                elif isinstance(ex, IOError) or isinstance(ex, OSError): # do not output full paths to the public
+                    message = "** INTERNAL ERROR **. I/O error processing inputs"
+                    log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
+                    self.logger.exception(log_message)
+                    self.send_internal_error_email(log_message)
+                else: # be careful of full path in public message
+                    message = "**INTERNAL ERROR**. Blobs operations of demo {} failed".format(demo_id)
+                    log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
+                    self.logger.exception(log_message)
+                    self.send_internal_error_email(log_message)
+                # common to all exceptions
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+
 
         try:
             # Find a DR that satisfies the requirements
