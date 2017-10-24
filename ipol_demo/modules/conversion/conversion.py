@@ -208,10 +208,10 @@ class Conversion(object):
                 input_desc = inputs_desc[i]
                 info[i] = {}
 
-                type = input_desc['type']
-                if type not in ['image', 'data']:
+                input_type = input_desc['type']
+                if input_type not in ['image', 'data']:
                     info[i]['code'] = -1
-                    info[i]['error'] = "{}: unknown input type".format(type)
+                    info[i]['error'] = "{}: unknown input type".format(input_type)
                     continue
 
                 # Search for a file for this input
@@ -256,11 +256,9 @@ class Conversion(object):
             # what should be logged ? Only exceptions ?
             self.logger.exception(message)
             # do not send full path to client
-            dir = os.path.join(os.path.dirname(input_file), "") # hack to hav final slash /
-            data['error'] = message.replace(dir, '')
+            data['error'] = message.replace(work_dir+'/', '')
             print json.dumps(data, indent=2, ensure_ascii=False)
             print message
-            # Shall we send info in such case ?
             return json.dumps(data)
 
         data['info'] = info
@@ -326,7 +324,9 @@ class Conversion(object):
 
     @staticmethod
     def crop_image(input_file, crop_info):
-        """ Crop an image with info provide by client """
+        """
+        Crop an image with info provide by client
+        """
         try:
             x0 = int(round(crop_info.get('x')))
             y0 = int(round(crop_info.get('y')))

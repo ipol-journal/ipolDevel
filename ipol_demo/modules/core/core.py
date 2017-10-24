@@ -1068,7 +1068,7 @@ class Core(object):
             return emails
         except Exception as ex:
             self.logger.exception("Can't read emails of journal staff")
-            print "Fail reading emails config. Exception:", e
+            print "Fail reading emails config. Exception:", ex
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
@@ -1255,8 +1255,8 @@ attached the failed experiment data.". \
             try:
                 self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
                 params_conv = {'work_dir': work_dir, 'inputs_description': json.dumps(ddl_inputs), 'crop_info': json.dumps(crop_info)}
-                resp = self.post(self.host_name, 'conversion', 'convert', params_conv);
-                resp = resp.json();
+                resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
+                resp = resp.json()
                 # something went wrong in conversion module, transmit error
                 if resp['status'] == 'KO':
                     data = {'status': 'KO', 'error': resp['error']}
@@ -1265,50 +1265,63 @@ attached the failed experiment data.". \
                 for input_key in conversion_info:
                     if conversion_info[input_key]['code'] == -1: # Conversion error
                         data = {'error': "Input #{}. {}".format(input_key, conversion_info[input_key]['error']),
-                                    'status': 'KO'}
+                                'status': 'KO'}
                         return json.dumps(data)
                     elif conversion_info[input_key]['code'] == 2: # Conversion forbidden
                         data = {'error': "Input #{} size too large but conversion forbidden".format(input_key),
-                                    'status': 'KO'}
+                                'status': 'KO'}
                         return json.dumps(data)
 
-            except Exception as ex:
-                if isinstance(ex, IPOLInputUploadTooLargeError):
-                    message = "Uploaded input #{} over the maximum allowed weight {} bytes".format(ex.index, ex.max_weight)
-                elif isinstance(ex, IPOLMissingRequiredInputError):
-                    message = "Missing required input #{}".format(ex.index)
-                elif isinstance(ex, IPOLUploadedInputRejectedError):
-                    message = str(ex)
-                elif isinstance(ex, IPOLEvaluateError):
-                    message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
-                    self.logger.exception(message)
-                    print message
-                elif isinstance(ex, IPOLCopyBlobsError): # DDL error ?
-                    message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                elif isinstance(ex, IPOLInputUploadError): # ??? DDL errors
-                    message = "** INTERNAL ERROR **. Error uploading input of demo {}: {}".format(demo_id, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                elif isinstance(ex, IPOLProcessInputsError): # ??? "The DDL does not have an 'ext' (extension) field"
-                    message = "** INTERNAL ERROR **. Error processing inputs of demo {}: {}".format(demo_id, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                elif isinstance(ex, IOError) or isinstance(ex, OSError): # do not output full paths to the public
-                    message = "** INTERNAL ERROR **. I/O error processing inputs"
-                    log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
-                    self.logger.exception(log_message)
-                    self.send_internal_error_email(log_message)
-                else: # be careful of full path in public message
-                    message = "**INTERNAL ERROR**. Blobs operations of demo {} failed".format(demo_id)
-                    log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
-                    self.logger.exception(log_message)
-                    self.send_internal_error_email(log_message)
-                # common to all exceptions
+            except IPOLInputUploadTooLargeError as ex:
+                message = "Uploaded input #{} over the maximum allowed weight {} bytes".format(ex.index, ex.max_weight)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-
+            except IPOLMissingRequiredInputError as ex:
+                message = "Missing required input #{}".format(ex.index)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except IPOLUploadedInputRejectedError as ex:
+                message = str(ex)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except IPOLEvaluateError as ex:
+                message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
+                self.logger.exception(message)
+                print message
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except IPOLCopyBlobsError as ex: # DDL error ?
+                message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
+                self.logger.exception(message)
+                self.send_internal_error_email(message)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except IPOLInputUploadError as ex: # ??? DDL errors
+                message = "** INTERNAL ERROR **. Error uploading input of demo {}: {}".format(demo_id, ex)
+                self.logger.exception(message)
+                self.send_internal_error_email(message)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except IPOLProcessInputsError as ex: # ??? "The DDL does not have an 'ext' (extension) field"
+                message = "** INTERNAL ERROR **. Error processing inputs of demo {}: {}".format(demo_id, ex)
+                self.logger.exception(message)
+                self.send_internal_error_email(message)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except (IOError, OSError) as ex: # do not output full paths to the public
+                message = "** INTERNAL ERROR **. I/O error processing inputs"
+                log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
+                self.logger.exception(log_message)
+                self.send_internal_error_email(log_message)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
+            except Exception as ex: # be careful of full path in public message
+                message = "**INTERNAL ERROR**. Blobs operations of demo {} failed".format(demo_id)
+                log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
+                self.logger.exception(log_message)
+                self.send_internal_error_email(log_message)
+                data = {'error': message, 'status': 'KO'}
+                return json.dumps(data)
 
         try:
             # Find a DR that satisfies the requirements
