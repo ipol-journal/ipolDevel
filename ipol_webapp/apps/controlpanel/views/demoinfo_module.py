@@ -405,6 +405,7 @@ class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
                 jres['status'] = status
                 if error is not None:
                     jres['error'] = error
+                    return HttpResponse(json.dumps(jres),content_type='application/json')
 
                 # insert a default (empty) DDL for the new Demo
                 try:
@@ -414,6 +415,7 @@ class DemoinfoSaveDemo(NavbarReusableMixinMF,FormView):
                     jres['status'] = status
                     if error is not None:
                         jres['error'] = error
+                        return HttpResponse(json.dumps(jres),content_type='application/json')
 
                 except Exception as e:
                     msg = "update ddl error: %s" % e
@@ -451,10 +453,15 @@ class DemoinfoUpdateDemo(NavbarReusableMixinMF, FormView):
 
             # if form has id field set, I must update, if not, create a new demo
             try:
-                old_editor_demoid = form.cleaned_data['id']
-                old_editor_demoid = int(old_editor_demoid)
+                old_editor_demoid = int(form.cleaned_data['id'])
             except Exception:
-                pass
+                response = {"status": "KO", "error": "Bad editor's ID={}".format(old_editor_demoid)}
+                return HttpResponse(json.dumps(response), content_type='application/json')
+
+            # Check if the user is allowed to edit this demo
+            if not has_permission(old_editor_demoid, self.request.user):
+                response = {"status": "KO", "error": "Editor '{}' not authorized for demo #{}".format(self.request.user, old_editor_demoid)}
+                return HttpResponse(json.dumps(response), content_type='application/json')
 
             try:
                 title = form.cleaned_data['title']
@@ -467,18 +474,19 @@ class DemoinfoUpdateDemo(NavbarReusableMixinMF, FormView):
                     "editorsdemoid": editorsdemoid,
                     "state": state
                 }
-                if has_permission(old_editor_demoid, self.request.user):
-                    jsonresult = ipolservices.demoinfo_update_demo(demojson, old_editor_demoid)
+
+                jsonresult = ipolservices.demoinfo_update_demo(demojson, old_editor_demoid)
                 status, error = get_status_and_error_from_json(jsonresult)
                 jres['status'] = status
                 if error is not None:
                     jres['error'] = error
+                    return HttpResponse(json.dumps(jres), content_type='application/json')
 
-            except Exception as e:
-                msg = "update demo error: %s" % e
-                jres['error'] = msg
+            except Exception as ex:
+                msg = "Update demo error: %s" % ex
                 logger.error(msg)
-                print msg
+                jres['error'] = msg
+                return HttpResponse(json.dumps(jres), content_type='application/json')
 
         else:
             jres['error'] = 'form_valid no ajax'

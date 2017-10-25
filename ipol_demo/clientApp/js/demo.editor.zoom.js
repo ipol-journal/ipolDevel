@@ -2,7 +2,7 @@ var zoomController = zoomController || {};
 
 // Single blob zoom with cropper
 zoomController.singleBlob = function() {
-  $("#editor-zoom").on('input' ,function() {
+  $("#editor-zoom").on('change input' ,function() {
     let zoomValue = $(this).val();
     let selector = "#canvas-container > canvas, .blobEditorImage, .cropper-container img";
     helpers.checkInterpolation(zoomValue, selector);
@@ -19,7 +19,7 @@ zoomController.singleBlob = function() {
 
 // Zoom controller for multiple blob sets
 zoomController.multiBlob = function() {
-  $("#editor-zoom").on('input', function() {
+  $("#editor-zoom").on('change input', function() {
     zoomController.changeImageZoom("left");
     zoomController.changeImageZoom("right");
   });

@@ -35,7 +35,7 @@ def authenticate(func):
         if not is_authorized_ip(cherrypy.request.remote.ip) and not (\
                         "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(\
                     cherrypy.request.headers["X-Real-IP"])):
-            error = {"status": "KO", "error": "Authentication Failed"}
+            error = {'status': 'KO', 'error': "Authentication Failed"}
             return json.dumps(error)
         return func(*args, **kwargs)
 
@@ -87,8 +87,8 @@ class Conversion(object):
             if not os.path.exists(self.logs_dir):
                 os.makedirs(self.logs_dir)
             self.logger = self.init_logging()
-        except Exception as e:
-            self.logger.exception("Failed to create log dir (using file dir) : {}".format(e))
+        except Exception as ex:
+            self.logger.exception("Failed to create log dir (using file dir). {}: {}".format(type(ex).__name__, str(ex)))
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -153,7 +153,7 @@ class Conversion(object):
         """
         Default method invoked when asked for non-existing service.
         """
-        data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
+        data = {'status': 'KO', "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data)
 
     @staticmethod
@@ -162,7 +162,7 @@ class Conversion(object):
         """
         Ping service: answer with a PONG.
         """
-        data = {"status": "OK", "ping": "pong"}
+        data = {'status': 'OK', "ping": "pong"}
         return json.dumps(data)
 
     @cherrypy.expose
@@ -171,106 +171,93 @@ class Conversion(object):
         """
         Shutdown the module.
         """
-        data = {"status": "KO"}
+        data = {'status': 'KO'}
         try:
             cherrypy.engine.exit()
-            data["status"] = "OK"
+            data['status'] = 'OK'
         except Exception as ex:
-            self.logger.exception("Failed to shutdown : {}".format(ex))
+            self.logger.exception("Failed to shutdown. {}: {}".format(type(ex).__name__, str(ex)))
             sys.exit(1)
         return json.dumps(data)
 
     @cherrypy.expose
     def convert(self, work_dir, inputs_description, crop_info=None):
+        # inputs_desc seems more consistent accross modules, should be changed here and in core.py and test.py
         """
-        pre-process the input data
-        -1: error
-        0:  No conversion needed
-        1:  Conversion performed (ex: image resizing)
-        2:  Conversion is not authorized
+        Pre-process the input data in their working directory, according to the DDL specs and optional crop.
+        For each file processed, return a code
+        -1: exception, response KO
+        0:  No conversion needed, returned by convert_image()
+        1:  Conversion performed (ex: image resizing), returned by convert_image()
+        2:  Conversion is not authorized by ddl, returned by convert_image()
         """
-        data = {"status": "OK"}
-        input_files = None
+        # Info is a dictionary for each input, with return code and possible error
+        info = {}
+        # Global try, will stop at first exception in an input
         try:
-
-            inputs_description = json.loads(inputs_description)
-            info = {}
-
+            inputs_desc = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
-
-            for i in range(len(inputs_description)):
-                input_info = {}
-                input_desc = inputs_description[i]
-                input_name = os.path.join(work_dir, 'input_{}'.format(i))
-                input_files = glob.glob(input_name + '.*')
-
-                if len(input_files) != 1:
-                    if input_desc.get('required'):
-                        # Problem here.
-                        data['error'] = "Wrong number of inputs for an image"
-                        data['code'] = -1
-                        break
-                    else:
-                        # Optional input missing, end of inputs
-                        break
-
-                if input_desc.get('max_weight') and os.path.getsize(input_files[0]) > input_desc.get('max_weight'):
-                    # Input is too large
-                    input_info['error'] = "File {} too large".format(input_files[0])
-                    input_info['code'] = -1
-                    info[i] = input_info
+            # loop on ddl inputs
+            inputs_len = len(inputs_desc)
+            for i in range(inputs_len):
+                input_desc = inputs_desc[i]
+                # before transformation success, default return code is failure
+                info[i] = {'code': -1}
+                # Search for a file for this input
+                pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
+                input_files = glob.glob(pattern)
+                # no file found, is this input optional?
+                if len(input_files) < 1:
+                    # optional is said by {"required": False}, absence of required field means: required
+                    if not input_desc.get('required', True):
+                        del info[i] # input[i] not present but not required, say nothing
+                        continue
+                    # An input is required and is absent, warn but no exception
+                    info[i]['error'] = "Input required, but file not found in: {}".format(pattern)
                     continue
-
+                input_file = input_files[0]
+                # Is file too large for expected input in DDL?
+                if input_desc.get('max_weight') and os.path.getsize(input_file) > input_desc.get('max_weight'):
+                    info[i]['error'] = "File too large: {}".format(input_file)
+                    continue
+                # check input type
+                input_type = input_desc['type']
+                if input_type not in ['image', 'data']:
+                    info[i]['error'] = "{}: unknown input type".format(input_type)
+                    continue
+                # do conversion
                 if input_desc.get('type') == 'image':
-                    input_info['code'] = self.convert_image(input_files[0], input_desc, crop_info)
-
+                    info[i]['code'] = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
-                    input_info['code'] = self.add_ext_to_data(input_files[0], input_desc)
+                    info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
 
-                else:
-                    # [todo] Add more types
-                    input_info['code'] = -1
-                    input_info['error'] = "Unknown input type"
-
-                info[i] = input_info
-
-            data['info'] = json.dumps(info)
-            data['status'] = 'OK'
-            return json.dumps(data)
-
-        except IOError as ex:
-            error_msg = "Failed to read input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.exception(error_msg)
-            print error_msg
-            data['status'] = 'KO'
-            data['code'] = -1
-            data['error'] = error_msg
-            return json.dumps(data)
         except IPOLConvertInputError as ex:
-            error_msg = "Failed to convert the input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.exception(error_msg)
-            print error_msg
-            data['status'] = 'KO'
-            data['code'] = -1
-            data['error'] = error_msg
-            return json.dumps(data)
+            message = "Input #{}. {}".format(i, str(ex))
+            return self.convert_exception(message, work_dir)
         except IPOLCropInputError as ex:
-            error_msg = "Failed to crop the input {}. Error: {}".format(input_files[0], str(ex))
-            self.logger.exception(error_msg)
-            print error_msg
-            data['status'] = 'KO'
-            data['codes'] = -1
-            data['error'] = error_msg
-            return json.dumps(data)
+            message = "Input #{}. {}".format(i, str(ex))
+            return self.convert_exception(message, work_dir)
+        except (OSError, IOError) as ex:
+            message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
+            return self.convert_exception(message, work_dir)
         except Exception as ex:
-            error_msg = "Unhandled exception in the convert. Error: {}".format(str(ex))
-            self.logger.exception(error_msg)
-            print error_msg
-            data['status'] = 'KO'
-            data['code'] = -1
-            data['error'] = error_msg
-            return json.dumps(data)
+            message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
+            return self.convert_exception(message, work_dir)
+        # globally OK (no exception), but for some input, a return code could be -1
+        return json.dumps({'status': 'OK', 'info': info})
+
+    def convert_exception(self, message, work_dir):
+        """
+        Common behavior for exceptions in convert.
+        """
+        data = {'status':'KO'}
+        self.logger.exception(message)
+        # do not send full path to client
+        data['error'] = message.replace(work_dir+'/', '')
+        print json.dumps(data, indent=2, ensure_ascii=False)
+        print message
+        return json.dumps(data)
 
     def convert_image(self, input_file, input_desc, crop_info=None):
         """
@@ -291,7 +278,7 @@ class Conversion(object):
             self.crop_image(input_file, crop_info)
             im = Image.open(input_file)
             code = 1
-            
+
         if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
             # Resize needed
             if input_desc.get("forbid_preprocess", False):
@@ -310,8 +297,8 @@ class Conversion(object):
         Add the specified extension to the data file
         """
         ext = input_desc.get('ext')
-        if ext is None:
-            raise IPOLConvertInputError('The DDL does not have extension field')
+        if ext is None: # Why not an IPOLDDL error or something like that ?
+            raise IPOLConvertInputError('DDL Error, missing extension field (to convert the input in the expected format by demo)')
         filename_no_ext, _ = os.path.splitext(input_file)
         input_with_extension = filename_no_ext + ext
         os.rename(input_file, input_with_extension)
@@ -326,13 +313,13 @@ class Conversion(object):
             im = Image.open(input_file)
             im.save(os.path.splitext(input_file)[0] + ext)
         except Exception as ex:
-            raise IPOLConvertInputError(
-                'Failed changing the extension to the input {}. Error: {}'.format(input_file, ex))
+            # the exceptions will always provide full path of the file, no need to repeat
+            raise IPOLConvertInputError("Image format conversion error. {}: {}".format(type(ex).__name__, str(ex)))
 
     @staticmethod
     def crop_image(input_file, crop_info):
         """
-        Crop the image
+        Crop an image with info provide by client
         """
         try:
             x0 = int(round(crop_info.get('x')))
@@ -342,7 +329,7 @@ class Conversion(object):
             im = Image.open(input_file)
             im.crop((x0, y0, x1, y1)).save(input_file)
         except Exception as ex:
-            raise IPOLCropInputError('Failed cropping the input {}. Error: {}'.format(input_file, ex))
+            raise IPOLCropInputError("Image crop error. {}: {}".format(type(ex).__name__, str(ex)))
 
     @staticmethod
     def resize_image(input_file, max_pixels):
@@ -356,8 +343,9 @@ class Conversion(object):
             new_height = int(round(im.height / scale_factor))
             im.resize((new_width, new_height), Image.ANTIALIAS).save(input_file)
         except Exception as ex:
+            # Pillow will always provide a full path of the file
             print ex
-            raise IPOLConvertInputError('Failed resizing the input {}. Error: {}'.format(input_file, ex))
+            raise IPOLConvertInputError('Image resize error. {}: {}'.format(type(ex).__name__, str(ex)))
 
 
     @staticmethod

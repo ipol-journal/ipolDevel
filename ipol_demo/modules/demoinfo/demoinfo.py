@@ -735,6 +735,13 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             dao = DemoDAO(conn)
 
+            editorsdemoid = int(editorsdemoid)
+
+            # Check if the demo already exists
+            # In that case, get out with an error
+            if dao.exist(int(editorsdemoid)):
+                return json.dumps({"status": "KO", "error": "Demo ID={} already exists".format(editorsdemoid)})
+
             if ddl:
                 # creates a demodescription and asigns it to demo
                 ddao = DemoDescriptionDAO(conn)

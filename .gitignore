@@ -19,6 +19,7 @@ ipol_demo/modules/demorunner/binaries/
 
 # Databases
 *.db
+*.db-journal
 *.sqlite3
 
 # Testing
@@ -88,5 +89,3 @@ demorunners.xml
 changes*.txt
 ipol_demo/app_new/
 ipol_webapp/apps/controlpanel/migrations/*_auto_*.py
-
-*.db-journal
