@@ -68,7 +68,6 @@ $.fn.repeat_gallery = function(result, index)  {
   $(this).append("<div id=gallery-"+index+"-zoom-container></div>");
   $("#gallery-"+index+"-zoom-container").appendZoom(index, leftItems);
   if ($(".gallery-left-items-" +index + " > span").length > 1) $(".left-blobs-gallery-" + index).appendCompare(index, rightItems, imgContainerRight);
-  checkOptions(result.type, index);
 }
 
 function getAllImages(repeat, contentArray, work_url) {

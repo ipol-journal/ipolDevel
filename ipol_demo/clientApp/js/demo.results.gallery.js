@@ -56,7 +56,6 @@ $.fn.gallery_new = function(result, index)  {
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
   $("#gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
   if ($("#gallery-"+index+"-blobList-left").children().length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
-  checkOptions(result.type, index);
 }
 
 function checkRepeat(line, repeatKey, repeatParam) {
