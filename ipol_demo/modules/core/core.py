@@ -368,7 +368,7 @@ class Core(object):
         status = response['status']
 
         cherrypy.response.headers['Content-Type'] = 'text/html'
-        if status == 'KO':
+        if status != 'OK':
             self.send_internal_error_email("Unable to get the list of demos")
             string = """
                  <!DOCTYPE html>
@@ -1258,7 +1258,7 @@ attached the failed experiment data.". \
                 resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
                 resp = resp.json()
                 # something went wrong in conversion module, transmit error
-                if resp['status'] == 'KO':
+                if resp['status'] != 'OK':
                     data = {'status': 'KO', 'error': resp['error']}
                     return json.dumps(data)
 
@@ -1396,7 +1396,7 @@ attached the failed experiment data.". \
                 core_response = {'status': 'KO', 'error': '{}'.format(message)}
                 return json.dumps(core_response)
 
-            if demorunner_response['status'] == 'KO':
+            if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
@@ -1666,7 +1666,7 @@ attached the failed experiment data.". \
 
             demorunner_response = resp.json()
             status = demorunner_response['status']
-            if status == 'KO':
+            if status != 'OK':
                 print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
@@ -1719,7 +1719,7 @@ attached the failed experiment data.". \
                 core_response = {"status": "KO", "error": "{}".format(message)}
                 return json.dumps(core_response)
 
-            if demorunner_response['status'] == 'KO':
+            if demorunner_response['status'] != 'OK':
                 print "DR answered KO for demo #{}".format(demo_id)
                 demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
