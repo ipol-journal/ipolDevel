@@ -184,86 +184,80 @@ class Conversion(object):
     def convert(self, work_dir, inputs_description, crop_info=None):
         # inputs_desc seems more consistent accross modules, should be changed here and in core.py and test.py
         """
-        Pre-process the input data. For each file processed, return a code
+        Pre-process the input data in their working directory, according to the DDL specs and optional crop.
+        For each file processed, return a code
         -1: exception, response KO
         0:  No conversion needed, returned by convert_image()
         1:  Conversion performed (ex: image resizing), returned by convert_image()
         2:  Conversion is not authorized by ddl, returned by convert_image()
-
-        work_dir: where to work for conversion
-        inputs_description: ddl about processing the inputs
-        crop_info: crop info from client side, same crop will be applied for multiple files
         """
-        # object to output as json response
-        # Default response is OK
-        data = {'status': 'OK'}
+        # Info is a dictionary for each input, with return code and possible error
         info = {}
-
+        # Global try, will stop at first exception in an input
         try:
             inputs_desc = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
             # loop on ddl inputs
-            for i in range(len(inputs_desc)):
+            inputs_len = len(inputs_desc)
+            for i in range(inputs_len):
                 input_desc = inputs_desc[i]
-                info[i] = {}
-
-                input_type = input_desc['type']
-                if input_type not in ['image', 'data']:
-                    info[i]['code'] = -1
-                    info[i]['error'] = "{}: unknown input type".format(input_type)
-                    continue
-
+                # before transformation success, default return code is failure
+                info[i] = {'code': -1}
                 # Search for a file for this input
                 pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
                 input_files = glob.glob(pattern)
-                # no file found, is this input optional ?
+                # no file found, is this input optional?
                 if len(input_files) < 1:
-                    # optional is said by {"required": False}, no required field means required
+                    # optional is said by {"required": False}, absence of required field means: required
                     if not input_desc.get('required', True):
                         del info[i] # input[i] not present but not required, say nothing
                         continue
-                    # An input is required and is absent, shout in silence (keep OK)
-                    info[i]['code'] = -1
+                    # An input is required and is absent, warn but no exception
                     info[i]['error'] = "Input required, but file not found in: {}".format(pattern)
                     continue
-                # What shall we do here if we find more than one file with same name ?
-
                 input_file = input_files[0]
-
+                # Is file too large for expected input in DDL?
                 if input_desc.get('max_weight') and os.path.getsize(input_file) > input_desc.get('max_weight'):
-                    # Input is too large. Resize here or upper ?
                     info[i]['error'] = "File too large: {}".format(input_file)
-                    info[i]['code'] = -1
                     continue
-
+                # check input type
+                input_type = input_desc['type']
+                if input_type not in ['image', 'data']:
+                    info[i]['error'] = "{}: unknown input type".format(input_type)
+                    continue
+                # do conversion
                 if input_desc.get('type') == 'image':
                     info[i]['code'] = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
 
+        except IPOLConvertInputError as ex:
+            message = "Input #{}. {}".format(i, str(ex))
+            return self.convert_exception(message, work_dir)
+        except IPOLCropInputError as ex:
+            message = "Input #{}. {}".format(i, str(ex))
+            return self.convert_exception(message, work_dir)
+        except (OSError, IOError) as ex:
+            message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
+            return self.convert_exception(message, work_dir)
         except Exception as ex:
-            # KO for all exceptions
-            data['status'] = 'KO'
-            if isinstance(ex, IPOLConvertInputError):
-                message = "Input #{}. {}".format(i, str(ex))
-            elif isinstance(ex, IPOLCropInputError):
-                message = "Input #{}. {}".format(i, str(ex))
-            elif isinstance(ex, OSError) or isinstance(ex, IOError):
-                message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            else:
-                message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
-            # what should be logged ? Only exceptions ?
-            self.logger.exception(message)
-            # do not send full path to client
-            data['error'] = message.replace(work_dir+'/', '')
-            print json.dumps(data, indent=2, ensure_ascii=False)
-            print message
-            return json.dumps(data)
+            message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
+            return self.convert_exception(message, work_dir)
+        # globally OK (no exception), but for some input, a return code could be -1
+        return json.dumps({'status': 'OK', 'info': info})
 
-        data['info'] = info
+    def convert_exception(self, message, work_dir):
+        """
+        Common behavior for exceptions in convert.
+        """
+        data = {'status':'KO'}
+        self.logger.exception(message)
+        # do not send full path to client
+        data['error'] = message.replace(work_dir+'/', '')
+        print json.dumps(data, indent=2, ensure_ascii=False)
+        print message
         return json.dumps(data)
-
 
     def convert_image(self, input_file, input_desc, crop_info=None):
         """
