@@ -568,22 +568,24 @@ format(str(ex), str(ddl_build)).encode('utf8')
         res_data = {}
         res_data["key"] = key
         res_data['params'] = params
-        res_data['status'] = 'KO'
         res_data['algo_info'] = {}
         # run the algorithm
         try:
+            if not os.path.isdir(work_dir):
+                res_data['status'] = 'KO'
+                err = 'Work directory does not exist: {}'.format(work_dir)
+                res_data['error'] = err
+                res_data['algo_info']['error_message'] = err
+                return json.dumps(res_data)
+            
+            #let's start the execution....
             run_time = time.time()
             timeout = float(timeout)
             # A maximum of 10 min, regardless the config
             timeout = min(timeout, 10*60)
             # At least five seconds
             timeout = max(timeout, 5)
-            if not os.path.isdir(work_dir):
-                res_data['status'] = 'KO'
-                res_data['error'] = \
-                  'Work directory does not exist: {}'.format(work_dir)
-                print res_data
-                return json.dumps(res_data)
+            
             # Run algorithm and control exceptions
             code = self.run_algo(demo_id, work_dir, \
                                  path_with_the_binaries, \
@@ -594,30 +596,31 @@ format(str(ex), str(ddl_build)).encode('utf8')
                 res_data['status'] = 'KO'
                 err = "Bad run syntax (not a string): {}".format(str(ddl_run))
                 res_data['error'] = err
-                res_data['algo_info']['status'] = err
-                print res_data
+                res_data['algo_info']['error_message'] = err
                 return json.dumps(res_data)
 
+            res_data['algo_info']['error_message'] = " "
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
+            return json.dumps(res_data)
+
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
-            res_data['algo_info']['status'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
+            res_data['algo_info']['error_message'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
             print "exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id)
             return json.dumps(res_data)
-        except RuntimeError as e:
+        except RuntimeError as ex:
             # Read stderr and stdout
             stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
-            res_data['algo_info']['status'] = 'RuntimeError, \
+            res_data['algo_info']['error_message'] = 'RuntimeError, \
 stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
                              "\n".join(stdout_lines).encode('utf8'))
 
-
             res_data['status'] = 'KO'
-            res_data['error'] = str(e)
+            res_data['error'] = str(ex)
             print res_data
             return json.dumps(res_data)
 
@@ -625,7 +628,7 @@ stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
             self.write_log("exec_and_wait", "OSError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = error_str
+            res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
             print res_data
             return json.dumps(res_data)
@@ -633,16 +636,15 @@ stderr={}, stdout={}'.format("\n".join(stderr_lines).encode('utf8'), \
             error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(str(ex), ddl_run)
             self.write_log("exec_and_wait", "KeyError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = error_str
+            res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
             print res_data
             return json.dumps(res_data)
-        except Exception as e:
+        except Exception as ex:
             error_str = "Uncatched Exception, demo_id={}".format(demo_id)
             self.logger.exception(error_str)
             res_data['status'] = 'KO'
-            res_data['algo_info']['status'] = error_str
-            res_data['error'] = 'Error: {}'.format(e)
+            res_data['algo_info']['error_message'] = error_str
+            res_data['error'] = 'Error: {}'.format(ex)
             print res_data
             return json.dumps(res_data)
-        return json.dumps(res_data)

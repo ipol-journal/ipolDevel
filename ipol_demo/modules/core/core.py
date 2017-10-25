@@ -1261,6 +1261,7 @@ attached the failed experiment data.". \
                 if resp['status'] == 'KO':
                     data = {'status': 'KO', 'error': resp['error']}
                     return json.dumps(data)
+
                 conversion_info = resp['info']
                 for input_key in conversion_info:
                     if conversion_info[input_key]['code'] == -1: # Conversion error
@@ -1395,20 +1396,27 @@ attached the failed experiment data.". \
                 core_response = {'status': 'KO', 'error': '{}'.format(message)}
                 return json.dumps(core_response)
 
-            if demorunner_response['status'] != 'OK':
+            if demorunner_response['status'] == 'KO':
                 print "DR answered KO for demo #{}".format(demo_id)
                 demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
                 # Message for the web interface
-                msg = (demorunner_response['algo_info']['status']).encode('utf-8').strip()
-                error = demorunner_response.get('error', '').strip()
+                try:
+                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                    error = demorunner_response.get('error', '').strip()
+                except Exception as ex:
+                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
+                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
+                    return json.dumps(core_response)
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
                 if error == 'IPOLTimeoutError':
                     website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
                 else:
-                    website_message = "DR={}, {}".format(dr_name, msg)
+                    website_message = "DR={}, {}".format(dr_name, error_msg)
 
                 response = {'error': website_message, 'status': 'KO'}
                 # Send email to the editors
@@ -1658,7 +1666,7 @@ attached the failed experiment data.". \
 
             demorunner_response = resp.json()
             status = demorunner_response['status']
-            if status != 'OK':
+            if status == 'KO':
                 print "COMPILATION FAILURE in demo = ", demo_id
 
                 # Send compilation message to the editors
@@ -1711,20 +1719,27 @@ attached the failed experiment data.". \
                 core_response = {"status": "KO", "error": "{}".format(message)}
                 return json.dumps(core_response)
 
-            if demorunner_response['status'] != 'OK':
+            if demorunner_response['status'] == 'KO':
                 print "DR answered KO for demo #{}".format(demo_id)
                 demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
                 # Message for the web interface
-                msg = (demorunner_response["algo_info"]["status"]).encode('utf-8').strip()
-                error = demorunner_response.get("error", "").strip()
+                try:
+                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                    error = demorunner_response.get('error', '').strip()
+                except Exception as ex:
+                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
+                    self.logger.exception(message)
+                    self.send_internal_error_email(message)
+                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
+                    return json.dumps(core_response)
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
                 if error == 'IPOLTimeoutError':
                     website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
                 else:
-                    website_message = "DR={}, {}".format(dr_name, msg)
+                    website_message = "DR={}, {}".format(dr_name, error_msg)
 
                 response = {"error": website_message,
                             "status": "KO"}
