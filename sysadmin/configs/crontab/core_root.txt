@@ -1,0 +1,2 @@
+0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh
+@reboot /home/ipol/ipolDevel/sysadmin/on_reboot.sh
