@@ -1416,7 +1416,7 @@ attached the failed experiment data.". \
                 if error == 'IPOLTimeoutError':
                     website_message = "This execution had to be stopped because of TIMEOUT. Please reduce the size of your input."
                 else:
-                    website_message = "DR={}, {}".format(dr_name, error_msg)
+                    website_message = "DR={}\n{}".format(dr_name, error_msg)
 
                 response = {'error': website_message, 'status': 'KO'}
                 # Send email to the editors
