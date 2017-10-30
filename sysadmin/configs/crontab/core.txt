@@ -1,0 +1,4 @@
+# m h  dom mon dow   command
+30 10 * * * /home/ipol/ipolDevel/ci_tests/pull.sh > /dev/null
+0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh > /dev/null
+0 11 * * * /home/ipol/ipolDevel/ci_tests/published_codes_compilation_test.sh
