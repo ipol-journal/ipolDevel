@@ -1,0 +1,2 @@
+# m h  dom mon dow   command
+0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh

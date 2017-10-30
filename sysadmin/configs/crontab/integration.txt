@@ -1,0 +1,5 @@
+# m h  dom mon dow   command
+0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh > /dev/null
+0 15 * * 2 /home/ipol/ipolDevel/ci_tests/pylint.sh
+0 15 * * 2 /home/ipol/ipolDevel/ci_tests/pdflatex.sh
+30 10 * * * /home/ipol/ipolDevel/ci_tests/pull.sh > /dev/null

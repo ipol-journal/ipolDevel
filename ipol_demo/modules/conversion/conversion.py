@@ -234,20 +234,20 @@ class Conversion(object):
 
         except IPOLConvertInputError as ex:
             message = "Input #{}. {}".format(i, str(ex))
-            return self.convert_exception(message, work_dir)
+            return self.convert_KO_response(message, work_dir)
         except IPOLCropInputError as ex:
             message = "Input #{}. {}".format(i, str(ex))
-            return self.convert_exception(message, work_dir)
+            return self.convert_KO_response(message, work_dir)
         except (OSError, IOError) as ex:
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return self.convert_exception(message, work_dir)
+            return self.convert_KO_response(message, work_dir)
         except Exception as ex:
             message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
-            return self.convert_exception(message, work_dir)
+            return self.convert_KO_response(message, work_dir)
         # globally OK (no exception), but for some input, a return code could be -1
         return json.dumps({'status': 'OK', 'info': info})
 
-    def convert_exception(self, message, work_dir):
+    def convert_KO_response(self, message, work_dir):
         """
         Common behavior for exceptions in convert.
         """
