@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
-# compute and save image histograms for a set of images
-# using the maximum of the first image as maxref
-# histograms are save as the image basename + '_hist.png'
-#
+"""
+compute and save image histograms for a set of images
+using the maximum of the first image
+histograms are save as the image basename + '_hist.png'
+"""
 
-import os, sys
+import os
+import sys
+
 from PIL import Image, ImageChops, ImageDraw
-import logging
-
 import numpy
 
 
@@ -26,10 +26,10 @@ def histogram(im, value_max=None, size=(256, 128), margin=10):
         if not value_max:
             value_max = max(data)
         width = 2*margin+size[0]
-        height = 2*margin+size[1]
+        height = 2+size[1]
         out = Image.new('L', (width, height), 255)
         draw = ImageDraw.Draw(out)
-        draw_histo(draw, data, 'L', value_max, xy=(margin, margin), size=size)
+        draw_histo(draw, data, 'L', value_max, xy=(margin, 1), size=size)
         del draw
         out.value_max = value_max
         return out
@@ -43,10 +43,10 @@ def histogram(im, value_max=None, size=(256, 128), margin=10):
         if not value_max:
             value_max = max(data)
         width = 2*margin+size[0]
-        height = 5*margin+4*size[1]
+        height = 3+3*margin+4*size[1]
         out = Image.new('RGB', (width, height), (255, 255, 255))
         draw = ImageDraw.Draw(out)
-        y = margin
+        y = 1
         for channel in ('R', 'G', 'B', 'I'):
             draw_histo(draw, data, channel, value_max, xy=(margin, y), size=size)
             y += size[1] + margin
@@ -55,7 +55,7 @@ def histogram(im, value_max=None, size=(256, 128), margin=10):
         out.value_max = value_max
         return out
 
-def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128) ):
+def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128)):
     """
     Draws the histogram of a channel on an image.
     """
@@ -68,9 +68,9 @@ def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128) ):
         'L': {'index': 0, 'color': 128, 'full': 0, 'grid': 192}
     }
     for y in (xy[1] + size[1] / 3, xy[1] + 2 * size[1] / 3): # horizontal grid
-        draw.line( (xy[0], y, xy[0]+size[0], y), fill=dic[channel]['grid'])
+        draw.line((xy[0], y, xy[0]+size[0], y), fill=dic[channel]['grid'])
     for x in (xy[0] + size[0] / 3, xy[0] + 2 * size[0] / 3): # vertical grid
-        draw.line( (x, xy[1], x, xy[1]+size[1]), fill=dic[channel]['grid'])
+        draw.line((x, xy[1], x, xy[1]+size[1]), fill=dic[channel]['grid'])
     draw.rectangle([(xy[0]-1, xy[1]-1), (xy[0]+size[0], xy[1]+size[1]+1)], outline=dic[channel]['full']) # border
 
     sy = size[1] / float(value_max) # step y
@@ -126,19 +126,17 @@ def pil_4histo(im, bgcolor=(255, 255, 255)):
                 return im
         # full comparison of pixels
         rgb = im.split()
-        if ImageChops.difference(rgb[0],rgb[1]).getextrema()[1] != 0:
+        if ImageChops.difference(rgb[0], rgb[1]).getextrema()[1] != 0:
             return im
-        if ImageChops.difference(rgb[0],rgb[2]).getextrema()[1] != 0:
+        if ImageChops.difference(rgb[0], rgb[2]).getextrema()[1] != 0:
             return im
         return im.convert('L')
     # last try
     im = im.convert('RGB')
     return im
 
-
 if __name__ == '__main__':
-    print sys.argv
-    if len(sys.argv)<2:
+    if len(sys.argv) < 2:
         print "Histogram, need at least one input image to process"
         sys.exit(0)
     # loop on argument, set max size of histogram for first image
@@ -146,11 +144,9 @@ if __name__ == '__main__':
     for src in sys.argv[1:]:
         print src
         im = Image.open(src)
-        im = pil_4histo(im) # ensure rgb
-        # TODO, maxH
+        im = pil_4histo(im) # ensure rgb or l
         hist = histogram(im, value_max=value_max)
         # get max value of first image, returned as a field
         if not value_max:
             value_max = hist.value_max
         hist.save(os.path.splitext(src)[0]+'_hist.png')
-        # logging.exception( "Histogram creation failed: {}".format(src));
