@@ -503,11 +503,7 @@ class Core(object):
 
             # Check if the image can be converted
             if not ("uint" in tiff_image.dtype.name or "int" in tiff_image.dtype.name):
-                path = os.path.join(self.project_folder, "ipol_demo", "modules", "core", "static",
-                                    "demo", "clientApp", "images", "non_viewable_data.png")
-                with open(path, "rb") as im:
-                    data["img"] = base64.b64encode(im.read())
-                data["status"] = "OK"
+                data["status"] = "KO"
                 return json.dumps(data)
             # Get number of rows, columns, and channels
             nrow, ncolumn, _ = tiff_image.shape

@@ -76,7 +76,7 @@ function setUploadedFiles() {
 function checkCropper() {
   var origin = helpers.getFromStorage('origin');
   if (origin === 'blobSet') clientData.crop_info = $('#editor-blob-left').cropper('getData');
-  if (origin === 'upload') runData.append('file_0', helpers.base64ToBlob($('#editor-blob-left').cropper('getCroppedCanvas').toDataURL()));
+  if (origin === 'upload') runData.append('file_0', helpers.base64ToBlob($('#editor-blob-left').cropper('getCroppedCanvas').toDataURL('image/png')));
 }
 
 function checkPostData() {
