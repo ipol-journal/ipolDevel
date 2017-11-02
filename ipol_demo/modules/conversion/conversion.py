@@ -15,6 +15,10 @@ import sys
 import math
 import ConfigParser
 import re
+import tempfile
+import base64
+from libtiff import TIFF
+import png
 import mimetypes
 from PIL import Image
 import cherrypy
@@ -384,3 +388,44 @@ class Conversion(object):
             raise KeyError('Invalid mode {}'.format(mode))
         if im.mode != mode_kw:
             im.convert(mode_kw).save(input_file)
+
+    @cherrypy.expose
+    def convert_tiff_to_png(self, img):
+        """
+        Converts the input TIFF to PNG.
+        This is used by the web interface for visualization purposes
+        """
+        data = {"status": "KO"}
+        try:
+            temp_file = tempfile.NamedTemporaryFile()
+            temp_file.write(base64.b64decode(img))
+            temp_file.seek(0)
+
+            tiff_file = TIFF.open(temp_file.name, mode='r')
+            tiff_image = tiff_file.read_image()
+
+            # Check if the image can be converted
+            if not ("uint" in tiff_image.dtype.name or "int" in tiff_image.dtype.name):
+                data["status"] = "KO"
+                return json.dumps(data)
+            # Get number of rows, columns, and channels
+            nrow, ncolumn, _ = tiff_image.shape
+
+            pixel_matrix = tiff_image[:, :, 0:3].reshape(
+                (nrow, ncolumn * 3), order='C').astype(tiff_image.dtype)
+            tmp_file = tempfile.SpooledTemporaryFile()
+
+            bitdepth = int(tiff_image.dtype.name.split("uint")[1])
+            writer = png.Writer(ncolumn, nrow,
+                                bitdepth=bitdepth, greyscale=False)
+
+            writer.write(tmp_file, pixel_matrix)
+            tmp_file.seek(0)
+            encoded_string = base64.b64encode(tmp_file.read())
+
+            data["img"] = encoded_string
+            data["status"] = "OK"
+        except Exception as ex:
+            print "Failed to convert image from TIFF to PNG", ex
+            self.logger.exception("Failed to convert image from TIFF to PNG")
+        return json.dumps(data)
