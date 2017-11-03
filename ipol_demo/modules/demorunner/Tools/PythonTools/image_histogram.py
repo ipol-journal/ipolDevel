@@ -13,7 +13,7 @@ from PIL import Image, ImageChops, ImageDraw
 import numpy
 
 
-def histogram(im, value_max=None, size=(256, 128), margin=10):
+def histogram(im, value_max=None, size=(256, 128), margin=10, padding=3):
     """
     Return an image object displaying the histogram of the input.
     Image mode supported : L, RGB
@@ -21,15 +21,16 @@ def histogram(im, value_max=None, size=(256, 128), margin=10):
     if im.mode not in ('L', 'RGB'):
         raise ValueError("Unsuported image mode for histogram computation (mode = {0})".format(im.mode))
 
+    width_border = padding * 2 + 2 + size[0]
+    height_border = padding * 2 + 3 + size[1]
+
     if im.mode == 'L':
         data = im.histogram()
         if not value_max:
             value_max = max(data)
-        width = 2*margin+size[0]
-        height = 2+size[1]
-        out = Image.new('L', (width, height), 255)
+        out = Image.new('L', (width_border, height_border), 255)
         draw = ImageDraw.Draw(out)
-        draw_histo(draw, data, 'L', value_max, xy=(margin, 1), size=size)
+        draw_histo(draw, data, 'L', value_max, xy=(padding + 1, padding + 1), size=size, padding=padding)
         del draw
         out.value_max = value_max
         return out
@@ -42,20 +43,18 @@ def histogram(im, value_max=None, size=(256, 128), margin=10):
         data += im_grey.histogram()
         if not value_max:
             value_max = max(data)
-        width = 2*margin+size[0]
-        height = 3+3*margin+4*size[1]
-        out = Image.new('RGB', (width, height), (255, 255, 255))
+        out = Image.new('RGB', (width_border, height_border * 4 + margin * 3), (255, 255, 255))
         draw = ImageDraw.Draw(out)
-        y = 1
+        y = padding + 1
         for channel in ('R', 'G', 'B', 'I'):
-            draw_histo(draw, data, channel, value_max, xy=(margin, y), size=size)
-            y += size[1] + margin
+            draw_histo(draw, data, channel, value_max, xy=(padding + 1, y), size=size, padding=padding)
+            y += margin + height_border
         del draw
         del im
         out.value_max = value_max
         return out
 
-def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128)):
+def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128), padding=3):
     """
     Draws the histogram of a channel on an image.
     """
@@ -68,10 +67,13 @@ def draw_histo(draw, data, channel, value_max, xy=(0, 0), size=(256, 128)):
         'L': {'index': 0, 'color': 128, 'full': 0, 'grid': 192}
     }
     for y in (xy[1] + size[1] / 3, xy[1] + 2 * size[1] / 3): # horizontal grid
-        draw.line((xy[0], y, xy[0]+size[0], y), fill=dic[channel]['grid'])
+        draw.line((xy[0], y, xy[0] + size[0] - 1, y), fill=dic[channel]['grid'])
     for x in (xy[0] + size[0] / 3, xy[0] + 2 * size[0] / 3): # vertical grid
-        draw.line((x, xy[1], x, xy[1]+size[1]), fill=dic[channel]['grid'])
-    draw.rectangle([(xy[0]-1, xy[1]-1), (xy[0]+size[0], xy[1]+size[1]+1)], outline=dic[channel]['full']) # border
+        draw.line((x, xy[1], x, xy[1] + size[1]), fill=dic[channel]['grid'])
+    draw.rectangle(
+        [(xy[0] - padding - 1, xy[1] - padding - 1), (xy[0] + size[0] + padding, xy[1] + size[1] + padding + 1)],
+        outline=dic[channel]['full']
+    ) # border
 
     sy = size[1] / float(value_max) # step y
     # loop on all pixelx of width
