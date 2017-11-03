@@ -2,27 +2,27 @@
 # pip install -r "requirements.txt"
 
 # General
-av               # video, binding to ffmpeg (thumbnails)
-bs4              # Beautiful Soup, HTML & XML parser
-cython           # C for Python
-future           # Python 2 > 3 compatibility
-libtiff          # wrapper on C libtiff
-matplotlib       # plotting with python
-mgrs             # mgrs geo coordinates
-numpy            # math package
-pillow           # Python Image Library
-psutil           # system monitoring (load balancing demorunner)
-pyfftw           # wrapper around FFTW, discrete Fourier transform (deps: fftw-3, macos bug)
-pypng            # native Python, clames for better support
-python-magic     # binding to libmagic, file identification
-requests         # http for humans
-simplejson       # json parser
-sklearn          # scikit-learn, Machine Learning
-sortedcontainers # data structure
-tifffile         # tiff (core/core.py#convert_tiff_to_png)
-utm              # geo conversion
-validoot         # validator (demoinfo/model.py)
-weightedstats    # stats
+av
+bs4
+cython
+future
+libtiff
+matplotlib
+mgrs
+numpy
+pillow
+psutil
+pyfftw
+pypng
+python-magic
+requests
+simplejson
+sklearn
+sortedcontainers
+tifffile
+utm
+validoot
+weightedstats
 
 
 # Needed in one of our private projects on satellite imaging

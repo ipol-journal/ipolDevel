@@ -98,6 +98,7 @@ function setUploadEditor(files_count, blobs, crop_info) {
       };
     }
     helpers.setOrigin("upload");
+    editorBlobs = clientApp.upload.getUploadedFiles();
     editor.printEditor(crop_info);
   }
 }

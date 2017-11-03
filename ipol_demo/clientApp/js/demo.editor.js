@@ -13,7 +13,6 @@ editor.printEditor = function(crop) {
   $("#inputEditorContainer").load("editor.html", function() {
     if (helpers.getOrigin() == "blobSet")
       editorBlobs = helpers.getFromStorage("demoSet");
-    else editorBlobs = clientApp.upload.getUploadedFiles();
     crop_info = crop;
     printEditorPanel();
   });
@@ -207,6 +206,7 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-left").on("error", function() {
         $(this).attr("src", "assets/non_viewable_data.png");
         $("#editor-blob-left").css({ width: "auto", height: "auto" });
+        $('.inputEditorContainer > .zoom-container').hide();
       });
       $("#editor-blob-left").css({ width: "auto", height: "auto" });
     }

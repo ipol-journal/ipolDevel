@@ -40,6 +40,8 @@ $(".upload-dialog").dialog({
       if (checkRequiredInputs()) {
         $(this).dialog("close");
         helpers.setOrigin("upload");
+        editorBlobs = clientApp.upload.getUploadedFiles();
+        checkTiff();
         editor.printEditor();
         parameters.printParameters();
       }
@@ -82,6 +84,31 @@ upload.printUploads = function(inputs) {
     addInputListener(i);
   }
   printUploadFooter();
+}
+
+function checkTiff(){
+  var keys = Object.keys(editorBlobs);
+  var uploads = keys.map(function(e) {
+    return editorBlobs[e];
+  });
+
+  for (var i = 0; i < keys.length; i++) 
+    if(isTiff(uploads[i])) convertTiffToPng(uploads[i], keys[i]);
+}
+
+function convertTiffToPng(upload, index){
+  var path = "/api/conversion/convert_tiff_to_png";
+  try {
+    jQuery.ajaxSetup({ async: false });
+    $.post(path, { img: upload.blob.split(',')[1] },
+      function (data, status) {
+        if(data.status !== "OK") return;
+        img = "data:image/png;base64," + data["img"];
+        editorBlobs[index].vr = img;
+      });
+  } finally {
+    jQuery.ajaxSetup({ async: true });
+  }
 }
 
 // Get input max pixels.

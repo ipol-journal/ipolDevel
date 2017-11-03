@@ -485,52 +485,6 @@ class Core(object):
         """
         im.save(fullpath, compresslevel=self.png_compresslevel)
 
-
-    @cherrypy.expose
-    def convert_tiff_to_png(self, img):
-        """
-        Converts the input TIFF to PNG.
-        This is used by the web interface for visualization purposes
-        """
-        data = {"status": "KO"}
-        try:
-            temp_file = tempfile.NamedTemporaryFile()
-            temp_file.write(base64.b64decode(img))
-            temp_file.seek(0)
-
-            tiff_file = TIFF.open(temp_file.name, mode='r')
-            tiff_image = tiff_file.read_image()
-
-            # Check if the image can be converted
-            if not ("uint" in tiff_image.dtype.name or "int" in tiff_image.dtype.name):
-                path = os.path.join(self.project_folder, "ipol_demo", "modules", "core", "static",
-                                    "demo", "clientApp", "images", "non_viewable_data.png")
-                with open(path, "rb") as im:
-                    data["img"] = base64.b64encode(im.read())
-                data["status"] = "OK"
-                return json.dumps(data)
-            # Get number of rows, columns, and channels
-            nrow, ncolumn, _ = tiff_image.shape
-
-            pixel_matrix = tiff_image[:, :, 0:3].reshape(
-                (nrow, ncolumn * 3), order='C').astype(tiff_image.dtype)
-            tmp_file = tempfile.SpooledTemporaryFile()
-
-            bitdepth = int(tiff_image.dtype.name.split("uint")[1])
-            writer = png.Writer(ncolumn, nrow,
-                                bitdepth=bitdepth, greyscale=False)
-
-            writer.write(tmp_file, pixel_matrix)
-            tmp_file.seek(0)
-            encoded_string = base64.b64encode(tmp_file.read())
-
-            data["img"] = encoded_string
-            data["status"] = "OK"
-        except Exception as ex:
-            print "Failed to convert image from TIFF to PNG", ex
-            self.logger.exception("Failed to convert image from TIFF to PNG")
-        return json.dumps(data)
-
     # --------------------------------------------------------------------------
     #           END BLOCK OF INPUT TOOLS
     # --------------------------------------------------------------------------
@@ -1390,7 +1344,7 @@ attached the failed experiment data.". \
             try:
                 demorunner_response = resp.json()
             except Exception as ex:
-                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
+                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, resp.content, ex)
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
                 core_response = {'status': 'KO', 'error': '{}'.format(message)}
@@ -1401,15 +1355,8 @@ attached the failed experiment data.". \
                 demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
                 # Message for the web interface
-                try:
-                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
-                    error = demorunner_response.get('error', '').strip()
-                except Exception as ex:
-                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
-                    return json.dumps(core_response)
+                error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                error = demorunner_response.get('error', '').strip()
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
@@ -1724,15 +1671,8 @@ attached the failed experiment data.". \
                 demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
                 # Message for the web interface
-                try:
-                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
-                    error = demorunner_response.get('error', '').strip()
-                except Exception as ex:
-                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
-                    return json.dumps(core_response)
+                error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                error = demorunner_response.get('error', '').strip()
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
