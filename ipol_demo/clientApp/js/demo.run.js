@@ -54,16 +54,22 @@ function updateURL(run_response){
 }
 
 function setRunPostData() {
-  var origin = helpers.getFromStorage('origin');
   clientData = {};
   clientData.demo_id = parseInt(demo_id);
   clientData.params = params;
+  
+  var origin = helpers.getFromStorage('origin');
   if (origin) clientData.origin = origin;
-  if (origin === 'blobSet') clientData.blobs = helpers.getFromStorage('id_blobs');
-  if (origin === 'blobSet') clientData.setId = helpers.getFromStorage('setId');
-  if (origin === 'upload' && !($('#crop-btn').is(':checked'))) setUploadedFiles();
-  if (origin === 'upload' && $('#privateSwitch').is(':checked')) clientData.private_mode = true;
-  if ($('#crop-btn').is(':checked')) checkCropper();
+  if (origin === 'blobSet'){
+    clientData.blobs = helpers.getFromStorage('id_blobs');
+    clientData.setId = helpers.getFromStorage('setId');
+  } 
+  if (origin === 'upload'){
+    if ($('#privateSwitch').is(':checked')) clientData.private_mode = true;
+    setUploadedFiles();
+  } 
+
+  checkCropper();
   runData.append('clientData', JSON.stringify(clientData));
 }
 
@@ -74,9 +80,8 @@ function setUploadedFiles() {
 }
 
 function checkCropper() {
-  var origin = helpers.getFromStorage('origin');
-  if (origin === 'blobSet') clientData.crop_info = $('#editor-blob-left').cropper('getData');
-  if (origin === 'upload') runData.append('file_0', helpers.base64ToBlob($('#editor-blob-left').cropper('getCroppedCanvas').toDataURL('image/png')));
+  if ($('#crop-btn').is(':checked')) 
+    clientData.crop_info = $('#editor-blob-left').cropper('getData');
 }
 
 function checkPostData() {
