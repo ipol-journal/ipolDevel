@@ -1344,7 +1344,7 @@ attached the failed experiment data.". \
             try:
                 demorunner_response = resp.json()
             except Exception as ex:
-                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
+                message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, resp.content, ex)
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
                 core_response = {'status': 'KO', 'error': '{}'.format(message)}
@@ -1355,15 +1355,8 @@ attached the failed experiment data.". \
                 demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
                 # Message for the web interface
-                try:
-                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
-                    error = demorunner_response.get('error', '').strip()
-                except Exception as ex:
-                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
-                    return json.dumps(core_response)
+                error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                error = demorunner_response.get('error', '').strip()
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
@@ -1678,15 +1671,8 @@ attached the failed experiment data.". \
                 demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
                 # Message for the web interface
-                try:
-                    error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
-                    error = demorunner_response.get('error', '').strip()
-                except Exception as ex:
-                    message = "**INTERNAL ERROR**. Bad format in the response when KO from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, demorunner_response.content, ex)
-                    self.logger.exception(message)
-                    self.send_internal_error_email(message)
-                    core_response = {'status': 'KO', 'error': '{}'.format(message)}
-                    return json.dumps(core_response)
+                error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+                error = demorunner_response.get('error', '').strip()
 
                 # Prepare a message for the website.
                 # In case of a timeout, let it be human oriented.
