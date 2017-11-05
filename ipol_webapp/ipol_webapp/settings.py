@@ -45,10 +45,9 @@ USE_MEMCACHED = False
 
 hostname = socket.gethostname()
 local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox', 'hmc-ipol', 'matias-VirtualBox', 'docker']
-dev_machines_hostname = ['integration.ipol.im']
+dev_machines_hostname = ['integration', 'integration.ipol.im']
 dev_machines = ['.ipol.im']
-
-production_machines = ['my_production_hostname']
+production_machines = ['ipolcore', 'ipolcore.ipol.im']
 
 #alluth control for allowing logins in the app
 ALLAUTH_GESTS = True
@@ -97,67 +96,65 @@ if hostname in local_machines:
     IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
     IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
-
-
 elif hostname in dev_machines_hostname:
-    SITE_ID = 3
-    # PRO USA APACHE
-    HOST = 'development'
-    #asi evito python manage.py collectstatic y servir con apache
-    DEBUG = True
-    TEMPLATEDEBUG = True
-    DBHOST = 'localhost'
-    DBUSER = ''
-    DBPSSWD = ''
-    HTTPS = False
-    # permite modo debug False
-    DOMAIN_NAME = 'localhost'
-    ADMINS = (('JAK', 'josearrecio@gmail.com'))
-    # dominio y subdominios , ojo por ip no funciona.
-    ALLOWED_HOSTS = dev_machines
-    MANAGERS = ADMINS
-    USE_MEMCACHED = False
-    ####################################
-    #            IPOL WS               #
-    ####################################
-    HOST_NAME = 'ns3018037.ip-151-80-24.eu'
-    # testing ENV 2
-    IPOL_SERVICES_MODULE_DEMO = None
-    # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
-    IPOL_SERVICES_MODULE_PROXY = 'http://ns3018037.ip-151-80-24.eu:9003/%s'
-    #         #urls to access the modules by proxy
-    IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-    IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-    IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+	SITE_ID = 3
+	# PRO USA APACHE
+	HOST = 'development'
+	#asi evito python manage.py collectstatic y servir con apache
+	DEBUG = True
+	TEMPLATEDEBUG = True
+	DBHOST = 'localhost'
+	DBUSER = ''
+	DBPSSWD = ''
+	HTTPS = False
+	# permite modo debug False
+	DOMAIN_NAME = 'localhost'
+	ADMINS = (('JAK', 'josearrecio@gmail.com'))
+	# dominio y subdominios , ojo por ip no funciona.
+	ALLOWED_HOSTS = dev_machines
+	MANAGERS = ADMINS
+	USE_MEMCACHED = False
+	####################################
+	#            IPOL WS               #
+	####################################
+	HOST_NAME = 'ns3018037.ip-151-80-24.eu'
+	# testing ENV 2
+	IPOL_SERVICES_MODULE_DEMO = None
+	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
+	IPOL_SERVICES_MODULE_PROXY = 'http://integration.ipol.im:9003/%s'
+	# 	#urls to access the modules by proxy
+	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 
 elif hostname in production_machines:
-    SITE_ID = 3
-    # PRO USA APACHE
-    HOST = 'produccion'
-    #asi evito python manage.py collectstatic y servir con apache
-    DEBUG = False
-    TEMPLATEDEBUG = False
-    DBHOST = 'localhost'
-    DBUSER = ''
-    DBPSSWD = ''
-    HTTPS = False
-    # permite modo debug False
-    DOMAIN_NAME = 'localhost'
-    ADMINS = (('JAK', 'josearrecio@gmail.com'))
-    # dominio y subdominios , ojo por ip no funciona.
-    ALLOWED_HOSTS = dev_machines
-    MANAGERS = ADMINS
-    USE_MEMCACHED = False
-    ####################################
-    #            IPOL WS               #
-    ####################################
-    HOST_NAME = 'myproductionurl'
+	SITE_ID = 3
+	# PRO USA APACHE
+	HOST = 'ipolcore.ipol.im'
+	#asi evito python manage.py collectstatic y servir con apache
+	DEBUG = False
+	TEMPLATEDEBUG = False
+	DBHOST = 'ipolcore'
+	DBUSER = ''
+	DBPSSWD = ''
+	HTTPS = False
+	# permite modo debug False
+	DOMAIN_NAME = 'ipolcore.ipol.im'
+	ADMINS = (('JAK', 'josearrecio@gmail.com'))
+	# dominio y subdominios , ojo por ip no funciona.
+	ALLOWED_HOSTS = production_machines
+	MANAGERS = ADMINS
+	USE_MEMCACHED = False
+	####################################
+	#            IPOL WS               #
+	####################################
+	HOST_NAME = 'ipolcore.ipol.im'
 
-    IPOL_SERVICES_MODULE_DEMO = None
-    IPOL_SERVICES_MODULE_PROXY = 'http://myproductionurl'
-    IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
-    IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
-    IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMO = None
+	IPOL_SERVICES_MODULE_PROXY = 'http://ipolcore.ipol.im:9003/%s'
+	IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
+	IPOL_SERVICES_MODULE_DEMOINFO =IPOL_SERVICES_MODULE_PROXY
 else:
     print("ERROR: invalid hostname")
 
