@@ -140,10 +140,17 @@ class Core(object):
         Constructor
         """
         try:
+            ### Read the configuration file
             self.host_name = cherrypy.config['server.socket_host']
 
-            # Read configuration file
-            self.serverEnvironment = cherrypy.config.get("server.environment").lower()
+            # Get the server environment (integration or production)
+            hostname = socket.gethostname()
+            if hostname == cherrypy.config.get('production_hostname', 'ipolcore'):
+                self.serverEnvironment = 'production'
+            elif hostname == cherrypy.config.get('integration_hostname', 'integration'):
+                self.serverEnvironment = 'integration'
+            else:
+                self.serverEnvironment = '<unknown>'
 
             self.demorunners_file = cherrypy.config.get("demorunners_file")
             self.demorunners = {}
@@ -167,23 +174,16 @@ class Core(object):
             self.share_run_dir_abs = os.path.join(
                 self.shared_folder_abs, self.share_run_dir_rel)
 
-            self.load_demorunners()
-
             # Security: authorized IPs
             self.authorized_patterns = self.read_authorized_patterns()
 
-            # Create shared folder if not exist
-            self.mkdir_p(self.shared_folder_abs)
-
-            # create running dir and demoextras dirs
+            # create needed directories
             self.mkdir_p(self.share_run_dir_abs)
+            self.mkdir_p(self.shared_folder_abs)
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demoExtrasMainDir)
-            # return to core
 
-            # Configure
-            self.png_compresslevel = 1
-
+            self.load_demorunners()
         except Exception as ex:
             self.logger.exception("__init__", str(ex))
 
@@ -483,7 +483,7 @@ class Core(object):
         """
         Save image object given full path
         """
-        im.save(fullpath, compresslevel=self.png_compresslevel)
+        im.save(fullpath, compresslevel=1)
 
     # --------------------------------------------------------------------------
     #           END BLOCK OF INPUT TOOLS
