@@ -410,11 +410,10 @@ class Core(object):
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
 
-                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}&random={}'>{}</a><br>".format(
+                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}'>{}</a><br>".format(
                     editorsdemoid,
                     "(private)" if editorsdemoid.startswith("33333") else "",
                     editorsdemoid,
-                    str(int(random()*100000)), # Temporary, to refresh the new interface static files
                     demo_data['title'].encode('utf-8'))
 
         string = """
