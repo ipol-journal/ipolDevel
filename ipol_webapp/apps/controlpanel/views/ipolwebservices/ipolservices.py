@@ -1,8 +1,10 @@
+# [Miguel] [ToDo] Get rid of all these wrapper functions and call directly the API.
+# We want the opposite: give visibility to the API, instead of using useless indirections.
+
 # coding=utf-8
 from ipol_webapp.settings import IPOL_SERVICES_MODULE_PROXY, IPOL_SERVICES_MODULE_DEMOINFO, \
     IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, HOST_NAME
 
-__author__ = 'josearrecio'
 import json
 import requests
 # from poster.encode import MultipartParam
@@ -75,10 +77,6 @@ def http_request(path, METHOD=None, params=None, json=None, files=None):
 #####################
 def core_ping():
     path = '/api/core/ping'
-    return http_request(path, METHOD='GET')
-
-def get_demorunners_stats():
-    path = '/api/core/get_demorunners_stats'
     return http_request(path, METHOD='GET')
 
 #####################

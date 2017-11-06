@@ -98,18 +98,18 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
     def demorunners_stats(self):
         data = {'status': 'KO'}
         try:
-            # Archive Stats
-            response = ipolservices.get_demorunners_stats()
+            # DR stats
+            response = ipolservices.http_request('/api/core/get_demorunners_stats')
             json_response = json.loads(response)
             for dr in json_response.get('demorunners'):
                 if dr.get('status') == 'OK':
                     data['status'] = 'OK'
                     break
             data['demorunners'] = json_response.get('demorunners')
-        except Exception , e:
-            msg="Error get_archive_module_stats %s"%e
-            print(msg)
+        except Exception as ex:
+            msg = "Error get_archive_module_stats %s" % ex
             logger.error(msg)
+            print(msg)
             return {'status': 'KO'}
 
         return data
