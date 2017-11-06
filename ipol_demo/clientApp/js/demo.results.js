@@ -35,10 +35,9 @@ $.fn.gallery = function (result, index) {
   var contentKeys = Object.keys(result.contents);
 
   if (result.label) $(this).appendLabel(result.label);
-  var gallerySelector = "gallery_" + index;
-  $(this).append("<div class=" + gallerySelector + "></div>");
-  $(this).append("<div class=gallery-" + index + "-zoom-container></div>");
-  $("." + gallerySelector).addClass("gallery-container");
+  var gallerySelector = 'gallery_' + index;
+  $(this).append('<div class="gallery-container ' + gallerySelector + '"></div>');
+  $(this).append('<div class="gallery-' + index + '-zoom-container"></div>');
 
   var leftItems = "gallery-left-items-" + index;
   var rightItems = "gallery-right-items-" + index;
@@ -50,10 +49,8 @@ $.fn.gallery = function (result, index) {
 
   $("." + gallerySelector).append("<div class=" + rightItems + "></div>");
   $("." + rightItems).addClass("di-none");
-  $("." + leftItems).append("<div id=left-blobs-gallery-" + index + "></div>");
-  $("." + rightItems).append("<div id=right-blobs-gallery-" + index + "></div>");
-  $("#" + "left-blobs-gallery-" + index).addClass("gallery-item-list");
-  $("#" + "right-blobs-gallery-" + index).addClass("gallery-item-list");
+  $("." + leftItems).append('<div id=left-blobs-gallery-' + index + ' class=gallery-item-list></div>');
+  $("." + rightItems).append('<div id=right-blobs-gallery-' + index + ' class=gallery-item-list></div>');
 
   var imgContainerLeft = "gallery-blob-container-left-" + index;
   var imgContainerRight = "gallery-blob-container-right-" + index;
@@ -112,8 +109,6 @@ $.fn.gallery = function (result, index) {
         helpers.addToStorage("gallery-" + index + "-right", 0);
       }
 
-      $("." + gallerySelector).setGalleryMinHeight(work_url, src);
-
       if ($("#" + imgContainerLeft).children().length <= 0) {
         var content = result.contents[contentKeys[0]];
         var type = typeof (content);
@@ -133,19 +128,21 @@ $.fn.gallery = function (result, index) {
     }
   }
 
-  $("#left-blobs-gallery-" + index).addClass('blobsList');
-  $("#right-blobs-gallery-" + index).addClass('blobsList');
+  var allSrc = [];
+  for (var k = 0; k < blobsArray.length; k++) {
+    for (var j = 0; j < blobsArray[k].length; j++) {
+      allSrc.push(blobsArray[k][j].attr('src'));
+    }
+  }
+  $("." + gallerySelector).setGalleryMinHeight(allSrc);
   
   $("#left-blobs-gallery-"+index).addMouseOutEvent(index, 'left', blobsArray);
   $("#right-blobs-gallery-" + index).addMouseOutEvent(index, 'right', blobsArray);
   $("." + leftItems + " span:first-child").addClass("gallery-item-selected");
   $("." + rightItems + " span:first-child").addClass("gallery-item-selected");
   
-  $("#" + imgContainerLeft + " > img").addClass('gallery-' + index + '-blob-left');
-  $("#" + imgContainerRight + " > img").addClass('gallery-' + index + '-blob-right');
-  
   $(".gallery-" + index + "-zoom-container").appendZoom(index, leftItems);
-  if ($("#left-blobs-gallery-" +index).children().length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
+  if (blobsArray.length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
 }
 
 function getAllSources(contentArray, work_url) {
@@ -163,24 +160,24 @@ function getAllSources(contentArray, work_url) {
       allSrc.push(blobs);
     } else {
       var img = "<img src="+ work_url + contentArray[keys[i]] +" class=gallery-img draggable=false></img>";
-      allSrc.push($(img));
+      allSrc.push([$(img)]);
     }
   }
   return allSrc;
 }
 
 // Set gallery min-height to avoid jump loops.
-$.fn.setGalleryMinHeight = function(work_url, src) {
+$.fn.setGalleryMinHeight = function(sources) {
   var minHeight;
   var selector = $(this);
-  if (!Array.isArray(src)) {
-    src = Object.keys(src).map(function(e) {
-      return src[e];
+  if (!Array.isArray(sources)) {
+    sources = Object.keys(sources).map(function(e) {
+      return sources[e];
     });
   }
-  for (let i = 0; i < src.length; i++) {
+  for (let i = 0; i < sources.length; i++) {
     let tmpImg = new Image();
-    tmpImg.src = work_url + src[i];
+    tmpImg.src = sources[i];
     $(tmpImg).on("load", function() {
       minHeight = parseInt(selector.css("min-height"));
       if (minHeight < tmpImg.height) {
@@ -198,7 +195,6 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
       $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "50%" });
       $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "50%" });
       $(".gallery-blobs-container-" + galleryIndex).addClass('blobs-wrapper-compare');
-      
     } else {
       $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "" });
       $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "" });
@@ -214,7 +210,6 @@ $.fn.appendLabel = function(labelArray) {
   var html = "";
   for (var i = 0; i < labelArray.length; i++) html += labelArray[i];
   if (html.charAt(0) == "'") html = eval(html);
-
   $(this).html("<div class=m-b-20>" + html + "</div>");
 };
 

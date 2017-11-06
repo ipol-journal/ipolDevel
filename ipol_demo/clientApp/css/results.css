@@ -129,7 +129,7 @@
   overflow-x: auto;
   flex-flow: column;
 
-  min-width: 175px;
+  width: 175px;
   max-height: 500px;
 }
 
@@ -145,12 +145,12 @@
   -ms-flex-wrap: nowrap;
       flex-wrap: nowrap;
 
-      width: calc(100% - 175px);
+  width: calc(100% - 175px);
   max-width: calc(100% - 175px);
 }
 
 .blobs-wrapper-compare {
-      width: calc(100% - 350px);
+  width: calc(100% - 350px);
   max-width: calc(100% - 350px);
 }
 
