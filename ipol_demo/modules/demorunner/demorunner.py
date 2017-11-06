@@ -80,6 +80,7 @@ class DemoRunner(object):
     """
 
     instance = None
+    last_execution = {'demo_id': 0, 'key': '---', 'date': '---'}
 
     @staticmethod
     def get_instance():
@@ -238,7 +239,7 @@ class DemoRunner(object):
         data["message"] = "Unknown service '{}'".format(attr)
         return json.dumps(data)
 
-    # -----------------------------------------------------------------------------
+
     @cherrypy.expose
     def get_workload(self):
         """
@@ -267,6 +268,22 @@ class DemoRunner(object):
             print "Could not get workload from the DR -", ex
 
         return json.dumps(data)
+    
+    @cherrypy.expose
+    def get_stats(self):
+        '''
+        Get statistics of the module
+        '''
+        try:
+            response = {}
+            response['status'] = 'OK'
+            response['demo_id'] = self.last_execution['demo_id']
+            response['key'] = self.last_execution['key']
+            response['date'] = self.last_execution['date']
+            return json.dumps(response)
+        except Exception as ex:
+            return json.dumps({'status': 'KO'})
+
 
     @staticmethod
     def remove_path(path):
@@ -561,6 +578,12 @@ format(str(ex), str(ddl_build)).encode('utf8')
         '''
         Run the algorithm
         '''
+        
+        # Statistics
+        self.last_execution['demo_id'] = demo_id
+        self.last_execution['key'] = key
+        self.last_execution['date'] = time.strftime("%d/%m/%Y at %H:%M:%S")
+        
         ddl_run = json.loads(ddl_run)
         params = json.loads(params)
         path_with_the_binaries = os.path.join(self.main_bin_dir, demo_id + "/")
