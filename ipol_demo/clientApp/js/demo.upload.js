@@ -43,7 +43,6 @@ $(".upload-dialog").dialog({
         editorBlobs = clientApp.upload.getUploadedFiles();
         checkTiff();
         editor.printEditor();
-        parameters.printParameters();
       }
     },
     Clear: function() {
