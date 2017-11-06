@@ -496,7 +496,7 @@ def demoinfo_add_demo_extra_to_demo(demo_id, request):
 
 def archive_get_page(experimentid, page='1'):
     """
-    The method “page” returns a JSON response with, for a given page of a given demo, all the data of the experiments
+    The method "page" returns a JSON response with, for a given page of a given demo, all the data of the experiments
     that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
     the browser
     """
@@ -524,7 +524,7 @@ def archive_get_experiment(experiment_id):
 
 def archive_get_stats():
     """
-    The method “page” returns a JSON response with, for a given page of a given demo, all the data of the experiments
+    The method "page” returns a JSON response with, for a given page of a given demo, all the data of the experiments
     that should be displayed on this page. Twelve experiments are displayed by page. For rendering the archive page in
     the browser
     """
