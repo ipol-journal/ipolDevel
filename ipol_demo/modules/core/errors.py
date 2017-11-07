@@ -40,7 +40,7 @@ class IPOLExtractError(Exception):
     IPOLExtractError
     """
     pass
-    
+
 
 class IPOLInputUploadTooLargeError(Exception):
     """

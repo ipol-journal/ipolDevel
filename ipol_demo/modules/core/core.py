@@ -4,8 +4,6 @@
 IPOL Core module
 """
 
-import base64
-import tempfile
 import re
 # To send emails
 import smtplib
@@ -39,9 +37,6 @@ import zipfile
 import socket
 
 import mimetypes
-
-from libtiff import TIFF
-import png
 
 import requests
 import cherrypy
