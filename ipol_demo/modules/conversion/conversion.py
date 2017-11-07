@@ -17,9 +17,9 @@ import ConfigParser
 import re
 import tempfile
 import base64
+import mimetypes
 from libtiff import TIFF
 import png
-import mimetypes
 from PIL import Image
 import cherrypy
 from Tools.evaluator import evaluate
