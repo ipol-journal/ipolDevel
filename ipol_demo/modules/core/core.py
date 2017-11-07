@@ -473,7 +473,8 @@ class Core(object):
     # [Miguel] They're absolutely deprecated and need a full refactoring
     # in the Conversion module.
     # ---------------------------------------------------------------------------
-    def save_image(self, im, fullpath):
+    @staticmethod
+    def save_image(im, fullpath):
         """
         Save image object given full path
         """
