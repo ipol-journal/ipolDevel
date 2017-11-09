@@ -16,7 +16,7 @@
 # Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-import optparse
+import argparse
 import requests
 import json
 from urlparse import urlparse
@@ -101,8 +101,22 @@ def check_build_in_DDL(ddl):
     if not 'build' in ddl_json:
         return {"Build": "Missing 'build' section"}
 
-    if not 'build1' in ddl_json["build"]:
-        return {"Build":" This demo has builds with the deprecated syntax"}
+    ddl_build = ddl_json["build"]
+    if not 'build1' in ddl_build:
+        return {"Build": "'build1' section not found"}
+    
+    # Check every build
+    i = 1
+    build_i = 'build{}'.format(i)
+    while build_i in ddl_build:
+        construct = ddl_build[build_i].get('construct', None)
+        if construct:
+            if 'pip' in construct or 'install' in construct:
+                return {"Build": "Demo might be using 'pip install'"}
+
+        i += 1
+        build_i = 'build{}'.format(i)
+
     return {}
 
 def check_url_in_DDL(ddl):
@@ -190,72 +204,64 @@ def print_errors(editors_demoid, state, title, errors, editors):
     print "\n"
 
 
-def start_test():
-    demos = get_demo_list()
-    number_of_errors=0
-    number_of_wrong_demos=0
-    for demo in demos:
-        state = demo['state']
-
-        editors_demoid = demo['editorsdemoid']
-        title = demo['title']
-        errors = {}
-
-        # Read the DDL
-        ddl = read_DDL(demo['editorsdemoid'])
-
-        # Read and check editors
-        editors = get_editors(editors_demoid)
-        #if state in ["production", "preprint", "workshop"]:
-        errors.update(check_editors(editors))
-
-        # Check the DDL
-        errors.update(check_ddl(ddl))
-
-        if ddl is None:
-            # If there is no DDL print errors continue to the next demo
-            print_errors(editors_demoid, state, title, errors, editors)
-            continue
-
-        # Check the build in the DDL
-        errors.update(check_build_in_DDL(ddl))
-        # Check the run in the DDL
-        errors.update(check_run_in_DDL(ddl))
-        # Check the url in the DDL if the demo is published
-        if (demo['state'] == "published"):
-            errors.update(check_url_in_DDL(ddl))
-        # Check the demo extras
-        errors.update(check_demo_extras(editors_demoid,ddl))
-
-        # print errors
-        print_errors(editors_demoid, state, title, errors, editors)
-        if len(errors)>0:
-            number_of_errors += len(errors)
-            number_of_wrong_demos += 1
-    if number_of_wrong_demos > 0:
-        print "Number of wrong demos:  {}".format(number_of_wrong_demos)
-        print "Number of total errors: {}".format(number_of_errors)
-
-
-
 # Parse program arguments
-parser = optparse.OptionParser()
-(opts, args) = parser.parse_args()
+###
+parser = argparse.ArgumentParser()
+parser.add_argument("environment")
+parser.parse_args()
+args = parser.parse_args()
 
-if len(args) != 1:
-    print "Wrong number of arguments (given {}, expected 1)".format(len(args))
-    exit (0)
-
-environment = args[0].lower()
-
-if environment in ['integration', 'int', 'i']:
+if args.environment in ['integration', 'int', 'i']:
     HOST = "integration.ipol.im"
-elif environment in ['production', 'prod', 'p']:
+elif args.environment in ['production', 'prod', 'p']:
     HOST = "ipolcore.ipol.im"
-elif environment in ['local', 'l']:
+elif args.environment in ['local', 'l']:
     HOST = "127.0.0.1"
 else:
-    print "Unknown environment '{}'".format(environment)
+    print "Unknown environment '{}'".format(args.environment)
     exit (-1)
 
-start_test()
+demos = get_demo_list()
+number_of_errors=0
+number_of_wrong_demos=0
+for demo in demos:
+    state = demo['state']
+
+    editors_demoid = demo['editorsdemoid']
+    title = demo['title']
+    errors = {}
+
+    # Read the DDL
+    ddl = read_DDL(demo['editorsdemoid'])
+
+    # Read and check editors
+    editors = get_editors(editors_demoid)
+    #if state in ["production", "preprint", "workshop"]:
+    errors.update(check_editors(editors))
+
+    # Check the DDL
+    errors.update(check_ddl(ddl))
+
+    if ddl is None:
+        # If there is no DDL print errors continue to the next demo
+        print_errors(editors_demoid, state, title, errors, editors)
+        continue
+
+    # Check the build in the DDL
+    errors.update(check_build_in_DDL(ddl))
+    # Check the run in the DDL
+    errors.update(check_run_in_DDL(ddl))
+    # Check the url in the DDL if the demo is published
+    if (demo['state'] == "published"):
+        errors.update(check_url_in_DDL(ddl))
+    # Check the demo extras
+    errors.update(check_demo_extras(editors_demoid,ddl))
+
+    # print errors
+    print_errors(editors_demoid, state, title, errors, editors)
+    if len(errors)>0:
+        number_of_errors += len(errors)
+        number_of_wrong_demos += 1
+if number_of_wrong_demos > 0:
+    print "Number of wrong demos:  {}".format(number_of_wrong_demos)
+    print "Number of total errors: {}".format(number_of_errors)
