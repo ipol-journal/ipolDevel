@@ -626,7 +626,8 @@ class Core(object):
                 raise IPOLInputUploadError("The DDL doesn't have a 'type' field")
 
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
-                raise IPOLInputUploadError("The DDL type doesn't match the uploaded file")
+                message = "The DDL type ({}) doesn't match the uploaded blob ({})".format(inputs_desc[i]['type'], type_of_uploaded_blob)
+                raise IPOLInputUploadError(message)
 
             # Reject the uploaded file it's not 'data' and it can't be guessed
             ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
@@ -1240,32 +1241,31 @@ attached the failed experiment data.". \
                 print message
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-            except IPOLCopyBlobsError as ex: # DDL error ?
+            except IPOLCopyBlobsError as ex:
                 message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-            except IPOLInputUploadError as ex: # ??? DDL errors
-                message = "** INTERNAL ERROR **. Error uploading input of demo {}: {}".format(demo_id, ex)
+            except IPOLInputUploadError as ex:
+                message = "Error uploading input of demo #{} with key={}): {}".format(demo_id, key, ex)
                 self.logger.exception(message)
-                self.send_internal_error_email(message)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-            except IPOLProcessInputsError as ex: # ??? "The DDL does not have an 'ext' (extension) field"
+            except IPOLProcessInputsError as ex:
                 message = "** INTERNAL ERROR **. Error processing inputs of demo {}: {}".format(demo_id, ex)
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-            except (IOError, OSError) as ex: # do not output full paths to the public
+            except (IOError, OSError) as ex:
                 message = "** INTERNAL ERROR **. I/O error processing inputs"
                 log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
                 self.logger.exception(log_message)
                 self.send_internal_error_email(log_message)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
-            except Exception as ex: # be careful of full path in public message
+            except Exception as ex:
                 message = "**INTERNAL ERROR**. Blobs operations of demo {} failed".format(demo_id)
                 log_message = (message+". {}: {}").format(type(ex).__name__, str(ex))
                 self.logger.exception(log_message)
