@@ -1248,7 +1248,7 @@ attached the failed experiment data.". \
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
             except IPOLInputUploadError as ex:
-                message = "Error uploading input of demo #{} with key={}): {}".format(demo_id, key, ex)
+                message = "Error uploading input of demo #{} with key={}: {}".format(demo_id, key, ex)
                 self.logger.exception(message)
                 data = {'error': message, 'status': 'KO'}
                 return json.dumps(data)
