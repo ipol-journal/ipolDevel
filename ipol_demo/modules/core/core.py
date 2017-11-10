@@ -1777,8 +1777,12 @@ attached the failed experiment data.". \
 
             # Check if the DR is up. Otherwise add it to the
             # list of unresponsive DRs
-            demorunner_response = self.post(dr_server, 'demorunner', 'ping')
-            if demorunner_response.ok:
+            try:
+                demorunner_response = self.post(dr_server, 'demorunner', 'ping')
+            except:
+                demorunner_response = None
+
+            if demorunner_response and demorunner_response.ok:
                 if unresponsive_demorunners:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
                 return dr_name, dr_server
