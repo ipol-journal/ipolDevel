@@ -18,6 +18,12 @@ count_total = 0
 for demo_id in demos:
     demo_dir = os.path.join(base_dir, demo_id)
 
+    if demo_id == '-1':
+        continue # Test demo
+
+    if demo_id.startswith('.'):
+        continue # Hidden folder
+
     # Get the executions of this demo
     execs = os.listdir(demo_dir)
     
@@ -33,8 +39,8 @@ for demo_id in demos:
     
     count_total += count
         
-    print "demo #{}:\t{}\t({}/month)".format(demo_id, count, int(count/30.0))
+    print "demo #{}:\t{}\t({}/day)".format(demo_id, count, int(count/30.0))
 
 print
-print "Total:\t{}\t({}/month)".format(count_total, int(count_total/30.0))
+print "Total:\t{}\t({}/day)".format(count_total, int(count_total/30.0))
         
