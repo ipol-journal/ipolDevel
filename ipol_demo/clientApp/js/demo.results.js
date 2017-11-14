@@ -261,8 +261,10 @@ $.fn.addMouseOutEvent = function(galleryIndex, side, src) {
 $.fn.updateSize = function (index, side)  {
   var zoomLevel = $(this).val();
   $("#gallery-blob-container-" + side + "-" + index).children('img').each(function (i) {
-    $(this).height($(this)[0].naturalHeight * zoomLevel);
-    $(this).width($(this)[0].naturalWidth * zoomLevel);
+    if ($(this)[0].naturalHeight != 0 || $(this)[0].naturalWidth != 0) {
+      $(this).height($(this)[0].naturalHeight * zoomLevel);
+      $(this).width($(this)[0].naturalWidth * zoomLevel);
+    }
   });
 }
 

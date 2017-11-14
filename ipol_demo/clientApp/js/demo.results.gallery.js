@@ -136,7 +136,6 @@ $.fn.addMouseOut = function (galleryIndex, side, blobsArray) {
     $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
     $(selector + " > img").addClass('gallery-' + galleryIndex + '-blob-' + side);
     setInterpolation(galleryIndex);
-    $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
   });
 }
 
@@ -196,8 +195,10 @@ $.fn.appendZoom = function(index, leftItems) {
 $.fn.adjustSize = function(index) {
   var zoomLevel = $(this).val();
   $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
-    $(this).height($(this)[0].naturalHeight * zoomLevel);
-    $(this).width($(this)[0].naturalWidth * zoomLevel);
+    if ($(this)[0].naturalHeight != 0 || $(this)[0].naturalWidth != 0) {
+      $(this).height($(this)[0].naturalHeight * zoomLevel);
+      $(this).width($(this)[0].naturalWidth * zoomLevel);
+    }
   });
 }
 
