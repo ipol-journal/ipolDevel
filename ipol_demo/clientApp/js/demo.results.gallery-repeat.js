@@ -21,7 +21,7 @@ $.fn.repeat_gallery = function(result, index)  {
   
   var blobsArray = getAllImages(repeat, contentArray, work_url);
 
-  var gallerySelector = "gallery_" + index;
+  var gallerySelector = "gallery-" + index;
   $(this).append('<div class="' + gallerySelector + ' gallery-container"></div>');
 
   var leftItems = "gallery-left-items-" + index;

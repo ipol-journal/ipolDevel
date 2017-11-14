@@ -35,7 +35,7 @@ $.fn.gallery = function (result, index) {
   var contentKeys = Object.keys(result.contents);
 
   if (result.label) $(this).appendLabel(result.label);
-  var gallerySelector = 'gallery_' + index;
+  var gallerySelector = 'gallery-' + index;
   $(this).append('<div class="gallery-container ' + gallerySelector + '"></div>');
   $(this).append('<div class="gallery-' + index + '-zoom-container"></div>');
 
@@ -201,7 +201,7 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
       $(".gallery-blobs-container-" + galleryIndex).removeClass("blobs-wrapper-compare");
     }
     $("#" + imgContainerRight).toggleClass("di-none");
-    $(".gallery_" + galleryIndex).toggleClass("space-between");
+    $(".gallery-" + galleryIndex).toggleClass("space-between");
     $("." + rightItems).toggleClass("di-none");
   });
 }
@@ -226,7 +226,7 @@ $.fn.addHoverEvents = function (galleryIndex, side, src, idx) {
     $(selector).children().addClass("gallery-"+galleryIndex+"-blob-"+side);
 
     var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
-    helpers.checkInterpolation(zoomValue, ".gallery_" + galleryIndex + " img");
+    helpers.checkInterpolation(zoomValue, '.gallery-' + galleryIndex + ' img');
   });
   $(this).on('click', function () {
     var listSelector = "#" + side + "-blobs-gallery-" + galleryIndex;
@@ -252,7 +252,7 @@ $.fn.addMouseOutEvent = function(galleryIndex, side, src) {
     $("#gallery-" + galleryIndex + "-zoom > input").updateSize(galleryIndex, side);
     
     var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
-    helpers.checkInterpolation(zoomValue, '.gallery_' + galleryIndex + ' img');
+    helpers.checkInterpolation(zoomValue, '.gallery-' + galleryIndex + ' img');
     
     $(selector).children().addClass("gallery-" + galleryIndex + "-blob-" + side);
   });

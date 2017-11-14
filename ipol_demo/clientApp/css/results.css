@@ -83,6 +83,8 @@
 .gallery-blobList-left {
   display: flex;
   flex-flow: column;
+
+  width: 175px;
 }
 
 .gallery-item-selected {
@@ -156,4 +158,13 @@
 
 div[class^='html_text_'] {
   margin-top: 10px;
+}
+
+.gallery-video-container {
+  display: flex;
+  overflow: auto;
+
+  margin: 0 5px 5px 5px;
+
+  animation: container-entrance .5s cubic-bezier(.69, -.02, .46, 1.28);
 }

@@ -9,7 +9,7 @@ $.fn.gallery_new = function(result, index)  {
   var contentKeys = Object.keys(result.contents);
 
   if (result.label) $(this).appendLabel(result.label);
-  var gallerySelector = "gallery_" + index;
+  var gallerySelector = "gallery-" + index;
   $(this).append('<div class="' + gallerySelector + ' gallery-container" ></div>');
 
   var blobsArray = getGalleryImages(result.contents, work_url);
@@ -90,7 +90,7 @@ function checkRepeat(expression) {
 }
 
 function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, blobsArray) {
-  $(".gallery_" + index).append('<div class="' + itemSelector + ' gallery-item-list"></div>');
+  $(".gallery-" + index).append('<div class="' + itemSelector + ' gallery-item-list"></div>');
   $("." + itemSelector).append("<div id=gallery-" + index + "-blobList-" + side + " class=gallery-blobList-left></div>");
   var contents = result.contents;
   var firstVisibleBlob = true;
@@ -171,7 +171,7 @@ $.fn.addHoverFeatures = function(galleryIndex, side, src, itemIndex) {
 
 function setInterpolation(galleryIndex) {
   var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
-  helpers.checkInterpolation(zoomValue, ".gallery_" + galleryIndex + " img");
+  helpers.checkInterpolation(zoomValue, ".gallery-" + galleryIndex + " img");
 }
 
 $.fn.appendZoom = function(index, leftItems) {
@@ -184,9 +184,9 @@ $.fn.appendZoom = function(index, leftItems) {
   $("#" + newZoomID + " > .zoom-info > #editor-image-size").remove();
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
-    let selector = ".gallery_" + index + " img";
+    let selector = ".gallery-" + index + " img";
     helpers.checkInterpolation(zoomLevel, selector);
-    $(".gallery_" + index).css({ height: (parseInt($(".gallery_" + index).css('min-height')) || parseInt($(".gallery_" + index).css('height'))) * zoomLevel + "px" });
+    $(".gallery-" + index).css({ height: (parseInt($(".gallery-" + index).css('min-height')) || parseInt($(".gallery-" + index).css('height'))) * zoomLevel + "px" });
     $(this).adjustSize(index);
     $("#" + newZoomID + " > .zoom-info > #editor-zoom-value").html(zoomLevel + "x");
   });
