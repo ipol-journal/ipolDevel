@@ -11,6 +11,7 @@ $.fn.video_gallery = function (result, index) {
   if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = 'gallery-' + index;
   $(this).append('<div class="' + gallerySelector + ' gallery-container" ></div>');
+  $(this).appendVideoTools();
 
   var blobsArray = getGalleryVideos(result.contents, work_url);
 
@@ -169,9 +170,44 @@ $.fn.appendVideoCompare = function (galleryIndex, rightItems, videoContainerRigh
   });
 }
   
-$.fn.playPause = function(videoElement) {
-  if (videoElement.paused)
-    videoElement.play();
-  else
-    videoElement.pause();
+
+$.fn.appendVideoTools = function() {
+  $('<div class=video-tools ></div>')
+  .appendTo($(this))
+  .append('<span class="play-pause-btn pause-to-play" ></span>')
+  .append('<span class=stop-btn ></span>');
+  
+  var videoGallery = $(this);
+  var playPauseBtn = $('.play-pause-btn', this);
+  
+  $('.play-pause-btn', this).click(function () {
+    if($(this).hasClass('pause-to-play')) $('video', videoGallery).playVideos();
+    else if ($(this).hasClass('play-to-pause')) $('video', videoGallery).pauseVideos();
+    
+    $(this).toggleClass('play-to-pause pause-to-play');
+  });
+  
+  $('.stop-btn', this).click(function() {
+    $('video', videoGallery).stopVideos();
+    playPauseBtn.attr('class', 'play-pause-btn pause-to-play');
+  });
+}
+
+$.fn.playVideos = function() {
+  $(this).each(function() {
+    $(this)[0].play();
+  });
 } 
+
+$.fn.pauseVideos = function() {
+  $(this).each(function () {
+    $(this)[0].pause();
+  });
+}
+
+$.fn.stopVideos = function() {
+  $(this).each(function () {
+    $(this)[0].pause();
+    $(this)[0].currentTime = 0;
+  });
+}

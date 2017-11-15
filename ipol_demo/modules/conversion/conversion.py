@@ -227,7 +227,7 @@ class Conversion(object):
                     continue
                 # check input type
                 input_type = input_desc['type']
-                if input_type not in ['image', 'data']:
+                if input_type not in ['image', 'data', 'video']:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
                     continue
                 # do conversion
@@ -235,6 +235,8 @@ class Conversion(object):
                     info[i]['code'] = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
+                elif input_desc.get('type') == "video":
+                    info[i]['code'] = 1
 
         except IPOLConvertInputError as ex:
             message = "Input #{}. {}".format(i, str(ex))

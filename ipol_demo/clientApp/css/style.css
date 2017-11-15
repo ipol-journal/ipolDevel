@@ -185,3 +185,7 @@ iframe {
   image-rendering: -o-crisp-edges !important;            /* Opera 12 */
   image-rendering: pixelated !important;                 /* Chrome 41+ and Opera 26+  */
 }
+
+video {
+  padding: 0 5px;
+}

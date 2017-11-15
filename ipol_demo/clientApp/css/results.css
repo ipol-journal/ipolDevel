@@ -168,3 +168,40 @@ div[class^='html_text_'] {
 
   animation: container-entrance .5s cubic-bezier(.69, -.02, .46, 1.28);
 }
+
+.video-tools{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 25px;
+
+  border-radius: 5px;
+
+  background-color: rgb(238, 238, 238);
+}
+
+.video-tools > span {
+  margin: 0 10px; 
+}
+
+.play-pause-btn::after {
+  font-family: 'icons';
+}
+
+.play-to-pause::after {
+  animation: play-to-pause .4s cubic-bezier(.69, -.02, .46, 1.28);
+  content: '\f04c';
+}
+
+.pause-to-play::after {
+  animation: pause-to-play .4s cubic-bezier(.69, -.02, .46, 1.28);
+  content: '\f04b';
+}
+
+.stop-btn::after {
+  font-family: 'icons';
+  content: '\f04d';
+}
+
