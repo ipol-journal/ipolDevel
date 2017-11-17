@@ -191,7 +191,14 @@ SYSLOGON="always"
 
 Install mail with {\tt apt-get install mailutils}
 
-To send an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
+It is important to set the hostname with the real Internet address in {\tt /etc/hosts} to send the emails outside. For example, for the ipolcore machine, the configuration is the following:
+
+\begin{verbatim}
+5.196.85.84             ipolcore.ipol.im     ipolcore
+2001:41d0:a:7654::1     ipolcore.ipol.im     ipolcore
+\end{verbatim}
+
+Example of sending an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
 
 
 \begin{comment}
