@@ -31,21 +31,28 @@ $.fn.video_gallery = function (result, index) {
   $('#' + blobsContainerSelector).append('<div id="' + videoContainerRight + '" class="gallery-video-container di-none"></div>');
 
   for (let i = 0; i < blobsArray.length; i++) {
-    $('#' + videoContainerRight).append('<div></div>');
     $('#' + videoContainerLeft).append('<div></div>');
+    $('#' + videoContainerRight).append('<div></div>');
     for (let j = 0; j < blobsArray[i].length; j++) {
       var leftClone = blobsArray[i][j].clone();
       var rightClone = blobsArray[i][j].clone();
-      $('#video-container-right-' + index + ' > div:nth-child(' + (i+1) + ')').append($(rightClone));
-      $('#video-container-left-' + index + ' > div:nth-child(' + (i+1) + ')').append($(leftClone));
+      $('#' + videoContainerLeft + ' > div:nth-child(' + (i+1) + ')').append($(leftClone));
+      $('#' + videoContainerRight + ' > div:nth-child(' + (i+1) + ')').append($(rightClone));
     }
   }
-  $('#video-container-right-' + index + ' > div:not(:first-child)').addClass('di-none');
-  $('#video-container-left-' + index + ' > div:not(:first-child)').addClass('di-none');
+  $('#' + videoContainerLeft).initVideoProps();
+  $('#' + videoContainerRight).initVideoProps();
 
   var allSrc = getAllSrc(blobsArray);
   $('.' + gallerySelector).setVideoGalleryMinHeight(allSrc);
   if (blobsArray.length > 1) $('.' + leftItems).appendVideoCompare(index, rightItems, videoContainerRight);
+}
+
+$.fn.initVideoProps = function () {
+  $(' div:first-child > video', this).on('loadedmetadata', function() {
+    $(this).prop('muted', false);
+  });
+  $(' > div:not(:first-child)', this).addClass('di-none');
 }
 
 // Set gallery min-height to avoid jump loops.
@@ -76,18 +83,19 @@ function getGalleryVideos(contentArray, work_url) {
   var keys = Object.keys(contentArray);
   for (var i = 0; i < keys.length; i++) {
     var blobSetContent = contentArray[keys[i]];
-    if (eval(blobSetContent.visible)) {
+    var visibleField = blobSetContent.hasOwnProperty('visible');
+    if (!visibleField || (visibleField && eval(blobSetContent.visible))) {
       var videoField = blobSetContent.video;
       var repeat = blobSetContent.repeat !== undefined ? checkRepeat(blobSetContent.repeat) : 1;
       var blobs = [];
       for (var idx = 0; idx < repeat; idx++) {
         blobs = [];
         if (typeof (videoField) === 'string') {
-          var video = '<video src=' + work_url + (videoField.indexOf("'") == -1 ? videoField : eval(videoField)) + ' class=gallery-video draggable=false controls></video>';
+          var video = '<video src=' + work_url + (videoField.indexOf("'") == -1 ? videoField : eval(videoField)) + ' class=gallery-video draggable=false controls muted></video>';
           blobs.push($(video));
         } else if (typeof (videoField) === 'object') {
           for (var k = 0; k < videoField.length; k++) {
-            var video = '<video src=' + work_url + (videoField[k].indexOf("'") == -1 ? videoField[k] : eval(videoField[k])) + ' class=gallery-video draggable=false controls></video>';
+            var video = '<video src=' + work_url + (videoField[k].indexOf("'") == -1 ? videoField[k] : eval(videoField[k])) + ' class=gallery-video draggable=false controls muted></video>';
             blobs.push($(video));
           }
         }
@@ -105,7 +113,8 @@ function renderVideoGalleryBlobList(index, contentKeys, result, itemSelector, si
   var firstVisibleBlob = true;
   var itemIndex = 0;
   for (let i = 0; i < contentKeys.length; i++) {
-    if (eval(contents[contentKeys[i]].visible)) {
+    var visibleField = contents[contentKeys[i]].hasOwnProperty('visible');
+    if (!visibleField || (visibleField && eval(contents[contentKeys[i]].visible))) {
       if (firstVisibleBlob) {
         helpers.addToStorage('gallery-' + index + '-' + side, itemIndex);
         firstVisibleBlob = false;
@@ -130,7 +139,9 @@ $.fn.videoHover = function (galleryIndex, side, id) {
   var selector = '#video-container-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     $(selector + ' > div').addClass('di-none');
+    $(selector + ' video').prop('muted', true);
     $(selector + ' > div:nth-child(' + (id+1) + ')').removeClass('di-none');
+    $(selector + ' > div:nth-child(' + (id + 1) + ') > video').prop('muted', false);
   });
   $(this).on('click', function () {
     $('#gallery-' + galleryIndex + '-blobList-' + side + ' > .gallery-item-selected').toggleClass('gallery-item-selected');
@@ -148,7 +159,9 @@ $.fn.mouseOutVideo = function (galleryIndex, side, blobsArray) {
     }
     var selectedSrc = helpers.getFromStorage('gallery-' + galleryIndex + '-' + side);
     $(selector + ' > div').addClass('di-none');
+    $(selector + ' video').prop('volume', 0);
     $(selector + ' > div:nth-child(' + (selectedSrc + 1) + ')').removeClass('di-none');
+    $(selector + ' > div:nth-child(' + (selectedSrc + 1) + ') video').prop('volume', 1);
   });
 }
 
