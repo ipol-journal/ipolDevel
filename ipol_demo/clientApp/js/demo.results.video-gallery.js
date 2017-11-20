@@ -187,8 +187,10 @@ $.fn.appendVideoCompare = function (galleryIndex, rightItems, videoContainerRigh
 $.fn.appendVideoTools = function() {
   $('<div class=video-tools ></div>')
   .appendTo($(this))
-  .append('<span class="play-pause-btn pause-to-play" ></span>')
-  .append('<span class=stop-btn ></span>');
+  .append('<span class="fast-backward-btn"></span>')
+  .append('<span class="play-pause-btn pause-to-play"></span>')
+  .append('<span class=stop-btn></span>')
+  .append('<span class="fast-forward-btn"></span>');
   
   var videoGallery = $(this);
   var playPauseBtn = $('.play-pause-btn', this);
@@ -197,12 +199,22 @@ $.fn.appendVideoTools = function() {
     if($(this).hasClass('pause-to-play')) $('video', videoGallery).playVideos();
     else if ($(this).hasClass('play-to-pause')) $('video', videoGallery).pauseVideos();
     
+    $('video', videoGallery).resetPlaybackRate();
     $(this).toggleClass('play-to-pause pause-to-play');
   });
   
   $('.stop-btn', this).click(function() {
     $('video', videoGallery).stopVideos();
+    $('video', videoGallery).resetPlaybackRate();
     playPauseBtn.attr('class', 'play-pause-btn pause-to-play');
+  });
+
+  $('.fast-backward-btn', this). click(function(){
+    $('video', videoGallery).changePlaybackRate(-0.1);
+  });
+ 
+  $('.fast-forward-btn', this). click(function(){
+    $('video', videoGallery).changePlaybackRate(0.1);
   });
 }
 
@@ -222,5 +234,17 @@ $.fn.stopVideos = function() {
   $(this).each(function () {
     $(this)[0].pause();
     $(this)[0].currentTime = 0;
+  });
+}
+
+$.fn.changePlaybackRate = function(value) {
+  $(this).each(function () {
+    $(this)[0].playbackRate += value;
+  });
+}
+
+$.fn.resetPlaybackRate = function() {
+  $(this).each(function () {
+    $(this)[0].playbackRate = 1.0;
   });
 }
