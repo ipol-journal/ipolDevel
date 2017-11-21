@@ -96,7 +96,8 @@ function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, b
   var firstVisibleBlob = true;
   var itemIndex = 0;
   for (let i = 0; i < contentKeys.length; i++) {
-    if (eval(contents[contentKeys[i]].visible)) {
+    var visibleField = contents[contentKeys[i]].hasOwnProperty('visible');
+    if (!visibleField || (visibleField && eval(contents[contentKeys[i]].visible))) {
       var content = result.contents[contentKeys[i]].img;
       if (typeof(content) === 'string') {
         content = [content];
