@@ -42,6 +42,9 @@ $.fn.video_gallery = function (result, index) {
   }
   $('#' + videoContainerLeft).initVideoProps();
   $('#' + videoContainerRight).initVideoProps();
+  $('#' + videoContainerRight + ' div:first-child > video').on('loadedmetadata', function () {
+    $(this).prop('muted', true);
+  });
 
   var allSrc = getAllSrc(blobsArray);
   $('.' + gallerySelector).setVideoGalleryMinHeight(allSrc);
@@ -135,11 +138,12 @@ function renderVideoGalleryBlobList(index, contentKeys, result, itemSelector, si
 }
 
 $.fn.videoHover = function (galleryIndex, side, id) {
-  var videoSelector = '.gallery-' + galleryIndex + '-blob-' + side;
   var selector = '#video-container-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     $(selector + ' > div').addClass('di-none');
-    $(selector + ' video').prop('muted', true);
+    $(selector + ' video').each(function() {
+      $(this).prop('muted', true);
+    });
     $(selector + ' > div:nth-child(' + (id+1) + ')').removeClass('di-none');
     $(selector + ' > div:nth-child(' + (id + 1) + ') > video').prop('muted', false);
   });
@@ -159,9 +163,9 @@ $.fn.mouseOutVideo = function (galleryIndex, side, blobsArray) {
     }
     var selectedSrc = helpers.getFromStorage('gallery-' + galleryIndex + '-' + side);
     $(selector + ' > div').addClass('di-none');
-    $(selector + ' video').prop('volume', 0);
+    $(selector + ' video').prop('muted', true);
     $(selector + ' > div:nth-child(' + (selectedSrc + 1) + ')').removeClass('di-none');
-    $(selector + ' > div:nth-child(' + (selectedSrc + 1) + ') video').prop('volume', 1);
+    $(selector + ' > div:nth-child(' + (selectedSrc + 1) + ') video').prop('muted', false);
   });
 }
 
