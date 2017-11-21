@@ -1779,7 +1779,7 @@ attached the failed experiment data.". \
             # list of unresponsive DRs
             try:
                 demorunner_response = self.post(dr_server, 'demorunner', 'ping')
-            except:
+            except Exception:
                 demorunner_response = None
 
             if demorunner_response and demorunner_response.ok:
