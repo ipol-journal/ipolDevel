@@ -31,18 +31,22 @@ import sys
 import traceback
 import warnings
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../ipol_demo/modules/conversion/lib/'))
+from IPOLImage import IPOLImage
+
+
 import av
-import numpy
+import numpy as np
 from PIL import Image
 
 
 archive_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),
-    "ipol_demo/modules/archive/"
+    'ipol_demo/modules/archive/'
 )
-db_file = os.path.join(archive_dir, "db/archive.db")
-src_dir = os.path.join(archive_dir, "staticData/blobs/")
-dest_dir = os.path.join(archive_dir, "staticData/blobs_thumbs_new/")
+db_file = os.path.join(archive_dir, 'db/archive.db')
+src_dir = os.path.join(archive_dir, 'staticData/blobs/')
+dest_dir = os.path.join(archive_dir, 'staticData/blobs_thumbs_new/')
 
 def hash_subdir(hash_name, depth=2):
     """
@@ -66,7 +70,7 @@ def video_thumb(src, dest):
     From src video path, create a thumbnail to dest path
     """
     # av.open seems do not like unicode filepath
-    container = av.open(src.encode(sys.getfilesystemencoding()), mode='r')
+    container = av.open(src, mode='r')
     container.seek(int(container.duration/4) - 1)
     # hacky but I haven't found way to make work a better writing like next()
     for frame in container.decode(video=0):
@@ -111,23 +115,23 @@ def pil_4jpeg(im, bgcolor=(255, 255, 255)):
     Return an image object compatible with jpeg (ex: resolve transparency, 32bits…)
     or nothing when it is known that the format is not compatible with jpeg and not converted.
     """
-    if im.mode == "RGB" or im.mode == "L": # should work
+    if im.mode == 'RGB' or im.mode == 'L': # should work
         return im
     # Grey with transparency
-    if im.mode == "LA":
+    if im.mode == 'LA':
         l = im
-        bg = int(numpy.round(0.21*bgcolor[0] + 0.72*bgcolor[1] + 0.07*bgcolor[2])) # grey luminosity
-        im = Image.new("L", l.size, bg)
+        bg = int(np.round(0.21*bgcolor[0] + 0.72*bgcolor[1] + 0.07*bgcolor[2])) # grey luminosity
+        im = Image.new('L', l.size, bg)
         im.paste(l, mask=l.split()[1]) # 1 is the alpha channel
         l.close()
         return im
     # im.info['transparency'], hack from image.py for palette with RGBA
-    if im.mode == "P" and "transparency" in im.info and im.info['transparency'] is not None:
+    if im.mode == 'P' and 'transparency' in im.info and im.info['transparency'] is not None:
         im = im.convert('RGBA') # convert Palette with transparency to RGBA, handle just after
     # RGBA, full colors with canal alpha, resolve transparency with a white background
-    if im.mode == "RGBA":
+    if im.mode == 'RGBA':
         rgba = im
-        im = Image.new("RGB", rgba.size, bgcolor)
+        im = Image.new('RGB', rgba.size, bgcolor)
         im.paste(rgba, mask=rgba.split()[3]) # 3 is the alpha channel
         rgba.close()
         return im
@@ -139,32 +143,37 @@ def pil_4jpeg(im, bgcolor=(255, 255, 255)):
             return im.point(lambda i: i*(1./256)).convert('L')
         # not encountered for now
         return False
-    if im.mode != "RGB": # last try
-        im = im.convert("RGB")
+    if im.mode != 'RGB': # last try
+        im = im.convert('RGB')
     return im
 
 
-warnings.filterwarnings("error") # handle warning like error to log file path
+
+enc = sys.getfilesystemencoding()
+if enc == 'ANSI_X3.4-1968': # IO encoding bug
+    enc = 'UTF-8'
+warnings.filterwarnings('error') # handle warning like error to log file path
 conn = sqlite3.connect(db_file)
 cur = conn.cursor()
 # order is inverse chronological, new cases seems to be
 for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DESC"):
-    src_path = os.path.join(src_dir, hash_subdir(row[1]), row[1] + '.' + row[2])
+    src_path = os.path.join(src_dir, hash_subdir(row[1]), row[1] + '.' + row[2]).encode(enc)
     # destination path without extension, jpeg is default, but png is possible for sound
-    dest_path = os.path.join(dest_dir, hash_subdir(row[1]), row[1])
+    dest_path = os.path.join(dest_dir, hash_subdir(row[1]), row[1]).encode(enc)
     if not os.path.isfile(src_path):
         sys.stderr.write("\nBLOB NOT FOUND: {}\n".format(src_path))
         continue
     try:
         if row[3] == 'image':
-            # svg ?
+            if row[2] in ['svg']:
+                continue
             # tiff is usually used as a container for data
-            if row[2] not in ['png', 'jpeg', 'jpg']:
+            im = IPOLImage(src_path, uint8=True)
+            # a tiff used as a data container, not correctly loaded by OpenCV
+            if row[2] == 'tiff' and im.data is None :
                 continue
-            if not image_thumb(src_path, dest_path+'.jpeg'): # impossible to transform file
-                # give some info about path and format of image
-                sys.stderr.write("\nCONVERSION FAILED: {}\n{}\n".format(src_path, Image.open(src_path)))
-                continue
+            im.resize(height=128)
+            im.save(dest_path+'.jpeg')
             sys.stdout.write('.')
             sys.stdout.flush()
             continue
