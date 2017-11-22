@@ -47,7 +47,8 @@ function getGalleryImages(contentArray, work_url) {
   var keys = Object.keys(contentArray);
   for (var i = 0; i < keys.length; i++) {
     var blobSetContent = contentArray[keys[i]];
-    if (eval(blobSetContent.visible)) {
+    var visibleField = blobSetContent.hasOwnProperty('visible');
+    if (!visibleField || (visibleField && eval(blobSetContent.visible))) {
       var imgField = blobSetContent.img;
       var repeat = blobSetContent.repeat !== undefined ? checkRepeat(blobSetContent.repeat) : 1;
       var blobs = [];
