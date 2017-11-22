@@ -91,8 +91,8 @@ function checkRepeat(expression) {
 }
 
 function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, blobsArray) {
-  $(".gallery-" + index).append('<div class="' + itemSelector + ' gallery-item-list"></div>');
-  $("." + itemSelector).append("<div id=gallery-" + index + "-blobList-" + side + " class=gallery-blobList-left></div>");
+  $(".gallery-" + index).append('<div class="' + itemSelector + '"></div>');
+  $("." + itemSelector).append('<div id=gallery-' + index + '-blobList-' + side + ' class="gallery-blobList-left gallery-item-list"></div>');
   var contents = result.contents;
   var firstVisibleBlob = true;
   var itemIndex = 0;
