@@ -1341,7 +1341,14 @@ attached the failed experiment data.". \
             except Exception as ex:
                 message = "**INTERNAL ERROR**. Bad format in the response from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, resp.content, ex)
                 self.logger.exception(message)
+
+                # nginx timeout
+                if "Time-out" in resp.content:
+                    return json.dumps({'status': 'KO', 'error': 'Timeout'})
+
+                # Anything else
                 self.send_internal_error_email(message)
+
                 core_response = {'status': 'KO', 'error': '{}'.format(message)}
                 return json.dumps(core_response)
 
