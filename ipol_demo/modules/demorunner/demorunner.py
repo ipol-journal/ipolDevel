@@ -568,8 +568,12 @@ format(str(ex), str(ddl_build)).encode('utf8')
         full_file = os.path.join(work_dir, filename)
         lines = ""
         if os.path.isfile(full_file):
-            with codecs.open(full_file, "r", "utf8") as f:
-                lines = f.readlines()
+            try:
+                with codecs.open(full_file, "r", "utf8") as f:
+                    lines = f.readlines()
+            except Exception as ex:
+                msg = "Error reading '{}', file not UTF-8".format(filename)
+                return [msg]
         return lines
 
     @cherrypy.expose
