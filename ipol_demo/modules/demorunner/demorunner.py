@@ -571,9 +571,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             try:
                 with codecs.open(full_file, "r", "utf8") as f:
                     lines = f.readlines()
-            except Exception as ex:
-                msg = "Error reading '{}', file not UTF-8".format(filename)
-                return [msg]
+            except UnicodeDecodeError as ex:
+                with open(full_file, "r") as file:
+                    lines = file.readlines()
+                return lines
         return lines
 
     @cherrypy.expose
@@ -640,10 +641,14 @@ format(str(ex), str(ddl_build)).encode('utf8')
             stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
-            res_data['algo_info']['error_message'] = 'Runtime error\n\
-stderr: {}\nstdout: {}'.format("\n".join(stderr_lines).encode('utf8'),\
-                               "\n".join(stdout_lines).encode('utf8'))
-
+            try:    
+                res_data['algo_info']['error_message'] = 'Runtime error\n\
+    stderr: {}\nstdout: {}'.format("\n".join(stderr_lines).encode('utf8'),\
+                                "\n".join(stdout_lines).encode('utf8'))
+            except Exception as ex:
+                res_data['algo_info']['error_message'] = 'Runtime error\n\
+    stderr: {}\nstdout: {}'.format(stderr_lines,
+                                   stdout_lines)
             res_data['status'] = 'KO'
             res_data['error'] = str(ex)
             print res_data
