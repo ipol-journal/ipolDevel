@@ -633,11 +633,11 @@ format(str(ex), str(ddl_build)).encode('utf8')
             return json.dumps(res_data)
         except RuntimeError as ex:
             # Read stderr and stdout
-            stderr_lines = self.read_workdir_file(work_dir, "stderr.txt")
-            stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
+            stderr_content = self.read_workdir_file(work_dir, "stderr.txt")
+            stdout_content = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
             res_data['algo_info']['error_message'] = 'Runtime error\n\
-stderr: {}\nstdout: {}'.format(stderr_lines, stdout_lines)
+stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['status'] = 'KO'
             res_data['error'] = str(ex)
             print res_data
