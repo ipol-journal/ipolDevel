@@ -450,18 +450,18 @@ format(str(ex), str(ddl_build)).encode('utf8')
             log_file = os.path.join(path_for_the_compilation, build_filename)
 
             if os.path.isfile(log_file):
-                lines = DemoRunner.read_workdir_file(path_for_the_compilation, build_filename)
+                content = DemoRunner.read_workdir_file(path_for_the_compilation, build_filename)
             else:
-                lines = ""
+                content = ""
 
-            #lines = ""
+            #content = ""
             #if os.path.isfile(log_file):
             #    with open(log_file) as f:
-            #        lines = f.readlines()
+            #        content = f.readlines()
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
-            data['buildlog'] = "\n".join(lines).encode('utf8')
+            data['buildlog'] = content
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
@@ -563,14 +563,14 @@ format(str(ex), str(ddl_build)).encode('utf8')
     @staticmethod
     def read_workdir_file(work_dir, filename):
         '''
-        Reads a text files from the working directory
+        Read a text file from the working directory and return its contents as UTF-8
         '''
         full_file = os.path.join(work_dir, filename)
-        lines = ""
+        content = ""
         if os.path.isfile(full_file):
             with codecs.open(full_file, "r", "utf8", errors="replace") as f:
-                lines = f.readlines()
-        return lines
+                content = f.read()
+        return content.encode('utf8')
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
@@ -637,8 +637,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
             stdout_lines = self.read_workdir_file(work_dir, "stdout.txt")
             # Put them in the message for the web interface
             res_data['algo_info']['error_message'] = 'Runtime error\n\
-stderr: {}\nstdout: {}'.format("\n".join(stderr_lines).encode('utf8'),\
-                            "\n".join(stdout_lines).encode('utf8'))
+stderr: {}\nstdout: {}'.format(stderr_lines, stdout_lines)
             res_data['status'] = 'KO'
             res_data['error'] = str(ex)
             print res_data
