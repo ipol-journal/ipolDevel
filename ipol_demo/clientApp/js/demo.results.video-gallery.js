@@ -25,8 +25,8 @@ $.fn.video_gallery = function (result, index) {
   renderVideoGalleryBlobList(index, contentKeys, result, rightItems, 'right', blobsArray);
   $('.' + rightItems).addClass('gallery-item-list-right di-none');
 
-  var videoContainerLeft = 'video-container-left-' + index;
-  var videoContainerRight = 'video-container-right-' + index;
+  var videoContainerLeft = 'gallery-blobs-left-' + index;
+  var videoContainerRight = 'gallery-blobs-right-' + index;
   $('#' + blobsContainerSelector).append('<div id="' + videoContainerLeft + '" class=gallery-video-container></div>');
   $('#' + blobsContainerSelector).append('<div id="' + videoContainerRight + '" class="gallery-video-container di-none"></div>');
 
@@ -49,6 +49,7 @@ $.fn.video_gallery = function (result, index) {
   var allSrc = getAllSrc(blobsArray);
   $('.' + gallerySelector).setVideoGalleryMinHeight(allSrc);
   if (blobsArray.length > 1) $('.' + leftItems).appendVideoCompare(index, rightItems, videoContainerRight);
+  scrollSync(index);
 }
 
 $.fn.initVideoProps = function () {
@@ -138,7 +139,7 @@ function renderVideoGalleryBlobList(index, contentKeys, result, itemSelector, si
 }
 
 $.fn.videoHover = function (galleryIndex, side, id) {
-  var selector = '#video-container-' + side + '-' + galleryIndex;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     $(selector + ' > div').addClass('di-none');
     $(selector + ' video').each(function() {
@@ -155,7 +156,7 @@ $.fn.videoHover = function (galleryIndex, side, id) {
 }
 
 $.fn.mouseOutVideo = function (galleryIndex, side, blobsArray) {
-  var selector = '#video-container-' + side + '-' + galleryIndex;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
   $(this).mouseout(function (event) {
     e = event.toElement || event.relatedTarget;
     if (e != null && (e.parentNode == this || e == this)) {
@@ -173,12 +174,12 @@ $.fn.appendVideoCompare = function (galleryIndex, rightItems, videoContainerRigh
   $(this).append('<div class=p-y-10><input type=checkbox id=compare-btn-gallery-' + galleryIndex + '><label for=compare-btn-gallery-' + galleryIndex + '>Compare</label></div>');
   $('#compare-btn-gallery-' + galleryIndex).on('click', function () {
     if ($(this).is(':checked')) {
-      $('#video-container-left-' + galleryIndex).css({ 'flex-basis': '50%' });
-      $('#video-container-right-' + galleryIndex).css({ 'flex-basis': '50%' });
+      $('#gallery-blobs-left-' + galleryIndex).css({ 'flex-basis': '50%' });
+      $('#gallery-blobs-right-' + galleryIndex).css({ 'flex-basis': '50%' });
       $('#gallery-' + galleryIndex + '-blobs-container').addClass('blobs-wrapper-compare');
     } else {
-      $('#video-container-left-' + galleryIndex).css({ 'flex-basis': "" });
-      $('#video-container-right-' + galleryIndex).css({ 'flex-basis': "" });
+      $('#gallery-blobs-left-' + galleryIndex).css({ 'flex-basis': "" });
+      $('#gallery-blobs-right-' + galleryIndex).css({ 'flex-basis': "" });
       $('#gallery-' + galleryIndex + '-blobs-container').removeClass('blobs-wrapper-compare');
     }
     $('#' + videoContainerRight).toggleClass('di-none');

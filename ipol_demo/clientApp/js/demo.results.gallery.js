@@ -24,8 +24,8 @@ $.fn.gallery_new = function(result, index)  {
   renderGalleryBlobList(index, contentKeys, result, rightItems, 'right', blobsArray);
   $("." + rightItems).addClass("gallery-item-list-right di-none");
 
-  var imgContainerLeft = "gallery-blob-container-left-" + index;
-  var imgContainerRight = "gallery-blob-container-right-" + index;
+  var imgContainerLeft = "gallery-blobs-left-" + index;
+  var imgContainerRight = "gallery-blobs-right-" + index;
   $("." + blobsContainerSelector).append('<div id="'+ imgContainerLeft +'" class=gallery-blob-container></div>');
   $("." + blobsContainerSelector).append('<div id="'+ imgContainerRight +'" class="gallery-blob-container di-none"></div>');
 
@@ -123,7 +123,7 @@ function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, b
 }
 
 $.fn.addMouseOut = function (galleryIndex, side, blobsArray) {
-  var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
   $("#gallery-" + galleryIndex + "-blobList-" + side).mouseout(function (event) {
     e = event.toElement || event.relatedTarget;
     if (e != null && (e.parentNode == this || e == this)) {
@@ -151,7 +151,7 @@ function getEvalText(str) {
 
 $.fn.addHoverFeatures = function(galleryIndex, side, src, itemIndex) {
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
-  var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
+  var selector = '#gallery-blobs-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
@@ -196,7 +196,7 @@ $.fn.appendZoom = function(index, leftItems) {
 
 $.fn.adjustSize = function(index) {
   var zoomLevel = $(this).val();
-  $("#gallery-blob-container-left-"+index + ", #gallery-blob-container-right-"+index).children('img').each(function(i){
+  $("#gallery-blobs-left-"+index + ", #gallery-blobs-right-"+index).children('img').each(function(i){
     if ($(this)[0].naturalHeight != 0 || $(this)[0].naturalWidth != 0) {
       $(this).height($(this)[0].naturalHeight * zoomLevel);
       $(this).width($(this)[0].naturalWidth * zoomLevel);
@@ -207,10 +207,10 @@ $.fn.adjustSize = function(index) {
 function scrollSync(index) {
   var isSyncingLeftScroll = false;
   var isSyncingRightScroll = false;
-  var leftDiv = document.getElementById('gallery-blob-container-left-' + index);
-  var rightDiv = document.getElementById('gallery-blob-container-right-' + index);
-  $('#gallery-blob-container-left-' + index).attachDragger();
-  $('#gallery-blob-container-right-' + index).attachDragger();
+  var leftDiv = document.getElementById('gallery-blobs-left-' + index);
+  var rightDiv = document.getElementById('gallery-blobs-right-' + index);
+  $('#gallery-blobs-left-' + index).attachDragger();
+  $('#gallery-blobs-right-' + index).attachDragger();
 
   leftDiv.onscroll = function() {
     if (!isSyncingLeftScroll) {

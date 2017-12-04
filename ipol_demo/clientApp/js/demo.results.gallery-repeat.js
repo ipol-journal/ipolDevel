@@ -34,8 +34,8 @@ $.fn.repeat_gallery = function(result, index)  {
   $("." + rightItems).addClass("gallery-item-list-right di-none");
 
   // Append both sides image containers
-  var imgContainerLeft = "gallery-blob-container-left-" + index;
-  var imgContainerRight = "gallery-blob-container-right-" + index;
+  var imgContainerLeft = "gallery-blobs-left-" + index;
+  var imgContainerRight = "gallery-blobs-right-" + index;
   $("." + blobsContainerSelector).append('<div id=' + imgContainerLeft + ' class=gallery-blob-container></div>');
   $("." + blobsContainerSelector).append('<div id=' +imgContainerRight+ ' class="gallery-blob-container di-none"></div>');
 
@@ -85,7 +85,6 @@ function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, ite
   $("." + gallerySelector).append("<div class="+ side +"-blobs-gallery-"+ galleryIndex +"></div>");
   $("." + side + "-blobs-gallery-" + galleryIndex).append('<div class="gallery-item-list ' + itemSelector + '"></div>');
   $("." + itemSelector).addMouseOutSelectorEvent(galleryIndex, side, contentArray);
-  // $("." + itemSelector).addClass("gallery-item-list");
   helpers.addToStorage("gallery-" + galleryIndex + "-" + side, 0);
   for (let idx = 0; idx < repeat; idx++) {
       $("." + itemSelector).append("<span id=gallery-" +galleryIndex+ "-item-" +side+ "-" +idx+ " class=gallery-item-selector>" + eval(blobListString) + "</span>");
@@ -96,7 +95,7 @@ function renderRepeatBlobList(galleryIndex, blobListString, gallerySelector, ite
 
 $.fn.addHoverRepeatFeature = function(galleryIndex, side, contentArray, idx) {
   var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
-  var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
+  var selector = '#gallery-blobs-' +side+ '-' + galleryIndex;
   $(this).mouseover(function() {
     $(selector).empty();
     var blobs = contentArray[idx];
@@ -117,7 +116,7 @@ $.fn.addHoverRepeatFeature = function(galleryIndex, side, contentArray, idx) {
   
 $.fn.addMouseOutSelectorEvent = function(galleryIndex, side, contentArray) {
   var imgSelector = ".gallery-" + galleryIndex + "-blob-" + side;
-  var selector = '#gallery-blob-container-' +side+ '-' + galleryIndex;
+  var selector = '#gallery-blobs-' +side+ '-' + galleryIndex;
   $(this).mouseout(function(e) {
     e = event.toElement || event.relatedTarget;
     if (e != null && (e.parentNode == this || e == this)) {

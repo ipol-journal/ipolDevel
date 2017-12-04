@@ -52,8 +52,8 @@ $.fn.gallery = function (result, index) {
   $("." + leftItems).append('<div id=left-blobs-gallery-' + index + ' class=gallery-item-list></div>');
   $("." + rightItems).append('<div id=right-blobs-gallery-' + index + ' class=gallery-item-list></div>');
 
-  var imgContainerLeft = "gallery-blob-container-left-" + index;
-  var imgContainerRight = "gallery-blob-container-right-" + index;
+  var imgContainerLeft = "gallery-blobs-left-" + index;
+  var imgContainerRight = "gallery-blobs-right-" + index;
   $("." + blobsContainerSelector).append("<div id=" + imgContainerLeft + "></div>");
   $("." + blobsContainerSelector).append("<div id=" + imgContainerRight + "></div>");
   $("#" + imgContainerLeft).addClass("gallery-blob-container");
@@ -192,12 +192,12 @@ $.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
   $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
   $("#compare-btn-gallery-" + galleryIndex).on('click', function () {
     if ($(this).is(":checked")) {
-      $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "50%" });
-      $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "50%" });
+      $("#gallery-blobs-left-" + galleryIndex).css({ "flex-basis": "50%" });
+      $("#gallery-blobs-right-" + galleryIndex).css({ "flex-basis": "50%" });
       $(".gallery-blobs-container-" + galleryIndex).addClass('blobs-wrapper-compare');
     } else {
-      $("#gallery-blob-container-left-" + galleryIndex).css({ "flex-basis": "" });
-      $("#gallery-blob-container-right-" + galleryIndex).css({ "flex-basis": "" });
+      $("#gallery-blobs-left-" + galleryIndex).css({ "flex-basis": "" });
+      $("#gallery-blobs-right-" + galleryIndex).css({ "flex-basis": "" });
       $(".gallery-blobs-container-" + galleryIndex).removeClass("blobs-wrapper-compare");
     }
     $("#" + imgContainerRight).toggleClass("di-none");
@@ -216,7 +216,7 @@ $.fn.appendLabel = function(labelArray) {
 // Add event listeners for gallery images lists
 $.fn.addHoverEvents = function (galleryIndex, side, src, idx) {
   var imgSelector = '.gallery-' + galleryIndex + '-blob-' + side;
-  var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
   $(this).mouseover(function () {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
@@ -237,7 +237,7 @@ $.fn.addHoverEvents = function (galleryIndex, side, src, idx) {
 }
 
 $.fn.addMouseOutEvent = function(galleryIndex, side, src) {
-  var selector = '#gallery-blob-container-' + side + '-' + galleryIndex;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
   $(this).mouseout(function (event) {
     e = event.toElement || event.relatedTarget;
     if (e != null && (e.parentNode == this || e == this)) {
@@ -260,7 +260,7 @@ $.fn.addMouseOutEvent = function(galleryIndex, side, src) {
 
 $.fn.updateSize = function (index, side)  {
   var zoomLevel = $(this).val();
-  $("#gallery-blob-container-" + side + "-" + index).children('img').each(function (i) {
+  $("#gallery-blobs-" + side + "-" + index).children('img').each(function (i) {
     if ($(this)[0].naturalHeight != 0 || $(this)[0].naturalWidth != 0) {
       $(this).height($(this)[0].naturalHeight * zoomLevel);
       $(this).width($(this)[0].naturalWidth * zoomLevel);
