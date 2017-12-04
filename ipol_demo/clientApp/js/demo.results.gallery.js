@@ -1,6 +1,6 @@
 var helpers = clientApp.helpers || {};
 
-$.fn.gallery_new = function(result, index)  {
+$.fn.gallery = function(result, index)  {
   if (result.visible) {
     var visible = eval(result.visible);
     if (!visible) return;
@@ -202,6 +202,53 @@ $.fn.adjustSize = function(index) {
       $(this).width($(this)[0].naturalWidth * zoomLevel);
     }
   });
+}
+
+// Set gallery min-height to avoid jump loops.
+$.fn.setGalleryMinHeight = function (sources) {
+  var minHeight;
+  var selector = $(this);
+  if (!Array.isArray(sources)) {
+    sources = Object.keys(sources).map(function (e) {
+      return sources[e];
+    });
+  }
+  for (let i = 0; i < sources.length; i++) {
+    let tmpImg = new Image();
+    tmpImg.src = sources[i];
+    $(tmpImg).on("load", function () {
+      minHeight = parseInt(selector.css("min-height"));
+      if (minHeight < tmpImg.height) {
+        minHeight = tmpImg.height < 580 ? tmpImg.height : 580;
+        selector.css({ minHeight: minHeight + 20 + "px" });
+      }
+    });
+  }
+};
+
+$.fn.appendCompare = function (galleryIndex, rightItems, imgContainerRight) {
+  $(this).append("<div class=p-y-10><input type=checkbox id=compare-btn-gallery-" + galleryIndex + "><label for=compare-btn-gallery-" + galleryIndex + ">Compare</label></div>");
+  $("#compare-btn-gallery-" + galleryIndex).on('click', function () {
+    if ($(this).is(":checked")) {
+      $("#gallery-blobs-left-" + galleryIndex).css({ "flex-basis": "50%" });
+      $("#gallery-blobs-right-" + galleryIndex).css({ "flex-basis": "50%" });
+      $(".gallery-blobs-container-" + galleryIndex).addClass('blobs-wrapper-compare');
+    } else {
+      $("#gallery-blobs-left-" + galleryIndex).css({ "flex-basis": "" });
+      $("#gallery-blobs-right-" + galleryIndex).css({ "flex-basis": "" });
+      $(".gallery-blobs-container-" + galleryIndex).removeClass("blobs-wrapper-compare");
+    }
+    $("#" + imgContainerRight).toggleClass("di-none");
+    $(".gallery-" + galleryIndex).toggleClass("space-between");
+    $("." + rightItems).toggleClass("di-none");
+  });
+}
+
+$.fn.appendLabel = function (labelArray) {
+  var html = "";
+  for (var i = 0; i < labelArray.length; i++) html += labelArray[i];
+  if (html.charAt(0) == "'") html = eval(html);
+  $(this).html("<div class=m-b-20>" + html + "</div>");
 }
 
 function scrollSync(index) {
