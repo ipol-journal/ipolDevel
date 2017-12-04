@@ -102,7 +102,7 @@ def do_write_all(host):
     '''
     Write all DDLs
     '''
-    resp = post('demo_list')
+    resp = post('demo_list', host)
     response = resp.json()
     if response['status'] != 'OK':
         print "ERROR: demo_list returned KO"
