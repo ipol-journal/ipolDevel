@@ -105,9 +105,9 @@ class IPOLImage(object):
             # build an alpha_mask, convert to float [0, 1], according to dtype
             alpha_mask = cv2.cvtColor(data[:, :, 3], cv2.COLOR_GRAY2BGR).astype(float)
             if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255
+                alpha_mask = alpha_mask / 255.0
             elif data.dtype == 'uint16':
-                alpha_mask = alpha_mask / 65535
+                alpha_mask = alpha_mask / 65535.0
                 back_color = (back_color[0] * 257.0, back_color[1] * 257.0, back_color[2] * 257.0)
             elif data.dtype == 'uint32':
                 alpha_mask = alpha_mask / ((1 << 32) - 1)

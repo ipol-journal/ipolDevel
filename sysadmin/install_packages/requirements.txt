@@ -10,6 +10,7 @@ libtiff
 matplotlib
 mgrs
 numpy
+opencv-python
 pillow
 psutil
 pyfftw
