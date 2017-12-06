@@ -9,7 +9,7 @@ $(document).ready(function() {
   demo_id = getDemoId();
 
   // Workaround: use the old interface only for inpainting demos
-  if ($.inArray(parseInt(demo_id), [189, 198]) != -1) {
+  if ($.inArray(parseInt(demo_id), [189, 198, 77777000030]) != -1) {
       // Move to the old interface
       window.location = "/demo/clientAppOld/demo.html?id=" + demo_id;
   }

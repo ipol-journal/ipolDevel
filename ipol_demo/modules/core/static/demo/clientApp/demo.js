@@ -211,7 +211,7 @@ ipol.demo_origin =  {
  */
 ipol.setDemoPage = function (demo_id,origin,func) {
     // Workaround: use the old interface only for inpainting demos
-    if ($.inArray(parseInt(demo_id), [189, 198]) == -1) {
+    if ($.inArray(parseInt(demo_id), [189, 198, 77777000030]) == -1) {
         // Move to the new interface
         window.location = "/demo/clientApp/demo.html?id=" + demo_id;
     }
