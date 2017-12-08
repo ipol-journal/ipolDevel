@@ -110,7 +110,7 @@
   align-self: flex-start;
   flex-shrink: 0;
 
-  margin: 5px 5px;
+  margin: 0 5px 5px;
 
   -webkit-transform-origin: 1px 1px;
           transform-origin: 1px 1px;
@@ -169,22 +169,25 @@ div[class^='html_text_'] {
   animation: container-entrance .5s cubic-bezier(.69, -.02, .46, 1.28);
 }
 
-.video-tools{
+.video-tools {
   display: flex;
   align-items: center;
   justify-content: center;
 
   width: 500px;
   height: 30px;
-
-  border-radius: 25px;
   margin: 0 auto;
 
-  background-color: #cacaca4d;
+  border: 1px solid #E9E1EC96;
+  border-radius: 5px;
+  background-color: #EFEFEF;
+  -webkit-box-shadow: 0 5px 15px -7px rgba(0, 0, 0, .75);
+     -moz-box-shadow: 0 5px 15px -7px rgba(0, 0, 0, .75);
+          box-shadow: 0 5px 15px -7px rgba(0, 0, 0, .75);
 }
 
 .video-tools > span {
-  margin: 0 10px; 
+  margin: 0 10px;
 }
 
 .play-pause-btn::after {
@@ -192,27 +195,37 @@ div[class^='html_text_'] {
 }
 
 .play-to-pause::after {
-  animation: play-to-pause .4s cubic-bezier(.69, -.02, .46, 1.28);
   content: '\f04c';
+  animation: play-to-pause .4s cubic-bezier(.69, -.02, .46, 1.28);
 }
 
 .pause-to-play::after {
-  animation: pause-to-play .4s cubic-bezier(.69, -.02, .46, 1.28);
   content: '\f04b';
+  animation: pause-to-play .4s cubic-bezier(.69, -.02, .46, 1.28);
 }
 
 .stop-btn::after {
   font-family: 'icons';
+
   content: '\f04d';
 }
 
 .fast-backward-btn::after {
   font-family: 'icons';
+
   content: '\f04a';
 }
 
 .fast-forward-btn::after {
   font-family: 'icons';
+
   content: '\f04e';
 }
 
+.gallery-video-container > div {
+  display: flex;
+}
+
+.gallery-video-container > div > video {
+  align-self: flex-start;
+}
