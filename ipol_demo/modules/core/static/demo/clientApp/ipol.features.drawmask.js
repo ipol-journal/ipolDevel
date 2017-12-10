@@ -352,7 +352,7 @@ ipol.features.DrawMask = function() {
                     '</div>';
                     
         var bernouilli_html =
-                '<div>Bernouilli probability <input  style="width:3em"  type="number" id="bernouilli_prob"'+
+                '<div>Bernoulli probability <input  style="width:3em"  type="number" id="bernouilli_prob"'+
                     limits + ' >'+
                 '<div  style="width:8em;display:inline-block;" id="bernouilli_range" ></div>'+
                     '</div>';
@@ -380,7 +380,7 @@ ipol.features.DrawMask = function() {
                             "<hr><label> <b>Generate mask</b></label>"+
                             '<div class="drawmask_random" style="padding:2px"> '+
                                 '<button id="drawmask_random_text" style="margin:2px;">Random text</button>'+
-                                '<button id="drawmask_bernouilli" style="margin:2px;">Bernouilli</button>'+
+                                '<button id="drawmask_bernouilli" style="margin:2px;">Bernoulli</button>'+
                                 bernouilli_html +
                             '</div>'+
                         '</td>'+
@@ -521,7 +521,7 @@ ipol.features.DrawMask = function() {
             _updateMask();
         }.bind(this));
         
-        // Bernouilli probability
+        // Bernoulli probability
         $('#bernouilli_range').slider(
         {
             value:0.8,
@@ -565,7 +565,7 @@ ipol.features.DrawMask = function() {
             _updateMask();
         });
         
-        // bernouilli button
+        // bernoulli button
         $('#drawmask_bernouilli').click( function() {
             $("#colors_sketch").data().sketch.actions=[];
             $("#colors_sketch").data().sketch.redraw();
