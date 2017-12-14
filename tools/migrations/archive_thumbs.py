@@ -36,8 +36,8 @@ from IPOLImage import IPOLImage
 
 
 import av
+import cv2
 import numpy as np
-from PIL import Image
 
 
 archive_dir = os.path.join(
@@ -57,96 +57,20 @@ def hash_subdir(hash_name, depth=2):
     subdirs = '/'.join(list(hash_name[:l]))
     return subdirs
 
-def image_thumb(src, dest):
+def video_cv(src):
     """
-    From src image path, create a thumbnail to dest path
-    """
-    with Image.open(src) as im:
-        # supposed to work with Pillow
-        return pil_thumb(im, dest)
-
-def video_thumb(src, dest):
-    """
-    From src video path, create a thumbnail to dest path
+    From src video path, returns a frame as a numpy matrix compatible with OpenCV
     """
     # av.open seems do not like unicode filepath
     container = av.open(src, mode='r')
     container.seek(int(container.duration/4) - 1)
-    # hacky but I haven't found way to make work a better writing like next()
+    # hacky but needed
     for frame in container.decode(video=0):
-        im = frame.to_image()
-        break
-    # can't close the video file descriptor
-    with im:
-        return pil_thumb(im, dest)
-
-def pil_thumb(im, dest_jpeg, dest_height=128):
-    """
-    This function make a thumbnail from a pil image (can come from image or video)
-    General case: dest_height, preserve ratio
-    Special cases: src_height < dest_height, extreme ratios (horizontal or vertical lines)
-    Exactly same logic should be shared with the sendarchive logic
-    [2017-10-17] is in core/Tools/sendarchive.py
-    Should be in conversion module
-    """
-    max_width = 2*dest_height # avoid extreme ratio
-
-    src_width = im.width
-    src_height = im.height
-    # if src image is for example a line of 1 pixel height, keep original height
-    dest_height = min(src_height, dest_height)
-    dest_width = int(round(float(src_width*dest_height)/src_height))
-    dest_width = min(dest_width, src_width, max_width)
-    if dest_width <= 0:
-        dest_width = src_width
-    # get L or RGB for jpeg export
-    im = pil_4jpeg(im)
-    if not im: # conversion failed
-        return None
-    # resize after normalisation,
-    im = im.resize((dest_width, dest_height), Image.LANCZOS)
-    if not os.path.isdir(os.path.dirname(dest_jpeg)):
-        os.makedirs(os.path.dirname(dest_jpeg))
-    im.save(dest_jpeg, 'JPEG', progression=True, subsampling='4:4:4')
-    return True # say that all is OK
-
-def pil_4jpeg(im, bgcolor=(255, 255, 255)):
-    """
-    Return an image object compatible with jpeg (ex: resolve transparency, 32bits…)
-    or nothing when it is known that the format is not compatible with jpeg and not converted.
-    """
-    if im.mode == 'RGB' or im.mode == 'L': # should work
+        # av.video.frame.VideoFrame.to_nd_array() does not work
+        # obtain a PIL is better implemented
+        pil_image = frame.to_image()
+        im = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
         return im
-    # Grey with transparency
-    if im.mode == 'LA':
-        l = im
-        bg = int(np.round(0.21*bgcolor[0] + 0.72*bgcolor[1] + 0.07*bgcolor[2])) # grey luminosity
-        im = Image.new('L', l.size, bg)
-        im.paste(l, mask=l.split()[1]) # 1 is the alpha channel
-        l.close()
-        return im
-    # im.info['transparency'], hack from image.py for palette with RGBA
-    if im.mode == 'P' and 'transparency' in im.info and im.info['transparency'] is not None:
-        im = im.convert('RGBA') # convert Palette with transparency to RGBA, handle just after
-    # RGBA, full colors with canal alpha, resolve transparency with a white background
-    if im.mode == 'RGBA':
-        rgba = im
-        im = Image.new('RGB', rgba.size, bgcolor)
-        im.paste(rgba, mask=rgba.split()[3]) # 3 is the alpha channel
-        rgba.close()
-        return im
-    # recognized as a 32-bit signed integer pixels, but not sure
-    if im.mode == 'I':
-        extrema = im.getextrema()
-        # seems a 1 channel 32 bits
-        if len(extrema) == 2 and (extrema[0] >= 0 and extrema[1] >= 256):
-            return im.point(lambda i: i*(1./256)).convert('L')
-        # not encountered for now
-        return False
-    if im.mode != 'RGB': # last try
-        im = im.convert('RGB')
-    return im
-
 
 
 enc = sys.getfilesystemencoding()
@@ -167,7 +91,6 @@ for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DES
         if row[3] == 'image':
             if row[2] in ['svg']:
                 continue
-            # tiff is usually used as a container for data
             im = IPOLImage(src_path, uint8=True)
             # a tiff used as a data container, not correctly loaded by OpenCV
             if row[2] == 'tiff' and im.data is None :
@@ -178,7 +101,8 @@ for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DES
             sys.stdout.flush()
             continue
         if row[3] == 'video':
-            video_thumb(src_path, dest_path+'.jpeg')
+            im = IPOLImage(video_cv(src_path))
+            im.save(dest_path+'.jpeg')
             sys.stdout.write('V')
             sys.stdout.flush()
             continue

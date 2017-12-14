@@ -18,14 +18,34 @@ Image, multipe formats handling
 """
 
 from __future__ import print_function
+from contextlib import contextmanager
+import errno
+import io
 import os
 import sys
 import time
 
 import cv2
 import numpy as np
-import errno
 
+@contextmanager
+def redirector(out=open(os.devnull, 'w')):
+    '''
+    Stderr redirector for external C libraries.
+    '''
+    # https://stackoverflow.com/questions/5081657/
+    fd = sys.stderr.fileno()
+    def _redirect(fileno):
+        sys.stderr.close() # + implicit flush()
+        os.dup2(fileno, fd) # fd writes to 'to' file
+        sys.stderr = os.fdopen(fd, 'w') # Python writes to fd
+
+    with os.fdopen(os.dup(fd), 'w') as old_stdout:
+        _redirect(out.fileno())
+        try:
+            yield # allow code to be run with the redirected stdout
+        finally:
+            _redirect(old_stdout.fileno()) # restore stdout.
 
 class IPOLImage(object):
     '''
@@ -35,23 +55,27 @@ class IPOLImage(object):
     Load : jpeg (uint8), png (uint8, uint16; alpha; colormap), tiff (uint8, uint16)
     Writes : jpeg (uint8), png (uint8, uint16; alpha), tiff (uint8, uint16)
     '''
-    # don’t forget :
-    # ICC profile
-    # EXIF ?
-    # to test float32)
-    def __init__(self, src_file, uint8=False, gray=False):
+    # don’t forget: ICC profile?, EXIF?
+    def __init__(self, src, uint8=False, gray=False):
         '''
         Load image data by path.
         '''
-        if not os.path.isfile(src_file):
-            raise OSError(errno.ENOENT, "File not found", src_file)
-        self.src_file = src_file
+        # source is a data matrix
+        if isinstance(src, np.ndarray):
+            self.data = src
+            return
+        # source
+        if not os.path.isfile(src):
+            raise OSError(errno.ENOENT, "File not found", src)
+        self.src_file = src
         pars = 0
         if gray:
             pars |= cv2.IMREAD_GRAYSCALE
         if not uint8:
             pars |= cv2.IMREAD_UNCHANGED
-        self.data = cv2.imread(self.src_file, pars)
+        # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
+        with redirector():
+            self.data = cv2.imread(self.src_file, pars)
 
     def paths(self):
         '''
