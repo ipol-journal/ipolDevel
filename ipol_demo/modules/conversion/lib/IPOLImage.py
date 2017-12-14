@@ -154,6 +154,13 @@ class IPOLImage(object):
         '''
         Choose the save method according to extension
         '''
+        # caution, cv2.imwrite will not create subdirectories and silently fail
+        # create the subdirectories, avoiding concurrency conflict
+        try:
+            os.makedirs(os.path.dirname(dest_file))
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
         ext = os.path.splitext(dest_file)[1]
         if ext == '.png':
             return self._save_png(dest_file, **kwargs)
