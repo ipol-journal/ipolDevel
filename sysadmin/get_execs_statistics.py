@@ -7,14 +7,16 @@ Count the number of executions the last 30 days
 import os
 import datetime
 
+DAYS = 30
+
 base_dir = os.path.expanduser("~/ipolDevel/shared_folder/run")
 demos = os.listdir(base_dir)
 
 now = datetime.datetime.now()
-date_from = now - datetime.timedelta(days=30)
+date_from = now - datetime.timedelta(days=DAYS)
 
-count_total = 0
-
+results = {}
+#
 for demo_id in demos:
     demo_dir = os.path.join(base_dir, demo_id)
 
@@ -36,11 +38,19 @@ for demo_id in demos:
 
         if exec_datetime > date_from:
             count += 1
-    
-    count_total += count
+
+    results[demo_id] = count
         
-    print "demo #{}:\t{}\t({}/day)".format(demo_id, count, int(count/30.0))
+    #print "demo #{}:\t{}\t({}/day)".format(demo_id, count, int(count/30.0))
+
+print "Execution statistics of the demos the last {} days".format(DAYS)
+
+count_total = 0
+#
+for demo_id in sorted(results, key=results.get, reverse=True):
+    count = results[demo_id]
+    count_total += count
+    print "demo #{}:\t{}\t({}/day)".format(demo_id, count, int(float(count)/DAYS))
 
 print
-print "Total:\t{}\t({}/day)".format(count_total, int(count_total/30.0))
-        
+print "Total:\t{}\t({}/day)".format(count_total, int(float(count_total)/DAYS))
