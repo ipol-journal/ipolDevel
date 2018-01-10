@@ -56,26 +56,37 @@ class IPOLImage(object):
     Writes : jpeg (uint8), png (uint8, uint16; alpha), tiff (uint8, uint16)
     '''
     # don’t forget: ICC profile?, EXIF?
-    def __init__(self, src, uint8=False, gray=False):
+    def __init__(self, src):
         '''
         Load image data by path.
         '''
+        # Object build without file, data may be loaded by decode (low typing, no good test)
+        if src is None:
+            return
         # source is a data matrix
         if isinstance(src, np.ndarray):
             self.data = src
             return
-        # source
+        # source is supposed to be a file
         if not os.path.isfile(src):
             raise OSError(errno.ENOENT, "File not found", src)
         self.src_file = src
-        pars = 0
-        if gray:
-            pars |= cv2.IMREAD_GRAYSCALE
-        if not uint8:
-            pars |= cv2.IMREAD_UNCHANGED
         # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
         with redirector():
-            self.data = cv2.imread(self.src_file, pars)
+            # IMREAD_UNCHANGED, option to keep alpha or uint16
+            self.data = cv2.imread(self.src_file, cv2.IMREAD_UNCHANGED)
+        if self.data is None:
+            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
+
+    def decode(self, data):
+        '''
+        Load image data as a string of bytes
+        '''
+        buf = np.fromstring(data, dtype=np.uint8)
+        # Are they problems with warnings ?
+        self.data = cv2.imdecode(buf, cv2.IMREAD_UNCHANGED)
+        if self.data is None:
+            raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
 
     def paths(self):
         '''
@@ -152,10 +163,18 @@ class IPOLImage(object):
 
     def save(self, dest_file, **kwargs):
         '''
-        Choose the save method according to extension
+        Save image matrix to dest file, format according to file extension.
+        Available options and default values for image encoding formats.
+        .jpeg, .jpg
+            optimize=True (True|False)
+            progressive=True (True|False)
+            quality=80 (0—100)
+        .png
+            compression=9 (0-9)
+        .tif .tiff
         '''
         # caution, cv2.imwrite will not create subdirectories and silently fail
-        # create the subdirectories, avoiding concurrency conflict
+        # ? concurrency conflict
         try:
             os.makedirs(os.path.dirname(dest_file))
         except OSError as exception:
@@ -163,17 +182,42 @@ class IPOLImage(object):
                 raise
         ext = os.path.splitext(dest_file)[1]
         if ext == '.png':
-            return self._save_png(dest_file, **kwargs)
+            pars = self._set_png(**kwargs)
         elif ext == '.tiff' or ext == '.tif':
-            return self._save_tiff(dest_file, **kwargs)
+            pars = self._set_tiff(**kwargs)
         elif ext == '.jpg' or ext == '.jpeg':
-            return self._save_jpeg(dest_file, **kwargs)
+            pars = self._set_jpeg(**kwargs)
         else:
             raise ValueError("Extension {}, is not supported.".format(ext))
+        cv2.imwrite(dest_file, self.data, pars)
 
-    def _save_jpeg(self, dest_file, optimize=True, progressive=True, quality=80):
+    def bytes(self, ext, **kwargs):
         '''
-        Save data as jpeg
+        Return image matrix as encoded bytes, format according to a file extension.
+        Available options and default values for image encoding formats.
+        .jpeg, .jpg
+            optimize=True (True|False)
+            progressive=True (True|False)
+            quality=80 (0—100)
+        .png
+            compression=9 (0-9)
+        .tif .tiff
+        '''
+        ext = '.'+ext.lstrip('.')
+        if ext == '.png':
+            pars = self._set_png(**kwargs)
+        elif ext == '.tiff' or ext == '.tif':
+            pars = self._set_tiff(**kwargs)
+        elif ext == '.jpg' or ext == '.jpeg':
+            pars = self._set_jpeg(**kwargs)
+        else:
+            raise ValueError("Extension {}, is not supported.".format(ext))
+        retval, buf	= cv2.imencode(ext, self.data)
+        return buf.tostring()
+
+    def _set_jpeg(self, optimize=True, progressive=True, quality=80):
+        '''
+        Prepare data for jpeg, before saving to file or return bytes.
         '''
         self.blend_alpha()
         # not found in OpenCV API subsampling, ex: '4:4:4'
@@ -184,24 +228,25 @@ class IPOLImage(object):
             pars.extend([cv2.IMWRITE_JPEG_PROGRESSIVE, 1])
         if quality >= 0 and quality <= 100:
             pars.extend([cv2.IMWRITE_JPEG_QUALITY, quality])
-        return cv2.imwrite(dest_file, self.data, pars)
+        return pars
 
-    def _save_png(self, dest_file, compression=9):
+    def _set_png(self, compression=9):
         '''
-        Save data as png
+        Prepare data for png, before saving to file or return bytes.
         '''
         # no optimise flag found in OpenCV API
         pars = []
         if compression >= 0 and compression <= 9:
             pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
-        return cv2.imwrite(dest_file, self.data, pars)
+        return pars
 
 
-    def _save_tiff(self, dest_file):
+    def _save_tiff(self):
         '''
-        Save data as tiff
+        Prepare data for tiff, before saving to file or return bytes.
         '''
-        return cv2.imwrite(dest_file, self.data)
+        pars = []
+        return pars
 
     def resize(self, preserve_ratio=True, width=None, height=None, zoom=None, interpolation=None):
         '''
