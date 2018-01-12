@@ -241,6 +241,7 @@ function clearUploads() {
     $("#file-" + i).val("");
     helpers.removeItem(inputs[i].description);
   }
+  uploadedFiles = {};
   helpers.removeItem("origin");
 }
 
