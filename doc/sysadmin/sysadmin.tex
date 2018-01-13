@@ -637,6 +637,8 @@ To start and stop the virtual machine called ``VM":
 
 {\tt vboxmanage controlvm VM poweroff soft}
 
+In case the VM is not stopped, the VirtualBox processes can be terminated: {\tt killall VBoxXPCOMIPCD VBoxSVC VBoxHeadless}
+
 To avoid that the VM is not started after an eventual machine reboot, it is convenient to call a script to start the virtual machine. The following line needs to be added to the crontab (execute {\tt crontab -e}):
 
 {\tt @reboot /home/vm/start\_vm.sh}
