@@ -68,7 +68,7 @@
                                 <h4 >Title: {{ blob.title }}</h4>
                                 <p>Blob:</p>
                                 <div class="image_files">
-                                    <a href="{% url 'ipol.cp.blobs.blob_details'%}?demo={{ id }}&set={{ set.name }}&pos={{ pos }}">
+                                    <a href="{% url 'ipol.cp.blobs.blob_details'%}?demo={{ id }}&set={{ set.name|urlencode }}&pos={{ pos }}">
                                         {% if blob.thumbnail %}
                                             <img src="{{ blob.thumbnail }}" alt="{{ blob.title }}" title="{{ blob.title }}" />
                                         {% else %}
