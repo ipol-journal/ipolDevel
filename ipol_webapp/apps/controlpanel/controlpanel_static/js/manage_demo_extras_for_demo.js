@@ -52,11 +52,17 @@ function send_delete_demo_extra_request(wsurl, demo_id) {
 /*  change the name of the submitted file  */
 window.fileName = function(){
 	var x = document.getElementById("file");
-	if ('files' in x) {
+	if (!x.files[0].type.includes('zip') && !x.files[0].type.includes('x-rar') || x.files[0].type == '') {
+		alert('DemoExtras file format not valid, try again');
+		document.getElementById("name").innerHTML = "File...";
+		document.getElementById("name").style.color = "grey";
+		x.value = "";
+	}
+	if ('files' in x && x.files.length > 0) {
 		txt = x.files[0].name;
 		if (txt.length>24){
 		    txt = txt.substring(0,22);
-		    txt += "..."
+			txt += "..."
 		}
 		document.getElementById("name").innerHTML = txt;
 		document.getElementById("submitButton").style.visibility="visible";
