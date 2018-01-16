@@ -3,7 +3,7 @@
 Note: to avoid confusion, we refer the modules of the IPOL system as ``ipol modules'' and Python modules (files containing Python code) as ``Python modules''.
 
 \subsection{Introduction}
-Each demo of IPOL offers the user a set of defaults blobs. Thus, the users are not forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
+Each demo of IPOL offers to the user a set of defaults blobs (\textbf{b}inary \textbf{l}arge \textbf{o}bjects). Thus, the users are not forced to supply their own files for the executions of the algorithms. These defaults blobs can be tagged and linked to differents demos.
 
 \subsection{Composition}
 The blobs module is composed of several Python modules. It is composed of the same technical stack as the rest of the rest of the IPOL modules: written in Python, using a web server, a database, and using templates for generating HTML responses for webservices destinated to humans.
@@ -75,5 +75,44 @@ It follows now a list of all the webservices implemented by the blobs module: \m
 \item op\_remove\_demo: web page used for removing a demo.
 \item ping: used by the terminal for checking module status.
 \item shutdown: used by the terminal for turning off the module at distance.
-  
+
 \end{itemize}
+
+\subsubsection{Visual Representations}
+
+Normally, each blob is associated with a thumbnail that is used by the web interface to represent it (see figure~\ref{fig:blob_thumbnail_example}). This thumbnail is created during the upload of the blob.  
+
+However, there can be several type of blobs that cannot be represented by its own thumbnail such as data files or hyperspectral images. In these cases, the representation of the blob may appear as broken in the web interface (see figure~\ref{fig:broken_representation}). For instance, the blobsets of an optical flow demo use a pair of consecutive images for their experiments. These ones can be accompanied by a third file, commonly known as ground truth, that helps to measure how close is a given solution respect to the best possible flow field. This file is not an image, it is a data file and it is not possible to generate a thumbnail directly from the blob. %Therefore, we need an auxiliar file for the representation in the demo. 
+%
+
+\begin{figure}[h]
+\centering
+\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.1mm, colback=white]{
+\includegraphics[scale=0.25]{blobs/images/blob_thumbnail_example.pdf}
+}
+\caption{Example of a blob representation using its thumbnail. In this example, the user has selected the Baboon image by pressing its corresponding thumbnail.} 
+\label{fig:blob_thumbnail_example}
+\end{figure}
+%
+\begin{figure}[h]
+\centering
+\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.1mm, colback=white]{
+\includegraphics[scale=0.25]{blobs/images/broken_representation.pdf}
+}
+\caption{Broken image due to a blob that cannot be represented by the web interface.} 
+\label{fig:broken_representation}
+\end{figure}
+
+A demo editor can avoid this situation by uploading a new image as visual representation for this type of blob in its demos. The blob module stores the visual representation and uses it as new thumbnail. If the original blob already has a thumbnail the system overwrites it. Then, the blob does not appear as broken in the web interface and the users can choose it for an experiment using the visual representation (see figure~\ref{fig:visual_representation}).
+%
+\begin{figure}[h]
+\centering
+\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.1mm, colback=white]{
+\includegraphics[scale=0.25]{blobs/images/visual_representation.pdf}
+}
+\caption{A visual representation has been uploaded for the blob seen in figure~\ref{fig:broken_representation}. Then, the blob does not appear broken.} 
+\label{fig:visual_representation}
+\end{figure}
+%
+
+
