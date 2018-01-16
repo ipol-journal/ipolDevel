@@ -186,7 +186,7 @@ videos, flows, etc..).
 
 \subsubsection{\emph{image} type}
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.17\linewidth}|L{\dimexpr 0.68\linewidth}|c|}
+\begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
@@ -202,6 +202,7 @@ bigger files. Input can be a number or a string that will be evaluated in Javasc
  dtype        & input image expected data type, used as parameter of 
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
+forbid\_preprocess         & Forbids that the demo attempts any pre-processing to the input data. This is useful for noise-estimation demos for instance, or any other that could be negatively affected by pre-processing. In case the system needs to do it (say, an input image is larger than the maximum allowed) but it has been forbidden, the algorithm will not be run and instead an error message will be shown & no \\ \hline
  ext          & input image expected extention (ie. file format) & .. \\ \hline
 \caption{Keys for the 'image' type.}
 \end{longtable}
