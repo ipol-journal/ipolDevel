@@ -1,8 +1,4 @@
-\section{The Demo Description Lines (DDL)}
-
-current version is 0.2.
-
-\subsection{Introduction}
+\section{Introduction}
 The Demo Description Lines (DDL) is an abtract syntax which allow to
 define an IPOL demo. The description is 
 written in JSON (JavaScript Object Notation) format. This language is
@@ -30,7 +26,7 @@ Also be carreful with commas, missing or additional commas are often the cause o
 invalid JSON files.
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{general} section}
+\section{The \emph{general} section}
 The general section describes global information about the demo.
 It is a set of  (key,value) pairs, described in the following table.
 Many keys are derived from the static variables of the previous 'app' Python class.\\
@@ -70,14 +66,14 @@ Many keys are derived from the static variables of the previous 'app' Python cla
 \end{longtable}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{build} section}
+\section{The \emph{build} section}
 
 The build section contains an array of build descriptions in the form
 ''[ \{...\}, \{...\}, ...] ''. For each description, an archive containing the 
 source code is downloaded and compiled using either 'make','cmake' or 'script' features.
 It has the following information:
 
-\subsubsection{\emph{make} type}
+\subsection{\emph{make} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
@@ -125,7 +121,7 @@ It has the following information:
 ]
 \end{lstlisting}
 
-\subsubsection{\emph{cmake} type}
+\subsection{\emph{cmake} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
@@ -155,7 +151,7 @@ It has the following information:
   "flags"      : "OMP=1 -j4" } ]
 \end{lstlisting}
 
-\subsubsection{\emph{script} type}
+\subsection{\emph{script} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
@@ -180,11 +176,11 @@ It has the following information:
 
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{inputs} section}
+\section{The \emph{inputs} section}
 The inputs section describes the set of input data of the algorithm (images, 
 videos, flows, etc..).
 
-\subsubsection{\emph{image} type}
+\subsection{\emph{image} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
 \hline
@@ -202,37 +198,19 @@ bigger files. Input can be a number or a string that will be evaluated in Javasc
  dtype        & input image expected data type, used as parameter of 
 image.convert() method. Possible values are '1x8i' and '3x8i' which are 
 converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
-forbid\_preprocess         & Forbids that the demo attempts any pre-processing to the input data. This is useful for noise-estimation demos for instance, or any other that could be negatively affected by pre-processing. In case the system needs to do it (say, an input image is larger than the maximum allowed) but it has been forbidden, the algorithm will not be run and instead an error message will be shown & no \\ \hline
+forbid\_preprocess         & Forbids that the demo attempts any pre-processing of the input data. This is useful for noise-estimation demos for instance, or any other that could be negatively affected by pre-processing. In case the system needs to do it (say, an input image is larger than the maximum allowed) but it has been forbidden, the algorithm will not be run and instead an error message will be shown & no \\ \hline
  ext          & input image expected extention (ie. file format) & .. \\ \hline
 \caption{Keys for the 'image' type.}
 \end{longtable}
 
-\subsubsection{\emph{flow} type}
-
-\ToDo{[Karl]: explain how to assiocate an image to represent the flow. }
-
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.17\linewidth}|L{\dimexpr 0.68\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- type             & flow & yes \\ \hline
- description      & same as image & yes \\ \hline
- ext              & same as image & yes \\ \hline
- required         & boolean: tells if the flow is required for the algorithm
-or optional, default is optional. For example, the ground truth may be optional.& no \\ \hline
-\caption{Keys for the 'flow' type.}
-\end{longtable}
-
-
 %-------------------------------------------------------------------------------
-\subsection{The \emph{params} section}
+\section{The \emph{params} section}
 The params section describes the set of parameters needed by a demo, their 
 constraints and their visual appearance. It is defined as an array of sets, 
 where each set contains (key,value) pairs.
 
 
-\subsubsection{ \emph{range} type}
+\subsection{ \emph{range} type}
 
 The values of the range type are stored as numbers, so no double quotes are 
 required around the values. The default value is stored with the 'values' field.
@@ -243,8 +221,7 @@ required around the values. The default value is stored with the 'values' field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & evaluated Javascript/JQuery boolean expression. It hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -258,7 +235,7 @@ scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \} & yes
 \end{longtable}
 
 
-\subsubsection{ \emph{selection\_collapsed} type}
+\subsection{ \emph{selection\_collapsed} type}
 
 The values of the selection are stored as strings, so we map each label with a 
 string value. The default value is stored in a separate field.
@@ -269,8 +246,7 @@ string value. The default value is stored in a separate field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -286,7 +262,7 @@ the values defined in 'values'. & yes \\ \hline
 \caption{Keys for the 'selection\_collapsed' type.}
 \end{longtable}
 
-\subsubsection{ \emph{selection\_radio} type}
+\subsection{ \emph{selection\_radio} type}
 
 The values of the selection are stored as strings, so we map each label with a 
 string value. The default value is stored in a separate field.
@@ -299,8 +275,7 @@ options using radio buttons.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type     & selection\_radio    & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id       & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -318,7 +293,7 @@ the values defined in 'values'. & yes \\ \hline
 \caption{Keys for the 'selection\_radio' type.}
 \end{longtable}
 
-\subsubsection{ \emph{label} type}
+\subsection{ \emph{label} type}
 
 The label  can be used as a title to separate groups of parameters.
 
@@ -328,8 +303,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
@@ -337,7 +311,7 @@ The label  can be used as a title to separate groups of parameters.
 \end{longtable}
 
 
-\subsubsection{ \emph{checkbox} type}
+\subsection{ \emph{checkbox} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
 0.58\linewidth}|c|}
@@ -345,8 +319,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -357,7 +330,7 @@ The label  can be used as a title to separate groups of parameters.
 \caption{Common keys for the 'checkbox' type.}
 \end{longtable}
 
-\subsubsection{ \emph{checkboxes} type}
+\subsection{ \emph{checkboxes} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
 0.58\linewidth}|c|}
@@ -365,8 +338,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkboxes   & yes \\ \hline
- visible  & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEvalParams} that can hide the parameter if
+ visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -381,7 +353,7 @@ The label  can be used as a title to separate groups of parameters.
 \end{longtable}
 
 
-\subsubsection{ \emph{numeric} type}
+\subsection{ \emph{numeric} type}
 
 This param allows just numeric input
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
@@ -390,7 +362,7 @@ This param allows just numeric input
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & numeric   & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context defined in \ref{sec:JavascriptEvalParams} that can hide the parameter
+ visible    & Evaluated Javascript/JQuery boolean expression which hides the parameter
               if evaluated to false (if undefined the parameter is visible) & no \\ \hline
  label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
  comments   & description of the parameter, appears on the right side. & no  \\ \hline
@@ -399,7 +371,7 @@ This param allows just numeric input
 \caption{Common keys for the 'checkboxes' type.}
 \end{longtable}
 
-\subsubsection{ \emph{text} type}
+\subsection{ \emph{text} type}
 
 This param allows numeric and text input
 \begin{longtable}{|>{\bf}L{\dimexpr 0.27\linewidth}|L{\dimexpr 
@@ -408,7 +380,7 @@ This param allows numeric and text input
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & text   & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context defined in \ref{sec:JavascriptEvalParams} that can hide the parameter
+ visible    & Evaluated Javascript/JQuery boolean expression which hides the parameter
               if evaluated to false (if undefined the parameter is visible) & no \\ \hline
  label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
  id         & parameter name in lowercase letters & yes \\ \hline
@@ -417,7 +389,7 @@ This param allows numeric and text input
 \end{longtable}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{params\_layout} section}
+\section{The \emph{params\_layout} section}
 
 The default layout of parameters is to stack them together within an 'HTML field'
 entitle 'Parameters:'. However, if a demo needs to group together some parameters,
@@ -436,7 +408,7 @@ where the parameters ids are their position in the params section (starting at 0
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{run} section}
+\section{The \emph{run} section}
 
 The 'run' section contains an array of elements, where each element can be 
 a string or another array of strings:
@@ -508,7 +480,7 @@ A more complex example taken from demo 70:
  
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{config} section}
+\section{The \emph{config} section}
 
 The config section is optional, it allows creating new (key,value) pairs in the 
 configuration file based on text files obtained during the execution. This 
@@ -535,7 +507,7 @@ new information can then be used in the archive section.
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{archive} section}
+\section{The \emph{archive} section}
 
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
@@ -568,7 +540,7 @@ as files & no \\ \hline
 \end{lstlisting}
 
 %-------------------------------------------------------------------------------
-\subsection{The \emph{results} section}
+\section{The \emph{results} section}
 
 
 The results section also contains an array of sets, where each set contains 
@@ -580,7 +552,7 @@ user is proposed to run the demo again with different input or parameters.
 
 
 %------ gallery  ------
-\subsubsection{ \emph{gallery} type}
+\subsection{ \emph{gallery} type}
 
 The gallery type uses the gallery class to display images. Its parameters are:
 
@@ -589,8 +561,8 @@ The gallery type uses the gallery class to display images. Its parameters are:
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible    & Evaluated Javascript/JQuery boolean expression 
+              which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
@@ -666,7 +638,7 @@ titles.
 \end{lstlisting}
 
 %------ New gallery  ------
-\subsubsection{ \emph{gallery\_new} type}
+\subsection{ \emph{gallery\_new} type}
 
 The gallery\_new type uses the gallery class to display images. Its parameters are:
 
@@ -675,8 +647,8 @@ The gallery\_new type uses the gallery class to display images. Its parameters a
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible    & Evaluated Javascript/JQuery boolean expression 
+              which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
@@ -725,15 +697,14 @@ Advaced example, mixing repeat, visible, using an array of filenames.
 
 
 %------ file_download  ------
-\subsubsection{ \emph{file\_download} type}
+\subsection{ \emph{file\_download} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible   & Javascript/JQuery boolean expression evaluated in the context defined 
-              in \ref{sec:JavascriptEval}, that can hide the result if
+ visible   & Evaluated Javascript/JQuery boolean expression which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
@@ -770,15 +741,15 @@ Example using 'repeat':
 \end{lstlisting}
 
 %------ html_text  ------
-\subsubsection{ \emph{html\_text} type}
+\subsection{ \emph{html\_text} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible   & Javascript/JQuery boolean expression evaluated in the context 
-             defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible   & Evaluated Javascript/JQuery boolean expression 
+             which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & array of strings, that will be concatenated to form the html 
              content. This content can contain Javascript/JQuery expression if it starts
@@ -799,15 +770,15 @@ Example using 'repeat':
 
 
 %------------ text_file --------------------------
-\subsubsection{ \emph{text\_file} type}
+\subsection{ \emph{text\_file} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible   & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible   & Evaluated Javascript/JQuery boolean expression 
+              which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  label     & HTML label & yes \\ \hline
  contents  & text filename to display & yes \\ \hline
@@ -824,7 +795,7 @@ Example using 'repeat':
 \end{lstlisting}
 
 %------ warning  ------
-\subsubsection{ \emph{warning} type}
+\subsection{ \emph{warning} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
 0.7\linewidth}|c|}
@@ -832,8 +803,8 @@ Example using 'repeat':
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type      & warning  & yes \\ \hline
- visible   & Javascript/JQuery boolean expression evaluated in the context 
-            defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible   & Evaluated Javascript/JQuery boolean expression 
+            which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & displayed text, can contain both HTML tags and Javascript/JQuery code.
 expressions of the form '\{\{expression\}\}'. & \\ \hline
@@ -848,7 +819,7 @@ expressions of the form '\{\{expression\}\}'. & \\ \hline
 
 
 %------ repeat_gallery  ------
-\subsubsection{ \emph{repeat\_gallery} type}
+\subsection{ \emph{repeat\_gallery} type}
 It displays a gallery with a number of images that depend on a parameter.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
@@ -856,8 +827,8 @@ It displays a gallery with a number of images that depend on a parameter.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & repeat\_gallery  & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that can hide the result if
+ visible    & Evaluated Javascript/JQuery boolean expression 
+              which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
@@ -894,7 +865,7 @@ It displays a gallery with a number of images that depend on a parameter.
 
 
 %------ message  ------
-\subsubsection{ \emph{message} type}
+\subsection{ \emph{message} type}
 It displays a text message with a predefined color. This can be 
 used for warning or error messages.
 
@@ -903,8 +874,7 @@ used for warning or error messages.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & message  & yes \\ \hline
- visible    & Javascript/JQuery boolean expression evaluated in the context 
-              defined in \ref{sec:JavascriptEval}, that hides the result if
+ visible    & Evaluated Javascript/JQuery boolean expression which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  contents   & a string which will be evaluated by Javascript to get the message. & yes \\ \hline
  textColor    & the name of a color or a CSS-compatible color. & no \\ \hline
@@ -918,536 +888,3 @@ used for warning or error messages.
         "textColor": "red",
         "visible": "info.sizeX * info.sizeY < 42000" }
 \end{lstlisting}
-
-
-%-------------------------------------------------------------------------------
-\subsection{Full examples}
-
-\paragraph{demo 104}: \\
-\begin{lstlisting}[language=json,firstnumber=1]
-{ 
-  "general": { 
-    "demo_title" : "An Analysis of the Viola-Jones Face Detection Algorithm",
-    "input_description": "",
-    "param_description": "",
-    "enable_crop"      : true,
-    "xlink_article": "http://www.ipol.im/pub/art/2014/104/"}, 
-  "build": [ {
-      "build_type"   : "make",
-      "url"          : "http://www.ipol.im/pub/art/2014/104/vj_20140328.tar.gz", 
-      "srcdir"       : "vj_20140328",
-      "prepare_make" : "make OMP=1 -j -f makefile eigen",
-      "binaries"     : [ [".","detect"] ],
-      "flags"        : "OMP=1 -j -f makefile"
-    } ],
-  "inputs": [  {
-          "type"            : "image", 
-          "description"     : "input",
-          "max_pixels"      : "900*900",
-          "max_weight"      : "10*900*900",
-          "dtype"           : "3x8i",
-          "ext"             : ".png" } ],
-  "params": [ 
-    { "id"      : "layer_count",
-      "type"    : "range", 
-      "label"   : "Layer Count",
-      "values"  : { "min":1,"max":31,"step":1,"default":31 }
-    },
-    { "id"      : "threshold",
-      "type"    : "range",
-      "label"   :  "Postprocessing Threshold",
-      "values"  : { "min":0,"max":10,"step":0.1,"default":3 }
-    } ],
-  "run": ["detect input_0.sel.png $layer_count $threshold"
-          "echo 'creating isGray information'",
-          "python:im=image(self.work_dir+'input_0.sel.png')",
-          "python:self.algo_info['isgray']=im.is_grayscale()"]
-  "archive": {
-      "files" : { 
-          "input_0.sel.png"   : "exact image",
-          "detectedraw.png"   : "raw detection",
-          "ppSkin.png"        : "commands",
-          "ppRobust.png"      : "skin color detection",
-          "ppBoth.png"        : "most refined detection" } },
-  "results": [
-  {
-    "type"          : "gallery",
-    "label"         : "<h2>Resulting images</h2>",
-    "contents"      : { 
-      "Original"                        : "input_0.sel.png", 
-      "Detected"                        : "detectedraw.png",
-      "!(info.isgray)?Skin Check"       : "ppSkin.png",
-      "Robustness Check"                : "ppRobust.png",
-      "!(info.isgray)?Skin & Robustness Check":"ppBoth.png"
-    }
-  } ]
-}
-\end{lstlisting}
-
-\subsubsection{keywords}
-
-\section{Javascript/JQuery code}
-
-\subsection{Evaluation of expressions in 'params' section} \label{sec:JavascriptEvalParams}
-
-Javascript expressions used in the params section are evaluated in the 
-following context of variables:
-\begin{itemize}
-  \item params object: contains the name and values of each parameter.
-\end{itemize}
-
-\subsection{Evaluation of expressions in 'results' section} \label{sec:JavascriptEval}
-
-Javascript expressions used in the results section are evaluated in the 
-following context of variables:
-\begin{itemize}
-  \item idx: index of the current loop if available,
-  \item sizeX, sizeY: input image dimensions (after possible crop),
-  \item info: the 'info' object defined in the config and run sections,
-  \item meta: the 'meta' object,
-  \item params: the 'params' object containing the values of the parameters,
-  \item imwidth, imheight: maximal dimension of the input images,
-  \item work\_url: url link to the outputs.
-\end{itemize}
-
-Some properties are automatically evaluated as expressions, like boolean expressions
-and repeat expressions. Others like strings can be evaluated as Javascript expressions
-if the string starts with a single quote.
-
-\subsection{Organization of the code}
-
-\subsubsection{Code conventions/style}
-
-The javascript source code is documented using the JSDoc conventions.
-Identations are written with four spaces (no tabulation).
-Namespaces are used to organize the classes, functions and variables.
-We try as much as possible to limit line length to 80 characters.
-Avoid long functions/methods.
-
-To understand the code, you need to understand the javascript concepts of closure,
-and the way to create public, private and protected members in javascript.
-
-variable naming:
-\begin{itemize}
-  \item variable name in lowercase;
-  \item the functions and methods names are in lowerCamelCase;
-  \item private members and variables start with underscore character;
-  \item static members start with 'static' followed by UpperCamelCase name;
-  \item files are named based on the class, namespace, or object that they define,
-        in lowercase, including the namespace hiercharchy, 
-        with .js extension (ex: ipol.drawinputs.js).
-\end{itemize}
-
-\subsubsection{Javascript language}
-
-\paragraph{Variable scopes:}
-Javascript has some important differences with most programming languages.
-Here is a link that explains the scope of variables: 
-\url{http://javascriptissexy.com/javascript-variable-scope-and-hoisting-explained/}.
-Things to remember:
-\begin{itemize}
- \item Javascript does not have block-level scope, instead, it has function-level scope,
- \item a local variable should be declared with the 'var' keyword, otherwise it is considered global,
- \item local variables have priority over global variables,
- \item avoid as much as possible global variables and functions (do not pollute the global scope),
- \item local variables declared in a function is accessible by functions inside that function (closure),
- \item all variable declarations are hoisted (lifted and declared) to the top of the function or of the
-       global scope (if they are global).
-\end{itemize}
-
-\paragraph{Closures:}
-According to \url{https://developer.mozilla.org/en/docs/Web/JavaScript/Closures},
-"Closures are functions that refer to independent (free) variables (variables 
-that are used locally, but defined in an enclosing scope). 
-In other words, these functions 'remember' the environment in which they were created."
-Another point to remember is that
-\begin{itemize}
- \item the closure has access to the outer function variables by reference, not by value.
-\end{itemize}
-
-In some sense, the classical notions of functions and classes in C++ are reduced,
-in javascript, to a single concept of javascript function, where local variables
-of the function stay in memory as long as the function reference exists, they 
-can be considered as member variables of the function. In the same way, functions inside
-other functions have access to the local variable of they outer scope, they 
-can be considered as member functions.
-
- \paragraph{Keyword "this":}
-The keyword "this" in Javascript can have different meaning according to the
-context
-(\url{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this}).
-Two possibilities (among others) are:
-\begin{itemize}
-  \item "When a function is used as a constructor (with the "new" keyword), its this is bound 
-to the new object being constructed". The default for a constructor is to return
-the object being constructed, but it can return some other object if specified.
-  \item "When a function is called as a method of an object, its this is set to 
-        the object the method is called on."
-\end{itemize}
-
-
-\subsubsection{Implementation of classes}
-
-The implementation of classes with private members in javascript can be
-done using different approaches, as for example decribed in:
-\begin{itemize}
- \item \url{http://javascript.crockford.com/private.html}, 
- \item \url{http://www.2ality.com/2016/01/private-data-classes.html},
- \item \url{https://developer.mozilla.org/en-US/Add-ons/SDK/Guides/Contributor_s_Guide/Private_Properties},
- \item \url{https://philipwalton.com/articles/implementing-private-and-protected-members-in-javascript/}.
-\end{itemize}
-
-Based on the description of the Javascript variable scope and closure in the previous section,
-and based on information found on the internet, we decided to implement classes in
-javascript in the following way:
-
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript,basicstyle=\scriptsize]{class_example.js}
-
-
-\subsubsection{Different files}
-
-The Javascript code is divided in the following files, within the :
-ipol\_demo/\-static/\-JQuery\-App directory:
-\begin{itemize}
-
- \item \emph{ipol\_demo.html}: this file is the HTML template file, it includes all the
-  required CSS stylesheets, Javascript files and modules, and the core HTML
-  code containing the main sections (upload modal window, inputs, parameters and 
-  run fieldsets, different tabs). The inner contents of each section are latter
-  filled by the Javascript/JQuery code.
-
- \item \emph{ipol.servers.js}: this file points to the proxy and the demorunner
-  servers. Ideally, only the proxy server should be used, but since we need to upload
-  files using a POST method (not available through the proxy) in ipol.drawinputs.js 
-  UploadForm() method, we had to include the demorunner server address too.
-  Having this information in a separate file allows the user to change the server
-  without modifying other files (useful for version control systems like git).
-
- \item \emph{ipol.utils.js}: contains Javascript/JQuery convenient functions.
-
- \item \emph{demo.js}: this file contains the DocumentReady() function,
-  and deals with the initial interactions of the main page: enable page tabu\-lations,
-  set events for several buttons, set events for input description and parameters
-  description modal windows, for upload modal window, set event for browser history,
-  list available demos and create the demo selection. It deals with
-  the demo selection in the function 'Input\-Controller'. It calls methods or classes
-  from other files to display the demo page: input blobs, descriptions, parameters,
-  archive information. 
-  The demo can be selected
-  from three different inputs (demo\_origin enumeration): user widget selection,
-  url or browser history. The function 'Set\-Archive\-Experiment' sets the demo
-  page information based on an archive experiment, it is called if the url parameters
-  contain an experiment id together with the demo id.
-
-
- \item \emph{ipol.drawblobs.js}: This file contains the code that renders and 
-  deals with the demo blobs. The class 'BlobsContainer' takes care of loading
-  the list of proposed blobs associated to the demo and of displaying them.
-  It can read blobs templates and hide unavailable thumbnails. It also
-  deals with the blob selection by instanciating the 'DrawInputs' class which loads
-  the inputs blobs and prepares the demo execution.
-
- \item \emph{ipol.drawinputs.js}: This file contains the code that renders 
-  the selected input blobs including the option to crop the input image. The class
-  'DrawInputs' takes care of displaying the input blobs.
-  If the algorithm has several input images, the ImageGallery class is used
-  to display them, otherwise one image is displayed with the possibility to 
-  enable cropping and to preview the cropped image. Input data can be loaded
-  from blobset or uploaded from local files. The single image cropping is
-  implemented using the 'cropper.js' module available at 
-  \url{https://github.com/fengyuanchen/cropper}. The 'DrawInputs' class
-  calls the demo execution, uploads local files, and takes care of the progress bar.
-
- \item \emph{ipol.rundemo.js}: This file contains the code that, based on the 
-  input and parameters selection, calls the webservices to upload input files
-  and run the algorithm. Input data can be loaded
-  from blobset or uploaded from local files. The 'RunDemo' class
-  calls the demo execution, uploads local files, and takes care of the progress bar.
-
- \item \emph{ipol.upload.js}: creates the HTML contents for uploading
-  files, and the execution code for applying or cancelling the upload. Applying 
-  the upload will instanciate an object of 'DrawInputs' class and set everything
-  needed to be able to run the algorithm. To deal with browser history features,
-  global variables 'last\_uploaded\_files' and 'last\-\_up\-loaded\-\_files\-\_pos' are created
-  and stored in 'window.localStorage'.
-
- \item \emph{ipol.drawparams.js}: renders and deals with the demo parameters:
-  set events, set/reset/get values, evaluate expressions. The different parameter
-  types are: selection\_collapsed,  selection\_radio,  range,  label,  checkbox,  
-  checkboxes.
-
-
- \item \emph{ipol.drawresults.js}: implements the 'DrawResults' class. This
-  class creates the HTML code to display the experiment results with its associated
-  events. The different types of results are: html\_text, file\_download,
-  gallery, repeat\_gallery, text\_file and warning. If the results are displayed
-  from an archive experiment, the system tries to point to the archive url if
-  available, otherwise it points to the experiment url/directory.
-
-
- \item \emph{ipol.archivedisplay.js}: renders the information from an demo archive.
-  A link to each archive page is available. If the user clicks on the experiment
-  link, it will load the experiment on a new tab of the current browser, by using
-  the demo id and the experiment id as url parameters.
-
- \item \emph{ipol.history.js}: implements the SetPage() function that
-  changes the page contents based on a given state. The browser history is 
-  managed using the 'history.js' module available at 
-  \url{https://github.com/browserstate/history.js/}.
-  States are pushed to the browser history using the 'pushState' method, 
-  and an history state change event, specified in ipol\_demo.js, updates
-  the contents on the page.
-
- \item \emph{ipol.features.drawmask.js}: creates the interface needed to draw
-  a mask for example for inpainting demo. It uses a modified version of the 'sketch.js' module.
-
-  \item \emph{ImageGallery/ipol.imagegallery.js}: implements the ImageGallery class
-  used to display image galleries in inputs and results sections.
-
-\end{itemize}
-
-\subsubsection{Main flow}
-
-\begin{figure}[H]
-  \centering
-%  \includegraphics[width=3.5in]{Images/demo_snapshot}
-  \includegraphics[width=3.5in]{Images/demo_capture}
-  \caption{Demo display layout}
-  \label{img:demo_snapshot}
-\end{figure}
-
-The main flow is as follows:
-\begin{itemize}
- \item Step 1: select input demo
-    \begin{itemize}
-      \item read list of available demos and propose selection,
-      \item or read demoid from url params
-    \end{itemize}
- \item Step 2: Read and display list of available blobsets 
- \item Step 3: Select input blobset:
-    \begin{itemize}
-      \item select blobset from the list,
-      \item or upload blobset.
-    \end{itemize}
- \item Step 4: Display selected blobset 
-    \begin{itemize}
-      \item if there is a single image, allow crop selection,
-      \item if there are several input blobs, show then in an ImageGallery object.
-    \end{itemize}
- \item Step 5: Display the parameters and allow their selection. 
- \item Step 6: Allow 'run' button, on run click: 
-    \begin{itemize}
-      \item display progress bar,
-      \item prepare the demo: check for compilation and installation of the source code,
-      \item if blobset selection: send input blobset with possible crop,
-      \item if blobset upload: crop input (if available) and send input blobset,
-      \item execute the demo with the parameters.
-    \end{itemize}
- \item Step 7: if upload, send results/parameters to archive. 
- \item Step 8: Display the results.
-\end{itemize}
-
-\subsubsection{Page template}
-
-\paragraph{Included scripts and stylesheets}
-The file "ipol\_demo.html" contains the page template, where the main displayed components are defined.
-The different scripts are included, together with their CSS stylesheets:
-
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=HTML, , firstnumber=15, firstline=15, lastline=48, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
-
-You will notice the use of the following external modules:
-\begin{itemize}
- \item \emph{cropper.js} available at 
-        \url{https://github.com/fengyuanchen/cropper} is used to crop input 
-        images; 
- \item \emph{noUiSlider} available at 
-        \url{http://refreshless.com/nouislider/} is used to create sliders that
-        behave better on touch screen. It is combined with wNumb: 
-        \url{http://refreshless.com/wnumb/} used to format outputs.
-        Only basic features of noUiSlider are used for the moment, but more 
-        advanced features could be added in the future, like displaying ticks 
-        for example.
-  \item In order to upload canvas images, the module 
-        \emph{canvas-to-blob} 
-        (\url{https://github.com/blueimp/JavaScript-Canvas-to-Blob}) and 
-        \emph{blob-util} (\url{https://github.com/nolanlawson/blob-util}) are 
-        used.
-  \item \emph{sketch.js} is used for drawing mask, it has been 
-        modified to better fit the needs of the mask drawing (and also to try 
-        to fix a position issue with chrome on touching devices). The original   
-        version is available at (\url{http://intridea.github.io/sketch.js/}), 
-        the modified version is on the github server of the IPOL demo system.
-  \item \emph{history.js} (\url{https://github.com/browserstate/history.js/}) is 
-        used to push states on the browser history and to deal with  
-        history events.
-\end{itemize}
-
-\paragraph{Page tabs} Three tabs are created using jquery ui, the first tab
-contains the demo selection, display and execution. The second tab contains
-the archive information, and the third tab contains the Demo Description 
-Language (DDL) file in JSON format.
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=HTML, firstnumber=111, linerange={111-123}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
-$\cdots$
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=HTML, firstnumber=241,linerange={241-248}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.html}
-
-Additionally, when the user enters the 'Archive' tab, the archive information
-is automatically updated and the last archive page is displayed:
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript, firstnumber=523,linerange={523-538}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
-To obtain the demo id, we first get the demo list stored within the "demo-select"
-HTML element (using the jquery data() function), then we obtain the demo id 
-(editordemoid) from the current position of the demo selection widget.
-
-\paragraph{Page fieldsets and other displayed elements}
-
-Four fieldsets are defined in the file ipol\_demo.html: blob selection, inputs, 
-parameters and results. It also contains the code to create the progress bar
-and the modal dialog to upload data.
-The modal dialog is then initialized by the following code:
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript, firstnumber=581,linerange={581-599}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
-and the ipol.upload.ManageLocalData() function called by ipol.setDemoPage().
-
-\subsubsection{Step 1: input demo selection}
-
-The list of demos is obtained from the demoinfo module using the service "demo\_list",
-in the function ipol.ListDemos(). Once the list is obtained, 
-ipol.OnDemoList(demolist) is called.
-The demo list is stored in the HTML element "demo-select" and once the demo is
-selected (from user selection or from the url parameters), the function 
-ipol.setDemoPage() is called.
-
-The function ipol.setDemoPage() first call the service "read\_last\-\_des\-crip\-tion\_from\_demo"
-of the "demoinfo" module using ipol.utils.ModuleService():
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript, firstnumber=317,linerange={317-321}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/demo.js}
-
-Once the demo description is returned, it runs the following steps:
-\begin{itemize}
-  \item empties the contents of the page,
-  \item changes its title to contain the demo title,
-  \item prepares the webpage to receive the different contents,
-  \item displays the parameters if any,
-  \item fills the contents of the archive tab,
-  \item calls demoinfo module service "get\_blobs\-\_of\-\_demo\-\_by\-\_name\-\_ws"
-to get the list of available blobsets for this demo, and calls staticOnDemoBlobs()
-method to display them and set their events,
-  \item and based on the "origin" parameter:
-    \begin{itemize}
-      \item if origin is "select\_widget" push a new state to the history,
-      \item if origin is "url", if it contains the parameter 'res', displays
-            the associated results. If it contains the parameter 'exp', displays
-            the corresponding archive experiment.
-      \item if origin is "browser\_history", call the callback function "func" 
-            given in parameter.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Step 2: read and display list of available blobsets}
-
-The static method ipol.DrawBlobs.staticOnDemoBlobs() returns a function
-that creates an instance of ipol.DrawBlobs class, add possible template
-to the blob list and displays all the blobs and their associated events.
-
-\subsubsection{Step 3: select input blobset}
-
-The input blobset can be either selected from the proposed list or uploaded from 
-local files.
-\paragraph{Blobset selection:}
-If it is selected by clicking on one of the proposed blobsets, the event will
-trigger the creation of a DrawInputs instance with the string "blobset" as origin,
-load the input blobset and prepare for running the demo:
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript, firstnumber=333,linerange={333-353}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/ipol.drawblobs.js}
-
-\paragraph{Data upload:}
-
-Clicking on the "Upload data" button will display a modal dialog window
-where the user can choose the files to upload from his local disk.
-\begin{figure}[H]
-  \centering
-%  \includegraphics[width=3.5in]{Images/demo_snapshot}
-  \includegraphics[width=3.5in]{Images/uploadwindow_capture}
-  \caption{Upload files modal window}
-  \label{img:uploadwindow_snapshot}
-\end{figure}
-
-This window is created by the ipol.upload.CreateUploadHTML(), and the function
-ipol.upload.UploadBlobsEvents() deals with the file selection and display.
-Note that the selected files will only be uploaded to the server before the
-demo execution (after clicking on the "run" button).
-Once the user accept its selection by clicking on the "Apply" button, 
-instances of the DrawInputs and RunDemo classes are created within the 
-ipol.upload.ManageLocalData() function:
-\miguel{The LaTeX source was including directly JS code here from the sources by specifying actual line numbers, thus causing desynchronization and documentation outdating. The inclusion has been removed.}
-%\lstinputlisting[language=JavaScript, firstnumber=160,linerange={160-185}, basicstyle=\scriptsize]{../../ipol_demo/modules/core/static/demo/clientApp/ipol.upload.js}
-
-\subsubsection{Step 4: Display selected blobset}
-Once the user has selected a blobset, it is displayed in the inputs fieldset
-with its corresponding interface.
-The initial HTML code is created by DrawInputs.createHTML() method. 
-
-\paragraph{Single input image}
-In the case of a single input image, this input is displayed with a crop option.
-The user can crop the input image interactively and also display a zoomed preview
-of the crop area on the right. The crop is using the existing "cropper.js" module.
-
-\paragraph{Multiple inputs}
-In the case of multiple inputs, the "ImageGallery" class is used to display the 
-image representation of each input. In an input is of "image" type, it is its own
-image representation. Otherwise, its image representation is a PNG image at the same
-position in the blobset, if any.
-The image gallery is created by the private method DrawInputs.\_createGallery(inputs\_info).
-The "inputs\_info" object contains the titles and contents to be displayed and is created
-by the one of the public methods DrawInputs.loadDataFromBlobset() or DrawInputs.loadDataFromLocalFiles().
-
-\paragraph{Inpainting demos}
-If the demo DDL has mask drawing enabled (general.drawmask=true), then an drawmask object
-of class "ipol.features.Inpainting" is created as a private member \_drawmask of the class
-DrawInputs. In this case, the usual displayed input is hidden and the displayed HTML code
-contains the result of the function call to \_drawmask.createHTML() that creates all 
-the mask drawing interface. The mask image is also added to the hidden ImageGallery object,
-it will be updated after each drawing event and it will be used as an image to upload
-for the demo execution.
-
-\subsubsection{Step 5: Display the parameters and allow their selection}
-
-The functions related to the display of the parameters are located in the "ipol.drawparams.js"
-file and are within the class "ipol.DrawParams". Default parameter values can be reset using
-the dedicated button.
-The static method ipol.DrawParams.staticUpdateParams() takes care to updating parameters
-that may have interdependencies. Currently, only the "visible" property type contents are 
-evaluated using javascript eval() function.
-
-\subsubsection{Step 6: deal with 'run' events}
-
-The method "ipol.RunDemo.setRunEvent()" initializes the progress bar and deals
-with the click on the "run" button.
-The first step is to call the service "demorunner:init\_demo" that checks for the
-source code installation and compilation. Once the current demo is successfully
-initialized, input data can be either uploaded to defined:
-\begin{itemize}
- \item for mask drawing demos, the method \_drawmask.submitDrawMask() is called,
-        that will submit the inputs: image and mask.
- \item for non-mask-drawing demos where the input comes from a selected blobset,
-        the service "demorunner:input\_select\_and\_crop" is called with all the
-        required parameters: demo id, blobset information, crop information.
- \item for non-mask-drawing demos with local files to upload, a local variable
-        of type "FormData" is instanciated and filled with the data to upload.
-        In the case of a single input image with selected crop, the image
-        is reduced to the crop area before its upload (using the getCroppedCanvas
-        option of the cropper module). The convertion from canvas or img to 
-        blobs that can be uploaded is obtained using either "canvas.toBlob()"
-        function or "blobUtil.imgSrcToBlob().then()" function. Once the 
-        form data is filled, the private method "\_uploadForm()" is called.
- \item for demos without any input blob, the private method "\_doRun()" is
-        called in return of the service "demorunner:init\_noinputs".
-\end{itemize}
-
-
-\subsubsection{Managing browser history}
-
