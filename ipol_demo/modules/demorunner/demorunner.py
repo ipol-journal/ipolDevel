@@ -39,6 +39,12 @@ class IPOLConstructFileNotFound(Exception):
     """
     pass
 
+class IPOLUnauthorizedAccess(Exception):
+   """
+   IPOLUnauthorizedAccess
+   """
+   pass
+
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
