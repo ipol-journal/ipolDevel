@@ -483,7 +483,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
         except IPOLUnauthorizedAccess as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Unauthorized access. Move: {}".format(str(ex))
+            data['message'] = "Construct failed: unauthorized access. Move: {}".format(str(ex))
         except urllib2.URLError as ex:
             data = {}
             data['status'] = 'KO'
