@@ -293,7 +293,7 @@ class DemoInfo(object):
         """
         Add a new demoextras file to a demo
         """
-        data = {'status': "KO"}
+        data = {'status': 'KO'}
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
@@ -324,7 +324,7 @@ class DemoInfo(object):
                     if os.path.exists(demoextras_folder):
                         shutil.rmtree(demoextras_folder)
 
-                    os.makedirs(extra_folder)
+                    os.makedirs(demoextras_folder)
                     destination = os.path.join(demoextras_folder, self.demoExtrasFilename)
                 
                     demoextras.file.seek(0)
