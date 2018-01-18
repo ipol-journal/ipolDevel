@@ -1710,7 +1710,8 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
 
     def post(self, request, *args, **kwargs):
 
-        url=request.META.get('HTTP_REFERER')
+        url = request.META.get('HTTP_REFERER').split('?')[0]
+        error_parameter=''
         try:
             demo_id = int(self.kwargs['demo_id'])
             myfile = request.FILES['myfile']
@@ -1719,13 +1720,15 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
             logger.error(msg)
         if has_permission(demo_id, self.request.user):
             result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
-
+            response = json.loads(result)
+            if (response['status'] == 'KO'):
+                error_parameter = '?msg=' + response['error_message']
         if result == None:
             msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"
             logger.error(msg)
             raise ValueError(msg)
-
-        return HttpResponseRedirect(url)
+        
+        return HttpResponseRedirect(url+error_parameter)
 
 class DemoinfoDDLHistoryView(NavbarReusableMixinMF, TemplateView):
     template_name = "demoinfo/manage_history_ddl_for_demo.html"

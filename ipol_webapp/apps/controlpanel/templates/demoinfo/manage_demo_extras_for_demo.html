@@ -30,7 +30,7 @@
 				<p></p>
 				<a class="btn btn-info" href="/cp/demo_edition/{{demo_id}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
 			</div>
-
+			<p class="ststsnok">{{ request.GET.msg }}</p>
 			{% if data.status == "OK" %}
 				{% if data.name %}
 					<div class="extra" id="demo_extra" >
