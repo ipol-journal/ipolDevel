@@ -39,6 +39,12 @@ class IPOLConstructFileNotFound(Exception):
     """
     pass
 
+class IPOLUnauthorizedAccess(Exception):
+    """
+    IPOLUnauthorizedAccess
+    """
+    pass
+
 def authenticate(func):
     '''
     Wrapper to authenticate before using an exposed function
@@ -336,7 +342,7 @@ class DemoRunner(object):
             files_path = []
             for f in files_to_move.split(","):
                 files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
-
+                
             # Download
             extract_needed = build.download(url, tgz_file, username, password)
 
@@ -361,8 +367,14 @@ class DemoRunner(object):
                         # Remove possible white spaces
                         file_to_move = file_to_move.strip()
                         #
-                        path_from = os.path.join(src_dir, file_to_move)
-                        path_to = os.path.join(bin_dir, os.path.basename(file_to_move))
+                        path_from = os.path.realpath(os.path.join(src_dir, file_to_move))
+                        path_to = os.path.realpath(os.path.join(bin_dir, os.path.basename(file_to_move)))
+
+                        src_path = os.path.realpath(src_dir)
+                        bin_path = os.path.realpath(bin_dir)
+
+                        if not path_from.startswith(src_path) or not path_to.startswith(bin_path):
+                            raise IPOLUnauthorizedAccess(file_to_move)
 
                         # Check origin
                         if not os.path.exists(path_from):
@@ -466,6 +478,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. File not found. {}".format(str(ex))
+        except IPOLUnauthorizedAccess as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Unauthorized access. Move: {}".format(str(ex))
         except urllib2.URLError as ex:
             data = {}
             data['status'] = 'KO'
