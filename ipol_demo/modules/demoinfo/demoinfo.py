@@ -29,6 +29,8 @@ import ConfigParser
 from collections import OrderedDict
 import cherrypy
 
+import magic
+
 from model import Demo
 from model import Author
 from model import Editor
@@ -295,27 +297,54 @@ class DemoInfo(object):
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
+            
             if not demo_dao.exist(demo_id):
                 return json.dumps(data)
 
-            given_file = demoextras
-            extra_folder = os.path.join(self.dl_extras_dir, demo_id)
-            if given_file is not None:
-                if os.path.exists(extra_folder):
-                    shutil.rmtree(extra_folder)
+            if demoextras is not None:
+                
+                mime_type = magic.from_buffer(demoextras.file.read(1024), mime=True)
+                _,type_of_file = mime_type.split("/")
+                type_of_file = type_of_file.lower()
+                
+                accepted_types= {
+                    "1": "gz",
+                    "2": "bz2",
+                    "3": "zip",
+                    "4": "tar",
+                    "5": "gzip",
+                    "6": "tar.gz",
+                    "7": "tgz",
+                    "8": "x-tar"
+                }
+                
+                if type_of_file in accepted_types.values():
+                    
+                    demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
+                    if os.path.exists(demoextras_folder):
+                        shutil.rmtree(demoextras_folder)
 
-                os.makedirs(extra_folder)
-                extras_path = os.path.join(extra_folder, self.demoExtrasFilename)
-                with open(extras_path, 'wb') as f:
-                    shutil.copyfileobj(given_file.file, f)
-                data['status'] = "OK"
+                    os.makedirs(extra_folder)
+                    destination = os.path.join(demoextras_folder, self.demoExtrasFilename)
+                
+                    demoextras.file.seek(0)
+                    with open(destination, 'wb') as f:
+                        shutil.copyfileobj(demoextras.file, f)
+                    
+                    data['status'] = "OK"
+                    return json.dumps(data)
+                else:
+                    data['error_message'] = "Unexpected type: {}.".format(mime_type)
+                    return json.dumps(data)
             else:
-                print "File not found"
+                data['error_message'] = "File not found"
+                return json.dumps(data)
+                
+                
         except Exception as ex:
             self.logger.exception("Fail adding demoetras")
-            print ex
-
-        return json.dumps(data)
+            return json.dumps(data)
+        
 
     @cherrypy.expose
     def get_demo_extras_info(self, demo_id):
