@@ -28,7 +28,7 @@
 
             <!-- Return to previous page -->
             <div class="container">
-                <a class="btn btn-info" href="{{request.META.HTTP_REFERER}}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
+                <a class="btn btn-info" href="{% url 'ipol.cp.demoinfo.demo_edition' id %}">{% blocktrans %}Go to previous page{% endblocktrans %}</a>
             </div>
 			{% if data.status == "OK" %}
 				{% if data.meta.number_of_experiments > 0 %}
