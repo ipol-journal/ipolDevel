@@ -566,92 +566,6 @@ The gallery type uses the gallery class to display images. Its parameters are:
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
-              in between. & yes \\ \hline
- contents   & pairs of label:imagecontents information, where imagecontents can 
-              have three different forms: a filename, an array of filenames, or
-              a list of title:filename pairs. 
-              If an image filename does succeed in loading,
-              the image will be removed from the gallery. 
-              You can also add a condition evaluated in Javascript,
-              in the current context to enable or disable the pair display:
-              using a label string of the form "condition?label".
-            & yes \\ \hline
- options    & You can specify options for the ImageGallery object. Currently
-              'minwidth' and 'minheight' (in pixels) options are available to force
-              miminal size of image display. Default values are 300 for both.& no \\ \hline
-\caption{Keys for the 'gallery' type.}
-\end{longtable}
-
-\paragraph{Examples}:\\
-Standard example, using single filename strings.
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"          : "gallery",
-    "label"         : "<h2>Resulting images</h2>",
-    "contents"      : { 
-      "Input"     : "input_0.sel.png", 
-      "Output"    : "output.png"
-    },
-    "options"     : { "minheight" : 400 }
-  },
-\end{lstlisting}
-The use of '?' in the label "meta.hastruth?Ground truth" will condition the 
-display of "t.ipol.png" image based on the boolean variable meta.hastruth.
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"    : "gallery",
-    "label"   : "<h2>Images</h2>",
-    "contents": 
-      {
-        "Optical flow "              : "stuff_phs.ipol.png", 
-        "meta.hastruth?Ground truth" : "t.ipol.png",
-      }
-   },
-\end{lstlisting}
-The use of pairs title:filename in the contents will display a HTML table
-for each tab (here "DFT" and "DCT") with images and their associated titles.
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"          : "gallery",
-    "label"         : "<h2>Gaussian filter results</h2>",
-    "contents"      : { 
-      "DFT":
-        { "1 iteration" :"dft_direct.png", 
-          "N iterations":"dft_iter.png", 
-          "difference"  :"dft_diff.png" }, 
-      "DCT":                     
-        { "1 iteration" :"dct_direct.png", 
-          "N iterations":"dct_iter.png",
-          "difference"  :"dct_diff.png" }
-    }
-  },
-\end{lstlisting}
-The use of string array in the contents will display HTML table without associated
-titles.
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"          : "gallery",
-    "label"         : "<p>The following images were resized...<p>",
-    "contents"      : { 
-      "zoomed-out"  : [ "ipol_imgW.png", "palette1.png" ],
-      "zoomed-in"   : [ "ipol_imgC.png", "palette1.png" ],
-      "residue"     : [ "ipol_diff.png", "palette2.png" ],
-      "mask"        : [ "ipol_mask.png", "palette1.png" ]
-    }
-  },
-\end{lstlisting}
-
-%------ New gallery  ------
-\subsection{ \emph{gallery\_new} type}
-
-The gallery\_new type uses the gallery class to display images. Its parameters are:
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type       & gallery  & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression 
-              which hides the result if
-              evaluated to false (if undefined the result is visible)& no \\ \hline
- label      & html label for the gallery, can be either a single string or 
-             a list of string that will be concatenated with whitespace character
               in between. & no \\ \hline
  contents   & inside has javascript objects with: img, repeat and visible parameters.
  				The key for every object can be an expression to be evaluated in case of repeat
@@ -664,14 +578,14 @@ The gallery\_new type uses the gallery class to display images. Its parameters a
  options    & You can specify options for the ImageGallery object. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
               miminal size of image display. Default values are 300 for both.& no \\ \hline
-\caption{Keys for the 'gallery\_new' type.}
+\caption{Keys for the 'gallery' type.}
 \end{longtable}
 
 \paragraph{Examples}:\\
 Advaced example, mixing repeat, visible, using an array of filenames.
 \begin{lstlisting}[language=json,firstnumber=1]
 {
-  	"type": "gallery_new",
+  	"type": "gallery",
             "visible": "1==1",
             "contents": {
                 "Input 0": {
@@ -691,6 +605,58 @@ Advaced example, mixing repeat, visible, using an array of filenames.
             "label": [
                 "<p>New Gallery type.</p>"
             ]
+        }
+\end{lstlisting}
+
+
+%------ gallery_video  ------
+\subsection{ \emph{gallery\_video} type}
+
+The gallery\_video type uses the gallery class to display images. Its parameters are:
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
+\hline
+ \centering {key}     & \centering {\bf description} & {\bf req} 
+\tabularnewline \hline \hline
+ type       & gallery  & yes \\ \hline
+ visible    & Evaluated Javascript/JQuery boolean expression 
+              which hides the result if
+              evaluated to false (if undefined the result is visible)& no \\ \hline
+ label      & html label for the gallery, can be either a single string or 
+             a list of string that will be concatenated with whitespace character
+              in between. & no \\ \hline
+ contents   & inside has javascript objects with: video, repeat and visible parameters.
+ 				The key for every object can be an expression to be evaluated in case of the use of 
+ 				repeat functionallity.
+ 			    video wil have either a string with a filename or an array of strings with filenames.
+ 			    visible is the same a visible field for the gallery but for each item in the gallery.
+ 			    repeat is a range expression (evaluated in javascript): will create a loop in the 
+ 			    form idx=0..range-1.
+            & yes \\ \hline
+ options    & You can specify options for the VideoGallery object. Currently
+              'minwidth' and 'minheight' (in pixels) options are available to force
+              miminal size of video display. Default values are 300 for both.& no \\ \hline
+\caption{Keys for the 'gallery\_new' type.}
+\end{longtable}
+
+\paragraph{Examples}:\\
+Advaced example, mixing repeat, visible, using an array of filenames.
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+            "type": "video_gallery",
+            "label": "<b>Video gallery</b>",
+            "display": "grid",
+            "visible": "1==1",
+            "contents": {
+                "Input_0": {
+                    "video":  "'input_0.mp4'",
+                    "visible": "1==1"
+                },
+                "'Scale_'+idx": {
+                    "video":  "'scaled_'+idx+'.mp4'",
+                    "repeat": "4"
+                }
+            }
         }
 \end{lstlisting}
 
@@ -815,52 +781,6 @@ expressions of the form '\{\{expression\}\}'. & \\ \hline
 { "type":"warning", 
   "condition":"sizeX * sizeY < X",
   "contents":"'Needs X pixels ('+sizeX *sizeY+' given)<br/>'"},
-\end{lstlisting}
-
-
-%------ repeat_gallery  ------
-\subsection{ \emph{repeat\_gallery} type}
-It displays a gallery with a number of images that depend on a parameter.
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
-\hline
-\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
-\hline \hline
- type       & repeat\_gallery  & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression 
-              which hides the result if
-              evaluated to false (if undefined the result is visible)& no \\ \hline
- label      & html label for the gallery, can be either a single string or 
-             a list of string that will be concatenated with whitespace character
-              in between.& yes \\ \hline
- repeat     & range expression (evaluated in Javascript):
-              will create a loop in the form idx=0..range-1 & yes \\ \hline
- contents   & an array where the first element is a string representing the label
-              and that can contain Javascript/JQuery expression using the index idx, and
-              the second element is either a string or an array of strings
-              representing the image filenames to display. & yes \\ \hline
- options    & see 'gallery' type. & yes \\ \hline
-\caption{Keys for the 'repeat\_gallery' type.}
-\end{longtable}
-
-\paragraph{Examples}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"     : "repeat_gallery",
-    "repeat"   : "params.scales",
-    "label"    : "<h2> Noise Curves </h2>",
-    "contents" : [ "'Scale '+idx+':'","'curve_'+idx+'.png'"],
-    "options"  : { "minheight" : 600 },
-\end{lstlisting}
-
-\begin{lstlisting}[language=json,firstnumber=1]
-  { "type"     : "repeat_gallery",
-    "label"    : "<h2>Difference image (left), ...</h2> 
-    "repeat"   : "params.nbscales",
-    "contents" : ["'Scale'+idx",
-                   [ "'denoised_diff_'+idx+'.png'",
-                     "'denoised_noiseCurves_L_'+idx+'.png'",
-                     "'denoised_noiseCurves_H_'+idx+'.png'"] ],
-    "options"  : { "minwidth" : 400 }
 \end{lstlisting}
 
 
