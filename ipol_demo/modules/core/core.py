@@ -1067,6 +1067,10 @@ attached the failed experiment data.". \
         self.zipdir("{}/run/{}/{}".format(self.shared_folder_abs, demo_id, key), zipf)
         zipf.close()
         self.send_email(subject, text, emails, config_emails['sender'], zip_filename=zip_filename)
+        try:
+            os.remove(zip_filename)
+        except OSError:
+            pass
 
     def send_demorunner_unresponsive_email(self,
                                            unresponsive_demorunners):
