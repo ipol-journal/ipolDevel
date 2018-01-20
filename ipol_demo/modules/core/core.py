@@ -156,8 +156,7 @@ class Core(object):
             self.common_config_dir = cherrypy.config.get("config_common_dir")
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
-            self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
-
+            
             self.shared_folder_rel = cherrypy.config.get("shared_folder")
             self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
             self.demoExtrasMainDir = os.path.join(
@@ -809,25 +808,30 @@ class Core(object):
         Ensure that the demo extras of a given demo are updated respect to demoinfo information.
         and exists in the core folder.
         """
-        demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
-
-        demoextras_file = os.path.join(demoextras_compress_dir, self.demoExtrasFilename)
-
-        self.mkdir_p(demoextras_compress_dir)
-
         resp = self.post(self.host_name, 'demoinfo', 'get_demo_extras_info', {"demo_id": demo_id})
         demoinfo_resp = resp.json()
 
         if demoinfo_resp['status'] != 'OK':
             raise IPOLDemoExtrasError("Demoinfo responds with a KO")
+        
+        demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
+        self.mkdir_p(demoextras_compress_dir)
 
-        if not os.path.isfile(demoextras_file):
+        demoextras_file = glob.glob(demoextras_compress_dir+"/*")
+        
+        #no demoExtras in the shared folder
+        if not demoextras_file: 
             if 'url' not in demoinfo_resp:
                 return
-            # There is a new demoExtras in demoinfo
+            
+            # There is a new demoExtras in demoinfo  
+            demoextras_name = os.path.basename(demoinfo_resp['url'])
+            demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
             self.download(demoinfo_resp['url'], demoextras_file)
             self.extract_demo_extra(demo_id, demoextras_file)
         else:
+            demoextras_file = demoextras_file[0]
+
             if 'url' not in demoinfo_resp:
                 # DemoExtras was removed from demoinfo
                 shutil.rmtree(demoextras_compress_dir)  # remove compress file

@@ -1664,6 +1664,7 @@ class DemoinfoGetDemoExtrasView(NavbarReusableMixinMF,TemplateView):
                 pass
 
             json_result = json.loads(ipolservices.demoinfo_demo_extras_for_demo(demo_id))
+            
             data['registered'] = has_permission(demo_id, self.request.user)
             if json_result.get('url') is not None:
                 data['url'] = json_result.get('url')
@@ -1697,8 +1698,6 @@ class DemoinfoDeleteDemoExtrasView(NavbarReusableMixinMF,TemplateView):
             logger.error(msg)
             raise ValueError(msg)
 
-        print result
-
         return HttpResponse(result, content_type='application/json')
 
 class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
@@ -1721,7 +1720,7 @@ class DemoinfoAddDemoExtrasView(NavbarReusableMixinMF, TemplateView):
         if has_permission(demo_id, self.request.user):
             result = ipolservices.demoinfo_add_demo_extra_to_demo(demo_id, request)
             response = json.loads(result)
-            if (response['status'] == 'KO'):
+            if (response['status'] != 'OK'):
                 error_parameter = '?msg=' + response['error_message']
         if result == None:
             msg = "DemoinfoDeleteDemoExtrasView: Something went wrong using demoinfo WS"

@@ -23,6 +23,12 @@
 					<input type="submit" id="submit" style="display: none;" value="Upload" />
 				</form>
 				{% if data.registered %}
+                    <p class="instructions_message">{% blocktrans %}Upload your Demo Extras as a package (zip, tar or gzip) containing all your scripts and data.
+                    <br> Please, ensure that your package has read permission for all files and execute permission for the scripts.
+                    <br> Remember that a zip file does not maintain the permissions (see http://www.info-zip.org/mans/unzip.html).{%  endblocktrans %}</p>
+                    <p class="instructions_message">{% blocktrans %}You can create easily a package with the following command lines:
+                    <br>tar -zcvf tar-file.tar.gz source-folder-name/
+                    <br>zip -r zip-file.zip source-folder-name/{%  endblocktrans %}</p>
 					<label class="btn btn-info" for="file"> Select file</label>
 					<label class="extraFile" id="name" >  File...</label>
 					<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload </label>
@@ -44,7 +50,7 @@
 					</div>
 
 				{% else %}
-					<p class="ststsnok"> {% blocktrans %}No Demo Extras available{%  endblocktrans %}</p>
+					<p class="ststsnok"> {% blocktrans %}This demo is not using any demo extras{%  endblocktrans %}</p>
 				{% endif %}
 			{% endif %}
 		{% endwith %}

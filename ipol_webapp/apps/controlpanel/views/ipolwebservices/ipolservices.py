@@ -480,12 +480,16 @@ def demoinfo_add_demo_extra_to_demo(demo_id, request):
 
     files = None
     serviceparams = {'demo_id': demo_id}
-
     try:
-        myfile = request.FILES['myfile']
+        myfile   = request.FILES['myfile']
+        filename = request.FILES['myfile'].name
+        
         files = {'demoextras': myfile.file}
+        serviceparams['demoextras_name'] = filename
+
     except Exception as ex:
         print ex
+    
     servicejson = None
     return http_request(path, METHOD='POST', params=serviceparams, json=servicejson, files=files)
 

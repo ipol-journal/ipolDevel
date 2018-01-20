@@ -30,6 +30,8 @@ from collections import OrderedDict
 import cherrypy
 
 import magic
+import glob
+
 
 from model import Demo
 from model import Author
@@ -114,8 +116,7 @@ class DemoInfo(object):
         self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
-        self.demoExtrasFilename = cherrypy.config.get("demoExtrasFilename")
-
+        
         self.server_address = 'http://{0}/api/demoinfo/'.format(
             cherrypy.config['server.socket_host'])
 
@@ -261,12 +262,12 @@ class DemoInfo(object):
         """
         Get the URL of the demo's demoExtras
         """
-
-        extras_folder = os.path.join(self.dl_extras_dir, demo_id)
-        compressed_file = os.path.join(extras_folder, self.demoExtrasFilename)
-
-        if os.path.isfile(compressed_file):
-            return os.path.join(self.server_address, self.dl_extras_dir, demo_id, self.demoExtrasFilename)
+        demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
+        demoextras_file = glob.glob(demoextras_folder+"/*")
+        
+        if demoextras_file:
+            demoextras_name = os.path.basename(demoextras_file[0])
+            return os.path.join(self.server_address, self.dl_extras_dir, demo_id, demoextras_name)
 
         return None
 
@@ -280,8 +281,8 @@ class DemoInfo(object):
         data['status'] = "OK"
 
         try:
-            extras_folder = os.path.join(self.dl_extras_dir, demo_id)
-            shutil.rmtree(extras_folder)
+            demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
+            shutil.rmtree(demoextras_folder)
         except Exception as ex:
             data['status'] = "KO"
             self.logger.exception(str(ex))
@@ -289,7 +290,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def add_demoextras(self, demo_id, demoextras):
+    def add_demoextras(self, demo_id, demoextras, demoextras_name):
         """
         Add a new demoextras file to a demo
         """
@@ -325,8 +326,8 @@ class DemoInfo(object):
                         shutil.rmtree(demoextras_folder)
 
                     os.makedirs(demoextras_folder)
-                    destination = os.path.join(demoextras_folder, self.demoExtrasFilename)
-                
+                    destination = os.path.join(demoextras_folder, demoextras_name)
+                    
                     demoextras.file.seek(0)
                     with open(destination, 'wb') as f:
                         shutil.copyfileobj(demoextras.file, f)
@@ -342,7 +343,8 @@ class DemoInfo(object):
                 
                 
         except Exception as ex:
-            self.logger.exception("Fail adding demoetras")
+            self.logger.exception("Fail adding demoextras")
+            data['error_message'] = "Exception in adding demoextras"
             return json.dumps(data)
         
 
@@ -351,14 +353,17 @@ class DemoInfo(object):
         """
         Return the date of creation, the size of the file and the demoExtras file if exists
         """
+        data = {'status': 'KO'}
         try:
-            data = {'status': 'KO'}
             demoExtras_url = self.get_compressed_file_url(demo_id)
+            
             if demoExtras_url is None:
                 # DemoInfo does not have any demoExtras
                 return json.dumps({'status': 'OK'})
 
-            demoExtras_path = os.path.join(self.dl_extras_dir, demo_id + "/" + self.demoExtrasFilename)
+            demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
+            demoExtras_path = glob.glob(demoextras_folder+"/*")[0]
+            
             file_stats = os.stat(demoExtras_path)
             data['date'] = file_stats.st_mtime
             data['size'] = file_stats.st_size
