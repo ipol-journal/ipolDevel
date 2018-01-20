@@ -290,7 +290,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def add_demoextras(self, demo_id, demoextras, demoextras_name):
+    def add_demoextras(self, demo_id, demoextras, demoextras_name=None):
         """
         Add a new demoextras file to a demo
         """
@@ -326,6 +326,13 @@ class DemoInfo(object):
                         shutil.rmtree(demoextras_folder)
 
                     os.makedirs(demoextras_folder)
+                    
+                    if demoextras_name is None:
+                        if type_of_file == 'zip':
+                            demoextras_name = "DemoExtras.zip"
+                        else:
+                            demoextras_name = "DemoExtras.tar.gz"
+                    
                     destination = os.path.join(demoextras_folder, demoextras_name)
                     
                     demoextras.file.seek(0)
