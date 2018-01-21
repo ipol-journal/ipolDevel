@@ -23,14 +23,24 @@
 					<input type="submit" id="submit" style="display: none;" value="Upload" />
 				</form>
 				{% if data.registered %}
-                    <p class="instructions_message">{% blocktrans %}Upload your Demo Extras as a package (zip, tar or gzip) containing all your scripts and data.
-                    <br> Please, ensure that your package has read permission for all files and execute permission for the scripts.
-                    <br> Remember that a zip file does not maintain the permissions (see http://www.info-zip.org/mans/unzip.html).{%  endblocktrans %}</p>
-                    <p class="instructions_message">{% blocktrans %}You can create easily a package with the following command lines:
-                    <br>tar -zcvf tar-file.tar.gz source-folder-name/
-                    <br>zip -r zip-file.zip source-folder-name/{%  endblocktrans %}</p>
-					<label class="btn btn-info" for="file"> Select file</label>
-					<label class="extraFile" id="name" >  File...</label>
+                    <p>
+					{% blocktrans %}
+                    Upload your Demo Extras as a package (.zip, .gz, .tar, or .tar.gz) containing all your scripts and data.<br> 
+                    Ensure that all files are readable and the scripts have the execution permission set. You can set the execution permission with <pre>chmod +x file</pre>.<br>
+                    The ZIP format loses the file permissions and thus we advise to use a different format for your executables.
+                    {%  endblocktrans %}
+                    </p>
+                    <p>
+					{% blocktrans %}
+					Command-line examples to create the packages:<br>
+                    <pre>tar -zcvf demoExtras.tar.gz source_dir</pre><br>
+                    <pre>tar -cvf demoExtras.tar source_dir</pre><br>
+                    <pre>zip -r demoExtras.zip source_dir</pre>
+                    {%  endblocktrans %}
+                    </p>
+                    <br>
+					<label class="btn btn-info" for="file">Select file</label>
+					<label class="extraFile" id="name">File...</label>
 					<label class="btn btn-primary" for="submit" id="submitButton" style="visibility:hidden;"> Upload </label>
 				{% endif %}
 				<p></p>
