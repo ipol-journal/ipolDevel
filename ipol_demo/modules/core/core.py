@@ -1382,13 +1382,20 @@ attached the failed experiment data.". \
                     self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
 
-            # Check for a demo_failure.txt file
+            # Check if the user created a demo_failure.txt file
+            # This is part of the mechanism which allows the user to signal that
+            # the execution can't go on, but not necessarily because of a crash or a error return code.
+            #
+            # Indeed, a script in the demo could check, for example, if the aspect ratio of
+            # the image is what the algorithm excepts, and prevent the actual execution.
+            # The script would create demo_failure.txt with, say, the text "The algorithm only works with
+            # images of aspect ratio 16:9".
             try:
                 work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
                 failure_filepath = os.path.join(work_dir, 'demo_failure.txt')
                 if os.path.exists(failure_filepath):
-                    with open(failure_filepath, 'r') as failure_txt:
-                        failure_message = "A demo failure occurred while executing: \n {}".format(failure_txt.read())
+                    with open(failure_filepath, 'r') as f:
+                        failure_message = "A demo failure occurred while executing: \n {}".format(f.read())
                     response = {'error': failure_message, 'status': 'KO'}
                     return json.dumps(response)
             except (OSError, IOError) as ex:
