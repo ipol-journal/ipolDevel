@@ -311,14 +311,14 @@ class DemoInfo(object):
             _,type_of_file = mime_type.split("/")
             type_of_file = type_of_file.lower()
                 
-            accepted_types= {
-                "1": "zip",
-                "2": "tar",
-                "3": "gzip",
-                "4": "x-tar"
-            }
+            accepted_types= [
+                "zip",
+                "tar",
+                "gzip",
+                "x-tar"
+            ]
                 
-            if type_of_file not in accepted_types.values():
+            if type_of_file not in accepted_types:
                 data['error_message'] = "Unexpected type: {}.".format(mime_type)
                 return json.dumps(data)
                     
