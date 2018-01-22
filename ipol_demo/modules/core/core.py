@@ -1382,6 +1382,22 @@ attached the failed experiment data.". \
                     self.send_runtime_error_email(demo_id, key, website_message)
                 return json.dumps(response)
 
+            # Check for a demo_failure.txt file
+            try:
+                work_dir = os.path.join(self.share_run_dir_abs, str(demo_id), key)
+                failure_filepath = os.path.join(work_dir, 'demo_failure.txt')
+                if os.path.exists(failure_filepath):
+                    with open(failure_filepath, 'r') as failure_txt:
+                        failure_message = "A demo failure occurred while executing: \n {}".format(failure_txt.read())
+                    response = {'error': failure_message, 'status': 'KO'}
+                    return json.dumps(response)
+            except (OSError, IOError) as ex:
+                message = "Failed to read {} in demo {}".format(failure_filepath, demo_id)
+                self.logger.exception(message)
+                print message
+                response = {'status': 'KO', 'error': message}
+                return json.dumps(response)
+            
             demorunner_response['work_url'] = os.path.join(
                 "http://{}/api/core/".format(self.host_name),
                 self.shared_folder_rel,
