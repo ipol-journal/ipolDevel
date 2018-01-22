@@ -35,10 +35,11 @@ The possible results from the check are:
 \subsection{Failure detection in demoExtras script}
 
 Demos can fail while executing the demoextras run script. These errors can occur because of many reasons, from user input to not meeting demo 
-requirements. As an editor you have the option to pipe error messages into a file called "demo\_failure.txt" and stop the execution with an exit 
-code. This way the interface can show this error and thus shortening the waiting time otherwise would take until the end of the demo code execution.
+requirements. The editors have the possibility to pipe error messages into a file called "demo\_failure.txt" and stop the execution with exit
+code 0. This way the interface can show this error and this allows the demo to perform checks before the actual execution of the algorithm.
 
-In order to use this mechanism the editor will just have to edit the script in the demoExtras and include something like this:
+In order to use this mechanism the editor just needs to edit the script in the demoExtras and write the error message to the demo_failure.txt file. 
+For example:
 \paragraph{Example}:\\
 \begin{verbatim}
 if [ $1 -gt 100 ]
