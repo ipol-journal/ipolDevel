@@ -174,7 +174,8 @@ class DemoinfoTests(unittest.TestCase):
             self.add_demo(self.demo_id, self.demo_title, self.state)
 
             demo_extras = self.read_demoextras()
-            json_response = self.add_demoextras(self.demo_id, demo_extras)
+            demo_extras_name = os.path.basename(demo_extras.name)
+            json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
             add_status = json_response.get('status')
 
             # Check if added correctly
@@ -195,7 +196,8 @@ class DemoinfoTests(unittest.TestCase):
         status = None
         try:
             demo_extras = self.read_demoextras()
-            json_response = self.add_demoextras(self.demo_id, demo_extras)
+            demo_extras_name = os.path.basename(demo_extras.name)
+            json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
             status = json_response.get('status')
         finally:
             self.assertEqual(status, 'KO')
@@ -1011,12 +1013,12 @@ class DemoinfoTests(unittest.TestCase):
         response = self.post(self.module, 'get_ddl', params=params)
         return response.json()
 
-    def add_demoextras(self, demo_id, demo_extras):
+    def add_demoextras(self, demo_id, demo_extras, demo_extras_name):
         """
         add demoextras
         """
         files = {'demoextras': demo_extras}
-        params = {'demo_id': demo_id}
+        params = {'demo_id': demo_id, 'demoextras_name': demo_extras_name}
         response = self.post(self.module, 'add_demoextras', params=params, files=files)
         return response.json()
 

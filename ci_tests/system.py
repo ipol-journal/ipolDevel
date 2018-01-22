@@ -68,7 +68,8 @@ class IntegrationTests(unittest.TestCase):
 
             # Add DemoExtras.gz
             demo_extras = open(self.test_demo_extras_file, 'r')
-            response = self.add_demo_extras(self.demo_id, demo_extras)
+            demo_extras_name = os.path.basename(demo_extras.name)
+            response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
             demo_extras_status = response.get('status')
 
             # Add the test blob to the demo in the Blobs module
@@ -130,7 +131,8 @@ class IntegrationTests(unittest.TestCase):
 
             # Add DemoExtras.gz
             demo_extras = open(self.test_demo_extras_file, 'r')
-            response = self.add_demo_extras(self.demo_id, demo_extras)
+            demo_extras_name = os.path.basename(demo_extras.name)
+            response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
             demo_extras_status = response.get('status')
 
             # Run the demo with the uploaded image
@@ -201,12 +203,12 @@ class IntegrationTests(unittest.TestCase):
         response = self.post('demoinfo', 'save_ddl', params=params, servicejson=json.loads(ddl))
         return response.json()
 
-    def add_demo_extras(self, demo_id, demo_extras):
+    def add_demo_extras(self, demo_id, demo_extras, demo_extras_name):
         """
         Add DemoExtras to the demo
         """
         files = {'demoextras': demo_extras}
-        params = {'demo_id': demo_id}
+        params = {'demo_id': demo_id, 'demoextras_name': demo_extras_name}
         response = self.post('demoinfo', 'add_demoextras', params=params, files=files)
         return response.json()
 
