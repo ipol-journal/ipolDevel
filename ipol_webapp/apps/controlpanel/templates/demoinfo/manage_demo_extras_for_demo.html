@@ -26,16 +26,18 @@
                     <p>
 					{% blocktrans %}
                     Upload your Demo Extras as a package (.zip, .gz, .tar, or .tar.gz) containing all your scripts and data.<br> 
-                    Ensure that all files are readable and the scripts have the execution permission set. You can set the execution permission with <pre>chmod +x file</pre>.<br>
+                    Ensure that all files are readable and the scripts have the execution permission set. You can set the execution permission with <u>chmod +x file</u>.<br>
                     The ZIP format loses the file permissions and thus we advise to use a different format for your executables.
                     {%  endblocktrans %}
                     </p>
                     <p>
 					{% blocktrans %}
 					Command-line examples to create the packages:<br>
-                    <pre>tar -zcvf demoExtras.tar.gz source_dir</pre><br>
-                    <pre>tar -cvf demoExtras.tar source_dir</pre><br>
-                    <pre>zip -r demoExtras.zip source_dir</pre>
+					<ul>
+                    <li>tar -zcvf demoExtras.tar.gz source_dir</li>
+                    <li>tar -cvf demoExtras.tar source_dir</li>
+                    <li>zip -r demoExtras.zip source_dir</li>
+                    </ul>
                     {%  endblocktrans %}
                     </p>
                     <br>
