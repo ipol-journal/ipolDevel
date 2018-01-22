@@ -290,7 +290,7 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def add_demoextras(self, demo_id, demoextras, demoextras_name=None):
+    def add_demoextras(self, demo_id, demoextras, demoextras_name):
         """
         Add a new demoextras file to a demo
         """
@@ -302,56 +302,44 @@ class DemoInfo(object):
             if not demo_dao.exist(demo_id):
                 return json.dumps(data)
 
-            if demoextras is not None:
-                
-                mime_type = magic.from_buffer(demoextras.file.read(1024), mime=True)
-                _,type_of_file = mime_type.split("/")
-                type_of_file = type_of_file.lower()
-                
-                accepted_types= {
-                    "1": "gz",
-                    "2": "bz2",
-                    "3": "zip",
-                    "4": "tar",
-                    "5": "gzip",
-                    "6": "tar.gz",
-                    "7": "tgz",
-                    "8": "x-tar"
-                }
-                
-                if type_of_file in accepted_types.values():
-                    
-                    demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
-                    if os.path.exists(demoextras_folder):
-                        shutil.rmtree(demoextras_folder)
-
-                    os.makedirs(demoextras_folder)
-                    
-                    if demoextras_name is None:
-                        if type_of_file == 'zip':
-                            demoextras_name = "DemoExtras.zip"
-                        else:
-                            demoextras_name = "DemoExtras.tar.gz"
-                    
-                    destination = os.path.join(demoextras_folder, demoextras_name)
-                    
-                    demoextras.file.seek(0)
-                    with open(destination, 'wb') as f:
-                        shutil.copyfileobj(demoextras.file, f)
-                    
-                    data['status'] = "OK"
-                    return json.dumps(data)
-                else:
-                    data['error_message'] = "Unexpected type: {}.".format(mime_type)
-                    return json.dumps(data)
-            else:
+            if demoextras is None:
                 data['error_message'] = "File not found"
                 return json.dumps(data)
                 
                 
+            mime_type = magic.from_buffer(demoextras.file.read(1024), mime=True)
+            _,type_of_file = mime_type.split("/")
+            type_of_file = type_of_file.lower()
+                
+            accepted_types= {
+                "1": "zip",
+                "2": "tar",
+                "3": "gzip",
+                "4": "x-tar"
+            }
+                
+            if type_of_file not in accepted_types.values():
+                data['error_message'] = "Unexpected type: {}.".format(mime_type)
+                return json.dumps(data)
+                    
+            demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
+            if os.path.exists(demoextras_folder):
+                shutil.rmtree(demoextras_folder)
+
+            os.makedirs(demoextras_folder)
+            destination = os.path.join(demoextras_folder, demoextras_name)
+                    
+            demoextras.file.seek(0)
+            with open(destination, 'wb') as f:
+                shutil.copyfileobj(demoextras.file, f)
+                    
+            data['status'] = "OK"
+            return json.dumps(data)
+                    
         except Exception as ex:
-            self.logger.exception("Fail adding demoextras")
-            data['error_message'] = "Exception in adding demoextras"
+            error_message = "Failed to add a demoExtras file to demo {}".format(demo_id)
+            self.logger.exception(error_message)
+            data['error_message'] = error_message
             return json.dumps(data)
         
 
