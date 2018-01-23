@@ -187,7 +187,6 @@ function submitDDLAJAX(submit_URL){
             if (data.status == "OK") {
                 setDDLMessage('OK', 'DDL succesfully saved.');
                 last_DDL_saved = DDL_value;
-                window.location.reload(true);
                 disableSaveButton(true);
             }else {
                 console.log("status KO");
