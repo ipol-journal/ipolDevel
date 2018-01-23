@@ -415,8 +415,14 @@ $($form_demo_id).validate({
     }
 });
 
-// Ctrl+s save DDL control 
-$(document).keypress("s", function (e) {
-    var modified = last_DDL_saved.localeCompare($editor.getValue()) != 0
-    if (modified && e.ctrlKey && e.key == 's') submitDDL('/cp/ajax_save_demoinfo_ddl/');
+// Execute save DDL procedure in case of shortcut activation
+$editor.commands.addCommand({
+    name: 'save',
+    bindKey: { win: "Ctrl-S", "mac": "Cmd-S" },
+    exec: saveDDL
 });
+
+// Save DDL in case of changes
+function saveDDL() {
+    if (last_DDL_saved.localeCompare($editor.getValue()) != 0) submitDDL('/cp/ajax_save_demoinfo_ddl/')
+}
