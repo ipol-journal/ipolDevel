@@ -414,3 +414,9 @@ $($form_demo_id).validate({
         return false;  // prevent form submit because you are doing the ajax
     }
 });
+
+// Ctrl+s save DDL control 
+$(document).keypress("s", function (e) {
+    var modified = last_DDL_saved.localeCompare($editor.getValue()) != 0
+    if (modified && e.ctrlKey && e.key == 's') submitDDL('/cp/ajax_save_demoinfo_ddl/');
+});
