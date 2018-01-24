@@ -81,20 +81,51 @@ This document contains System Administration documentation for the IPOL Demo Sys
 % \listoffigures
 % \newpage
 
-
-\section{Installing the required packages}
-The system needs several packages from the Debian Stable distribution and also from the official Python packages to work.
-Tools are provided to ease installation in : 
+\section{Get the source}
+Use git to get ipol sources from GitHub. The ipolDevel folder MUST be in your home directory.
 \begin{verbatim}
-cd ipol/sysadmin/install_packages/
+~$ cd
+~$ git clone https://github.com/mcolom/ipolDevel.git
+~$ cd ipolDevel/
+~/ipolDevel$
 \end{verbatim}
 
-Find and apply the list of apt-get packages, they can be installed with the following command:
+For a production installation, branch is default (master).
+For development you MUST switch to the current development branch (ex: devel)
 \begin{verbatim}
-xargs sudo apt-get install < apt-get_requirements.txt
+git checkout devel
 \end{verbatim}
 
-On the other hand, the list of Python packages which need to be installed with pip is in requirements.txt and can be installed with
+Structure of the files and folder
+\begin{verbatim}
+files
+     LICENSE
+     README.md
+source folders
+     ci_tests/
+     doc/
+     docker/
+     ipol_demo/
+     ipol_webapp/
+     sysadmin/
+     tools/
+\end{verbatim}
+
+\section{Requirements: Debian and Python 2.7}
+
+Ipol is targeted on debian-stable linux distribution and Python 2.7.
+Tools are provided to ease installation of dependencies in ~/ipolDevel/sysadmin/install\_packages/
+\begin{verbatim}
+~/ipolDevel$ cd sysadmin/install_packages/
+\end{verbatim}
+
+
+Install the debian package list, apt-get\_requirements.txt
+\begin{verbatim}
+~/ipolDevel/sysadmin/install_packages$ sudo ./install_dist_packages.sh
+\end{verbatim}
+
+Install the Python packages list with pip, requirements.txt.
 \begin{verbatim}
 pip install -r requirements.txt
 \end{verbatim}
@@ -494,7 +525,7 @@ Open the script and configure the parameters:
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 \section{Docker}
-In order to allow members of IPOL get a development envirorment, we created a docker image.
+In order to allow members of IPOL get a development environment, we created a docker image.
 
 \paragraph{Usage}:
 The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
