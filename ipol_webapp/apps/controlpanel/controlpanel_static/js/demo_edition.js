@@ -426,3 +426,8 @@ $editor.commands.addCommand({
 function saveDDL() {
     if (last_DDL_saved.localeCompare($editor.getValue()) != 0) submitDDL('/cp/ajax_save_demoinfo_ddl/')
 }
+
+// Prevent redirect if there are changes in the editor
+$(window).bind('beforeunload', function (e) {
+    if (last_DDL_saved.localeCompare($editor.getValue()) != 0) return 'Are you sure you want to leave?';
+});
