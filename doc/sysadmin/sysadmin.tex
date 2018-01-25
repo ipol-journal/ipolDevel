@@ -82,7 +82,7 @@ This document contains System Administration documentation for the IPOL Demo Sys
 % \newpage
 
 \section{Get the source}
-Use git to get ipol sources from GitHub. The ipolDevel folder MUST be in your home directory.
+Use git to get the IPOL sources. The ipolDevel folder MUST be in your home directory.
 \begin{verbatim}
 ~$ cd
 ~$ git clone https://github.com/mcolom/ipolDevel.git
@@ -90,42 +90,24 @@ Use git to get ipol sources from GitHub. The ipolDevel folder MUST be in your ho
 ~/ipolDevel$
 \end{verbatim}
 
-For a production installation, branch is default (master).
-For development you MUST switch to the current development branch (ex: devel)
+The production servers use the {\tt master} branch, but for development the {\tt devel} branch MUST be used, never master.
 \begin{verbatim}
 git checkout devel
 \end{verbatim}
 
-Structure of the files and folder
-\begin{verbatim}
-files
-     LICENSE
-     README.md
-source folders
-     ci_tests/
-     doc/
-     docker/
-     ipol_demo/
-     ipol_webapp/
-     sysadmin/
-     tools/
-\end{verbatim}
-
-\section{Requirements: Debian and Python 2.7}
-
-Ipol is targeted on debian-stable linux distribution and Python 2.7.
+\section{Requirements: Debian and Python}
+A minimal requirement for IPOL is Debian Stable.
 Tools are provided to ease installation of dependencies in ~/ipolDevel/sysadmin/install\_packages/
 \begin{verbatim}
 ~/ipolDevel$ cd sysadmin/install_packages/
 \end{verbatim}
 
-
-Install the debian package list, apt-get\_requirements.txt
+Install the Debian package list, apt-get\_requirements.txt:
 \begin{verbatim}
 ~/ipolDevel/sysadmin/install_packages$ sudo ./install_dist_packages.sh
 \end{verbatim}
 
-Install the Python packages list with pip, requirements.txt.
+Install the Python packages list with pip, requirements.txt:
 \begin{verbatim}
 pip install -r requirements.txt
 \end{verbatim}
@@ -397,7 +379,7 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \end{lstlisting}
     \end{enumerate}
 
-	\item Enable g-zip compression for static files
+	\item Enable gzip compression for static files
 	\begin{lstlisting}[language=Bash]
 	gzip on;
 	gzip_disable "msie6";
@@ -540,7 +522,7 @@ Open the script and configure the parameters:
 To access the Control Panel the users need to go to \url{http://ipolcore.ipol.im/cp/} and log in with their username and password.
 
 \section{Docker}
-In order to allow members of IPOL get a development environment, we created a docker image.
+A docker image is available to develop and run the IPOL demo system in any enviroment (say, Mac OS and others).
 
 \paragraph{Usage}:
 The necessary commands in order to work with docker will be described in the next section. The first thing you should do is
