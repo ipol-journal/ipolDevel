@@ -43,7 +43,7 @@ function send_delete_demo_extra_request(wsurl, demo_id) {
                 window.location.reload(true);
             },
             error: function(data){
-                alert("Fallo con error: "+data.status)
+                alert("Failure with error: "+data.status)
             }
         });
 	}
