@@ -58,7 +58,10 @@ class IPOLImage(object):
     # don’t forget: ICC profile?, EXIF?
     def __init__(self, src):
         '''
-        Load image data by path.
+        Construct an image object, load data according to src type when possible.
+        None: set data later, see IPOLImage.load(file_path), IPOLImage.decode(string_bytes)
+        numpy.ndarray: matrix like internal CV image
+        str, unicode: file_path
         '''
         # Object build without file, data may be loaded by decode (low typing, no good test)
         if src is None:
@@ -67,50 +70,68 @@ class IPOLImage(object):
         if isinstance(src, np.ndarray):
             self.data = src
             return
-        # source is supposed to be a file
-        if not os.path.isfile(src):
-            raise OSError(errno.ENOENT, "File not found", src)
-        self.src_file = src
+        # source seems a file
+        self.load(src)
+
+    def load(self, path):
+        '''
+        Load image data as a file
+        '''
+        if not os.path.isfile(path):
+            raise OSError(errno.ENOENT, "File not found", path)
         # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
         with redirector():
             # IMREAD_UNCHANGED, option to keep alpha or uint16
-            self.data = cv2.imread(self.src_file, cv2.IMREAD_UNCHANGED)
+            self.data = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if self.data is None:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
+        self.src_file = path
+        self.src_path = os.path.realpath(self.src_file)
+        self.src_dir, self.src_basename = os.path.split(self.src_path)
+        self.src_name, self.src_ext = os.path.splitext(self.src_basename)
+        self._props()
 
-    def decode(self, data):
+    def decode(self, bytes):
         '''
         Load image data as a string of bytes
         '''
-        buf = np.fromstring(data, dtype=np.uint8)
+        buf = np.fromstring(bytes, dtype=np.uint8)
         # Are they problems with warnings ?
         self.data = cv2.imdecode(buf, cv2.IMREAD_UNCHANGED)
         if self.data is None:
             raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
+        self._props()
 
-    def paths(self):
+    def _props(self):
         '''
-        Build and store different paths, used for saving dest file.
+        Set properties from data like width or height, updated after each changes.
         '''
-        self.src_path = os.path.realpath(self.src_file)
-        self.src_dir, self.src_basename = os.path.split(self.src_path)
-        self.src_name, self.src_ext = os.path.splitext(self.src_basename)
+        if len(self.data.shape) == 2:
+            self.height, self.width = self.data.shape
+            self.channels = 1
+        else: # let exception shout if it is not like that
+            self.height, self.width, self.channels = self.data.shape
+        self.dtype = self.data.dtype
 
-    def blend_alpha(self, back_color=(255, 255, 255)):
+    @staticmethod
+    def blend_alpha(data, back_color=(255, 255, 255)):
         '''
-        if data loaded has an alpha layer, blend it with a bgcolor
+        Take a CV numpy matrix, blend with back_color if there is an alpha layer.
+        Return the resulting matrix. Do not affect the field of data.
         '''
-        data = self.data
         # 1 channel, Gray, do nothing
         if len(data.shape) == 2 or data.shape[2] == 1:
-            return
+            return data
+        # 3 channels, BGR, do nothing
+        elif data.shape[2] == 3:
+            return data
         # 2 channels, Gray with alpha
         elif data.shape[2] == 2:
             # convert back_color to a grey luminosity
             back_gray = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
             alpha_mask = data[:, :, 3].astype(float)
             if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255
+                alpha_mask = alpha_mask / 255.0
             elif data.dtype == 'uint16':
                 alpha_mask = alpha_mask / 65535
                 back_gray = back_gray * 257.0
@@ -128,11 +149,8 @@ class IPOLImage(object):
             # apply mask to foregroung
             fore_mat = cv2.multiply(alpha_mask, data[:, :, 0].astype(float))
             # merge back and fore
-            self.data = cv2.add(back_mat, fore_mat)
-            return
-        # 3 channels, BGR, do nothing
-        elif data.shape[2] == 3:
-            return
+            data = cv2.add(back_mat, fore_mat)
+            return data
         # 4 channels, BGRA, blend
         elif data.shape[2] == 4:
             # convert back_color to BGR (OpenCV format)
@@ -159,67 +177,65 @@ class IPOLImage(object):
             # apply mask to foregroung
             fore_mat = cv2.multiply(alpha_mask, data[:, :, :3].astype(float))
             # merge back and fore
-            self.data = cv2.add(back_mat, fore_mat)
+            data = cv2.add(back_mat, fore_mat)
+            return data
+        else: # unknown format
+            return data
 
-    def save(self, dest_file, **kwargs):
+
+    def write(self, dest_file, **kwargs):
         '''
         Save image matrix to dest file, format according to file extension.
-        Available options and default values for image encoding formats.
-        .jpeg, .jpg
-            optimize=True (True|False)
-            progressive=True (True|False)
-            quality=80 (0—100)
-        .png
-            compression=9 (0-9)
-        .tif .tiff
+        See _4ser for available extensions and formats.
         '''
         # caution, cv2.imwrite will not create subdirectories and silently fail
         # ? concurrency conflict
-        try:
-            os.makedirs(os.path.dirname(dest_file))
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        dir = os.path.dirname(dest_file)
+        if dir and not os.path.exists(dir):
+            os.makedirs(dir)
         ext = os.path.splitext(dest_file)[1]
-        if ext == '.png':
-            pars = self._set_png(**kwargs)
-        elif ext == '.tiff' or ext == '.tif':
-            pars = self._set_tiff(**kwargs)
-        elif ext == '.jpg' or ext == '.jpeg':
-            pars = self._set_jpeg(**kwargs)
-        else:
-            raise ValueError("Extension {}, is not supported.".format(ext))
-        cv2.imwrite(dest_file, self.data, pars)
+        data, pars = self._4ser(ext, **kwargs)
+        cv2.imwrite(dest_file, data, pars)
 
-    def bytes(self, ext, **kwargs):
+    def encode(self, ext, **kwargs):
         '''
         Return image matrix as encoded bytes, format according to a file extension.
-        Available options and default values for image encoding formats.
-        .jpeg, .jpg
+        See _4ser for available extensions and formats.
+        '''
+        data, pars = self._4ser(ext, **kwargs)
+        ext = '.' + ext.lstrip('.')
+        retval, buf	= cv2.imencode(ext, data, pars)
+        return buf.tostring()
+
+    def _4ser(self, ext, **kwargs):
+        '''
+        Return data and parameters prepared for serailzation (memory or file)
+        Available extensions.
+        jpeg, jpg
+        png
+        tif, tiff
+        See _4{ext} for available options for each image encoding formats.
+        '''
+        ext = ext.lstrip('.') # strip leading dot
+        if ext == 'jpg' or ext == 'jpeg':
+            return self._4jpeg(**kwargs)
+        elif ext == 'png':
+            return self._4png(**kwargs)
+        elif ext == 'tiff' or ext == 'tif':
+            return self._4tiff(**kwargs)
+        else:
+            raise ValueError("Extension {}, is not supported.".format(ext))
+
+
+    def _4jpeg(self, optimize=True, progressive=True, quality=80):
+        '''
+        Prepare data for jpeg, before saving to file or return bytes.
             optimize=True (True|False)
             progressive=True (True|False)
             quality=80 (0—100)
-        .png
-            compression=9 (0-9)
-        .tif .tiff
         '''
-        ext = '.'+ext.lstrip('.')
-        if ext == '.png':
-            pars = self._set_png(**kwargs)
-        elif ext == '.tiff' or ext == '.tif':
-            pars = self._set_tiff(**kwargs)
-        elif ext == '.jpg' or ext == '.jpeg':
-            pars = self._set_jpeg(**kwargs)
-        else:
-            raise ValueError("Extension {}, is not supported.".format(ext))
-        retval, buf	= cv2.imencode(ext, self.data)
-        return buf.tostring()
-
-    def _set_jpeg(self, optimize=True, progressive=True, quality=80):
-        '''
-        Prepare data for jpeg, before saving to file or return bytes.
-        '''
-        self.blend_alpha()
+        data = self.blend_alpha(self.data)
+        data, _ = self.convert_matrix(data, 'x8i')
         # not found in OpenCV API subsampling, ex: '4:4:4'
         pars = []
         if optimize:
@@ -228,25 +244,27 @@ class IPOLImage(object):
             pars.extend([cv2.IMWRITE_JPEG_PROGRESSIVE, 1])
         if quality >= 0 and quality <= 100:
             pars.extend([cv2.IMWRITE_JPEG_QUALITY, quality])
-        return pars
+        return data, pars
 
-    def _set_png(self, compression=9):
+    def _4png(self, compression=9):
         '''
         Prepare data for png, before saving to file or return bytes.
+            compression=9 (0-9)
         '''
         # no optimise flag found in OpenCV API
         pars = []
         if compression >= 0 and compression <= 9:
             pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
-        return pars
+        return self.data, pars
 
 
-    def _save_tiff(self):
+    def _4tiff(self):
         '''
         Prepare data for tiff, before saving to file or return bytes.
         '''
+        data = self.blend_alpha(self.data) # assume that tiff do not support alpha
         pars = []
-        return pars
+        return data, pars
 
     def resize(self, preserve_ratio=True, width=None, height=None, zoom=None, interpolation=None):
         '''
@@ -263,6 +281,7 @@ class IPOLImage(object):
 
         if zoom:
             self.data = cv2.resize(self.data, None, fx=zoom, fy=zoom, interpolation=interpolation)
+            self._props()
             return
         # problem
         if not width > 0 and not height > 0:
@@ -298,10 +317,93 @@ class IPOLImage(object):
                 dest_height = src_height
         # dtype of matrix is still kept
         self.data = cv2.resize(self.data, (dest_width, dest_height), interpolation=interpolation)
+        self._props()
 
-    def crop(self, box):
+    def crop(self, x=0, y=0, width=0, height=0):
         '''
         Crop data according to a 4-tuple rectangle (left, upper, right, lower)
         '''
-        # TODO = self.data[280:340, 330:390]
-        pass
+        if width <= 0 or height <= 0 or x < 0 or y < 0 or x + width > self.width or y + height > self.height:
+            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
+        self.data = self.data[y:y+height, x:x+width]
+        self._props()
+
+    def convert(self, mode):
+        '''
+        Convert data accordind to mode. See convert_matrix for values impleéented.
+        Return True if a modification have been done
+        '''
+        self.data, ret = self.convert_matrix(self.data, mode)
+        self._props()
+        return ret
+
+
+    @staticmethod
+    def convert_matrix(data, mode):
+        '''
+        Convert number of channels and dtype of a CV image matrix.
+        Return: a tuple (data, modification) where data is the resulting data
+            and modification is a flag with value None: no modification, True: modified
+        data: a CV numpy matrix
+        mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i, x8i(reduce to 8 bits and preserve channels), 1 (reduce to one channel and preserve depth)
+        '''
+        # TODO 1x1i, nx16f, nx32f
+
+        if not mode:
+            return data, None
+        ret = None # default return value
+
+
+        if mode[0] != 'x': # channel modification requested
+            dest_channels = int(mode[0])
+            if len(data.shape) == 2:
+                src_channels = 1
+            else:
+                src_channels = data.shape[2]
+            # always blend alpha for 1 or 3 channels
+            if src_channels == 2 or src_channels == 4:
+                data = IPOLImage.blend_alpha(data)
+                ret = True
+            if dest_channels == 1:
+                if src_channels == 3:
+                    data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+                    ret = True
+            elif dest_channels == 3:
+                if src_channels == 1:
+                    data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+                    ret = True
+            else: # unknown number of channels
+                raise ValueError("Convert matrix, mode={}, number of channels not yet supported.".format(mode))
+
+        if 'x' in mode: # dtype modification requested
+            dest_depth = mode[mode.index('x')+1:]
+            src_dtype = data.dtype
+            if dest_depth == '8i' or dest_depth == '8':
+                if src_dtype == 'uint8': # OK, do nothing
+                    pass
+                elif src_dtype == 'uint16':
+                    data = data >> 8 # faster than data = data / 256
+                    data = data.astype(np.uint8, copy=False) # just a cast
+                    ret = True
+                elif src_dtype == 'uint32"':
+                    data = data >> 16
+                    data = data.astype(np.uint8, copy=False)
+                    ret = True
+                else:
+                    raise ValueError("Convert matrix, dtype={} not yet supported to {} bits conversion.".format(src_dtype, ))
+            elif dest_depth == '16i' or dest_depth == '16':
+                if src_dtype == 'uint16': # OK, do nothing
+                    pass
+                elif src_dtype == 'uint8':
+                    data = data << 8
+                    data = data.astype(np.uint16, copy=False)
+                    ret = True
+                elif src_dtype == 'uint32"':
+                    data = data >> 8
+                    data = data.astype(np.uint16, copy=False)
+                    ret = True
+                else:
+                    raise ValueError("Convert matrix, dtype={} not yet supported to {} bits conversion.".format(src_dtype, ))
+            else:
+                raise ValueError("Convert matrix, mode={} not yet supported.".format(src_dtype, ))
+        return data, ret

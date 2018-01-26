@@ -96,13 +96,13 @@ for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DES
             if row[2] == 'tiff' and im.data is None :
                 continue
             im.resize(height=128)
-            im.save(dest_path+'.jpeg')
+            im.write(dest_path+'.jpeg')
             sys.stdout.write('.')
             sys.stdout.flush()
             continue
         if row[3] == 'video':
             im = IPOLImage(video_cv(src_path))
-            im.save(dest_path+'.jpeg')
+            im.write(dest_path+'.jpeg')
             sys.stdout.write('V')
             sys.stdout.flush()
             continue

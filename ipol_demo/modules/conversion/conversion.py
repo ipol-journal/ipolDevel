@@ -18,9 +18,6 @@ import re
 import tempfile
 import base64
 import mimetypes
-from libtiff import TIFF
-import png
-from PIL import Image
 import cherrypy
 from Tools.evaluator import evaluate
 from errors import IPOLConvertInputError
@@ -273,31 +270,41 @@ class Conversion(object):
         Convert image if needed
         """
         code = 0
-        im = Image.open(input_file)
-        input_file_type, _ = mimetypes.guess_type(input_file)
-        input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
-        if input_file_type != input_desc_type:
-            # Change ext needed
-            self.change_image_ext(input_file, input_desc.get('ext'))
-            input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
+        # Image has to be always loaded to test width and size
+        im = IPOLImage(input_file)
+
+        # convert image matrix if needed (before resize)
+        if im.convert(input_desc.get('dtype')):
+            code = 1
+
+        max_pixels = evaluate(input_desc.get('max_pixels'))
+        input_pixels = im.width * im.height
+        if input_pixels > max_pixels:
+            print str(input_pixels) + ' ' + str(max_pixels)
+            im.resize(zoom=(float(max_pixels) / float(input_pixels)))
             code = 1
 
         if crop_info is not None:
             # Crop is needed
-            self.crop_image(input_file, crop_info)
-            im = Image.open(input_file)
+            x = int(round(crop_info.get('x')))
+            y = int(round(crop_info.get('y')))
+            width = int(round(crop_info.get('width')))
+            height = int(round(crop_info.get('height')))
+            im.crop(x=x, y=y, width=width, height=height)
             code = 1
 
-        if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
-            # Resize needed
+        input_file_type, _ = mimetypes.guess_type(input_file)
+        input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
+        if input_file_type != input_desc_type:
+            # Another encoding (extension) expected, rename file with right extension, will be done on saving
+            input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
+            code = 1
+
+        if code == 1: # image data have been modified, save it
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
-            self.resize_image(input_file, evaluate(input_desc.get('max_pixels')))
-            code = 1
+            im.write(input_file)
 
-        if self.needs_dtype_convert(im, input_desc):
-            self.change_image_dtype(input_file, input_desc.get('dtype'))
-            code = 1
         return code
 
     @staticmethod
@@ -313,87 +320,6 @@ class Conversion(object):
         os.rename(input_file, input_with_extension)
         return 0
 
-    @staticmethod
-    def change_image_ext(input_file, ext):
-        """
-        Convert the image to the required extension
-        """
-        try:
-            im = Image.open(input_file)
-            im.save(os.path.splitext(input_file)[0] + ext)
-        except Exception as ex:
-            # the exceptions will always provide full path of the file, no need to repeat
-            raise IPOLConvertInputError("Image format conversion error. {}: {}".format(type(ex).__name__, str(ex)))
-
-    @staticmethod
-    def crop_image(input_file, crop_info):
-        """
-        Crop an image with info provide by client
-        """
-        try:
-            x0 = int(round(crop_info.get('x')))
-            y0 = int(round(crop_info.get('y')))
-            x1 = int(round(crop_info.get('x') + crop_info.get('width')))
-            y1 = int(round(crop_info.get('y') + crop_info.get('height')))
-            im = Image.open(input_file)
-            im.crop((x0, y0, x1, y1)).save(input_file)
-        except Exception as ex:
-            raise IPOLCropInputError("Image crop error. {}: {}".format(type(ex).__name__, str(ex)))
-
-    @staticmethod
-    def resize_image(input_file, max_pixels):
-        """
-        Resize the image
-        """
-        try:
-            im = Image.open(input_file)
-            scale_factor = math.sqrt(im.size[0] * im.size[1] / max_pixels)
-            new_width = int(round(im.width / scale_factor))
-            new_height = int(round(im.height / scale_factor))
-            im.resize((new_width, new_height), Image.ANTIALIAS).save(input_file)
-        except Exception as ex:
-            # Pillow will always provide a full path of the file
-            print ex
-            raise IPOLConvertInputError('Image resize error. {}: {}'.format(type(ex).__name__, str(ex)))
-
-
-    @staticmethod
-    def needs_dtype_convert(im, input_info):
-        """
-        checks if input image needs conversion
-        """
-        mode_kw = {'1x1i': '1',
-                   '1x1': '1',
-                   '1x8i': 'L',
-                   '1x8': 'L',
-                   '3x8i': 'RGB',
-                   '3x8': 'RGB'}
-        # check mode
-        if not input_info.get('dtype'):
-            return False
-
-        return im.mode != mode_kw.get(input_info.get('dtype'))
-
-    @staticmethod
-    def change_image_dtype(input_file, mode):
-        """
-        Convert the image pixel array to another numeric type
-        """
-        im = Image.open(input_file)
-        try:
-            print mode
-            # TODO handle other modes (binary, 16bits, 32bits int/float)
-            mode_kw = {'1x1i': '1',
-                       '1x1': '1',
-                       '1x8i': 'L',
-                       '1x8': 'L',
-                       '3x8i': 'RGB',
-                       '3x8': 'RGB'}[mode]
-        except KeyError:
-            raise KeyError('Invalid mode {}'.format(mode))
-        if im.mode != mode_kw:
-            im.convert(mode_kw).save(input_file)
-
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
         """
@@ -404,7 +330,8 @@ class Conversion(object):
         try:
             im = IPOLImage(None) # create encoder without file
             im.decode(base64.b64decode(img)) # load data in OpenCV
-            data["img"] = base64.b64encode(im.bytes('png')) # get encoded bytes
+            im.convert("x8") # always
+            data["img"] = base64.b64encode(im.encode('png')) # get encoded bytes
             data["status"] = "OK"
         except Exception as ex:
             print "Failed to convert image from TIFF to PNG", ex
