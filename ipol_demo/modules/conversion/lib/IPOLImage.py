@@ -209,7 +209,7 @@ class IPOLImage(object):
 
     def _4ser(self, ext, **kwargs):
         '''
-        Return data and parameters prepared for serailzation (memory or file)
+        Return data and parameters prepared for serialization (memory or file)
         Available extensions.
         jpeg, jpg
         png
@@ -266,26 +266,32 @@ class IPOLImage(object):
         pars = []
         return data, pars
 
-    def resize(self, preserve_ratio=True, width=None, height=None, zoom=None, interpolation=None):
+    def resize(self, preserve_ratio=True, width=None, height=None, fx=None, fy=None, interpolation=None):
         '''
         Smart resize, according to different parameters
         '''
-        src_height, src_width = self.data.shape[:2]
-        dest_width, dest_height = width, height
-        if interpolation: # keep requested interpolation
-            pass
-        elif (dest_width > src_width) or (dest_height > src_height) or zoom > 1: # augmentation, pixelise
-            interpolation = cv2.INTER_NEAREST
-        else: # diminution, for thumbnail, some interpolation
-            interpolation = cv2.INTER_AREA
 
-        if zoom:
-            self.data = cv2.resize(self.data, None, fx=zoom, fy=zoom, interpolation=interpolation)
+        if fx or fy:
+            if not fx:
+                fx = fy
+            if not fy:
+                fy = fx
+            if interpolation: # keep requested interpolation
+                pass
+            elif fx > 0 and fy > 0: # augmentation, pixelise
+                interpolation = cv2.INTER_NEAREST
+            else: # diminution, for thumbnail, some interpolation
+                interpolation = cv2.INTER_AREA
+            self.data = cv2.resize(self.data, None, fx=fx, fy=fy, interpolation=interpolation)
             self._props()
             return
+
+        src_height, src_width = self.data.shape[:2]
+        dest_width, dest_height = width, height
         # problem
         if not width > 0 and not height > 0:
             raise ValueError("Bad arguments, at least zoom or (width and/or height)")
+
         # containing box
         if dest_width > 0 and dest_height > 0:
             if preserve_ratio:
@@ -316,6 +322,12 @@ class IPOLImage(object):
             if dest_height <= 0:
                 dest_height = src_height
         # dtype of matrix is still kept
+        if interpolation: # keep requested interpolation
+            pass
+        elif (dest_width > src_width) or (dest_height > src_height): # augmentation, pixelise
+            interpolation = cv2.INTER_NEAREST
+        else: # diminution, for thumbnail, some interpolation
+            interpolation = cv2.INTER_AREA
         self.data = cv2.resize(self.data, (dest_width, dest_height), interpolation=interpolation)
         self._props()
 

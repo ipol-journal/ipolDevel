@@ -104,8 +104,7 @@ class Conversion(object):
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
+            self.logger.error("read_authorized_patterns: Can't open {}".format(authorized_patterns_path))
             return []
 
         # Read config file
@@ -135,13 +134,6 @@ class Conversion(object):
 
         logger.addHandler(handler)
         return logger
-
-    def error_log(self, function_name, error):
-        """
-        Write an error log in the logs_dir defined in archive.conf
-        """
-        error_string = function_name + ": " + error
-        self.logger.error(error_string)
 
     @staticmethod
     @cherrypy.expose
@@ -277,11 +269,12 @@ class Conversion(object):
         if im.convert(input_desc.get('dtype')):
             code = 1
 
+
         max_pixels = evaluate(input_desc.get('max_pixels'))
         input_pixels = im.width * im.height
         if input_pixels > max_pixels:
-            print str(input_pixels) + ' ' + str(max_pixels)
-            im.resize(zoom=(float(max_pixels) / float(input_pixels)))
+            fxy = math.sqrt(float(max_pixels) / float(input_pixels))
+            im.resize(fx=fxy, fy=fxy)
             code = 1
 
         if crop_info is not None:
