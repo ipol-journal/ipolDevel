@@ -15,7 +15,6 @@ import sys
 import math
 import ConfigParser
 import re
-import tempfile
 import base64
 import mimetypes
 import cherrypy
@@ -262,6 +261,7 @@ class Conversion(object):
         """
         Convert image if needed
         """
+        # Method could be a function (no-self-use)
         code = 0
         # Image has to be always loaded to test width and size
         im = Image(input_file)
