@@ -47,7 +47,7 @@ def redirector(out=open(os.devnull, 'w')):
         finally:
             _redirect(old_stdout.fileno()) # restore stdout.
 
-class IPOLImage(object):
+class Image(object):
     '''
     Generic image class, dealing with the best python libraries for performances, and formats.
     Actually : OpenCV.
@@ -73,7 +73,7 @@ class IPOLImage(object):
         # source seems a file
         self.load(src)
 
-    def load(self, path):
+    def load(self, path, flags=cv2.IMREAD_UNCHANGED):
         '''
         Load image data as a file
         '''
@@ -82,7 +82,7 @@ class IPOLImage(object):
         # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
         with redirector():
             # IMREAD_UNCHANGED, option to keep alpha or uint16
-            self.data = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            self.data = cv2.imread(path, flags)
         if self.data is None:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
         self.src_file = path
@@ -91,13 +91,13 @@ class IPOLImage(object):
         self.src_name, self.src_ext = os.path.splitext(self.src_basename)
         self._props()
 
-    def decode(self, bytes):
+    def decode(self, bytes, flags=cv2.IMREAD_UNCHANGED):
         '''
         Load image data as a string of bytes
         '''
         buf = np.fromstring(bytes, dtype=np.uint8)
         # Are they problems with warnings ?
-        self.data = cv2.imdecode(buf, cv2.IMREAD_UNCHANGED)
+        self.data = cv2.imdecode(buf, flags)
         if self.data is None:
             raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
         self._props()
@@ -382,7 +382,7 @@ class IPOLImage(object):
                     ret = True
             elif dest_channels == 3:
                 if src_channels == 1:
-                    data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+                    data = cv2.cvtColor(data, cv2.COLOR_GRAY2BGR)
                     ret = True
             else: # unknown number of channels
                 raise ValueError("Convert matrix, mode={}, number of channels not yet supported.".format(mode))
