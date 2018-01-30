@@ -11,7 +11,6 @@ import zipfile
 from subprocess import Popen
 import cherrypy
 
-from misc import ctime
 from time import gmtime, strftime
 import datetime
 

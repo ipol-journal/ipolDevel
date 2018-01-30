@@ -1,4 +1,4 @@
 """
 An IPOL package
 """
-from evaluator import evaluate
+from evaluator import *
