@@ -42,11 +42,7 @@ import requests
 import cherrypy
 import magic
 
-from Tools.misc import prod
-from Tools.image import image
 from Tools.sendarchive import SendArchive
-from Tools.evaluator import IPOLEvaluateError
-from Tools.evaluator import evaluate
 from errors import IPOLDemoExtrasError
 from errors import IPOLExtractError
 from errors import IPOLInputUploadError
@@ -55,6 +51,10 @@ from errors import IPOLInputUploadTooLargeError
 from errors import IPOLUploadedInputRejectedError
 from errors import IPOLMissingRequiredInputError
 from errors import IPOLProcessInputsError
+# deprecated, should be droped with old run
+from ipolevaluator import evaluate
+from ipolevaluator import IPOLEvaluateError
+from Tools.image import image
 
 
 def authenticate(func):
@@ -156,7 +156,7 @@ class Core(object):
             self.common_config_dir = cherrypy.config.get("config_common_dir")
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
-            
+
             self.shared_folder_rel = cherrypy.config.get("shared_folder")
             self.shared_folder_abs = os.path.join(self.project_folder, self.shared_folder_rel)
             self.demoExtrasMainDir = os.path.join(
@@ -521,7 +521,7 @@ class Core(object):
 
         # Check if the size and the format are OK
         max_pixels = evaluate(input_desc['max_pixels'])
-        size_ok = prod(im.size) <= max_pixels
+        size_ok = (im.size[0] * im.size[1]) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
         mode_ok = ddl_mode == im.im.mode
 
@@ -555,7 +555,7 @@ class Core(object):
             im.im = im.im.convert(ddl_mode)
 
         # resize if the (eventually) cropped image is too big
-        if max_pixels and prod(im.size) > max_pixels:
+        if max_pixels and (im.size[0] * im.size[1]) > max_pixels:
             im.resize(int(max_pixels), method="antialias")
 
         # Finally, save the processed image
@@ -813,18 +813,18 @@ class Core(object):
 
         if demoinfo_resp['status'] != 'OK':
             raise IPOLDemoExtrasError("Demoinfo responds with a KO")
-        
+
         demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
         self.mkdir_p(demoextras_compress_dir)
 
         demoextras_file = glob.glob(demoextras_compress_dir+"/*")
-        
+
         #no demoExtras in the shared folder
-        if not demoextras_file: 
+        if not demoextras_file:
             if 'url' not in demoinfo_resp:
                 return
-            
-            # There is a new demoExtras in demoinfo  
+
+            # There is a new demoExtras in demoinfo
             demoextras_name = os.path.basename(demoinfo_resp['url'])
             demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
             self.download(demoinfo_resp['url'], demoextras_file)
@@ -1145,10 +1145,10 @@ attached the failed experiment data.". \
                 i += 1
         elif origin == 'blobset':
             blobs = clientData['blobs']
-        
+
         return clientData['demo_id'], origin, clientData.get('params', None), \
-            clientData.get('crop_info', None), clientData.get('private_mode', None), blobs    
-    
+            clientData.get('crop_info', None), clientData.get('private_mode', None), blobs
+
     def obtain_ddl(self, demo_id):
         """
         This function returns the DDL after checking its syntax.
@@ -1165,7 +1165,7 @@ attached the failed experiment data.". \
             if error_message:
                 error_message = error_message + " Demo {}".format(demo_id)
                 return None, error_message
-            
+
             return ddl, None
         except Exception as ex:
             error_message = "Failed to obtain the DDL of demo {}".format(demo_id)
@@ -1173,10 +1173,10 @@ attached the failed experiment data.". \
             self.logger.exception(error_message)
             return None, error_message
 
-    
+
     def find_suitable_DR(self, general_info, demo_id):
         """
-        This function returns the demorunner with the less workload 
+        This function returns the demorunner with the less workload
         that fits with the requirements of a given demo
         """
         if 'requirements' in general_info:
@@ -1189,14 +1189,14 @@ attached the failed experiment data.". \
             error_message = "No DR satisfies the requirements: {}".format(requirements)
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
                 self.send_email_no_DR(demo_id)
-            
+
             return None, error_message
-        
+
         return dr_name, dr_server
-    
-    def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):    
+
+    def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):
         """
-        This function returns None if the binaries of a given demo are correctly compile. 
+        This function returns None if the binaries of a given demo are correctly compile.
         Otherwise, it returns an error message.
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
@@ -1211,12 +1211,12 @@ attached the failed experiment data.". \
             # Message for the web interface
             error_message = " --- Compilation error. --- {}".format(text)
             return error_message
-        
+
         return None
-    
-    def ensure_demoextras(self, demo_id):    
+
+    def ensure_demoextras(self, demo_id):
         """
-        If everything is ok with the demoextras of a given demo it returns None. 
+        If everything is ok with the demoextras of a given demo it returns None.
         Otherwise, it returns an error message.
         """
         try:
@@ -1226,9 +1226,9 @@ attached the failed experiment data.". \
             error_message = "Error processing the demoExtras of demo {}: {}".format(demo_id, ex)
             self.logger.exception(error_message)
             return error_message
-    
-    
-    def prepare_folder_for_execution(self, key, demo_id, origin, blobs, ddl_inputs, crop_info):    
+
+
+    def prepare_folder_for_execution(self, key, demo_id, origin, blobs, ddl_inputs, crop_info):
         """
         This function prepares the run folder for a demo execution.
         It creates the run folder and copy the blobs after the conversion
@@ -1268,7 +1268,7 @@ attached the failed experiment data.". \
                     elif conversion_info[input_key]['code'] == 2: # Conversion forbidden
                         error_message = "Input #{} size too large but conversion forbidden".format(input_key)
                         return None, error_message
-            
+
             except IPOLInputUploadTooLargeError as ex:
                 error_message = "Uploaded input #{} over the maximum allowed weight {} bytes".format(ex.index, ex.max_weight)
                 return None, error_message
@@ -1308,10 +1308,10 @@ attached the failed experiment data.". \
                 self.logger.exception(log_message)
                 self.send_internal_error_email(log_message)
                 return None, error_message
-        
+
         return work_dir, None
-    
-            
+
+
     def check_demofailure_file(self, demo_id, work_dir):
         # Check if the user created a demo_failure.txt file
         # This is part of the mechanism which allows the user to signal that
@@ -1327,20 +1327,20 @@ attached the failed experiment data.". \
                 with open(failure_filepath, 'r') as f:
                     failure_message = "A demo failure occurred while executing: \n {}".format(f.read())
                 return failure_message
-            
+
             return None
         except (OSError, IOError) as ex:
             error_message = "Failed to read {} in demo {}".format(failure_filepath, demo_id)
             self.logger.exception(error_message)
             return error_message
 
-    
+
     def execute_experiment(self, dr_server, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
         """
         Execute the experiment in a demorunner.
         """
         userdata = {'demo_id': demo_id, 'key': key, 'params': json.dumps(params), 'ddl_run': json.dumps(ddl_run)}
-        
+
         if 'timeout' in ddl_general:
             userdata['timeout'] = ddl_general['timeout']
 
@@ -1360,7 +1360,7 @@ attached the failed experiment data.". \
             # Anything else
             self.send_internal_error_email(error_message)
             return demorunner_response, error_message
-       
+
         if demorunner_response['status'] != 'OK':
             print "DR answered KO for demo #{}".format(demo_id)
             demo_state = self.get_demo_metadata(demo_id)['state'].lower()
@@ -1381,25 +1381,25 @@ attached the failed experiment data.". \
             # (unless it's a timeout in a published demo)
             if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
                 self.send_runtime_error_email(demo_id, key, website_message)
-            
+
             return demorunner_response, website_message
-        
-        
+
+
         error_message = self.check_demofailure_file(demo_id, work_dir)
         if error_message:
-            return demorunner_response, error_message        
-        
+            return demorunner_response, error_message
+
         algo_info_dic = self.read_algo_info(work_dir)
         for name in algo_info_dic:
             demorunner_response['algo_info'][name] = algo_info_dic[name]
-            
+
         demorunner_response['work_url'] = os.path.join(
             "http://{}/api/core/".format(self.host_name),
              self.shared_folder_rel,
              self.share_run_dir_rel,
              str(demo_id),
              key) + '/'
-        
+
         return demorunner_response, None
 
 
@@ -1414,9 +1414,9 @@ attached the failed experiment data.". \
             error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)
             self.logger.exception(error_message)
             return error_message
-        
 
-    
+
+
     def archive_an_experiment(self, ddl_archive, demorunner_response, demo_id, key, work_dir):
         """
         """
@@ -1427,53 +1427,53 @@ attached the failed experiment data.". \
             message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
             self.logger.exception(message)
             self.send_internal_error_email(message)
-       
-    
+
+
     @cherrypy.expose
     def run2(self, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to execute a demo.
         """
         print "Run2"
-        
+
         demo_id, origin, params, crop_info, private_mode, blobs = self.take_arguments_from_interface(kwargs)
-        
+
         ddl, error_message = self.obtain_ddl(demo_id)
-        if error_message: 
+        if error_message:
             return json.dumps({'error': error_message, 'status': 'KO'})
-        
+
         ddl_build   = ddl['build']
         ddl_inputs  = ddl.get('inputs')
         ddl_run     = ddl['run']
         ddl_general = ddl['general']
-        
+
         try:
             response = self.find_suitable_DR(ddl_general, demo_id)
             if response[0] is None:
                 return json.dumps({'error': response[1], 'status': 'KO'})
-                
+
             dr_name   = response[0]
             dr_server = response[1]
-            
+
             error_message = self.ensure_compilation(dr_server, dr_name, demo_id, ddl_build)
             if error_message:
                 return json.dumps({'error': error_message, 'status': 'KO'})
-            
+
             error_message = self.ensure_demoextras(demo_id)
             if error_message:
                 return json.dumps({'error': error_message, 'status': 'KO'})
-            
+
             key = self.create_new_execution_key(self.logger)
             work_dir, error_message = self.prepare_folder_for_execution(key, demo_id, origin, \
                                                                           blobs, ddl_inputs, crop_info)
             if error_message:
                 return json.dumps({'error': error_message, 'status': 'KO'})
-            
+
             demorunner_response, error_message = self.execute_experiment(dr_server, dr_name, demo_id, \
                                                         key, params, ddl_run, ddl_general, work_dir)
             if error_message:
                 return json.dumps({'error': error_message, 'status': 'KO'})
-            
+
             # Archive the experiment, if the 'archive' section exists in the DDL
             if origin != 'blobset'and private_mode is None and 'archive' in ddl:
                 ddl_archive = ddl['archive']
@@ -1482,12 +1482,12 @@ attached the failed experiment data.". \
             error_message = self.save_parameters(params, work_dir, demo_id)
             if error_message:
                 return json.dumps({'error': error_message, 'status': 'KO'})
-            
+
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
-            
+
             return json.dumps(demorunner_response)
-            
+
         except Exception as ex:
             error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
             self.logger.exception(error_message)
@@ -1495,7 +1495,7 @@ attached the failed experiment data.". \
             core_response = {'status': 'KO', 'error': '{}'.format(error_message)}
             return json.dumps(core_response)
 
-        
+
 
 
     @staticmethod
