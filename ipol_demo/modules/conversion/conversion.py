@@ -322,12 +322,12 @@ class Conversion(object):
         """
         data = {"status": "KO"}
         try:
-            bytes = base64.b64decode(img)
+            buf = base64.b64decode(img)
             # cv2.IMREAD_COLOR option is 7x faster than load asis and convert to uint8
             # cv2 loads bytes as np vector
-            cvim = cv2.imdecode(np.fromstring(bytes, dtype=np.uint8), cv2.IMREAD_COLOR) # cv2 l
-            _, bytes = cv2.imencode(".png", cvim) # [cv2.IMWRITE_PNG_COMPRESSION, 9]
-            data["img"] = base64.b64encode(bytes) # reencode bytes
+            cvim = cv2.imdecode(np.fromstring(buf, dtype=np.uint8), cv2.IMREAD_COLOR) # cv2 l
+            _, buf = cv2.imencode(".png", cvim) # [cv2.IMWRITE_PNG_COMPRESSION, 9]
+            data["img"] = base64.b64encode(buf) # reencode bytes
             data["status"] = "OK"
         except Exception as ex:
             print "Failed to convert image from TIFF to PNG", ex

@@ -20,10 +20,8 @@ Image, multipe formats handling
 from __future__ import print_function
 from contextlib import contextmanager
 import errno
-import io
 import os
 import sys
-import time
 
 import cv2
 import numpy as np
@@ -55,6 +53,10 @@ class Image(object):
     Load : jpeg (uint8), png (uint8, uint16; alpha; colormap), tiff (uint8, uint16)
     Writes : jpeg (uint8), png (uint8, uint16; alpha), tiff (uint8, uint16)
     '''
+    dtype = None
+    width = None
+    height = None
+    channels = None
     # don’t forget: ICC profile?, EXIF?
     def __init__(self, src):
         '''
@@ -84,18 +86,18 @@ class Image(object):
             # IMREAD_UNCHANGED, option to keep alpha or uint16
             self.data = cv2.imread(path, flags)
         if self.data is None:
-            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
+            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", path)
         self.src_file = path
         self.src_path = os.path.realpath(self.src_file)
         self.src_dir, self.src_basename = os.path.split(self.src_path)
         self.src_name, self.src_ext = os.path.splitext(self.src_basename)
         self._props()
 
-    def decode(self, bytes, flags=cv2.IMREAD_UNCHANGED):
+    def decode(self, buf, flags=cv2.IMREAD_UNCHANGED):
         '''
         Load image data as a string of bytes
         '''
-        buf = np.fromstring(bytes, dtype=np.uint8)
+        buf = np.fromstring(buf, dtype=np.uint8)
         # Are they problems with warnings ?
         self.data = cv2.imdecode(buf, flags)
         if self.data is None:
@@ -190,9 +192,9 @@ class Image(object):
         '''
         # caution, cv2.imwrite will not create subdirectories and silently fail
         # ? concurrency conflict
-        dir = os.path.dirname(dest_file)
-        if dir and not os.path.exists(dir):
-            os.makedirs(dir)
+        dest_dir = os.path.dirname(dest_file)
+        if dest_dir and not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         ext = os.path.splitext(dest_file)[1]
         data, pars = self._4ser(ext, **kwargs)
         cv2.imwrite(dest_file, data, pars)
@@ -204,7 +206,7 @@ class Image(object):
         '''
         data, pars = self._4ser(ext, **kwargs)
         ext = '.' + ext.lstrip('.')
-        retval, buf	= cv2.imencode(ext, data, pars)
+        _, buf = cv2.imencode(ext, data, pars)
         return buf.tostring()
 
     def _4ser(self, ext, **kwargs):
@@ -335,7 +337,9 @@ class Image(object):
         '''
         Crop data according to a 4-tuple rectangle (left, upper, right, lower)
         '''
-        if width <= 0 or height <= 0 or x < 0 or y < 0 or x + width > self.width or y + height > self.height:
+        if width <= 0 or height <= 0 or x < 0 or y < 0:
+            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
+        if x + width > self.width or y + height > self.height:
             raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
         self.data = self.data[y:y+height, x:x+width]
         self._props()
@@ -354,10 +358,12 @@ class Image(object):
     def convert_matrix(data, mode):
         '''
         Convert number of channels and dtype of a CV image matrix.
+        Static method allow to modify data for saving (ex: 8 bits for jpeg)
+        without
         Return: a tuple (data, modification) where data is the resulting data
             and modification is a flag with value None: no modification, True: modified
         data: a CV numpy matrix
-        mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i, x8i(reduce to 8 bits and preserve channels), 1 (reduce to one channel and preserve depth)
+        mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i
         '''
         # TODO 1x1i, nx16f, nx32f
 
@@ -374,7 +380,7 @@ class Image(object):
                 src_channels = data.shape[2]
             # always blend alpha for 1 or 3 channels
             if src_channels == 2 or src_channels == 4:
-                data = IPOLImage.blend_alpha(data)
+                data = Image.blend_alpha(data)
                 ret = True
             if dest_channels == 1:
                 if src_channels == 3:
@@ -402,7 +408,7 @@ class Image(object):
                     data = data.astype(np.uint8, copy=False)
                     ret = True
                 else:
-                    raise ValueError("Convert matrix, dtype={} not yet supported to {} bits conversion.".format(src_dtype, ))
+                    raise ValueError("Convert matrix, source dtype={} not yet supported for {} dest mode.".format(src_dtype, dest_depth))
             elif dest_depth == '16i' or dest_depth == '16':
                 if src_dtype == 'uint16': # OK, do nothing
                     pass
@@ -415,7 +421,7 @@ class Image(object):
                     data = data.astype(np.uint16, copy=False)
                     ret = True
                 else:
-                    raise ValueError("Convert matrix, dtype={} not yet supported to {} bits conversion.".format(src_dtype, ))
+                    raise ValueError("Convert matrix, source dtype={} not yet supported for {} dest mode.".format(src_dtype, dest_depth))
             else:
-                raise ValueError("Convert matrix, mode={} not yet supported.".format(src_dtype, ))
+                raise ValueError("Convert matrix, mode={} not yet supported.".format(mode))
         return data, ret
