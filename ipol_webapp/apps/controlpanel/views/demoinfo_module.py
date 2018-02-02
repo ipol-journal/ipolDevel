@@ -2,7 +2,7 @@
 # from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 import json
 import os
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from apps.controlpanel.forms import DDLform, CreateDemoform, UpdateDemoform, Authorform, DemoAuthorform, ChooseAuthorForDemoform, Editorform, \
         DemoEditorform, ChooseEditorForDemoform
 from apps.controlpanel.mixings import NavbarReusableMixinMF
@@ -163,6 +163,11 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             demo_result = json.loads(demo_result)
             ddl_result = json.loads(ddl_result)
             editors = json.loads(editors)
+            if demo_result['status'] == 'KO' or ddl_result['status'] == 'KO':
+                msg = "DemoinfoDemoEditionView: DDL not retrieved"
+                logger.error(msg)
+                raise ValueError(msg)
+            
             data['registered'] = has_permission(demo_id, self.request.user)
             data['editorsdemoid'] = demo_id
             data['title'] = demo_result['title']
@@ -176,6 +181,7 @@ class DemoinfoDemoEditionView(NavbarReusableMixinMF,TemplateView):
             data['editorsdemoid'] = demo_id
             data['demoform'] = None
             data['status'] = 'KO'
+            raise Http404
 
         return data
 
