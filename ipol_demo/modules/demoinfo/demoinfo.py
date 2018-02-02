@@ -1740,7 +1740,9 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            return json.dumps({'status': 'OK', 'last_demodescription': ddl})
+            if ddl is not None:
+                return json.dumps({'status': 'OK', 'last_demodescription': ddl})
+            raise Exception
         except Exception as ex:
             error_string = "Failure in function get_ddl, Error = {}".format(ex)
             print error_string
