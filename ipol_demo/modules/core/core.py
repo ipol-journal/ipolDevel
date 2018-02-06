@@ -1803,7 +1803,6 @@ attached the failed experiment data.". \
                         failure_message = "A demo failure occurred while executing: \n {}".format(f.read())
                     return failure_message
 
-                return None
             except (OSError, IOError) as ex:
                 error_message = "Failed to read {} in demo {}".format(failure_filepath, demo_id)
                 self.logger.exception(error_message)
@@ -1815,7 +1814,7 @@ attached the failed experiment data.". \
                 self.share_run_dir_rel,
                 str(demo_id),
                 key) + '/'
-
+                
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
