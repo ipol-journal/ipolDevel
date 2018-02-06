@@ -6,6 +6,15 @@ The demorunners list is provided by the core module wich is in charge of reading
 demorunner.xml file changes, there are two ways for reload the list loaded in memory, the first one is calling the function refresh\_demorunners
 in the core and the other one is reloading the core and dispatcher module.
 
+Figure \ref{fig:core_diagram} shows a diagram that explains the modules and the messages passed when executing an experiment. 
+%
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.7\columnwidth]{dispatcher/images/core_dispatcher.pdf}
+\caption{Communication between the Core, Dispatcher, and the DemoRunner modules.}
+\label{fig:core_diagram}
+\end{figure}
+
 \subsection{Policies}
 The creation of the policies are made by the Factory Method, allowing the implementation and assignment of new policies in an easy way.
 Until now the implemented policies are:
@@ -15,3 +24,5 @@ Until now the implemented policies are:
 \item \textbf{Sequential Policy:} this policy iterates from the available demorunners list that matches the requirements.
 \item \textbf{Lowest Workload Policy:} this policy assigns the demorunner with the lowest workload from the available demorunners list that matches the requirements.
 \end{itemize}
+
+
