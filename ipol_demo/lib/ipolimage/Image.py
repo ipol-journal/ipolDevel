@@ -310,7 +310,7 @@ class Image(object):
             if src_height < 10:
                 dest_height = src_height
             dest_width = int(round(float(src_width * dest_height) / src_height))
-            dest_width = min(dest_width, src_width, max_width)
+            dest_width = min(dest_width, max_width)
             if dest_width <= 0:
                 dest_width = src_width
         # forced width
@@ -320,7 +320,7 @@ class Image(object):
             if src_width < 10:
                 dest_width = src_width
             dest_height = int(round(float(src_height * dest_width) / src_width))
-            dest_height = min(dest_height, src_height, max_height)
+            dest_height = min(dest_height, max_height)
             if dest_height <= 0:
                 dest_height = src_height
         # dtype of matrix is still kept
@@ -353,6 +353,20 @@ class Image(object):
         self._props()
         return ret
 
+    @staticmethod
+    def video_frame(video_file, pos_ratio=0.5, pos_max=7500):
+        '''
+        From a video, returns a significative frame as an image object
+        '''
+        cap = cv2.VideoCapture(video_file)
+        pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
+        pos_frame = min(pos_frame, pos_max)
+        for i in range(1, pos_frame):
+            cap.read()
+        ret, frame = cap.read()
+        # When everything done, release the capture
+        cap.release()
+        return Image(frame)
 
     @staticmethod
     def convert_matrix(data, mode):

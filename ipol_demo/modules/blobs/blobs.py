@@ -12,27 +12,18 @@ import os.path
 import sys
 import logging
 import glob
-import tempfile
 import mimetypes
 
 import operator
 import ConfigParser
 import re
 import shutil
-import errno
 from threading import Lock
 import sqlite3 as lite
 from sqlite3 import IntegrityError
 import magic
 import cherrypy
-from PIL import Image
-import av
-import numpy as np
-from cycler import cycler
-import matplotlib
-
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from ipolimage import Image
 
 import database
 from errors import IPOLBlobsDataBaseError
@@ -91,9 +82,6 @@ class Blobs(object):
         return Blobs.instance
 
     def __init__(self):
-
-        # Sound colors
-        matplotlib.rcParams['axes.prop_cycle'] = cycler('color', ['r', 'g', 'b', 'c', 'm', 'y', 'k', '#67d100'])
 
         # Paths
         self.blob_dir = cherrypy.config['final.dir']
@@ -161,7 +149,7 @@ class Blobs(object):
                 try:
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.logger.exception("init_database: " + str(ex))
+                    self.logger.exception("init_database: {}".format(ex))
                     return False
 
         if not os.path.isfile(self.database_file):
@@ -184,13 +172,13 @@ class Blobs(object):
                 conn.close()
 
             except Exception as ex:
-                self.logger.exception("init_database - " + (str(ex)))
+                self.logger.exception("init_database: {}".format(ex))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception("init_database - " + str(ex))
+                        self.logger.exception("init_database: {}".format(ex))
                         return False
 
         return True
@@ -259,20 +247,6 @@ class Blobs(object):
             sys.exit(1)
         return json.dumps(data)
 
-    @staticmethod
-    def mkdir_p(path):
-        """
-        Implement the UNIX shell command "mkdir -p"
-        with given path as parameter.
-        """
-        try:
-            os.makedirs(path)
-        except OSError as exc:
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise
-
     def add_blob(self, blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
         """
         Copies the blob and store it in the DB
@@ -287,15 +261,17 @@ class Blobs(object):
             # ext = "." + ext
 
             blob_hash = self.get_hash(blob.file)
-
             blob_id = self.store_blob(conn, blob.file, title, credit, blob_hash, ext, blob_format)
+
             try:
                 if blob_vr is not None:
                     _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
-                    self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
-                    self.create_thumbnail(blob_vr.file, blob_hash, 'image')
+                    blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
+                    self.create_thumbnail(blob_file, blob_hash, 'image')
                 else:
-                    self.create_thumbnail(blob.file, blob_hash, blob_format)
+                    blob_file = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
+                    blob_file = os.path.join(blob_file, blob_hash + ext)
+                    self.create_thumbnail(blob_file, blob_hash, blob_format)
             except IPOLBlobsThumbnailError as ex:
                 # An error in the creation of the thumbnail doesn't stop the execution of the method
                 self.logger.exception("Error creating the thumbnail")
@@ -354,7 +330,6 @@ class Blobs(object):
         Adds a new blob to a demo
         """
         dest = {"dest": "demo", "demo_id": demo_id}
-
         if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
             return json.dumps({"status": "OK"})
 
@@ -375,7 +350,7 @@ class Blobs(object):
 
     def store_blob(self, conn, blob, title, credit, blob_hash, ext, blob_format):
         """
-        Stores the blob info in the DB, copy it in the file system and returns the blob_id
+        Stores the blob info in the DB, copy it in the file system and returns the blob_id and blob_file
         """
         blob_id = database.get_blob_id(conn, blob_hash)
         if blob_id is not None:
@@ -418,18 +393,18 @@ class Blobs(object):
         blob.seek(0)
         return hashlib.sha1(blob.read()).hexdigest()
 
-    def copy_blob(self, blob, blob_hash, ext, path):
+    def copy_blob(self, blob, blob_hash, ext, dest_dir):
         """
-        Stores the blob in the file system
+        Stores the blob in the file system, returns the dest path
         """
-        subdir = self.get_subdir(blob_hash)
-        full_path = os.path.join(path, subdir)
-        if not os.path.isdir(full_path):
-            self.mkdir_p(full_path)
-        blob_path = os.path.join(full_path, blob_hash + ext)
+        dest_path = os.path.join(dest_dir, self.get_subdir(blob_hash))
+        if not os.path.isdir(dest_path):
+            os.makedirs(dest_path)
+        dest_path = os.path.join(dest_path, blob_hash + ext)
         blob.seek(0)
-        with open(blob_path, 'wb') as f:
+        with open(dest_path, 'wb') as f:
             shutil.copyfileobj(blob, f)
+        return dest_path
 
     @staticmethod
     def get_subdir(blob_hash):
@@ -467,114 +442,43 @@ class Blobs(object):
             conn.rollback()
             raise
 
-    def create_thumbnail(self, blob, blob_hash, blob_format):
+    def create_thumbnail(self, blob_file, blob_hash, blob_format):
         """
         Creates the thumbnail according to the blob_format
         """
+        dest_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
+        dest_path = os.path.join(dest_path, blob_hash + ".jpg")
         if blob_format == "image":
-            self.create_image_thumbnail(blob, blob_hash)
-
+            self.create_image_thumbnail(blob_file, dest_path)
         elif blob_format == "video":
-            self.create_video_thumbnail(blob, blob_hash)
+            self.create_video_thumbnail(blob_file, dest_path)
+        else:
+            raise IPOLBlobsThumbnailError("Format '{}' no yet supported.".format(blob_format))
 
-        elif blob_format == "audio":
-            self.create_audio_thumbnail(blob, blob_hash)
-
-    def create_image_thumbnail(self, blob, blob_hash):
+    @staticmethod
+    def create_image_thumbnail(src_file, dest_file):
         """
         Creates a 256x256 jpg thumbnail for the image blob
         """
         try:
-            subdir = self.get_subdir(blob_hash)
-            path = os.path.join(self.thumb_dir, subdir)
-
-            if not os.path.isdir(path):
-                self.mkdir_p(path)
-
-            thumb_path = os.path.join(path, blob_hash + ".jpg")
-
-            blob.seek(0)
-            image = Image.open(blob).convert('RGB')
-            image.thumbnail((256, 256))
-            image.save(thumb_path)
-
+            im = Image(src_file)
+            im.resize(height=256)
+            im.write(dest_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
-    def create_video_thumbnail(self, blob, blob_hash):
+    @staticmethod
+    def create_video_thumbnail(src_file, dest_file):
         """
         Creates a video thumbnail
         """
         try:
-            subdir = self.get_subdir(blob_hash)
-            path = os.path.join(self.thumb_dir, subdir)
-
-            if not os.path.isdir(path):
-                self.mkdir_p(path)
-
-            thumb_path = os.path.join(path, blob_hash + ".jpg")
-
-            blob.seek(0)
-            temp_file = tempfile.NamedTemporaryFile()
-            temp_file.write(blob.read())
-
-            temp_file.seek(0)
-            container = av.open(temp_file.name)
-
-            container.seek(int(container.duration/2) - 1)
-            middle_frame = container.decode(video=0).next()
-
-            image = middle_frame.to_image()
-            image.thumbnail((256, 256))
-            image.save(thumb_path)
-
+            im = Image.video_frame(src_file)
+            im.resize(height=2048)
+            im.write(dest_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
-    def create_audio_thumbnail(self, blob, blob_hash):
-        """
-        Creates an audio thumbnail
-        """
-        try:
-            subdir = self.get_subdir(blob_hash)
-            path = os.path.join(self.thumb_dir, subdir)
-
-            if not os.path.isdir(path):
-                self.mkdir_p(path)
-
-            thumb_path = os.path.join(path, blob_hash + ".jpg")
-
-            blob.seek(0)
-            temp_file = tempfile.NamedTemporaryFile()
-            temp_file.write(blob.read())
-
-            temp_file.seek(0)
-            audio = av.open(temp_file.name)
-            audio_bytes = ''
-            bit_depth = None
-            for frame in audio.decode(audio=0):
-                audio_bytes += frame.planes[0].to_bytes()
-                bit_depth = frame.format.name
-
-            if bit_depth == 's16':
-                signal = np.fromstring(audio_bytes, dtype=np.int16)
-            elif bit_depth == 's8':
-                signal = np.fromstring(audio_bytes, dtype=np.int8)
-            elif bit_depth == 'u16':
-                signal = np.fromstring(audio_bytes, dtype=np.uint16)
-            elif bit_depth == 'u8':
-                signal = np.fromstring(audio_bytes, dtype=np.uint8)
-            else:
-                raise IPOLBlobsThumbnailError("Bit depth {} not supported".format(bit_depth))
-            plt.close('all')
-            fig = plt.figure()
-            plt.plot(signal)
-            fig.savefig(thumb_path, dpi=50)
-
-            temp_file.close()
-
-        except Exception as ex:
-            raise IPOLBlobsThumbnailError(ex)
 
     def associate_tags_to_blob(self, conn, blob_id, tags):
         """
@@ -1210,8 +1114,8 @@ class Blobs(object):
             if blob_vr is not None:
                 _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
 
-                self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
-                self.create_thumbnail(blob_vr.file, blob_hash, 'image')
+                blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
+                self.create_thumbnail(blob_file, blob_hash, 'image')
             conn.commit()
             res = True
 
@@ -1304,9 +1208,10 @@ class Blobs(object):
             if os.path.isdir(blob_folder):
                 blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
                 if blobs_in_dir:
-                    blob_file = open(blobs_in_dir[0])
-                    blob_format, _ = self.get_format_and_extension(self.get_blob_mime(blob_file))
-                    self.create_thumbnail(blob_file, blob_hash, blob_format)
+                    with open(blobs_in_dir[0]) as f:
+                        mime_type = self.get_blob_mime(f)
+                    blob_format, _ = self.get_format_and_extension(mime_type)
+                    self.create_thumbnail(blobs_in_dir[0], blob_hash, blob_format)
 
         except IPOLBlobsThumbnailError as ex:
             self.logger.exception("Error creating the thumbnail")
@@ -1317,8 +1222,9 @@ class Blobs(object):
             self.logger.exception("DB error while removing the visual representation")
             print "Failed removing the visual representation. Error: {}".format(ex)
         except Exception as ex:
-            self.logger.exception("*** Unhandled exception while removing the visual representation")
-            print "*** Unhandled exception while removing the visual representation. Error: {}".format(ex)
+            mess = "*** Unhandled exception while removing the visual representation."
+            self.logger.exception(mess)
+            print "{} Error: {}".format(mess, ex)
         finally:
             if conn is not None:
                 conn.close()
