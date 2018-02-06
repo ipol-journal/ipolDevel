@@ -1797,7 +1797,7 @@ attached the failed experiment data.". \
             # The script would create demo_failure.txt with, say, the text "The algorithm only works with
             # images of aspect ratio 16:9".
             try:
-                failure_filepath = os.path.join(work_dir, 'demo_failure.txt')
+                failure_filepath = os.path.join(work_dir, self.demo_failure_file)
                 if os.path.exists(failure_filepath):
                     with open(failure_filepath, 'r') as f:
                         failure_message = "A demo failure occurred while executing: \n {}".format(f.read())
