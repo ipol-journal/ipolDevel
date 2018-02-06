@@ -1,42 +1,45 @@
 \section{The Core module}
-The core is the centralized controller of the whole IPOL demo system. It controls the execution of the experiments and delegates tasks such as data pre-processing (Conversion module), execution dispatching (Dispatcher module), algorithm execution (DemoRunner module), archiving experiments (Archive module), retrieving metadata, among others. It also handle notifications due to failures during a demo execution, bad constructed DDL's or any problem that must be notified to the demo user, the technical staff or the IPOL editors.
+The Core is the centralized controller of the whole IPOL demo system. It controls the execution of the experiments and delegates tasks such as data pre-processing (Conversion module), execution dispatching (Dispatcher module), algorithm execution (DemoRunner module), archiving experiments (Archive module), or retrieving demo metadata, among others. It also sends email notifications when failures are detected during the execution of a demo, bad constructed DDLs or any other problem that needs to be notified to the user, the technical staff, or the IPOL editors.
 
-When an execution is requested, it obtains first the textual description of the corresponding demo (its DDL) from the DemoInfo module. Then, it asks for the workload of the different DemoRunners and gives this information to the Dispatcher module in order to pick the best DemoRunner according to the Dispatcher’s selection policy. The following step is to ensure that the source codes are well compiled and updated in the chosen DemoRunner and that, if a demo has a compressed file as DemoExtras, this file is also updated with the last version. You can see more details about DemoExtras in the following section.
+When an execution is requested, it first obtains its textual description (its DDL) from the DemoInfo module. Then, it asks for the workload of the different DemoRunners and gives this information to the Dispatcher module in order to pick the best DemoRunner according to the Dispatcher's policy. The next step is to ensure that the source codes are compiled and updated in the corresponding DemoRunner. If the demo uses a DemoExtras file it is updated with its last version.
 
-Next, the core creates a run folder, copies the input data chosen by the users in this folder and delegates the pre-process of these ones to the conversion module, according to the DDL specification or if a crop has been required. This run folder is identified by an unique key and it is created into a shared folder. This sharing is done by using a ssh protocol. Thanks to this, all the demorunner machines can access to the shared folder where the executions are made and the DemoExtras files are stored. 
+For the execution, the Core creates a run folder, copies the input data, and delegates any eventual pre-processing to the Conversion module. The run folder is identified by an unique key and it is created inside a folder which can be accessed by any machine of the IPOL's architecture. Therefore, all the DemoRunner machines can access the shared folder where the executions are performed. The DemoExtras are common files that are also visible and centralized.
 
-Once the execution is ready, the DemoRunner runs the algorithm with the parameters and inputs set by the user while the Core waits until the execution has finished or a timeout happens. Finally, if the experiment must be stored, the Core delegates this task into the Archive module.
+Once the execution folder is ready, the corresponding DemoRunner runs the algorithm with the parameters and inputs set by the user. The Core waits until the execution has finished or after a timeout. Finally, the Core ask the Archive module to store the experiment if the input data came from original data (uploaded by the user).
 
-In case of any failures, the Core terminates the execution and stores the errors in its log file. Eventually, it will send warning emails to the technical staff of IPOL (internal error) or to the IPOL editors of the article (compilation or execution failure).
-% 
-% \ToDo{Document the run program of the Core, and which are the main operations which are performed and which are delegated. For example: blob conversion, copy blobs, ask the dispatcher for the best demoRunner according to a policy chosen by the Core, send the execution to a demoRunner, delegate in Archive to store the results if needed, etc. It should also be explained the shared folder.}
+In case of any fatal failure (say, a conversion if needed but forbidden in the DDL, or the program of the article crashed), the Core terminates the execution and stores the errors in its log file. Eventually, it will send warning emails to the technical staff of IPOL (internal error) or to the demo editors.
+
+Note that the Core does not need to know to which module it needs to delegate any operations, but instead simply requests the services using the IPOL API (see Sec. \ref{sec:reverse_proxy})
 
 \subsection{DemoExtras}
+For the execution of some demos it is necessary some support code or data, which we refer to as \emph{DemoExtras}. This is not part of the peer-reviewed or published material, and it is only used by the demo.
 
-For the execution of some demos it is necessary some extra files called DemoExtras. Those files are stored in a compressed file (.tar.gz) in the demoinfo module. Also, a copy of this compressed file is stored in the ``dl\_extras'' folder in the ``shared\_folder'' for comparison reasons.
+The support files are stored in a package (say, .tar.gz, .zip, .tar, ...) in the DemoInfo module. Also, a copy of this compressed file is stored in the ``dl\_extras'' folder in the ``shared\_folder'' for comparison reasons. \ToDo{This mechanism should be explained in the demoInfo module section of the doc.}
 
-The first time a DemoExtra is found, the core uncompress the file into ``DemoExtras'' folder in the ``shared\_folder''. And in each execution the core checks the date and the size of the compressed file in the ``shared\_folder'' with the one stored in demoinfo.
+The first time a demo is executed, the demos extras are decompressed in the ``DemoExtras'' folder in the ``shared\_folder''. At each execution the Core checks the date and the size of the compressed file in the ``shared\_folder'' with the one stored in demoInfo. \ToDo{This mechanism should be explained in the demoInfo module section of the doc. A diagram would be useful.}
 
 The possible results from the check are:
 \begin{itemize}
  \item \textbf{Date and size match:} Nothing is done
- \item \textbf{Date or size don't match:} The DemoExtra is downloaded again
- \item \textbf{DemoExtra deleted in demoinfo:} All DemoExtras files related to that demo are deleted in the ``share\_folder''
+ \item \textbf{Date or size do not match:} The DemoExtras are downloaded again
+ \item \textbf{DemoExtras deleted in demoInfo:} All DemoExtras files related to that demo are deleted in the ``share\_folder''
 \end{itemize}
 
-\subsection{Failure detection in demoExtras script}
+\subsection{Editor-controlled demo failures}
+The Editor has the possibility to detect that some conditions are not met and notify the system that the execution of the demo failed, even if the program did not crash or the running script exited with a sucessful exit code. Indeed, a demoExtras script in the demo could check, for example, if the aspect ratio of the image is what the algorithm excepts, and prevent the actual execution.
 
-Demos can fail while executing the demoextras run script. These errors can occur because of many reasons, from user input to not meeting demo 
-requirements. The editors have the possibility to pipe error messages into a file called "demo\_failure.txt" and stop the execution with exit
-code 0. This way the interface can show this error and this allows the demo to perform checks before the actual execution of the algorithm.
+The mechanism is simple: the editors can write a "demo\_failure.txt" file and stop the execution with an exit
+code 0. The Core interprets the presence of this file as the demo itself signalling a problem.
 
-In order to use this mechanism the editor just needs to edit the script in the demoExtras and write the error message to the demo\_failure.txt file. 
-For example:
+For example, this code is used in one of the demos:
 \paragraph{Example}:\\
 \begin{verbatim}
-if [ $1 -gt 100 ]
+imageSize=$(identify -format '%w+%h' input_0.png)
+maskSize=$(identify -format '%w+%h' mask.png)
+
+if [ $imageSize != $maskSize ]
 then
-    echo "Image height too big" >> demo_failure.txt
-    exit 0
+  echo "Input error: input and mask have different sizes." >> demo_failure.txt
+  exit 0
 fi
 \end{verbatim} 
