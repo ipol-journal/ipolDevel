@@ -88,13 +88,11 @@ class IPOLFindSuitableDR(Exception):
     """
     pass
 
-
-
 class IPOLEnsureCompilationAndDemoExtrasError(Exception):
     """
     """
     def __init__(self, interface_message, email_message=None):
-        super(IPOLPrepareFolderError, self).__init__()
+        super(IPOLEnsureCompilationAndDemoExtrasError, self).__init__()
         self.interface_message = interface_message
         self.email_message = email_message
 
@@ -115,14 +113,9 @@ class IPOLExecutionError(Exception):
     """
     """
     def __init__(self, interface_message, email_message=None):
-        super(IPOLPrepareFolderError, self).__init__()
+        super(IPOLExecutionError, self).__init__()
         self.interface_message = interface_message
         self.email_message = email_message
-
-class IPOLError(Exception):
-    """
-    """
-    pass
 
 class IPOLDemoRunnerResponseError(Exception):
     """
