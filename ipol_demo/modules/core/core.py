@@ -223,7 +223,7 @@ class Core(object):
 
     def load_demorunners(self):
         """
-        Read demorunners xml
+        Load the list of DRs from the configuration file
         """
         dict_demorunners = {}
         tree = ET.parse(self.demorunners_file)
@@ -247,7 +247,7 @@ class Core(object):
     @cherrypy.expose
     def refresh_demorunners(self):
         """
-        refresh demorunners information and alert the dispatcher module
+        Refresh the information of all DRs and notify Dispatcher to update
         """
         data = {"status": "KO"}
 
@@ -270,7 +270,7 @@ class Core(object):
     @cherrypy.expose
     def get_demorunners(self):
         """
-        Get the information of the demorunners
+        Get the information of all demoRunners
         """
         data = {"status": "OK"}
         try:
@@ -286,7 +286,8 @@ class Core(object):
     @cherrypy.expose
     def get_demorunners_stats(self):
         """
-        Get stats of all the demorunners to be used by the external tools like the CP
+        Get statistic information of all DRs.
+        This is mainly used by external monitoring tools.
         """
         demorunners = []
         #
@@ -358,8 +359,8 @@ class Core(object):
     @staticmethod
     def mkdir_p(path):
         """
-        Implement the UNIX shell command "mkdir -p"
-        with given path as parameter.
+        Create a directory given a path.
+        It's like a "mkdir -p" command.
         """
         created = 'false'
         try:
@@ -379,7 +380,6 @@ class Core(object):
         """
         Index page
         """
-
         resp = self.post(self.host_name, 'demoinfo', 'demo_list')
         response = resp.json()
         status = response['status']
@@ -456,7 +456,7 @@ class Core(object):
     @cherrypy.expose
     def demo(self):
         """
-        Return a HTML page with the list of demos.
+        Return an HTML page with the list of demos.
         """
         return self.index()
 
@@ -464,7 +464,7 @@ class Core(object):
     @cherrypy.expose
     def ping():
         """
-        Ping service: answer with a PONG.
+        Ping: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
         return json.dumps(data)
@@ -487,7 +487,7 @@ class Core(object):
     @cherrypy.expose
     def default(attr):
         """
-        Default method invoked when asked for non-existing service.
+        Default method invoked when asked for a non-existing service.
         """
         data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data)
@@ -1132,7 +1132,7 @@ attached the failed experiment data.". \
 
     def send_email_no_demorunner(self, demo_id):
         """
-        Send email to tech when there isn't any suitable demorunner for a published demo
+        Send email to tech when there isn't any suitable DR for a published demo
         """
         emails = []
         config_emails = self.read_emails_from_config()
@@ -1323,7 +1323,7 @@ attached the failed experiment data.". \
 
     def execute_experiment(self, dr_server, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
         """
-        Execute the experiment in a chosen demorunner.
+        Execute the experiment in the given DR.
         """
         userdata = {'demo_id': demo_id, 'key': key, 'params': json.dumps(params), 'ddl_run': json.dumps(ddl_run)}
 
@@ -1360,14 +1360,14 @@ attached the failed experiment data.". \
 
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
 
-        #Check if the user created a demo_failure.txt file
-        #This is part of the mechanism which allows the user to signal that the execution can't go on,
-        #but not necessarily because of a crash or a error return code.
+        # Check if the user created a demo_failure.txt file
+        # This is part of the mechanism which allows the user to signal that the execution can't go on,
+        # but not necessarily because of a crash or a error return code.
         #
-        #Indeed, a script in the demo could check, for example, if the aspect ratio of
-        #the image is what the algorithm excepts, and prevent the actual execution.
-        #The script would create demo_failure.txt with, say, the text "The algorithm only works with
-        #images of aspect ratio 16:9".
+        # Indeed, a script in the demo could check, for example, if the aspect ratio of
+        # the image is what the algorithm excepts, and prevent the actual execution.
+        # The script would create demo_failure.txt with, say, the text "The algorithm only works with
+        # images of aspect ratio 16:9".
         try:
             failure_filepath = os.path.join(work_dir, self.demo_failure_file)
             print failure_filepath
@@ -1622,6 +1622,7 @@ attached the failed experiment data.". \
             self.send_internal_error_email(message)
             res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data)
+
         try:
             work_dir = self.create_run_dir(demo_id, key)
         except Exception as ex:
@@ -1842,8 +1843,8 @@ attached the failed experiment data.". \
 
     def read_algo_info(self, work_dir):
         """
-        Read the file algo_info.txt to make available in the system
-        variables created or modified by the algorithm
+        Read the file algo_info.txt to pass user variables to the
+        web interface.
         """
         file_name = os.path.join(work_dir, "algo_info.txt")
 
@@ -1872,7 +1873,7 @@ attached the failed experiment data.". \
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         """
-        Return an active demorunner for the requirements
+        Return an active DR which meets the requirements
         """
         demorunner_data = {
             "demorunners_workload": str(demorunners_workload),
@@ -1924,7 +1925,7 @@ attached the failed experiment data.". \
 
     def post(self, host, module, service, data=None):
         """
-        Do a POST via api
+        Make a POST request via the IPOL API
         """
         try:
             url = 'http://{0}/api/{1}/{2}'.format(
