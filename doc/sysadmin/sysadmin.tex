@@ -379,21 +379,6 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     \end{lstlisting}
     \end{enumerate}
 
-	\item Enable gzip compression for static files
-	\begin{lstlisting}[language=Bash]
-	gzip on;
-	gzip_disable "msie6";
-
-	gzip_vary on;
-	gzip_proxied any;
-	gzip_comp_level 6;
-	gzip_buffers 16 8k;
-	gzip_http_version 1.1;
-	gzip_min_length 256;
-	gzip_types text/plain text/css application/json \
-	     application/javascript text/xml application/xml \ 
-	     application/xml+rss text/javascript;
-    \end{lstlisting}
     \item Enable the site by creating a symbolic link to default configuration:
     \begin{lstlisting}[language=Bash]
     ln -s /etc/nginx/sites-available/default \
@@ -405,6 +390,9 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
 
     \end{lstlisting}
 \end{enumerate}
+
+As a good practise we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
+in the nginx.conf file under the sysadmin folder.
 
 \subsection{Management}
 
