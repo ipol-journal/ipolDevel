@@ -427,8 +427,8 @@ class Image(object):
                 if src_dtype == 'uint16': # OK, do nothing
                     pass
                 elif src_dtype == 'uint8':
-                    data = data << 8
                     data = data.astype(np.uint16, copy=False)
+                    data = data << 8
                     ret = True
                 elif src_dtype == 'uint32"':
                     data = data >> 8
