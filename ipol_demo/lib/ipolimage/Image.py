@@ -82,9 +82,9 @@ class Image(object):
         if not os.path.isfile(path):
             raise OSError(errno.ENOENT, "File not found", path)
         # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
-        with redirector():
-            # IMREAD_UNCHANGED, option to keep alpha or uint16
-            self.data = cv2.imread(path, flags)
+        # with redirector():
+        # default flag to IMREAD_UNCHANGED, option to keep alpha or uint16
+        self.data = cv2.imread(path, flags)
         if self.data is None:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", path)
         self.src_file = path
@@ -129,6 +129,10 @@ class Image(object):
             return data
         # 2 channels, Gray with alpha
         elif data.shape[2] == 2:
+            # check if alpha is just a 100% layer
+            if np.unique(data[:, :, 1]).size == 1:
+                return data[:, :, 0]
+            orig_dtype = data.dtype
             # convert back_color to a grey luminosity
             back_gray = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
             alpha_mask = data[:, :, 3].astype(float)
@@ -152,9 +156,15 @@ class Image(object):
             fore_mat = cv2.multiply(alpha_mask, data[:, :, 0].astype(float))
             # merge back and fore
             data = cv2.add(back_mat, fore_mat)
+            # restore original dtype
+            data = data.astype(orig_dtype, copy=False)
             return data
         # 4 channels, BGRA, blend
         elif data.shape[2] == 4:
+            # check if alpha is just a 100% layer
+            if np.unique(data[:, :, 3]).size == 1:
+                return data[:, :, :3]
+            orig_dtype = data.dtype
             # convert back_color to BGR (OpenCV format)
             back_color = tuple(reversed(back_color))
             # build an alpha_mask, convert to float [0, 1], according to dtype
@@ -180,6 +190,8 @@ class Image(object):
             fore_mat = cv2.multiply(alpha_mask, data[:, :, :3].astype(float))
             # merge back and fore
             data = cv2.add(back_mat, fore_mat)
+            # restore original dtype
+            data = data.astype(orig_dtype, copy=False)
             return data
         else: # unknown format
             return data
@@ -417,7 +429,7 @@ class Image(object):
                     data = data >> 8 # faster than data = data / 256
                     data = data.astype(np.uint8, copy=False) # just a cast
                     ret = True
-                elif src_dtype == 'uint32"':
+                elif src_dtype == 'uint32':
                     data = data >> 16
                     data = data.astype(np.uint8, copy=False)
                     ret = True
@@ -430,7 +442,7 @@ class Image(object):
                     data = data.astype(np.uint16, copy=False)
                     data = data << 8
                     ret = True
-                elif src_dtype == 'uint32"':
+                elif src_dtype == 'uint32':
                     data = data >> 8
                     data = data.astype(np.uint16, copy=False)
                     ret = True
