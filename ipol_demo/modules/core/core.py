@@ -56,7 +56,7 @@ from errors import IPOLKeyError
 from errors import IPOLDecodeInterfaceRequestError
 from errors import IPOLReadDDLError
 from errors import IPOLFindSuitableDR
-from errors import IPOLEnsureCompilationAndDemoExtrasError
+from errors import IPOLEnsureCompilationError
 from errors import IPOLConversionError
 from errors import IPOLPrepareFolderError
 from errors import IPOLExecutionError
@@ -761,7 +761,7 @@ class Core(object):
 
 
     @staticmethod
-    def get_compressed_file(filename):
+    def walk_demoextras_files(filename):
         """
         Return the demoExtras file and contained file names
         """
@@ -782,7 +782,7 @@ class Core(object):
         """
         extract tar, tgz, tbz and zip archives
         """
-        compressed_file, content = self.get_compressed_file(filename)
+        compressed_file, content = self.walk_demoextras_files(filename)
 
         # no absolute file name
         assert not any([os.path.isabs(f) for f in content])
@@ -812,7 +812,7 @@ class Core(object):
 
         return content
 
-    def extract_demo_extra(self, demo_id, compressed_file):
+    def extract_demo_extras(self, demo_id, compressed_file):
         """
         Extract a demo extra...
         input: demo_id and compressed file for the extraction
@@ -830,48 +830,53 @@ class Core(object):
 
     def ensure_extras_updated(self, demo_id):
         """
-        Ensure that the demo extras of a given demo are updated respect to demoinfo information.
+        Ensure that the demo extras of a given demo are updated with respect to demoinfo information.
         and exists in the core folder.
         """
-        resp = self.post(self.host_name, 'demoinfo', 'get_demo_extras_info', {"demo_id": demo_id})
-        demoinfo_resp = resp.json()
+        try:
+            resp = self.post(self.host_name, 'demoinfo', 'get_demo_extras_info', {"demo_id": demo_id})
+            demoinfo_resp = resp.json()
 
-        if demoinfo_resp['status'] != 'OK':
-            raise IPOLDemoExtrasError("Demoinfo responds with a KO")
+            if demoinfo_resp['status'] != 'OK':
+                raise IPOLDemoExtrasError("Demoinfo responds with a KO")
 
-        demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
-        self.mkdir_p(demoextras_compress_dir)
+            demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
+            self.mkdir_p(demoextras_compress_dir)
 
-        demoextras_file = glob.glob(demoextras_compress_dir+"/*")
+            demoextras_file = glob.glob(demoextras_compress_dir+"/*")
 
-        #no demoExtras in the shared folder
-        if not demoextras_file:
-            if 'url' not in demoinfo_resp:
-                return
+            #no demoExtras in the shared folder
+            if not demoextras_file:
+                if 'url' not in demoinfo_resp:
+                    return
 
-            # There is a new demoExtras in demoinfo
-            demoextras_name = os.path.basename(demoinfo_resp['url'])
-            demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
-            self.download(demoinfo_resp['url'], demoextras_file)
-            self.extract_demo_extra(demo_id, demoextras_file)
-        else:
-            demoextras_file = demoextras_file[0]
-
-            # DemoExtras was removed from demoinfo
-            if 'url' not in demoinfo_resp:
-                shutil.rmtree(demoextras_compress_dir)
-                shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
-                return
-
-            demoinfo_demoextras_date = demoinfo_resp['date']
-            demoinfo_demoextras_size = demoinfo_resp['size']
-            core_demoextras_date = os.stat(demoextras_file).st_mtime
-            core_demoextras_size = os.stat(demoextras_file).st_size
-            if (core_demoextras_date <= demoinfo_demoextras_date or
-                    core_demoextras_size != demoinfo_demoextras_size):
-                # DemoExtras needs an update
+                # There is a new demoExtras in demoinfo
+                demoextras_name = os.path.basename(demoinfo_resp['url'])
+                demoextras_file = os.path.join(demoextras_compress_dir, demoextras_name)
                 self.download(demoinfo_resp['url'], demoextras_file)
-                self.extract_demo_extra(demo_id, demoextras_file)
+                self.extract_demo_extras(demo_id, demoextras_file)
+            else:
+                demoextras_file = demoextras_file[0]
+
+                # DemoExtras was removed from demoinfo
+                if 'url' not in demoinfo_resp:
+                    shutil.rmtree(demoextras_compress_dir)
+                    shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
+                    return
+
+                demoinfo_demoextras_date = demoinfo_resp['date']
+                demoinfo_demoextras_size = demoinfo_resp['size']
+                core_demoextras_date = os.stat(demoextras_file).st_mtime
+                core_demoextras_size = os.stat(demoextras_file).st_size
+                if (core_demoextras_date <= demoinfo_demoextras_date or
+                        core_demoextras_size != demoinfo_demoextras_size):
+                    # DemoExtras needs an update
+                    self.download(demoinfo_resp['url'], demoextras_file)
+                    self.extract_demo_extras(demo_id, demoextras_file)
+
+        except Exception as ex:
+            error_message = "Error processing the demoExtras of demo {}: {}".format(demo_id, ex)
+            raise IPOLDemoExtrasError(error_message)
 
     @staticmethod
     def create_new_execution_key(logger):
@@ -899,8 +904,7 @@ class Core(object):
 
     def create_run_dir(self, demo_id, key):
         """
-        If it not exist, create a run_dir for a demo
-        then, create a folder for the execution
+        Create the directory of the execution.
         """
         demo_path = os.path.join(self.shared_folder_abs,
                                  self.share_run_dir_abs,
@@ -1155,7 +1159,8 @@ attached the failed experiment data.". \
 
     def decode_interface_request(self, interface_arguments):
         """
-        It returns the given arguments from the web interface
+        It extracts the arguments. If they were already given,
+        it wouldn't need to do anything.
         """
         clientdata = json.loads(interface_arguments['clientData'])
         origin = clientdata.get('origin', None)
@@ -1223,10 +1228,9 @@ attached the failed experiment data.". \
             raise IPOLFindSuitableDR(error_message)
         return dr_name, dr_server
 
-    def ensure_compilation_and_demoextras(self, dr_server, dr_name, demo_id, ddl_build):
+    def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):
         """
-        This function returns None if the binaries of a given demo are correctly compile.
-        Otherwise, it returns an error message.
+        Raise an exception if the codes of a given demo are well compiled.
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
         dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
@@ -1237,13 +1241,7 @@ attached the failed experiment data.". \
             buildlog = demorunner_response.get('buildlog', '').encode('utf8')
             demorunner_message = demorunner_response['message'].encode('utf8')
             error_message = "DR={}, {}  - {}".format(dr_name, buildlog, demorunner_message)
-            raise IPOLEnsureCompilationAndDemoExtrasError(error_message, error_message)
-        try:
-            self.ensure_extras_updated(demo_id)
-        except IPOLDemoExtrasError as ex:
-            error_message = "Error processing the demoExtras of demo {}: {}".format(demo_id, ex)
-            self.logger.exception(error_message)
-            raise IPOLEnsureCompilationAndDemoExtrasError(error_message)
+            raise IPOLEnsureCompilationError(error_message)
 
     def prepare_folder_for_execution(self, demo_id, origin, blobs, ddl_inputs, crop_info):
         """
@@ -1430,18 +1428,26 @@ attached the failed experiment data.". \
 
             ddl = self.read_ddl(demo_id)
 
+            # Find a demorunner according the requirements of the demo and the dispatcher policy
             dr_name, dr_server = self.find_suitable_demorunner(ddl['general'])
 
-            self.ensure_compilation_and_demoextras(dr_server, dr_name, demo_id, ddl['build'])
+            self.ensure_compilation(dr_server, dr_name, demo_id, ddl['build'])
+
+            self.ensure_extras_updated(demo_id)
 
             ddl_inputs = ddl.get('inputs')
+            # Create run directory in the shared folder, copy blobs and delegate in the conversion module 
+            # the conversion of the input data if it is requested and not forbidden
             work_dir, key = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
 
+            # Delegate in the the chosen demorunner to execute the experiment in the run folder
+            # according to the DDL and the input params
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
                                                         key, params, ddl['run'], ddl['general'], work_dir)
 
-            # Archive the experiment, if the 'archive' section exists in the DDL
-            if origin != 'blobset'and private_mode is None and 'archive' in ddl:
+            # Archive the experiment, if the 'archive' section exists in the DDL and
+            # it is original uploaded data from the user (origin != 'blobset')
+            if origin != 'blobset'and not private_mode and 'archive' in ddl:
                 self.archive_an_experiment(ddl['archive'], demorunner_response, demo_id, key, work_dir)
 
             # Save the execution, so the users can recover it from the URL
@@ -1452,11 +1458,15 @@ attached the failed experiment data.". \
             error_message = "Wrong origin value from the interface"
             self.logger.exception(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
-        except IPOLEnsureCompilationAndDemoExtrasError as ex:
-            if ex.email_message:
-                error_message = " --- Compilation error. --- {}".format(str(ex.email_message))
-                self.send_compilation_error_email(demo_id, error_message)
-            return json.dumps({'error': str(ex.interface_message), 'status': 'KO'})
+        except IPOLEnsureCompilationError as ex:
+            error_message = " --- Compilation error. --- {}".format(str(ex))
+            self.send_compilation_error_email(demo_id, error_message)
+            return json.dumps({'error': str(ex), 'status': 'KO'})
+        except IPOLDemoExtrasError as ex:
+            error_message = str(ex)
+            self.send_internal_error_email(error_message)
+            self.logger.exception(error_message)
+            return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLFindSuitableDR as ex:
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
                 self.send_email_no_demorunner(demo_id)
@@ -1815,7 +1825,7 @@ attached the failed experiment data.". \
                 self.share_run_dir_rel,
                 str(demo_id),
                 key) + '/'
-                
+
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:

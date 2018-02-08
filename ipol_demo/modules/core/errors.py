@@ -63,46 +63,51 @@ class IPOLMissingRequiredInputError(Exception):
 
 class IPOLWorkDirError(Exception):
     """
+    IPOLWorkDirError
     """
     pass
 
 class IPOLKeyError(Exception):
     """
+    IPOLKeyError
     """
     pass
 
 
 class IPOLDecodeInterfaceRequestError(Exception):
     """
+    IPOLDecodeInterfaceRequestError
     """
     pass
 
 
 class IPOLReadDDLError(Exception):
     """
+    IPOLReadDDLError
     """
     pass
 
 class IPOLFindSuitableDR(Exception):
     """
+    IPOLFindSuitableDR
     """
     pass
 
-class IPOLEnsureCompilationAndDemoExtrasError(Exception):
+class IPOLEnsureCompilationError(Exception):
     """
+    IPOLEnsureCompilationError
     """
-    def __init__(self, interface_message, email_message=None):
-        super(IPOLEnsureCompilationAndDemoExtrasError, self).__init__()
-        self.interface_message = interface_message
-        self.email_message = email_message
+    pass
 
 class IPOLConversionError(Exception):
     """
+    IPOLConversionError
     """
     pass
 
 class IPOLPrepareFolderError(Exception):
     """
+    IPOLPrepareFolderError
     """
     def __init__(self, interface_message, email_message=None):
         super(IPOLPrepareFolderError, self).__init__()
@@ -111,6 +116,7 @@ class IPOLPrepareFolderError(Exception):
 
 class IPOLExecutionError(Exception):
     """
+    IPOLExecutionError
     """
     def __init__(self, interface_message, email_message=None):
         super(IPOLExecutionError, self).__init__()
@@ -119,6 +125,7 @@ class IPOLExecutionError(Exception):
 
 class IPOLDemoRunnerResponseError(Exception):
     """
+    IPOLDemoRunnerResponseError
     """
     def __init__(self, message, demo_state, key, error):
         super(IPOLDemoRunnerResponseError, self).__init__()
@@ -127,8 +134,8 @@ class IPOLDemoRunnerResponseError(Exception):
         self.key = key
         self.error = error
 
-        
 class IPOLArchiveError(Exception):
     """
+    IPOLArchiveError
     """
     pass
