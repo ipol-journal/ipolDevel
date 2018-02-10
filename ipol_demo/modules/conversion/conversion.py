@@ -270,6 +270,17 @@ class Conversion(object):
         if im.convert(input_desc.get('dtype')):
             code = 1
 
+        # crop before reducing image to max_pixels (or the crop box will be outside of scope)
+        if crop_info is not None:
+            # Crop is needed
+            x = int(round(crop_info.get('x')))
+            y = int(round(crop_info.get('y')))
+            width = int(round(crop_info.get('width')))
+            height = int(round(crop_info.get('height')))
+            im.crop(x=x, y=y, width=width, height=height)
+            code = 1
+
+
         w_h = re.compile(' *[x*] *').split(input_desc.get('max_pixels'))
         w_h = list(map(int, w_h)) # cast to int, py3 compat
         # demo may wait a containing box
@@ -285,15 +296,6 @@ class Conversion(object):
                 im.resize(fx=fxy, fy=fxy)
                 code = 1
 
-        if crop_info is not None:
-            # Crop is needed
-            x = int(round(crop_info.get('x')))
-            y = int(round(crop_info.get('y')))
-            width = int(round(crop_info.get('width')))
-            height = int(round(crop_info.get('height')))
-            im.crop(x=x, y=y, width=width, height=height)
-            code = 1
-
         input_file_type, _ = mimetypes.guess_type(input_file)
         input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
         if input_file_type != input_desc_type:
@@ -304,8 +306,7 @@ class Conversion(object):
         if code == 1: # image data have been modified, save it
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
-            im.write(input_file)
-            print(input_file)
+            im.write(input_file, force=True) # force overwrites if needed
         return code
 
     @staticmethod

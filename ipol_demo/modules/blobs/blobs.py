@@ -393,18 +393,18 @@ class Blobs(object):
         blob.seek(0)
         return hashlib.sha1(blob.read()).hexdigest()
 
-    def copy_blob(self, blob, blob_hash, ext, dest_dir):
+    def copy_blob(self, blob, blob_hash, ext, dst_dir):
         """
         Stores the blob in the file system, returns the dest path
         """
-        dest_path = os.path.join(dest_dir, self.get_subdir(blob_hash))
-        if not os.path.isdir(dest_path):
-            os.makedirs(dest_path)
-        dest_path = os.path.join(dest_path, blob_hash + ext)
+        dst_path = os.path.join(dst_dir, self.get_subdir(blob_hash))
+        if not os.path.isdir(dst_path):
+            os.makedirs(dst_path)
+        dst_path = os.path.join(dst_path, blob_hash + ext)
         blob.seek(0)
-        with open(dest_path, 'wb') as f:
+        with open(dst_path, 'wb') as f:
             shutil.copyfileobj(blob, f)
-        return dest_path
+        return dst_path
 
     @staticmethod
     def get_subdir(blob_hash):
@@ -446,38 +446,38 @@ class Blobs(object):
         """
         Creates the thumbnail according to the blob_format
         """
-        dest_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
-        dest_path = os.path.join(dest_path, blob_hash + ".jpg")
-        if os.path.isfile(dest_path):
-            raise IPOLBlobsThumbnailError("Destination file already exists: {}.".format(dst_file))
+        dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
+        dst_path = os.path.join(dst_path, blob_hash + ".jpg")
+        if os.path.isfile(dst_path):
+            raise IPOLBlobsThumbnailError("Destination file already exists: {}.".format(dst_path))
         if blob_format == "image":
-            self.create_image_thumbnail(blob_file, dest_path)
+            self.create_image_thumbnail(blob_file, dst_path)
         elif blob_format == "video":
-            self.create_video_thumbnail(blob_file, dest_path)
+            self.create_video_thumbnail(blob_file, dst_path)
         else:
             raise IPOLBlobsThumbnailError("Format '{}' not yet supported.".format(blob_format))
 
     @staticmethod
-    def create_image_thumbnail(src_file, dest_file):
+    def create_image_thumbnail(src_file, dst_file):
         """
         Creates a 256x256 jpg thumbnail for the image blob
         """
         try:
             im = Image(src_file)
             im.resize(height=256)
-            im.write(dest_file)
+            im.write(dst_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
     @staticmethod
-    def create_video_thumbnail(src_file, dest_file):
+    def create_video_thumbnail(src_file, dst_file):
         """
         Creates a video thumbnail
         """
         try:
             im = Image.video_frame(src_file)
             im.resize(height=256)
-            im.write(dest_file)
+            im.write(dst_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)
 
