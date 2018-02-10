@@ -197,19 +197,21 @@ class Image(object):
             return data
 
 
-    def write(self, dest_file, **kwargs):
+    def write(self, dst_file, force=False, **kwargs):
         '''
-        Save image matrix to dest file, format according to file extension.
+        Save image matrix to destination file, format according to file extension.
         See _4ser for available extensions and formats.
         '''
-        # caution, cv2.imwrite will not create subdirectories and silently fail
         # ? concurrency conflict
-        dest_dir = os.path.dirname(dest_file)
-        if dest_dir and not os.path.exists(dest_dir):
-            os.makedirs(dest_dir)
-        ext = os.path.splitext(dest_file)[1]
+        if os.path.exists(dst_file) and not force:
+            raise OSError(errno.EEXIST, "Destination file already exists, use force=True kwarg to overwrite", dst_file)
+        # caution, cv2.imwrite will not create subdirectories and silently fail
+        dst_dir = os.path.dirname(dst_file)
+        if dst_dir and not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+        ext = os.path.splitext(dst_file)[1]
         data, pars = self._4ser(ext, **kwargs)
-        cv2.imwrite(dest_file, data, pars)
+        cv2.imwrite(dst_file, data, pars)
 
     def encode(self, ext, **kwargs):
         '''
@@ -301,48 +303,48 @@ class Image(object):
             return
 
         src_height, src_width = self.data.shape[:2]
-        dest_width, dest_height = width, height
+        dst_width, dst_height = width, height
         # problem
         if not width > 0 and not height > 0:
             raise ValueError("Bad arguments, at least zoom or (width and/or height)")
 
         # containing box
-        if dest_width > 0 and dest_height > 0:
+        if dst_width > 0 and dst_height > 0:
             if preserve_ratio:
-                ratio_width = float(dest_width) / src_width
-                ratio_height = float(dest_height) / src_height
+                ratio_width = float(dst_width) / src_width
+                ratio_height = float(dst_height) / src_height
                 if ratio_width < ratio_height:
-                    dest_height *= ratio_width
+                    dst_height = float(src_height) * ratio_width
                 else:
-                    dest_width *= ratio_height
+                    dst_width =  float(src_width) * ratio_height
         # forced height
-        elif dest_height > 0:
-            max_width = 2*dest_height # avoid extreme ratio
+        elif dst_height > 0:
+            max_width = 2*dst_height # avoid extreme ratio
             # if src image is for example a line of 1 pixel height, keep original height
             if src_height < 10:
-                dest_height = src_height
-            dest_width = int(round(float(src_width * dest_height) / src_height))
-            dest_width = min(dest_width, max_width)
-            if dest_width <= 0:
-                dest_width = src_width
+                dst_height = src_height
+            dst_width = int(round(float(src_width * dst_height) / src_height))
+            dst_width = min(dst_width, max_width)
+            if dst_width <= 0:
+                dst_width = src_width
         # forced width
-        elif dest_width > 0:
-            max_height = 2*dest_width # avoid extreme ratio
+        elif dst_width > 0:
+            max_height = 2*dst_width # avoid extreme ratio
             # if src image is for example a line of 1 pixel width, keep original width
             if src_width < 10:
-                dest_width = src_width
-            dest_height = int(round(float(src_height * dest_width) / src_width))
-            dest_height = min(dest_height, max_height)
-            if dest_height <= 0:
-                dest_height = src_height
+                dst_width = src_width
+            dst_height = int(round(float(src_height * dst_width) / src_width))
+            dst_height = min(dst_height, max_height)
+            if dst_height <= 0:
+                dst_height = src_height
         # dtype of matrix is still kept
         if interpolation: # keep requested interpolation
             pass
-        elif (dest_width > src_width) or (dest_height > src_height): # augmentation, pixelise
+        elif (dst_width > src_width) or (dst_height > src_height): # augmentation, pixelise
             interpolation = cv2.INTER_NEAREST
         else: # diminution, for thumbnail, some interpolation
             interpolation = cv2.INTER_AREA
-        self.data = cv2.resize(self.data, (dest_width, dest_height), interpolation=interpolation)
+        self.data = cv2.resize(self.data, (int(dst_width), int(dst_height)), interpolation=interpolation)
         self._props()
 
     def crop(self, x=0, y=0, width=0, height=0):
@@ -399,7 +401,7 @@ class Image(object):
 
 
         if mode[0] != 'x': # channel modification requested
-            dest_channels = int(mode[0])
+            dst_channels = int(mode[0])
             if len(data.shape) == 2:
                 src_channels = 1
             else:
@@ -408,11 +410,11 @@ class Image(object):
             if src_channels == 2 or src_channels == 4:
                 data = Image.blend_alpha(data)
                 ret = True
-            if dest_channels == 1:
+            if dst_channels == 1:
                 if src_channels == 3:
                     data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
                     ret = True
-            elif dest_channels == 3:
+            elif dst_channels == 3:
                 if src_channels == 1:
                     data = cv2.cvtColor(data, cv2.COLOR_GRAY2BGR)
                     ret = True
@@ -420,9 +422,9 @@ class Image(object):
                 raise ValueError("Convert matrix, mode={}, number of channels not yet supported.".format(mode))
 
         if 'x' in mode: # dtype modification requested
-            dest_depth = mode[mode.index('x')+1:]
+            dst_depth = mode[mode.index('x')+1:]
             src_dtype = data.dtype
-            if dest_depth == '8i' or dest_depth == '8':
+            if dst_depth == '8i' or dst_depth == '8':
                 if src_dtype == 'uint8': # OK, do nothing
                     pass
                 elif src_dtype == 'uint16':
@@ -433,9 +435,12 @@ class Image(object):
                     data = data >> 16
                     data = data.astype(np.uint8, copy=False)
                     ret = True
+                elif src_dtype == 'float32' or src_dtype == 'float16':
+                    src_min = np.amin(data)
+                    src_max = np.amax(data)
                 else:
-                    raise ValueError("Convert matrix, source dtype={} not yet supported for {} dest mode.".format(src_dtype, dest_depth))
-            elif dest_depth == '16i' or dest_depth == '16':
+                    raise ValueError("Convert matrix, source dtype={} not yet supported for '{}' mode conversion.".format(src_dtype, dst_depth))
+            elif dst_depth == '16i' or dst_depth == '16':
                 if src_dtype == 'uint16': # OK, do nothing
                     pass
                 elif src_dtype == 'uint8':
@@ -447,7 +452,7 @@ class Image(object):
                     data = data.astype(np.uint16, copy=False)
                     ret = True
                 else:
-                    raise ValueError("Convert matrix, source dtype={} not yet supported for {} dest mode.".format(src_dtype, dest_depth))
+                    raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
             else:
                 raise ValueError("Convert matrix, mode={} not yet supported.".format(mode))
         return data, ret

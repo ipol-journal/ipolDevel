@@ -448,12 +448,14 @@ class Blobs(object):
         """
         dest_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
         dest_path = os.path.join(dest_path, blob_hash + ".jpg")
+        if os.path.isfile(dest_path):
+            raise IPOLBlobsThumbnailError("Destination file already exists: {}.".format(dst_file))
         if blob_format == "image":
             self.create_image_thumbnail(blob_file, dest_path)
         elif blob_format == "video":
             self.create_video_thumbnail(blob_file, dest_path)
         else:
-            raise IPOLBlobsThumbnailError("Format '{}' no yet supported.".format(blob_format))
+            raise IPOLBlobsThumbnailError("Format '{}' not yet supported.".format(blob_format))
 
     @staticmethod
     def create_image_thumbnail(src_file, dest_file):
@@ -474,7 +476,7 @@ class Blobs(object):
         """
         try:
             im = Image.video_frame(src_file)
-            im.resize(height=2048)
+            im.resize(height=256)
             im.write(dest_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError(ex)

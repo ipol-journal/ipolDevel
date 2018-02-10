@@ -270,13 +270,20 @@ class Conversion(object):
         if im.convert(input_desc.get('dtype')):
             code = 1
 
-
-        max_pixels = evaluate(input_desc.get('max_pixels'))
-        input_pixels = im.width * im.height
-        if input_pixels > max_pixels:
-            fxy = math.sqrt(float(max_pixels) / float(input_pixels))
-            im.resize(fx=fxy, fy=fxy)
-            code = 1
+        w_h = re.compile(' *[x*] *').split(input_desc.get('max_pixels'))
+        w_h = list(map(int, w_h)) # cast to int, py3 compat
+        # demo may wait a containing box
+        if len(w_h) == 2 and w_h[0] > 0 and w_h[1] > 0:
+            if im.width > w_h[0] or im.height > w_h[1]:
+                im.resize(width=w_h[0], height=w_h[1])
+                code = 1
+        else:
+            max_pixels = evaluate(input_desc.get('max_pixels'))
+            input_pixels = im.width * im.height
+            if input_pixels > max_pixels:
+                fxy = math.sqrt(float(max_pixels - 100) / float(input_pixels))
+                im.resize(fx=fxy, fy=fxy)
+                code = 1
 
         if crop_info is not None:
             # Crop is needed
@@ -298,7 +305,7 @@ class Conversion(object):
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
             im.write(input_file)
-
+            print(input_file)
         return code
 
     @staticmethod
