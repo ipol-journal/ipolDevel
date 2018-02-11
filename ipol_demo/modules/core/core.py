@@ -838,7 +838,7 @@ class Core(object):
             demoinfo_resp = resp.json()
 
             if demoinfo_resp['status'] != 'OK':
-                raise IPOLDemoExtrasError("Demoinfo responds with a KO")
+                raise IPOLDemoExtrasError("Failed to obtain demoExtras info")
 
             demoextras_compress_dir = os.path.join(self.dl_extras_dir, str(demo_id))
             self.mkdir_p(demoextras_compress_dir)
@@ -858,7 +858,7 @@ class Core(object):
             else:
                 demoextras_file = demoextras_file[0]
 
-                # DemoExtras was removed from demoinfo
+                # DemoExtras was removed from demoInfo
                 if 'url' not in demoinfo_resp:
                     shutil.rmtree(demoextras_compress_dir)
                     shutil.rmtree(os.path.join(self.demo_extras_main_dir, str(demo_id)))
@@ -875,7 +875,7 @@ class Core(object):
                     self.extract_demo_extras(demo_id, demoextras_file)
 
         except Exception as ex:
-            error_message = "Error processing the demoExtras of demo {}: {}".format(demo_id, ex)
+            error_message = "Error processing the demoExtras of demo #{}: {}".format(demo_id, ex)
             raise IPOLDemoExtrasError(error_message)
 
     @staticmethod
@@ -1159,8 +1159,7 @@ attached the failed experiment data.". \
 
     def decode_interface_request(self, interface_arguments):
         """
-        It extracts the arguments. If they were already given,
-        it wouldn't need to do anything.
+        Decode the arguments and extract the files send by the web interface
         """
         clientdata = json.loads(interface_arguments['clientData'])
         origin = clientdata.get('origin', None)
@@ -1230,14 +1229,14 @@ attached the failed experiment data.". \
 
     def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):
         """
-        Raise an exception if the codes of a given demo are well compiled.
+        Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
         dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
         demorunner_response = dr_response.json()
         if demorunner_response['status'] != 'OK':
-            print "COMPILATION FAILURE in demo = ", demo_id
-            # Send compilation message to the editors
+            print "Compilation error in demo #", demo_id
+            # Add the compilation failure info into the exception
             buildlog = demorunner_response.get('buildlog', '').encode('utf8')
             demorunner_message = demorunner_response['message'].encode('utf8')
             error_message = "DR={}, {}  - {}".format(dr_name, buildlog, demorunner_message)
@@ -1245,8 +1244,8 @@ attached the failed experiment data.". \
 
     def prepare_folder_for_execution(self, demo_id, origin, blobs, ddl_inputs, crop_info):
         """
-        Creates the working directory for the given execution and copies and
-        converts the corresponding blobs
+        Creates the working directory for a new execution. Then it copies and
+        eventually converts the input blobs
         """
         key = self.create_new_execution_key(self.logger)
         if not key:
@@ -1404,7 +1403,6 @@ attached the failed experiment data.". \
     def archive_an_experiment(self, ddl_archive, DR_response, demo_id, key, work_dir):
         """
         This function archives an experiment.
-        The core delegates this task in the archive module.
         """
         try:
             response = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, DR_response, self.host_name)
@@ -1440,8 +1438,7 @@ attached the failed experiment data.". \
             # the conversion of the input data if it is requested and not forbidden
             work_dir, key = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
 
-            # Delegate in the the chosen demorunner to execute the experiment in the run folder
-            # according to the DDL and the input params
+            # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
                                                         key, params, ddl['run'], ddl['general'], work_dir)
 
