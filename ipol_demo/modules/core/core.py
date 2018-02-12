@@ -1178,7 +1178,7 @@ attached the failed experiment data.". \
         elif origin is None:
             pass
         else:
-            raise IPOLDecodeInterfaceRequestError
+            raise IPOLDecodeInterfaceRequestError("Wrong origin value from the interface.")
 
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
                   clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs
@@ -1249,7 +1249,7 @@ attached the failed experiment data.". \
         """
         key = self.create_new_execution_key(self.logger)
         if not key:
-            raise IPOLKeyError
+            raise IPOLKeyError("**INTERNAL ERROR**. Failed to create a valid execution key")
         try:
             work_dir = self.create_run_dir(demo_id, key)
         except Exception as ex:
@@ -1366,7 +1366,6 @@ attached the failed experiment data.". \
         # images of aspect ratio 16:9".
         try:
             failure_filepath = os.path.join(work_dir, self.demo_failure_file)
-            print failure_filepath
             if os.path.exists(failure_filepath):
                 with open(failure_filepath, 'r') as open_file:
                     failure_message = "{}".format(open_file.read())
@@ -1433,7 +1432,7 @@ attached the failed experiment data.". \
             self.ensure_extras_updated(demo_id)
 
             ddl_inputs = ddl.get('inputs')
-            # Create run directory in the shared folder, copy blobs and delegate in the conversion module 
+            # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
             work_dir, key = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
 
@@ -1450,29 +1449,20 @@ attached the failed experiment data.". \
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
 
             return json.dumps(demorunner_response)
-        except IPOLDecodeInterfaceRequestError as ex:
-            error_message = "Wrong origin value from the interface."
+        except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError, IPOLArchiveError) as ex:
+            error_message = str(ex)
+            self.send_internal_error_email(error_message)
             self.logger.exception(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLEnsureCompilationError as ex:
             error_message = " --- Compilation error. --- {}".format(str(ex))
             self.send_compilation_error_email(demo_id, error_message)
             return json.dumps({'error': str(ex), 'status': 'KO'})
-        except IPOLDemoExtrasError as ex:
-            error_message = str(ex)
-            self.send_internal_error_email(error_message)
-            self.logger.exception(error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLFindSuitableDR as ex:
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
                 self.send_email_no_demorunner(demo_id)
             error_message = str(ex)
             self.logger.exception(error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
-        except IPOLKeyError as ex:
-            error_message = "**INTERNAL ERROR**. Failed to create a valid execution key"
-            self.logger.exception(error_message)
-            self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLWorkDirError as ex:
             error_message = "Could not create work_dir for demo {}".format(demo_id)
@@ -1482,13 +1472,9 @@ attached the failed experiment data.". \
             return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLReadDDLError as ex:
             return json.dumps({'error': str(ex), 'status': 'KO'})
-        except IPOLPrepareFolderError as ex:
+        except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
             if ex.email_message:
                 self.send_internal_error_email(ex.email_message)
-            return json.dumps({'error': ex.interface_message, 'status': 'KO'})
-        except IPOLExecutionError as ex:
-            if ex.email_message:
-                self.send_internal_error_email(error_message)
             return json.dumps({'error': ex.interface_message, 'status': 'KO'})
         except IPOLDemoRunnerResponseError as ex:
             # Send email to the editors
@@ -1496,11 +1482,6 @@ attached the failed experiment data.". \
             if not (ex.demo_state == 'published' and ex.error == 'IPOLTimeoutError'):
                 self.send_runtime_error_email(demo_id, ex.key, ex.message)
             return json.dumps({'error': ex.message, 'status': 'KO'})
-        except IPOLArchiveError as ex:
-            error_message = str(ex)
-            self.send_internal_error_email(error_message)
-            self.logger.exception(error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
         except Exception as ex:
             # We should never get here.
             #
