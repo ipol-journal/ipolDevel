@@ -1267,8 +1267,7 @@ attached the failed experiment data.". \
             resp = resp.json()
             # something went wrong in conversion module, transmit error
             if resp['status'] != 'OK':
-                error_message = resp['error']
-                raise IPOLConversionError(error_message)
+                raise IPOLConversionError(resp['error'])
 
             conversion_info = resp['info']
             for input_key in conversion_info:
@@ -1452,7 +1451,7 @@ attached the failed experiment data.". \
 
             return json.dumps(demorunner_response)
         except IPOLDecodeInterfaceRequestError as ex:
-            error_message = "Wrong origin value from the interface"
+            error_message = "Wrong origin value from the interface."
             self.logger.exception(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLEnsureCompilationError as ex:
@@ -1469,7 +1468,7 @@ attached the failed experiment data.". \
                 self.send_email_no_demorunner(demo_id)
             error_message = str(ex)
             self.logger.exception(error_message)
-            return json.dumps({'error': str(ex), 'status': 'KO'})
+            return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLKeyError as ex:
             error_message = "**INTERNAL ERROR**. Failed to create a valid execution key"
             self.logger.exception(error_message)
@@ -1478,26 +1477,25 @@ attached the failed experiment data.". \
         except IPOLWorkDirError as ex:
             error_message = "Could not create work_dir for demo {}".format(demo_id)
             # do not output full path for public
-            internal_error_message = (error_message + ". {}: {}").format(type(ex).__name__, str(ex))
+            internal_error_message = (error_message + ". Error: {}").format(str(ex))
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
         except IPOLReadDDLError as ex:
             return json.dumps({'error': str(ex), 'status': 'KO'})
         except IPOLPrepareFolderError as ex:
             if ex.email_message:
-                self.send_internal_error_email(str(ex.email_message))
-            return json.dumps({'error': str(ex.interface_message), 'status': 'KO'})
+                self.send_internal_error_email(ex.email_message)
+            return json.dumps({'error': ex.interface_message, 'status': 'KO'})
         except IPOLExecutionError as ex:
             if ex.email_message:
                 self.send_internal_error_email(error_message)
-            error_message = str(ex.interface_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
+            return json.dumps({'error': ex.interface_message, 'status': 'KO'})
         except IPOLDemoRunnerResponseError as ex:
             # Send email to the editors
             # (unless it's a timeout in a published demo)
-            if not (str(ex.demo_state) == 'published' and str(ex.error) == 'IPOLTimeoutError'):
-                self.send_runtime_error_email(demo_id, str(ex.key), str(ex.message))
-            return json.dumps({'error': str(ex.message), 'status': 'KO'})
+            if not (ex.demo_state == 'published' and ex.error == 'IPOLTimeoutError'):
+                self.send_runtime_error_email(demo_id, ex.key, ex.message)
+            return json.dumps({'error': ex.message, 'status': 'KO'})
         except IPOLArchiveError as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
@@ -1511,8 +1509,7 @@ attached the failed experiment data.". \
             error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
             self.logger.exception(error_message)
             self.send_internal_error_email(error_message)
-            core_response = {'status': 'KO', 'error': '{}'.format(error_message)}
-            return json.dumps(core_response)
+            return json.dumps({'status': 'KO', 'error': error_message})
 
     @staticmethod
     def save_execution(demo_id, request, response, work_dir):
