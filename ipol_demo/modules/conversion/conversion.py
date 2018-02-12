@@ -191,6 +191,7 @@ class Conversion(object):
         info = {}
         # Global try, will stop at first exception in an input
         try:
+            
             inputs_desc = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
@@ -200,9 +201,11 @@ class Conversion(object):
                 input_desc = inputs_desc[i]
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
+                
                 # Search for a file for this input
                 pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
                 input_files = glob.glob(pattern)
+                
                 # no file found, is this input optional?
                 if len(input_files) < 1:
                     # optional is said by {"required": False}, absence of required field means: required
@@ -219,6 +222,7 @@ class Conversion(object):
                     continue
                 # check input type
                 input_type = input_desc['type']
+                
                 if input_type not in ['image', 'data', 'video']:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
                     continue
@@ -240,6 +244,7 @@ class Conversion(object):
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir)
         except Exception as ex:
+            print ".............."
             message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
             return self.make_KO_response(message, work_dir)
         # globally OK (no exception), but for some input, a return code could be -1
@@ -280,8 +285,7 @@ class Conversion(object):
             im.crop(x=x, y=y, width=width, height=height)
             code = 1
 
-
-        w_h = re.compile(' *[x*] *').split(input_desc.get('max_pixels'))
+        w_h = re.compile(' *[x*] *').split(str(input_desc.get('max_pixels')))
         w_h = list(map(int, w_h)) # cast to int, py3 compat
         # demo may wait a containing box
         if len(w_h) == 2 and w_h[0] > 0 and w_h[1] > 0:
@@ -307,6 +311,39 @@ class Conversion(object):
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
             im.write(input_file, force=True) # force overwrites if needed
+        
+        return code
+
+    def convert_image_old(self, input_file, input_desc, crop_info=None):
+        """
+        Convert image if needed
+        """
+        code = 0
+        im = Image.open(input_file)
+        input_file_type, _ = mimetypes.guess_type(input_file)
+        input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
+        if input_file_type != input_desc_type:
+            # Change ext needed
+            self.change_image_ext(input_file, input_desc.get('ext'))
+            input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
+            code = 1
+ 
+        if crop_info is not None:
+            # Crop is needed
+            self.crop_image(input_file, crop_info)
+            im = Image.open(input_file)
+            code = 1
+ 
+        if im.size[0] * im.size[1] > evaluate(input_desc.get('max_pixels')):
+            # Resize needed
+            if input_desc.get("forbid_preprocess", False):
+                return 2 # Conversion needed but forbidden
+            self.resize_image(input_file, evaluate(input_desc.get('max_pixels')))
+            code = 1
+ 
+        if self.needs_dtype_convert(im, input_desc):
+            self.change_image_dtype(input_file, input_desc.get('dtype'))
+            code = 1
         return code
 
     @staticmethod

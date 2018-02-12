@@ -44,7 +44,7 @@ ALLOWED_HOSTS = []
 USE_MEMCACHED = False
 
 hostname = socket.gethostname()
-local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox', 'docker', 'fred-P51', 'localhost']
+local_machines = ['JAKmacmini', 'joses-mbp', 'Joses-MacBook-Pro.local','carlosUbuntu','aiis', 'zobuntu', 'martin-VirtualBox', 'docker', 'fred-P51']
 dev_machines_hostname = ['integration', 'integration.ipol.im']
 dev_machines = ['.ipol.im']
 production_machines = ['ipolcore', 'ipolcore.ipol.im']
@@ -80,17 +80,17 @@ if hostname in local_machines:
     DBHOST = 'localhost'
     DBUSER = ''
     DBPSSWD = ''
-    ALLOWED_HOSTS = ['127.0.0.1']
+    ALLOWED_HOSTS = ['127.0.1.1']
     HTTPS = False
 
     ####################################
     #            IPOL WS               #
     ####################################
-    HOST_NAME = '127.0.0.1'
+    HOST_NAME = '127.0.1.1'
     #Local ENV
-    IPOL_SERVICES_MODULE_DEMO ='http://127.0.0.1:8080'
+    IPOL_SERVICES_MODULE_DEMO ='http://127.0.1.1:8080'
     # change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (127.0.0.1)
-    IPOL_SERVICES_MODULE_PROXY = 'http://127.0.0.1:9003/%s'
+    IPOL_SERVICES_MODULE_PROXY = 'http://127.0.1.1:9003/%s'
     #urls to access the modules by proxy
     IPOL_SERVICES_MODULE_ACHIVE =IPOL_SERVICES_MODULE_PROXY
     IPOL_SERVICES_MODULE_BLOBS =IPOL_SERVICES_MODULE_PROXY
