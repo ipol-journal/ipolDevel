@@ -269,6 +269,9 @@ class Image(object):
         '''
         # no optimise flag found in OpenCV API
         pars = []
+        data = self.data
+        if data.dtype != np.uint8 and data.dtype != np.uint16:
+            data, _ = self.convert_matrix(data, 'x16i')
         if compression >= 0 and compression <= 9:
             pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
         return self.data, pars
@@ -306,7 +309,7 @@ class Image(object):
         dst_width, dst_height = width, height
         # problem
         if not width > 0 and not height > 0:
-            raise ValueError("Bad arguments, at least zoom or (width and/or height)")
+            raise ValueError("Bad arguments, resize needs at least zoom or (width and/or height)")
 
         # containing box
         if dst_width > 0 and dst_height > 0:
@@ -393,7 +396,7 @@ class Image(object):
         data: a CV numpy matrix
         mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i
         '''
-        # TODO 1x1i, nx16f, nx32f
+        # TODO 1x1i
 
         if not mode:
             return data, None
@@ -424,6 +427,7 @@ class Image(object):
         if 'x' in mode: # dtype modification requested
             dst_depth = mode[mode.index('x')+1:]
             src_dtype = data.dtype
+            # print("{}, {}".format(src_dtype, dst_depth))
             if dst_depth == '8i' or dst_depth == '8':
                 if src_dtype == 'uint8': # OK, do nothing
                     pass
@@ -436,8 +440,17 @@ class Image(object):
                     data = data.astype(np.uint8, copy=False)
                     ret = True
                 elif src_dtype == 'float32' or src_dtype == 'float16':
-                    src_min = np.amin(data)
-                    src_max = np.amax(data)
+                    # NaN found (???)
+                    src_min = np.nanmin(data)
+                    src_max = np.nanmax(data)
+                    # min and max are close to the dtype limits,
+                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
+                        if src_dtype == 'float32':
+                            data = data.astype(np.float64, copy=False)
+                        if src_dtype == 'float16':
+                            data = data.astype(np.float32, copy=False)
+                    data = (data - src_min) / (src_max - src_min) * 255
+                    data = data.astype(np.uint8, copy=False)
                 else:
                     raise ValueError("Convert matrix, source dtype={} not yet supported for '{}' mode conversion.".format(src_dtype, dst_depth))
             elif dst_depth == '16i' or dst_depth == '16':
@@ -451,8 +464,56 @@ class Image(object):
                     data = data >> 8
                     data = data.astype(np.uint16, copy=False)
                     ret = True
+                elif src_dtype == 'float32' or src_dtype == 'float16':
+                    # NaN found (???)
+                    src_min = np.nanmin(data)
+                    src_max = np.nanmax(data)
+                    # min and max are close to the dtype limits
+                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
+                        if src_dtype == 'float32':
+                            data = data.astype(np.float64, copy=False)
+                        if src_dtype == 'float16':
+                            data = data.astype(np.float32, copy=False)
+                    data = (data + src_min) / (src_max - src_min) * 65535
+                    data = data.astype(np.uint16, copy=False)
                 else:
                     raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
+            elif dst_depth == '32i' or dst_depth == '32':
+                if src_dtype == 'uint32': # OK, do nothing
+                    pass
+                elif src_dtype == 'uint8':
+                    data = data.astype(np.uint32, copy=False)
+                    data = data << 8
+                    ret = True
+                elif src_dtype == 'uint32':
+                    data = data >> 8
+                    data = data.astype(np.uint16, copy=False)
+                    ret = True
+                elif src_dtype == 'float32' or src_dtype == 'float16':
+                    # NaN found (???)
+                    src_min = np.nanmin(data)
+                    src_max = np.nanmax(data)
+                    # min and max are close to the dtype limits
+                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
+                        if src_dtype == 'float32':
+                            data = data.astype(np.float64, copy=False)
+                        if src_dtype == 'float16':
+                            data = data.astype(np.float32, copy=False)
+                    data = (data + src_min) / (src_max - src_min) * 16843009
+                    data = data.astype(np.uint16, copy=False)
+                else:
+                    raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
+            elif dst_depth == '16f':
+                if src_dtype == 'float16':
+                    pass
+                else:
+                    data = data.astype(np.float16, copy=False)
+                    ret = True
+            elif dst_depth == '32f':
+                if src_dtype == 'float32':
+                    pass
+                else:
+                    data = data.astype(np.float32, copy=False)
             else:
                 raise ValueError("Convert matrix, mode={} not yet supported.".format(mode))
         return data, ret

@@ -324,13 +324,21 @@ class Conversion(object):
         data = {"status": "KO"}
         try:
             buf = base64.b64decode(img)
-            # cv2.IMREAD_COLOR option is 7x faster than load asis and convert to uint8
-            # cv2 loads bytes as np vector
-            cvim = cv2.imdecode(np.fromstring(buf, dtype=np.uint8), cv2.IMREAD_COLOR) # cv2 l
-            _, buf = cv2.imencode(".png", cvim) # [cv2.IMWRITE_PNG_COMPRESSION, 9]
+            # cv2.IMREAD_ANYCOLOR option try to convert to uint8, 7x faster than matrix conversion
+            # but fails with some tiff formats (float)
+            cvim = cv2.imdecode(np.fromstring(buf, dtype=np.uint8), cv2.IMREAD_ANYCOLOR)
+            if False and cvim is not None:
+                _, buf = cv2.imencode(".png", cvim) # [cv2.IMWRITE_PNG_COMPRESSION, 9]
+            else:
+                ipim = Image(None)
+                ipim.decode(buf)
+                ipim.convert("x8i")
+                buf = ipim.encode('.png')
             data["img"] = base64.b64encode(buf) # reencode bytes
             data["status"] = "OK"
         except Exception as ex:
-            print "Failed to convert image from TIFF to PNG", ex
-            self.logger.exception("Failed to convert image from TIFF to PNG")
+            mess = "TIFF to PNG for client, conversion failure."
+            print mess
+            print(traceback.format_exc())
+            self.logger.exception(mess)
         return json.dumps(data)
