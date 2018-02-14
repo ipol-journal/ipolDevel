@@ -267,7 +267,6 @@ class Conversion(object):
         code = 0
         # Image has to be always loaded to test width and size
         im = Image(input_file)
-
         # convert image matrix if needed (before resize)
         if im.convert(input_desc.get('dtype')):
             code = 1
@@ -291,15 +290,22 @@ class Conversion(object):
 
         input_file_type, _ = mimetypes.guess_type(input_file)
         input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
+        input_path, input_ext = os.path.splitext(input_file)
+        dst_file = input_path + input_desc.get('ext')
+        # new encoding needed, according to the input and destination extension
         if input_file_type != input_desc_type:
-            # Another encoding (extension) expected, rename file with right extension, will be done on saving
-            input_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
+            # will be done by im.write() below
             code = 1
-
+        # same encoding,
+        elif code == 1:
+            pass
+        # no conversion needed but not the expected extension (.jpe > .jpeg; .tif > .tiff)
+        else:
+            os.rename(input_file, dst_file)
         if code == 1: # image data have been modified, save it
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
-            im.write(input_file, force=True) # force overwrites if needed
+            im.write(dst_file, force=True) # force overwrites if needed
         return code
 
     @staticmethod

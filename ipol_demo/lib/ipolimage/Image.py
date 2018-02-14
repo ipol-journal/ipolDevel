@@ -427,7 +427,6 @@ class Image(object):
         if 'x' in mode: # dtype modification requested
             dst_depth = mode[mode.index('x')+1:]
             src_dtype = data.dtype
-            # print("{}, {}".format(src_dtype, dst_depth))
             if dst_depth == '8i' or dst_depth == '8':
                 if src_dtype == 'uint8': # OK, do nothing
                     pass
@@ -443,13 +442,11 @@ class Image(object):
                     # NaN found (???)
                     src_min = np.nanmin(data)
                     src_max = np.nanmax(data)
-                    # min and max are close to the dtype limits,
-                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
-                        if src_dtype == 'float32':
-                            data = data.astype(np.float64, copy=False)
-                        if src_dtype == 'float16':
-                            data = data.astype(np.float32, copy=False)
-                    data = (data - src_min) / (src_max - src_min) * 255
+                    # close to type overflow, divide by 2
+                    if src_max/2 - src_min/2 >= np.finfo(src_dtype).max / 2:
+                        data = (data/2 - src_min/2) / (src_max/2 - src_min/2) * 255
+                    else:
+                        data = (data - src_min) / (src_max - src_min) * 255
                     data = data.astype(np.uint8, copy=False)
                 else:
                     raise ValueError("Convert matrix, source dtype={} not yet supported for '{}' mode conversion.".format(src_dtype, dst_depth))
@@ -457,7 +454,7 @@ class Image(object):
                 if src_dtype == 'uint16': # OK, do nothing
                     pass
                 elif src_dtype == 'uint8':
-                    data = data.astype(np.uint16, copy=False)
+                    data = data.astype(np.uint16, copy=False) # do cast before x256
                     data = data << 8
                     ret = True
                 elif src_dtype == 'uint32':
@@ -465,22 +462,20 @@ class Image(object):
                     data = data.astype(np.uint16, copy=False)
                     ret = True
                 elif src_dtype == 'float32' or src_dtype == 'float16':
-                    # NaN found (???)
+                    # NaN maybe found
                     src_min = np.nanmin(data)
                     src_max = np.nanmax(data)
-                    # min and max are close to the dtype limits
-                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
-                        if src_dtype == 'float32':
-                            data = data.astype(np.float64, copy=False)
-                        if src_dtype == 'float16':
-                            data = data.astype(np.float32, copy=False)
-                    data = (data + src_min) / (src_max - src_min) * 65535
+                    # min and max are close to the dtype limits, divide to have place for calculation
+                    if src_max/2 - src_min/2 >= np.finfo(src_dtype).max / 2:
+                        data = (data/2 - src_min/2) / (src_max/2 - src_min/2) * 65535
+                    else:
+                        data = (data - src_min) / (src_max - src_min) * 65535
                     data = data.astype(np.uint16, copy=False)
                 else:
                     raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
             elif dst_depth == '32i' or dst_depth == '32':
                 if src_dtype == 'uint32': # OK, do nothing
-                    pass
+                    pass0
                 elif src_dtype == 'uint8':
                     data = data.astype(np.uint32, copy=False)
                     data = data << 8
@@ -490,10 +485,8 @@ class Image(object):
                     data = data.astype(np.uint16, copy=False)
                     ret = True
                 elif src_dtype == 'float32' or src_dtype == 'float16':
-                    # NaN found (???)
                     src_min = np.nanmin(data)
                     src_max = np.nanmax(data)
-                    # min and max are close to the dtype limits
                     if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
                         if src_dtype == 'float32':
                             data = data.astype(np.float64, copy=False)
