@@ -319,7 +319,7 @@ class Image(object):
                 if ratio_width < ratio_height:
                     dst_height = float(src_height) * ratio_width
                 else:
-                    dst_width =  float(src_width) * ratio_height
+                    dst_width = float(src_width) * ratio_height
         # forced height
         elif dst_height > 0:
             max_width = 2*dst_height # avoid extreme ratio
@@ -378,9 +378,9 @@ class Image(object):
         cap = cv2.VideoCapture(video_file)
         pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
         pos_frame = min(pos_frame, pos_max)
-        for i in range(1, pos_frame):
+        for _ in range(1, pos_frame):
             cap.read()
-        ret, frame = cap.read()
+        _, frame = cap.read()
         # When everything done, release the capture
         cap.release()
         return Image(frame)
@@ -475,7 +475,7 @@ class Image(object):
                     raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
             elif dst_depth == '32i' or dst_depth == '32':
                 if src_dtype == 'uint32': # OK, do nothing
-                    pass0
+                    pass
                 elif src_dtype == 'uint8':
                     data = data.astype(np.uint32, copy=False)
                     data = data << 8
