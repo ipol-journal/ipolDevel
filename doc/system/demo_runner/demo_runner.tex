@@ -2,6 +2,6 @@
 \section{DemoRunner module}
 \label{sec:DemoRunner}
 
-This module controls the execution of the IPOL demos. It can execute C, C++ and MATLAB codes and the supporting scripts (provided by the authors) related to a the demo (demoextras). Besides, a demo author can use some generic scripts (PythonTools) that helps for representing the results of a demo such as draw 2D curves, draw histograms, counting lines and similar.
+This module controls the execution of the IPOL demos. It can execute directly its binaries or supporting scripts (provided by the demo editors) related to a particular demo (demoextras). Besides, a demo editor can use some generic scripts (PythonTools) that helps for representing the results of a demo such as draw 2D curves, draw histograms, counting lines and similar.
 
 The DemoRunner intervines twice during an execution. First, this module is responsible of informing the Core about the load of the machine where it is running and ensuring that the demo execution is done with the last source codes provided by the authors (it downloads and compiles these codes to maintain them updated). Second, the Demorunner executes the algorithm with the parameters set by the users. It takes care of stopping the demo execution if a timeout is reached, and to inform the Core about the causes of a demo execution failure so the Core can take the best action in response. 
