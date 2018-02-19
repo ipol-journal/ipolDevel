@@ -47,12 +47,25 @@ $(document).ready(function() {
     }
     html += paging(data.meta);
     $("#results").html(html);
+
+    var legends = $(".legend");
+    for (let i = 0; i < legends.length; i++) {
+      if (data.experiments[i].execution) $("#" + legends[i].id).addClickEvent();
+    }
+
   })
   .fail(function() {
     console.log("archive.js — page not found "+url);
     // strange bug if ddl not found but archive found, maybe whe should return here
   });
 });
+
+$.fn.addClickEvent = function() {
+  $(this).css({'cursor': 'pointer'});
+  $(this).click(function(){
+      window.location = "/demo/clientApp/demo.html?id=" + demo_id + "&archive=" + $(this)[0].id;
+  });
+}
 
 /**
  * Page slider
@@ -81,7 +94,7 @@ function record(data) {
   html += '\n<hr class="separator"/>';
   html += '\n<div class="record">';
   html += '\n<header>';
-  html += '\n<div class="legend">Experiment <b class="id">#'+data.id+'</b>.<br/>'+data.date;
+  html += '\n<div class="legend" id=' + data.id + '>Experiment <b class="id">#'+data.id+'</b>.<br/>'+data.date;
   // run time ? seconds ? important ?
   var runtime = data.parameters['run time']+0;
   if (runtime) {

@@ -1388,12 +1388,12 @@ attached the failed experiment data.". \
 
         return demorunner_response
 
-    def archive_an_experiment(self, ddl_archive, DR_response, demo_id, key, work_dir):
+    def archive_an_experiment(self, ddl_archive, request, DR_response, demo_id, key, work_dir):
         """
         This function archives an experiment.
         """
         try:
-            response = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, DR_response, self.host_name)
+            response = SendArchive.prepare_archive(demo_id, work_dir, request, ddl_archive, DR_response, self.host_name)
             if response != 'OK':
                 error_message = "Error archiving the experiment with key={} \
                                      of demo {}, Archive module returns KO".format(key, demo_id)
@@ -1403,6 +1403,20 @@ attached the failed experiment data.". \
             error_message = "Error archiving the experiment with \
                                        key={} of demo {}, {}".format(key, demo_id, str(ex))
             raise IPOLArchiveError(error_message)
+
+    @cherrypy.expose
+    def get_experiment_from_archive(self, experiment_id):
+        try:
+            resp = self.post(self.host_name, 'archive',
+                             'get_experiment', {"experiment_id": experiment_id})
+            response = resp.json()
+
+        except Exception as ex:
+            message = "Failed to obtain the experiment {}".format(experiment_id)
+            res_data = {'error': message, 'status': 'KO'}
+            return json.dumps(res_data)
+
+        return json.dumps({'status': 'OK', 'response': response})
 
     @cherrypy.expose
     def run2(self, **kwargs):
@@ -1433,7 +1447,7 @@ attached the failed experiment data.". \
             # Archive the experiment, if the 'archive' section exists in the DDL and
             # it is original uploaded data from the user (origin != 'blobset')
             if origin != 'blobset'and not private_mode and 'archive' in ddl:
-                self.archive_an_experiment(ddl['archive'], demorunner_response, demo_id, key, work_dir)
+                self.archive_an_experiment(ddl['archive'], kwargs, demorunner_response, demo_id, key, work_dir)
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
@@ -1492,9 +1506,10 @@ attached the failed experiment data.". \
         if clientdata.get("origin", "") == "upload":
             # Count how many file entries and remove them
             file_keys = [key for key in request if key.startswith("file_")]
-            map(request.pop, file_keys)
+            files = request.copy()
+            map(files.pop, file_keys)
             clientdata["files"] = len(file_keys)
-
+            
         clientdata = json.dumps(clientdata)
 
         execution_json = {}

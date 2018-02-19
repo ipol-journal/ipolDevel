@@ -2,6 +2,7 @@
 var demo_id;
 
 var demoInfo;
+var experiment;
 var execution;
 var files = [];
 // Initial trigger.
@@ -43,7 +44,8 @@ function getDemoinfo() {
     demoInfo = response;
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
-    if (getKey()) loadExecution(getKey());
+    if(getKey()) loadExecution(getKey());
+    if(getArchiveKey()) loadArchiveExecution(getArchiveKey());
   });
 }
 
@@ -73,11 +75,15 @@ function getKey() {
   return getParameterByName('key');
 }
 
+function getArchiveKey(){
+  return getParameterByName('archive');
+}
+
 function getParameterByName(name) {
   var url = window.location.href;
   name = name.replace(/[\[\]]/g, "\\$&");
   var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-    results = regex.exec(url);
+  results = regex.exec(url);
   if (!results) return null;
   if (!results[2]) return '';
   return decodeURIComponent(results[2].replace(/\+/g, " "));
@@ -86,28 +92,55 @@ function getParameterByName(name) {
 function loadExecution(key) {
   if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
     hideStatusContainer();  
-    helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(payload) {
-      if (payload.status == "OK") {
-        var execution_json = JSON.parse(payload.execution);
+    helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(data) {
+      if (data.status == "OK") {
+        var execution_json = JSON.parse(data.execution);
         var request = JSON.parse(execution_json.request);
+        work_url = execution_json.response.work_url;
+        
         if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
         if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
         if (request.origin == "upload") setFiles(request, execution_json.response)
         if (request.private_mode) $('#privateSwitch').prop('checked', true);
         results.draw(execution_json.response);
       } else {
-        alert(payload.error);
+        alert(data.error);
         window.location.href = "demo.html?id=" + demo_id;
       }
     });
   }
 }
 
+function loadArchiveExecution(archive_id) {
+  var url = "/api/core/get_experiment_from_archive?experiment_id=" + archive_id;
+  $.getJSON(url, function (data) {
+    if (data.response.status === "OK") {
+      experiment = data.response.experiment;
+      execution = JSON.parse(data.response.experiment.execution);
+      work_url = execution.response.work_url;
+      var request = execution != null ? JSON.parse(execution.request) : null;
+      
+      if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
+      if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
+      if (request.origin == "upload") setFiles(request, execution.response)
+      if (request.private_mode) $('#privateSwitch').prop('checked', true);
+      results.draw(execution.response);
+    } else{
+      alert('Archive experiment id not found.');
+      window.location.href = "demo.html?id=" + demo_id;
+    }
+  })
+   .fail(function (err) {
+      alert('Experiment load fail. Error: ' + data.err);
+      window.location.href = "demo.html?id=" + demo_id;
+  });
+}
+
 function setFiles(request, response) {
   var blobs = [];
   for (let i = 0; i < request.files; i++) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", response.work_url + 'input_' + i + demoInfo.inputs[i].ext);
+    xhr.open("GET", getFileURL('input_' + i + demoInfo.inputs[i].ext));
     xhr.responseType = "blob";
     xhr.onload = function() {
       if(xhr.status == 404){
@@ -145,6 +178,7 @@ window.onpopstate = function(e) {
   hideStatusContainer();
   $("#inputEditorContainer").empty();
   if (getKey()) loadExecution(getKey());
+  if (getArchiveKey()) loadArchiveExecution(getArchiveKey());
   else {
     $('.results').addClass('di-none');
     $('.results-container').empty();

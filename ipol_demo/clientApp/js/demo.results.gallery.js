@@ -55,11 +55,11 @@ function getGalleryImages(contentArray, work_url) {
       for (var idx = 0; idx < repeat; idx++) {
         blobs = [];
         if (typeof(imgField) === 'string') {
-          var img = '<img src=' + work_url + (imgField.indexOf("'") == -1 ? imgField : eval(imgField)) + ' class=gallery-img draggable=false></img>';
+          var img = '<img src=' + getFileURL(imgField.indexOf("'") == -1 ? imgField : eval(imgField)) + ' class=gallery-img draggable=false></img>';
           blobs.push($(img));
         } else if (typeof (imgField) === 'object') {
           for (var k = 0; k < imgField.length; k++) {
-            var img = '<img src=' + work_url + (imgField[k].indexOf("'") == -1 ? imgField[k] : eval(imgField[k])) + ' class=gallery-img draggable=false></img>';
+            var img = '<img src=' + getFileURL(imgField[k].indexOf("'") == -1 ? imgField[k] : eval(imgField[k])) + ' class=gallery-img draggable=false></img>';
             blobs.push($(img));
           }
         }

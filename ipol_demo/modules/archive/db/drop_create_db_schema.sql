@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS experiments (
                             id	INTEGER PRIMARY KEY AUTOINCREMENT,
                             id_demo	INTEGER NOT NULL,
                             params	TEXT,
+                            execution	TEXT,
                             timestamp	TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS blobs (
                             id	INTEGER PRIMARY KEY AUTOINCREMENT,

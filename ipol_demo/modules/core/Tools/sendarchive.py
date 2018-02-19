@@ -99,7 +99,7 @@ class SendArchive:
 
 
     @staticmethod
-    def prepare_archive(demo_id, work_dir, ddl_archive, res_data, host_name):
+    def prepare_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
         """
         prepares everything to archive the inputs/results/parameters
         puts the information in res_data['archive_blobs'] and
@@ -163,6 +163,22 @@ class SendArchive:
             if p in res_data['params']:
                parameters[p] = res_data['params'][p]
 
+        clientData = json.loads(request['clientData'])
+
+        if clientData.get("origin", "") == "upload":
+            # Count how many file entries and remove them
+            file_keys = [key for key in request if key.startswith("file_")]
+            files = request.copy()
+            map(files.pop, file_keys)
+            clientData["files"] = len(file_keys)
+
+        clientData = json.dumps(clientData)
+
+        execution_json = {}
+        execution_json['demo_id'] = demo_id
+        execution_json['request'] = clientData
+        execution_json['response'] = res_data
+
         # save info
         if 'info' in desc.keys():
           for i in desc['info']:
@@ -170,7 +186,7 @@ class SendArchive:
                parameters[desc['info'][i]] = res_data['algo_info'][i]
 
         try:
-            userdata = {"demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters) }
+            userdata = {"demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters), "execution": json.dumps(execution_json) }
             url = 'http://{}/api/{}/{}'.format(
                 host_name,
                 'archive',
