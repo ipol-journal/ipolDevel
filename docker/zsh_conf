@@ -18,12 +18,15 @@ source $ZSH/oh-my-zsh.sh
 # IPOL Terminal 
 alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
-alias cp="cd ~/ipolDevel/ipol_webapp && python manage.py runserver 127.0.0.1:8000"
+alias cpanel="cd ~/ipolDevel/ipol_webapp && python manage.py runserver 127.0.0.1:8000"
 
 # Collec all static files from CP.
-alias collectstatic="~/ipolDevel/ipol_webapp && python manage.py collectstatic --noinput --clear"
+alias collectstatic="cd ~/ipolDevel/ipol_webapp && python manage.py collectstatic --noinput --clear"
 
+# Test all
+alias runtest="cd ~/ipolDevel/ci_tests && python all.py"
 
+# Modules start
 alias core="cd ~/ipolDevel/ipol_demo/modules/core && python main.py"
 alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && python main.py"
 alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && python main.py"

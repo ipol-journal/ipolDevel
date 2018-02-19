@@ -36,10 +36,12 @@ RUN python -c 'import libtiff'
 
 RUN bash -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" && \
     cp /home/ipol/zsh_conf /root/.zshrc
-    
+
 USER ipol
 RUN bash -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" && \
     cp /home/ipol/zsh_conf ~/.zshrc
+
+COPY ./ipol_demo/modules/config_common/authorized_patterns.conf.sample ~/ipolDevel/modules/config_common/authorized_patterns.conf
 
 RUN ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod og-wx ~/.ssh/authorized_keys
 USER root
