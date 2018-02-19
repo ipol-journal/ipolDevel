@@ -163,21 +163,24 @@ class SendArchive:
             if p in res_data['params']:
                parameters[p] = res_data['params'][p]
 
-        clientData = json.loads(request['clientData'])
+        if request is not None:
+            clientData = json.loads(request['clientData'])
 
-        if clientData.get("origin", "") == "upload":
-            # Count how many file entries and remove them
-            file_keys = [key for key in request if key.startswith("file_")]
-            files = request.copy()
-            map(files.pop, file_keys)
-            clientData["files"] = len(file_keys)
+            if clientData.get("origin", "") == "upload":
+                # Count how many file entries and remove them
+                file_keys = [key for key in request if key.startswith("file_")]
+                files = request.copy()
+                map(files.pop, file_keys)
+                clientData["files"] = len(file_keys)
 
-        clientData = json.dumps(clientData)
+            clientData = json.dumps(clientData)
 
-        execution_json = {}
-        execution_json['demo_id'] = demo_id
-        execution_json['request'] = clientData
-        execution_json['response'] = res_data
+            execution_json = {}
+            execution_json['demo_id'] = demo_id
+            execution_json['request'] = clientData
+            execution_json['response'] = res_data
+        else: 
+            execution_json = {}
 
         # save info
         if 'info' in desc.keys():

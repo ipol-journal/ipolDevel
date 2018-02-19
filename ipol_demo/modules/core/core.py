@@ -1811,7 +1811,7 @@ attached the failed experiment data.". \
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
                 ddl_archive = ddl['archive']
                 try:
-                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                    SendArchive.prepare_archive(demo_id, work_dir, None, ddl_archive,
                                                 demorunner_response, self.host_name)
                 except IOError as ex:
                     message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)

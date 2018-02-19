@@ -57,7 +57,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters)
+            response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             add_status = response.get('status')
             id_experiment = response.get('id_experiment')
 
@@ -93,7 +93,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters)
+            response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             id_experiment = response.get('id_experiment')
 
             response = self.get_experiment(id_experiment)
@@ -125,7 +125,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters)
+            response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             id_experiment = response.get('id_experiment')
 
             response = self.get_page(self.demo_id)
@@ -154,7 +154,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            self.add_experiment(self.demo_id, [abs_path], parameters)
+            self.add_experiment(self.demo_id, [abs_path], parameters, {})
 
             response = self.delete_demo(self.demo_id)
             status = response.get('status')
@@ -192,7 +192,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters)
+            response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             id_experiment = response.get('id_experiment')
 
             response = self.demo_list()
@@ -218,7 +218,7 @@ class ArchiveTests(unittest.TestCase):
         try:
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
-            response = self.add_experiment(self.demo_id, [abs_path], parameters)
+            response = self.add_experiment(self.demo_id, [abs_path], parameters, {})
             id_experiment = response.get('id_experiment')
 
             response = self.update_demo_id(self.demo_id, new_demo_id)
@@ -268,9 +268,9 @@ class ArchiveTests(unittest.TestCase):
             abs_path = os.path.abspath(self.blob_path)
             parameters = {'test_param': 0}
             # Add blob experiment to one demo
-            self.add_experiment(self.demo_id, [abs_path], parameters)
+            self.add_experiment(self.demo_id, [abs_path], parameters, {})
             # Add same blob experiment to other demo
-            self.add_experiment(other_demo_id, [abs_path], parameters)
+            self.add_experiment(other_demo_id, [abs_path], parameters, {})
 
             response = self.get_page(self.demo_id)
             blob_id = response.get('experiments')[0].get('files')[0].get('id')
@@ -302,14 +302,14 @@ class ArchiveTests(unittest.TestCase):
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
-    def add_experiment(self, demo_id, blobs_path, parameters):
+    def add_experiment(self, demo_id, blobs_path, parameters, execution):
         """
         add experiment
         """
         blobs = []
         for path in blobs_path:
             blobs.append({os.path.basename(path): path})
-        params = {'demo_id': demo_id, 'blobs': json.dumps(blobs), 'parameters': json.dumps(parameters)}
+        params = {'demo_id': demo_id, 'blobs': json.dumps(blobs), 'parameters': json.dumps(parameters), 'execution': json.dumps(execution)}
         response = self.post(self.module, 'add_experiment', params=params)
         return response.json()
 
