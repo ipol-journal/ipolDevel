@@ -385,15 +385,15 @@ class Archive(object):
             raise
 
     @staticmethod
-    def update_exp_table(conn, demo_id, parameters):
+    def update_exp_table(conn, demo_id, parameters, execution):
         """
         This function update the experiment table
         """
         cursor_db = conn.cursor()
         cursor_db.execute("""
         INSERT INTO
-        experiments (id_demo, params, timestamp)
-        VALUES (?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters))
+        experiments (id_demo, params, execution, timestamp)
+        VALUES (?, ?, ?,datetime(CURRENT_TIMESTAMP, 'localtime'))""", (demo_id, parameters, execution))
         return int(cursor_db.lastrowid)
 
 
@@ -432,7 +432,7 @@ class Archive(object):
 
     @cherrypy.expose
     @authenticate
-    def add_experiment(self, demo_id, blobs, parameters):
+    def add_experiment(self, demo_id, blobs, parameters, execution):
         """
         This function adds an experiment with all its data to the archive.
         """
@@ -442,7 +442,7 @@ class Archive(object):
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
-            id_experiment = self.update_exp_table(conn, demo_id, parameters)
+            id_experiment = self.update_exp_table(conn, demo_id, parameters, execution)
             dict_corresp = {}
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
@@ -484,10 +484,10 @@ class Archive(object):
         try:
             conn = lite.connect(self.database_file)
             cursor_db = conn.cursor()
-            cursor_db.execute("""SELECT params, timestamp
+            cursor_db.execute("""SELECT params, execution, timestamp
                 FROM experiments WHERE id = ?""", (experiment_id,))
             row = cursor_db.fetchone()
-            data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1])
+            data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
             conn.close()
         except Exception as ex:
             data["status"] = "KO"
@@ -559,7 +559,7 @@ class Archive(object):
 
         return dict_file
 
-    def get_data_experiment(self, conn, id_exp, parameters, date):
+    def get_data_experiment(self, conn, id_exp, parameters, execution, date):
         """
         Build a dictionnary containing all the datas needed on a given
                 experiment for building the archive page.
@@ -587,6 +587,7 @@ class Archive(object):
             dict_exp["id"] = id_exp
             dict_exp["date"] = date
             dict_exp["parameters"] = json.loads(parameters)
+            dict_exp["execution"] = execution
             dict_exp["files"] = list_files
             return dict_exp
         except Exception as ex:
@@ -605,15 +606,15 @@ class Archive(object):
         starting_index = ((page - 1) * self.number_of_experiments_by_pages)
 
         cursor_db.execute("""
-        SELECT id, params, timestamp
+        SELECT id, params, execution, timestamp
         FROM experiments WHERE id_demo = ?
         ORDER BY timestamp
         LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,))
 
         all_rows = cursor_db.fetchall()
-
+        
         for row in all_rows:
-            data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2]))
+            data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2], row[3]))
 
         return data_exp
 

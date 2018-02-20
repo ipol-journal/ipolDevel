@@ -1388,12 +1388,12 @@ attached the failed experiment data.". \
 
         return demorunner_response
 
-    def archive_an_experiment(self, ddl_archive, DR_response, demo_id, key, work_dir):
+    def archive_an_experiment(self, ddl_archive, request, DR_response, demo_id, key, work_dir):
         """
         This function archives an experiment.
         """
         try:
-            response = prepare_archive(demo_id, work_dir, ddl_archive, DR_response, self.host_name)
+            response = prepare_archive(demo_id, work_dir, request, ddl_archive, DR_response, self.host_name)
             if response != 'OK':
                 error_message = "Error archiving the experiment with key={} \
                                      of demo {}, Archive module returns KO".format(key, demo_id)
@@ -1433,7 +1433,7 @@ attached the failed experiment data.". \
             # Archive the experiment, if the 'archive' section exists in the DDL and
             # it is original uploaded data from the user (origin != 'blobset')
             if origin != 'blobset'and not private_mode and 'archive' in ddl:
-                self.archive_an_experiment(ddl['archive'], demorunner_response, demo_id, key, work_dir)
+                self.archive_an_experiment(ddl['archive'], kwargs, demorunner_response, demo_id, key, work_dir)
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)

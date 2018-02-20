@@ -123,7 +123,7 @@
     <script src="{% static 'js/ajaxPost.js' %}"></script>
     <script>
         window.onload=function() {
-            var tags = [{% for tag in view.get_context_blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+            var tags = [{% for tag in view.get_context_data.blob.tags %}"{{ tag|escapejs }}"{% if not forloop.last %}, {% endif %} {% endfor %}];
             tags_list = tags.join(", ")
             document.getElementById("tags").value = tags_list
         }

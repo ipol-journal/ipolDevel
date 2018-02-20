@@ -50,6 +50,7 @@ function runDemo() {
 function updateURL(run_response){
   var url = window.location.href;
   if (getParameterByName('key')) url = url.split('&')[0];
+  if (getParameterByName('archive')) url = url.split('&')[0];
   window.history.pushState({'result': run_response, 'params': params, 'origin': helpers.getFromStorage('origin') }, null, url + '&key=' + run_response.key);
 }
 

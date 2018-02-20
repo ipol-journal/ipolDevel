@@ -74,7 +74,6 @@ def prepare_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             if p in res_data['params']:
                 parameters[p] = res_data['params'][p]
 
-
     if request is not None:
         clientData = json.loads(request['clientData'])
 
@@ -100,9 +99,12 @@ def prepare_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             if i in res_data['algo_info']:
                 parameters[ddl_archive['info'][i]] = res_data['algo_info'][i]
 
-    userdata = {"demo_id":demo_id, "blobs":json.dumps(blobs), "parameters":json.dumps(parameters)}
+    data = {"demo_id": demo_id, "blobs": json.dumps(blobs), "parameters": json.dumps(parameters), "execution": json.dumps(execution_json)}
     url = 'http://{}/api/{}/{}'.format(host_name, 'archive', 'add_experiment')
-    resp = requests.post(url, data=userdata)
+    resp = requests.post(url, data=data)
     json_response = resp.json()
     status = json_response['status']
+    if status != 'OK':
+        print json_response
+        return json_response
     return status

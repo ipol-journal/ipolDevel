@@ -2,22 +2,20 @@
 
 \section{Nginx as a reverse proxy}
 \label{sec:reverse_proxy}
-The IPOL project uses Nginx as a reverse proxy in order to take internet requests and send them to the servers in the 
-internal network. When Nginx proxies a request, it sends the request to a specified proxied server, fetches the response, 
-and sends it back to the client. With Nginx we implement private demos, microservide architechture patter and serve static 
-files used by the clients.
+The IPOL project uses Nginx as a reverse proxy in order to redirect internet requests to the servers in the 
+internal network. When Nginx receives a request, it decides which module it hast to send and so which machine that module is, 
+then fetches the response, and sends it back to the client. With Nginx we implement private demos, microservise architecture 
+patter and serve static files used by the clients.
 
 \subsection{Static files}
 The control panel as a Django web application needs to be compiled everytime the files change, so in order to serve the 
-application Django offers a cli tool to collect all static files. Nginx serves all of the static for the application and exposes them 
-under a pubic route.
+application Django offers a cli tool to collect all static files. Nginx serves all the static files used by the application and exposes them 
+under a public route.
 
 \subsection{API routing}
-Nginx is also used to redirect incoming requests to the corresponding port and direction inside the machine that has the 
-module running. For each module runnning inside a server there is an entry in the sites-available file specifying where to 
-route the request and deliver it to it's desired endpoint.
+Nginx is also used to redirect incoming requests to the corresponding port and direction inside the machine where the module is 
+running. Each modules has an internal file (sites-available) that decides where to route the request and deliver it to the desired endpoint.
 
 \subsection{Private demos}
-In order to have private demos that require an authentication step with username and password the IPOL system makes 
-use of Nginx. Every demo starting with id 33333001 will require authentication. This is controlled using routing logic. If this 
-authentication fails Nginx is configured to forbid access to the demo automatically.
+The IPOL system provides private demos that requires authentication by username and password. The ID of these demos begin with 
+33333001. In this sense, Nginx can detect when a private demo is requested and it can forbid the access if the authentication fails.
