@@ -15,3 +15,9 @@ class IPOLConvertInputError(Exception):
     IPOLConvertInputError
     """
     pass
+
+class IPOLThumbnailError(OSError):
+    """
+    IPOLConvertInputError
+    """
+    pass

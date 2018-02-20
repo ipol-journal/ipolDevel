@@ -285,11 +285,64 @@ class Image(object):
         pars = []
         return data, pars
 
-    def resize(self, preserve_ratio=True, width=None, height=None, fx=None, fy=None, interpolation=None):
+    @staticmethod
+    def valid_type(value, atype, name=None, amax=None, amin=None):
+        """
+        Ensure numeric casting of parameters, especially string to int.
+        force_numeric(None, int) => None
+        force_numeric(123, int) => 123
+        force_numeric('123', int) => 123
+        force_numeric('toto', int) => ValueError
+        force_numeric((123), int) => 123
+        force_numeric('123', float) => 123.0
+        """
+        if value is None:
+            return value
+        if isinstance(value, list):
+            value = value[0]
+        if isinstance(value, dict):
+            _, value = value.popitem()
+
+        if atype == bool:
+            return value not in [False, None, 0, 'False', 'false', 'f', 'no', 'n', 'F', '0']
+
+        try:
+            if atype == int:
+                value = int(value)
+            elif atype == float:
+                value = float(value)
+        except ValueError:
+            if name is None:
+                raise ValueError("{}{} impossible to cast to {}".format(value, type(value), atype))
+            else:
+                raise ValueError("{}={}{} impossible to cast to {}".format(name, value, type(value), atype))
+
+        if value > amax:
+            if name is None:
+                raise ValueError("{} > {}".format(value, amax))
+            else:
+                raise ValueError("{}={} > {}".format(name, value, amax))
+
+        if value < amin:
+            if name is None:
+                raise ValueError("{} < {}".format(value, amin))
+            else:
+                raise ValueError("{}={} >= {}".format(name, value, amin))
+
+
+        return value
+
+    def resize(self, width=None, height=None, fx=None, fy=None,
+               preserve_ratio=True, interpolation=None, max_width=5000, max_height=5000):
         '''
         Smart resize, according to different parameters
         '''
-
+        src_height, src_width = self.data.shape[:2]
+        width = self.valid_type(width, int, name='width', amax=max_width, amin=1)
+        height = self.valid_type(height, int, name='height', amax=max_height, amin=1)
+        fx = self.valid_type(fx, float, name='fx', amax=max_width/src_width, amin=1/src_width)
+        fy = self.valid_type(fy, float, name='fy', amax=max_height/src_height, amin=1/src_height)
+        preserve_ratio = self.valid_type(preserve_ratio, bool)
         if fx or fy:
             if not fx:
                 fx = fy
@@ -305,11 +358,8 @@ class Image(object):
             self._props()
             return
 
-        src_height, src_width = self.data.shape[:2]
-        dst_width, dst_height = width, height
-        # problem
-        if not width > 0 and not height > 0:
-            raise ValueError("Bad arguments, resize needs at least zoom or (width and/or height)")
+        dst_width = width
+        dst_height = height
 
         # containing box
         if dst_width > 0 and dst_height > 0:
@@ -322,7 +372,7 @@ class Image(object):
                     dst_width = float(src_width) * ratio_height
         # forced height
         elif dst_height > 0:
-            max_width = 2*dst_height # avoid extreme ratio
+            max_width = 3*dst_height # avoid extreme ratio
             # if src image is for example a line of 1 pixel height, keep original height
             if src_height < 10:
                 dst_height = src_height

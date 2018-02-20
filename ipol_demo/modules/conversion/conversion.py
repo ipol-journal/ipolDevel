@@ -18,6 +18,8 @@ import re
 import base64
 import mimetypes
 import traceback
+import errno
+
 import cherrypy
 import cv2
 import numpy as np
@@ -26,6 +28,7 @@ from ipolevaluator import evaluate
 
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
+from errors import IPOLThumbnailError
 
 
 def authenticate(func):
@@ -66,6 +69,10 @@ class Conversion(object):
     """
     The Conversion module
     """
+    IMAGE = "image"
+    VIDEO = "video"
+    AUDIO = "audio"
+    UNKNOWN = "unknown"
 
     instance = None
 
@@ -86,6 +93,8 @@ class Conversion(object):
         self.logs_dir = cherrypy.config.get("logs_dir")
         self.host_name = cherrypy.config.get("server.socket_host")
         self.config_common_dir = cherrypy.config.get("config_common_dir")
+        # the run directory in shared_folder, realpath ensure normalization (security tests)
+        self.run_dir = os.path.realpath(cherrypy.config.get("run_dir"))
 
         # Logs
         try:
@@ -254,10 +263,49 @@ class Conversion(object):
         self.logger.exception(message)
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
-        print(traceback.format_exc())
+        print traceback.format_exc()
         print json.dumps(response, indent=2, ensure_ascii=False)
         print message
         return json.dumps(response)
+
+    @cherrypy.expose
+    def thumbnail(self, src, **pars):
+        """
+        Create thumbnail for the file src (file path relative to shared_folder/run)
+        Other parameters are the same as Image.resize()
+        height=256 -- forced height with preserved ratio
+        width=256 -- forced width with preserved ratio
+        width=256&height=256 -- containing box with preserved ratio
+        width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
+        """
+        cherrypy.response.headers['Content-Type'] = "image/jpeg"
+        # src_file is relative to run folder in shared_folder
+        src_file = os.path.realpath(os.path.join(self.run_dir, src))
+        # ensure security (no ../)
+        if not src_file.startswith(self.run_dir):
+            raise IPOLThumbnailError(errno.EACCES, "conversion/thumbnail, permission denied", src)
+        if not os.path.isfile(src_file):
+            raise IPOLThumbnailError(errno.ENOENT, "conversion/thumbnail, source file not found", src)
+        media_type = self.media_type(src)
+        if media_type == self.IMAGE:
+            im = Image(src_file)
+        elif media_type == self.VIDEO:
+            im = Image.video_frame(src_file)
+        else:
+            raise IPOLThumbnailError("Format '{}' not yet supported.".format(media_type))
+        # transmit requested params to resizer, ensure diminution, except if requested height or width is very small
+        im.resize(max_height=max(im.height, 500), max_width=max(im.width, 500), **pars)
+        return im.encode('.jpg')
+
+    @staticmethod
+    def media_type(path):
+        """
+        Find type of media (image, video, sound, unknown) by file path extension
+        """
+        mime_type, _ = mimetypes.guess_type(path)
+        media_type, _ = mime_type.split('/')
+        return media_type
+
 
     def convert_image(self, input_file, input_desc, crop_info=None):
         """
@@ -290,7 +338,7 @@ class Conversion(object):
 
         input_file_type, _ = mimetypes.guess_type(input_file)
         input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
-        input_path, input_ext = os.path.splitext(input_file)
+        input_path, _ = os.path.splitext(input_file)
         dst_file = input_path + input_desc.get('ext')
         # new encoding needed, according to the input and destination extension
         if input_file_type != input_desc_type:
@@ -342,9 +390,9 @@ class Conversion(object):
                 buf = ipim.encode('.png')
             data["img"] = base64.b64encode(buf) # reencode bytes
             data["status"] = "OK"
-        except Exception as ex:
+        except Exception:
             mess = "TIFF to PNG for client, conversion failure."
             print mess
-            print(traceback.format_exc())
+            print traceback.format_exc()
             self.logger.exception(mess)
         return json.dumps(data)

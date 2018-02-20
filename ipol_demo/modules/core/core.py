@@ -40,7 +40,7 @@ import requests
 import cherrypy
 import magic
 
-from Tools.sendarchive import SendArchive
+from Tools.sendarchive import prepare_archive
 
 from errors import IPOLDemoExtrasError
 from errors import IPOLExtractError
@@ -1393,7 +1393,7 @@ attached the failed experiment data.". \
         This function archives an experiment.
         """
         try:
-            response = SendArchive.prepare_archive(demo_id, work_dir, ddl_archive, DR_response, self.host_name)
+            response = prepare_archive(demo_id, work_dir, ddl_archive, DR_response, self.host_name)
             if response != 'OK':
                 error_message = "Error archiving the experiment with key={} \
                                      of demo {}, Archive module returns KO".format(key, demo_id)
@@ -1478,6 +1478,7 @@ attached the failed experiment data.". \
             # If we arrive here it means that we missed to catch and
             # take care of some exception type.
             error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
+            print traceback.format_exc()
             self.logger.exception(error_message)
             self.send_internal_error_email(error_message)
             return json.dumps({'status': 'KO', 'error': error_message})
@@ -1796,7 +1797,7 @@ attached the failed experiment data.". \
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
                 ddl_archive = ddl['archive']
                 try:
-                    SendArchive.prepare_archive(demo_id, work_dir, ddl_archive,
+                    prepare_archive(demo_id, work_dir, ddl_archive,
                                                 demorunner_response, self.host_name)
                 except IOError as ex:
                     message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
