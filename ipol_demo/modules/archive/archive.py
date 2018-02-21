@@ -437,13 +437,13 @@ class Archive(object):
         This function adds an experiment with all its data to the archive.
         """
         data = {"status": "OK"}
-        id_experiment = None
         # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
             id_experiment = self.update_exp_table(conn, demo_id, parameters, execution)
+            data["id_experiment"] = id_experiment
             dict_corresp = {}
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
@@ -453,8 +453,6 @@ class Archive(object):
             message = "Failure in add_experiment. Error = {}".format(ex)
             self.logger.exception(message)
             data["status"] = "KO"
-            if id_experiment:
-                data["id_experiment"] = id_experiment
             try:
                 # Execute database rollback
                 conn.rollback()
@@ -748,6 +746,7 @@ class Archive(object):
 
         except Exception as ex:
             self.error_log("delete_experiment", str(ex))
+            print traceback.format_exc()
             try:
                 conn.rollback()
                 conn.close()
