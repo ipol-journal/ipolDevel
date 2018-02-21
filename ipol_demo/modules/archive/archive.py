@@ -437,6 +437,7 @@ class Archive(object):
         This function adds an experiment with all its data to the archive.
         """
         data = {"status": "OK"}
+        id_experiment = None
         # initialize list of copied files, to delete them in case of exception
         copied_files_list = []
         try:
@@ -448,11 +449,12 @@ class Archive(object):
             self.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
             conn.close()
-            data["id_experiment"] = id_experiment
         except Exception as ex:
             message = "Failure in add_experiment. Error = {}".format(ex)
             self.logger.exception(message)
             data["status"] = "KO"
+            if id_experiment:
+                data["id_experiment"] = id_experiment
             try:
                 # Execute database rollback
                 conn.rollback()
@@ -612,7 +614,7 @@ class Archive(object):
         LIMIT ? OFFSET ?""", (id_demo, self.number_of_experiments_by_pages, starting_index,))
 
         all_rows = cursor_db.fetchall()
-        
+
         for row in all_rows:
             data_exp.append(self.get_data_experiment(conn, row[0], row[1], row[2], row[3]))
 

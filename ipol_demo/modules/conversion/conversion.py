@@ -287,6 +287,7 @@ class Conversion(object):
         if not os.path.isfile(src_file):
             raise IPOLThumbnailError(errno.ENOENT, "conversion/thumbnail, source file not found", src)
         media_type = self.media_type(src)
+        # 'image/svg+xml'?
         if media_type == self.IMAGE:
             im = Image(src_file)
         elif media_type == self.VIDEO:

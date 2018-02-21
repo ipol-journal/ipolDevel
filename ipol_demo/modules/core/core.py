@@ -40,7 +40,7 @@ import requests
 import cherrypy
 import magic
 
-from Tools.sendarchive import prepare_archive
+from archive import send_to_archive
 
 from errors import IPOLDemoExtrasError
 from errors import IPOLExtractError
@@ -61,7 +61,6 @@ from errors import IPOLConversionError
 from errors import IPOLPrepareFolderError
 from errors import IPOLExecutionError
 from errors import IPOLDemoRunnerResponseError
-from errors import IPOLArchiveError
 
 # deprecated, should be droped with old run
 from ipolevaluator import evaluate
@@ -1161,6 +1160,7 @@ attached the failed experiment data.". \
         """
         Decode the arguments and extract the files send by the web interface
         """
+        # Method could be a function (no-self-use)
         clientdata = json.loads(interface_arguments['clientData'])
         origin = clientdata.get('origin', None)
         if origin is not None:
@@ -1388,21 +1388,24 @@ attached the failed experiment data.". \
 
         return demorunner_response
 
-    def archive_an_experiment(self, ddl_archive, request, DR_response, demo_id, key, work_dir):
+
+
+    @cherrypy.expose
+    def get_experiment_from_archive(self, experiment_id):
         """
-        This function archives an experiment.
+        Replay an experiment from archive.
         """
         try:
-            response = prepare_archive(demo_id, work_dir, request, ddl_archive, DR_response, self.host_name)
-            if response != 'OK':
-                error_message = "Error archiving the experiment with key={} \
-                                     of demo {}, Archive module returns KO".format(key, demo_id)
-                self.logger.exception(error_message)
-            return None
-        except IOError as ex:
-            error_message = "Error archiving the experiment with \
-                                       key={} of demo {}, {}".format(key, demo_id, str(ex))
-            raise IPOLArchiveError(error_message)
+            resp = self.post(self.host_name, 'archive',
+                             'get_experiment', {"experiment_id": experiment_id})
+            response = resp.json()
+
+        except Exception:
+            message = "Failed to obtain the experiment {}".format(experiment_id)
+            res_data = {'error': message, 'status': 'KO'}
+            return json.dumps(res_data)
+
+        return json.dumps({'status': 'OK', 'response': response})
 
     @cherrypy.expose
     def run2(self, **kwargs):
@@ -1428,18 +1431,28 @@ attached the failed experiment data.". \
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
-                                                        key, params, ddl['run'], ddl['general'], work_dir)
+                                    key, params, ddl['run'], ddl['general'], work_dir)
 
             # Archive the experiment, if the 'archive' section exists in the DDL and
             # it is original uploaded data from the user (origin != 'blobset')
             if origin != 'blobset'and not private_mode and 'archive' in ddl:
-                self.archive_an_experiment(ddl['archive'], kwargs, demorunner_response, demo_id, key, work_dir)
+                try:
+                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, self.host_name)
+                    if response.status != 'OK':
+                        mess = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
+                        id_experiment = None
+                        if 'id_experiment' in response:
+                            id_experiment = response.id_experiment
+                        self.logger.exception(mess.format(demo_id, key, id_experiment))
+                except Exception as ex:
+                    mess = "Error archiving an experiment: demo={}, key={}. Error: {}."
+                    self.logger.exception(mess.format(demo_id, key, str(ex)))
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
 
             return json.dumps(demorunner_response)
-        except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError, IPOLArchiveError) as ex:
+        except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
             self.logger.exception(error_message)
@@ -1707,8 +1720,7 @@ attached the failed experiment data.". \
                 message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
                 print message
-                response = {'status': 'KO',
-                            'error': message}
+                response = {'status': 'KO', 'error': message}
                 return json.dumps(response)
 
             # save parameters as a params.json file
@@ -1795,11 +1807,9 @@ attached the failed experiment data.". \
             # Archive the experiment, if the 'archive' section
             # exists in the DDL
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
-                ddl_archive = ddl['archive']
                 try:
-                    prepare_archive(demo_id, work_dir, ddl_archive,
-                                                demorunner_response, self.host_name)
-                except IOError as ex:
+                    send_to_archive(demo_id, work_dir, None, ddl['archive'], demorunner_response, self.host_name)
+                except Exception as ex:
                     message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
                     self.logger.exception(message)
                     self.send_internal_error_email(message)
