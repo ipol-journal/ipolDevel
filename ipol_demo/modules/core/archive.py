@@ -2,55 +2,59 @@
 # -*- coding:utf-8 -*-
 
 """
-    file for SendArchive class
+Helper functions for core, related to the archive module.
 """
 
 import os
-import mimetypes
+import traceback
 import gzip
-
 import json
 import requests
 
-def prepare_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
+def create_thumnnail(src_file, host_name):
     """
-    prepares everything to archive the inputs/results/parameters
-    puts the information in res_data['archive_blobs'] and
-    res_data['archive_params']
+    Create thumbnail when possible from file to archive in run folder.
+    Returns: the filepath of the created thumbnail has been created.
     """
     thumb_height = 128
-    work_dir = os.path.normpath(work_dir)
+    if not os.path.exists(src_file):
+        return False
+    url = 'http://{}/api/{}/{}'.format(host_name, 'conversion', 'thumbnail')
+    data = {'src': src_file, 'height': thumb_height}
+    resp = requests.post(url, data=data)
+    if not resp.status_code == 200:
+        # file type not supported for thumbnail
+        return False
+    thumb_name, _ = os.path.splitext(os.path.basename(src_file))
+    thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
+    thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
+    with open(thumb_file, 'wb') as f:
+        f.write(resp.content) # try ?
+        f.close()
+    return thumb_file
+
+def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
+    """
+    Prepare an execution folder for archiving an experiment (thumbnails).
+    Collect information and parameters.
+    Send data to the archive module.
+    """
     blobs = []
     if 'files' in ddl_archive.keys():
         for file_name, file_label in ddl_archive['files'].iteritems():
             src_file = os.path.join(work_dir, file_name)
             if not os.path.exists(src_file):
-                continue # is it normal? Shall we inform some one by log or an exception ?
+                continue # declared file in ddl is not there
             if not file_label: # if no label given, use filename
                 file_label = file_name
             value = {file_label: src_file}
-            mime_type, _ = mimetypes.guess_type(file_name)
-            media_type, _ = mime_type.split('/')
-            # thumbnail for some file types
-            if media_type in ('image', 'video') and mime_type != 'image/svg+xml':
-                # send filepath relative to run dir
-                src = os.path.join(os.path.dirname(work_dir), os.path.basename(work_dir), file_name)
-                data = {'src': src, 'height': thumb_height}
-                url = 'http://{}/api/{}/{}'.format(host_name, 'conversion', 'thumbnail')
-                resp = requests.post(url, data=data)
-                if not resp.status_code == 200:
-                    # something went wrong in thumbnail production, let it, maybe a data tiff file
-                    pass
-                else:
-                    thumb_name, _ = os.path.splitext(file_name)
-                    thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
-                    thumb_file = os.path.join(work_dir, thumb_name)
-                    with open(thumb_file, 'wb') as f:
-                        f.write(resp.content) # try ?
-                        f.close()
-                        value[thumb_name] = thumb_file
+            try: # to get a thumbnail
+                thumb_file = create_thumnnail(src_file, host_name)
+            except Exception:
+                print traceback.format_exc()
+            if thumb_file:
+                value[os.path.basename(thumb_file)] = thumb_file
             blobs.append(value)
-
 
     if 'compressed_files' in ddl_archive.keys():
         for file_name, file_label in ddl_archive['compressed_files'].iteritems():
@@ -99,12 +103,12 @@ def prepare_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             if i in res_data['algo_info']:
                 parameters[ddl_archive['info'][i]] = res_data['algo_info'][i]
 
-    data = {"demo_id": demo_id, "blobs": json.dumps(blobs), "parameters": json.dumps(parameters), "execution": json.dumps(execution_json)}
     url = 'http://{}/api/{}/{}'.format(host_name, 'archive', 'add_experiment')
+    data = {
+        "demo_id": demo_id,
+        "blobs": json.dumps(blobs),
+        "parameters": json.dumps(parameters),
+        "execution": json.dumps(execution_json)
+    }
     resp = requests.post(url, data=data)
-    json_response = resp.json()
-    status = json_response['status']
-    if status != 'OK':
-        print json_response
-        return json_response
-    return status
+    return resp.json()
