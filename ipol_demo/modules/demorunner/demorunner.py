@@ -40,10 +40,10 @@ class IPOLConstructFileNotFound(Exception):
     pass
 
 class IPOLUnauthorizedAccess(Exception):
-   """
-   IPOLUnauthorizedAccess
-   """
-   pass
+    """
+    IPOLUnauthorizedAccess
+    """
+    pass
 
 def authenticate(func):
     '''
@@ -309,17 +309,12 @@ class DemoRunner(object):
         src_dir = os.path.join(path_for_the_compilation, 'src/')
         bin_dir = os.path.join(path_for_the_compilation, 'bin/')
         log_file = os.path.join(path_for_the_compilation, 'build.log')
-        try:
-            # Clear src/ folder
-            self.mkdir_p(dl_dir)
-            self.mkdir_p(bin_dir)
-        except Exception:
-            self.logger.exception("Directory operation failed")
-            raise
 
-        for build_item in ddl_builds.items():
+        # Ensure needed compilation folders do exist
+        self.mkdir_p(dl_dir)
+        self.mkdir_p(bin_dir)
 
-            build_item = build_item[1]
+        for build_item in ddl_builds.values():
 
             # These are mandatory
             url = build_item.get('url')
@@ -422,11 +417,12 @@ format(path_from))
         try:
             if 'build1' in ddl_build:
                 # we should have a dict or a list of dict
-                self.do_compile(ddl_build, path_for_the_compilation)
+                self.compile_source(ddl_build, path_for_the_compilation)
             else:
                 data = {}
                 data['status'] = 'KO'
-                data['message'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build)).encode('utf8')
+                data['message'] = "Bad build syntax: 'build1' not found. \
+Build: {}".format(str(ddl_build)).encode('utf8')
                 return json.dumps(data)
             data = {}
             data['status'] = "OK"
@@ -510,7 +506,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
         ddl_build = json.loads(ddl_build)
         try:
             if 'build1' in ddl_build:
-                self.do_compile(ddl_build, path_for_the_compilation)
+                self.compile_source(ddl_build, path_for_the_compilation)
             else:
                 data['status'] = 'KO'
                 data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
@@ -521,7 +517,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
         return json.dumps(data)
 
-    def do_compile(self, ddl_build, path_for_the_compilation):
+    def compile_source(self, ddl_build, path_for_the_compilation):
         """
         Do the compilation
         """
