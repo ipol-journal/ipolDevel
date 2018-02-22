@@ -1405,7 +1405,7 @@ attached the failed experiment data.". \
             res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data)
 
-        return json.dumps({'status': 'OK', 'response': response})
+        return json.dumps(response)
 
     @cherrypy.expose
     def run2(self, **kwargs):

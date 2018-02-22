@@ -114,9 +114,9 @@ function loadExecution(key) {
 function loadArchiveExecution(archive_id) {
   var url = "/api/core/get_experiment_from_archive?experiment_id=" + archive_id;
   $.getJSON(url, function (data) {
-    if (data.response.status === "OK") {
-      experiment = data.response.experiment;
-      execution = JSON.parse(data.response.experiment.execution);
+    if (data.status === "OK") {
+      experiment = data.experiment;
+      execution = JSON.parse(data.experiment.execution);
       work_url = execution.response.work_url;
       var request = execution != null ? JSON.parse(execution.request) : null;
       
