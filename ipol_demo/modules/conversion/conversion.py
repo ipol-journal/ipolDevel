@@ -241,15 +241,19 @@ class Conversion(object):
                     info[i]['code'] = 1
 
         except IPOLConvertInputError as ex:
+            self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir, ex)
         except IPOLCropInputError as ex:
+            self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir, ex)
         except (OSError, IOError) as ex:
+            self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir, ex)
         except Exception as ex:
+            self.logger.exception(ex)
             message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
             return self.make_KO_response(message, work_dir, ex)
         # globally OK (no exception), but for some input, a return code could be -1
