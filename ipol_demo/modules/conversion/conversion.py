@@ -243,33 +243,29 @@ class Conversion(object):
         except IPOLConvertInputError as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
-            return self.make_KO_response(message, work_dir, ex)
+            return self.make_KO_response(message, work_dir)
         except IPOLCropInputError as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
-            return self.make_KO_response(message, work_dir, ex)
+            return self.make_KO_response(message, work_dir)
         except (OSError, IOError) as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
-            return self.make_KO_response(message, work_dir, ex)
+            return self.make_KO_response(message, work_dir)
         except Exception as ex:
             self.logger.exception(ex)
             message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
-            return self.make_KO_response(message, work_dir, ex)
+            return self.make_KO_response(message, work_dir)
         # globally OK (no exception), but for some input, a return code could be -1
         return json.dumps({'status': 'OK', 'info': info})
 
-    def make_KO_response(self, message, work_dir, ex):
+    def make_KO_response(self, message, work_dir):
         """
         Return a JSON KO response with an error message.
         """
         response = {'status':'KO'}
-        self.logger.exception(message)
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
-        print traceback.format_exc()
-        print json.dumps(response, indent=2, ensure_ascii=False)
-        print message
         return json.dumps(response)
 
     @cherrypy.expose
