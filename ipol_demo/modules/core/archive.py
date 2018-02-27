@@ -19,7 +19,7 @@ def create_thumnnail(src_file, host_name):
     thumb_height = 128
     if not os.path.exists(src_file):
         return False
-    url = 'http://{}/api/{}/{}'.format(host_name, 'conversion', 'thumbnail')
+    url = 'http://{}/api/conversion/thumbnail'.format(host_name)
     data = {'src': src_file, 'height': thumb_height}
     resp = requests.post(url, data=data)
     if not resp.status_code == 200:
@@ -103,7 +103,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             if i in res_data['algo_info']:
                 parameters[ddl_archive['info'][i]] = res_data['algo_info'][i]
 
-    url = 'http://{}/api/{}/{}'.format(host_name, 'archive', 'add_experiment')
+    url = 'http://{}/api/archive/add_experiment'.format(host_name)
     data = {
         "demo_id": demo_id,
         "blobs": json.dumps(blobs),

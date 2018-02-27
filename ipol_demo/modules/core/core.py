@@ -255,7 +255,7 @@ class Core(object):
             self.load_demorunners()
 
             demorunners = {"demorunners": json.dumps(self.demorunners)}
-            response = self.post(self.host_name, "dispatcher", "set_demorunners", data=demorunners)
+            response = self.post('api/dispatcher/set_demorunners', data=demorunners)
             if response.json().get('status') == "OK":
                 data['status'] = 'OK'
 
@@ -294,7 +294,7 @@ class Core(object):
             try:
                 response = {}
                 dr_server = self.demorunners[demorunner].get('server')
-                response = self.post(dr_server, 'demorunner', 'get_workload')
+                response = self.post('api/demorunner/get_workload', host=dr_server)
                 if not response.ok:
                     demorunners.append({'name': demorunner, 'status': 'KO'})
                     continue
@@ -330,7 +330,7 @@ class Core(object):
         for dr_name in self.demorunners:
             try:
                 dr_server = self.demorunners[dr_name]['server']
-                resp = self.post(dr_server, 'demorunner', 'get_workload')
+                resp = self.post('api/demorunner/get_workload', host=dr_server)
                 if not resp.ok:
                     error_message = "Bad post response from DR='{}'".format(dr_name)
                     self.error_log("demorunners_workload", error_message)
@@ -379,7 +379,7 @@ class Core(object):
         """
         Index page
         """
-        resp = self.post(self.host_name, 'demoinfo', 'demo_list')
+        resp = self.post('api/demoinfo/demo_list')
         response = resp.json()
         status = response['status']
 
@@ -689,7 +689,7 @@ class Core(object):
         input parameters:
         returns:
         """
-        resp = self.post(self.host_name, 'blobs', 'get_blobs_location', {'blobs_ids': blobs_id_list})
+        resp = self.post('api/blobs/get_blobs_location', data={'blobs_ids': blobs_id_list})
         response = resp.json()
 
         if response['status'] == 'OK':
@@ -833,7 +833,7 @@ class Core(object):
         and exists in the core folder.
         """
         try:
-            resp = self.post(self.host_name, 'demoinfo', 'get_demo_extras_info', {"demo_id": demo_id})
+            resp = self.post('api/demoinfo/get_demo_extras_info', data={"demo_id": demo_id})
             demoinfo_resp = resp.json()
 
             if demoinfo_resp['status'] != 'OK':
@@ -917,7 +917,7 @@ class Core(object):
         Gets demo meta data given its editor's ID
         """
         userdata = {"demoid": demo_id}
-        resp = self.post(self.host_name, 'demoinfo', 'read_demo_metainfo', userdata)
+        resp = self.post('api/demoinfo/read_demo_metainfo', data=userdata)
         return resp.json()
 
     def get_demo_editor_list(self, demo_id):
@@ -926,8 +926,7 @@ class Core(object):
         """
         # Get the list of editors of the demo
         userdata = {"demo_id": demo_id}
-        resp = self.post(self.host_name, 'demoinfo',
-                         'demo_get_editors_list', userdata)
+        resp = self.post('api/demoinfo/demo_get_editors_list', data=userdata)
         response = resp.json()
         status = response['status']
 
@@ -1188,7 +1187,8 @@ attached the failed experiment data.". \
         This function returns the DDL after checking its syntax.
         """
         try:
-            demoinfo_resp = self.post(self.host_name, 'demoinfo', 'get_ddl', {'demo_id': demo_id})
+            userdata = {'demo_id': demo_id}
+            demoinfo_resp = self.post('api/demoinfo/get_ddl', data=userdata)
             demoinfo_response = demoinfo_resp.json()
 
             if demoinfo_response['status'] != 'OK':
@@ -1232,7 +1232,7 @@ attached the failed experiment data.". \
         Ensure that the source codes of the demo are all updated and compiled correctly
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
-        dr_response = self.post(dr_server, 'demorunner', 'ensure_compilation', build_data)
+        dr_response = self.post('api/demorunner/ensure_compilation', data=build_data, host=dr_server)
         demorunner_response = dr_response.json()
         if demorunner_response['status'] != 'OK':
             print "Compilation error in demo #", demo_id
@@ -1263,7 +1263,7 @@ attached the failed experiment data.". \
             params_conv = {'work_dir': work_dir}
             params_conv['inputs_description'] = json.dumps(ddl_inputs)
             params_conv['crop_info'] = json.dumps(crop_info)
-            resp = self.post(self.host_name, 'conversion', 'convert', params_conv)
+            resp = self.post('api/conversion/convert', data=params_conv)
             resp = resp.json()
             # something went wrong in conversion module, transmit error
             if resp['status'] != 'OK':
@@ -1326,7 +1326,7 @@ attached the failed experiment data.". \
         if 'timeout' in ddl_general:
             userdata['timeout'] = ddl_general['timeout']
 
-        resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
+        resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
         try:
             demorunner_response = resp.json()
         except Exception as ex:
@@ -1388,18 +1388,14 @@ attached the failed experiment data.". \
 
         return demorunner_response
 
-
-
     @cherrypy.expose
     def get_experiment_from_archive(self, experiment_id):
         """
         Replay an experiment from archive.
         """
         try:
-            resp = self.post(self.host_name, 'archive',
-                             'get_experiment', {"experiment_id": experiment_id})
+            resp = self.post('api/archive/get_experiment', data={"experiment_id": experiment_id})
             response = resp.json()
-
         except Exception:
             message = "Failed to obtain the experiment {}".format(experiment_id)
             res_data = {'error': message, 'status': 'KO'}
@@ -1580,8 +1576,7 @@ attached the failed experiment data.". \
 
         # Start of block to obtain the DDL
         try:
-            resp = self.post(self.host_name, 'demoinfo',
-                             'get_ddl', {"demo_id": demo_id})
+            resp = self.post('api/demoinfo/get_ddl', data={"demo_id": demo_id})
             response = resp.json()
 
             last_demodescription = response['last_demodescription']
@@ -1697,8 +1692,7 @@ attached the failed experiment data.". \
                 return json.dumps(response)
 
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
-            resp = self.post(dr_server, 'demorunner', 'ensure_compilation', userdata)
-
+            resp = self.post('api/demorunner/ensure_compilation', data=userdata, host=dr_server)
             demorunner_response = resp.json()
             status = demorunner_response['status']
             if status != 'OK':
@@ -1742,8 +1736,7 @@ attached the failed experiment data.". \
 
             if 'timeout' in ddl['general']:
                 userdata['timeout'] = ddl['general']['timeout']
-
-            resp = self.post(dr_server, 'demorunner', 'exec_and_wait', userdata)
+            resp = self.post('api/demorunner/exec_and_wait', data=userdata)
             try:
                 demorunner_response = resp.json()
             except Exception as ex:
@@ -1870,7 +1863,7 @@ attached the failed experiment data.". \
         for i in range(len(self.demorunners) * 2):
             # Get a demorunner for the requirements
             try:
-                dispatcher_response = self.post(self.host_name, 'dispatcher', 'get_demorunner', demorunner_data)
+                dispatcher_response = self.post('api/dispatcher/get_demorunner', data=demorunner_data)
             except requests.ConnectionError:
                 dispatcher_response = None
 
@@ -1887,7 +1880,7 @@ attached the failed experiment data.". \
             # Check if the DR is up. Otherwise add it to the
             # list of unresponsive DRs
             try:
-                demorunner_response = self.post(dr_server, 'demorunner', 'ping')
+                demorunner_response = self.post('api/demorunner/ping', host=dr_server)
             except Exception:
                 demorunner_response = None
 
@@ -1909,17 +1902,16 @@ attached the failed experiment data.". \
         self.send_demorunner_unresponsive_email(unresponsive_demorunners)
         raise Exception("No DR available after many tries")  # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
 
-    def post(self, host, module, service, data=None):
+    def post(self, api_url, data=None, host=None):
         """
         Make a POST request via the IPOL API
         """
         try:
-            url = 'http://{0}/api/{1}/{2}'.format(
-                host,
-                module,
-                service)
+            if host is None:
+                host = self.host_name
+            url = 'http://{0}/{1}'.format(host, api_url)
             return requests.post(url, data=data)
         except Exception as ex:
-            print "Failure in the post function of the CORE in the call \
-              to {} module - {}".format(module, str(ex))
-            self.logger.exception("Failure in the post function of the CORE")
+            error_message = "Failure in the post function of the CORE using: URL={}, exception={}".format(url, ex)
+            print error_message
+            self.logger.exception(error_message)
