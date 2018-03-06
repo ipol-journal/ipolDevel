@@ -432,7 +432,7 @@ class Archive(object):
 
     @cherrypy.expose
     @authenticate
-    def add_experiment(self, demo_id, blobs, parameters, execution):
+    def add_experiment(self, demo_id, blobs, parameters, execution=None):
         """
         This function adds an experiment with all its data to the archive.
         """

@@ -39,9 +39,13 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     Collect information and parameters.
     Send data to the archive module.
     """
+    
+    ddl_files = ddl_archive.get('files', {})
+    ddl_hidden_files = ddl_archive.get('hidden_files', {})
+
     blobs = []
-    if 'files' in ddl_archive.keys():
-        for file_name, file_label in ddl_archive['files'].iteritems():
+    if 'files' in ddl_archive.keys() or 'hidden_files' in ddl_archive.keys():
+        for file_name, file_label in dict(ddl_files, **ddl_hidden_files).iteritems():
             src_file = os.path.join(work_dir, file_name)
             if not os.path.exists(src_file):
                 continue # declared file in ddl is not there
@@ -77,8 +81,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         for p in ddl_archive['params']:
             if p in res_data['params']:
                 parameters[p] = res_data['params'][p]
-
-    if request is not None:
+    if 'experiment_reconstruct' in ddl_archive.keys() and ddl_archive['experiment_reconstruct'] is True and request is not None:
         clientData = json.loads(request['clientData'])
 
         if clientData.get("origin", "") == "upload":
@@ -94,8 +97,10 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         execution_json['demo_id'] = demo_id
         execution_json['request'] = clientData
         execution_json['response'] = res_data
+
+        execution_json = json.dumps(execution_json)        
     else:
-        execution_json = {}
+        execution_json = None
 
     # save info
     if 'info' in ddl_archive.keys():
@@ -108,7 +113,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         "demo_id": demo_id,
         "blobs": json.dumps(blobs),
         "parameters": json.dumps(parameters),
-        "execution": json.dumps(execution_json)
+        "execution": execution_json
     }
     resp = requests.post(url, data=data)
     return resp.json()

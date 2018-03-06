@@ -28,14 +28,13 @@ function printResult(result, index) {
 }
 
 function getFileURL(file){
-  if (!getArchiveKey()) return work_url + file;
-  var images_ddl = demoInfo.archive.files;
+  if (!getArchiveExperimentId()) return work_url + file;
+  var images_ddl = {...demoInfo.archive.files, ...demoInfo.archive.hidden_files};
   var images_ddl_keys = Object.keys(images_ddl);
-
   for (let i = 0; i < images_ddl_keys.length; i++) 
-    for (let j = 0; j < experiment.files.length; j++) 
+    for (let j = 0; j < experiment.files.length; j++)
       if (images_ddl[images_ddl_keys[i]] === experiment.files[j].name && images_ddl_keys[i] === file)
-        return experiment.files[j].url;
+        return experiment.files[j].url; 
 
   return null;
 }

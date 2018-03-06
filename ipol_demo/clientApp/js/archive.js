@@ -4,7 +4,7 @@
 var demo_id = getParameterByName('id');
 // global, the requested page, null if undefined
 var page = getParameterByName('page');
-
+var ddl;
 /**
  * document.onload, global populate page
  */
@@ -17,7 +17,7 @@ $(document).ready(function() {
   var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id;
   $.getJSON(url, function(data) {
     // ddl is provided as a string (why ? isn't it correct json ?)
-    var ddl = JSON.parse(data.last_demodescription.ddl);
+    ddl = JSON.parse(data.last_demodescription.ddl);
     // console.log(ddl);
     $("#pageTitle").html(ddl.general.demo_title);
     // this message is shared with demo.js
@@ -25,37 +25,38 @@ $(document).ready(function() {
     $("#citation-link").attr('href', ddl.general.xlink_article);
     $("#articleTab").attr('href', ddl.general.xlink_article);
     $("#demoTab")[0].href = 'demo.html?id=' + demo_id;
+    
+    if ( page == null ) page = -1;
+    var url = '/api/archive/get_page?page=' + page + '&demo_id=' + demo_id;
+    $.getJSON(url, function(data) {
+      // default page should be last one
+      if (page < 0) page = data.meta.number_of_pages;
+      var html = '';
+      html += '\n<header>';
+      html += '\n<h3>'+data.meta.number_of_experiments+' public experiments since '+data.meta.first_date_of_an_experiment.substr(0, 10)+'</h3>';
+      html += '\n<p class="p">This archive is not moderated. In case you uploaded images that you don’t want that appear in the archive, please contact the editor in charge. In case of copyright infringement or similar problems, please <a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images. Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.</p>';
+      html += '\n</header>';
+      html += paging(data.meta);
+      var max = data.experiments.length;
+      for (var i=0; i < max; i++) {
+        html += record(data.experiments[i]);
+      }
+      html += paging(data.meta);
+      $("#results").html(html);
+      
+      var legends = $(".legend");
+      for (let i = 0; i < legends.length; i++) {
+        if (data.experiments[i].execution) $("#" + legends[i].id).addClickEvent();
+      }
+      
+    })
+    .fail(function() {
+      console.log("archive.js — page not found "+url);
+      // strange bug if ddl not found but archive found, maybe whe should return here
+    });
   })
   .fail(function() {
     console.log("archive.js — ddl load fail "+url);
-    // strange bug if ddl not found but archive found, maybe whe should return here
-  });
-  if ( page == null ) page = -1;
-  var url = '/api/archive/get_page?page=' + page + '&demo_id=' + demo_id;
-  $.getJSON(url, function(data) {
-    // default page should be last one
-    if (page < 0) page = data.meta.number_of_pages;
-    var html = '';
-    html += '\n<header>';
-    html += '\n<h3>'+data.meta.number_of_experiments+' public experiments since '+data.meta.first_date_of_an_experiment.substr(0, 10)+'</h3>';
-    html += '\n<p class="p">This archive is not moderated. In case you uploaded images that you don’t want that appear in the archive, please contact the editor in charge. In case of copyright infringement or similar problems, please <a href="https://tools.ipol.im/wiki/ref/demo_input/#archive-cleanup">contact us</a> to request the removal of some images. Some archived content may be deleted by the editorial board for size matters, inadequate content, user requests, or other reasons.</p>';
-    html += '\n</header>';
-    html += paging(data.meta);
-    var max = data.experiments.length;
-    for (var i=0; i < max; i++) {
-      html += record(data.experiments[i]);
-    }
-    html += paging(data.meta);
-    $("#results").html(html);
-
-    var legends = $(".legend");
-    for (let i = 0; i < legends.length; i++) {
-      if (data.experiments[i].execution) $("#" + legends[i].id).addClickEvent();
-    }
-
-  })
-  .fail(function() {
-    console.log("archive.js — page not found "+url);
     // strange bug if ddl not found but archive found, maybe whe should return here
   });
 });
@@ -132,7 +133,7 @@ function record(data) {
   html += '\n<div class="thumbs">';
   var max = data.files.length;
   for (var i = 0; i < max; i++) {
-    if (!data.files[i].url_thumb) continue;
+    if (!data.files[i].url_thumb || !ddl.archive.files || !Object.values(ddl.archive.files).includes(data.files[i].name)) continue;
     html += '\n<a href="'+data.files[i].url+'" target="_blank" class="thumb">';
     html += '\n<img class="thumb" src="'+data.files[i].url_thumb+'"/>';
     html += '\n'+data.files[i].name;
@@ -148,7 +149,7 @@ function record(data) {
   var files = "";
   var max = data.files.length;
   for (var i = 0; i < max; i++) {
-    if (data.files[i].url_thumb) continue;
+    if (data.files[i].url_thumb || !Object.values(ddl.archive.files).includes(data.files[i].name)) continue;
     var url = data.files[i].url;
     var ext = url.substr(url.lastIndexOf('.')+1);
     // not empty string, add comma.

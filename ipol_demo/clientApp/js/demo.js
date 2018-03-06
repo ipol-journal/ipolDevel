@@ -1,37 +1,64 @@
 "use strict"
-var demo_id;
 
-var demoInfo;
-var experiment;
-var execution;
+var demo_id;
+var demoInfo, experiment;
 var files = [];
+
 // Initial trigger.
 $(document).ready(function() {
   demo_id = getDemoId();
-
+  
   // Workaround: use the old interface only for inpainting demos
   if ($.inArray(parseInt(demo_id), [189, 198, 77777000030]) != -1) {
-      // Move to the old interface
-      window.location = "/demo/clientAppOld/demo.html?id=" + demo_id;
+    // Move to the old interface
+    window.location = "/demo/clientAppOld/demo.html?id=" + demo_id;
   }
-
+  
   $("#header").load("header.html");
   $("#inputEditorContainer").load("editor.html");
   $("#parameters").load("parameters.html");
   $("#footer").load("footer.html");
   sessionStorage.clear();
-
+  
   $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
+  
   getBlobSets();
   getDemoinfo();
 });
 
+window.onpopstate = function() {
+  hideStatusContainer();
+  $("#inputEditorContainer").empty();
+
+  if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
+  else if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
+  else {
+    $('.results').addClass('di-none');
+    $('.results-container').empty();
+  }
+};
+
+// Get Demo_Id from URL.
+function getDemoId() {
+  return getParameterByName('id');
+}
+
+// Get Key from URL.
+function getExecutionKey() {
+  return getParameterByName('key');
+}
+
+function getArchiveExperimentId(){
+  return getParameterByName('archive');
+}
+
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
     console.log("get_globs", blobs);
-    input.printSets(blobs.sets);
     helpers.addToStorage("blobs", blobs.sets);
-    if (getKey()) loadExecution(getKey());
+    input.printSets(blobs.sets);
+    if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
+    if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
   });
 }
 
@@ -44,8 +71,8 @@ function getDemoinfo() {
     demoInfo = response;
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
-    if(getKey()) loadExecution(getKey());
-    if(getArchiveKey()) loadArchiveExecution(getArchiveKey());
+    if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
+    if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
   });
 }
 
@@ -65,20 +92,6 @@ function printDemoHeader(response) {
   $("#articleTab").attr('href', response.general.xlink_article);
 }
 
-// Get Demo_Id from URL.
-function getDemoId() {
-  return getParameterByName('id');
-}
-
-// Get Key from URL.
-function getKey() {
-  return getParameterByName('key');
-}
-
-function getArchiveKey(){
-  return getParameterByName('archive');
-}
-
 function getParameterByName(name) {
   var url = window.location.href;
   name = name.replace(/[\[\]]/g, "\\$&");
@@ -89,58 +102,42 @@ function getParameterByName(name) {
   return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function loadExecution(key) {
-  if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
-    hideStatusContainer();  
-    helpers.getFromAPI("/api/core/load_execution?demo_id=" + demo_id + '&key=' + key, function(data) {
-      if (data.status == "OK") {
-        var execution_json = JSON.parse(data.execution);
-        var request = JSON.parse(execution_json.request);
-        work_url = execution_json.response.work_url;
-        
-        if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
-        if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
-        if (request.origin == "upload") setFiles(request, execution_json.response)
-        if (request.private_mode) $('#privateSwitch').prop('checked', true);
-        results.draw(execution_json.response);
-      } else {
-        alert(data.error);
-        window.location.href = "demo.html?id=" + demo_id;
-      }
-    });
-  }
+/* 
+This implements the mechanism that allows to reconstruct an experiment from the temporal folder or archive, depending on the url.
+*/
+function loadExecution(url){
+    if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
+      $.getJSON(url, function(data) {
+        if (data.status === "OK") {
+          experiment = data.experiment;
+          var execution = JSON.parse(data.execution || experiment.execution);
+          var request = execution != null ? JSON.parse(execution.request) : null;
+          
+          renderExperiment(request, execution.response);
+        } else {
+          alert(data.error);
+          window.location.href = "demo.html?id=" + demo_id;
+        }
+      });
+    }
 }
 
-function loadArchiveExecution(archive_id) {
-  var url = "/api/core/get_experiment_from_archive?experiment_id=" + archive_id;
-  $.getJSON(url, function (data) {
-    if (data.status === "OK") {
-      experiment = data.experiment;
-      execution = JSON.parse(data.experiment.execution);
-      work_url = execution.response.work_url;
-      var request = execution != null ? JSON.parse(execution.request) : null;
-      
-      if (!$.isEmptyObject(request.params)) parameters.setParametersValues(request.params);
-      if (request.origin == "blobSet") setEditor(request.setId, request.crop_info)
-      if (request.origin == "upload") setFiles(request, execution.response)
-      if (request.private_mode) $('#privateSwitch').prop('checked', true);
-      results.draw(execution.response);
-    } else{
-      alert('Archive experiment id not found.');
-      window.location.href = "demo.html?id=" + demo_id;
-    }
-  })
-   .fail(function (err) {
-      alert('Experiment load fail. Error: ' + data.err);
-      window.location.href = "demo.html?id=" + demo_id;
-  });
+function renderExperiment(run_request, execution_response){
+  work_url = execution_response.work_url;
+
+  if (!$.isEmptyObject(run_request.params)) parameters.setParametersValues(run_request.params);
+  if (run_request.origin == "blobSet") setEditor(run_request.setId, run_request.crop_info)
+  if (run_request.origin == "upload") setFiles(run_request, execution_response)
+  if (run_request.private_mode) $('#privateSwitch').prop('checked', true);
+  results.draw(execution_response);
 }
 
 function setFiles(request, response) {
   var blobs = [];
   for (let i = 0; i < request.files; i++) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", getFileURL('input_' + i + demoInfo.inputs[i].ext));
+    var file_url = getFileURL('input_' + i + demoInfo.inputs[i].ext);
+    xhr.open("GET", file_url);
     xhr.responseType = "blob";
     xhr.onload = function() {
       if(xhr.status == 404){
@@ -174,13 +171,3 @@ $(function() {
   });
 });
 
-window.onpopstate = function(e) {
-  hideStatusContainer();
-  $("#inputEditorContainer").empty();
-  if (getKey()) loadExecution(getKey());
-  if (getArchiveKey()) loadArchiveExecution(getArchiveKey());
-  else {
-    $('.results').addClass('di-none');
-    $('.results-container').empty();
-  }
-};
