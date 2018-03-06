@@ -5,7 +5,6 @@ CREATE TABLE "blobs" (
 	'hash'	VARCHAR(70) NOT NULL UNIQUE,
 	'format'	VARCHAR(30),
 	'extension'	VARCHAR(30),
-	'title'	VARCHAR(255),
 	'credit'	LONGTEXT
 );
 CREATE TABLE "blobs_tags" (
@@ -26,6 +25,7 @@ CREATE TABLE "demos_blobs" (
         'blob_id' INTEGER NOT NULL,
         'blob_set' VARCHAR (70) DEFAULT NULL,
         'pos_in_set' INTEGER,
+        'blob_title'	VARCHAR(255),
         FOREIGN KEY('demo_id') REFERENCES "demos"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY('blob_id') REFERENCES "blobs"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         UNIQUE('demo_id','blob_set','pos_in_set')
@@ -52,6 +52,7 @@ CREATE TABLE "templates_blobs" (
         'blob_id' INTEGER NOT NULL,
         'blob_set' VARCHAR (70) DEFAULT NULL,
         'pos_in_set' INTEGER,
+        'blob_title'	VARCHAR(255),
         FOREIGN KEY('template_id') REFERENCES "templates"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY('blob_id') REFERENCES "blobs"('id') ON DELETE CASCADE ON UPDATE CASCADE,
         UNIQUE('template_id','blob_set','pos_in_set')

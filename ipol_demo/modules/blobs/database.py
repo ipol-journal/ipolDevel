@@ -23,16 +23,16 @@ def get_blob_tags(conn, blob_id):
     return tags
 
 
-def store_blob(conn, blob_hash, blob_format, extension, title, credit):
+def store_blob(conn, blob_hash, blob_format, extension, credit):
     """
     Store the blob in the Blobs table and returns the blob id
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO blobs (hash, format, extension, title, credit)
-            VALUES (?,?,?,?,?)
-            """, (blob_hash, blob_format, extension, title, credit))
+            INSERT INTO blobs (hash, format, extension, credit)
+            VALUES (?,?,?,?)
+            """, (blob_hash, blob_format, extension, credit))
         return cursor.lastrowid
     except IntegrityError as ex:
         raise IntegrityError(ex)
@@ -74,18 +74,18 @@ def create_demo(conn, editor_demo_id):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos):
+def add_blob_to_demo(conn, editor_demo_id, blob_id, blob_set, blob_pos, blob_title):
     """
     Associates the blob to a demo in demos_blobs table
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set)
+            INSERT INTO demos_blobs (demo_id, blob_id, blob_set, pos_in_set, blob_title)
             VALUES ((SELECT id
                     FROM demos
-                    WHERE editor_demo_id = ?), ?, ?,?)
-            """, (editor_demo_id, blob_id, blob_set, blob_pos))
+                    WHERE editor_demo_id = ?), ?, ?, ?, ?)
+            """, (editor_demo_id, blob_id, blob_set, blob_pos, blob_title))
     except IntegrityError as ex:
         raise IntegrityError(ex)
     except Exception as ex:
@@ -141,18 +141,18 @@ def create_template(conn, template_name):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set):
+def add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set, blob_title):
     """
     Associates the blob to a template in templates_blobs table
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set)
+            INSERT INTO templates_blobs (template_id, blob_id, blob_set, pos_in_set, blob_title)
             VALUES ((SELECT id
                     FROM templates
-                    WHERE name = ?), ?,?,?)
-            """, (template_name, blob_id, blob_set, pos_set))
+                    WHERE name = ?), ?, ?, ?, ?)
+            """, (template_name, blob_id, blob_set, pos_set, blob_title))
     except IntegrityError as ex:
         raise IntegrityError(ex)
     except Exception as ex:
@@ -263,7 +263,7 @@ def get_demo_owned_blobs(conn, editor_demo_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT blobs.id, hash, format, extension, title, credit, blob_set, pos_in_set
+            SELECT blobs.id, hash, format, extension, blob_title, credit, blob_set, pos_in_set
             FROM blobs, demos, demos_blobs
             WHERE demo_id = demos.id
             AND blob_id = blobs.id
@@ -289,7 +289,7 @@ def get_template_blobs(conn, name):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT blobs.id, hash, format, extension, title, credit, blob_set, pos_in_set
+            SELECT blobs.id, hash, format, extension, blob_title, credit, blob_set, pos_in_set
             FROM blobs, templates, templates_blobs
             WHERE template_id = templates.id
             AND blob_id = blobs.id
@@ -340,14 +340,14 @@ def get_blob_data(conn, blob_id):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT hash, format, extension, title, credit
+            SELECT hash, format, extension, credit
             FROM blobs
             WHERE id = ?
             """, (blob_id,))
         data = cursor.fetchone()
         if data is None:
             return None
-        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'title': data[3], 'credit': data[4]}
+        result = {'hash': data[0], 'format': data[1], 'extension': data[2], 'credit': data[3]}
         return result
     except IntegrityError as ex:
         raise IntegrityError(ex)
@@ -363,7 +363,7 @@ def get_blob_data_from_demo(conn, editor_demo_id, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT blobs.id, hash, format, extension, title, credit
+            SELECT blobs.id, hash, format, extension, blob_title, credit
             FROM blobs, demos_blobs, demos
             WHERE editor_demo_id = ?
             AND blob_set = ?
@@ -391,7 +391,7 @@ def get_blob_data_from_template(conn, template_name, blob_set, pos_set):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT blobs.id, hash, format, extension, title, credit
+            SELECT blobs.id, hash, format, extension, blob_title, credit
             FROM blobs, templates_blobs, templates
             WHERE name = ?
             AND blob_set = ?
@@ -670,35 +670,35 @@ def remove_tag(conn, tag):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_pos, title, credit):
+def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_pos, blob_title, credit):
     """
     Edit information of the blob in a demo
     """
     try:
         cursor = conn.cursor()
 
-        # Change title and credit from blobs table
+        # Change credit from blobs table
         cursor.execute("""
             UPDATE blobs
-            SET title = ?, credit = ?
+            SET credit = ?
             WHERE id = (SELECT blob_id
                         FROM demos, demos_blobs
                         WHERE demos.id = demo_id
                         AND editor_demo_id= ?
                         AND blob_set = ?
                         AND pos_in_set = ?)
-            """, (title, credit, editor_demo_id, set_name, pos))
+            """, (credit, editor_demo_id, set_name, pos))
 
-        # Change set and pos from demos_blobs table
+        # Change title, set and pos from demos_blobs table
         cursor.execute("""
             UPDATE demos_blobs
-            SET blob_set = ?, pos_in_set = ?
+            SET blob_set = ?, pos_in_set = ?, blob_title = ?
             WHERE blob_set = ?
             AND pos_in_set = ?
             AND demo_id = (SELECT id
                             FROM demos
                             WHERE editor_demo_id = ?)
-            """, (new_set_name, new_pos, set_name, pos, editor_demo_id))
+            """, (new_set_name, new_pos, blob_title, set_name, pos, editor_demo_id))
 
     except IntegrityError as ex:
         raise IntegrityError(ex)
@@ -706,7 +706,7 @@ def edit_blob_from_demo(conn, editor_demo_id, set_name, new_set_name, pos, new_p
         raise IPOLBlobsDataBaseError(ex)
 
 
-def edit_blob_from_template(conn, template_name, set_name, new_set_name, pos, new_pos, title, credit):
+def edit_blob_from_template(conn, template_name, set_name, new_set_name, pos, new_pos, blob_title, credit):
     """
     Edit information of the blob in a template
     """
@@ -716,25 +716,24 @@ def edit_blob_from_template(conn, template_name, set_name, new_set_name, pos, ne
         # Change title and credit from blobs table
         cursor.execute("""
             UPDATE blobs
-            SET title = ?, credit = ?
+            SET credit = ?
             WHERE id = (SELECT blob_id
                         FROM templates, templates_blobs
                         WHERE templates.id = template_id
                         AND templates.name= ?
                         AND blob_set = ?
                         AND pos_in_set = ?)
-            """, (title, credit, template_name, set_name, pos))
-
+            """, (credit, template_name, set_name, pos))
         # Change set and pos from templates_blobs table
         cursor.execute("""
             UPDATE templates_blobs
-            SET blob_set = ?, pos_in_set = ?
+            SET  blob_title = ?, blob_set = ?, pos_in_set = ?
             WHERE blob_set = ?
             AND pos_in_set = ?
             AND template_id = (SELECT id
                                 FROM templates
                                 WHERE name = ?)
-            """, (new_set_name, new_pos, set_name, pos, template_name))
+            """, (blob_title, new_set_name, new_pos, set_name, pos, template_name))
 
     except IntegrityError as ex:
         raise IntegrityError(ex)

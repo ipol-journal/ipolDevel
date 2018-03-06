@@ -261,7 +261,7 @@ class Blobs(object):
             # ext = "." + ext
 
             blob_hash = self.get_hash(blob.file)
-            blob_id = self.store_blob(conn, blob.file, title, credit, blob_hash, ext, blob_format)
+            blob_id = self.store_blob(conn, blob.file, credit, blob_hash, ext, blob_format)
 
             try:
                 if blob_vr is not None:
@@ -290,7 +290,7 @@ class Blobs(object):
                 if database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, pos_set):
                     pos_set = database.get_max_pos_in_demo_set(conn, demo_id, blob_set) + 1
 
-                self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set)
+                self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title)
                 res = True
             elif dest["dest"] == "template":
                 template_name = dest["name"]
@@ -298,7 +298,7 @@ class Blobs(object):
                 if database.is_pos_occupied_in_template_set(conn, template_name, blob_set, pos_set):
                     pos_set = database.get_max_pos_in_template_set(conn, template_name, blob_set) + 1
 
-                self.do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set)
+                self.do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set, title)
                 res = True
             else:
                 self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
@@ -348,7 +348,7 @@ class Blobs(object):
             return json.dumps({"status": "OK"})
         return json.dumps({"status": "KO"})
 
-    def store_blob(self, conn, blob, title, credit, blob_hash, ext, blob_format):
+    def store_blob(self, conn, blob, credit, blob_hash, ext, blob_format):
         """
         Stores the blob info in the DB, copy it in the file system and returns the blob_id and blob_file
         """
@@ -359,7 +359,7 @@ class Blobs(object):
 
         try:
             self.copy_blob(blob, blob_hash, ext, self.blob_dir)
-            blob_id = database.store_blob(conn, blob_hash, blob_format, ext, title, credit)
+            blob_id = database.store_blob(conn, blob_hash, blob_format, ext, credit)
             conn.commit()
             return blob_id
         except (IPOLBlobsDataBaseError, IntegrityError):
@@ -414,21 +414,21 @@ class Blobs(object):
         return os.path.join(blob_hash[0], blob_hash[1])
 
     @staticmethod
-    def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set):
+    def do_add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title):
         """
         Associates the blob to a demo in the DB
         """
         try:
             if not database.demo_exist(conn, demo_id):
                 database.create_demo(conn, demo_id)
-            database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set)
+            database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title)
             conn.commit()
         except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
             raise
 
     @staticmethod
-    def do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set):
+    def do_add_blob_to_template(conn, template_name, blob_id, blob_set, pos_set, blob_title):
         """
         Associates the template to a demo in the DB
         """
@@ -436,7 +436,7 @@ class Blobs(object):
             if not database.template_exist(conn, template_name):
                 raise IPOLBlobsTemplateError("Template doesn't exist")
 
-            database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set)
+            database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set, blob_title)
             conn.commit()
         except (IPOLBlobsDataBaseError, IntegrityError):
             conn.rollback()
@@ -449,7 +449,7 @@ class Blobs(object):
         dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
         dst_path = os.path.join(dst_path, blob_hash + ".jpg")
         if os.path.isfile(dst_path):
-            raise IPOLBlobsThumbnailError("Destination file already exists: {}.".format(dst_path))
+            os.remove(dst_path)
         if blob_format == "image":
             self.create_image_thumbnail(blob_file, dst_path)
         elif blob_format == "video":
@@ -583,7 +583,7 @@ class Blobs(object):
         conn = None
         try:
             conn = lite.connect(self.database_file)
-
+            
             demo_blobs = database.get_demo_owned_blobs(conn, demo_id)
             templates = database.get_demo_templates(conn, demo_id)
             sets = self.prepare_list(demo_blobs)
@@ -1117,7 +1117,11 @@ class Blobs(object):
                 _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
 
                 blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
-                self.create_thumbnail(blob_file, blob_hash, 'image')
+                try:
+                    self.create_thumbnail(blob_file, blob_hash, 'image')
+                except IPOLBlobsThumbnailError as ex:
+                    self.logger.exception("Error creating the thumbnail")
+                    print "Couldn't create the thumbnail. Error: {}".format(ex)
             conn.commit()
             res = True
 
@@ -1202,22 +1206,20 @@ class Blobs(object):
                     os.remove(thumb_files_in_dir[0])
                     self.remove_dirs(thumb_folder)
 
-            # Even if it fails creating the thumbnail the response wil be OK
-            data['status'] = 'OK'
-
             # Creates the new thumbnail with the blob (if it is possible)
-            blob_folder = os.path.join(self.blob_dir, subdir)
-            if os.path.isdir(blob_folder):
-                blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
-                if blobs_in_dir:
-                    with open(blobs_in_dir[0]) as f:
-                        mime_type = self.get_blob_mime(f)
-                    blob_format, _ = self.get_format_and_extension(mime_type)
-                    self.create_thumbnail(blobs_in_dir[0], blob_hash, blob_format)
+            try:
+                blob_folder = os.path.join(self.blob_dir, subdir)
+                if os.path.isdir(blob_folder):
+                    blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
+                    if blobs_in_dir:
+                        with open(blobs_in_dir[0]) as f:
+                            mime_type = self.get_blob_mime(f)
+                        blob_format, _ = self.get_format_and_extension(mime_type)
+                        self.create_thumbnail(blobs_in_dir[0], blob_hash, blob_format)
+            except IPOLBlobsThumbnailError as ex:
+                self.logger.exception("Error creating the thumbnail")
+                print "Couldn't create the thumbnail. Error: {}".format(ex)
 
-        except IPOLBlobsThumbnailError as ex:
-            self.logger.exception("Error creating the thumbnail")
-            print "Couldn't create the thumbnail. Error: {}".format(ex)
         except IntegrityError as ex:
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
@@ -1230,6 +1232,8 @@ class Blobs(object):
         finally:
             if conn is not None:
                 conn.close()
+
+        data['status'] = 'OK'
         return json.dumps(data)
 
     @cherrypy.expose
