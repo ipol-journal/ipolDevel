@@ -81,7 +81,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         for p in ddl_archive['params']:
             if p in res_data['params']:
                 parameters[p] = res_data['params'][p]
-    if 'experiment_reconstruct' in ddl_archive.keys() and ddl_archive['experiment_reconstruct'] is True and request is not None:
+    if 'enable_reconstruct' in ddl_archive.keys() and ddl_archive['enable_reconstruct'] is True and request is not None:
         clientData = json.loads(request['clientData'])
 
         if clientData.get("origin", "") == "upload":
