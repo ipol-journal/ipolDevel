@@ -197,15 +197,12 @@ class Image(object):
             return data
 
 
-    def write(self, dst_file, force=False, **kwargs):
+    def write(self, dst_file, **kwargs):
         '''
         Save image matrix to destination file, format according to file extension.
         See _4ser for available extensions and formats.
         '''
-        # ? concurrency conflict
-        if os.path.exists(dst_file) and not force:
-            raise OSError(errno.EEXIST, "Destination file already exists, use force=True kwarg to overwrite", dst_file)
-        # caution, cv2.imwrite will not create subdirectories and silently fail
+        # warning, cv2.imwrite will not create subdirectories and silently fail
         dst_dir = os.path.dirname(dst_file)
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)

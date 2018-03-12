@@ -448,8 +448,6 @@ class Blobs(object):
         """
         dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
         dst_path = os.path.join(dst_path, blob_hash + ".jpg")
-        if os.path.isfile(dst_path):
-            os.remove(dst_path)
         if blob_format == "image":
             self.create_image_thumbnail(blob_file, dst_path)
         elif blob_format == "video":
