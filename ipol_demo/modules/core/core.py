@@ -1736,7 +1736,7 @@ attached the failed experiment data.". \
 
             if 'timeout' in ddl['general']:
                 userdata['timeout'] = ddl['general']['timeout']
-            resp = self.post('api/demorunner/exec_and_wait', data=userdata)
+            resp = self.post('api/demorunner/exec_and_wait', data=userdata, host=dr_server)
             try:
                 demorunner_response = resp.json()
             except Exception as ex:
