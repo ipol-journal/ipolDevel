@@ -44,9 +44,9 @@ $(document).ready(function() {
       html += paging(data.meta);
       $("#results").html(html);
       
-      var legends = $(".legend");
-      for (let i = 0; i < legends.length; i++) {
-        if (data.experiments[i].execution) $("#" + legends[i].id).addClickEvent();
+      var reconstruct_buttons = $('.reconstruct-btn');
+      for (let i = 0; i < reconstruct_buttons.length; i++) {
+        $(reconstruct_buttons[i]).addClickEvent();
       }
       
     })
@@ -62,9 +62,8 @@ $(document).ready(function() {
 });
 
 $.fn.addClickEvent = function() {
-  $(this).css({'cursor': 'pointer'});
   $(this).click(function(){
-      window.location = "/demo/clientApp/demo.html?id=" + demo_id + "&archive=" + $(this)[0].id;
+      window.location = "/demo/clientApp/demo.html?id=" + demo_id + "&archive=" + $(this)[0].getAttribute('data-experiment-id');
   });
 }
 
@@ -143,8 +142,7 @@ function record(data) {
 
   html += '\n</div>'; // middle
 
-
-
+  
   // other files, below thumbnails
   var files = "";
   var max = data.files.length;
@@ -161,6 +159,10 @@ function record(data) {
     html += files;
     html += '.</footer>';
   }
+  
+  if (ddl.archive.enable_reconstruct && data.execution)
+    html += '\n<button class="reconstruct-btn btn" data-experiment-id=' + data.id + '>Reconstruct</button>';
+ 
   html += '\n</div>\n';
   return html;
 }
