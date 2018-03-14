@@ -44,7 +44,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     ddl_hidden_files = ddl_archive.get('hidden_files', {})
 
     blobs = []
-    if 'files' in ddl_archive.keys() or 'hidden_files' in ddl_archive.keys():
+    if 'files' in ddl_archive or 'hidden_files' in ddl_archive:
         for file_name, file_label in dict(ddl_files, **ddl_hidden_files).iteritems():
             src_file = os.path.join(work_dir, file_name)
             if not os.path.exists(src_file):
@@ -81,7 +81,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         for p in ddl_archive['params']:
             if p in res_data['params']:
                 parameters[p] = res_data['params'][p]
-    if 'enable_reconstruct' in ddl_archive.keys() and ddl_archive['enable_reconstruct'] is True and request is not None:
+    if 'enable_reconstruct' in ddl_archive and ddl_archive['enable_reconstruct'] and request is not None:
         clientData = json.loads(request['clientData'])
 
         if clientData.get("origin", "") == "upload":
