@@ -29,7 +29,7 @@ function printResult(result, index) {
 
 function getFileURL(file){
   if (!getArchiveExperimentId()) return work_url + file;
-  var images_ddl = {...demoInfo.archive.files, ...demoInfo.archive.hidden_files};
+  var images_ddl = $.extend({}, demoInfo.archive.files, demoInfo.archive.hidden_files);
   var images_ddl_keys = Object.keys(images_ddl);
   for (let i = 0; i < images_ddl_keys.length; i++) 
     for (let j = 0; j < experiment.files.length; j++)
