@@ -72,6 +72,7 @@ def print_latex(content):
                                         .replace("\n","\n\\\\")
                                         .replace("<", "\textless")
                                         .replace(">", "\textgreater")
+                                        .replace("&", "\&")
                                         .replace("{", "\{")
                                         .replace("}", "\}"))
         result += "\\end{itemize} \n"
