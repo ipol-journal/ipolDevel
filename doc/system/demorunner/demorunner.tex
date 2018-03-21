@@ -1,38 +1,42 @@
 \section{DemoRunner module}
 \label{sec:DemoRunner}
-This module controls the execution of the IPOL demos. In order to achieve the Reproducible Research that the journal seeks, the DemoRunner must ensure that the users can reproduce exactly the results claimed by the authors of the paper. In this sense, each experiment is done with the last source codes provided by the authors.
+This module controls the execution of the IPOL demos. In order to achieve Reproducible Research, the DemoRunner must ensure that the code which the demo executes is exactly the same that the users would download from the article's page.
 
-Before each execution, the Core module prepares a run folder for the experiment with the input files converted according to the DDL specifications. We need several machines in order to execute several demos at the same time by sharing the load among them. This leads to a distributed system with several DemoRunners (see section~\ref{sec:Dispatcher}). Thanks to this, the Core can request to run the algorithms at the machine that best fits according to the load balancing policy set in the system. For this, DemoRunner is responsible of informing the Core about the load of the machine where it is running on. This allows to have several machines with different requirements for the demos (Matlab, specific libraries, among others)
+As a first step for the execution, the Core module prepares a \emph{run folder} for the experiment with the input files converted according to the DDL specifications. Since most of the algorithms are well parallelized, typically they take as much as CPU cores as possible. Thus, several machines are needed to execute several demos at the same without a loss of performance. The system shares the load according to the configured policy (see Sec.~\ref{sec:Dispatcher}). This leads to a distributed system with several DemoRunners (see Sec.~\ref{sec:Dispatcher}), where each machine able to run demos has one installed. The DemoRunner is responsible of informing the Core about the load of the machine where it is running on. This allows to have several machines with different requirements for the demos (for example, MATLAB, or any specific libraries).
 
-The DemoRunner module executes the experiment to produce output files according to this workflow: (i) ensure the compilation, (ii) control and execute the experiments and, (iii) control exceptions and failures. 
+The DemoRunner module executes the experiment according to this workflow:
+
+\begin{enumerate}
+    \item Ensure the compilation,
+    \item execute and control,
+    \item control exceptions and failures. 
+\end{enumerate}
 
 \paragraph{Ensure compilation}
 \noindent
 
-This is an important step because this ensures that IPOL always uses the last version of the source codes provided by the authors. 
+This step ensures that IPOL always uses the last version of the source codes provided by the authors. 
 
-The first time that a demo is executed, the module downloads, extracts and compiles the source codes directly from an URL that must be given by the DDL. This URL is the link where the author's codes are stored. If this process is successful, the module moves the requested executables to its binaries directory and keeps them for the following executions.
+The first time that a demo is executed, the module downloads, extracts, and compiles the source codes from the URL specified at the DDL. This URL is the link where the author's codes are stored. The, the specified files (say, the binaries or scripts) are moved to the binaries directory.
 
-Henceforth, DemoRunner will compare differences between the information from the HTTP header of the linked file with its local copy. If there have been any modifications in the size or the dates, the system will understand that new source codes are provided and it will download and compile them again. 
+Henceforth, DemoRunner will compare differences between the information from the HTTP header of the remote file with its local copy. If there have been any modifications in the size or the dates, the system will consider the local copy out of day and it will download and compile the sources again. 
 
-\paragraph{Control and execute the experiments}
+\paragraph{Execute and control}
 \noindent
 
-The second responsibility of the module is to control the execution.  It can execute directly the authors binaries or, for more complex process, supporting scripts provided by the demo editors related to a particular demo (see more about \textit{DemoExtras} in section~\ref{demoextras}). Besides, the demo editors can use some generic scripts in their \textit{DemoExtras} to represent their results such as draw 2D curves, draw histograms, counting lines, among others. These ones are provided by the IPOL System and they are stored at each DemoRunner module. We refer to these scripts as \textit{PythonTools}.
+The second responsibility of the module is to control the execution.  It can execute directly the authors binaries or, for more complex process, support scripts provided by the demo editors in a particular demo (see more about \textit{DemoExtras} in Sec.~\ref{demoextras}). Besides, the demo editors can call some generic scripts provided by the system, for example to draw 2D curves, or draw histograms, among others. These scripts in the {\tt PythonTools} directory are added to the PATH during execution.
 
-Before an experiment, the module receives all the information that it needs, such as the the ID of the demo, the execution key, a suggested time for stopping execution (avoiding experiments that take too much time), and the parameters set by the user in the web interface.
+Before an experiment, the module receives all the information that it needs, such as the the ID of the demo, the execution key, a suggested time for stopping execution (to avoid experiments that take too long), and the parameters set by the user in the web interface.
 
-Normally, the results files are read by the web interface according to the information in the DDL. For instance, if a particular demo creates an output image with the name '\textit{output.png}' and the results section in the DDL sets that this image is the output, the web interface looks in the run folder of the experiment and uses it to create a link for the Image Gallery. This Image Gallery is a service for displaying results according to the DDLs.
+Nevertheless, in other cases the process is not so simple and some additional mechanism is needed to show the results.  Let's suppose an optical flow demo. Usually, this type of demos uses a pair of consecutive images as input to calculate the displacement field between them. However, sometimes you can also include a ground truth that represents exactly the motion present between the inputs. This ground truth helps to measure how close is your solution respect to the best possible flow field using different error measures. For this, it is mandatory that the web interface makes the difference between these two types of executions. \miguel{I don't get this. What do you mean? What is the relationship with the Core?}
 
-Nevertheless, in other cases the process is not so simple and some additional mechanism is needed to show the results.  Let's suppose an optical flow demo. Usually, this type of demos uses a pair of consecutive images as input to calculate the displacement field between them. However, sometimes you can also include a ground truth that represents exactly the motion present between the inputs. This ground truth helps to measure how close is your solution respect to the best possible flow field using different error measures. For this, it is mandatory that the web interface distinguish between these two types of executions. 
 
-Another example is a demo with a variable number of outputs. The web interface needs to know how many times it needs to repeat, but this information is only known after the execution. Thus, the demo editor can write this file and add a variable which will be used by the web interface to draw the repeat gallery.
+This module provides a mechanism that allows the caller to recover information added during the execution. Let's think of a demo with a variable number of outputs. If the web interface uses a repeat gallery to show these images, it needs to know how many times it needs to repeat, but this information is only known after the execution. The solution is simple: the demo editor writes the name and value of one or many variables to a text file {\tt algo\_info.txt} and the system will read it after the execution.
 
-In this sense, the DemoRunner module provides a mechanism for recovering the information about the results of an execution. The editor of a demo can store information from the execution in a text file (algo\_info.txt). The module reads this file to obtain the names of the variables and the values that it contains and gives it back. For instance, the demo can write the number of outputs generated in the file and the Core can return it to the web interface so it can be shown according to the DDL specifications.
 
 \paragraph{Control exceptions and failures}
 \noindent
 
-The module takes care of stopping the demo execution if a problem appears such as not supported inputs for the demo, a bad implementation of the source codes or the demoextras, incorrect syntax in the run section at the DDL, among others. In these cases, DemoRunner notifies about the causes of the failure so the Core can take the best action. 
+The module takes care of stopping the demo execution if a problem is detected. It can be in the preparation of the execution (not supported inputs for the demo, a runtime error, incorrect syntax in the run section at the DDL, for example). In these cases, the module notifies the caller about the causes of the failure.
 
-Another reason for stopping an execution occurs when a demo exceeds a reasonable running time, either because of a malfunctioning on the author's program that produces that it might never finish or simply because the execution time is too large for a demo. Related to this, the demo editors can include a maximum value (timeout) in their DDLs for the executions of their demos. Therefore, the Demorunner will stop the experiment if a timeout is reached and the algorithms have not finished. Otherwise, the module will assign its own security timeout and likewise, if the time set in the DDL is excessive or too short, the DemoRunner will modify this to a more reasonable value.
+Another reason for stopping an execution is when a demo exceeds a configured running time. It can be because of a malfunction in the author's program that makes it never finish or simply because the execution time is too long (a timeout). The demo editors can configure a maximum timeout in the DDLs. In any cae, the DemoRunner has its own maximum timeout which can override what the user configured in case that was too short or too long.
