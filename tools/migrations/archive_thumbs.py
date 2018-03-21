@@ -32,7 +32,7 @@ import traceback
 import warnings
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../ipol_demo/modules/conversion/lib/'))
-from IPOLImage import IPOLImage
+from ipolimage import Image
 
 
 import av
@@ -57,22 +57,6 @@ def hash_subdir(hash_name, depth=2):
     subdirs = '/'.join(list(hash_name[:l]))
     return subdirs
 
-def video_cv(src):
-    """
-    From src video path, returns a frame as a numpy matrix compatible with OpenCV
-    """
-    # av.open seems do not like unicode filepath
-    container = av.open(src, mode='r')
-    container.seek(int(container.duration/4) - 1)
-    # hacky but needed
-    for frame in container.decode(video=0):
-        # av.video.frame.VideoFrame.to_nd_array() does not work
-        # obtain a PIL is better implemented
-        pil_image = frame.to_image()
-        im = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-        return im
-
-
 enc = sys.getfilesystemencoding()
 if enc == 'ANSI_X3.4-1968': # IO encoding bug
     enc = 'UTF-8'
@@ -91,21 +75,17 @@ for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DES
         if row[3] == 'image':
             if row[2] in ['svg']:
                 continue
-            im = IPOLImage(src_path)
+            im = Image.load(src_path)
             # a tiff used as a data container, not correctly loaded by OpenCV
             if row[2] == 'tiff' and im.data is None :
                 continue
-            im.resize(height=128)
-            im.write(dest_path+'.jpeg')
             sys.stdout.write('.')
-            sys.stdout.flush()
-            continue
         if row[3] == 'video':
-            im = IPOLImage(video_cv(src_path))
-            im.write(dest_path+'.jpeg')
+            im = Image.video_frame(src_file)
             sys.stdout.write('V')
-            sys.stdout.flush()
-            continue
+        im.resize(height=128)
+        im.write(dest_path+'.jpeg')
+        sys.stdout.flush()
     except Exception as ex:
         sys.stderr.write("\n{}\n{}\n".format(src_path, ex))
         print(traceback.format_exc())

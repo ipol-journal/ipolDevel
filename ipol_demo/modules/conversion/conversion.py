@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 """
-Conversion: perform any conversions needed (or leave the data as it is, if not needed)
-
-All exposed WS return JSON with a status OK/KO, along with an error
-description if that's the case.
+IPOL Conversion module, services to convert blobs.
 """
 
 import logging
@@ -18,17 +15,13 @@ import re
 import base64
 import mimetypes
 import traceback
-import errno
 
 import cherrypy
-import cv2
-import numpy as np
 from ipolimage import Image
 from ipolevaluator import evaluate
 
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
-from errors import IPOLThumbnailError
 
 
 def authenticate(func):
@@ -69,10 +62,6 @@ class Conversion(object):
     """
     The Conversion module
     """
-    IMAGE = "image"
-    VIDEO = "video"
-    AUDIO = "audio"
-    UNKNOWN = "unknown"
 
     instance = None
 
@@ -87,7 +76,7 @@ class Conversion(object):
 
     def __init__(self):
         """
-        Initialize Conversion class
+        Consructor.
         """
         self.base_directory = os.getcwd()
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -149,7 +138,7 @@ class Conversion(object):
     @cherrypy.expose
     def index():
         """
-        index of the module.
+        Index page of the module.
         """
         return "Conversion module"
 
@@ -188,26 +177,23 @@ class Conversion(object):
 
     @cherrypy.expose
     def convert(self, work_dir, inputs_description, crop_info=None):
-        # inputs_desc seems more consistent accross modules, should be changed here and in core.py and test.py
         """
         Pre-process the input data in their working directory, according to the DDL specs and optional crop.
-        For each file processed, return a code
-        -1: exception, response KO
-        0:  No conversion needed, returned by convert_image()
-        1:  Conversion performed (ex: image resizing), returned by convert_image()
-        2:  Conversion is not authorized by ddl, returned by convert_image()
         """
+        # For each file processed, return a code
+        # -1: exception, response KO.
+        # 0:  No conversion needed.
+        # 1:  Conversion performed (ex: image resizing).
+        # 2:  Conversion is not authorized by DDL.
         # Info is a dictionary for each input, with return code and possible error
         info = {}
         # Global try, will stop at first exception in an input
         try:
-            inputs_desc = json.loads(inputs_description)
+            input_list = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
-            # loop on ddl inputs
-            inputs_len = len(inputs_desc)
-            for i in range(inputs_len):
-                input_desc = inputs_desc[i]
+            i = 0
+            for input_desc in input_list:
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
                 # Search for a file for this input
@@ -229,16 +215,15 @@ class Conversion(object):
                     continue
                 # check input type
                 input_type = input_desc['type']
-                if input_type not in ['image', 'data', 'video']:
-                    info[i]['error'] = "{}: unknown input type".format(input_type)
-                    continue
-                # do conversion
                 if input_desc.get('type') == 'image':
                     info[i]['code'] = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
                 elif input_desc.get('type') == "video":
                     info[i]['code'] = 1
+                else:
+                    info[i]['error'] = "{}: unknown input type".format(input_type)
+                i += 1
 
         except IPOLConvertInputError as ex:
             self.logger.exception(ex)
@@ -259,44 +244,81 @@ class Conversion(object):
         # globally OK (no exception), but for some input, a return code could be -1
         return json.dumps({'status': 'OK', 'info': info})
 
-    def make_KO_response(self, message, work_dir):
+    @staticmethod
+    def make_KO_response(message, work_dir):
         """
         Return a JSON KO response with an error message.
         """
+        traceback.print_exc(file=sys.stdout)
         response = {'status':'KO'}
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
         return json.dumps(response)
 
     @cherrypy.expose
-    def thumbnail(self, src, **pars):
+    def thumbnail(self, src, width=None, height=None, preserve_ratio=None):
         """
-        Create thumbnail for the file src (file path relative to shared_folder/run)
-        Other parameters are the same as Image.resize()
-        height=256 -- forced height with preserved ratio
-        width=256 -- forced width with preserved ratio
-        width=256&height=256 -- containing box with preserved ratio
-        width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
+        Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
         """
-        cherrypy.response.headers['Content-Type'] = "image/jpeg"
-        # src_file is relative to run folder in shared_folder
+        # height=256 -- forced height with preserved ratio
+        # width=256 -- forced width with preserved ratio
+        # width=256&height=256 -- containing box with preserved ratio
+        # width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
+
+        # default http code if something is going wrong
+        cherrypy.response.headers["Status"] = "204"
         src_file = os.path.realpath(os.path.join(self.run_dir, src))
+        response = {'status':'KO'}
         # ensure security (no ../)
         if not src_file.startswith(self.run_dir):
-            raise IPOLThumbnailError(errno.EACCES, "conversion/thumbnail, permission denied", src)
+            response['error'] = "conversion/thumbnail, src path unsolved {}".format(src)
+            return json.dumps(response)
         if not os.path.isfile(src_file):
-            raise IPOLThumbnailError(errno.ENOENT, "conversion/thumbnail, source file not found", src)
-        media_type = self.media_type(src)
-        # 'image/svg+xml'?
-        if media_type == self.IMAGE:
-            im = Image(src_file)
-        elif media_type == self.VIDEO:
-            im = Image.video_frame(src_file)
+            response['error'] = "conversion/thumbnail, source file nof found {}".format(src)
+            return json.dumps(response)
+        mime_type, _ = mimetypes.guess_type(src_file)
+        media_type, _ = mime_type.split('/')
+        if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
+            response['error'] = "conversion/thumbnail, format {} not yet supported.".format(mime_type)
+            return json.dumps(response)
+        if preserve_ratio in [False, 0, '', '0', 'False', 'false', 'None']:
+            preserve_ratio = False
         else:
-            raise IPOLThumbnailError("Format '{}' not yet supported.".format(media_type))
-        # transmit requested params to resizer, ensure diminution, except if requested height or width is very small
-        im.resize(max_height=max(im.height, 500), max_width=max(im.width, 500), **pars)
+            preserve_ratio = True
+
+        try:
+            if media_type == "image":
+                im = Image.load(src_file)
+            elif media_type == "video":
+                im = Image.video_frame(src_file)
+            im.resize(
+                max_height=max(im.height(), 500),
+                max_width=max(im.width(), 500),
+                width=self.string_int(width),
+                height=self.string_int(height),
+                preserve_ratio=preserve_ratio
+            )
+        except Exception:
+            response['error'] = "conversion/thumbnail, error when proceding src file {}".format(src)
+            response['trace'] = traceback.format_exc().splitlines()
+            return json.dumps(response)
+
+        cherrypy.response.headers["Status"] = "200"
+        cherrypy.response.headers['Content-Type'] = "image/jpeg"
         return im.encode('.jpg')
+
+    @staticmethod
+    def string_int(s):
+        '''
+        Conversion of string http parameter to int.
+        '''
+        if s is None:
+            return None
+        try:
+            i = int(s)
+            return i
+        except ValueError:
+            return None
 
     @staticmethod
     def media_type(path):
@@ -307,18 +329,18 @@ class Conversion(object):
         media_type, _ = mime_type.split('/')
         return media_type
 
-
-    def convert_image(self, input_file, input_desc, crop_info=None):
+    @staticmethod
+    def convert_image(input_file, input_desc, crop_info=None):
         """
         Convert image if needed
         """
-        # Method could be a function (no-self-use)
-        code = 0
+        code = 0 # default return code, image not modified
         # Image has to be always loaded to test width and size
-        im = Image(input_file)
+        im = Image.load(input_file)
         # convert image matrix if needed (before resize)
-        if im.convert(input_desc.get('dtype')):
-            code = 1
+        dtype = input_desc.get('dtype')
+        if dtype and im.convert(dtype):
+            code = 1 # image type modified
 
         # crop before reducing image to max_pixels (or the crop box will be outside of scope)
         if crop_info is not None:
@@ -328,30 +350,30 @@ class Conversion(object):
             width = int(round(crop_info.get('width')))
             height = int(round(crop_info.get('height')))
             im.crop(x=x, y=y, width=width, height=height)
-            code = 1
+            code = 1 # image cropped
 
         max_pixels = evaluate(input_desc.get('max_pixels'))
-        input_pixels = im.width * im.height
+        input_pixels = im.width() * im.height()
         if input_pixels > max_pixels:
             fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
             im.resize(fx=fxy, fy=fxy)
-            code = 1
+            code = 1 # image resized to maximum expected
 
         input_file_type, _ = mimetypes.guess_type(input_file)
-        input_desc_type, _ = mimetypes.guess_type("dummy" + input_desc.get('ext'))
+        input_desc_type, _ = mimetypes.guess_type("dummy." + input_desc.get('ext'))
         input_path, _ = os.path.splitext(input_file)
         dst_file = input_path + input_desc.get('ext')
-        # new encoding needed, according to the input and destination extension
+        # new encoding needed (ex: jpeg > png), according to the input and destination extension
         if input_file_type != input_desc_type:
-            # will be done by im.write() below
-            code = 1
+            code = 1 # will be done below by im.write()
         # same encoding,
         elif code == 1:
             pass
         # no conversion needed but not the expected extension (.jpe > .jpeg; .tif > .tiff)
         else:
             os.rename(input_file, dst_file)
-        if code == 1: # image data have been modified, save it
+        # image data have been modified, save it
+        if code == 1:
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
             im.write(dst_file)
@@ -363,12 +385,12 @@ class Conversion(object):
         Add the specified extension to the data file
         """
         ext = input_desc.get('ext')
-        if ext is None: # Why not an IPOLDDL error or something like that ?
+        if ext is None:
             raise IPOLConvertInputError('DDL Error, missing extension field (to convert the input in the expected format by demo)')
         filename_no_ext, _ = os.path.splitext(input_file)
         input_with_extension = filename_no_ext + ext
         os.rename(input_file, input_with_extension)
-        return 0
+        return 0 # return code
 
     @cherrypy.expose
     def convert_tiff_to_png(self, img):
@@ -381,19 +403,14 @@ class Conversion(object):
             buf = base64.b64decode(img)
             # cv2.IMREAD_ANYCOLOR option try to convert to uint8, 7x faster than matrix conversion
             # but fails with some tiff formats (float)
-            cvim = cv2.imdecode(np.fromstring(buf, dtype=np.uint8), cv2.IMREAD_ANYCOLOR)
-            if False and cvim is not None:
-                _, buf = cv2.imencode(".png", cvim) # [cv2.IMWRITE_PNG_COMPRESSION, 9]
-            else:
-                ipim = Image(None)
-                ipim.decode(buf)
-                ipim.convert("x8i")
-                buf = ipim.encode('.png')
+            im = Image.decode(buf)
+            im.convert_depth('8i')
+            buf = im.encode('.png')
             data["img"] = base64.b64encode(buf) # reencode bytes
             data["status"] = "OK"
         except Exception:
-            mess = "TIFF to PNG for client, conversion failure."
-            print mess
+            message = "TIFF to PNG for client, conversion failure."
+            print message
             print traceback.format_exc()
-            self.logger.exception(mess)
+            self.logger.exception(message)
         return json.dumps(data)

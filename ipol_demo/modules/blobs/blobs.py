@@ -461,7 +461,7 @@ class Blobs(object):
         Creates a 256x256 jpg thumbnail for the image blob
         """
         try:
-            im = Image(src_file)
+            im = Image.load(src_file)
             im.resize(height=256)
             im.write(dst_file)
         except Exception as ex:
@@ -581,7 +581,7 @@ class Blobs(object):
         conn = None
         try:
             conn = lite.connect(self.database_file)
-            
+
             demo_blobs = database.get_demo_owned_blobs(conn, demo_id)
             templates = database.get_demo_templates(conn, demo_id)
             sets = self.prepare_list(demo_blobs)

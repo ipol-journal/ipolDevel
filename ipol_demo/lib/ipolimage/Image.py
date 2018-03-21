@@ -14,241 +14,137 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 """
-Image, multipe formats handling
+Image wrapper for conversion, resizing, reencode.
 """
 
 from __future__ import print_function
-from contextlib import contextmanager
 import errno
+import mimetypes
 import os
-import sys
 
 import cv2
 import numpy as np
 
-@contextmanager
-def redirector(out=open(os.devnull, 'w')):
-    '''
-    Stderr redirector for external C libraries.
-    '''
-    # https://stackoverflow.com/questions/5081657/
-    fd = sys.stderr.fileno()
-    def _redirect(fileno):
-        sys.stderr.close() # + implicit flush()
-        os.dup2(fileno, fd) # fd writes to 'to' file
-        sys.stderr = os.fdopen(fd, 'w') # Python writes to fd
-
-    with os.fdopen(os.dup(fd), 'w') as old_stdout:
-        _redirect(out.fileno())
-        try:
-            yield # allow code to be run with the redirected stdout
-        finally:
-            _redirect(old_stdout.fileno()) # restore stdout.
-
 class Image(object):
     '''
-    Generic image class, dealing with the best python libraries for performances, and formats.
-    Actually : OpenCV.
-    Operations are done on a numpy matrix.
-    Load : jpeg (uint8), png (uint8, uint16; alpha; colormap), tiff (uint8, uint16)
-    Writes : jpeg (uint8), png (uint8, uint16; alpha), tiff (uint8, uint16)
+    Generic image class, dealing with the best python libraries for performances, and formats (currently : OpenCV).
     '''
-    dtype = None
-    width = None
-    height = None
-    channels = None
-    # don’t forget: ICC profile?, EXIF?
-    def __init__(self, src):
-        '''
-        Construct an image object, load data according to src type when possible.
-        None: set data later, see IPOLImage.load(file_path), IPOLImage.decode(string_bytes)
-        numpy.ndarray: matrix like internal CV image
-        str, unicode: file_path
-        '''
-        # Object build without file, data may be loaded by decode (low typing, no good test)
-        if src is None:
-            return
-        # source is a data matrix
-        if isinstance(src, np.ndarray):
-            self.data = src
-            return
-        # source seems a file
-        self.load(src)
-
-    def load(self, path, flags=cv2.IMREAD_UNCHANGED):
-        '''
-        Load image data as a file
-        '''
-        if not os.path.isfile(path):
-            raise OSError(errno.ENOENT, "File not found", path)
-        # OpenCV C do not resend the warnings to Python see https://stackoverflow.com/questions/9131992
-        # with redirector():
-        # default flag to IMREAD_UNCHANGED, option to keep alpha or uint16
-        self.data = cv2.imread(path, flags)
-        if self.data is None:
-            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", path)
-        self.src_file = path
-        self.src_path = os.path.realpath(self.src_file)
-        self.src_dir, self.src_basename = os.path.split(self.src_path)
-        self.src_name, self.src_ext = os.path.splitext(self.src_basename)
-        self._props()
-
-    def decode(self, buf, flags=cv2.IMREAD_UNCHANGED):
-        '''
-        Load image data as a string of bytes
-        '''
-        buf = np.fromstring(buf, dtype=np.uint8)
-        # Are they problems with warnings ?
-        self.data = cv2.imdecode(buf, flags)
-        if self.data is None:
-            raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
-        self._props()
-
-    def _props(self):
-        '''
-        Set properties from data like width or height, updated after each changes.
-        '''
-        if len(self.data.shape) == 2:
-            self.height, self.width = self.data.shape
-            self.channels = 1
-        else: # let exception shout if it is not like that
-            self.height, self.width, self.channels = self.data.shape
-        self.dtype = self.data.dtype
 
     @staticmethod
-    def blend_alpha(data, back_color=(255, 255, 255)):
+    def load(src, flags=cv2.IMREAD_UNCHANGED):
         '''
-        Take a CV numpy matrix, blend with back_color if there is an alpha layer.
-        Return the resulting matrix. Do not affect the field of data.
+        Factory, returns an image object build from file.
         '''
-        # 1 channel, Gray, do nothing
-        if len(data.shape) == 2 or data.shape[2] == 1:
-            return data
-        # 3 channels, BGR, do nothing
-        elif data.shape[2] == 3:
-            return data
-        # 2 channels, Gray with alpha
-        elif data.shape[2] == 2:
-            # check if alpha is just a 100% layer
-            if np.unique(data[:, :, 1]).size == 1:
-                return data[:, :, 0]
-            orig_dtype = data.dtype
-            # convert back_color to a grey luminosity
-            back_gray = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
-            alpha_mask = data[:, :, 3].astype(float)
-            if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255.0
-            elif data.dtype == 'uint16':
-                alpha_mask = alpha_mask / 65535
-                back_gray = back_gray * 257.0
-            elif data.dtype == 'uint32':
-                alpha_mask = alpha_mask / ((1 << 32) - 1)
-                back_gray = back_gray * 16843009.0
-            else: # float
-                back_gray = back_gray / 255.0
-            # build a background matrix as float
-            back_mat = np.zeros((data.shape[0], data.shape[1], 1), float)
-            # fill it with background color
-            back_mat[:] = back_gray
-            # apply inverse mask to background
-            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
-            # apply mask to foregroung
-            fore_mat = cv2.multiply(alpha_mask, data[:, :, 0].astype(float))
-            # merge back and fore
-            data = cv2.add(back_mat, fore_mat)
-            # restore original dtype
-            data = data.astype(orig_dtype, copy=False)
-            return data
-        # 4 channels, BGRA, blend
-        elif data.shape[2] == 4:
-            # check if alpha is just a 100% layer
-            if np.unique(data[:, :, 3]).size == 1:
-                return data[:, :, :3]
-            orig_dtype = data.dtype
-            # convert back_color to BGR (OpenCV format)
-            back_color = tuple(reversed(back_color))
-            # build an alpha_mask, convert to float [0, 1], according to dtype
-            alpha_mask = cv2.cvtColor(data[:, :, 3], cv2.COLOR_GRAY2BGR).astype(float)
-            if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255.0
-            elif data.dtype == 'uint16':
-                alpha_mask = alpha_mask / 65535.0
-                back_color = (back_color[0] * 257.0, back_color[1] * 257.0, back_color[2] * 257.0)
-            elif data.dtype == 'uint32':
-                alpha_mask = alpha_mask / ((1 << 32) - 1)
-                back_color = (back_color[0] * 16843009.0, back_color[1] * 16843009.0, back_color[2] * 16843009.0)
-            else: # float
-                back_color = (back_color[0] / 255.0, back_color[1] / 255.0, back_color[2] / 255.0)
+        if not os.path.isfile(src):
+            raise OSError(errno.ENOENT, "File not found", src)
+        im = Image()
+        im.data = cv2.imread(src, flags)
+        if im.data is None:
+            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
+        im.src_file = src
+        im.src_path = os.path.realpath(src)
+        im.src_dir, im.src_basename = os.path.split(im.src_path)
+        im.src_name, im.src_ext = os.path.splitext(im.src_basename)
+        return im
 
-            # build a background matrix as float
-            back_mat = np.zeros((data.shape[0], data.shape[1], 3), float)
-            # fill it with background color
-            back_mat[:] = back_color
-            # apply inverse mask to background
-            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
-            # apply mask to foregroung
-            fore_mat = cv2.multiply(alpha_mask, data[:, :, :3].astype(float))
-            # merge back and fore
-            data = cv2.add(back_mat, fore_mat)
-            # restore original dtype
-            data = data.astype(orig_dtype, copy=False)
-            return data
-        else: # unknown format
-            return data
+    @staticmethod
+    def decode(buf, flags=cv2.IMREAD_UNCHANGED):
+        '''
+        Factory, returns an image object build from a string of bytes.
+        '''
+        # OpenCV loads bytes as one dimension numpy vector of uint8 numbers.
+        buf = np.fromstring(buf, dtype=np.uint8)
+        im = Image()
+        im.data = cv2.imdecode(buf, flags)
+        if im.data is None:
+            raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
+        return im
 
+    @staticmethod
+    def data(data):
+        '''
+        Factory, return am image object build with the data matrix.
+        '''
+        im = Image()
+        im.data = data
+        return im
+
+    @staticmethod
+    def video_frame(video_file, pos_ratio=0.5, pos_max=7500):
+        '''
+        From a video, returns a significative frame as an image object
+        '''
+        cap = cv2.VideoCapture(video_file)
+        pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
+        pos_frame = min(pos_frame, pos_max)
+        for _ in range(1, pos_frame):
+            cap.read()
+        _, frame = cap.read()
+        # When everything done, release the capture
+        cap.release()
+        im = Image()
+        im.data = frame
+        return im
+
+    def width(self):
+        '''
+        Returns width of image.
+        '''
+        return self.data.shape[1]
+
+    def height(self):
+        '''
+        Returns height of image.
+        '''
+        return self.data.shape[0]
+
+    def dtype(self):
+        '''
+        Returns data type of image matrix.
+        '''
+        return self.data.dtype
 
     def write(self, dst_file, **kwargs):
         '''
-        Save image matrix to destination file, format according to file extension.
-        See _4ser for available extensions and formats.
+        Save image matrix to destination file, encoded according to file extension.
         '''
         # warning, cv2.imwrite will not create subdirectories and silently fail
         dst_dir = os.path.dirname(dst_file)
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
-        ext = os.path.splitext(dst_file)[1]
-        data, pars = self._4ser(ext, **kwargs)
+        data, pars = self._4ser(dst_file, **kwargs)
         cv2.imwrite(dst_file, data, pars)
 
     def encode(self, ext, **kwargs):
         '''
         Return image matrix as encoded bytes, format according to a file extension.
-        See _4ser for available extensions and formats.
         '''
-        data, pars = self._4ser(ext, **kwargs)
+        data, pars = self._4ser('dummy.' + ext.lstrip('.'), **kwargs)
         ext = '.' + ext.lstrip('.')
         _, buf = cv2.imencode(ext, data, pars)
         return buf.tostring()
 
-    def _4ser(self, ext, **kwargs):
+    def _4ser(self, path, **kwargs):
         '''
-        Return data and parameters prepared for serialization (memory or file)
-        Available extensions.
-        jpeg, jpg
-        png
-        tif, tiff
-        See _4{ext} for available options for each image encoding formats.
+        Return data and parameters prepared for serialization (memory or file).
         '''
-        ext = ext.lstrip('.') # strip leading dot
-        if ext == 'jpg' or ext == 'jpeg':
+        # See _4{ext} for available options for each image encoding formats.
+        mime_type, _ = mimetypes.guess_type(path)
+        if mime_type == 'image/jpeg':
             return self._4jpeg(**kwargs)
-        elif ext == 'png':
+        elif mime_type == 'image/png':
             return self._4png(**kwargs)
-        elif ext == 'tiff' or ext == 'tif':
+        elif mime_type == 'image/tiff':
             return self._4tiff(**kwargs)
-        else:
-            raise ValueError("Extension {}, is not supported.".format(ext))
+        return self.data, []
 
 
     def _4jpeg(self, optimize=True, progressive=True, quality=80):
         '''
-        Prepare data for jpeg, before saving to file or return bytes.
-            optimize=True (True|False)
-            progressive=True (True|False)
-            quality=80 (0—100)
+        Prepare data for JPEG, before saving to file or return bytes (blend alpha, 8 bits).
         '''
-        data = self.blend_alpha(self.data)
-        data, _ = self.convert_matrix(data, 'x8i')
+        data = self._blend_alpha(self.data)
+        data, _ = self._convert_depth(data, '8i')
         # not found in OpenCV API subsampling, ex: '4:4:4'
         pars = []
         if optimize:
@@ -261,85 +157,49 @@ class Image(object):
 
     def _4png(self, compression=9):
         '''
-        Prepare data for png, before saving to file or return bytes.
-            compression=9 (0-9)
+        Prepare data for PNG, before saving to file or return bytes.
         '''
         # no optimise flag found in OpenCV API
         pars = []
         data = self.data
         if data.dtype != np.uint8 and data.dtype != np.uint16:
-            data, _ = self.convert_matrix(data, 'x16i')
+            data, _ = self._convert_depth(data, '16i')
         if compression >= 0 and compression <= 9:
             pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
-        return self.data, pars
+        return data, pars
 
 
     def _4tiff(self):
         '''
-        Prepare data for tiff, before saving to file or return bytes.
+        Prepare data for TIFF, before saving to file or return bytes (blend alpha).
         '''
-        data = self.blend_alpha(self.data) # assume that tiff do not support alpha
+        data = self._blend_alpha(self.data) # assume that tiff do not support alpha
         pars = []
         return data, pars
 
     @staticmethod
-    def valid_type(value, atype, name=None, amax=None, amin=None):
+    def valid_numeric(name, value, amax=None, amin=None):
         """
-        Ensure numeric casting of parameters, especially string to int.
-        force_numeric(None, int) => None
-        force_numeric(123, int) => 123
-        force_numeric('123', int) => 123
-        force_numeric('toto', int) => ValueError
-        force_numeric((123), int) => 123
-        force_numeric('123', float) => 123.0
+        Validate values
         """
         if value is None:
             return value
-        if isinstance(value, list):
-            value = value[0]
-        if isinstance(value, dict):
-            _, value = value.popitem()
-
-        if atype == bool:
-            return value not in [False, None, 0, 'False', 'false', 'f', 'no', 'n', 'F', '0']
-
-        try:
-            if atype == int:
-                value = int(value)
-            elif atype == float:
-                value = float(value)
-        except ValueError:
-            if name is None:
-                raise ValueError("{}{} impossible to cast to {}".format(value, type(value), atype))
-            else:
-                raise ValueError("{}={}{} impossible to cast to {}".format(name, value, type(value), atype))
-
         if value > amax:
-            if name is None:
-                raise ValueError("{} > {}".format(value, amax))
-            else:
-                raise ValueError("{}={} > {}".format(name, value, amax))
-
+            raise ValueError("{}={} > {}".format(name, value, amax))
         if value < amin:
-            if name is None:
-                raise ValueError("{} < {}".format(value, amin))
-            else:
-                raise ValueError("{}={} >= {}".format(name, value, amin))
-
-
+            raise ValueError("{}={} >= {}".format(name, value, amin))
         return value
 
     def resize(self, width=None, height=None, fx=None, fy=None,
                preserve_ratio=True, interpolation=None, max_width=5000, max_height=5000):
         '''
-        Smart resize, according to different parameters
+        Resize image data.
         '''
         src_height, src_width = self.data.shape[:2]
-        width = self.valid_type(width, int, name='width', amax=max_width, amin=1)
-        height = self.valid_type(height, int, name='height', amax=max_height, amin=1)
-        fx = self.valid_type(fx, float, name='fx', amax=max_width/src_width, amin=1/src_width)
-        fy = self.valid_type(fy, float, name='fy', amax=max_height/src_height, amin=1/src_height)
-        preserve_ratio = self.valid_type(preserve_ratio, bool)
+        width = self.valid_numeric('width', width, amax=max_width, amin=1)
+        height = self.valid_numeric('height', height, amax=max_height, amin=1)
+        fx = self.valid_numeric('fx', fx, amax=max_width/src_width, amin=1/src_width)
+        fy = self.valid_numeric('fy', fy, amax=max_height/src_height, amin=1/src_height)
         if fx or fy:
             if not fx:
                 fx = fy
@@ -351,9 +211,8 @@ class Image(object):
                 interpolation = cv2.INTER_NEAREST
             else: # diminution, for thumbnail, some interpolation
                 interpolation = cv2.INTER_AREA
-            self.data = cv2.resize(self.data, None, fx=fx, fy=fy, interpolation=interpolation)
-            self._props()
-            return
+            self.data = cv2.resize(self.data, None, fx=float(fx), fy=float(fy), interpolation=interpolation)
+            return self
 
         dst_width = width
         dst_height = height
@@ -387,6 +246,8 @@ class Image(object):
             dst_height = min(dst_height, max_height)
             if dst_height <= 0:
                 dst_height = src_height
+        else:
+            raise ValueError("Image.resize(), not enough parameters to resize image.")
         # dtype of matrix is still kept
         if interpolation: # keep requested interpolation
             pass
@@ -395,7 +256,7 @@ class Image(object):
         else: # diminution, for thumbnail, some interpolation
             interpolation = cv2.INTER_AREA
         self.data = cv2.resize(self.data, (int(dst_width), int(dst_height)), interpolation=interpolation)
-        self._props()
+        return self
 
     def crop(self, x=0, y=0, width=0, height=0):
         '''
@@ -406,154 +267,240 @@ class Image(object):
         if x + width > self.width or y + height > self.height:
             raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
         self.data = self.data[y:y+height, x:x+width]
-        self._props()
 
     def convert(self, mode):
         '''
-        Convert data accordind to mode. See convert_matrix for values impleéented.
-        Return True if a modification have been done
+        Converts data of the image according to a mode (number of channels and depth).
         '''
-        self.data, ret = self.convert_matrix(self.data, mode)
-        self._props()
+        # ret = True, if data have been modified. This flag allow to rewite an image with no modification.
+        # mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i
+        channels, depth = mode.split('x')
+        data = self.data
+        data, ret1 = self._convert_channels(data, int(channels))
+        data, ret2 = self._convert_depth(data, depth)
+        self.data = data
+        return ret1 | ret2
+
+    def convert_channels(self, channels):
+        '''
+        Converts image data to grey=1 or color=3.
+        '''
+        self.data, ret = self._convert_channels(self.data, int(channels))
+        return ret
+
+    def convert_depth(self, depth):
+        '''
+        Converts image data color depth.
+        '''
+        self.data, ret = self._convert_depth(self.data, depth)
         return ret
 
     @staticmethod
-    def video_frame(video_file, pos_ratio=0.5, pos_max=7500):
+    def _convert_channels(data, dst_channels):
         '''
-        From a video, returns a significative frame as an image object
+        Converts the number of channels of an image matrix.
         '''
-        cap = cv2.VideoCapture(video_file)
-        pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
-        pos_frame = min(pos_frame, pos_max)
-        for _ in range(1, pos_frame):
-            cap.read()
-        _, frame = cap.read()
-        # When everything done, release the capture
-        cap.release()
-        return Image(frame)
+        if not dst_channels:
+            return data, False
+        dst_channels = int(dst_channels)
+        # always blend alpha
+        data = Image._blend_alpha(data)
+        if len(data.shape) == 2:
+            data.shape = [data.shape[0], data.shape[1], 1]
+        src_channels = data.shape[2]
+        if src_channels == dst_channels:
+            return data, False
+        if src_channels == 3 and dst_channels == 1:
+            data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+        elif src_channels == 1 and dst_channels == 3:
+            data = cv2.cvtColor(data, cv2.COLOR_GRAY2BGR)
+        else: # unknown number of channels
+            raise ValueError("Convert channels '{}', number of channels not yet supported.".format(dst_channels))
+        return data, True
 
     @staticmethod
-    def convert_matrix(data, mode):
+    def _convert_depth(data, dst_depth):
         '''
-        Convert number of channels and dtype of a CV image matrix.
-        Static method allow to modify data for saving (ex: 8 bits for jpeg)
-        without
-        Return: a tuple (data, modification) where data is the resulting data
-            and modification is a flag with value None: no modification, True: modified
-        data: a CV numpy matrix
-        mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i
+        Converts the depth of an image matrix.
         '''
-        # TODO 1x1i
+        if not dst_depth:
+            return data, False
+        supported_dtypes = ['uint8', 'uint16', 'uint32', 'float16', 'float32']
+        depth_dtypes = {'8i': 'uint8', '8': 'uint8', '16i': 'uint16', '16': 'uint16', '32i': 'uint32',
+                        '32': 'uint32', '16f': 'float16', '32f': 'float32'}
+        src_dtype = data.dtype
+        # normalisation of requested depth as a dtype
+        if dst_depth in depth_dtypes:
+            dst_dtype = depth_dtypes[dst_depth]
+        else:
+            dst_dtype = dst_depth
+        # same source and destination dtype, do nothing
+        if src_dtype == dst_dtype:
+            return data, False
 
-        if not mode:
-            return data, None
-        ret = None # default return value
+        if dst_dtype not in supported_dtypes:
+            raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
+        if src_dtype not in supported_dtypes:
+            raise ValueError("Source dtype '{}' not suppported for depth conversion.".format(src_dtype))
 
-
-        if mode[0] != 'x': # channel modification requested
-            dst_channels = int(mode[0])
-            if len(data.shape) == 2:
-                src_channels = 1
+        # Source is float
+        if src_dtype == 'float32' or src_dtype == 'float16':
+            # casting float
+            if dst_dtype == 'float32':
+                return data.astype(np.float32, copy=False), True
+            if dst_dtype == 'float16':
+                return data.astype(np.float16, copy=False), True
+            # float to int
+            src_min = np.nanmin(data) # matrix may contain NaN
+            src_max = np.nanmax(data)
+            # reduce matrix between 0 to 1
+            # min and max are close to the dtype limits, divide to have place for calculation
+            if src_max - src_min >= np.finfo(src_dtype).max:
+                data = (data/2 - src_min/2) / (src_max/2 - src_min/2)
             else:
-                src_channels = data.shape[2]
-            # always blend alpha for 1 or 3 channels
-            if src_channels == 2 or src_channels == 4:
-                data = Image.blend_alpha(data)
-                ret = True
-            if dst_channels == 1:
-                if src_channels == 3:
-                    data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-                    ret = True
-            elif dst_channels == 3:
-                if src_channels == 1:
-                    data = cv2.cvtColor(data, cv2.COLOR_GRAY2BGR)
-                    ret = True
-            else: # unknown number of channels
-                raise ValueError("Convert matrix, mode={}, number of channels not yet supported.".format(mode))
+                data = (data - src_min) / (src_max - src_min)
+            if dst_dtype == 'uint8':
+                data = data * 255 # 2^8 - 1
+                data = data.astype(np.uint8, copy=False)
+            elif dst_dtype == 'uint16':
+                data = data * 65535 # 2^16 - 1
+                data = data.astype(np.uint16, copy=False)
+            elif dst_dtype == 'uint32':
+                data = data * 4294967295 # 2^32 - 1
+                data = data.astype(np.uint32, copy=False)
+            return data, True
 
-        if 'x' in mode: # dtype modification requested
-            dst_depth = mode[mode.index('x')+1:]
-            src_dtype = data.dtype
-            if dst_depth == '8i' or dst_depth == '8':
-                if src_dtype == 'uint8': # OK, do nothing
-                    pass
-                elif src_dtype == 'uint16':
-                    data = data >> 8 # faster than data = data / 256
-                    data = data.astype(np.uint8, copy=False) # just a cast
-                    ret = True
-                elif src_dtype == 'uint32':
-                    data = data >> 16
-                    data = data.astype(np.uint8, copy=False)
-                    ret = True
-                elif src_dtype == 'float32' or src_dtype == 'float16':
-                    # NaN found (???)
-                    src_min = np.nanmin(data)
-                    src_max = np.nanmax(data)
-                    # close to type overflow, divide by 2
-                    if src_max/2 - src_min/2 >= np.finfo(src_dtype).max / 2:
-                        data = (data/2 - src_min/2) / (src_max/2 - src_min/2) * 255
-                    else:
-                        data = (data - src_min) / (src_max - src_min) * 255
-                    data = data.astype(np.uint8, copy=False)
-                else:
-                    raise ValueError("Convert matrix, source dtype={} not yet supported for '{}' mode conversion.".format(src_dtype, dst_depth))
-            elif dst_depth == '16i' or dst_depth == '16':
-                if src_dtype == 'uint16': # OK, do nothing
-                    pass
-                elif src_dtype == 'uint8':
-                    data = data.astype(np.uint16, copy=False) # do cast before x256
-                    data = data << 8
-                    ret = True
-                elif src_dtype == 'uint32':
-                    data = data >> 8
-                    data = data.astype(np.uint16, copy=False)
-                    ret = True
-                elif src_dtype == 'float32' or src_dtype == 'float16':
-                    # NaN maybe found
-                    src_min = np.nanmin(data)
-                    src_max = np.nanmax(data)
-                    # min and max are close to the dtype limits, divide to have place for calculation
-                    if src_max/2 - src_min/2 >= np.finfo(src_dtype).max / 2:
-                        data = (data/2 - src_min/2) / (src_max/2 - src_min/2) * 65535
-                    else:
-                        data = (data - src_min) / (src_max - src_min) * 65535
-                    data = data.astype(np.uint16, copy=False)
-                else:
-                    raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
-            elif dst_depth == '32i' or dst_depth == '32':
-                if src_dtype == 'uint32': # OK, do nothing
-                    pass
-                elif src_dtype == 'uint8':
-                    data = data.astype(np.uint32, copy=False)
-                    data = data << 8
-                    ret = True
-                elif src_dtype == 'uint32':
-                    data = data >> 8
-                    data = data.astype(np.uint16, copy=False)
-                    ret = True
-                elif src_dtype == 'float32' or src_dtype == 'float16':
-                    src_min = np.nanmin(data)
-                    src_max = np.nanmax(data)
-                    if src_min < np.finfo(src_dtype).min / 2 or src_max > np.finfo(src_dtype).max / 2:
-                        if src_dtype == 'float32':
-                            data = data.astype(np.float64, copy=False)
-                        if src_dtype == 'float16':
-                            data = data.astype(np.float32, copy=False)
-                    data = (data + src_min) / (src_max - src_min) * 16843009
-                    data = data.astype(np.uint16, copy=False)
-                else:
-                    raise ValueError("Convert matrix, source dtype={} not yet supported  for '{}' mode conversion.".format(src_dtype, dst_depth))
-            elif dst_depth == '16f':
-                if src_dtype == 'float16':
-                    pass
-                else:
-                    data = data.astype(np.float16, copy=False)
-                    ret = True
-            elif dst_depth == '32f':
-                if src_dtype == 'float32':
-                    pass
-                else:
-                    data = data.astype(np.float32, copy=False)
-            else:
-                raise ValueError("Convert matrix, mode={} not yet supported.".format(mode))
-        return data, ret
+        # Source is integer
+
+        # to 8 bits
+        if dst_dtype == 'uint8':
+            if src_dtype == 'uint16':
+                data = data >> 8 # exact and faster than / 257.0
+            elif src_dtype == 'uint32':
+                data = data >> 16
+            # cast at the end
+            data = data.astype(np.uint8, copy=False)
+            return data, True
+        # to 16 bits
+        elif dst_dtype == 'uint16':
+            if src_dtype == 'uint8':
+                data = data.astype(np.uint16, copy=False) # cast before to give place
+                data = data * 257.0 # (2^16 - 1)/(2^8 - 1), bitshift is unprecise
+            elif src_dtype == 'uint32':
+                data = data >> 8
+                data = data.astype(np.uint16, copy=False) # cast after
+            return data, True
+        # to 32 bits
+        elif dst_dtype == 'uint32':
+            data = data.astype(np.uint32, copy=False) # cast before calculations
+            if src_dtype == 'uint8':
+                data = data * 16843009.0 # (2^32 - 1)/(2^8 - 1)
+            elif src_dtype == 'uint16':
+                data = data * 65537.0 # (2^32 - 1)/(2^16 - 1)
+            return data, True
+        # int to float, just a cast
+        elif dst_depth == '16f':
+            return data.astype(np.float16, copy=False), True
+        # int to float, just a cast
+        elif dst_depth == '32f':
+            return data.astype(np.float32, copy=False), True
+        # should not arrive
+        else:
+            raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
+
+    @staticmethod
+    def _blend_alpha(data, back_color=(255, 255, 255)):
+        '''
+        If an image matrix has an alpha layer, blend it with a background color
+        '''
+        if len(data.shape) == 2:
+            data.shape = [data.shape[0], data.shape[1], 1]
+        # 1 channel, Gray, do nothing
+        if data.shape[2] == 1:
+            return data
+        # 3 channels, BGR, do nothing
+        elif data.shape[2] == 3:
+            return data
+        # 2 channels, Gray with alpha
+        elif data.shape[2] == 2:
+            # check if alpha is just a 100% layer
+            if np.unique(data[:, :, 1]).size == 1:
+                return data[:, :, 0]
+            orig_dtype = data.dtype
+            # convert back_color to a grey luminosity
+            back_gray = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
+            # build a float matrix from the alpha layer, convert it to [0,1]
+            alpha_mask = data[:, :, 1].astype(np.float64)
+            if data.dtype == 'uint8':
+                alpha_mask = alpha_mask / 255.0 # 2^8 - 1
+            elif data.dtype == 'uint16':
+                alpha_mask = alpha_mask / 65535.0 # 2^16 - 1
+                back_gray = back_gray * 257.0 # (2^16 - 1) / (2^8 - 1)
+            elif data.dtype == 'uint32':
+                alpha_mask = alpha_mask / ((1 << 32) - 1) # 2^32 - 1
+                back_gray = back_gray * 16843009.0 # (2^32 - 1) / (2^8 - 1)
+            else: # float
+                alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
+                alpha_max = np.nanmax(alpha_mask)
+                alpha_mask = (alpha_mask - alpha_min) / (alpha_max - alpha_min)
+                # convert desired background according to min and max of the
+                data_min = np.nanmin(data[:, :, 0])
+                data_max = np.nanmax(data[:, :, 0])
+                back_gray = back_gray / 255.0 * (data_max - data_min) + data_min
+            # build a background matrix as float
+            back_mat = np.zeros((data.shape[0], data.shape[1], 1), np.float64)
+            # fill it with background color
+            back_mat[:] = back_gray
+            # apply inverse mask to background
+            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
+            # apply mask to foregroung
+            fore_mat = cv2.multiply(alpha_mask, data[:, :, 0].astype(np.float64))
+            # merge back and fore
+            data = cv2.add(back_mat, fore_mat)
+            # restore original dtype
+            data = data.astype(orig_dtype, copy=False)
+            return data
+        # 4 channels, BGRA, blend
+        elif data.shape[2] == 4:
+            # check if alpha is just a 100% layer
+            if np.unique(data[:, :, 3]).size == 1:
+                return data[:, :, :3]
+            orig_dtype = data.dtype
+            # convert back_color to BGR (OpenCV format)
+            back_color = tuple(reversed(back_color))
+            # build an alpha_mask, convert to float [0, 1], according to dtype
+            alpha_mask = cv2.cvtColor(data[:, :, 3], cv2.COLOR_GRAY2BGR).astype(np.float64)
+            if data.dtype == 'uint8':
+                alpha_mask = alpha_mask / 255.0 # 2^8 - 1
+            elif data.dtype == 'uint16':
+                alpha_mask = alpha_mask / 65535.0 # 2^16 - 1
+                back_color = (back_color[0] * 257.0, back_color[1] * 257.0, back_color[2] * 257.0)
+            elif data.dtype == 'uint32':
+                alpha_mask = alpha_mask / ((1 << 32) - 1) # 2^32 - 1
+                back_color = (back_color[0] * 16843009.0, back_color[1] * 16843009.0, back_color[2] * 16843009.0)
+            else: # float
+                alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
+                alpha_max = np.nanmax(alpha_mask)
+                alpha_mask = (alpha_mask - alpha_min) / (alpha_max - alpha_min)
+                data_min = np.nanmin(data[:, :, :3])
+                data_max = np.nanmax(data[:, :, :3])
+                back_color = (
+                    back_color[0] / 255.0 * (data_max - data_min) + data_min,
+                    back_color[1] / 255.0 * (data_max - data_min) + data_min,
+                    back_color[2] / 255.0 * (data_max - data_min) + data_min
+                )
+            # build a background matrix as float
+            back_mat = np.zeros((data.shape[0], data.shape[1], 3), np.float64)
+            # fill it with background color
+            back_mat[:] = back_color
+            # apply inverse mask to background
+            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
+            # apply mask to foregroung
+            fore_mat = cv2.multiply(alpha_mask, data[:, :, :3].astype(np.float64))
+            # merge back and fore
+            data = cv2.add(back_mat, fore_mat)
+            # restore original dtype
+            data = data.astype(orig_dtype, copy=False)
+            return data
+        else: # unknown format
+            return data
