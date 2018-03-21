@@ -1431,18 +1431,18 @@ attached the failed experiment data.". \
 
             # Archive the experiment, if the 'archive' section exists in the DDL and
             # it is original uploaded data from the user (origin != 'blobset')
-            if origin != 'blobset'and not private_mode and 'archive' in ddl:
+            if origin != 'blobset' and not private_mode and 'archive' in ddl:
                 try:
                     response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, self.host_name)
-                    if response.status != 'OK':
-                        mess = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
+                    if response['status'] != 'OK':
+                        message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
                         id_experiment = None
                         if 'id_experiment' in response:
                             id_experiment = response.id_experiment
-                        self.logger.exception(mess.format(demo_id, key, id_experiment))
+                        self.logger.exception(message.format(demo_id, key, id_experiment))
                 except Exception as ex:
-                    mess = "Error archiving an experiment: demo={}, key={}. Error: {}."
-                    self.logger.exception(mess.format(demo_id, key, str(ex)))
+                    message = "Error archiving an experiment: demo={}, key={}. Error: {}."
+                    self.logger.exception(message.format(demo_id, key, str(ex)))
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
