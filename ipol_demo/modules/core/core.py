@@ -1434,11 +1434,13 @@ attached the failed experiment data.". \
             if origin != 'blobset' and not private_mode and 'archive' in ddl:
                 try:
                     response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, self.host_name)
-                    if response['status'] != 'OK':
-                        message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
+                    if response['status'] == 'OK':
+                        pass # save_execution() ?
+                    else:
                         id_experiment = None
                         if 'id_experiment' in response:
-                            id_experiment = response.id_experiment
+                            id_experiment = response['id_experiment']
+                        message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
                         self.logger.exception(message.format(demo_id, key, id_experiment))
                 except Exception as ex:
                     message = "Error archiving an experiment: demo={}, key={}. Error: {}."
