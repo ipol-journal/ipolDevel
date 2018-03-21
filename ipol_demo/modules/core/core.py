@@ -1233,9 +1233,19 @@ attached the failed experiment data.". \
         """
         build_data = {'demo_id': demo_id, 'ddl_build': json.dumps(ddl_build)}
         dr_response = self.post('api/demorunner/ensure_compilation', data=build_data, host=dr_server)
-        demorunner_response = dr_response.json()
+
+        # Read the JSON response from the DR
+        try:
+            demorunner_response = dr_response.json()
+        except Exception as ex:
+            error_message = "**INTERNAL ERROR**. Bad format in the response \
+                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response.content, ex)
+            self.logger.exception(error_message)
+            raise IPOLEnsureCompilationError(error_message)
+
+        # Check if the compilation was successful
         if demorunner_response['status'] != 'OK':
-            print "Compilation error in demo #", demo_id
+            print "Compilation error in demo #{}".format(demo_id)
             # Add the compilation failure info into the exception
             buildlog = demorunner_response.get('buildlog', '').encode('utf8')
             demorunner_message = demorunner_response['message'].encode('utf8')
