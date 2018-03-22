@@ -266,7 +266,7 @@ class Conversion(object):
         # width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
 
         # default http code if something is going wrong
-        cherrypy.response.headers["Status"] = "204"
+        cherrypy.response.status = 204
         src_file = os.path.realpath(os.path.join(self.run_dir, src))
         response = {'status':'KO'}
         # ensure security (no ../)
@@ -298,14 +298,15 @@ class Conversion(object):
                 height=self.string_int(height),
                 preserve_ratio=preserve_ratio
             )
+            data = im.encode('.jpg')
         except Exception:
             response['error'] = "conversion/thumbnail, error when proceding src file {}".format(src)
             response['trace'] = traceback.format_exc().splitlines()
             return json.dumps(response)
 
-        cherrypy.response.headers["Status"] = "200"
+        cherrypy.response.status = 200
         cherrypy.response.headers['Content-Type'] = "image/jpeg"
-        return im.encode('.jpg')
+        return data
 
     @staticmethod
     def string_int(s):
