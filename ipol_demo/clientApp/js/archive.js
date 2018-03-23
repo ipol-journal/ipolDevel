@@ -132,7 +132,8 @@ function record(data) {
   html += '\n<div class="thumbs">';
   var max = data.files.length;
   for (var i = 0; i < max; i++) {
-    if (!data.files[i].url_thumb || !ddl.archive.files || !Object.values(ddl.archive.files).includes(data.files[i].name)) continue;
+    let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
+    if (!data.files[i].url_thumb || isHiddenFile) continue;
     html += '\n<a href="'+data.files[i].url+'" target="_blank" class="thumb">';
     html += '\n<img class="thumb" src="'+data.files[i].url_thumb+'"/>';
     html += '\n'+data.files[i].name;
@@ -147,7 +148,8 @@ function record(data) {
   var files = "";
   var max = data.files.length;
   for (var i = 0; i < max; i++) {
-    if (data.files[i].url_thumb || !Object.values(ddl.archive.files).includes(data.files[i].name)) continue;
+    let isHiddenFile = ddl.archive.hidden_files ? Object.values(ddl.archive.hidden_files).includes(data.files[i].name) : false;
+    if (data.files[i].url_thumb || isHiddenFile) continue;
     var url = data.files[i].url;
     var ext = url.substr(url.lastIndexOf('.')+1);
     // not empty string, add comma.
