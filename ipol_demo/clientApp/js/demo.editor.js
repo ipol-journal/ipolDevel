@@ -10,8 +10,9 @@ var crop_info;
 
 // Print editor pannel.
 editor.printEditor = function(crop) {
+  if (helpers.getOrigin() === 'upload') checkTiff();
   $("#inputEditorContainer").load("editor.html", function() {
-    if (helpers.getOrigin() == "blobSet")
+    if (helpers.getOrigin() === "blobSet")
       editorBlobs = helpers.getFromStorage("demoSet");
     crop_info = crop;
     printEditorPanel();
