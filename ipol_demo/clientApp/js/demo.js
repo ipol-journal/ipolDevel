@@ -134,6 +134,7 @@ function renderExperiment(run_request, execution_response){
 
 function setFiles(request, response) {
   var blobs = [];
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   for (let i = 0; i < request.files; i++) {
     let xhr = new XMLHttpRequest();
     var file_url = getFileURL('input_' + i + demoInfo.inputs[i].ext);
@@ -150,7 +151,8 @@ function setFiles(request, response) {
       let myFile = new File([blob], "file_" + i, {
         type: blob.type
       });
-      files.push(myFile);
+      if(isSafari) files.push(blob);
+      else files.push(myFile);
 
       let reader = new FileReader();
       reader.readAsDataURL(blob);

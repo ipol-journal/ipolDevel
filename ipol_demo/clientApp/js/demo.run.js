@@ -77,7 +77,7 @@ function setRunPostData() {
 function setUploadedFiles() {
   var uploads = clientApp.upload.getUploadedFiles();
   for (let i = 0; i < Object.keys(uploads).length; i++)
-    runData.append('file_' + i, files[i]);
+    runData.append('file_' + i, files[i], files[i].name);
 }
 
 function checkCropper() {
