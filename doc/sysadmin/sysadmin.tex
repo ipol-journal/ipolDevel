@@ -113,6 +113,15 @@ pip install -r requirements.txt
 \end{verbatim}
 
 
+\subsection{External repositories}
+Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
+
+\begin{itemize}
+    \item For the specific instructions for VirtualBox, please refer to Sec. \ref{sec:virtual_machines}.
+    \item For Intel IPP, it is described in the corresponding website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
+\end{itemize}
+
+
 \section{Crontab scripts}
 The system needs to periodically execute administration script, to create backups, clean up old data, or to perform continuous integration tests. This section describes these scripts.
 
@@ -611,6 +620,7 @@ In order to remove an image. The id or name provided will be available doing "do
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Virtual Machines}
+\label{sec:virtual_machines}
 In order to allow members of the lab use the IPOL infrastructure for their computational research need, we create virtual machines (VM) with VirtualBox.
 
 The VirtualBox package needs to be installed from the VirtualBox's repositories. First, add the GPG key:
