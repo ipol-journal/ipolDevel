@@ -44,11 +44,6 @@ def copy_demo(demo_id, host):
         print('**Please change the demo title and add it to the general section in the ddl**')
         demo_title = "CHANGE THIS DEMO TITLE"
 
-    create_demo_response = create_demo(new_id, demo_title, demo_state, host)
-    if create_demo_response['status'] == 'KO':
-        demo_title = input("\nChoose a new title: ")
-        create_demo(new_id, demo_title, demo_state, host)
-
     if ddl_exists(demo_id, host):
         new_id = input("\nA demo with this ID already exists. Choose a new ID or the same to overwrite a demo: ")
         print("Destination demo:", new_id)
@@ -57,7 +52,11 @@ def copy_demo(demo_id, host):
         except ValueError:
             print("That isn't a number")
             return
-    
+
+    create_demo_response = create_demo(new_id, demo_title, demo_state, host)
+    if create_demo_response['status'] == 'KO':
+        demo_title = input("\nChoose a new title: ")
+        create_demo(new_id, demo_title, demo_state, host)
     
     print('Adding ddl...')
     add = add_ddl(host, new_id)
