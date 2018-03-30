@@ -62,6 +62,7 @@ libswscale-dev
 libavresample-dev
 libavfilter-dev
 libavutil-dev
+apt-transport-https
 
 libgeos-dev
 
