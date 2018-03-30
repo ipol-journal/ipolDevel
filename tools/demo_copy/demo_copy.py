@@ -26,14 +26,23 @@ import urllib.request
 
 
 def post(module, service, host, params=None, data=None, files=None, servicejson=None):
+    """
+    Post request to service
+    """
     url = 'http://{}/api/{}/{}'.format(host, module, service)
     return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
 def get(module, service, host, params=None):
+    """
+    Get resource
+    """
     url = 'http://{}/api/{}/{}/{}'.format(host, module, service, params)
     return urllib.request.urlopen(url)
     
 def copy_demo(demo_id, host):
+    """
+    Copy demo main method.
+    """
     print("Origin demo:", demo_id)
     new_id = demo_id
     ddl = get_ddl(demo_id, source_host)
@@ -54,15 +63,15 @@ def copy_demo(demo_id, host):
             return
 
     create_demo_response = create_demo(new_id, demo_title, demo_state, host)
-    if create_demo_response['status'] == 'KO':
-        demo_title = input("\nChoose a new title: ")
+    if create_demo_response['status'] != 'OK':
+        demo_title = input("\nChoose a new title: ") or sys.exit("Title cannot be empty")
         create_demo(new_id, demo_title, demo_state, host)
     
     print('Adding ddl...')
     add = add_ddl(host, new_id)
     os.remove('ddl.json')
     print('Adding demo_extras...')    
-    clone_demo_extras(host, demo_id)
+    clone_demo_extras(host, demo_id, new_id)
     print('Adding blobs...')    
     copy_blobs_to_demo(host, demo_id, new_id)
     
@@ -88,6 +97,9 @@ def ddl_exists(demo_id, host):
     return False
 
 def get_demo_state(host, demo_id):
+    """
+    Get a demo state
+    """
     response = get('demoinfo', 'read_demo_metainfo', host, demo_id)
     string = response.read().decode('utf-8')
     json_obj = json.loads(string)
@@ -115,10 +127,10 @@ def get_ddl(demo_id, host):
         return json.loads(ddl_json)
     except GetDDLError:
         print(message)
-        quit()
+        sys.exit("Aborted")
     except Exception as ex:
         print("ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex))
-        quit()
+        sys.exit("Aborted")
 
 def add_ddl(host, demo_id):
     """
@@ -138,7 +150,7 @@ def create_demo(demo_id, title, state, host):
     response = post('demoinfo', 'add_demo', host, params={'editorsdemoid': demo_id, 'title': title, 'state': state})
     return response.json()
 
-def clone_demo_extras(host, demo_id):
+def clone_demo_extras(host, demo_id, new_id):
     """
     Get DemoExtras from a demo
     """
@@ -148,7 +160,7 @@ def clone_demo_extras(host, demo_id):
         url = response['url']
         filename = response['url'].split("/")[-1]
         demo_extras = urllib.request.urlopen(url)
-        add_demo_extras(host, demo_id, demo_extras, filename)
+        add_demo_extras(host, new_id, demo_extras, filename)
 
 def add_demo_extras(host, demo_id, demo_extras, demo_extras_name):
     """
@@ -164,15 +176,14 @@ def copy_blobs_to_demo(host, demo_id, new_id):
     Copy blobs to demo or template
     """
     params = {'demo_id': demo_id}
-    blobs_response = post('blobs', 'get_demo_owned_blobs', source_host, params=params)
-    blobs_json = blobs_response.json()
-
+    blobs_json = post('blobs', 'get_demo_owned_blobs', source_host, params=params).json()
+    local_demo_blobs = get_demo_owned_blobs(host, new_id)
     for blobset in blobs_json['sets']:
         set_name = blobset['name']
         blobs = blobset['blobs']
         for index in blobs:
             blob = blobs[index]
-            if not blob_exists(host, demo_id, blob['blob']):
+            if blob['blob'] not in local_demo_blobs:
                 title = blob['title']
                 credit = blob['credit']
                 pos_in_set = index
@@ -183,16 +194,19 @@ def copy_blobs_to_demo(host, demo_id, new_id):
                 else:
                     add_blob_to_demo(host, new_id, blob_file, title, set_name, pos_in_set, credit)
 
-def blob_exists(host, demo_id, filename):
+def get_demo_owned_blobs(host, demo_id):
+    """
+    Get all blobs owned by a demo
+    """
     params = {'demo_id': demo_id}
     blobs_response = post('blobs', 'get_demo_owned_blobs', host, params=params).json()
+    owned_blobs = []
     for blobset in blobs_response['sets']:
         blobs = blobset['blobs']
         for index in blobs:
             blob = blobs[index]
-            if blob['blob'] == filename:
-                return True
-    return False
+            owned_blobs.append(blob['blob'])
+    return owned_blobs
 
 
 def get_blob_data(host, url):
@@ -297,7 +311,7 @@ class GetDDLError(Error):
 
 # Command help
 parser = argparse.ArgumentParser()
-parser.add_argument("demo_id", help="identifier of the demo to be copied")
+parser.add_argument("demo_id", type=int, help="identifier of the demo to be copied")
 
 args = parser.parse_args()
 
