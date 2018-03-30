@@ -2,6 +2,7 @@
 
 debian-keyring
 debian-archive-keyring
+apt-transport-https
 bash-completion
 mailutils
 cron-apt
