@@ -135,6 +135,8 @@ function renderExperiment(run_request, execution_response){
 function setFiles(request, response) {
   var blobs = [];
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  var isMSEdge = window.navigator.userAgent.indexOf("Edge") > -1;
+
   for (let i = 0; i < request.files; i++) {
     let xhr = new XMLHttpRequest();
     var file_url = getFileURL('input_' + i + demoInfo.inputs[i].ext);
@@ -148,11 +150,15 @@ function setFiles(request, response) {
         return;
       }
       let blob = xhr.response;
-      let myFile = new File([blob], "file_" + i, {
-        type: blob.type
-      });
-      if(isSafari) files.push(blob);
-      else files.push(myFile);
+
+      // Safari and MS Edge use blob instead of File object due to support issues.
+      if(isSafari || isMSEdge) files.push(blob);
+      else{
+        let myFile = new File([blob], "file_" + i, {
+          type: blob.type
+        });
+        files.push(myFile);
+      } 
 
       let reader = new FileReader();
       reader.readAsDataURL(blob);
