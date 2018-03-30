@@ -63,7 +63,7 @@ def copy_demo(demo_id, host):
     add = add_ddl(host, new_id)
     os.remove('ddl.json')
     print('Adding demo_extras...')    
-    demo_extras_name = clone_demo_extras(source_host, demo_id)
+    clone_demo_extras(host, demo_id)
     print('Adding blobs...')    
     copy_blobs_to_demo(host, demo_id, new_id)
     
