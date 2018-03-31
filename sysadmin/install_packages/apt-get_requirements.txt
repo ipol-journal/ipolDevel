@@ -11,6 +11,7 @@ python2.7
 wget
 cmake
 ccache
+libconfig9
 libtiff5-dev
 libtiff-tools
 libjpeg-dev
