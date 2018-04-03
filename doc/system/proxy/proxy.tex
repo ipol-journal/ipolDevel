@@ -1,21 +1,39 @@
 % Nginx as a reverse proxy
 
-\section{Nginx as a reverse proxy}
+\section{Nginx as a Reverse Proxy}
 \label{sec:reverse_proxy}
-The IPOL project uses Nginx as a reverse proxy in order to redirect internet requests to the servers in the 
-internal network. When Nginx receives a request, it decides which module it has to send and so which machine that module is, 
-then fetches the response, and sends it back to the client. With Nginx we implement private demos, microservise architecture 
-pattern and serve static files used by the clients.
 
-\subsection{Static files}
-Nginx serves all the static files used by the application and exposes them under a public route. The control panel as a Django 
-web application needs to be compiled everytime the files change, so in order to serve the application Django offers a cli tool to 
-collect all static files. 
+The demo system is a distributed architecture of isolated units which communicate with an HTTP-based API. Thanks to this API these
+units do not need to know which is the location in the network of the rest of other units. As explained in Sec. \ref{sec:methodology} this
+does not only hide the complexity of the system from the outside, but from the inside too.
 
-\subsection{API routing}
-Nginx is also used to redirect incoming requests to the corresponding port and direction inside the machine where the module is 
-running. Each modules has an internal file (sites-available) that decides where to route the request and deliver it to the desired endpoint.
+To implement the requests routing with API to the corresponding modules, a \emph{reverse proxy} is used. A reverse proxy receives a
+request, analyses it, and forwards it to the designated server using a table. It is the inverse operation which is performed by a
+classic proxy. In the IPOL demo system the nginx reverse proxy is used.
 
-\subsection{Private demos}
-The IPOL system is able provide private demos that requires authentication by username and password. The ID of these demos begins with 
-33333001. In this sense, Nginx can detect when a private demo is requested and it can forbid the access if the authentication fails.
+Nginx is also used to redirect incoming requests to the corresponding port and address of the machine where the module is 
+running on. Each modules has an internal file (sites-available) that decides where to route the request and deliver it to the desired endpoint.
+
+With Nginx the system implements private demos, the API routing, and serve static files. The IPOL system provides private demos which require
+authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this
+mechanism, Nginx checks the argument ID from the url looking for a numeric pattern, analizes this number, redirects to the authorization
+page and depending on the company name it will contrast the information provided by the user against this company credentials. If it
+is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the
+demo and redirects the authentication process if the pattern matches. 
+
+\begin{lstlisting}[language=Bash]
+location /demo/clientApp/ {
+        expires 24h;
+        if ($args ~ ".*id=33333001\d*") {
+            error_page 418 = @CompanyNamePasswd;
+            return 418;
+        }
+        alias  /resource_folder/;
+    }
+ \end{lstlisting}
+
+
+Nginx serves static files and exposes them under a public route. The control panel is a Django web application and it needs to be compiled 
+everytime the files change. In order for the web browsers to reach that code it has to be publicly available. The system serves these
+files using Nginx static files declarations. Apart from the control panel files, Nginx also serves static files for the demo system, this includes
+blobs and archive modules.
