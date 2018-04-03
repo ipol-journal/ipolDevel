@@ -63,6 +63,7 @@ libavresample-dev
 libavfilter-dev
 libavutil-dev
 apt-transport-https
+libconfig9
 
 libgeos-dev
 
