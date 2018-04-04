@@ -12,6 +12,8 @@ wget
 cmake
 ccache
 libconfig9
+libconfig-dev
+libconfig++-dev
 libtiff5-dev
 libtiff-tools
 libjpeg-dev
