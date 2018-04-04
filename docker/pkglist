@@ -64,6 +64,8 @@ libavfilter-dev
 libavutil-dev
 apt-transport-https
 libconfig9
+libconfig-dev
+libconfig++-dev
 
 libgeos-dev
 
