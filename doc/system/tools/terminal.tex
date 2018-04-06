@@ -1,9 +1,8 @@
-\section{The Control Terminal}
+\subsection{The Control Terminal}
 
-\subsection{Introduction}
 The Control Terminal is an standalone application intended for system administration which allows to start, stop, and query the status of each of the IPOL modules. It reads the IPOL configuration from the XML files at {\tt ipolDevel/ipol\_demo/modules/config\_common}.
 
-\subsection{Structure}
+\subsubsection{Structure}
 The Control Terminal is a command-line application to control the IPOL modules at each environment. The terminal is set to particular  enviroment to send the commands to the server in that environment. For example, the local, integration, or production environments. The current environment can be get or set with the {\tt env} command.
 
 \paragraph{XML files} \hspace{0pt} \\
@@ -20,7 +19,7 @@ In {\tt modules.xml} the fields are:
 
 The {\tt demorunners.xml} lists and configures each of the demoRunners in that enviroment.
 
-\subsection{Commands}
+\subsubsection{Commands}
 \paragraph{start} \hspace{0pt} \\
 Usage: {\tt start <module>}
 
