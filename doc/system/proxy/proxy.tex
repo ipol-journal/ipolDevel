@@ -12,12 +12,12 @@ request, analyses it, and forwards it to the designated server using a table. It
 classic proxy. In the IPOL demo system the nginx reverse proxy is used.
 
 Nginx is also used to redirect incoming requests to the corresponding port and address of the machine where the module is 
-running on. Each modules has an internal file (sites-available) that decides where to route the request and deliver it to the desired endpoint.
+running on. It uses the configuration found in the \emph{sites-available} directory to create a routing table which allows to deliver to the right endpoint.
+Another of its main functions is to serve static files and to expose them on a public location (say, a URL). The Control Panel is a Django web application which puts its static files in a specific directory. 
+The system serves these static files directly with Nginx, without the need to reach directly Django. Nginx also serves the static files of demo system as for example HTML pages, CSS, and the static data from the blobs and archive modules.
 
-With Nginx the system implements private demos, the API routing, and serve static files. The IPOL system provides private demos which require
-authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this
-mechanism, Nginx checks the argument ID from the url looking for a numeric pattern, analizes this number, redirects to the authorization
-page and depending on the company name it will contrast the information provided by the user against this company credentials. If it
+\subsection{Private demos}
+The IPOL system provides private demos which require authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this mechanism, Nginx checks the argument ID from the URL looking for a numeric pattern, checks this number, redirects to the authorization page and depending on the company name it will contrast the information provided by the user against this company credentials. If it
 is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the
 demo and redirects the authentication process if the pattern matches. 
 
@@ -32,8 +32,3 @@ location /demo/clientApp/ {
     }
  \end{lstlisting}
 
-
-Nginx serves static files and exposes them under a public route. The control panel is a Django web application and it needs to be compiled 
-everytime the files change. In order for the web browsers to reach that code it has to be publicly available. The system serves these
-files using Nginx static files declarations. Apart from the control panel files, Nginx also serves static files for the demo system, this includes
-blobs and archive modules.
