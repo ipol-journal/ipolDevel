@@ -185,9 +185,9 @@ class Image(object):
         if value is None:
             return value
         if value > amax:
-            raise ValueError("{}={} > {}".format(name, value, amax))
+            raise ValueError("{}={} > max={}".format(name, value, amax))
         if value < amin:
-            raise ValueError("{}={} >= {}".format(name, value, amin))
+            raise ValueError("{}={} < min={}".format(name, value, amin))
         return value
 
     def resize(self, width=None, height=None, fx=None, fy=None,
@@ -198,8 +198,8 @@ class Image(object):
         src_height, src_width = self.data.shape[:2]
         width = self.valid_numeric('width', width, amax=max_width, amin=1)
         height = self.valid_numeric('height', height, amax=max_height, amin=1)
-        fx = self.valid_numeric('fx', fx, amax=max_width/src_width, amin=1/src_width)
-        fy = self.valid_numeric('fy', fy, amax=max_height/src_height, amin=1/src_height)
+        fx = self.valid_numeric('fx', fx, amax=float(max_width)/src_width, amin=1.0/src_width)
+        fy = self.valid_numeric('fy', fy, amax=float(max_height)/src_height, amin=1.0/src_height)
         if fx or fy:
             if not fx:
                 fx = fy
