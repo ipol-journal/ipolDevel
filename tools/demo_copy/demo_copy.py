@@ -16,13 +16,17 @@
 # Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+"""
+This script clones a demo from a source environment
+"""
+
 import argparse
 import sys
-import requests
 import json
 import os
 import socket
 import urllib.request
+import requests
 
 
 def post(service, host, params=None, data=None, files=None, servicejson=None):
@@ -38,7 +42,7 @@ def get(service, host, params=None):
     """
     url = 'http://{}{}/{}'.format(host, service, params)
     return urllib.request.urlopen(url)
-    
+
 def copy_demo(demo_id, host, source_host):
     """
     Copy demo main method.
@@ -54,7 +58,7 @@ def copy_demo(demo_id, host, source_host):
         demo_title = "CHANGE THIS DEMO TITLE"
 
     if ddl_exists(demo_id, host):
-        new_id = input("\nA demo with this ID already exists. Choose a new ID or the same to overwrite a demo: ")
+        new_id = input("\nDemo ID already exists. Choose a new ID or the same to overwrite a demo:")
         print("Destination demo:", new_id)
         try:
             new_id = int(new_id)
@@ -66,15 +70,15 @@ def copy_demo(demo_id, host, source_host):
     if create_demo_response['status'] != 'OK':
         demo_title = input("\nChoose a new title: ") or sys.exit("Title cannot be empty")
         create_demo(new_id, demo_title, demo_state, host)
-    
+
     print('Adding ddl...')
-    add = add_ddl(host, new_id)
+    add_ddl(host, new_id)
     os.remove('ddl.json')
-    print('Adding demo_extras...')    
+    print('Adding demo_extras...')
     clone_demo_extras(host, source_host, demo_id, new_id)
-    print('Adding blobs...')    
+    print('Adding blobs...')
     copy_blobs_to_demo(host, source_host, demo_id, new_id)
-    
+
     demo_templates = get_demo_template_names(source_host, demo_id)
     local_templates = get_all_templates(host)
     for template_name in demo_templates:
@@ -116,11 +120,11 @@ def get_ddl(demo_id, host):
             message = "ERROR: get_ddl returned KO for demo {} from {}".format(demo_id, host)
             raise GetDDLError(message)
 
-        DDL = response['last_demodescription']
-        if not DDL:
+        ddl = response['last_demodescription']
+        if not ddl:
             raise GetDDLError("ERROR: Empty or non-existing DDL for demo #{} on {}".format(demo_id, host))
 
-        last_demodescription = DDL
+        last_demodescription = ddl
         ddl_json = last_demodescription['ddl']
         with open('ddl.json', 'w') as out:
             out.write(ddl_json)
@@ -129,14 +133,14 @@ def get_ddl(demo_id, host):
         print(message)
         sys.exit("Aborted")
     except Exception as ex:
-        print("ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex))
+        print("ERROR: Failed to read DDL from {}".format(ex))
         sys.exit("Aborted")
 
 def add_ddl(host, demo_id):
     """
     Add the ddl to the demo
     """
-    params = {'demoid': demo_id}        
+    params = {'demoid': demo_id}
     with open('ddl.json', 'r') as out:
         ddl = out.read()
 
@@ -175,18 +179,16 @@ def copy_blobs_to_demo(host, source_host, demo_id, new_id):
     """
     Copy blobs to demo or template
     """
-    params = {'demo_id': demo_id}
-    blobs_json = post('/api/blobs/get_demo_owned_blobs', source_host, params=params).json()
+    blobs_json = post('/api/blobs/get_demo_owned_blobs', source_host, params={'demo_id': demo_id}).json()
     local_demo_blobs = get_demo_owned_blobs(host, new_id)
     for blobset in blobs_json['sets']:
         set_name = blobset['name']
         blobs = blobset['blobs']
-        for index in blobs:
-            blob = blobs[index]
+        for pos_in_set in blobs:
+            blob = blobs[pos_in_set]
             if blob['blob'] not in local_demo_blobs:
                 title = blob['title']
                 credit = blob['credit']
-                pos_in_set = index
                 blob_file = get_blob_data(source_host, blob['blob'])
                 if 'vr' in blob:
                     vr = get_blob_data(source_host, blob['vr'])
@@ -251,14 +253,14 @@ def associate_template(host, new_id, template_name):
     Associate template to a demo
     """
     params = {'demo_id': new_id, 'template_names': template_name}
-    response = post('/api/blobs/add_templates_to_demo', host, params=params)
+    post('/api/blobs/add_templates_to_demo', host, params=params)
 
-def copy_template(host, source_host, demo_id, new_id, template_name):
+def copy_template(host, source_host, template_name):
     """
     Copy template to local
     """
     params = {'template_name': template_name}
-    response = post('/api/blobs/create_template', host, params=params).json()
+    post('/api/blobs/create_template', host, params=params).json()
     copy_blobs_from_template(host, source_host, template_name)
 
 def copy_blobs_from_template(host, source_host, template_name):
@@ -306,27 +308,28 @@ class GetDDLError(Error):
     GetDDLError handler
     """
     def __init__(self, message):
+        super().__init__()
         self.message = message
 
 
 # Command help
 parser = argparse.ArgumentParser()
 parser.add_argument("demo_id", type=int, help="identifier of the demo to be copied")
-parser.add_argument("-i", '--integration', help="Use the Integration environment", action="store_true")
+parser.add_argument("-i", '--integration', help="Use integration environment", action="store_true")
 args = parser.parse_args()
 
 # Obtain demo ID from arguments
-demo_id = args.demo_id
+args_demo_id = args.demo_id
 # Source host
 if args.integration:
-    source_host = "integration.ipol.im"
+    origin_host = "integration.ipol.im"
 else:
-    source_host = "ipolcore.ipol.im"
+    origin_host = "ipolcore.ipol.im"
 
-print('Source: ', source_host)
+print('Source: ', origin_host)
 # Host destination of the demo
-host = socket.getfqdn()
-if (host != "integration.ipol.im" and host != "ipolcore.ipol.im"):
-  host = "127.0.0.1"
+destination_host = socket.getfqdn()
+if (destination_host != "integration.ipol.im" and destination_host != "ipolcore.ipol.im"):
+    destination_host = "127.0.0.1"
 
-copy_demo(demo_id, host, source_host)
+copy_demo(args_demo_id, destination_host, origin_host)
