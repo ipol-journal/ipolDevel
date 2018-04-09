@@ -8,7 +8,6 @@ It implements Blob object and web service
 import hashlib
 import json
 import os
-import os.path
 import sys
 import logging
 import glob
@@ -23,7 +22,8 @@ import sqlite3 as lite
 from sqlite3 import IntegrityError
 import magic
 import cherrypy
-from ipolimage import Image
+import ipolutils
+
 
 import database
 from errors import IPOLBlobsDataBaseError
@@ -75,13 +75,16 @@ class Blobs(object):
     @staticmethod
     def get_instance():
         """
-        Singleton pattern
+        Singleton pattern.
         """
         if Blobs.instance is None:
             Blobs.instance = Blobs()
         return Blobs.instance
 
     def __init__(self):
+        """
+        Constructor.
+        """
 
         # Paths
         self.blob_dir = cherrypy.config['final.dir']
@@ -89,6 +92,7 @@ class Blobs(object):
         self.vr_dir = cherrypy.config['visual_representation.dir']
         self.config_common_dir = cherrypy.config.get("config_common.dir")
         self.module_dir = cherrypy.config.get("module.dir")
+        self.host_name = cherrypy.config['server.socket_host']
 
         # Logs
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -267,11 +271,11 @@ class Blobs(object):
                 if blob_vr is not None:
                     _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
                     blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
-                    self.create_thumbnail(blob_file, blob_hash, 'image')
+                    self.create_thumbnail(blob_file, blob_hash)
                 else:
                     blob_file = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
                     blob_file = os.path.join(blob_file, blob_hash + ext)
-                    self.create_thumbnail(blob_file, blob_hash, blob_format)
+                    self.create_thumbnail(blob_file, blob_hash)
             except IPOLBlobsThumbnailError as ex:
                 # An error in the creation of the thumbnail doesn't stop the execution of the method
                 self.logger.exception("Error creating the thumbnail")
@@ -442,43 +446,18 @@ class Blobs(object):
             conn.rollback()
             raise
 
-    def create_thumbnail(self, blob_file, blob_hash, blob_format):
+    def create_thumbnail(self, src_file, blob_hash):
         """
-        Creates the thumbnail according to the blob_format
+        Creates a thumbnail for blob_file.
         """
+        src_file = os.path.realpath(src_file)
+        thumb_height = 256
         dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
-        dst_path = os.path.join(dst_path, blob_hash + ".jpg")
-        if blob_format == "image":
-            self.create_image_thumbnail(blob_file, dst_path)
-        elif blob_format == "video":
-            self.create_video_thumbnail(blob_file, dst_path)
-        else:
-            raise IPOLBlobsThumbnailError("Format '{}' not yet supported.".format(blob_format))
-
-    @staticmethod
-    def create_image_thumbnail(src_file, dst_file):
-        """
-        Creates a 256x256 jpg thumbnail for the image blob
-        """
+        dst_file = os.path.join(dst_path, blob_hash + ".jpg")
         try:
-            im = Image.load(src_file)
-            im.resize(height=256)
-            im.write(dst_file)
+            ipolutils.thumbnail(src_file, height=thumb_height, dst_file=dst_file)
         except Exception as ex:
-            raise IPOLBlobsThumbnailError(ex)
-
-    @staticmethod
-    def create_video_thumbnail(src_file, dst_file):
-        """
-        Creates a video thumbnail
-        """
-        try:
-            im = Image.video_frame(src_file)
-            im.resize(height=256)
-            im.write(dst_file)
-        except Exception as ex:
-            raise IPOLBlobsThumbnailError(ex)
-
+            raise IPOLBlobsThumbnailError("File '{}', thumbnail error. {}".format(src_file, ex))
 
     def associate_tags_to_blob(self, conn, blob_id, tags):
         """
@@ -1116,7 +1095,7 @@ class Blobs(object):
 
                 blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
                 try:
-                    self.create_thumbnail(blob_file, blob_hash, 'image')
+                    self.create_thumbnail(blob_file, blob_hash)
                 except IPOLBlobsThumbnailError as ex:
                     self.logger.exception("Error creating the thumbnail")
                     print "Couldn't create the thumbnail. Error: {}".format(ex)
@@ -1210,10 +1189,7 @@ class Blobs(object):
                 if os.path.isdir(blob_folder):
                     blobs_in_dir = glob.glob(os.path.join(blob_folder, blob_hash + ".*"))
                     if blobs_in_dir:
-                        with open(blobs_in_dir[0]) as f:
-                            mime_type = self.get_blob_mime(f)
-                        blob_format, _ = self.get_format_and_extension(mime_type)
-                        self.create_thumbnail(blobs_in_dir[0], blob_hash, blob_format)
+                        self.create_thumbnail(blobs_in_dir[0], blob_hash)
             except IPOLBlobsThumbnailError as ex:
                 self.logger.exception("Error creating the thumbnail")
                 print "Couldn't create the thumbnail. Error: {}".format(ex)

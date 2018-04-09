@@ -10,6 +10,7 @@ import traceback
 import gzip
 import json
 import requests
+import ipolutils
 
 def create_thumnnail(src_file, host_name):
     """
@@ -19,18 +20,13 @@ def create_thumnnail(src_file, host_name):
     thumb_height = 128
     if not os.path.exists(src_file):
         return False
-    url = 'http://{}/api/conversion/thumbnail'.format(host_name)
-    data = {'src': src_file, 'height': thumb_height}
-    resp = requests.post(url, data=data)
-    if not resp.status_code == 200:
-        # file type not supported for thumbnail
-        return False
     thumb_name, _ = os.path.splitext(os.path.basename(src_file))
     thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
-    with open(thumb_file, 'wb') as f:
-        f.write(resp.content) # try ?
-        f.close()
+    try:
+        ipolutils.thumbnail(src_file, thumb_height, thumb_file)
+    except Exception as ex:
+        return False
     return thumb_file
 
 def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name):
@@ -39,7 +35,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     Collect information and parameters.
     Send data to the archive module.
     """
-    
+
     ddl_files = ddl_archive.get('files', {})
     ddl_hidden_files = ddl_archive.get('hidden_files', {})
 
@@ -98,7 +94,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
         execution_json['request'] = clientData
         execution_json['response'] = res_data
 
-        execution_json = json.dumps(execution_json)        
+        execution_json = json.dumps(execution_json)
     else:
         execution_json = None
 

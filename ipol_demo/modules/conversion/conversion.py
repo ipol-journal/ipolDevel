@@ -17,6 +17,7 @@ import mimetypes
 import traceback
 
 import cherrypy
+import ipolutils
 from ipolimage import Image
 from ipolevaluator import evaluate
 
@@ -37,7 +38,7 @@ def authenticate(func):
                         "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(\
                     cherrypy.request.headers["X-Real-IP"])):
             error = {'status': 'KO', 'error': "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error, indent=4)
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -253,82 +254,7 @@ class Conversion(object):
         response = {'status':'KO'}
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
-        return json.dumps(response)
-
-    @cherrypy.expose
-    def thumbnail(self, src, width=None, height=None, preserve_ratio=None):
-        """
-        Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
-        """
-        # height=256 -- forced height with preserved ratio
-        # width=256 -- forced width with preserved ratio
-        # width=256&height=256 -- containing box with preserved ratio
-        # width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
-
-        # default http code if something is going wrong
-        cherrypy.response.status = 204
-        src_file = os.path.realpath(os.path.join(self.run_dir, src))
-        response = {'status':'KO'}
-        # ensure security (no ../)
-        if not src_file.startswith(self.run_dir):
-            response['error'] = "conversion/thumbnail, src path unsolved {}".format(src)
-            return json.dumps(response)
-        if not os.path.isfile(src_file):
-            response['error'] = "conversion/thumbnail, source file nof found {}".format(src)
-            return json.dumps(response)
-        mime_type, _ = mimetypes.guess_type(src_file)
-        media_type, _ = mime_type.split('/')
-        if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
-            response['error'] = "conversion/thumbnail, format {} not yet supported.".format(mime_type)
-            return json.dumps(response)
-        if preserve_ratio in [False, 0, '', '0', 'False', 'false', 'None']:
-            preserve_ratio = False
-        else:
-            preserve_ratio = True
-
-        try:
-            if media_type == "image":
-                im = Image.load(src_file)
-            elif media_type == "video":
-                im = Image.video_frame(src_file)
-            im.resize(
-                max_height=max(im.height(), 500),
-                max_width=max(im.width(), 500),
-                width=self.string_int(width),
-                height=self.string_int(height),
-                preserve_ratio=preserve_ratio
-            )
-            data = im.encode('.jpg')
-        except Exception:
-            response['error'] = "conversion/thumbnail, error when proceding src file {}".format(src)
-            response['trace'] = traceback.format_exc().splitlines()
-            return json.dumps(response)
-
-        cherrypy.response.status = 200
-        cherrypy.response.headers['Content-Type'] = "image/jpeg"
-        return data
-
-    @staticmethod
-    def string_int(s):
-        '''
-        Conversion of string http parameter to int.
-        '''
-        if s is None:
-            return None
-        try:
-            i = int(s)
-            return i
-        except ValueError:
-            return None
-
-    @staticmethod
-    def media_type(path):
-        """
-        Find type of media (image, video, sound, unknown) by file path extension
-        """
-        mime_type, _ = mimetypes.guess_type(path)
-        media_type, _ = mime_type.split('/')
-        return media_type
+        return json.dumps(response, indent=4)
 
     @staticmethod
     def convert_image(input_file, input_desc, crop_info=None):
@@ -414,4 +340,4 @@ class Conversion(object):
             print message
             print traceback.format_exc()
             self.logger.exception(message)
-        return json.dumps(data)
+        return json.dumps(data, indent=4)

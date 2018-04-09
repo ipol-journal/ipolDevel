@@ -23,8 +23,15 @@ import sys
 sys.path.append("../ipolimage")
 from ipolimage import Image
 
+def media_type(path):
+    """
+    Find type of media (image, video, audio) by file path extension
+    """
+    mime_type, _ = mimetypes.guess_type(path)
+    media_type, _ = mime_type.split('/')
+    return media_type
 
-def get_thumbnail(src_file, width=None, height=None, preserve_ratio=False):
+def thumbnail(src_file, height, dst_file):
     """
     Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
     """
@@ -33,11 +40,11 @@ def get_thumbnail(src_file, width=None, height=None, preserve_ratio=False):
     # width=256&height=256 -- containing box with preserved ratio
     # width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
     if not os.path.isfile(src_file):
-        raise OSError(errno.ENOENT, "get_thumbnail(), file not found", src_file)
+        raise OSError(errno.ENOENT, "ipolutils.thumbnail(), file not found", src_file)
     mime_type, _ = mimetypes.guess_type(src_file)
     media_type, _ = mime_type.split('/')
     if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
-        raise OSError(errno.EINVAL, "get_thumbnail(), format {} not yet supported.".format(mime_type), src_file)
+        raise OSError(errno.EINVAL, "ipolutils.thumbnail(), format {} not yet supported.".format(mime_type), src_file)
     if media_type == "image":
         im = Image.load(src_file)
     elif media_type == "video":
@@ -45,9 +52,6 @@ def get_thumbnail(src_file, width=None, height=None, preserve_ratio=False):
     im.resize(
         max_height=max(im.height(), 500),
         max_width=max(im.width(), 500),
-        width=width,
         height=height,
-        preserve_ratio=preserve_ratio
     )
-    data = im.encode('.jpg')
-    return data
+    im.write(dst_file)
