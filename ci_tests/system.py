@@ -236,26 +236,21 @@ class IntegrationTests(unittest.TestCase):
         Runs the demo with the blob given
         """
         width, height = blob.size
-        image_dimensions = {'x0': 0, 'x1': width, 'y0': 0, 'y1': height}
         params = {'demo_id': demo_id,
-                  'params': json.dumps(image_dimensions),
-                  'original': 'false',
-                  'crop_info': json.dumps({'enabled': False, 'x0': 0, 'x1': width, 'y0': 0, 'y1': height}),
-                  'blobs': json.dumps({'id_blobs': [blob_id]}),
-                  'input_type': 'blobset'
-                  }
-        response = self.post('core', 'run', data=params)
+                    'origin': 'blobSet',
+                    'params': {},
+                    'crop_info': {'x': 20, 'y': 9.199999999999996,'width': width, 'height': height, 'rotate': 0, 'scaleX': 1, 'scaleY': 1},
+                    'blobs': {'id_blobs': [blob_id]}                  }
+        response = self.post('core', 'run2', data={"clientData": json.dumps(params)})
         return response.json()
 
     def run_demo_with_uploaded_blob(self, demo_id, blob, width, height):
-        image_dimensions = {'x0': 0, 'x1': width, 'y0': 0, 'y1': height}
         params = {'demo_id': demo_id,
-                  'params': json.dumps(image_dimensions),
-                  'input_type': 'upload',
-                  'original': 'true'
+                    'origin': 'upload',
+                    'params': {},
                   }
         files = {'file_0': blob}
-        response = self.post('core', 'run', data=params, files=files)
+        response = self.post('core', 'run2', data={"clientData": json.dumps(params)}, files=files)
         return response.json()
 
     def delete_demo_in_demoinfo(self, demo_id):
