@@ -30,6 +30,7 @@ python-jsonschema
 gnuplot
 gnuplot-nox
 python-pip
+python3-pip
 python-yaml
 libpq-dev
 libmagic-dev
@@ -87,6 +88,7 @@ mailutils
 cron-apt
 ipython
 pylint
+pylint3
 net-tools
 wget
 zsh
