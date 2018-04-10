@@ -12,10 +12,10 @@ import json
 import requests
 import ipolutils
 
-def create_thumnnail(src_file, host_name):
+def create_thumbnail(src_file):
     """
-    Create thumbnail when possible from file to archive in run folder.
-    Returns: the filepath of the created thumbnail has been created.
+    Create thumbnail when possible from file to archive in run folder,
+    returns the filepath of thumbnail when created.
     """
     thumb_height = 128
     if not os.path.exists(src_file):
@@ -25,7 +25,7 @@ def create_thumnnail(src_file, host_name):
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
         ipolutils.thumbnail(src_file, thumb_height, thumb_file)
-    except Exception as ex:
+    except Exception:
         return False
     return thumb_file
 
@@ -49,7 +49,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 file_label = file_name
             value = {file_label: src_file}
             try: # to get a thumbnail
-                thumb_file = create_thumnnail(src_file, host_name)
+                thumb_file = create_thumbnail(src_file)
             except Exception:
                 print traceback.format_exc()
             if thumb_file:

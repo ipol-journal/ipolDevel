@@ -23,14 +23,6 @@ import sys
 sys.path.append("../ipolimage")
 from ipolimage import Image
 
-def media_type(path):
-    """
-    Find type of media (image, video, audio) by file path extension
-    """
-    mime_type, _ = mimetypes.guess_type(path)
-    media_type, _ = mime_type.split('/')
-    return media_type
-
 def thumbnail(src_file, height, dst_file):
     """
     Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
@@ -52,6 +44,6 @@ def thumbnail(src_file, height, dst_file):
     im.resize(
         max_height=max(im.height(), 500),
         max_width=max(im.width(), 500),
-        height=height,
+        height=height
     )
     im.write(dst_file)
