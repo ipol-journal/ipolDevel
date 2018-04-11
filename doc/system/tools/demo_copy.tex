@@ -1,28 +1,20 @@
-\subsection{Demo copy script}
+\subsection{Demo Copy}
 
 The demo copy script is a tool that allows to clone a demo from one environment to another. This tool is useful for development purposes
 as it allows a developer to quickly clone a demo to a local environment. The only parameter is the demo ID number in order to copy
-everything related to the demo, this includes the DDL, it's demo extras file, the blobs associated to the demo, and it's templates.
+everything related to the demo, this includes the DDL, its demo extras, its blobs, and its templates.
 
 \subsubsection{Usage}
-This script is developed using python 3 so in order to use the script, it will need to use the correct version. By default, the script gets
-the demo information from the production environment. If the demo to be copied is in the integration environment there is an argument
-(-i) which allows to set the source environment to integration.
-It will also check if there is a demo with the provided ID number and ask for another one in case it's appropriate to choose
-a new one or overwrite the demo. If a demo with the same title already exists the script will ask for a new one.
+By default, the script gets the demo information from the production environment. If the demo is to be copied from Integration the {\tt -i} flag needs to be passed argument.
+It will also check if there is a demo with the provided ID number and will ask for another one or to overwrite it.
 
-\paragraph{Copy demo from production environment} \hspace{0pt} \\
-python3 demo\_copy.py {\tt <demo\_id>}
+Some examples:
+\paragraph{Copy demo from Production} \hspace{0pt} \\
+./demo\_copy.py {\tt <demo\_id>}
 
-By default it will use production environment as a source.
+By default it will use Production as the source.
 
-\paragraph{Copy demo from integration environment} \hspace{0pt} \\
-python3 demo\_copy.py -i {\tt <demo\_id>}
+\paragraph{Copy demo from Integration} \hspace{0pt} \\
+{\tt ./demo\_copy.py -i {\tt <demo\_id>}}
 
-With the argument -i it will use integration environment as a source.
-
-\paragraph{Copy demo from integration environment} \hspace{0pt} \\
-python3 demo\_copy.py -h
-
-It prints the script help information.
-
+With the argument -i it will use Integration as the source instead of Production.
