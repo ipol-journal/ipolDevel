@@ -5,6 +5,12 @@ as it allows a developer to quickly clone a demo to a local environment. The onl
 everything related to the demo, this includes the DDL, it's demo extras file, the blobs associated to the demo, and it's templates.
 
 \subsubsection{Usage}
+This script is developed using python 3 so in order to use the script, it will need to use the correct version. By default, the script gets
+the demo information from the production environment. If the demo to be copied is in the integration environment there is an argument
+(-i) which allows to set the source environment to integration.
+It will also check if there is a demo with the provided ID number and ask for another one in case it's appropriate to choose
+a new one or overwrite the demo. If a demo with the same title already exists the script will ask for a new one.
+
 \paragraph{Copy demo from production environment} \hspace{0pt} \\
 python3 demo\_copy.py {\tt <demo\_id>}
 
@@ -20,8 +26,3 @@ python3 demo\_copy.py -h
 
 It prints the script help information.
 
-
-This script is developed using python 3 so in order to use the script, it will need to use the correct version.
-The script will always try to copy the demo to where the script is being executed. It will also check if there is a demo with the provided
-ID number and ask for another one in case it's appropiate to choose a new one or overwrite the demo. If a demo with the same title already
-exists the script will ask for a new one.
