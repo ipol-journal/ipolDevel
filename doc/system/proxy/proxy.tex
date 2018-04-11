@@ -17,9 +17,8 @@ Another of its main functions is to serve static files and to expose them on a p
 The system serves these static files directly with Nginx, without the need to reach directly Django. Nginx also serves the static files of demo system as for example HTML pages, CSS, and the static data from the blobs and archive modules.
 
 \subsection{Private demos}
-The IPOL system provides private demos which require authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this mechanism, Nginx checks the argument ID from the URL looking for a numeric pattern, checks this number, redirects to the authorization page and depending on the company name it will contrast the information provided by the user against this company credentials. If it
-is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the
-demo and redirects the authentication process if the pattern matches. 
+The IPOL system provides private demos which require authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this mechanism, Nginx checks the argument ID from the URL looking for a numeric pattern, checks this number, redirects to the authorization page and depending on the company name it will contrast the information provided by the user against this company credentials. If it is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the
+demo and redirects the authentication process if the pattern matches.
 
 \begin{lstlisting}[language=Bash]
 location /demo/clientApp/ {
@@ -30,5 +29,41 @@ location /demo/clientApp/ {
         }
         alias  /resource_folder/;
     }
+    
+location @CompanyNamePasswd {
+	auth_basic "Restricted";
+	auth_basic_user_file /etc/nginx/.passwd/companyName;
+        proxy_pass  http://127.0.0.1:81/$request_uri;
+    }
  \end{lstlisting}
 
+With this declaration we use a special code (418) to redirect to another location (@CompanyNamePasswd) wich is unique for each 
+compay with private demos in the system. This way each company has it's own security credentials. For each company there exists a file
+(/etc/nginx/.passwd/companyName) containing a user and password hash pair to evaluate the given authentication data in the server.
+
+A second server only the local machine can access is the one that evaluates this authentication so no one else can skip authentication.
+In case of a successful verification this second server grants access to the demo page serving the static files, otherwise returns an
+error page.
+
+\begin{lstlisting}
+server {
+        allow 5.196.85.84;
+        allow 127.0.0.1;
+        deny all;
+
+        listen *:81;
+        proxy_send_timeout          700;
+        proxy_read_timeout          700;
+        send_timeout                700;
+        client_max_body_size        500m;
+
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location /demo/clientApp/ {
+                expires 24h;
+                resolver 127.0.0.1;
+                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+        }
+}
+\end{lstlisting}
