@@ -77,6 +77,8 @@ function addToParamsObject(param) {
     params[param.id] = param.default_value != undefined ? param.default_value : param.values.default;
   if (param.type == "checkbox" &&  !param.default_value)
     params[param.id] = false;
+  if(param.type == "selection_radio")
+    params[param.id] = (param.default_value != undefined ? param.default_value : param.values.default).toString();
 }
 
 function addMaxMin(param, index) {
