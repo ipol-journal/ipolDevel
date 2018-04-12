@@ -84,7 +84,7 @@ def copy_demo(demo_id, host, source_host):
     for template_name in demo_templates:
         if template_name not in local_templates:
             print('Cloning template: {}...'.format(template_name))
-            copy_template(host, source_host, demo_id, new_id, template_name)
+            copy_template(host, source_host, template_name)
             associate_template(host, new_id, template_name)
         else:
             print('Associating template: {}...'.format(template_name))
