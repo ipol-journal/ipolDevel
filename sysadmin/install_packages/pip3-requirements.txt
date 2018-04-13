@@ -1,0 +1,5 @@
+# install requirements for IPOL project
+# pip3 install -r "pip3-requirements.txt"
+
+# General
+requests

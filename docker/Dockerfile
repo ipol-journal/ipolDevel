@@ -21,6 +21,11 @@ RUN pip install -r requirements.txt
 COPY ./ipol_webapp/requirements.txt /home/ipol/cp_requirements.txt
 RUN pip install -r cp_requirements.txt
 
+COPY ./sysadmin/install_packages/pip3-requirements.txt /home/ipol/pip3-requirements.txt
+RUN pip3 install -r pip3-requirements.txt
+
+RUN pip install opencv-python
+
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
 # Nginx config file generation
