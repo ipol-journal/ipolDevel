@@ -1266,7 +1266,7 @@ attached the failed experiment data.". \
             raise IPOLWorkDirError(ex)
 
         if not origin:
-            return work_dir, key
+            return work_dir, key, []
         # Copy input blobs
         try:
             self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
@@ -1280,6 +1280,7 @@ attached the failed experiment data.". \
                 raise IPOLConversionError(resp['error'])
 
             conversion_info = resp['info']
+            messages = []
             for input_key in conversion_info:
                 if conversion_info[input_key]['code'] == -1:# Conversion error
                     error = conversion_info[input_key]['error']
@@ -1288,8 +1289,9 @@ attached the failed experiment data.". \
                 elif conversion_info[input_key]['code'] == 2:# Conversion forbidden
                     error_message = "Input #{} size too large but conversion forbidden".format(input_key)
                     raise IPOLConversionError(error_message)
-
-            return work_dir, key
+                elif conversion_info[input_key]['code'] == 1:# Conversion done
+                    messages.append('Input #' + input_key + ' has been processed [' + ', '.join(conversion_info[input_key]['modifications']) + '].')
+            return work_dir, key, messages
         except IPOLConversionError as ex:
             raise IPOLPrepareFolderError(str(ex))
         except IPOLInputUploadTooLargeError as ex:
@@ -1433,7 +1435,7 @@ attached the failed experiment data.". \
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
-            work_dir, key = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
+            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
@@ -1454,8 +1456,11 @@ attached the failed experiment data.". \
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
+            
+            messages = []
+            messages.extend(prepare_folder_messages)
 
-            return json.dumps(demorunner_response)
+            return json.dumps(dict(demorunner_response, **{'messages': messages}))
         except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)

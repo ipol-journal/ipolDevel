@@ -217,7 +217,7 @@ class Conversion(object):
                 # check input type
                 input_type = input_desc['type']
                 if input_desc.get('type') == 'image':
-                    info[i]['code'] = self.convert_image(input_file, input_desc, crop_info)
+                    info[i]['code'],info[i]['modifications']  = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
                 elif input_desc.get('type') == "video":
@@ -262,12 +262,14 @@ class Conversion(object):
         Convert image if needed
         """
         code = 0 # default return code, image not modified
+        modifications = []
         # Image has to be always loaded to test width and size
         im = Image.load(input_file)
         # convert image matrix if needed (before resize)
         dtype = input_desc.get('dtype')
         if dtype and im.convert(dtype):
             code = 1 # image type modified
+            modifications.append('type') # image type modified
 
         # crop before reducing image to max_pixels (or the crop box will be outside of scope)
         if crop_info is not None:
@@ -278,6 +280,7 @@ class Conversion(object):
             height = int(round(crop_info.get('height')))
             im.crop(x=x, y=y, width=width, height=height)
             code = 1 # image cropped
+            modifications.append('crop')
 
         max_pixels = evaluate(input_desc.get('max_pixels'))
         input_pixels = im.width() * im.height()
@@ -285,6 +288,7 @@ class Conversion(object):
             fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
             im.resize(fx=fxy, fy=fxy)
             code = 1 # image resized to maximum expected
+            modifications.append('resize')
 
         input_file_type, _ = mimetypes.guess_type(input_file)
         input_desc_type, _ = mimetypes.guess_type("dummy." + input_desc.get('ext'))
@@ -293,6 +297,7 @@ class Conversion(object):
         # new encoding needed (ex: jpeg > png), according to the input and destination extension
         if input_file_type != input_desc_type:
             code = 1 # will be done below by im.write()
+            modifications.append('encode')
         # same encoding,
         elif code == 1:
             pass
@@ -304,7 +309,7 @@ class Conversion(object):
             if input_desc.get("forbid_preprocess", False):
                 return 2 # Conversion needed but forbidden
             im.write(dst_file)
-        return code
+        return code, modifications
 
     @staticmethod
     def add_ext_to_data(input_file, input_desc):
