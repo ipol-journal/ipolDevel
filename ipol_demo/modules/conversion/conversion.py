@@ -307,7 +307,7 @@ class Conversion(object):
         # image data have been modified, save it
         if code == 1:
             if input_desc.get("forbid_preprocess", False):
-                return 2 # Conversion needed but forbidden
+                return 2, [] # Conversion needed but forbidden
             im.write(dst_file)
         return code, modifications
 
