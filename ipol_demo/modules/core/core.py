@@ -1387,6 +1387,16 @@ attached the failed experiment data.". \
             self.logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
+        # save parameters as a params.json file. Used in failure email
+        try:	
+            json_filename = os.path.join(work_dir, 'params.json')	
+            with open(json_filename, 'w') as resfile:	
+                resfile.write(json.dumps(params))	
+        except (OSError, IOError) as ex:	
+            error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)	
+            self.logger.exception(error_message)	
+            raise IPOLExecutionError(error_message, error_message)
+
         algo_info_dic = self.read_algo_info(work_dir)
         for name in algo_info_dic:
             demorunner_response['algo_info'][name] = algo_info_dic[name]
