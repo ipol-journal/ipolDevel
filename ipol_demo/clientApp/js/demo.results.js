@@ -13,11 +13,20 @@ results.draw = function (run_response) {
   $('.results').removeClass('di-none');
   $('.results-container').empty();
 
+  if (run_response.messages) run_response.messages.sort().forEach(printMessage);
+
   for (let i = 0; i < ddl_results.length; i++) {
     var functionName = $.fn[ddl_results[i].type];
     if ($.isFunction(functionName)) printResult(ddl_results[i], i);
     else console.error(ddl_results[i].type + ' result type is not defined');
   }
+}
+
+function printMessage(message, index, messages){
+  printResult({
+    'type': 'message',
+    'contents': [message]
+  }, 'msg-' + index);
 }
 
 function printResult(result, index) {
