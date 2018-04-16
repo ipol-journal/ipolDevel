@@ -1290,7 +1290,9 @@ attached the failed experiment data.". \
                     error_message = "Input #{} size too large but conversion forbidden".format(input_key)
                     raise IPOLConversionError(error_message)
                 elif conversion_info[input_key]['code'] == 1:# Conversion done
-                    messages.append('Input #' + input_key + ' has been processed [' + ', '.join(conversion_info[input_key]['modifications']) + '].')
+                    modifications_str = ', '.join(conversion_info[input_key]['modifications'])
+                    message = "Input #{} has been preprocessed [{}].".format(input_key, modifications_str)
+                    messages.append(message)
             return work_dir, key, messages
         except IPOLConversionError as ex:
             raise IPOLPrepareFolderError(str(ex))
