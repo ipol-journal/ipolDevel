@@ -59,16 +59,6 @@ def create_dir(path):
             raise
 
 
-def delete_compilation_path(path):
-    """
-    Delete compilation path
-    """
-    try:
-        shutil.rmtree(path)
-    except OSError:
-        pass
-
-
 def get_published_demos():
     """
     Get demos
