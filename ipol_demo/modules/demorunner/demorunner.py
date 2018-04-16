@@ -505,6 +505,8 @@ format(str(ex), str(ddl_build)).encode('utf8')
         data = {'status':'KO'}
         ddl_build = json.loads(ddl_build)
         try:
+            if os.path.isdir(path_for_the_compilation):
+                shutil.rmtree(path_for_the_compilation)
             if 'build1' in ddl_build:
                 self.compile_source(ddl_build, path_for_the_compilation)
             else:
