@@ -308,6 +308,7 @@ class Blobs(object):
                 self.logger.error("Failed to add the blob in add_blob. Unknown dest: {}".format(dest["dest"]))
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IOError as ex:
             self.logger.exception("Error copying uploaded blob")
@@ -489,6 +490,7 @@ class Blobs(object):
             status = {"status": "OK"}
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
@@ -529,6 +531,7 @@ class Blobs(object):
             status = {"status": "OK"}
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             if conn is not None:
@@ -571,6 +574,7 @@ class Blobs(object):
             data["status"] = "OK"
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
@@ -629,6 +633,7 @@ class Blobs(object):
             data["status"] = "OK"
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_name))
@@ -659,6 +664,7 @@ class Blobs(object):
             data["status"] = "OK"
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
@@ -734,6 +740,7 @@ class Blobs(object):
             data["status"] = "OK"
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned templates from demo #{}".format(demo_id))
@@ -762,6 +769,7 @@ class Blobs(object):
             data['status'] = 'OK'
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Failed to add the tags to blob")
@@ -806,6 +814,7 @@ class Blobs(object):
             conn.commit()
             res = True
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -887,6 +896,7 @@ class Blobs(object):
             self.logger.exception("Failed to remove directories")
             print "Failed to remove directories. Error: {}".format(ex)
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -937,6 +947,7 @@ class Blobs(object):
                 conn.commit()
                 data['status'] = 'OK'
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -966,6 +977,7 @@ class Blobs(object):
             data['status'] = 'OK'
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -1103,6 +1115,7 @@ class Blobs(object):
             res = True
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -1138,6 +1151,7 @@ class Blobs(object):
             data['templates'] = database.get_all_templates(conn)
             data['status'] = 'OK'
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while reading all the templates")
@@ -1195,6 +1209,7 @@ class Blobs(object):
                 print "Couldn't create the thumbnail. Error: {}".format(ex)
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while removing the visual representation")
@@ -1224,6 +1239,7 @@ class Blobs(object):
             data['status'] = 'OK'
             conn.commit()
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
@@ -1259,6 +1275,7 @@ class Blobs(object):
             data['physical_locations'] = physical_locations
             data['status'] = 'OK'
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting blob location")
@@ -1284,6 +1301,7 @@ class Blobs(object):
             data['demos'] = database.get_demos_using_the_template(conn, template_name)
             data['status'] = 'OK'
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting the list of demos that uses the template")
@@ -1349,6 +1367,7 @@ class Blobs(object):
             data['physical_location'] = "staticData/blob_directory"
 
         except IntegrityError as ex:
+            self.logger.exception("DB integrity error")
             print 'IntegrityError', ex
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the blobs from demo #{}".format(demo_name))
