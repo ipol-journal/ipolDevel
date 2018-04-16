@@ -33,3 +33,6 @@ netcdf
 planet
 rasterio
 shapely
+
+# Some workshops need tensorflow
+tensorflow

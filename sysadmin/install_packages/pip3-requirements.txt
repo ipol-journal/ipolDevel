@@ -3,3 +3,7 @@
 
 # General
 requests
+
+# Some workshops need tensorflow
+tensorflow
+
