@@ -18,7 +18,6 @@ def main():
     Main
     """
     all_success = True
-    delete_compilation_path(compilation_path)
     demorunners = read_demorunners()
     for demo_id in get_published_demos():
         json_ddl = json.loads(get_ddl(demo_id))
@@ -30,8 +29,7 @@ def main():
             all_success = False
             continue
 
-        demo_compilation_path = get_compilation_path(demo_id)
-        if not build(demo_id, build_section, demo_compilation_path, requirements, demorunners):
+        if not build(demo_id, build_section, requirements, demorunners):
             all_success = False
 
     if not all_success:
@@ -99,7 +97,7 @@ def get_ddl(demo_id):
     return last_demodescription.get('ddl')
 
 
-def build(demo_id, build_section, path_for_the_compilation, requirements, demorunners):
+def build(demo_id, build_section, requirements, demorunners):
     """
     Execute the build section. If any build fail the method returns a False
     """
@@ -107,7 +105,7 @@ def build(demo_id, build_section, path_for_the_compilation, requirements, demoru
     suitable_demorunners = get_suitable_demorunners(requirements, demorunners)
     for demorunner in suitable_demorunners.keys():
         demorunner_host = demorunners[demorunner].get('server')
-        params = {'ddl_build': json.dumps(build_section), 'path_for_the_compilation': path_for_the_compilation}
+        params = {'ddl_build': json.dumps(build_section), 'path_for_the_compilation': get_compilation_path(demo_id)}
         response = post(demorunner_host, 'demorunner', 'test_compilation', params)
         json_response = response.json()
         if json_response.get('status') != 'OK':
@@ -143,7 +141,6 @@ def read_demorunners():
     tree = ET.parse(os.path.join("/", "home", user, "ipolDevel", "ipol_demo", "modules",
                                  "config_common", "demorunners.xml"))
     root = tree.getroot()
-
     for demorunner in root.findall('demorunner'):
         dict_tmp = {}
         list_tmp = []
