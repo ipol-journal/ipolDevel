@@ -323,9 +323,6 @@ class Image(object):
         '''
         Converts the depth of an image matrix.
         '''
-        if not dst_depth:
-            return data, False
-        supported_dtypes = ['uint8', 'uint16', 'uint32', 'float16', 'float32']
         depth_dtypes = {'8i': 'uint8', '8': 'uint8', '16i': 'uint16', '16': 'uint16', '32i': 'uint32',
                         '32': 'uint32', '16f': 'float16', '32f': 'float32'}
         src_dtype = data.dtype
@@ -333,80 +330,51 @@ class Image(object):
         if dst_depth in depth_dtypes:
             dst_dtype = depth_dtypes[dst_depth]
         else:
-            dst_dtype = dst_depth
+            raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
+       
         # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
             return data, False
 
-        if dst_dtype not in supported_dtypes:
-            raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
-        if src_dtype not in supported_dtypes:
-            raise ValueError("Source dtype '{}' not suppported for depth conversion.".format(src_dtype))
+        np_dst_type = np.dtype(dst_dtype) 
 
         # Source is float
-        if src_dtype == 'float32' or src_dtype == 'float16':
-            # casting float
-            if dst_dtype == 'float32':
-                return data.astype(np.float32, copy=False), True
-            if dst_dtype == 'float16':
-                return data.astype(np.float16, copy=False), True
-            # float to int
-            src_min = np.nanmin(data) # matrix may contain NaN
-            src_max = np.nanmax(data)
-            # reduce matrix between 0 to 1
-            # min and max are close to the dtype limits, divide to have place for calculation
-            if src_max - src_min >= np.finfo(src_dtype).max:
-                data = (data/2 - src_min/2) / (src_max/2 - src_min/2)
+        if np.issubdtype(src_dtype, np.floating):
+            print(src_dtype)
+            # float -> float
+            if np.issubdtype(np_dst_type, np.floating):
+                data = data.astype(np_dst_type, copy=False)
+            # float -> int
             else:
+                src_min, src_max = np.min(data), np.max(data)
+                # normalize to range [0, 1] 
                 data = (data - src_min) / (src_max - src_min)
-            if dst_dtype == 'uint8':
-                data = data * 255 # 2^8 - 1
-                data = data.astype(np.uint8, copy=False)
-            elif dst_dtype == 'uint16':
-                data = data * 65535 # 2^16 - 1
-                data = data.astype(np.uint16, copy=False)
-            elif dst_dtype == 'uint32':
-                data = data * 4294967295 # 2^32 - 1
-                data = data.astype(np.uint32, copy=False)
+                k = np_dst_type.itemsize * 8
+                
+                data = data * (2**k - 1)
+                data = data.astype(np_dst_type, copy=False)
             return data, True
 
-        # Source is integer
-
-        # to 8 bits
-        if dst_dtype == 'uint8':
-            if src_dtype == 'uint16':
-                data = data >> 8 # exact and faster than / 257.0
-            elif src_dtype == 'uint32':
-                data = data >> 16
-            # cast at the end
-            data = data.astype(np.uint8, copy=False)
+        # int -> int
+        elif np.issubdtype(np_dst_type, np.integer): #check condition
+            mbits_from = 2**(src_dtype.itemsize * 8) - 1
+            mbits_to = 2**(np_dst_type.itemsize * 8) - 1
+            
+            k = float(mbits_to) / mbits_from
+            
+            if k<1: # Reduce bits
+                data = data * k
+                data = data.astype(np_dst_type, copy=False)
+            else: # Increase bits
+                data = data.astype(np_dst_type, copy=False)
+                data = data * k
+            
             return data, True
-        # to 16 bits
-        elif dst_dtype == 'uint16':
-            if src_dtype == 'uint8':
-                data = data.astype(np.uint16, copy=False) # cast before to give place
-                data = data * 257.0 # (2^16 - 1)/(2^8 - 1), bitshift is unprecise
-            elif src_dtype == 'uint32':
-                data = data >> 8
-                data = data.astype(np.uint16, copy=False) # cast after
-            return data, True
-        # to 32 bits
-        elif dst_dtype == 'uint32':
-            data = data.astype(np.uint32, copy=False) # cast before calculations
-            if src_dtype == 'uint8':
-                data = data * 16843009.0 # (2^32 - 1)/(2^8 - 1)
-            elif src_dtype == 'uint16':
-                data = data * 65537.0 # (2^32 - 1)/(2^16 - 1)
-            return data, True
-        # int to float, just a cast
-        elif dst_depth == '16f':
-            return data.astype(np.float16, copy=False), True
-        # int to float, just a cast
-        elif dst_depth == '32f':
-            return data.astype(np.float32, copy=False), True
-        # should not arrive
-        else:
-            raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
+        # int -> float 32
+        elif np.issubdtype(np_dst_type, np.floating):
+            return data.astype(np_dst_type, copy=False), True
+        
+        raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
 
     @staticmethod
     def _blend_alpha(data, back_color=(255, 255, 255)):
