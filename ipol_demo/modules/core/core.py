@@ -375,7 +375,7 @@ class Core(object):
         return created
 
     @cherrypy.expose
-    def index(self):
+    def index(self, code_starts=None):
         """
         Index page
         """
@@ -405,12 +405,19 @@ class Core(object):
         # Get all publication states
         demos_by_state = dict()
         for demo in demo_list:
+            editorsdemoid = demo['editorsdemoid']
+
+            # If the user specified a demo code prefix, then ignore the
+            # demos which don't start with that prefix.
+            if code_starts and not str(editorsdemoid).startswith(code_starts):
+                continue
+
             publication_state = demo["state"]
             if publication_state not in demos_by_state:
                 demos_by_state[publication_state] = []
 
             demos_by_state[publication_state].append({
-                'editorsdemoid': demo['editorsdemoid'],
+                'editorsdemoid': editorsdemoid,
                 'title': demo['title']
             })
 
@@ -423,8 +430,9 @@ class Core(object):
                                                 key=lambda(d): (d['editorsdemoid']), \
                                                 reverse=True)
 
-            demos_string += "<h2>{}</h2>".format(publication_state)
-
+            if demos_by_state[publication_state]:
+                demos_string += "<h2><a id='{}'>{}</a></h2>".format(publication_state, publication_state)
+            #
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
 
@@ -443,8 +451,14 @@ class Core(object):
                  </head>
                  <body>
                  <h1>List of demos</h1>
-                 <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
-                 Test demos begin with '55555'.</h3><br>
+                 """
+        # Only show the message if the user didn't specify a code start
+        if not code_starts:
+            string += """
+                     <h3>The demos whose ID begins with '77777' are public workshops and those with '33333' are private.
+                     Test demos begin with '55555'.</h3><br>
+                     """
+        string += """
                  {}
                  </body>
                  </html>
@@ -453,11 +467,11 @@ class Core(object):
         return string
 
     @cherrypy.expose
-    def demo(self):
+    def demo(self, code_starts=None):
         """
         Return an HTML page with the list of demos.
         """
-        return self.index()
+        return self.index(code_starts=code_starts)
 
     @staticmethod
     @cherrypy.expose
