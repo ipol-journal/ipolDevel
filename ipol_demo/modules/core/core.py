@@ -61,10 +61,9 @@ from errors import IPOLConversionError
 from errors import IPOLPrepareFolderError
 from errors import IPOLExecutionError
 from errors import IPOLDemoRunnerResponseError
+import ipolutils
 
 # deprecated, should be droped with old run
-from ipolevaluator import evaluate
-from ipolevaluator import IPOLEvaluateError
 from Tools.image import image
 
 
@@ -558,7 +557,7 @@ class Core(object):
         ext = input_desc['ext']
 
         # Check if the size and the format are OK
-        max_pixels = evaluate(input_desc['max_pixels'])
+        max_pixels = ipolutils.evaluate(input_desc['max_pixels'])
         size_ok = (im.size[0] * im.size[1]) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
         mode_ok = ddl_mode == im.im.mode
@@ -690,9 +689,9 @@ class Core(object):
                 if not data:
                     break
                 size += len(data)
-                if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
+                if 'max_weight' in inputs_desc[i] and size > ipolutils.evaluate(inputs_desc[i]['max_weight']):
                     # file too heavy
-                    raise IPOLInputUploadTooLargeError(i, evaluate(inputs_desc[i]['max_weight']))
+                    raise IPOLInputUploadTooLargeError(i, ipolutils.evaluate(inputs_desc[i]['max_weight']))
 
                 file_save.write(data)
             file_save.close()
@@ -1318,7 +1317,7 @@ attached the failed experiment data.". \
             raise IPOLPrepareFolderError(error_message)
         except IPOLUploadedInputRejectedError as ex:
             raise IPOLPrepareFolderError(str(ex))
-        except IPOLEvaluateError as ex:
+        except ipolutils.IPOLEvaluateError as ex:
             error_message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
             self.logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message)
@@ -1404,13 +1403,13 @@ attached the failed experiment data.". \
             raise IPOLExecutionError(error_message, error_message)
 
         # save parameters as a params.json file. Used in failure email
-        try:	
-            json_filename = os.path.join(work_dir, 'params.json')	
-            with open(json_filename, 'w') as resfile:	
-                resfile.write(json.dumps(params))	
-        except (OSError, IOError) as ex:	
-            error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)	
-            self.logger.exception(error_message)	
+        try:
+            json_filename = os.path.join(work_dir, 'params.json')
+            with open(json_filename, 'w') as resfile:
+                resfile.write(json.dumps(params))
+        except (OSError, IOError) as ex:
+            error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)
+            self.logger.exception(error_message)
 
         algo_info_dic = self.read_algo_info(work_dir)
         for name in algo_info_dic:
@@ -1481,7 +1480,7 @@ attached the failed experiment data.". \
 
             # Save the execution, so the users can recover it from the URL
             self.save_execution(demo_id, kwargs, demorunner_response, work_dir)
-            
+
             messages = []
             messages.extend(prepare_folder_messages)
 
@@ -1669,7 +1668,7 @@ attached the failed experiment data.". \
                 res_data = {'error': message,
                             'status': 'KO'}
                 return json.dumps(res_data)
-            except IPOLEvaluateError as ex:
+            except ipolutils.IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
                             'status': 'KO'}

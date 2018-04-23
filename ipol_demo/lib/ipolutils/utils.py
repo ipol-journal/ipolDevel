@@ -20,8 +20,7 @@ import os
 import mimetypes
 import errno
 import sys
-sys.path.append("../ipolimage")
-from ipolimage import Image
+from Image import Image
 
 def thumbnail(src_file, height, dst_file):
     """

@@ -18,8 +18,6 @@ import traceback
 
 import cherrypy
 import ipolutils
-from ipolimage import Image
-from ipolevaluator import evaluate
 
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
@@ -264,7 +262,7 @@ class Conversion(object):
         code = 0 # default return code, image not modified
         modifications = []
         # Image has to be always loaded to test width and size
-        im = Image.load(input_file)
+        im = ipolutils.Image.load(input_file)
         # convert image matrix if needed (before resize)
         dtype = input_desc.get('dtype')
         if dtype and im.convert(dtype):
@@ -282,7 +280,7 @@ class Conversion(object):
             code = 1 # image cropped
             modifications.append('crop')
 
-        max_pixels = evaluate(input_desc.get('max_pixels'))
+        max_pixels = ipolutils.evaluate(input_desc.get('max_pixels'))
         input_pixels = im.width() * im.height()
         if input_pixels > max_pixels:
             fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
@@ -335,7 +333,7 @@ class Conversion(object):
             buf = base64.b64decode(img)
             # cv2.IMREAD_ANYCOLOR option try to convert to uint8, 7x faster than matrix conversion
             # but fails with some tiff formats (float)
-            im = Image.decode(buf)
+            im = ipolutils.Image.decode(buf)
             im.convert_depth('8i')
             buf = im.encode('.png')
             data["img"] = base64.b64encode(buf) # reencode bytes
