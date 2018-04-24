@@ -20,15 +20,15 @@ input.printSets = function(sets) {
 
     addSetClickEvent(blobSet, i);
 
-    blobSetArray += "<img src=" + set[blobs[0]].thumbnail + ">"; // first photo
+    blobSetArray += "<img src=" + set[blobs[0]].thumbnail + " onError=setBrokenImage(this)>"; // first photo
     if (blobs.length == 3) { // Middle photo (3 photos)
-      blobSetArray += "<img src=" + set[blobs[1]].thumbnail + ">";
+      blobSetArray += "<img src=" + set[blobs[1]].thumbnail + " onError=setBrokenImage(this)>";
     }
     if (blobs.length >= 4) { // +3 photo set. ···
       blobSetArray += "<span>···</span>";
     }
     if (blobs.length > 1) { // +1 photo. last photo.
-      blobSetArray += "<img src=" + set[blobs[blobs.length - 1]].thumbnail + ">";
+      blobSetArray += "<img src=" + set[blobs[blobs.length - 1]].thumbnail + " onError=setBrokenImage(this)>";
     }
     blobSet.html(blobSetArray);
     $(".blobSet_" + i).append($(".blobSet-body-" + i));
@@ -49,6 +49,12 @@ input.printSets = function(sets) {
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   }
+}
+
+function setBrokenImage(image) {
+  image.onerror = "";
+  image.src = "./assets/non_viewable_inputs.png";
+  return true;
 }
 
 input.printInputInformationIcon = function(ddl_general) {
