@@ -7,23 +7,26 @@ need to manually write HTML or Python code
 for a given demo. Each main key in the description file is described
 in the following sections:
 \begin{itemize}
-  \item \textit{general}: some general options;
-  \item \textit{build}: everything needed to download and compile the source code;
-  \item \textit{inputs}: description of the different inputs;
-  \item \textit{params}: description of the parameters, for the param page;
-  \item \textit{run}: commands to run the demo;
-  \item \textit{config}: configuration, saving demo information;
-  \item \textit{archive}: describes what is saved in archive when inputs are uploaded;
-  \item \textit{results}: displaying the result page.
+  \item \textit{general}: general options (required);
+  \item \textit{build}: download and compile the source code (required);
+  \item \textit{inputs}: description of the different inputs  (required);
+  \item \textit{params}: description of the parameters, for the param page (recommanded);
+  \item \textit{run}: commands to run the demo (required);
+  \item \textit{config}: configuration, saving demo information (optional);
+  \item \textit{archive}: description of files  what is saved in archive when inputs are uploaded (optional);
+  \item \textit{results}: displaying the result page (required).
 \end{itemize}
 
+\vspace{1em}
 
-
-{\bf Note:} in JSON format, always use double quotes around keys or string 
-values, not single quotes. Use can use the following link (or any other validator)
-to check if your JSON code is valid: http://jsonlint.com/.
-Also be carreful with commas, missing or additional commas are often the cause of
-invalid JSON files.
+JSON data for IPOL should be strictly valid. Most common mistakes:
+\begin{itemize}
+  \item ASCII, no letters with diacritics or accents like 'é' or '$\sigma$', use HTML entities for special characters (ex: \&eacute; \&sigma;);
+  \item commas, requested separator between items in list or dictionary, forbiddem at start or end of a collection.
+\end{itemize}
+The IPOL control pannel provide a JSON editor with a simple validator. Most of the syntax errors are detected in real time
+and reported by a graphic hint. The non ASCII characters are not detected by the client. 
+Before to be applied, the JSON data are validated by the server, and may be not accepted.
 
 %-------------------------------------------------------------------------------
 \section{The \emph{general} section}
@@ -54,9 +57,6 @@ Many keys are derived from the static variables of the previous 'app' Python cla
  crop\_maxsize      & limit allowed crop size in both width and height, the string
                       can contain a Javascript or JQuery expression which will be evaluated & no \\ \hline
  thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
- input\_condition   & sets a condition on inputs using for example the input sizes,
-                      it is written as an array of 3 string, the condition,
-                      the exception sent, and the error message& no \\ \hline
  show\_results\_on\-\_error & show results even if the demo returned a run-time error.
                     the demo will be able to display pertinent information & no \\ \hline
  requirements 	    & specify the particular requirements nedded for the execution of the demo separated by commas. e.g. Matlab. & no \\ \hline
@@ -189,17 +189,27 @@ videos, flows, etc..).
  type         & image & yes \\ \hline
  description  & Short name or description of the input, it will used to display 
 the input as the label inside the 'gallery' html display & yes \\ \hline
- max\_pixels   &  sets the maximal number of pixels of the input image, 
-bigger images will be downsized, if 0 no resizing is done. The resizing as 
-defined in the image class uses python PIL resizing with 'antialias' option. 
-Input can be a number or a string that will be evaluated in Javascript.  & .. \\ \hline
- max\_weight   & max size (in bytes) of an input file, prevents uploading 
-bigger files. Input can be a number or a string that will be evaluated in Javascript. & .. \\ \hline
- dtype        & input image expected data type, used as parameter of 
-image.convert() method. Possible values are '1x8i' and '3x8i' which are 
-converted respectively to 'L' and 'RGB' for PIL. & .. \\ \hline
-forbid\_preprocess         & Forbids that the demo attempts any pre-processing of the input data. This is useful for noise-estimation demos for instance, or any other that could be negatively affected by pre-processing. In case the system needs to do it (say, an input image is larger than the maximum allowed) but it has been forbidden, the algorithm will not be run and instead an error message will be shown & no \\ \hline
+ max\_pixels   &  Sets the maximal number of pixels of the input image, 
+bigger images will be downsized, if 0 no resizing is done. 
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "1000*1000" = 1 Mpx).  & .. \\ \hline
+ max\_weight   & Maximum weight (in bytes) of an input file, prevents uploading 
+bigger files.
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "100*1024*1024"= 100 Mb). & .. \\ \hline
+ dtype        & Expected data type for image to process:
+\vspace{-1em}
+\begin{itemize}
+  \setlength\itemsep{-0.5em}
+  \item \textit{1x8i}: gray, unsigned integer 8 bits;
+  \item \textit{3x8i}: color, RGB unsigned integer 8 bits;
+  \item \textit{1x16i}: gray, unsigned integer 16 bits;
+  \item \textit{3x16i}: color, RGB unsigned integer 16 bits.
+\end{itemize} & .. \\ \hline
  ext          & input image expected extention (ie. file format) & .. \\ \hline
+forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
+Submitted image is kept as-is.
+Used by algorithms like noise-estimation or modification detection, where resampling will affect results. 
+If a processing is needed, according to the expected properties upper, user will be informed by a message.
+& no \\ \hline
 \caption{Keys for the 'image' type.}
 \end{longtable}
 
