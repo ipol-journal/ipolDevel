@@ -1,3 +1,6 @@
+# In general, ignore all the files which start with "gi_"
+gi_*
+
 # compiled Python code
 *.pyc
 
