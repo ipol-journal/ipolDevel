@@ -61,7 +61,8 @@ from errors import IPOLConversionError
 from errors import IPOLPrepareFolderError
 from errors import IPOLExecutionError
 from errors import IPOLDemoRunnerResponseError
-import ipolutils
+from ipolutils.evaluator.evaluator import evaluate
+from ipolutils.evaluator.evaluator import IPOLEvaluateError
 
 # deprecated, should be droped with old run
 from Tools.image import image
@@ -557,7 +558,7 @@ class Core(object):
         ext = input_desc['ext']
 
         # Check if the size and the format are OK
-        max_pixels = ipolutils.evaluate(input_desc['max_pixels'])
+        max_pixels = evaluate(input_desc['max_pixels'])
         size_ok = (im.size[0] * im.size[1]) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
         mode_ok = ddl_mode == im.im.mode
@@ -689,9 +690,9 @@ class Core(object):
                 if not data:
                     break
                 size += len(data)
-                if 'max_weight' in inputs_desc[i] and size > ipolutils.evaluate(inputs_desc[i]['max_weight']):
+                if 'max_weight' in inputs_desc[i] and size > evaluate(inputs_desc[i]['max_weight']):
                     # file too heavy
-                    raise IPOLInputUploadTooLargeError(i, ipolutils.evaluate(inputs_desc[i]['max_weight']))
+                    raise IPOLInputUploadTooLargeError(i, evaluate(inputs_desc[i]['max_weight']))
 
                 file_save.write(data)
             file_save.close()
@@ -1317,7 +1318,7 @@ attached the failed experiment data.". \
             raise IPOLPrepareFolderError(error_message)
         except IPOLUploadedInputRejectedError as ex:
             raise IPOLPrepareFolderError(str(ex))
-        except ipolutils.IPOLEvaluateError as ex:
+        except IPOLEvaluateError as ex:
             error_message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
             self.logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message)
@@ -1668,7 +1669,7 @@ attached the failed experiment data.". \
                 res_data = {'error': message,
                             'status': 'KO'}
                 return json.dumps(res_data)
-            except ipolutils.IPOLEvaluateError as ex:
+            except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
                             'status': 'KO'}

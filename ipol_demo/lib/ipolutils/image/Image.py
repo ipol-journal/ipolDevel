@@ -113,7 +113,11 @@ class Image(object):
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         data, pars = self._4ser(dst_file, **kwargs)
-        cv2.imwrite(dst_file, data, pars)
+        mime_type, _ = mimetypes.guess_type(dst_file)
+        if mime_type == 'image/tiff':
+            pass # use libtiff
+        else:
+            cv2.imwrite(dst_file, data, pars)
 
     def encode(self, ext, **kwargs):
         '''
@@ -174,6 +178,7 @@ class Image(object):
         Prepare data for TIFF, before saving to file or return bytes (blend alpha).
         '''
         data = self._blend_alpha(self.data) # assume that tiff do not support alpha
+        # data, _ = self._convert_depth(data, '16i')
         pars = []
         return data, pars
 

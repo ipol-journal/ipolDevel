@@ -10,7 +10,7 @@ import traceback
 import gzip
 import json
 import requests
-import ipolutils
+from ipolutils.utils import thumbnail
 
 def create_thumbnail(src_file):
     """
@@ -24,7 +24,7 @@ def create_thumbnail(src_file):
     thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
-        ipolutils.thumbnail(src_file, thumb_height, thumb_file)
+        thumbnail(src_file, thumb_height, thumb_file)
     except Exception:
         return False
     return thumb_file

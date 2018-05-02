@@ -22,7 +22,7 @@ import sqlite3 as lite
 from sqlite3 import IntegrityError
 import magic
 import cherrypy
-import ipolutils
+from ipolutils.utils import thumbnail
 
 
 import database

@@ -20,7 +20,7 @@ import os
 import mimetypes
 import errno
 import sys
-from Image import Image
+from image import Image
 
 def thumbnail(src_file, height, dst_file):
     """
