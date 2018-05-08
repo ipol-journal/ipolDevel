@@ -1,0 +1,11 @@
+This file documents which programs are installed in the servers (say,
+needed by some workshops), but their installation procedure is not
+standard.
+
+Pytorch - https://pytorch.org/
+pip3 install http://download.pytorch.org/whl/cpu/torch-0.4.0-cp35-cp35m-linux_x86_64.whl 
+pip3 install torchvision
+
+It's imported as import torch
+
+------------------------------------------------------------------------------------------------------------------------------

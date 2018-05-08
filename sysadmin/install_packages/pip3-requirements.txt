@@ -3,7 +3,9 @@
 
 # General
 requests
+opencv-python
+scikit-image
 
-# Some workshops need tensorflow
+
+# These are needed by some workshops
 tensorflow
-
