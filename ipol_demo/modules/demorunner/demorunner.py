@@ -470,7 +470,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
             #        content = f.readlines()
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Build for demo {0} failed".format(demo_id).encode('utf8')
+            data['message'] = "Build for demo #{} failed".format(demo_id).encode('utf8')
             data['buildlog'] = content
         except IPOLConstructFileNotFound as ex:
             data = {}
@@ -488,6 +488,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. I/O error. {}".format(str(ex))
+        except ValueError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed. Bad URL value: {}".format(str(ex))
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
