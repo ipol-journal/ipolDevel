@@ -18,6 +18,7 @@ import traceback
 
 import cherrypy
 from ipolutils.image.Image import Image
+from ipolutils.video.Video import Video
 from ipolutils.evaluator.evaluator import evaluate
 
 from errors import IPOLConvertInputError
@@ -220,7 +221,7 @@ class Conversion(object):
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
                 elif input_desc.get('type') == "video":
-                    info[i]['code'] = 1
+                    info[i]['code'] = self.convert_video(input_file, input_desc)
                 else:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
                 i += 1
@@ -308,6 +309,32 @@ class Conversion(object):
             if input_desc.get("forbid_preprocess", False):
                 return 2, [] # Conversion needed but forbidden
             im.write(dst_file)
+        return code, modifications
+
+    @staticmethod
+    def convert_video(input_file, input_desc):
+        """
+        Convert video according to DDL specification
+        """
+        code = 0 # default return code, image not modified
+        modifications = []
+
+        video = Video(input_file)
+        video.load()
+        as_frames = input_desc.get('as_frames')
+        if as_frames != None:
+            video.extract_frames()
+            code = 1
+            modifications.append('extracted to frames')
+        else:
+            video.create_avi()
+            code = 1
+            modifications.append('avi created')
+            modifications.append('huffman encoded')
+
+        if code == 1 and input_desc.get("forbid_preprocess", False):
+            return 2, []  # Conversion needed but forbidden
+        
         return code, modifications
 
     @staticmethod
