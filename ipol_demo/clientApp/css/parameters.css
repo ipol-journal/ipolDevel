@@ -226,3 +226,8 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 
   background: #34495E;
 }
+
+.param-container textarea {
+  max-width: 600px;
+  max-height: 2000px;
+}
