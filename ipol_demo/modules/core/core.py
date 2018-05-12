@@ -754,12 +754,30 @@ class Core(object):
         if not ddl['run'] or ddl['run'].decode('utf-8').isspace():
             return "Bad DDL run section: run is empty."
 
+        if 'inputs' in ddl:
+            inputs = ddl['inputs'][0]
+            if not 'type' in inputs:
+                return "Bad DDL syntax: missing 'type' field in input section."
+
+            input_type = inputs.get('type')
+            if input_type == 'image' or input_type == "data":
+                fields_required = ['max_pixels', 'ext', 'dtype']
+            elif input_type == "video":
+                # [Nelson] [ToDo]: We need to decide the mandatory fields for video.... 
+                fields_required = ['ext']
+            else:
+                return "Bad DDL syntax: unknown input type".format(input_type)
+
+            for field_required in fields_required:
+                if not field_required in inputs:
+                    return "Bad DDL syntax: missing '{}' field in input section.".format(field_required)
+
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
             return "Bad DDL archive section: expected list of parameters, but found {}".\
               format(type(ddl['archive']['params']).__name__)
 
-         # None = no errors detected
+        # None = no errors detected
         return None
 
     @staticmethod
