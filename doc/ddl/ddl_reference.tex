@@ -513,7 +513,7 @@ new information can then be used in the archive section.
 \section{The \emph{archive} section}
 
 
-\begin{longtable}{|>{\bf}L{\dimexpr 0.25\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
+\begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
@@ -523,6 +523,8 @@ new information can then be used in the archive section.
 as files & no \\ \hline
  params  & list of parameters to archive & no \\ \hline
  info    & info variables to archive in the form of pairs variable:label & no \\ \hline
+ enable\_reconstruct & Enable a button to reconstruct an experiment stored in the archive (default value: false) & no \\ \hline
+ archive\_always     & The archive stores all the experiments executed included the default blobs (default value: false) & no \\ \hline
 \caption{Keys for the 'text\_file' type.}
 \end{longtable}
 
@@ -531,6 +533,8 @@ as files & no \\ \hline
 \begin{lstlisting}[language=json,firstnumber=1]
 "archive":
   {
+    "enable_reconstruct": true,
+    "archive_always":true,
     "files" : 
       { "input_0.png"                 : "input image",
         "primitives.txt"              : "Primitives"  },
