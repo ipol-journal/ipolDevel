@@ -24,6 +24,7 @@ import os
 
 import cv2
 import numpy as np
+from libtiff import TIFF
 
 class Image(object):
     '''
@@ -38,7 +39,17 @@ class Image(object):
         if not os.path.isfile(src):
             raise OSError(errno.ENOENT, "File not found", src)
         im = Image()
-        im.data = cv2.imread(src, flags)
+
+        mime_type, _ = mimetypes.guess_type(src)
+        if mime_type == 'image/tiff': # use libtiff
+            tif = TIFF.open(src, mode='r')
+            im.data = tif.read_image()
+            if len(im.data.shape) > 2 and im.data.shape[2] == 3: # BGR > RGB
+                im.data = im.data[...,::-1]
+            tif.close()
+            del tif
+        else:
+            im.data = cv2.imread(src, flags)
         if im.data is None:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
         im.src_file = src
@@ -112,11 +123,17 @@ class Image(object):
         dst_dir = os.path.dirname(dst_file)
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
-        data, pars = self._4ser(dst_file, **kwargs)
         mime_type, _ = mimetypes.guess_type(dst_file)
-        if mime_type == 'image/tiff':
-            pass # use libtiff
+        if mime_type == 'image/tiff': # use libtiff
+            data = self._blend_alpha(self.data) # assume that tiff do not support alpha
+            if len(data.shape) > 2 and data.shape[2] == 3: # BGR > RGB
+                data = data[...,::-1]
+            tif = TIFF.open(dst_file, mode='w')
+            tif.write_image(data, write_rgb=True)
+            tif.close()
+            del tif
         else:
+            data, pars = self._4ser(dst_file, **kwargs)
             cv2.imwrite(dst_file, data, pars)
 
     def encode(self, ext, **kwargs):
@@ -143,7 +160,7 @@ class Image(object):
         return self.data, []
 
 
-    def _4jpeg(self, optimize=True, progressive=True, quality=80):
+    def _4jpeg(self, optimize=True, progressive=True, quality=92):
         '''
         Prepare data for JPEG, before saving to file or return bytes (blend alpha, 8 bits).
         '''
@@ -336,26 +353,25 @@ class Image(object):
             dst_dtype = depth_dtypes[dst_depth]
         else:
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
-       
+
         # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
             return data, False
 
-        np_dst_type = np.dtype(dst_dtype) 
+        np_dst_type = np.dtype(dst_dtype)
 
         # Source is float
         if np.issubdtype(src_dtype, np.floating):
-            print(src_dtype)
             # float -> float
             if np.issubdtype(np_dst_type, np.floating):
                 data = data.astype(np_dst_type, copy=False)
             # float -> int
             else:
                 src_min, src_max = np.min(data), np.max(data)
-                # normalize to range [0, 1] 
+                # normalize to range [0, 1]
                 data = (data - src_min) / (src_max - src_min)
                 k = np_dst_type.itemsize * 8
-                
+
                 data = data * (2**k - 1)
                 data = data.astype(np_dst_type, copy=False)
             return data, True
@@ -364,21 +380,21 @@ class Image(object):
         elif np.issubdtype(np_dst_type, np.integer): #check condition
             mbits_from = 2**(src_dtype.itemsize * 8) - 1
             mbits_to = 2**(np_dst_type.itemsize * 8) - 1
-            
+
             k = float(mbits_to) / mbits_from
-            
+
             if k<1: # Reduce bits
                 data = data * k
                 data = data.astype(np_dst_type, copy=False)
             else: # Increase bits
                 data = data.astype(np_dst_type, copy=False)
                 data = data * k
-            
+
             return data, True
         # int -> float 32
         elif np.issubdtype(np_dst_type, np.floating):
             return data.astype(np_dst_type, copy=False), True
-        
+
         raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
 
     @staticmethod

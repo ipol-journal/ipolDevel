@@ -11,6 +11,12 @@ import shutil
 import os
 import sys
 import requests
+from ipolutils.image.Image import Image
+import cv2
+import numpy as np
+import tempfile
+from libtiff import TIFF
+
 
 
 class ConversionTests(unittest.TestCase):
@@ -44,6 +50,36 @@ class ConversionTests(unittest.TestCase):
             os.remove(copy_image)
         except Exception:
             pass
+
+    @staticmethod
+    def bgr_test(depth):
+        """
+        Creates a standard image matrix.
+        """
+        depth_dtypes = {'8i': 'uint8', '16i': 'uint16', '32i': 'uint32', '16f': 'float16', '32f': 'float32'}
+        dtype = np.dtype(depth_dtypes[depth])
+        if np.issubdtype(dtype, np.integer):
+            max = np.iinfo(dtype).max
+        else:
+            max = 1
+        bgr = np.zeros((32, 48, 3));
+        bgr[0:16,:, 0] = max
+        bgr[:,0:32, 1] = max
+        bgr[:,0:16, 2] = max
+        bgr = bgr.astype(dtype, copy=False)
+        return bgr
+
+    def test_tiff_depths(self):
+        file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_")
+        for src_depth in ['8i', '16i', '32i', '16f', '32f']:
+            for dst_depth in ['8i', '16i', '32i']: # float as a destination is not strictly equal
+                data = self.bgr_test(src_depth)
+                im = Image.data(data)
+                im.convert_depth(dst_depth)
+                im.write(file.name)
+                im = im.load(file.name)
+                data = self.bgr_test(dst_depth)
+                self.assertTrue((im.data == data).all(), msg="{} > {}".format(src_depth, dst_depth))
 
     def test_ping(self):
         """
