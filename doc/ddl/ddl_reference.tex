@@ -181,13 +181,13 @@ videos, flows, etc..).
 \hline \hline
  type         & image & yes \\ \hline
  description  & Short name or description of the input, it will used to display 
-the input as the label inside the 'gallery' html display & yes \\ \hline
+the input as the label inside the 'gallery' html display & no \\ \hline
  max\_pixels   &  Sets the maximal number of pixels of the input image, 
 bigger images will be downsized, if 0 no resizing is done. 
-Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "1000*1000" = 1 Mpx).  & .. \\ \hline
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "1000*1000" = 1 Mpx).  & yes \\ \hline
  max\_weight   & Maximum weight (in bytes) of an input file, prevents uploading 
 bigger files.
-Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "100*1024*1024"= 100 Mb). & .. \\ \hline
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "100*1024*1024"= 100 Mb). & no \\ \hline
  dtype        & Expected data type for image to process:
 \vspace{-1em}
 \begin{itemize}
@@ -196,8 +196,8 @@ Input can be a number or a simple arithmetic expression as a string that will be
   \item \textit{3x8i}: color, RGB unsigned integer 8 bits;
   \item \textit{1x16i}: gray, unsigned integer 16 bits;
   \item \textit{3x16i}: color, RGB unsigned integer 16 bits.
-\end{itemize} & .. \\ \hline
- ext          & input image expected extension (ie. file format) & .. \\ \hline
+\end{itemize} & yes \\ \hline
+ ext          & input image expected extension (ie. file format) & yes \\ \hline
 forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
 Submitted image is kept as-is.
 Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results. 
