@@ -10,7 +10,7 @@ in the following sections:
   \item \textit{general}: general options (required);
   \item \textit{build}: download and compile the source code (required);
   \item \textit{inputs}: description of the different inputs  (required);
-  \item \textit{params}: description of the parameters, for the param page (recommanded);
+  \item \textit{params}: description of the parameters, for the param page (recommended);
   \item \textit{run}: commands to run the demo (required);
   \item \textit{config}: configuration, saving demo information (optional);
   \item \textit{archive}: description of files  what is saved in archive when inputs are uploaded (optional);
@@ -22,9 +22,9 @@ in the following sections:
 JSON data for IPOL should be strictly valid. Most common mistakes:
 \begin{itemize}
   \item ASCII, no letters with diacritics or accents like 'é' or '$\sigma$', use HTML entities for special characters (ex: \&eacute; \&sigma;);
-  \item commas, requested separator between items in list or dictionary, forbiddem at start or end of a collection.
+  \item commas, requested separator between items in list or dictionary, forbidden at start or end of a collection.
 \end{itemize}
-The IPOL control pannel provide a JSON editor with a simple validator. Most of the syntax errors are detected in real time
+The IPOL control panel provide a JSON editor with a simple validator. Most of the syntax errors are detected in real time
 and reported by a graphic hint. The non ASCII characters are not detected by the client. 
 Before to be applied, the JSON data are validated by the server, and may be not accepted.
 
@@ -50,16 +50,9 @@ Many keys are derived from the static variables of the previous 'app' Python cla
                       & yes
                       \\ \hline
  xlink\_article     & defines the link to the article webpage & yes  \\ \hline
- drawmask           & boolean: if true, the demo is an mask drawing (like inpainting) demo with a 
-                      single input image and mask drawing is enabled. & no \\ \hline
- drawlines          & boolean: if true, the demo is a line drawing demo with a 
-                      single input image and line drawing is enabled. & no \\ \hline
  crop\_maxsize      & limit allowed crop size in both width and height, the string
-                      can contain a Javascript or JQuery expression which will be evaluated & no \\ \hline
- thumbnail\_size    & set initial thumbnail size for the input selection page & no \\ \hline
- show\_results\_on\-\_error & show results even if the demo returned a run-time error.
-                    the demo will be able to display pertinent information & no \\ \hline
- requirements 	    & specify the particular requirements nedded for the execution of the demo separated by commas. e.g. Matlab. & no \\ \hline
+                      can contain a JavaScript expression which will be evaluated & no \\ \hline
+ requirements 	    & specify the particular requirements needed for the execution of the demo separated by commas. e.g. Matlab. & no \\ \hline
  timeout 	    & specify the time in seconds to execute the algorithm. If the execution takes longer than the specified time 
 		      the system kills the process.& no \\ \hline
 \caption{Keys for the 'general' section ({\em req} means required).}
@@ -204,10 +197,10 @@ Input can be a number or a simple arithmetic expression as a string that will be
   \item \textit{1x16i}: gray, unsigned integer 16 bits;
   \item \textit{3x16i}: color, RGB unsigned integer 16 bits.
 \end{itemize} & .. \\ \hline
- ext          & input image expected extention (ie. file format) & .. \\ \hline
+ ext          & input image expected extension (ie. file format) & .. \\ \hline
 forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
 Submitted image is kept as-is.
-Used by algorithms like noise-estimation or modification detection, where resampling will affect results. 
+Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results. 
 If a processing is needed, according to the expected properties upper, user will be informed by a message.
 & no \\ \hline
 \caption{Keys for the 'image' type.}
@@ -231,7 +224,7 @@ required around the values. The default value is stored with the 'values' field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & range       & yes \\ \hline
- visible  & evaluated Javascript/JQuery boolean expression. It hides the parameter if
+ visible  & evaluated Javascript boolean expression. It hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters  & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -256,7 +249,7 @@ string value. The default value is stored in a separate field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
- visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
+ visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id     & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -285,7 +278,7 @@ options using radio buttons.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type     & selection\_radio    & yes \\ \hline
- visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
+ visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  id       & parameter name in lowercase letters & yes \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
@@ -313,7 +306,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
+ visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label & html text to display, as a single string or as an array of strings& yes
                       \\ \hline
@@ -329,7 +322,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
- visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
+ visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -348,7 +341,7 @@ The label  can be used as a title to separate groups of parameters.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkboxes   & yes \\ \hline
- visible  & Evaluated Javascript/JQuery boolean expression which hides the parameter if
+ visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
  label  & name and/or description of the parameter, appears on the left side. & yes
                       \\ \hline
@@ -372,7 +365,7 @@ This param allows just numeric input
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & numeric   & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression which hides the parameter
+ visible    & Evaluated Javascript boolean expression which hides the parameter
               if evaluated to false (if undefined the parameter is visible) & no \\ \hline
  label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
  comments   & description of the parameter, appears on the right side. & no  \\ \hline
@@ -390,7 +383,7 @@ This param allows numeric and text input
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & text   & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression which hides the parameter
+ visible    & Evaluated Javascript boolean expression which hides the parameter
               if evaluated to false (if undefined the parameter is visible) & no \\ \hline
  label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
  id         & parameter name in lowercase letters & yes \\ \hline
@@ -571,13 +564,13 @@ The gallery type uses the gallery class to display images. Its parameters are:
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression 
+ visible    & Evaluated Javascript boolean expression 
               which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between. & no \\ \hline
- contents   & inside has javascript objects with: img, repeat and visible parameters.
+ contents   & inside has Javascript objects with: img, repeat and visible parameters.
  				The key for every object can be an expression to be evaluated in case of repeat
  				functionallity.
  			    img wil have either a string with a filename or an array of strings with filenames.
@@ -629,7 +622,7 @@ The gallery\_video type uses the gallery class to display images. Its parameters
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression 
+ visible    & Evaluated Javascript boolean expression 
               which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  label      & html label for the gallery, can be either a single string or 
@@ -680,7 +673,7 @@ Advaced example, mixing repeat, visible, using an array of filenames.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible   & Evaluated Javascript/JQuery boolean expression which hides the result if
+ visible   & Evaluated Javascript boolean expression which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
@@ -724,11 +717,11 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible   & Evaluated Javascript/JQuery boolean expression 
+ visible   & Evaluated Javascript boolean expression 
              which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  contents  & array of strings, that will be concatenated to form the html 
-             content. This content can contain Javascript/JQuery expression if it starts
+             content. This content can contain Javascript expression if it starts
             with a single quote. & yes \\ \hline
 \caption{Keys for the 'html\_text' type.}
 \end{longtable}
@@ -753,7 +746,7 @@ Example using 'repeat':
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible   & Evaluated Javascript/JQuery boolean expression 
+ visible   & Evaluated Javascript boolean expression 
               which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
  label     & HTML label & yes \\ \hline
@@ -779,10 +772,10 @@ Example using 'repeat':
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type      & warning  & yes \\ \hline
- visible   & Evaluated Javascript/JQuery boolean expression 
+ visible   & Evaluated Javascript boolean expression 
             which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
- contents  & displayed text, can contain both HTML tags and Javascript/JQuery code.
+ contents  & displayed text, can contain both HTML tags and Javascript code.
 expressions of the form '\{\{expression\}\}'. & \\ \hline
 \caption{Keys for the 'warning' type.}
 \end{longtable}
@@ -804,7 +797,7 @@ used for warning or error messages.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & message  & yes \\ \hline
- visible    & Evaluated Javascript/JQuery boolean expression which hides the result if
+ visible    & Evaluated Javascript boolean expression which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
  contents   & a string which will be evaluated by Javascript to get the message. & yes \\ \hline
  textColor    & the name of a color or a CSS-compatible color. & no \\ \hline
