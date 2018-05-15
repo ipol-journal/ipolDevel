@@ -231,3 +231,8 @@ input::-moz-focus-inner, input::-moz-focus-outer {
   max-width: 600px;
   max-height: 2000px;
 }
+
+div[class^="radio-option-"] {
+  display: inline-block;
+  padding: 10px 15px 10px 0;
+}
