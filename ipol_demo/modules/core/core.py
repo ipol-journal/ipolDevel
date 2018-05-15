@@ -1484,7 +1484,8 @@ attached the failed experiment data.". \
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
                                     key, params, ddl['run'], ddl['general'], work_dir)
 
-            # Archive the experiment, if the 'archive' section exists in the DDL and
+            # Archive the experiment, if the 'archive' section exists in the DDL and it is not a private execution
+            # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
             if not private_mode and 'archive' in ddl and (origin != 'blobset' or ddl['archive'].get('archive_always')):
                 try:
                     response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, self.host_name)
