@@ -70,7 +70,7 @@ class ConversionTests(unittest.TestCase):
         return bgr
 
     def test_tiff_depths(self):
-        file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_")
+        file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_", delete=True)
         for src_depth in ['8i', '16i', '32i', '16f', '32f']:
             for dst_depth in ['8i', '16i', '32i']: # float as a destination is not strictly equal
                 data = self.bgr_test(src_depth)
@@ -80,6 +80,24 @@ class ConversionTests(unittest.TestCase):
                 im = im.load(file.name)
                 data = self.bgr_test(dst_depth)
                 self.assertTrue((im.data == data).all(), msg="{} > {}".format(src_depth, dst_depth))
+        file.close()
+
+    def test_8i_extensions(self):
+        data = self.bgr_test('8i')
+        # gif is not supported by OpenCV, .jpg do not keep exact colors
+        exts = ['.bmp', '.png', '.tif']
+        for src_ext in exts:
+            src_file = tempfile.NamedTemporaryFile(suffix=src_ext, prefix="ipol_", delete=True)
+            src_im = Image.data(data)
+            src_im.write(src_file.name)
+            src_im = Image.load(src_file.name)
+            for dst_ext in exts:
+                dst_file = tempfile.NamedTemporaryFile(suffix=dst_ext, prefix="ipol_", delete=True)
+                src_im.write(dst_file.name)
+                dst_im = Image.load(dst_file.name)
+                self.assertTrue((src_im.data == dst_im.data).all(), msg="{} > {}".format(src_ext, dst_ext))
+                dst_file.close()
+            src_file.close()
 
     def test_ping(self):
         """
@@ -100,7 +118,7 @@ class ConversionTests(unittest.TestCase):
         status = None
         code = None
         try:
-            ext = '.jpg'
+            ext = '.bmp'
             input_file = os.path.split(self.blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
