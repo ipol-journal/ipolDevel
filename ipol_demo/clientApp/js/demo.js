@@ -77,7 +77,7 @@ function getDemoinfo() {
 }
 
 function displayInputHeaders(ddl) {
-  if (ddl.inputs.length != 0) {
+  if (ddl.inputs && ddl.inputs.length != 0) {
     $(".inputContainer").removeClass('di-none');
     $("#inputEditorContainer").removeClass('di-none');
     input.printInputInformationIcon(ddl.general);

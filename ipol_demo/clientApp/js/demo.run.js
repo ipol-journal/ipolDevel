@@ -92,7 +92,7 @@ function checkPostData() {
 }
 
 function checkPostInputs()  {
-  if (helpers.getFromStorage('demoInfo').inputs.length != 0 && !helpers.getFromStorage('origin')) {
+  if (helpers.getFromStorage('demoInfo').inputs && helpers.getFromStorage('demoInfo').inputs.length != 0 && !helpers.getFromStorage('origin')) {
     errorMsg = 'Input/s required.'
     return false;
   }
