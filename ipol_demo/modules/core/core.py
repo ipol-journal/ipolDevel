@@ -744,7 +744,7 @@ class Core(object):
         Check for required DDL fields and their types.
         """
         # Check that all mandatory sections are present
-        sections = ['general', 'build', 'run', 'results']
+        sections = ('general', 'build', 'run', 'results')
         for section in sections:
             if not section in ddl:
                 return "Bad DDL syntax: missing '{}' section.".format(section)
@@ -759,28 +759,22 @@ class Core(object):
                 return "Bad DDL inputs section: expected list."
 
             if ddl['inputs']:
-                inputs_counter = 0
-                for input_in_ddl in ddl['inputs']:
+                image_required_fields = ['max_pixels', 'ext', 'dtype']
+                video_required_fields = ['ext']
+                data_required_fields = ['ext']
+                required_fields = {'video' : video_required_fields, 'image' : image_required_fields, 'data' : data_required_fields}
+
+                for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
                     if not 'type' in input_in_ddl:
                         return "Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter)
 
-                    input_type = input_in_ddl.get('type')
-                    if input_type == 'data':
-                        fields_required = ['ext']
-                    elif input_type == 'image':
-                        fields_required = ['max_pixels', 'ext', 'dtype']
-                    elif input_type == 'video':
-                        # [Nelson] [ToDo]: We need to decide the mandatory fields for video....
-                        fields_required = ['ext']
-                    else:
-                        return "Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_type, inputs_counter)
+                    if not input_in_ddl['type'] in required_fields:
+                        return "Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter)
 
-                    for field_required in fields_required:
-                        if not field_required in input_in_ddl:
-                            return "Bad DDL inputs section: missing '{}' field in input #{}.".format(field_required, inputs_counter)
-
-                    inputs_counter += 1
+                    for required_field in required_fields[input_in_ddl['type']]:
+                        if not required_field in input_in_ddl:
+                            return "Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter)
 
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
