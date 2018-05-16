@@ -19,6 +19,24 @@ server {
 		alias  /home/$my_user/IPOLWEBAPP_STATIC/;
 	}
 
+	# DemoExtras static resources
+        location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+                expires 1d;
+                alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
+        }
+
+        # Static files for the web interface
+	location /demo/clientApp/ {
+            alias  /home/$my_user/ipolDevel/ipol_demo/clientApp/;
+            add_header        Cache-Control private;
+            expires 1s;
+        }
+
+        location /demo/clientAppOld/ {
+            alias   /home/$my_user/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
+            add_header      Cache-Control private;
+            expires 1s;
+        }
 
 	# DEMOS
 	location /demo/ {

@@ -27,14 +27,31 @@ server {
 
 	server_name _;
 
-	location /demo/clientApp/demo.html {
-		if ($args ~ ".*id=33333999\d*") {
-			error_page 418 = @authTestPasswd;
-			return 418;
-		}
-		resolver 127.0.0.1;
-		proxy_pass  http://$host:8080;
-	}
+	# DemoExtras static resources
+        location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+                expires 1d;
+                alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
+        }
+
+        # Static files for the web interface
+        location /demo/clientApp/ {
+                if ($args ~ ".*id=33333999\d*") {
+                        error_page 418 = @authTestPasswd;
+                        return 418;
+                }
+
+                expires 1m;
+                auth_basic "Restricted";
+                auth_basic_user_file /etc/nginx/.passwd/integration;
+                resolver 127.0.0.1;
+                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+        }
+
+	# Old interface
+        location /demo/clientAppOld/ {
+                expires 1m;
+                alias  /home/ipol/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
+        }
     
 	# Authentication test. user: auth_test , password: auth_test
     	location @authTestPasswd {
@@ -52,7 +69,9 @@ server {
 
 	# DEMOS
         location /demo/  {
-		resolver 127.0.0.1;
+                auth_basic "Restricted";
+                auth_basic_user_file /etc/nginx/.passwd/integration;
+                resolver 127.0.0.1;
                 proxy_pass   http://$host:8080;
         }
 

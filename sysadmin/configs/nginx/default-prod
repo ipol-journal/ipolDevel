@@ -22,12 +22,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-        location /demo/clientAppProxy/ {
-                expires 1m;
-                resolver 127.0.0.1;
-                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
-        }
-
         location /demo/clientApp/ {
                 expires 1m;
                 resolver 127.0.0.1;
@@ -49,11 +43,36 @@ server {
 
     access_log  /home/ipol/ipolDevel/ipol_webapp/logs/host.access.log  main;
 
+    # robots.txt
+    location /robots.txt {
+        expires 7d;
+        alias  /home/ipol/ipolDevel/sysadmin/robots.txt;
+    }
+
+    # Generic static data
+    location /static/ {
+        expires 24h;
+        alias  /home/ipol/static/;
+    }
+
+    # IPOL favicon
+    location /favicon.ico {
+        expires 1y;
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Methods' 'GET';
+        alias  /home/ipol/ipolDevel/ipol_demo/clientApp/assets/favicon.ico;
+    }
 
     # Path of the static content
     location /cp/static/ {
         expires 24h;
         alias  /home/ipol/IPOLWEBAPP_STATIC/;
+    }
+
+    # DemoExtras static resources
+    location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
+        expires 1d;
+        alias /home/ipol/ipolDevel/shared_folder/demoExtras/$demo/http/$resource;
     }
 
     # PRIVATE DEMOS
