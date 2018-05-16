@@ -29,6 +29,8 @@ import sys
 from subprocess import call
 from subprocess import Popen, PIPE
 
+from errors import IPOLConvertInputError
+
 
 class Video(object):
     """
@@ -66,10 +68,15 @@ class Video(object):
 
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
-
+        
         for frame_number in range(self.frame_count):
             ret, frame = self.capture.read()
-            cv2.imwrite(dst_folder + '/frame_{:03d}.png'.format(frame_number), frame)
+            if not ret:
+                break
+            imwrite = cv2.imwrite(dst_folder + '/frame_{:03d}.png'.format(frame_number), frame)
+            if not imwrite:
+                raise IPOLConvertInputError('Conversion error, frames could not be extracted')
+
 
     def create_avi(self):
         """
@@ -82,6 +89,8 @@ class Video(object):
             shutil.rmtree(dst_folder)
         
         Video.extract_frames(self, dst_folder=dst_folder)
-        convert = Popen(["ffmpeg -pattern_type glob -i '"+ dst_folder +"/*.png' -c:v huffyuv " +
-                         processed_video + " > /dev/null 2>&1"], shell=True)
-        convert.wait()
+        convert_proc = Popen(["ffmpeg -i '" + self.full_path + "' -c:v huffyuv -pix_fmt rgb24 " +
+                         processed_video], shell=True)
+        convert_proc.wait()
+        if convert_proc.returncode != 0:
+            raise IPOLConvertInputError('Conversion error, video could not be converted to avi')
