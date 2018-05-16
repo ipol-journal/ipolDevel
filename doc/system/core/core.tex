@@ -5,7 +5,7 @@ When an execution is requested, it first obtains its textual description (its DD
 
 For the execution, the Core creates a run folder, copies the input data, and delegates any eventual pre-processing to the Conversion module. The run folder is identified by an unique key and it is created inside a folder which can be accessed by any machine of the IPOL's architecture. Therefore, all the DemoRunner machines can access the shared folder where the executions are performed. The DemoExtras are common files that are also visible and centralized.
 
-Once the execution folder is ready, the corresponding DemoRunner runs the algorithm with the parameters and inputs set by the user. The Core waits until the execution has finished or after a timeout. Finally, the Core ask the Archive module to store the experiment if the input data came from original data (uploaded by the user without private mode) or if the DDL specified to archieve all the executed experiments.
+Once the execution folder is ready, the corresponding DemoRunner runs the algorithm with the parameters and inputs set by the user. The Core waits until the execution has finished or after a timeout. Finally, the Core requests the Archive module (via API) to store the experiment if the input data came from original data (uploaded by the user without private mode) or if the DDL specified to save all the executed experiments.
 
 In case of any fatal failure (say, a conversion if needed but forbidden in the DDL, or the program of the article crashed), the Core terminates the execution and stores the errors in its log file. Eventually, it will send warning emails to the technical staff of IPOL (internal error) or to the demo editors.
 
@@ -23,7 +23,7 @@ The possible results from the check are:
 \begin{itemize}
  \item \textbf{Date and size match:} Nothing is done
  \item \textbf{Date or size do not match:} The DemoExtras are downloaded again
- \item \textbf{DemoExtras deleted in demoInfo:} All DemoExtras files related to that demo are deleted in the ``share\_folder''
+ \item \textbf{DemoExtras deleted in demoInfo:} All DemoExtras files related to that demo are deleted in the ``shared\_folder''
 \end{itemize}
 
 \subsection{Editor-controlled demo failures}
