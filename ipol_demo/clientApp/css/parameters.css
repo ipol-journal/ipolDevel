@@ -126,7 +126,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 
 .label-param {
   width: 100%;
-
+  padding: 10px 0;
   background-color: rgb(233, 233, 233);
 }
 

@@ -114,5 +114,6 @@ $.fn.textarea = function(param, index) {
 
 $.fn.label = function(param, index) {
   $('.param-' + index).attr('id', param.id ||  "").prepend(param.label);
+  $('.param-' + index + " > .param-content").remove();
   $('.param-' + index).first().addClass('label-param');
 }

@@ -69,7 +69,7 @@ function printParameter(param, index) {
 
   if (param.values) addMaxMin(param, index);
   var comment = param.comments || "";
-  $('.param-' + index).append("<div class=param-comments >" + comment + "</div>");
+  if(param.type != "label") $('.param-' + index).append("<div class=param-comments >" + comment + "</div>");
 }
 
 function addToParamsObject(param) {
