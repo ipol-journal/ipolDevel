@@ -1288,7 +1288,7 @@ attached the failed experiment data.". \
             error_message = "DR={}, {}  - {}".format(dr_name, buildlog, demorunner_message)
             raise IPOLEnsureCompilationError(error_message)
 
-    def prepare_folder_for_execution(self, demo_id, origin, blobs, ddl_inputs, crop_info):
+    def prepare_folder_for_execution(self, demo_id, origin, blobs, ddl_inputs, params, crop_info):
         """
         Creates the working directory for a new execution. Then it copies and
         eventually converts the input blobs
@@ -1298,6 +1298,14 @@ attached the failed experiment data.". \
             raise IPOLKeyError("**INTERNAL ERROR**. Failed to create a valid execution key")
         try:
             work_dir = self.create_run_dir(demo_id, key)
+            # save parameters as a params.json file. Used in failure email or as an input for DemoExtras
+            try:
+                json_filename = os.path.join(work_dir, 'params.json')
+                with open(json_filename, 'w') as resfile:
+                    resfile.write(json.dumps(params))
+            except (OSError, IOError) as ex:
+                error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)
+                self.logger.exception(error_message)
         except Exception as ex:
             raise IPOLWorkDirError(ex)
 
@@ -1425,15 +1433,6 @@ attached the failed experiment data.". \
             self.logger.exception(error_message)
             raise IPOLExecutionError(error_message, error_message)
 
-        # save parameters as a params.json file. Used in failure email
-        try:
-            json_filename = os.path.join(work_dir, 'params.json')
-            with open(json_filename, 'w') as resfile:
-                resfile.write(json.dumps(params))
-        except (OSError, IOError) as ex:
-            error_message = "Failed to save {} in demo {}".format(json_filename, demo_id)
-            self.logger.exception(error_message)
-
         algo_info_dic = self.read_algo_info(work_dir)
         for name in algo_info_dic:
             demorunner_response['algo_info'][name] = algo_info_dic[name]
@@ -1482,7 +1481,7 @@ attached the failed experiment data.". \
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
-            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, crop_info)
+            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, params, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \
