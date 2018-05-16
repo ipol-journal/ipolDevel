@@ -65,7 +65,7 @@ function printParameter(param, index) {
   $('.param-content-' + index)[param.type](param, index);
 
   $('.param-' + index).addClass(param.id);
-  checkVisibility(param);
+  checkParamsVisibility();
 
   if (param.values) addMaxMin(param, index);
   var comment = param.comments || "";
