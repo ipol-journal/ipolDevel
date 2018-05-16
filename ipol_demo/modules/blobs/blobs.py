@@ -456,7 +456,7 @@ class Blobs(object):
         dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
         dst_file = os.path.join(dst_path, blob_hash + ".jpg")
         try:
-            ipolutils.thumbnail(src_file, height=thumb_height, dst_file=dst_file)
+            thumbnail(src_file, height=thumb_height, dst_file=dst_file)
         except Exception as ex:
             raise IPOLBlobsThumbnailError("File '{}', thumbnail error. {}".format(src_file, ex))
 

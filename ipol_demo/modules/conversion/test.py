@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-Conversion test
+Conversion tests.
 """
 # Unit tests for the Conversion module
 import socket
@@ -10,18 +10,16 @@ import unittest
 import shutil
 import os
 import sys
-import requests
-from ipolutils.image.Image import Image
-import cv2
-import numpy as np
 import tempfile
-from libtiff import TIFF
+import requests
+import numpy as np
+from ipolutils.image.Image import Image
 
 
 
 class ConversionTests(unittest.TestCase):
     """
-    Dispatcher tests
+    Dispatcher tests.
     """
     HOST = socket.gethostbyname(socket.gethostname())
     module = 'conversion'
@@ -33,7 +31,7 @@ class ConversionTests(unittest.TestCase):
 
     def setUp(self):
         """
-        Creates a copy of the image before convert it
+        Creates a copy of the image before convert it.
         """
         try:
             copy_image = os.path.split(self.blob_path)[0] + '/input_0' + os.path.splitext(self.blob_path)[1]
@@ -43,7 +41,7 @@ class ConversionTests(unittest.TestCase):
 
     def tearDown(self):
         """
-        Restore the copy of the image
+        Restores the copy of the image.
         """
         try:
             copy_image = os.path.split(self.blob_path)[0] + '/input_0' + os.path.splitext(self.blob_path)[1]
@@ -59,30 +57,36 @@ class ConversionTests(unittest.TestCase):
         depth_dtypes = {'8i': 'uint8', '16i': 'uint16', '32i': 'uint32', '16f': 'float16', '32f': 'float32'}
         dtype = np.dtype(depth_dtypes[depth])
         if np.issubdtype(dtype, np.integer):
-            max = np.iinfo(dtype).max
+            dtype_max = np.iinfo(dtype).max
         else:
-            max = 1
-        bgr = np.zeros((32, 48, 3));
-        bgr[0:16,:, 0] = max
-        bgr[:,0:32, 1] = max
-        bgr[:,0:16, 2] = max
+            dtype_max = 1
+        bgr = np.zeros((32, 48, 3))
+        bgr[0:16, :, 0] = dtype_max
+        bgr[:, 0:32, 1] = dtype_max
+        bgr[:, 0:16, 2] = dtype_max
         bgr = bgr.astype(dtype, copy=False)
         return bgr
 
     def test_tiff_depths(self):
-        file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_", delete=True)
+        """
+        Tests the conversions between all supported dtypes in tiff.
+        """
+        tif_file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_", delete=True)
         for src_depth in ['8i', '16i', '32i', '16f', '32f']:
             for dst_depth in ['8i', '16i', '32i']: # float as a destination is not strictly equal
                 data = self.bgr_test(src_depth)
                 im = Image.data(data)
                 im.convert_depth(dst_depth)
-                im.write(file.name)
-                im = im.load(file.name)
+                im.write(tif_file.name)
+                im = im.load(tif_file.name)
                 data = self.bgr_test(dst_depth)
                 self.assertTrue((im.data == data).all(), msg="{} > {}".format(src_depth, dst_depth))
-        file.close()
+        tif_file.close()
 
     def test_8i_extensions(self):
+        """
+        Tests the conversions between 8 bits file formats.
+        """
         data = self.bgr_test('8i')
         # gif is not supported by OpenCV, .jpg do not keep exact colors
         exts = ['.bmp', '.png', '.tif']
@@ -101,7 +105,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_ping(self):
         """
-        Test ping
+        Tests ping.
         """
         status = None
         try:
@@ -113,7 +117,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_convert_change_image_ext(self):
         """
-        test convert image
+        Tests extension conversion.
         """
         status = None
         code = None
@@ -132,6 +136,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(str(code), '1')
 
     def test_convert_image_that_do_not_need_conversion(self):
+        """
+        Tests to convert image that does not need conversion.
+        """
         status = None
         code = None
         try:
@@ -149,6 +156,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(str(code), '0')
 
     def test_convert_resize_image(self):
+        """
+        Tests to downsize a picture to max_pixels.
+        """
         status = None
         code = None
         try:
@@ -165,6 +175,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(str(code), '1')
 
     def test_convert_resize_image_with_crop(self):
+        """
+        Tests conversion with crop.
+        """
         status = None
         code = None
         try:
@@ -182,6 +195,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(str(code), '1')
 
     def test_convert_conversion_needed_but_forbiden(self):
+        """
+        Tests conversion needed but forbidden.
+        """
         status = None
         code = None
         try:
@@ -198,6 +214,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(str(code), '2')
 
     def test_convert_conversion_not_needed_and_forbiden(self):
+        """
+        Tests conversion not needed but forbidden.
+        """
         status = None
         code = None
         try:
