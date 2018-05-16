@@ -65,7 +65,7 @@ function printParameter(param, index) {
   $('.param-content-' + index)[param.type](param, index);
 
   $('.param-' + index).addClass(param.id);
-  $('.' + param.id).checkVisibility(param);
+  checkVisibility(param);
 
   if (param.values) addMaxMin(param, index);
   var comment = param.comments || "";
@@ -100,8 +100,8 @@ function updateParamsArrayValue(param_id, value) {
 }
 
 function checkParamsVisibility() {
-  for (let i = 0; i < Object.keys(params).length; i++) {
-    $('.' + Object.keys(params)[i]).checkVisibility(ddl_params[Object.keys(params)[i]]);
+  for (let i = 0; i < Object.keys(ddl_params).length; i++) {
+    checkVisibility(ddl_params[Object.keys(ddl_params)[i]]);
   }
 }
 
@@ -119,10 +119,9 @@ function checkParamsDescriptionIconVisibility(ddl_general) {
   if (ddl_general.param_description != undefined) $('#parameters-description').removeClass('di-none');
 }
 
-$.fn.checkVisibility = function(param) {
-  if (param.visible != undefined)
-    if (!eval(param.visible)) $('.' + param.id).addClass('di-none');
-    else $('.' + param.id).removeClass('di-none');
+function checkVisibility(param) {
+  if (param.visible != undefined && !eval(param.visible))
+    $('.' + param.id).addClass('di-none');
   else $('.' + param.id).removeClass('di-none');
 }
 

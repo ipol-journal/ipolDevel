@@ -113,6 +113,6 @@ $.fn.textarea = function(param, index) {
 }
 
 $.fn.label = function(param, index) {
-  $('.param-' + index).prepend(param.label);
+  $('.param-' + index).attr('id', param.id ||  "").prepend(param.label);
   $('.param-' + index).first().addClass('label-param');
 }
