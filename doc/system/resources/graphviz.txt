@@ -1,0 +1,6 @@
+To graphviz to create diagrams with a textual description (.dot files) and then
+convert them to PDF.
+The .dot files are in the resources/ folder.
+
+An example: 
+dot -Tpdf demoinfo_model.dot -o demoinfo_model.pdf
