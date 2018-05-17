@@ -12,7 +12,7 @@ In case of any fatal failure (say, a conversion if needed but forbidden in the D
 Note that the Core does not need to know to which module it needs to delegate any operations, but instead simply requests the services using the IPOL API (see Sec. \ref{sec:reverse_proxy})
 
 \subsection{DemoExtras}
-\label{demoextras} 
+\label{sec:demoextras} 
 For the execution of some demos it is necessary some support code or data, which we refer to as \emph{DemoExtras}. This is not part of the peer-reviewed or published material, and it is only used by the demo.
 
 The support files are stored in a package (say, .tar.gz, .zip, .tar, ...) in the DemoInfo module. Also, a copy of this compressed file is stored in the ``dl\_extras'' folder in the ``shared\_folder'' for comparison reasons. \ToDo{This mechanism should be explained in the demoInfo module section of the doc.}
@@ -21,10 +21,16 @@ The first time a demo is executed, the demos extras are decompressed in the ``De
 
 The possible results from the check are:
 \begin{itemize}
- \item \textbf{Date and size match:} Nothing is done
- \item \textbf{Date or size do not match:} The DemoExtras are downloaded again
- \item \textbf{DemoExtras deleted in demoInfo:} All DemoExtras files related to that demo are deleted in the ``shared\_folder''
+    \item \textbf{Date and size match}: nothing is done
+    \item \textbf{Date or size do not match}: the DemoExtras are downloaded again
+    \item \textbf{DemoExtras deleted in demoInfo}: all DemoExtras files related to that demo are deleted in the ``shared\_folder''
 \end{itemize}
+
+\subsubsection{Serving static content}
+The {\tt html} directory of the demoExtras is served staticly by the system to allow the web interface access this data. It can be useful to show extra graphics or videos, or to allow the download of datasets in some especial demos.
+
+For example, if in the demoExtras package of demo \#125 it exists a file ``image.png", it will be served from \url{http://ipolcore.ipol.im/demo/clientApp/static/125/image.png}
+
 
 \subsection{Editor-controlled demo failures}
 The Editor has the possibility to detect that some conditions are not met and notify the system that the execution of the demo failed, even if the program did not crash or the running script exited with a sucessful exit code. Indeed, a demoExtras script in the demo could check, for example, if the aspect ratio of the image is what the algorithm excepts, and prevent the actual execution.
