@@ -1,0 +1,15 @@
+digraph {
+  node [shape=box style=filled]
+  demo [shape=box style="bold, filled"]
+
+  state -> demo
+
+  demo -> demo_demodescription
+  demodescription -> demo_demodescription
+  
+  editor -> demo_editor
+  demo -> demo_editor
+
+  author -> demo_author
+  demo -> demo_author
+}

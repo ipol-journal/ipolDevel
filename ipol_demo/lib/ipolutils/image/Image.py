@@ -45,7 +45,7 @@ class Image(object):
             tif = TIFF.open(src, mode='r')
             im.data = tif.read_image()
             if len(im.data.shape) > 2 and im.data.shape[2] == 3: # BGR > RGB
-                im.data = im.data[...,::-1]
+                im.data = im.data[..., ::-1]
             tif.close()
             del tif
         else:
@@ -127,14 +127,15 @@ class Image(object):
         if mime_type == 'image/tiff': # use libtiff
             data = self._blend_alpha(self.data) # assume that tiff do not support alpha
             if len(data.shape) > 2 and data.shape[2] == 3: # BGR > RGB
-                data = data[...,::-1]
+                data = data[..., ::-1]
             tif = TIFF.open(dst_file, mode='w')
             tif.write_image(data, write_rgb=True)
             tif.close()
             del tif
         else:
             data, pars = self._4ser(dst_file, **kwargs)
-            cv2.imwrite(dst_file, data, pars)
+            if not cv2.imwrite(dst_file, data, pars):
+                raise OSError(errno.EBADFD, "OpenCV imwrite error", dst_file)
 
     def encode(self, ext, **kwargs):
         '''
@@ -345,55 +346,43 @@ class Image(object):
         '''
         Converts the depth of an image matrix.
         '''
-        depth_dtypes = {'8i': 'uint8', '8': 'uint8', '16i': 'uint16', '16': 'uint16', '32i': 'uint32',
-                        '32': 'uint32', '16f': 'float16', '32f': 'float32'}
-        src_dtype = data.dtype
-        # normalisation of requested depth as a dtype
-        if dst_depth in depth_dtypes:
-            dst_dtype = depth_dtypes[dst_depth]
-        else:
+        depth_dtypes = {'8i': np.uint8, '8': np.uint8, '16i': np.uint16, '16': np.uint16, '32i': np.uint32,
+                        '32': np.uint32, '16f': np.float16, '32f': np.float32}
+        if not dst_depth in depth_dtypes:
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
-
+        src_dtype = data.dtype
+        dst_dtype = depth_dtypes[dst_depth]
         # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
             return data, False
 
-        np_dst_type = np.dtype(dst_dtype)
-
         # Source is float
         if np.issubdtype(src_dtype, np.floating):
             # float -> float
-            if np.issubdtype(np_dst_type, np.floating):
-                data = data.astype(np_dst_type, copy=False)
+            if np.issubdtype(dst_dtype, np.floating):
+                data = data.astype(dst_dtype, copy=False)
             # float -> int
             else:
                 src_min, src_max = np.min(data), np.max(data)
-                # normalize to range [0, 1]
-                data = (data - src_min) / (src_max - src_min)
-                k = np_dst_type.itemsize * 8
-
-                data = data * (2**k - 1)
-                data = data.astype(np_dst_type, copy=False)
+                # normalize to range [0, 1] and multiply to max for int format
+                data = (data - src_min) / float(src_max - src_min) * np.iinfo(dst_dtype).max
+                data = data.astype(dst_dtype, copy=False)
             return data, True
 
         # int -> int
-        elif np.issubdtype(np_dst_type, np.integer): #check condition
-            mbits_from = 2**(src_dtype.itemsize * 8) - 1
-            mbits_to = 2**(np_dst_type.itemsize * 8) - 1
-
-            k = float(mbits_to) / mbits_from
-
-            if k<1: # Reduce bits
+        elif np.issubdtype(dst_dtype, np.integer): #check condition
+            k = float(np.iinfo(dst_dtype).max) / np.iinfo(src_dtype).max
+            if k < 1: # Reduce bits, cast after
                 data = data * k
-                data = data.astype(np_dst_type, copy=False)
-            else: # Increase bits
-                data = data.astype(np_dst_type, copy=False)
+                data = data.astype(dst_dtype, copy=False)
+            else: # Increase bits, cast before
+                data = data.astype(dst_dtype, copy=False)
                 data = data * k
 
             return data, True
         # int -> float 32
-        elif np.issubdtype(np_dst_type, np.floating):
-            return data.astype(np_dst_type, copy=False), True
+        elif np.issubdtype(dst_dtype, np.floating):
+            return data.astype(dst_dtype, copy=False), True
 
         raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
 
@@ -404,92 +393,47 @@ class Image(object):
         '''
         if len(data.shape) == 2:
             data.shape = [data.shape[0], data.shape[1], 1]
-        # 1 channel, Gray, do nothing
-        if data.shape[2] == 1:
+        if data.shape[2] not in [2, 4]:
             return data
-        # 3 channels, BGR, do nothing
-        elif data.shape[2] == 3:
-            return data
+        # check if alpha is just a 100% layer
+        if np.unique(data[:, :, -1]).size == 1:
+            return data[:, :, 0:-1]
+        orig_dtype = data.dtype # keep original depth
         # 2 channels, Gray with alpha
-        elif data.shape[2] == 2:
-            # check if alpha is just a 100% layer
-            if np.unique(data[:, :, 1]).size == 1:
-                return data[:, :, 0]
-            orig_dtype = data.dtype
+        if data.shape[2] == 2:
+            channels = 1
             # convert back_color to a grey luminosity
-            back_gray = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
-            # build a float matrix from the alpha layer, convert it to [0,1]
+            back_color = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
             alpha_mask = data[:, :, 1].astype(np.float64)
-            if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255.0 # 2^8 - 1
-            elif data.dtype == 'uint16':
-                alpha_mask = alpha_mask / 65535.0 # 2^16 - 1
-                back_gray = back_gray * 257.0 # (2^16 - 1) / (2^8 - 1)
-            elif data.dtype == 'uint32':
-                alpha_mask = alpha_mask / ((1 << 32) - 1) # 2^32 - 1
-                back_gray = back_gray * 16843009.0 # (2^32 - 1) / (2^8 - 1)
-            else: # float
-                alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
-                alpha_max = np.nanmax(alpha_mask)
-                alpha_mask = (alpha_mask - alpha_min) / (alpha_max - alpha_min)
-                # convert desired background according to min and max of the
-                data_min = np.nanmin(data[:, :, 0])
-                data_max = np.nanmax(data[:, :, 0])
-                back_gray = back_gray / 255.0 * (data_max - data_min) + data_min
-            # build a background matrix as float
-            back_mat = np.zeros((data.shape[0], data.shape[1], 1), np.float64)
-            # fill it with background color
-            back_mat[:] = back_gray
-            # apply inverse mask to background
-            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
-            # apply mask to foregroung
-            fore_mat = cv2.multiply(alpha_mask, data[:, :, 0].astype(np.float64))
-            # merge back and fore
-            data = cv2.add(back_mat, fore_mat)
-            # restore original dtype
-            data = data.astype(orig_dtype, copy=False)
-            return data
-        # 4 channels, BGRA, blend
+        # 4 channels, BGRA
         elif data.shape[2] == 4:
-            # check if alpha is just a 100% layer
-            if np.unique(data[:, :, 3]).size == 1:
-                return data[:, :, :3]
-            orig_dtype = data.dtype
+            channels = 3
             # convert back_color to BGR (OpenCV format)
-            back_color = tuple(reversed(back_color))
-            # build an alpha_mask, convert to float [0, 1], according to dtype
+            back_color = np.array(tuple(reversed(back_color)))
+            # convert alpha mask to a 3 chanels gray
             alpha_mask = cv2.cvtColor(data[:, :, 3], cv2.COLOR_GRAY2BGR).astype(np.float64)
-            if data.dtype == 'uint8':
-                alpha_mask = alpha_mask / 255.0 # 2^8 - 1
-            elif data.dtype == 'uint16':
-                alpha_mask = alpha_mask / 65535.0 # 2^16 - 1
-                back_color = (back_color[0] * 257.0, back_color[1] * 257.0, back_color[2] * 257.0)
-            elif data.dtype == 'uint32':
-                alpha_mask = alpha_mask / ((1 << 32) - 1) # 2^32 - 1
-                back_color = (back_color[0] * 16843009.0, back_color[1] * 16843009.0, back_color[2] * 16843009.0)
-            else: # float
-                alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
-                alpha_max = np.nanmax(alpha_mask)
-                alpha_mask = (alpha_mask - alpha_min) / (alpha_max - alpha_min)
-                data_min = np.nanmin(data[:, :, :3])
-                data_max = np.nanmax(data[:, :, :3])
-                back_color = (
-                    back_color[0] / 255.0 * (data_max - data_min) + data_min,
-                    back_color[1] / 255.0 * (data_max - data_min) + data_min,
-                    back_color[2] / 255.0 * (data_max - data_min) + data_min
-                )
-            # build a background matrix as float
-            back_mat = np.zeros((data.shape[0], data.shape[1], 3), np.float64)
-            # fill it with background color
-            back_mat[:] = back_color
-            # apply inverse mask to background
-            back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
-            # apply mask to foregroung
-            fore_mat = cv2.multiply(alpha_mask, data[:, :, :3].astype(np.float64))
-            # merge back and fore
-            data = cv2.add(back_mat, fore_mat)
-            # restore original dtype
-            data = data.astype(orig_dtype, copy=False)
-            return data
-        else: # unknown format
-            return data
+        # convert alphamask as float [0, 1]
+        if  np.issubdtype(orig_dtype, np.integer):
+            alpha_min = data_min = 0
+            alpha_max = data_max = np.iinfo(orig_dtype).max
+        else: # float
+            alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
+            alpha_max = np.nanmax(alpha_mask)
+            data_min = np.nanmin(data[:, :, -1])
+            data_max = np.nanmax(data[:, :, -1])
+        alpha_mask = (alpha_mask - alpha_min) / float(alpha_max - alpha_min)
+        back_color = back_color / 255.0 * (data_max - data_min) + data_min
+
+        # build a background matrix as float
+        back_mat = np.zeros((data.shape[0], data.shape[1], channels), np.float64)
+        # fill it with background color
+        back_mat[:] = back_color
+        # apply inverse mask to background
+        back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
+        # apply mask to foregroung
+        fore_mat = cv2.multiply(alpha_mask, data[:, :, :-1].astype(np.float64))
+        # merge back and fore
+        data = cv2.add(back_mat, fore_mat)
+        # restore original dtype
+        data = data.astype(orig_dtype, copy=False)
+        return data

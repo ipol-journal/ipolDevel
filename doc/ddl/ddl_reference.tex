@@ -1,38 +1,28 @@
 \section{Introduction}
-The Demo Description Lines (DDL) is an abstract syntax which allow to
-define an IPOL demo. The description is 
-written in JSON (JavaScript Object Notation) format. This language is
-evolving to allow a maximum number of demos to be described without the
-need to manually write HTML or Python code 
-for a given demo. Each main key in the description file is described
-in the following sections:
+The Demo Description Lines (DDL) is an abstract syntax which allows
+to define an IPOL demo. The description is 
+written in JSON (JavaScript Object Notation) format. The aim of this specification is to allow a maximum number of demos to be described without the
+need to manually write HTML or Python code for a given demo. Each main key in the description file is described in the following sections:
 \begin{itemize}
   \item \textit{general}: general options (required);
   \item \textit{build}: download and compile the source code (required);
   \item \textit{inputs}: description of the different inputs  (required);
-  \item \textit{params}: description of the parameters, for the param page (recommended);
+  \item \textit{params}: description of the parameters, for the param page (optional);
   \item \textit{run}: commands to run the demo (required);
-  \item \textit{config}: configuration, saving demo information (optional);
-  \item \textit{archive}: description of files  what is saved in archive when inputs are uploaded (optional);
+  \item \textit{archive}: which parameters and output files are archived after performing an execution with original (uploaded) data (optional);
   \item \textit{results}: displaying the result page (required).
 \end{itemize}
 
 \vspace{1em}
 
-JSON data for IPOL should be strictly valid. Most common mistakes:
-\begin{itemize}
-  \item ASCII, no letters with diacritics or accents like 'é' or '$\sigma$', use HTML entities for special characters (ex: \&eacute; \&sigma;);
-  \item commas, requested separator between items in list or dictionary, forbidden at start or end of a collection.
-\end{itemize}
 The IPOL control panel provides a JSON editor with a simple validator. Most of the syntax errors are detected in real time
-and reported by a graphic hint. The non ASCII characters are not detected by the client. 
-Before to be applied, the JSON data are validated by the server, and may be not accepted.
+and reported by this graphical tool.
 
 %-------------------------------------------------------------------------------
 \section{The \emph{general} section}
 The general section describes global information about the demo.
-It is a set of  (key,value) pairs, described in the following table.
-Many keys are derived from the static variables of the previous 'app' Python class.\\
+It is a set of  (key,value) pairs, described in the following table. The column \emph{req} refers to a required field.
+
 % 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 
 0.57\linewidth}|c|}
@@ -40,12 +30,12 @@ Many keys are derived from the static variables of the previous 'app' Python cla
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  demo\_title         & demo title & yes\\ \hline
- input\_description  & description at the top of the input selection page, 
-                      contains html as a single string or as an array of string
+ input\_description  & description of the inputs. 
+                      It contains HTML as a single string or as an array of string
                       that will be concatenated and separated with spaces.
                      & yes \\ \hline
  param\_description  & description at the top of the para\-meters page,
-                      contains html as a single string or as an array of string
+                      contains HTML as a single string or as an array of string
                       that will be concatenated and separated with spaces.
                       & yes
                       \\ \hline
@@ -55,7 +45,7 @@ Many keys are derived from the static variables of the previous 'app' Python cla
  requirements 	    & specify the particular requirements needed for the execution of the demo separated by commas. e.g. Matlab. & no \\ \hline
  timeout 	    & specify the time in seconds to execute the algorithm. If the execution takes longer than the specified time 
 		      the system kills the process.& no \\ \hline
-\caption{Keys for the 'general' section ({\em req} means required).}
+\caption{Keys for the 'general' section.}
 \end{longtable}
 
 %-------------------------------------------------------------------------------
@@ -86,7 +76,7 @@ It has the following information:
             from this directory will be copied
             to the demo binary path. If the second path is a directory, give 
             a third value corresponding to one of the files to be copied, so that
-            the system can check the file timestamp to decide if rebuild is needed.
+            the system can check the file timestamp to decide if a rebuild is needed.
             & yes \\ \hline
  flags      & make command compilation flags & yes \\ \hline
  scripts    & list of scripts and their associated paths relative to the source 
@@ -180,7 +170,7 @@ The inputs section describes the characteristics of the input data for the algor
 \hline \hline
  type         & image & yes \\ \hline
  description  & Short name or description of the input, it will used to display 
-the input as the label inside the 'gallery' html display & no \\ \hline
+the input as the label inside the 'gallery' HTML display & no \\ \hline
  max\_pixels   &  Sets the maximal number of pixels of the input image, 
 bigger images will be downsized, if 0 no resizing is done. 
 Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "1000*1000" = 1 Mpx).  & yes \\ \hline
@@ -200,7 +190,7 @@ Input can be a number or a simple arithmetic expression as a string that will be
 forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
 Submitted image is kept as-is.
 Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results. 
-If a processing is needed, according to the expected properties upper, user will be informed by a message.
+If a processing is needed, according to the expected properties upper, the user will be informed by a message.
 & no \\ \hline
 \caption{Keys for the 'image' type.}
 \end{longtable}
@@ -307,7 +297,7 @@ The label  can be used as a title to separate groups of parameters.
  type  & label       & yes \\ \hline
  visible  & Evaluated Javascript boolean expression which hides the parameter if
             evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label & html text to display, as a single string or as an array of strings& yes
+ label & HTML text to display, as a single string or as an array of strings& yes
                       \\ \hline
 \caption{Common keys for the 'label' type.}
 \end{longtable}
@@ -447,7 +437,7 @@ use the variable 'demodata', for example "cp \$\{demodata\}/\-pattern\-\_noise.p
 ]
 \end{lstlisting}
 
-In this example, the last command adds a new parameters using self.algo\_params,
+In this example, the last command adds a new parameter using self.algo\_params,
 this parameter will be saved in the config files. It is also possible to add 
 or change info and meta sections using self.algo\_info and self.algo\_meta.
 \begin{lstlisting}[language=json,firstnumber=1]
@@ -552,7 +542,7 @@ as files & no \\ \hline
 
 The results section also contains an array of sets, where each set contains 
 (key/value) pairs describing one type of output from the algorithm. There are 
-displayed sequentially one below the other, a part from warnings that are 
+displayed sequentially one below the other, apart from warnings that are 
 displayed at the top of the page. The currently available types are described 
 below. At the top of the results page, the processing time is displayed and the 
 user is proposed to run the demo again with different input or parameters.
@@ -571,12 +561,12 @@ The gallery type uses the gallery class to display images. Its parameters are:
  visible    & Evaluated Javascript boolean expression 
               which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
- label      & html label for the gallery, can be either a single string or 
+ label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between. & no \\ \hline
  contents   & inside has Javascript objects with: img, repeat and visible parameters.
  				The key for every object can be an expression to be evaluated in case of repeat
- 				functionallity.
+ 				functionality.
  			    img wil have either a string with a filename or an array of strings with filenames.
  			    visible is the same a visible field for the gallery but for each item in the gallery.
  			    repeat is a range expression (evaluated in javascript): will create a loop in the 
@@ -629,13 +619,13 @@ The gallery\_video type uses the gallery class to display images. Its parameters
  visible    & Evaluated Javascript boolean expression 
               which hides the result if
               evaluated to false (if undefined the result is visible)& no \\ \hline
- label      & html label for the gallery, can be either a single string or 
+ label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated with whitespace character
               in between. & no \\ \hline
  contents   & inside has javascript objects with: video, repeat and visible parameters.
  				The key for every object can be an expression to be evaluated in case of the use of 
- 				repeat functionallity.
- 			    video wil have either a string with a filename or an array of strings with filenames.
+ 				repeat functionality.
+ 			    video will have either a string with a filename or an array of strings with filenames.
  			    visible is the same a visible field for the gallery but for each item in the gallery.
  			    repeat is a range expression (evaluated in javascript): will create a loop in the 
  			    form idx=0..range-1.
@@ -681,9 +671,9 @@ Advaced example, mixing repeat, visible, using an array of filenames.
              evaluated to false (if undefined the result is visible)& no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
- label     & html title associated to the file download. In case of repeat, 
+ label     & HTML title associated to the file download. In case of repeat, 
             evaluated as an expression with idx variable, otherwise, can be evaluated
-            if it starts with single quote.& yes \\ \hline
+            if it starts with a single quote.& yes \\ \hline
  contents  & either a single string of the filename to download, or a list
               of label:filename pairs for files to download. In case of repeat, 
             evaluated as an expression with idx variable. & yes \\ \hline
@@ -724,7 +714,7 @@ Example using 'repeat':
  visible   & Evaluated Javascript boolean expression 
              which hides the result if
              evaluated to false (if undefined the result is visible)& no \\ \hline
- contents  & array of strings, that will be concatenated to form the html 
+ contents  & An array of strings, that will be concatenated to form the HTML 
              content. This content can contain Javascript expression if it starts
             with a single quote. & yes \\ \hline
 \caption{Keys for the 'html\_text' type.}

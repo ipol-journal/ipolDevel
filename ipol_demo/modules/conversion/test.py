@@ -54,8 +54,8 @@ class ConversionTests(unittest.TestCase):
         """
         Creates a standard image matrix.
         """
-        depth_dtypes = {'8i': 'uint8', '16i': 'uint16', '32i': 'uint32', '16f': 'float16', '32f': 'float32'}
-        dtype = np.dtype(depth_dtypes[depth])
+        depth_dtypes = {'8i': np.uint8, '16i': np.uint16, '32i': np.uint32, '16f': np.float16, '32f': np.float32}
+        dtype = depth_dtypes[depth]
         if np.issubdtype(dtype, np.integer):
             dtype_max = np.iinfo(dtype).max
         else:
