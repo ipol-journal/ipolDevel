@@ -1274,7 +1274,7 @@ attached the failed experiment data.". \
         try:
             demorunner_response = dr_response.json()
         except Exception as ex:
-            dr_response_content = dr_response.content if dr_response.content else "(no response)"
+            dr_response_content = dr_response.content if dr_response and dr_response.content else "(no response)"
             error_message = "**INTERNAL ERROR**. Bad format in the response \
                         from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response_content, ex)
             self.logger.exception(error_message)
@@ -1389,7 +1389,7 @@ attached the failed experiment data.". \
         try:
             demorunner_response = resp.json()
         except Exception as ex:
-            resp_content = resp.content if resp.content else "(no response)"
+            resp_content = resp.content if resp and resp.content else "(no response)"
             error_message = "**INTERNAL ERROR**. Bad format in the response \
                         from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, resp_content, ex)
             self.logger.exception(error_message)
