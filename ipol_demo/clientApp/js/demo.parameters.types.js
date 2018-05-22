@@ -102,9 +102,16 @@ $.fn.textarea = function(param, index) {
   var default_value = param.default_value;
   var width = param.width || 600;
   var height = param.height || 200;
+  var white_space = param.wrap === false ? "pre" : "";
 
   $('.param-' + index).prepend('<span class=param-label >' + param.label + '</span>');
-  $('<textarea id=textarea_' + param.id + ' ></textarea>').appendTo(this).css({width: width + 'px', height: + height + "px"});
+  $('<textarea id=textarea_' + param.id + ' ></textarea>').appendTo(this)
+    .css({
+        width: width + 'px', 
+        height: + height + "px", 
+        "white-space": white_space
+    });
+
   if (default_value) $("#textarea_" + param.id).val(default_value.replace('\n', "\r\n"));
 
   $('#textarea_' + param.id).change(function (event) {
