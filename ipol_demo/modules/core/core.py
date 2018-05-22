@@ -1263,6 +1263,21 @@ attached the failed experiment data.". \
             raise IPOLFindSuitableDR(error_message)
         return dr_name, dr_server
 
+    @staticmethod
+    def get_response_content(response):
+        '''
+        Reads the response.content taking care that both the response or the
+        response.content might not be present
+        '''
+        if not response:
+            return "(no response)"
+        try:
+            if not response.content:
+                return "(no response.content)"
+        except Exception as ex:
+            return "(no response.content. Ex: {})".format(ex)
+        return response.content
+
     def ensure_compilation(self, dr_server, dr_name, demo_id, ddl_build):
         """
         Ensure that the source codes of the demo are all updated and compiled correctly
@@ -1274,8 +1289,9 @@ attached the failed experiment data.". \
         try:
             demorunner_response = dr_response.json()
         except Exception as ex:
+            dr_response_content = Core.get_response_content(dr_response)
             error_message = "**INTERNAL ERROR**. Bad format in the response \
-                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response.content, ex)
+                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, dr_response_content, ex)
             self.logger.exception(error_message)
             raise IPOLEnsureCompilationError(error_message)
 
@@ -1388,11 +1404,12 @@ attached the failed experiment data.". \
         try:
             demorunner_response = resp.json()
         except Exception as ex:
+            resp_content = Core.get_response_content(resp)
             error_message = "**INTERNAL ERROR**. Bad format in the response \
-                        from DR server {} in demo {}. {} - {}".format(dr_server, demo_id, resp.content, ex)
+                        from DR server {} in demo #{}. {} - {}".format(dr_server, demo_id, resp_content, ex)
             self.logger.exception(error_message)
             # nginx timeout
-            if "Time-out" in resp.content:
+            if resp_content and "Time-out" in resp_content:
                 raise IPOLExecutionError('timeout')
             #Anything else
             raise IPOLExecutionError(error_message, error_message)
