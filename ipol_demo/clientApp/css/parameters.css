@@ -228,7 +228,7 @@ input::-moz-focus-inner, input::-moz-focus-outer {
 }
 
 .param-container textarea {
-  max-width: 600px;
+  max-width: 100% !important;
   max-height: 2000px;
 }
 
