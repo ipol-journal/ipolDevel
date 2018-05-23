@@ -196,7 +196,6 @@ class Image(object):
         Prepare data for TIFF, before saving to file or return bytes (blend alpha).
         '''
         data = self._blend_alpha(self.data) # assume that tiff do not support alpha
-        # data, _ = self._convert_depth(data, '16i')
         pars = []
         return data, pars
 

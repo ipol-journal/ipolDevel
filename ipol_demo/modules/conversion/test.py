@@ -50,9 +50,9 @@ class ConversionTests(unittest.TestCase):
             pass
 
     @staticmethod
-    def bgr_test(depth):
+    def data_matrix(depth):
         """
-        Creates a standard image matrix.
+        Creates a standard image matrix for tests.
         """
         depth_dtypes = {'8i': np.uint8, '16i': np.uint16, '32i': np.uint32, '16f': np.float16, '32f': np.float32}
         dtype = depth_dtypes[depth]
@@ -60,26 +60,26 @@ class ConversionTests(unittest.TestCase):
             dtype_max = np.iinfo(dtype).max
         else:
             dtype_max = 1
-        bgr = np.zeros((32, 48, 3))
-        bgr[0:16, :, 0] = dtype_max
-        bgr[:, 0:32, 1] = dtype_max
-        bgr[:, 0:16, 2] = dtype_max
-        bgr = bgr.astype(dtype, copy=False)
-        return bgr
+        data = np.zeros((32, 48, 3))
+        data[0:16, :, 0] = dtype_max
+        data[:, 0:32, 1] = dtype_max
+        data[:, 0:16, 2] = dtype_max
+        data = data.astype(dtype, copy=False)
+        return data
 
     def test_tiff_depths(self):
         """
         Tests the conversions between all supported dtypes in tiff.
         """
         tif_file = tempfile.NamedTemporaryFile(suffix='.tif', prefix="ipol_", delete=True)
-        for src_depth in ['8i', '16i', '32i', '16f', '32f']:
-            for dst_depth in ['8i', '16i', '32i']: # float as a destination is not strictly equal
-                data = self.bgr_test(src_depth)
+        for src_depth in ('8i', '16i', '32i', '16f', '32f'):
+            for dst_depth in ('8i', '16i', '32i'): # float as a destination is not strictly equal
+                data = self.data_matrix(src_depth)
                 im = Image.data(data)
                 im.convert_depth(dst_depth)
                 im.write(tif_file.name)
                 im = im.load(tif_file.name)
-                data = self.bgr_test(dst_depth)
+                data = self.data_matrix(dst_depth)
                 self.assertTrue((im.data == data).all(), msg="{} > {}".format(src_depth, dst_depth))
         tif_file.close()
 
@@ -87,9 +87,9 @@ class ConversionTests(unittest.TestCase):
         """
         Tests the conversions between 8 bits file formats.
         """
-        data = self.bgr_test('8i')
+        data = self.data_matrix('8i')
         # gif is not supported by OpenCV, .jpg do not keep exact colors
-        exts = ['.bmp', '.png', '.tif']
+        exts = ('.bmp', '.png', '.tif', '.TIFF')
         for src_ext in exts:
             src_file = tempfile.NamedTemporaryFile(suffix=src_ext, prefix="ipol_", delete=True)
             src_im = Image.data(data)
