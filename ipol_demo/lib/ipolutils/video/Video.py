@@ -21,6 +21,7 @@ import errno
 import mimetypes
 import os
 import shutil
+import datetime
 
 import cv2
 import numpy as np
@@ -54,6 +55,8 @@ class Video(object):
             raise OSError(errno.ENODATA, "Could not load.", self.src)
         self.capture.set(cv2.cv2.CAP_PROP_POS_FRAMES, 0)
         self.frame_count = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.fps = self.capture.get(cv2.CAP_PROP_FPS)
+        self.duration = float(self.frame_count / self.fps)
         self.fourcc = int(self.capture.get(cv2.CAP_PROP_FOURCC))
         self.full_path = os.path.realpath(self.src)
         self.input_dir, self.input_filename = os.path.split(self.full_path)
@@ -78,19 +81,33 @@ class Video(object):
                 raise IPOLConvertInputError('Conversion error, frames could not be extracted')
 
 
-    def create_avi(self):
+    def create_avi(self, n_frames=None):
         """
         Create avi file from frames of uploaded input
         """
-        dst_folder = '/tmp/' + self.input_name
         processed_video = self.input_dir + '/' + self.input_name + ".avi"
 
-        if os.path.exists(dst_folder):
-            shutil.rmtree(dst_folder)
-        
-        Video.extract_frames(self, dst_folder=dst_folder)
-        convert_proc = Popen(["ffmpeg -i '" + self.full_path + "' -c:v huffyuv -pix_fmt rgb24 " +
-                         processed_video], shell=True)
+        ffmpeg_command = "ffmpeg -i " + self.full_path + " -c:v huffyuv -pix_fmt rgb24 " #ffmpeg base command line
+        if n_frames:
+            ffmpeg_command += self.get_time_for_frames(n_frames)
+
+        convert_proc = Popen([ffmpeg_command + " " + processed_video], shell=True)
+
         convert_proc.wait()
         if convert_proc.returncode != 0:
             raise IPOLConvertInputError('Conversion error, video could not be converted to avi')
+
+    def get_time_for_frames(self, n_frames):
+        if n_frames < self.frame_count:
+            required_time = float(n_frames) / self.fps
+            from_time = self.duration / 2.0 - required_time / 2.0 
+            to_time = self.duration / 2.0 + required_time / 2.0
+
+            frame_time = float(required_time/n_frames)
+            frame_to = abs(to_time*n_frames/required_time)
+            frame_from = abs(from_time*n_frames/required_time)
+            if frame_to - frame_from + 1 > n_frames:
+                to_time = to_time - frame_time
+                
+            return "-ss " + str(datetime.timedelta(seconds=from_time)) + " -to " + str(datetime.timedelta(seconds=to_time))  
+        return ""
