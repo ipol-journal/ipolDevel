@@ -1491,9 +1491,11 @@ attached the failed experiment data.". \
             # Find a demorunner according the requirements of the demo and the dispatcher policy
             dr_name, dr_server = self.find_suitable_demorunner(ddl['general'])
 
-            self.ensure_compilation(dr_server, dr_name, demo_id, ddl['build'])
-
+            # Ensure that the demoExtras are updated
             self.ensure_extras_updated(demo_id)
+
+            # Ensure that the source code is updated
+            self.ensure_compilation(dr_server, dr_name, demo_id, ddl['build'])
 
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
@@ -1767,6 +1769,17 @@ attached the failed experiment data.". \
                     self.send_email_no_demorunner(demo_id)
                 return json.dumps(response)
 
+            # Ensure that the demoExtras are updated
+            try:
+                self.ensure_extras_updated(demo_id)
+            except IPOLDemoExtrasError as ex:
+                message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
+                self.logger.exception(message)
+                print message
+                response = {'status': 'KO', 'error': message}
+                return json.dumps(response)
+
+            # Ensure that the source code is updated
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
             resp = self.post('api/demorunner/ensure_compilation', data=userdata, host=dr_server)
             demorunner_response = resp.json()
@@ -1782,15 +1795,6 @@ attached the failed experiment data.". \
 
                 # Message for the web interface
                 response = {"error": " --- Compilation error. --- {}".format(text), "status": "KO"}
-                return json.dumps(response)
-
-            try:
-                self.ensure_extras_updated(demo_id)
-            except IPOLDemoExtrasError as ex:
-                message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
-                self.logger.exception(message)
-                print message
-                response = {'status': 'KO', 'error': message}
                 return json.dumps(response)
 
             # save parameters as a params.json file
