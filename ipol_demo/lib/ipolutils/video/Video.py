@@ -62,17 +62,21 @@ class Video(object):
         self.input_dir, self.input_filename = os.path.split(self.full_path)
         self.input_name, self.input_ext = os.path.splitext(self.input_filename)
 
-    def extract_frames(self, dst_folder=None):
+    def extract_frames(self, n_frames=None):
         """
         Extract frames from video given a destination folder.
         """
-        if dst_folder is None:
-            dst_folder = self.input_dir + '/' + self.input_name
-
+        dst_folder = self.input_dir + '/' + self.input_name
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
+
+        if n_frames:
+            first_frame = int(self.frame_count / 2) - int(n_frames / 2)
+            self.capture.set(cv2.cv2.CAP_PROP_POS_FRAMES, first_frame)
+        else:
+            n_frames = self.frame_count
         
-        for frame_number in range(self.frame_count):
+        for frame_number in range(n_frames):
             ret, frame = self.capture.read()
             if not ret:
                 break
