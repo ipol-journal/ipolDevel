@@ -759,10 +759,9 @@ class Core(object):
                 return "Bad DDL inputs section: expected list."
 
             if ddl['inputs']:
-                image_required_fields = ['max_pixels', 'ext', 'dtype']
-                video_required_fields = ['ext']
-                data_required_fields = ['ext']
-                required_fields = {'video' : video_required_fields, 'image' : image_required_fields, 'data' : data_required_fields}
+                required_fields = {'video' : ('ext'),\
+                    'image' : ('max_pixels', 'ext', 'dtype'), \
+                        'data' : ('ext')}
 
                 for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
