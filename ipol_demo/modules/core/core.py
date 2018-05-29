@@ -760,11 +760,13 @@ class Core(object):
 
             if ddl['inputs']:
                 required_fields = {\
-                    'video' : ('ext'),\
+                    'video' : ('ext',),\
                     'image' : ('max_pixels', 'ext', 'dtype'),\
-                    'data' : ('ext')}
+                    'data' : ('ext',)\
+                    }
 
                 for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
+
                     if not 'type' in input_in_ddl:
                         return "Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter)
 
