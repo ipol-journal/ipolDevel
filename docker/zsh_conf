@@ -5,9 +5,7 @@ export ZSH=/home/ipol/.oh-my-zsh
 
 ZSH_THEME="jtriley"
 
-plugins=(
-  git
-)
+plugins=()
 
 source $ZSH/oh-my-zsh.sh
 
@@ -25,6 +23,9 @@ alias collectstatic="cd ~/ipolDevel/ipol_webapp && python manage.py collectstati
 
 # Test all
 alias runtest="cd ~/ipolDevel/ci_tests && python all.py"
+
+# Go to run directory
+alias rund="cd ~/ipolDevel/shared_folder/run/"
 
 # Modules start
 alias core="cd ~/ipolDevel/ipol_demo/modules/core && python main.py"
