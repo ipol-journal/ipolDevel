@@ -760,7 +760,7 @@ class Core(object):
 
             if ddl['inputs']:
                 required_fields = {\
-                    'video' : ('ext',),\
+                    'video' : ('max_pixels', 'max_frames'),\
                     'image' : ('max_pixels', 'ext', 'dtype'),\
                     'data' : ('ext',)\
                     }
