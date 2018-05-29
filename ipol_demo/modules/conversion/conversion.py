@@ -323,8 +323,9 @@ class Conversion(object):
         video.load()
         as_frames = input_desc.get('as_frames', None)
         max_frames = input_desc.get('max_frames', None)
+        max_pixels = input_desc.get('max_pixels', None)
         if as_frames is not None:
-            video.extract_frames(n_frames=max_frames)
+            video.extract_frames(n_frames=max_frames, max_pixels=max_pixels)
             code = 1
             modifications.append('extracted to frames')
         else:

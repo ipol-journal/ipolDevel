@@ -22,6 +22,7 @@ import mimetypes
 import os
 import shutil
 import datetime
+import math
 
 import cv2
 import numpy as np
@@ -55,6 +56,8 @@ class Video(object):
             raise OSError(errno.ENODATA, "Could not load.", self.src)
         self.capture.set(cv2.cv2.CAP_PROP_POS_FRAMES, 0)
         self.frame_count = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.width = int(self.capture.get(cv2.cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.capture.get(cv2.cv2.CAP_PROP_FRAME_HEIGHT))
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
         self.duration = float(self.frame_count / self.fps)
         self.fourcc = int(self.capture.get(cv2.CAP_PROP_FOURCC))
@@ -62,13 +65,19 @@ class Video(object):
         self.input_dir, self.input_filename = os.path.split(self.full_path)
         self.input_name, self.input_ext = os.path.splitext(self.input_filename)
 
-    def extract_frames(self, n_frames=None):
+    def extract_frames(self, n_frames=None, max_pixels=None):
         """
         Extract frames from video given a destination folder.
         """
         dst_folder = self.input_dir + '/' + self.input_name
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
+
+        if max_pixels is not None:
+            max_pixels = eval(max_pixels)
+            video_pixel_count = self.height * self.width
+            if max_pixels < video_pixel_count:
+                scaling_factor = self.get_scaling_factor(max_pixels)
 
         if n_frames:
             first_frame = int(self.frame_count / 2) - int(n_frames / 2)
@@ -80,12 +89,14 @@ class Video(object):
             ret, frame = self.capture.read()
             if not ret:
                 break
+            if scaling_factor:
+                frame = cv2.resize(frame, None, fx=float(scaling_factor), fy=float(scaling_factor), interpolation=cv2.INTER_AREA)
             imwrite = cv2.imwrite(dst_folder + '/frame_{:03d}.png'.format(frame_number), frame)
             if not imwrite:
                 raise IPOLConvertInputError('Conversion error, frames could not be extracted')
 
 
-    def create_avi(self, n_frames=None):
+    def create_avi(self, n_frames=None, max_pixels=None):
         """
         Create avi file from frames of uploaded input
         """
@@ -94,9 +105,9 @@ class Video(object):
         ffmpeg_command = "ffmpeg -i " + self.full_path + " -c:v huffyuv -pix_fmt rgb24 " #ffmpeg base command line
         if n_frames:
             ffmpeg_command += self.get_time_for_frames(n_frames)
-
+        
         convert_proc = Popen([ffmpeg_command + " " + processed_video], shell=True)
-
+        
         convert_proc.wait()
         if convert_proc.returncode != 0:
             raise IPOLConvertInputError('Conversion error, video could not be converted to avi')
@@ -115,3 +126,6 @@ class Video(object):
                 
             return "-ss " + str(datetime.timedelta(seconds=from_time)) + " -to " + str(datetime.timedelta(seconds=to_time))  
         return ""
+
+    def get_scaling_factor(self, max_pixels):
+        return math.sqrt(float(max_pixels - 1) / float(self.height * self.width))
