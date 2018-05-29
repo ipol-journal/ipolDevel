@@ -1,0 +1,7 @@
+.DS_Store
+__pycache__
+share
+pyvenv.cfg
+lib
+lib64
+bin

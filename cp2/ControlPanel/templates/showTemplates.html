@@ -1,0 +1,137 @@
+{% extends "base.html" %} 
+{% block title %}TemplatesDetails{% endblock %}
+{% block bodyid %}TemplatesDetails{% endblock %}
+{% block fond %}
+{% endblock %}
+{% block header %}
+<h1>Template : <p id="nameOfTemplate"></p></h1>
+<h2>
+    Blobs list
+</h2>
+{% endblock %} {% block content %}
+<button id="addBlob">Add new Blob</button>
+<button id="deleteTemplate">Delete Template</button>
+ {% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+<script>
+
+var BlobSelection;
+var section = document.querySelector('section');
+var request = new XMLHttpRequest();
+var templateSelection = getParameterByName('template');
+document.getElementById("nameOfTemplate").innerHTML = templateSelection;
+
+//Manque partie Demo Using this Template
+//http://127.0.0.1/api/blobs/remove_blob_from_template? opur virer le blob de la template
+//http://127.0.0.1/api/blobs/remove_blob_from_template?template_name=denoisingTemplate&blob_set=book&pos_set=0
+//template_name, blob_set, pos_set sont les parametres
+//a faire coté django car besoin d'etre authentifier
+
+request.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
+request.responseType = 'json';
+request.send();
+request.onload = function() {
+    var templates = request.response;
+    showTemplates(templates);
+    
+}
+
+$(document).ready(function() {
+    $(".ButtonDelete").click(deleteBlob);
+});
+
+
+
+function showTemplates(jsonObj) {
+    var blobsList = jsonObj['sets'];
+    for (var i = 0; i < blobsList.length; i++) {
+        var Blobs = blobsList[i].blobs;
+        var myDiv1 = document.createElement('div');
+        myDiv1.setAttribute("class","block");
+        var myH1 = document.createElement('h1');
+        var myPara = document.createElement('p');      
+        var myDiv2 = document.createElement('div');
+        myDiv2.setAttribute("class","image_files");
+        var myHref = document.createElement('a');
+        myHref.setAttribute("href", "#");
+        var image_src = document.createElement('img');
+        image_src.setAttribute("src",Blobs[0].thumbnail);
+        var myPara2 = document.createElement('p');
+        var removeBlobs = document.createElement('div');
+        var button = document.createElement('button');
+        button.setAttribute("class","ButtonDelete");
+
+        myH1.textContent = blobsList[i].name;
+        myPara2.textContent = "Credit: " + Blobs[0].credit;
+        button.textContent = "Delete blob";
+
+
+        section.appendChild(myDiv1);
+        myDiv1.appendChild(myH1);
+        myDiv1.appendChild(myPara);
+        myDiv1.appendChild(myDiv2);
+        myDiv2.appendChild(myHref);
+        myHref.appendChild(image_src);
+        myDiv2.appendChild(myPara2);
+        myDiv1.appendChild(removeBlobs);
+        removeBlobs.appendChild(button);
+
+    };
+}
+
+function selectorBlob (element) {
+    element.onclick = function() {
+        var name = document.querySelector('h1');
+        BlobSelection = name.innerText;
+        return BlobSelection;
+        //on enregistre le nom du blob selectionnée pour la recupérer dans la requete ajax deleteBlob
+    };
+};
+
+//authenticate
+function deleteBlob() {
+    $.ajax({
+    data : ({
+        templateSelection : $templateSelection,
+        "0" : $pos_set ,
+        BlobSelection : $name_blob,
+        }),
+        type: 'POST',
+        url: 'http://127.0.0.1/api/blobs/remove_blob_from_template?template_name='+$templateSelection+'&blob_set='+$name_blob+'&pos_set='+$pos_set,
+        success: function(data) {
+            if (data.status === 'OK') {
+            alert("Successful ! ")
+            } else {
+            alert("Error")
+            }
+        },
+        error: function() {
+            alert("merde");
+        },
+        complete: function() {
+            alert("hohahu");
+        },
+    });
+};
+
+function getParameterByName(name) {
+  var url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+  results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+
+
+</script>
+{% endblock %}

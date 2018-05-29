@@ -1,0 +1,210 @@
+{% extends "base.html" %} {% block title %}DemoInfo{% endblock %} {% block bodyid %}DemoList{% endblock %} {% block header %}
+<div id="navbar_top">
+    <ul class="nav-pills">
+        <li>
+            <a class="nav-demo" href="/cp2">Demos</a>
+        </li>
+        <li class="nav-item">
+            <a href="???">Authors</a>
+        </li>
+        <li class="nav-item">
+            <a href="???">Editors</a>
+        </li>
+        <li class="name_user">
+            Welcome {{ user.first_name }}
+        </li>
+        <li class="nav-logout">
+            <a href="/cp2/signout">Logout</a>
+        </li>
+    </ul>
+</div>
+{% endblock %} {% block content %}
+<div class="Demo">
+    <h2>List of Demos
+        <form class="container">
+            <input type="text" id="demo_selector" placeholder="Search">
+            <input type="submit" id="action">
+        </form>
+    </h2>
+    <div class="pagination">
+        <button id="previous_page"><i>previous</i></button>
+        <button id="next_page"><i>next</i></button>
+    </div>
+    <div class="addDemos">
+        <a href="/cp2/addDemo">Add Demo</a>
+    </div>
+</div>
+{% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+
+<script type="text/javascript">
+    /*-----------------------------------------Variables-----------------------------------------*/
+    var numPageNext;
+    var numPagePrev;
+    var nbPage;
+    var filter;
+    var section = document.querySelector('section');
+    var request = new XMLHttpRequest();
+
+    /*-----------------------------------------HomePage-----------------------------------------*/
+
+    request.open('GET', '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=1');
+    request.responseType = 'json';
+    request.send();
+    request.onload = function() {
+        var demo = request.response;
+        showDemos(demo);
+        paginationDemo(demo);
+    }
+
+    /*-----------------------------------------JS Functions-----------------------------------------*/
+
+    function showDemos(jsonObj) {
+        var demoList = jsonObj['demo_list'];
+
+        for (var i = 0; i < demoList.length; i++) {
+            var myArticle = document.createElement('article');
+            var myH2 = document.createElement('ul');
+            var myPara1 = document.createElement('li');
+            var myPara2 = document.createElement('li');
+            var myPara3 = document.createElement('li');
+
+            myH2.textContent = 'ID:  ' + demoList[i].editorsdemoid;
+            myPara1.textContent = 'last modification: ' + demoList[i].modification;
+            myPara2.textContent = 'State: ' + demoList[i].state;
+            myPara3.textContent = 'Title: ' + demoList[i].title;
+
+            myArticle.appendChild(myH2);
+            myArticle.appendChild(myPara1);
+            myArticle.appendChild(myPara2);
+            myArticle.appendChild(myPara3);
+
+            section.appendChild(myArticle);
+        };
+    }
+
+    function cleanDemos() {
+        $("article").remove();
+    }
+
+    function cleanPagination() {
+        $('#next_page p').remove();
+        $('#previous_page p').remove();
+        $('.vider').remove();
+    }
+
+    function paginationDemo(jsonObj) {
+        $('.pagination').append('<p class="vider">Pages : ' + jsonObj.number + '</p>');
+        $('#next_page').append('<p><b>' + jsonObj.next_page_number + '</b></p>');
+        $('#previous_page').append('<p><b> ' + jsonObj.previous_page_number + '</b></p>');
+        numPageNext = jsonObj.next_page_number;
+        numPagePrev = jsonObj.previous_page_number;
+        nbPage = jsonObj.number;
+    }
+
+    function checkPrevious() {
+        if (!numPagePrev) {
+            return false;
+        } else {
+            return true;
+        }
+    };
+
+    function checkNext() {
+        if (!numPageNext) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function checkFilter() {
+        if (!filter) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /*-----------------------------------------Request AJAX-----------------------------------------*/
+
+    /*Request AJAX for searching Demos*/
+
+    $(function() {
+        $("#action").click(function() {
+            filter = $("#demo_selector").val();
+            $.ajax({
+                type: 'GET',
+                dataType: 'json',
+                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=1&qfilter=' + filter,
+                success: function(data) {
+                    cleanDemos();
+                    cleanPagination();
+                    showDemos(data);
+                    paginationDemo(data);
+                    return filter;
+                },
+            });
+            return false;
+        });
+    });
+
+
+    /* Request AJAX for next page */
+
+    $(function() {
+        $("#next_page").click(function() {
+            $.ajax({
+                beforeSend: function(xhr, settings) {
+                    if (checkFilter()) {
+                        settings.url += '&qfilter=' + filter;
+                    }
+                    return checkNext();
+                },
+                type: 'GET',
+                dataType: 'json',
+                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=' + numPageNext,
+                success: function(data) {
+                    cleanDemos();
+                    cleanPagination();
+                    showDemos(data);
+                    paginationDemo(data);
+                },
+            });
+            return false;
+        });
+    });
+
+    /* Request AJAX for previous page */
+
+    $(function() {
+        $("#previous_page").click(function() {
+            $.ajax({
+                beforeSend: function(xhr, settings) {
+                    if (checkFilter()) {
+                        settings.url += '&qfilter=' + filter;
+                    }
+                    return checkPrevious();
+                },
+                type: 'GET',
+                dataType: 'json',
+                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=' + numPagePrev,
+                success: function(data) {
+                    cleanDemos();
+                    cleanPagination();
+                    showDemos(data);
+                    paginationDemo(data);
+                },
+            });
+            return false;
+        });
+    });
+</script>
+{% endblock %}

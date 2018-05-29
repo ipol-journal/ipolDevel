@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block title %}Logout{% endblock %} {% block bodyid %}Logout{% endblock %} {% block header %}{% endblock %}{% block content %}
+<div class="form-logout">
+    <h2>Sign Out</h2>
+    <p>Are you sure you want to sign out?</p>
+    <a class="button_primary" href="/cp2/logoff">Sign Out</a>
+</div>
+{% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+{% endblock %}

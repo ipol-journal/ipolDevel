@@ -1,0 +1,21 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block bodyid %}Login{% endblock %} {% block header %} {% endblock %} {% block content %}
+<div class="container_login">
+    <h2 class="form_signin">Welcome to IPOL Editor's Control Panel</h2>
+    <form action="/cp2/loginPage" method="post">
+        {% csrf_token %} {{ form.as_p }}
+        <div>
+            <label for>Remember me:</label>
+            <input type="checkbox" name="remember" id="id_remember">
+        </div>
+        <div class="form_action">
+            <input class="button_primary" type="submit" value="Submit" />
+            <a class="forgot" href="???">Forgot Password</a>
+        </div>
+    </form>
+</div>
+{% endblock %}{% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+</nav>
+{% endblock %}
