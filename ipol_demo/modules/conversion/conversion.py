@@ -325,11 +325,11 @@ class Conversion(object):
         max_frames = input_desc.get('max_frames', None)
         max_pixels = input_desc.get('max_pixels', None)
         if as_frames is not None:
-            video.extract_frames(n_frames=max_frames, max_pixels=max_pixels)
+            video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
             code = 1
             modifications.append('extracted to frames')
         else:
-            video.create_avi(n_frames=max_frames)
+            video.create_avi(max_frames=max_frames, max_pixels=max_pixels)
             code = 1
             modifications.append('avi created')
             modifications.append('huffman encoded')
