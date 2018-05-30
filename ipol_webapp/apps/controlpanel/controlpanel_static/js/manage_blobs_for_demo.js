@@ -12,11 +12,23 @@ function deleteBlob(url,id,set,pos){
 
 function removeTemplateFromDemo(url,id,template){
     var values = {'demo_id': id,'template': template};
-    $.post(url, values, 'json');
-    window.location.reload(true);
+    $.post(url, values, 'json')
+    .done(function () {
+        console.log("Success");
+    })
+    .fail(function ()  {
+        // this is a patch to work with firefox/safari
+        window.location.reload(true);
+    });
 }
 function addTemplateToDemo(url,id,template){
     var values = {'demo_id': id,'template': template};
-    $.post(url, values, 'json');
-    window.location.reload(true);
+    $.post(url, values, 'json')
+    .done(function () {
+        console.log("Success");
+    })
+    .fail(function ()  {
+        // this is a patch to work with firefox/safari
+        window.location.reload(true);
+    });
 }
