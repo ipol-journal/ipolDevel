@@ -295,12 +295,12 @@ if __name__ == '__main__':
                     experiments_ordered, params_ordered = get_and_sort_experiments(archive_db_original, demo_id, ddl['archive'])
                     if experiments_ordered:
                         print "Experiments ordered..."
-                        insert_params_ordered_in_database(archive_db_destiny, params_ordered)
+                        insert_experiments_ordered_in_database(archive_db_destiny, experiments_ordered)
                         print "Blobs included with the correct order in the database..."
                     else:
                         print "No experiments to sort..."
                     if params_ordered:
-                        insert_experiments_ordered_in_database(archive_db_destiny, experiments_ordered)
+                        insert_params_ordered_in_database(archive_db_destiny, params_ordered)
                         print "Parameters included with the correct order in the database..."
                     else:
                         print "No parameters to sort..."
