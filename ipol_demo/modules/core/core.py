@@ -36,9 +36,12 @@ import socket
 
 import mimetypes
 
+from collections import OrderedDict
+
 import requests
 import cherrypy
 import magic
+
 
 from archive import send_to_archive
 
@@ -1233,7 +1236,7 @@ attached the failed experiment data.". \
                 raise IPOLReadDDLError(error_message)
 
             last_demodescription = demoinfo_response['last_demodescription']
-            ddl = json.loads(last_demodescription['ddl'])
+            ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
 
             # Check the DDL for missing required sections and their format
             error_message = self.check_ddl(ddl)

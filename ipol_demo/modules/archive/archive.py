@@ -14,7 +14,7 @@
 This microservices stores the experiments made with data uploaded by
 the users.
 """
-
+from collections import OrderedDict
 import sqlite3 as lite
 import sys
 import errno
@@ -28,7 +28,6 @@ import ConfigParser
 import re
 import magic
 import cherrypy
-
 
 def authenticate(func):
     """
@@ -424,11 +423,11 @@ class Archive(object):
                 blobs, experiments, and descriptions of blobs.
         """
         cursor_db = conn.cursor()
-        for item in dict_corresp:
+        for order_exp, item in enumerate(dict_corresp):
             cursor_db.execute("""
             INSERT INTO
-            correspondence (id_experiment, id_blob, name)
-            VALUES (?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name']))
+            correspondence (id_experiment, id_blob, name, order_exp)
+            VALUES (?, ?, ?, ?)""", (id_experiment, item['blob_id'], item['blob_name'], order_exp))
 
     @cherrypy.expose
     @authenticate
@@ -554,6 +553,7 @@ class Archive(object):
         dict_file["url"] = self.url + path_file
         dict_file["name"] = name
         dict_file["id"] = id_blob
+
         if os.path.exists(path_thumb):
             dict_file["url_thumb"] = self.url + path_thumb
 
@@ -575,18 +575,20 @@ class Archive(object):
                 SELECT blb.hash, blb.type, cor.name, blb.id FROM blobs blb
                 INNER JOIN correspondence cor ON blb.id=cor.id_blob
                 INNER JOIN experiments exp ON cor.id_experiment=exp.id
-                WHERE id_experiment = ?""", (id_exp,))
+                WHERE id_experiment = ? ORDER by cor.order_exp """, (id_exp,))
 
             all_rows = cursor_db.fetchall()
 
             for row in all_rows:
                 path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
-                path_thumb = os.path.join((self.blobs_thumbs_dir + '/' + subdirs), row[0] + '.jpeg')
+                thumb_dir = '{}/{}'.format(self.blobs_thumbs_dir, subdirs)
+                thumb_name = '{}.jpeg'.format(row[0])
+                path_thumb = os.path.join(thumb_dir, thumb_name)
                 list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
             dict_exp["id"] = id_exp
             dict_exp["date"] = date
-            dict_exp["parameters"] = json.loads(parameters)
+            dict_exp["parameters"] = json.loads(parameters, object_pairs_hook=OrderedDict)
             dict_exp["execution"] = execution
             dict_exp["files"] = list_files
             return dict_exp
@@ -727,7 +729,7 @@ class Archive(object):
         cursor_db.execute("DELETE FROM experiments WHERE id = ?", (experiment_id,))
         n_changes = cursor_db.rowcount
         cursor_db.execute("DELETE FROM correspondence WHERE id_experiment = ?", (experiment_id,))
-        # cursor_db.execute("VACUUM")
+
         return n_changes
 
     @cherrypy.expose

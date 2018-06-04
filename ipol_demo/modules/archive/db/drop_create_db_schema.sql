@@ -15,5 +15,6 @@ CREATE TABLE IF NOT EXISTS correspondence (
                             id_experiment	INTEGER NOT NULL,
                             id_blob	INTEGER NOT NULL,
                             name	TEXT,
+                            order_exp INTEGER,
                             FOREIGN KEY(`id_experiment`) REFERENCES experiments ( id ) ON DELETE CASCADE,
                             FOREIGN KEY(`id_blob`) REFERENCES blobs ( id ) ON DELETE CASCADE);
