@@ -22,7 +22,7 @@ and reported by this graphical tool.
 %-------------------------------------------------------------------------------
 \section{The \emph{general} section}
 The general section describes global information about the demo.
-It is a set of  (key,value) pairs, described in the following table. The column \emph{req} refers to a required field.
+It is a set of (key,value) pairs, described in the following table. The column \emph{req} refers to a required field.
 
 % 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 
@@ -120,7 +120,8 @@ Input can be a number or a simple arithmetic expression as a string that will be
   \item \textit{3x8i}: color, RGB unsigned integer 8 bits;
   \item \textit{1x16i}: gray, unsigned integer 16 bits;
   \item \textit{3x16i}: color, RGB unsigned integer 16 bits.
-\end{itemize} & yes \\ \hline
+\end{itemize} 
+\vspace{-1em} & yes \\ \hline
  ext          & input image expected extension (ie. file format) & yes \\ \hline
 forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
 Submitted image is kept as-is.
@@ -382,64 +383,56 @@ as files & no \\ \hline
 \section{The \emph{results} section}
 
 
-The results section controls the ressources to display for an experiment.
-It is an array of sets, where each set contains 
-(key/value) pairs describing one type of output from the algorithm. There are 
+The results section controls the ressources to display as a result of an experiment.
+It is an array of sets, where each entry describes one type of output from the algorithm.
+There are 
 displayed sequentially one below the other, apart from warnings that are 
-displayed at the top of the page. The currently available types are described 
-below.
+displayed at the top of the page.
 
 %------ gallery  ------
 \subsection{ \emph{gallery} type}
 
-The results \emph{gallery} type displays one or more images outputted by th algorithm.
+The results \emph{gallery} type displays images.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Evaluated Javascript boolean expression 
-              which hides the result if
-              evaluated to false (if undefined the result is visible)& no \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
-             a list of string that will be concatenated with whitespace character
-              in between. & no \\ \hline
- contents   & inside has Javascript objects with: img, repeat and visible parameters.
- 				The key for every object can be an expression to be evaluated in case of repeat
- 				functionality.
- 			    img wil have either a string with a filename or an array of strings with filenames.
- 			    visible is the same a visible field for the gallery but for each item in the gallery.
- 			    repeat is a range expression (evaluated in javascript): will create a loop in the 
- 			    form idx=0..range-1.
-            & yes \\ \hline
- options    & You can specify options for the ImageGallery object. Currently
+             a list of string that will be concatenated. & no \\ \hline
+ contents   & A set of sets, each entry describes one ore more images with a key and properties:
+\vspace{-1em}
+\begin{itemize}
+    \setlength\itemsep{-0.5em}
+    \item \textit{key}, required, a label for the entry, could be a string or an evaluated expression in case of repeat;
+    \item \textit{img}, required, a string with a filename or an array of strings with filenames;
+    \item \textit{visible}, optional, a Javascript expression evaluated to a boolean;
+    \item \textit{repeat}, optional, a Javascript expression, will create a loop in the form idx=0..range-1
+\end{itemize} 
+\vspace{-1em} & yes \\ \hline
+ options    & A set of (key,value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              miminal size of image display. Default values are 300 for both.& no \\ \hline
+              miminal size of image display. & no \\ \hline
 \caption{Results, \emph{gallery} type, properties}
 \end{longtable}
 
 \paragraph{Examples}:\\
-Advanced example, mixing repeat, using an array of filenames.
+An example showing a simple case, and a case with a repeat.
 \begin{lstlisting}[language=json,firstnumber=1]
 {
   	"type": "gallery",
     "contents": {
-        "Input 0": {
-            "img":  ["denoised_diff_0.png", "denoised_noiseCurves_L_0.png"]
+        "Input": {
+            "img": "input_0.png"
         },
-        "'Scale'+idx": {
-            "img":  [
-                "'diff_'+idx+'.png'", 
-                "'noiseC_L_'+idx+'.png'", 
-                "'noiseC_H_'+idx+'.png'"
-            ]
-            "repeat": "params.nbscales"
+        "'Level ' + idx": {
+            "img": "'output_level_'+idx+'.png'",
+            "repeat": "params.magnification_level+1"
         }
-    },
-    "label": [
-        "<p>New Gallery type.</p>"
-    ]
+    }
 }
 \end{lstlisting}
 
@@ -447,30 +440,30 @@ Advanced example, mixing repeat, using an array of filenames.
 %------ gallery_video  ------
 \subsection{ \emph{gallery\_video} type}
 
-The \emph{gallery\_video} type uses the gallery class to display images. Its parameters are:
+The results \emph{gallery\_video} type displays video files.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- type       & gallery  & yes \\ \hline
- visible    & Evaluated Javascript boolean expression 
-              which hides the result if
-              evaluated to false (if undefined the result is visible)& no \\ \hline
+ type       & gallery\_video  & yes \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
-             a list of string that will be concatenated with whitespace character
-              in between. & no \\ \hline
- contents   & inside has javascript objects with: video, repeat and visible parameters.
- 				The key for every object can be an expression to be evaluated in case of the use of 
- 				repeat functionality.
- 			    video will have either a string with a filename or an array of strings with filenames.
- 			    visible is the same a visible field for the gallery but for each item in the gallery.
- 			    repeat is a range expression (evaluated in javascript): will create a loop in the 
- 			    form idx=0..range-1.
-            & yes \\ \hline
- options    & You can specify options for the VideoGallery object. Currently
+             a list of string that will be concatenated. & no \\ \hline
+ contents   & A set of sets, each entry describes one ore more images with a key and properties:
+\vspace{-1em}
+\begin{itemize}
+    \setlength\itemsep{-0.5em}
+    \item \textit{key}, required, a label for the entry, could be a string or an evaluated expression in case of repeat;
+    \item \textit{img}, required, a string with a filename or an array of strings with filenames;
+    \item \textit{visible}, optional, a Javascript expression evaluated to a boolean;
+    \item \textit{repeat}, optional, a Javascript expression, will create a loop in the form idx=0..range-1
+\end{itemize} 
+\vspace{-1em} & yes \\ \hline
+ options    & A set of (key,value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              miminal size of video display. Default values are 300 for both.& no \\ \hline
+              miminal size of image display. & no \\ \hline
 \caption{Results, \emph{gallery\_video} type, properties}
 \end{longtable}
 
@@ -500,16 +493,18 @@ Advanced example, mixing repeat, visible, using an array of filenames.
 %------ file_download  ------
 \subsection{ \emph{file\_download} type}
 
+The results \emph{file\_download} type proposes a link to download a file.
+
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible   & Evaluated Javascript boolean expression which hides the result if
-             evaluated to false (if undefined the result is visible)& no \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
- label     & HTML title associated to the file download. In case of repeat, 
+ label     & HTML title associated to the file to download. In case of repeat, 
             evaluated as an expression with idx variable, otherwise, can be evaluated
             if it starts with a single quote.& yes \\ \hline
  contents  & either a single string of the filename to download, or a list
@@ -551,14 +546,15 @@ Example using 'repeat':
 %------ html_text  ------
 \subsection{ \emph{html\_text} type}
 
+The results \emph{html\_text} type displays an html file.
+
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible   & Evaluated Javascript boolean expression 
-             which hides the result if
-             evaluated to false (if undefined the result is visible)& no \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  contents  & An array of strings, that will be concatenated to form the HTML 
              content. This content can contain Javascript expression if it starts
             with a single quote. & yes \\ \hline
@@ -583,14 +579,15 @@ Example using 'repeat':
 %------------ text_file --------------------------
 \subsection{ \emph{text\_file} type}
 
+The results \emph{text\_file} type displays a text file.
+
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible   & Evaluated Javascript boolean expression 
-              which hides the result if
-             evaluated to false (if undefined the result is visible)& no \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  label     & HTML label & yes \\ \hline
  contents  & text filename to display & yes \\ \hline
  style     & associated CSS style & yes \\ \hline
@@ -607,32 +604,6 @@ Example using 'repeat':
 }
 \end{lstlisting}
 
-%------ warning  ------
-\subsection{ \emph{warning} type}
-
-\begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 
-0.7\linewidth}|c|}
-\hline
- \centering {key}     & \centering {\bf description} & {\bf req} 
-\tabularnewline \hline \hline
- type      & warning  & yes \\ \hline
- visible   & Evaluated Javascript boolean expression 
-            which hides the result if
-             evaluated to false (if undefined the result is visible)& no \\ \hline
- contents  & displayed text, can contain both HTML tags and Javascript code.
-expressions of the form '\{\{expression\}\}'. & yes\\ \hline
-\caption{Results, \emph{warning} type, properties}
-\end{longtable}
-
-\paragraph{Example}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-{ 
-    "type":"warning", 
-    "condition":"sizeX * sizeY < X",
-    "contents":"'Needs X pixels ('+sizeX *sizeY+' given)<br/>'"
-}
-\end{lstlisting}
-
 
 %------ message  ------
 \subsection{ \emph{message} type}
@@ -645,8 +616,8 @@ used for warning or error messages.
  \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & message  & yes \\ \hline
- visible    & Evaluated Javascript boolean expression which hides the result if
-              evaluated to false (if undefined the result is visible)& no \\ \hline
+ visible    & Javascript expression, hides the result if
+              evaluated to false (if undefined the result is visible).& no \\ \hline
  contents   & a string which will be evaluated by Javascript to get the message. & yes \\ \hline
  textColor  & the name of a color or a CSS-compatible color. & no \\ \hline
 \caption{Results, \emph{message} type, properties}
