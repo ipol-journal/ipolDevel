@@ -82,6 +82,7 @@ nano
 sudo
 vim
 nginx
+sqlite3
 openssh-server
 bash-completion
 mailutils
