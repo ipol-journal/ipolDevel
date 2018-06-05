@@ -131,6 +131,34 @@ If a processing is needed, according to the expected properties upper, the user 
 \caption{Inputs, \emph{image} type, properties}
 \end{longtable}
 
+
+\subsection{\emph{video} type}
+
+\begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
+\hline
+\centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
+\hline \hline
+ type         & video & yes \\ \hline
+ description  & Short name or description of the input, it will used to display 
+the input as the label inside the 'gallery' HTML display & no \\ \hline
+ as\_frames & Boolean value. Input video will be converted to png images for each frame according to the max\_frames field. Frames
+ will be stored in a folder inside the execution folder under a folder with the name. (ex: ./input\_0/frame\_000.png ) & no \\ \hline
+ max\_pixels   &  Sets the maximal number of pixels of the input video per frame, 
+bigger video frames will be downsized. 
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "1000*1000" = 1 Mpx).  & yes \\ \hline 
+ max\_frames  &  Maximum number of frames after conversion, either as frames or video & yes \\ \hline
+ max\_weight   & Maximum weight (in bytes) of an input file, prevents uploading bigger files.
+Input can be a number or a simple arithmetic expression as a string that will be evaluated (ex: "100*1024*1024"= 100 Mb). & no \\ \hline
+forbid\_preprocess         & Forbids any pre-processing of the input data by IPOL system. 
+Submitted image is kept as-is.
+Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results. 
+If a processing is needed, according to the expected properties upper, the user will be informed by a message.
+& no \\ \hline
+\caption{Inputs, \emph{video} type, properties}
+\end{longtable}
+
+
+
 %-------------------------------------------------------------------------------
 \section{The \emph{params} section}
 The \emph{params} section describes the set of parameters needed by a demo, their 
