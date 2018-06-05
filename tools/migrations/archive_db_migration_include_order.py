@@ -14,6 +14,12 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 
+'''
+This migration script was planned to be executed on July 6, 2018.
+The problem was that the Archive schema lacked of any information about
+the order of appearance of the blobs belonging to an experiment or the
+order of the parameters. The solution was to use an OrderedDict.
+'''
 
 from collections import OrderedDict
 import os
