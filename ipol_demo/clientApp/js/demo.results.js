@@ -91,7 +91,8 @@ $.fn.text_file = function (result, index) {
     reader.onload = function (e) {
       $('.result_' + index).append('<h3>' + result.label + '</h3>');
       $('.result_' + index).append('<pre class=text_file_content id=text_file_' + index + ' >' + e.target.result + '</pre>');
-      if (result.style) $('#text_file_' + index).css(result.style);
+ 
+      if (result.style) $('#text_file_' + index).css(JSON.parse(result.style.replace(/'/g, '"')));
     };
   };
   request.send();
