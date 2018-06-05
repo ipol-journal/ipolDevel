@@ -217,7 +217,7 @@ class Conversion(object):
                 # check input type
                 input_type = input_desc['type']
                 if input_desc.get('type') == 'image':
-                    info[i]['code'],info[i]['modifications']  = self.convert_image(input_file, input_desc, crop_info)
+                    info[i]['code'], info[i]['modifications'] = self.convert_image(input_file, input_desc, crop_info)
                 elif input_desc.get('type') == "data":
                     info[i]['code'] = self.add_ext_to_data(input_file, input_desc)
                 elif input_desc.get('type') == "video":
@@ -336,7 +336,7 @@ class Conversion(object):
 
         if code == 1 and input_desc.get("forbid_preprocess", False):
             return 2, []  # Conversion needed but forbidden
-        
+
         return code, modifications
 
     @staticmethod

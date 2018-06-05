@@ -27,11 +27,10 @@ from sqlite3 import IntegrityError
 import sqlite3 as lite
 import ConfigParser
 from collections import OrderedDict
+import glob
 import cherrypy
 
 import magic
-import glob
-
 
 from model import Demo
 from model import Author
@@ -116,7 +115,7 @@ class DemoInfo(object):
         self.dl_extras_dir = cherrypy.config.get("dl_extras_dir")
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
-        
+
         self.server_address = 'http://{0}/api/demoinfo/'.format(
             cherrypy.config['server.socket_host'])
 
@@ -264,7 +263,7 @@ class DemoInfo(object):
         """
         demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
         demoextras_file = glob.glob(demoextras_folder+"/*")
-        
+
         if demoextras_file:
             demoextras_name = os.path.basename(demoextras_file[0])
             return os.path.join(self.server_address, self.dl_extras_dir, demo_id, demoextras_name)
@@ -298,50 +297,48 @@ class DemoInfo(object):
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
-            
+
             if not demo_dao.exist(demo_id):
                 return json.dumps(data)
 
             if demoextras is None:
                 data['error_message'] = "File not found"
                 return json.dumps(data)
-                
-                
+
             mime_type = magic.from_buffer(demoextras.file.read(1024), mime=True)
-            _,type_of_file = mime_type.split("/")
+            _, type_of_file = mime_type.split("/")
             type_of_file = type_of_file.lower()
-                
-            accepted_types= (
+
+            accepted_types = (
                 "zip",
                 "tar",
                 "gzip",
                 "x-tar"
             )
-                
+
             if type_of_file not in accepted_types:
                 data['error_message'] = "Unexpected type: {}.".format(mime_type)
                 return json.dumps(data)
-                    
+
             demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
             if os.path.exists(demoextras_folder):
                 shutil.rmtree(demoextras_folder)
 
             os.makedirs(demoextras_folder)
             destination = os.path.join(demoextras_folder, demoextras_name)
-                    
+
             demoextras.file.seek(0)
             with open(destination, 'wb') as f:
                 shutil.copyfileobj(demoextras.file, f)
-                    
+
             data['status'] = "OK"
             return json.dumps(data)
-                    
+
         except Exception as ex:
-            error_message = "Failed to add a demoExtras file to demo {}".format(demo_id)
+            error_message = "Failure in 'add_demoextras' for demo '{}'. Error {}".format(demo_id, ex)
             self.logger.exception(error_message)
             data['error_message'] = error_message
             return json.dumps(data)
-        
 
     @cherrypy.expose
     def get_demo_extras_info(self, demo_id):
@@ -351,14 +348,14 @@ class DemoInfo(object):
         data = {'status': 'KO'}
         try:
             demoExtras_url = self.get_compressed_file_url(demo_id)
-            
+
             if demoExtras_url is None:
                 # DemoInfo does not have any demoExtras
                 return json.dumps({'status': 'OK'})
 
             demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
             demoExtras_path = glob.glob(demoextras_folder+"/*")[0]
-            
+
             file_stats = os.stat(demoExtras_path)
             data['date'] = file_stats.st_mtime
             data['size'] = file_stats.st_size
