@@ -7,7 +7,7 @@ need to manually write HTML or Python code for a given demo. Each main key in th
 \begin{itemize}
   \item \textit{general}: general options (required);
   \item \textit{build}: download and compile the source code (required);
-  \item \textit{inputs}: description of the different inputs  (required);
+  \item \textit{inputs}: description of the different inputs  (optional);
   \item \textit{params}: description of the parameters data type and user control (optional);
   \item \textit{run}: command to run the demo (required);
   \item \textit{archive}: which parameters and output files are archived after performing an execution with original (uploaded) data (optional);
@@ -57,9 +57,9 @@ each one providing information to obtain and build code needed for the demo.
 3 steps are needed to build a piece of code: 
 
 \begin{itemize}
-  \item download the code of the demo (with optional userid and password);
-  \item optionnaly build a binary from a source code;
-  \item copy the binary files in a run context.
+  \item download the sources of the demo (with optional userid and password);
+  \item optionnaly build executables from source code;
+  \item copy files in a run context.
 \end{itemize}
 
 
@@ -68,12 +68,12 @@ each one providing information to obtain and build code needed for the demo.
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- url        & full URL link to download the demo source code as a compressed archive & yes \\ \hline
- username   & a username for an URL protected by an authentification & no \\ \hline
- password   & a password for an URL protected by an authentification & no \\ \hline
- construct  & shell command used to compile the downloaded source code & no  \\ \hline
- move       & binary files needed to execute the demo, a comma separated list of file paths
- relative to the build context & yes  \\ \hline
+ url        & A full URL link to download the demo source code as a compressed archive. & yes \\ \hline
+ username   & A username for an URL protected by an authentification. & no \\ \hline
+ password   & A password for an URL protected by an authentification. & no \\ \hline
+ construct  & A shell command used to compile the downloaded source code. & no  \\ \hline
+ move       & A list of files needed to execute the demo, a comma separated list of file paths
+ relative to the build context. & yes  \\ \hline
 \caption{Build, properties for one piece of code}
 \end{longtable}
 
@@ -131,7 +131,6 @@ If a processing is needed, according to the expected properties upper, the user 
 \caption{Inputs, \emph{image} type, properties}
 \end{longtable}
 
-
 \subsection{\emph{video} type}
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.26\linewidth}|L{\dimexpr 0.59\linewidth}|c|}
@@ -157,8 +156,6 @@ If a processing is needed, according to the expected properties upper, the user 
 \caption{Inputs, \emph{video} type, properties}
 \end{longtable}
 
-
-
 %-------------------------------------------------------------------------------
 \section{The \emph{params} section}
 The \emph{params} section describes the set of parameters needed by a demo, their 
@@ -177,17 +174,18 @@ by a minimum, a maximum, and a step. The user control is a slider.
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- type  & range       & yes \\ \hline
- visible  & evaluated Javascript boolean expression. It hides the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- id     & parameter name in lowercase letters  & yes \\ \hline
- label  & name and/or description of the parameter, appears on the left side. & no
+ type   & range       & yes \\ \hline
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
                       \\ \hline
- comments & description of the parameter, appears on the right side. & no
+ comments & A description of the parameter, appears on the right side. & no
                       \\ \hline
- values & set min,max,step and default values using the following key/value 
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
+ values & Sets min, max, step and default values using a key/value 
 scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \}. 
-Ex: to select a value included in (-1, -0.5, 0, 0.5, 1) write \texttt{"values": \{"min": -5, "max": 5, "step": 0.5\}}  & yes
+Ex: to select a value included in (-1, -0.5, 0, 0.5, 1) write \texttt{"values": \{"min": -5, "max": 5, "step": 0.5, "default": 0\}}  & yes
                       \\ \hline
 \caption{Params, \emph{range} type, properties}
 \end{longtable}
@@ -204,13 +202,14 @@ a color code selected by name). The user control is a dropdown select.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & selection\_collapsed    & yes \\ \hline
- visible  & Evaluated Javascript boolean expression which hides the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- id     & parameter name in lowercase letters & yes \\ \hline
- label  & name and/or description of the parameter, appears on the left side. & no
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
                       \\ \hline
- comments & description of the parameter, appears on the right side. & no
+ comments & A description of the parameter, appears on the right side. & no
                       \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
  values & set of (key, value) pairs, where the key is the displayed text and the 
 value is the string returned, for example \texttt{"values": \{"black": "000000", "white": "FFFFFF"\}} & yes
                       \\ \hline
@@ -230,20 +229,21 @@ a color code selected by name). The user control is a set of radio buttons.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type     & selection\_radio    & yes \\ \hline
- visible  & Evaluated Javascript boolean expression which hides the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- id       & parameter name in lowercase letters & yes \\ \hline
- label  & name and/or description of the parameter, appears on the left side. & no
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
                       \\ \hline
- comments & description of the parameter, appears on the right side. & no
+ comments & A description of the parameter, appears on the right side. & no
                       \\ \hline
- vertical & boolean, if true use vertical display, otherwise use horizontal
-            display (default=false) & no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
  values   & set of (key, value) pairs, where the key is the displayed text and the 
 value is the string returned, for example \texttt{"values": \{"black": "000000", "white": "FFFFFF"\}} & yes
                       \\ \hline
  default\_value & defines the default value for this parameter, should be one 
 the values defined in 'values'. & yes \\ \hline
+ vertical & boolean, if true use vertical display, otherwise use horizontal
+            display (default=false) & no \\ \hline
 \caption{Params, \emph{selection\_radio} type, properties}
 \end{longtable}
 
@@ -257,10 +257,11 @@ The \emph{label} type returns no value and can be used as a title to separate gr
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
- visible  & Evaluated Javascript boolean expression which hides the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label & HTML text to display, as a single string or as an array of strings& yes
-                      \\ \hline
+ label & HTML text to display, as a single string or as an array of strings. & yes \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible).
+            & no \\ \hline
+                      
 \caption{Params, \emph{label} type, properties}
 \end{longtable}
 
@@ -276,13 +277,14 @@ The \emph{checkbox} type returns a boolean value. The user control is a checkbox
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type  & checkbox  & yes \\ \hline
- visible  & Evaluated Javascript boolean expression which hides the parameter if
-            evaluated to false (if undefined the parameter is visible)& no \\ \hline
- label  & name and/or description of the parameter, appears on the left side. & yes
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
                       \\ \hline
- comments & description of the parameter, appears on the right side. & no
+ comments & A description of the parameter, appears on the right side. & no
                       \\ \hline
- id         & parameter name in lowercase letters  & yes \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
  default\_value & boolean: True for checked & \\ \hline
 \caption{Params, \emph{checkbox} type, properties}
 \end{longtable}
@@ -297,12 +299,15 @@ The \emph{numeric} type returns a numeric value validated against constraints (m
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & numeric   & yes \\ \hline
- visible    & Evaluated Javascript boolean expression which hides the parameter
-              if evaluated to false (if undefined the parameter is visible) & no \\ \hline
- label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
- comments   & description of the parameter, appears on the right side. & no  \\ \hline
- id         & parameter name in lowercase letters & yes \\ \hline
- values     & set min, max, step and default values using the following key/value scheme \{ 'min':val, 'max':val, 'default':val \} & yes \\ \hline
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
+                      \\ \hline
+ comments & A description of the parameter, appears on the right side. & no
+                      \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
+ values     & Set min, max, and default values using the following key/value scheme \texttt{"values": \{"min": -5, "max": 5, "default": 0\}} & yes \\ \hline
 \caption{Params, \emph{numeric} type, properties}
 \end{longtable}
 
@@ -316,13 +321,18 @@ The \emph{text} type returns a string. The user control is an input field.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & text   & yes \\ \hline
- visible    & Evaluated Javascript boolean expression which hides the parameter
-              if evaluated to false (if undefined the parameter is visible) & no \\ \hline
- label      & name and/or description of the parameter, appears on the left side. & yes \\ \hline
- id         & parameter name in lowercase letters & yes \\ \hline
- values     & set maxlength and default values using the following key/value scheme \{ 'maxlength':val, 'default':val \} & no \\ \hline
+ id     & A parameter name in lowercase letters. & yes \\ \hline
+ label  & A name and/or description of the parameter, appears on the left side. & no
+                      \\ \hline
+ comments & A description of the parameter, appears on the right side. & no
+                      \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). 
+            & no \\ \hline
+ values     & set maxlength in characters and default values using the following key/value scheme \texttt{"values": \{"maxlength": 3, "default": "fr"\}} & no \\ \hline
 \caption{Params, \emph{text} type, properties}
 \end{longtable}
+
 
 %-------------------------------------------------------------------------------
 \section{The \emph{params\_layout} section}
@@ -363,7 +373,7 @@ with input\_0.png as an input and \$block\_size as a parameter.
 
 
 In this example, the execution is conducted by the run.sh script, provided in the
-optional demoextras.zip, input\_0.png \$width for arguments. The script may call the binaries compiled in the \emph{build}.
+optional demoextras.zip, with input\_0.png \$width for arguments.
 \begin{lstlisting}[language=json,firstnumber=1]
   "run": "${demoextras}/run.sh input_0.png $width"\end{lstlisting}
 
@@ -411,7 +421,7 @@ as files & no \\ \hline
 \section{The \emph{results} section}
 
 
-The results section controls the ressources to display as a result of an experiment.
+The results section controls the resources to display as a result of an experiment.
 It is an array of sets, where each entry describes one type of output from the algorithm.
 There are 
 displayed sequentially one below the other, apart from warnings that are 
@@ -427,11 +437,11 @@ The results \emph{gallery} type displays images.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated. & no \\ \hline
- contents   & A set of sets, each entry describes one ore more images with a key and properties:
+ contents   & A set of sets, each entry describes one or more images with a key and properties:
 \vspace{-1em}
 \begin{itemize}
     \setlength\itemsep{-0.5em}
@@ -443,7 +453,7 @@ The results \emph{gallery} type displays images.
 \vspace{-1em} & yes \\ \hline
  options    & A set of (key,value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              miminal size of image display. & no \\ \hline
+              mininal size of image display. & no \\ \hline
 \caption{Results, \emph{gallery} type, properties}
 \end{longtable}
 
@@ -475,11 +485,11 @@ The results \emph{gallery\_video} type displays video files.
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery\_video  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated. & no \\ \hline
- contents   & A set of sets, each entry describes one ore more images with a key and properties:
+ contents   & A set of sets, each entry describes one or more images with a key and properties:
 \vspace{-1em}
 \begin{itemize}
     \setlength\itemsep{-0.5em}
@@ -491,7 +501,7 @@ The results \emph{gallery\_video} type displays video files.
 \vspace{-1em} & yes \\ \hline
  options    & A set of (key,value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              miminal size of image display. & no \\ \hline
+              mininal size of video display. & no \\ \hline
 \caption{Results, \emph{gallery\_video} type, properties}
 \end{longtable}
 
@@ -528,8 +538,8 @@ The results \emph{file\_download} type proposes a link to download a file.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
  label     & HTML title associated to the file to download. In case of repeat, 
@@ -581,8 +591,8 @@ The results \emph{html\_text} type displays an html file.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
  contents  & An array of strings, that will be concatenated to form the HTML 
              content. This content can contain Javascript expression if it starts
             with a single quote. & yes \\ \hline
@@ -614,11 +624,12 @@ The results \emph{text\_file} type displays a text file.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
- label     & HTML label & yes \\ \hline
- contents  & text filename to display & yes \\ \hline
- style     & associated CSS style & yes \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). & no \\ \hline
+ label     & HTML label. & yes \\ \hline
+ contents  & A text filename to display. & yes \\ \hline
+ style     & CSS rules written in a JSON string, ex 
+             \texttt{"style": "\{'font-weight': 'bolder', 'color': 'red'\}"} & yes \\ \hline
 \caption{Results, \emph{text\_file} type, properties}
 \end{longtable}
 
@@ -628,7 +639,7 @@ The results \emph{text\_file} type displays a text file.
     "type"          : "text_file", 
     "label"         : "<h2>Output<h2>",
     "contents"      : "stdout.txt",
-    "style"         : "width:40em;height:16em;background-color:#eee"
+    "style"         : "{'width': '40em', 'height': '16em', 'background-color': '#FFE'}"
 }
 \end{lstlisting}
 
@@ -644,10 +655,10 @@ used for warning or error messages.
  \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & message  & yes \\ \hline
- visible    & Javascript expression, hides the result if
-              evaluated to false (if undefined the result is visible).& no \\ \hline
- contents   & a string which will be evaluated by Javascript to get the message. & yes \\ \hline
- textColor  & the name of a color or a CSS-compatible color. & no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean, hides the item if
+              strictly equals to false (if equals to undefined, the item is still visible). & no \\ \hline
+ contents   & A string which will be evaluated by Javascript to get the message. & yes \\ \hline
+ textColor  & The name of a color or a CSS-compatible color. & no \\ \hline
 \caption{Results, \emph{message} type, properties}
 \end{longtable}
 
