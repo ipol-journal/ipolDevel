@@ -659,12 +659,6 @@ class Core(object):
             mime_uploaded_blob = mime.from_buffer(file_up.file.read())
             type_of_uploaded_blob, _ = mime_uploaded_blob.split('/')
 
-            if 'ext' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL doesn't have a 'ext' (extension) field")
-
-            if 'type' not in inputs_desc[i]:
-                raise IPOLInputUploadError("The DDL doesn't have a 'type' field")
-
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
                 message = "The DDL type ({}) doesn't match the uploaded blob ({})".format(inputs_desc[i]['type'], type_of_uploaded_blob)
                 raise IPOLInputUploadError(message)
@@ -674,16 +668,13 @@ class Core(object):
             if inputs_desc[i]['type'] != "data" and ext_of_uploaded_blob is None:
                 error_message = "The type of the uploaded file could not be recognized and it has been rejected"
                 raise IPOLUploadedInputRejectedError(error_message)
+
             # If it's data, we just put the extension given at the DDL
-            if ext_of_uploaded_blob is None:
+            if inputs_desc[i]['type'] == "data":
                 ext_of_uploaded_blob = inputs_desc[i]['ext']
 
-            if inputs_desc[i]['type'] == "data":
-                if ext_of_uploaded_blob is None:
-                    ext_of_uploaded_blob = ".dat"
-
             # We keep the file according it was uploaded
-            # process_inputs will make the possible modifications
+            # The Conversion module will make the possible modifications
             file_save = file(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
 
             size = 0
