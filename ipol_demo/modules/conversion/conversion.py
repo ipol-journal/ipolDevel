@@ -316,15 +316,14 @@ class Conversion(object):
         """
         Convert video according to DDL specification
         """
-        code = 0 # default return code, image not modified
+        code = 0 # default return code, video not modified
         modifications = []
 
         video = Video(input_file)
-        video.load()
         as_frames = input_desc.get('as_frames', None)
-        max_frames = input_desc.get('max_frames', None)
-        max_pixels = input_desc.get('max_pixels', None)
-        if as_frames is not None:
+        max_frames = input_desc.get('max_frames')
+        max_pixels = input_desc.get('max_pixels')
+        if as_frames:
             video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
             code = 1
             modifications.append('extracted to frames')
