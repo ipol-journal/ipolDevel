@@ -333,9 +333,6 @@ class Conversion(object):
             modifications.append('avi created')
             modifications.append('huffman encoded')
 
-        if code == 1 and input_desc.get("forbid_preprocess", False):
-            return 2, []  # Conversion needed but forbidden
-
         return code, modifications
 
     @staticmethod
