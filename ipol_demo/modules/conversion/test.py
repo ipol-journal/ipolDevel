@@ -16,8 +16,10 @@ import numpy as np
 from ipolutils.image.Image import Image
 
 
-
-class ConversionTests(unittest.TestCase):
+#####################
+#       Image       #
+#####################
+class ConversionImageTests(unittest.TestCase):
     """
     Dispatcher tests.
     """
@@ -232,9 +234,9 @@ class ConversionTests(unittest.TestCase):
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '0')
 
-    #####################
-    #       TOOLS       #
-    #####################
+    ####################
+    #      TOOLS       #
+    ####################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
         """
@@ -251,10 +253,102 @@ class ConversionTests(unittest.TestCase):
         response = self.post(self.module, 'convert', params=params)
         return response.json()
 
+#####################
+#       Video       #
+#####################
+class ConversionVideoTests(unittest.TestCase):
+    """
+    Dispatcher tests.
+    """
+    HOST = socket.gethostbyname(socket.gethostname())
+    module = 'conversion'
+    blob_path = None
+
+    #####################
+    #       Tests       #
+    #####################
+
+    def setUp(self):
+        """
+        Creates a copy of the video before convert it.
+        """
+        try:
+            copy_video = os.path.split(self.video_blob_path)[0] + '/input_0' + os.path.splitext(self.video_blob_path)[1]
+            shutil.copy2(self.video_blob_path, copy_video)
+        except Exception:
+            pass
+
+    def tearDown(self):
+        """
+        Restores the copy of the video.
+        """
+        try:
+            copy_video = os.path.split(self.video_blob_path)[0] + '/input_0' + os.path.splitext(self.video_blob_path)[1]
+            os.remove(copy_video)
+        except Exception:
+            pass
+
+    def test_convert_video_to_frames(self):
+        """
+        Tests video conversion to frames.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': 99}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+            code = response.get('info').get('0').get('code')[0]
+            shutil.rmtree(os.path.split(self.video_blob_path)[0] + '/input_0')
+        finally:
+            self.assertEqual(status, 'OK')
+            self.assertEqual(str(code), '1')
+
+    def test_convert_video_to_avi(self):
+        """
+        Tests video conversion to avi.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'max_frames': 99}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+            code = response.get('info').get('0').get('code')[0]
+            os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+        finally:
+            self.assertEqual(status, 'OK')
+            self.assertEqual(str(code), '1')
+
+    ####################
+    #      TOOLS       #
+    ####################
+
+    def post(self, module, service, params=None, data=None, files=None, servicejson=None):
+        """
+        Do a post
+        """
+        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
+        return requests.post(url, params=params, data=data, files=files, json=servicejson)
+
+    def convert(self, input_file, input_desc, crop_info):
+        """
+        Calls the convert method in the conversion module
+        """
+        params = {'work_dir': input_file, 'inputs_description': json.dumps(
+            input_desc), 'crop_info': crop_info}
+        response = self.post(self.module, 'convert', params=params)
+        return response.json()
+
 
 if __name__ == '__main__':
     shared_folder = sys.argv.pop()
     demorunners = sys.argv.pop()
     resources_path = sys.argv.pop()
-    ConversionTests.blob_path = os.path.join(resources_path, 'test_image.png')
+    ConversionImageTests.blob_path = os.path.join(resources_path, 'test_image.png')
+    ConversionVideoTests.video_blob_path = os.path.join(resources_path, 'test_video.mp4')
     unittest.main()
