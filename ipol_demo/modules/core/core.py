@@ -673,10 +673,13 @@ class Core(object):
             if inputs_desc[i]['type'] == "data":
                 ext_of_uploaded_blob = inputs_desc[i]['ext']
 
-            # We keep the file according it was uploaded
-            # The Conversion module will make the possible modifications
+            # Here we save the file with the final extension, regardless
+            # the actual content.
+            # Later Core will eventually ask the system to convert the
+            # data (for example, encode in PNG).
             file_save = file(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
 
+            # Read and save the file
             size = 0
             file_up.file.seek(0)
             while True:
