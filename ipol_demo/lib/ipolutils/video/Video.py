@@ -49,7 +49,7 @@ class Video(object):
 
         self.frame_count = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
-        self.duration = float(self.frame_count / self.fps)
+        self.duration = self.frame_count / self.fps
 
         self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -103,11 +103,11 @@ class Video(object):
         Get the correct time relative to the maximum number of frames allowed.
         """
         if max_frames < self.frame_count:
-            required_time = float(max_frames) / self.fps
+            required_time = max_frames / self.fps
             from_time = self.duration / 2.0 - required_time / 2.0
             to_time = self.duration / 2.0 + required_time / 2.0
 
-            frame_time = float(required_time/max_frames)
+            frame_time = required_time/max_frames
             from_frame = abs(from_time*max_frames/required_time)
             to_frame = abs(to_time*max_frames/required_time)
 
