@@ -234,7 +234,7 @@ class Conversion(object):
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
-        except (OSError, IOError) as ex:
+        except (OSError, IOError, RuntimeError) as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir)
