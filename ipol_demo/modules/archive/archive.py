@@ -102,9 +102,9 @@ class Archive(object):
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        return cherrypy.config.has_key("blobs_dir") and
-               cherrypy.config.has_key("database_dir") and
-               cherrypy.config.has_key("blobs_thumbs_dir") and
+        return cherrypy.config.has_key("blobs_dir") and \
+               cherrypy.config.has_key("database_dir") and \
+               cherrypy.config.has_key("blobs_thumbs_dir") and \
                cherrypy.config.has_key("logs_dir")
 
     @staticmethod
