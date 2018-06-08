@@ -1453,7 +1453,7 @@ attached the failed experiment data.". \
             demorunner_response['algo_info'][name] = algo_info_dic[name]
 
         demorunner_response['work_url'] = os.path.join(
-            "http://{}/api/core/".format(self.host_name),
+            "/api/core/",
             self.shared_folder_rel,
             self.share_run_dir_rel,
             str(demo_id),
@@ -1869,7 +1869,7 @@ attached the failed experiment data.". \
                 return error_message
 
             demorunner_response['work_url'] = os.path.join(
-                "http://{}/api/core/".format(self.host_name),
+                "/api/core/",
                 self.shared_folder_rel,
                 self.share_run_dir_rel,
                 str(demo_id),
