@@ -66,6 +66,7 @@ class Video(object):
         max_pixels = evaluate(max_pixels)
         video_pixel_count = self.height * self.width
 
+        self.validate_max_frames(max_frames)
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
 
@@ -89,6 +90,8 @@ class Video(object):
         ffmpeg_command = "ffmpeg -i " + self.full_path + " -c:v huffyuv -pix_fmt rgb24 " #ffmpeg base command line
 
         max_pixels = evaluate(max_pixels)
+        self.validate_max_frames(max_frames)
+
         ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
 
         processed_video = self.input_dir + '/' + self.input_name + ".avi"
@@ -162,3 +165,9 @@ class Video(object):
         """
         first_frame = int(self.frame_count / 2) - int(max_frames / 2)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, first_frame)
+
+    def validate_max_frames(self, max_frames):
+        if type(max_frames) != int:
+            raise IPOLConvertInputError('DDL error. max_frames must be integer')
+        if max_frames < 1:
+            raise IPOLConvertInputError('DDL error. max_frames cannot be less than 1')
