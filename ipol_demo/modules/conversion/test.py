@@ -297,7 +297,7 @@ class ConversionVideoTests(unittest.TestCase):
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': 99}]
+                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': 5}]
             response = self.convert(input_file, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
@@ -315,7 +315,7 @@ class ConversionVideoTests(unittest.TestCase):
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'max_frames': 99}]
+                           'type': 'video', 'max_weight': 5242880, 'max_frames': 5}]
             response = self.convert(input_file, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
@@ -323,6 +323,66 @@ class ConversionVideoTests(unittest.TestCase):
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
+
+    def test_negative_max_frames_as_avi(self):
+        """
+        Tests video conversion to avi.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'max_frames': -1}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+        finally:
+            self.assertEqual(status, 'KO')
+
+    def test_negative_max_frames_as_frames(self):
+        """
+        Tests video conversion to avi.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': -1}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+        finally:
+            self.assertEqual(status, 'KO')
+    
+    def test_float_max_frames_as_frames(self):
+        """
+        Tests video conversion to avi.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': 2.5}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+        finally:
+            self.assertEqual(status, 'KO')
+
+    def test_float_max_frames_as_avi(self):
+        """
+        Tests video conversion to avi.
+        """
+        status = None
+        code = None
+        try:
+            input_file = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'max_frames': 2.5}]
+            response = self.convert(input_file, input_desc, None)
+            status = response.get('status')
+        finally:
+            self.assertEqual(status, 'KO')
 
     ####################
     #      TOOLS       #
