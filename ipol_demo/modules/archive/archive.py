@@ -102,14 +102,10 @@ class Archive(object):
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        if not (cherrypy.config.has_key("blobs_dir")
-                and cherrypy.config.has_key("database_dir")
-                and cherrypy.config.has_key("blobs_thumbs_dir")
-                and cherrypy.config.has_key("logs_dir")
-                and cherrypy.config.has_key("url")):
-            print "Missing elements in configuration file."
-            return False
-        return True
+        return cherrypy.config.has_key("blobs_dir") and
+               cherrypy.config.has_key("database_dir") and
+               cherrypy.config.has_key("blobs_thumbs_dir") and
+               cherrypy.config.has_key("logs_dir")
 
     @staticmethod
     def get_hash_blob(path):
@@ -137,6 +133,7 @@ class Archive(object):
         """
 
         if not self.check_config():
+            print "ERROR: fields missing in the configuration file."
             sys.exit(1)
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
@@ -144,7 +141,6 @@ class Archive(object):
         self.database_dir = cherrypy.config.get("database_dir")
 
         self.logs_dir = cherrypy.config.get("logs_dir")
-        self.url = cherrypy.config.get("url")
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
         try:
@@ -550,12 +546,12 @@ class Archive(object):
                 and the name of the file.
         """
         dict_file = {}
-        dict_file["url"] = self.url + path_file
+        dict_file["url"] = "/api/archive/" + path_file
         dict_file["name"] = name
         dict_file["id"] = id_blob
 
         if os.path.exists(path_thumb):
-            dict_file["url_thumb"] = self.url + path_thumb
+            dict_file["url_thumb"] = "/api/archive/" + path_thumb
 
         return dict_file
 
