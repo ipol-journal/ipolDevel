@@ -39,30 +39,29 @@ class Video(object):
         """
         Constructor.
         """
-        self.src = src
-        if not os.path.isfile(self.src):
-            raise OSError(errno.ENOENT, "File not found", self.src)
-        self.capture = cv2.VideoCapture(self.src)
+        if not os.path.isfile(src):
+            raise OSError(errno.ENOENT, "File not found", src)
+        self.capture = cv2.VideoCapture(src)
         if self.capture is None:
-            raise OSError(errno.ENODATA, "Could not load.", self.src)
+            raise OSError(errno.ENODATA, "Could not load.", src)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        self.frame_count = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_count = self.capture.get(cv2.CAP_PROP_FRAME_COUNT)
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
         self.duration = self.frame_count / self.fps
 
-        self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        self.full_path = os.path.realpath(self.src)
+        self.full_path = os.path.realpath(src)
         self.input_dir, self.input_filename = os.path.split(self.full_path)
         self.input_name, self.input_ext = os.path.splitext(self.input_filename)
 
     def extract_frames(self, max_frames, max_pixels):
         """
-        Extract frames from video given a destination folder.
+        Extract frames from video.
         """
-        dst_folder = self.input_dir + '/' + self.input_name
+        dst_folder = os.path.join(self.input_dir, self.input_name)
         max_pixels = evaluate(max_pixels)
         video_pixel_count = self.height * self.width
 
@@ -78,47 +77,45 @@ class Video(object):
                 break
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_AREA)
-            imwrite = cv2.imwrite(dst_folder + '/frame_{:03d}.png'.format(frame_number), frame)
-            if not imwrite:
-                raise IPOLConvertInputError('Conversion error, frames could not be extracted')
+            im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:03d}.png'.format(frame_number)), frame)
+            if not im:
+                raise IPOLConvertInputError('Conversion error, frame could not be written to the file')
 
 
     def create_avi(self, max_frames, max_pixels):
         """
-        Create avi video
+        Create AVI video
         """
-        ffmpeg_command = "ffmpeg -i " + self.full_path + " -c:v huffyuv -pix_fmt rgb24 " #ffmpeg base command line
+        ffmpeg_command = "ffmpeg -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path) #ffmpeg base command line
 
         max_pixels = evaluate(max_pixels)
         self.validate_max_frames(max_frames)
 
         ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
 
-        processed_video = self.input_dir + '/' + self.input_name + ".avi"
+        processed_video = os.path.join(self.input_dir, self.input_name + ".avi")
         convert_proc = Popen([ffmpeg_command + " " + processed_video], shell=True)
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
-            raise IPOLConvertInputError('Conversion error, video could not be converted to avi')
+            raise IPOLConvertInputError('Conversion error, video could not be converted to AVI')
 
     def get_time_for_frames(self, max_frames):
         """
         Get the correct time relative to the maximum number of frames allowed.
         """
-        if max_frames < self.frame_count:
-            required_time = max_frames / self.fps
-            from_time = self.duration / 2.0 - required_time / 2.0
-            to_time = self.duration / 2.0 + required_time / 2.0
+        required_time = max_frames / self.fps
+        from_time = self.duration / 2.0 - required_time / 2.0
+        to_time = self.duration / 2.0 + required_time / 2.0
 
-            frame_time = required_time/max_frames
-            from_frame = abs(from_time*max_frames/required_time)
-            to_frame = abs(to_time*max_frames/required_time)
+        frame_time = required_time/max_frames
+        from_frame = (from_time * max_frames) / required_time
+        to_frame = (to_time * max_frames) / required_time
 
-            if to_frame - from_frame + 1 > max_frames:
-                to_time = to_time - frame_time
+        if to_frame - from_frame + 1 > max_frames:
+            to_time = to_time - frame_time
 
-            return "-ss " + str(datetime.timedelta(seconds=from_time)) + " -to " + str(datetime.timedelta(seconds=to_time))
-        return ""
+        return from_time, to_time
 
     def get_ffmpeg_options(self, max_pixels, max_frames):
         """
@@ -126,11 +123,12 @@ class Video(object):
         """
         options = ""
         if max_frames < self.frame_count:
-            options += self.get_time_for_frames(max_frames)
+            from_time, to_time = self.get_time_for_frames(max_frames)
+            options += "-ss {} -to {}".format(str(datetime.timedelta(seconds=from_time)), str(datetime.timedelta(seconds=to_time)))
 
         width, height = self.get_size(max_pixels)
         if self.width != width or self.height != height:
-            options += " -vf scale=" + str(width) + ":" + str(height)
+            options += " -vf scale={}:{}".format(width, height)
 
         return options
 
@@ -147,8 +145,7 @@ class Video(object):
         """
         Get calculated scaling factor to reduce the image keeping the aspect ratio.
         """
-        scaling_factor = math.sqrt(float(max_pixels - 1) / float(self.height * self.width))
-        return scaling_factor
+        return math.sqrt(max_pixels / (self.height * self.width))
 
     def get_number_of_frames_to_extact(self, max_frames):
         """
@@ -166,8 +163,12 @@ class Video(object):
         first_frame = int(self.frame_count / 2) - int(max_frames / 2)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, first_frame)
 
-    def validate_max_frames(self, max_frames):
-        if type(max_frames) != int:
+    @staticmethod
+    def validate_max_frames(max_frames):
+        """
+        Check max_frames value and type.
+        """
+        if not isinstance(max_frames, int):
             raise IPOLConvertInputError('DDL error. max_frames must be integer')
         if max_frames < 1:
             raise IPOLConvertInputError('DDL error. max_frames cannot be less than 1')

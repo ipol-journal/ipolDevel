@@ -330,7 +330,7 @@ class Conversion(object):
         else:
             video.create_avi(max_frames=max_frames, max_pixels=max_pixels)
             code = 1
-            modifications.append('avi created')
+            modifications.append('AVI created')
             modifications.append('huffman encoded')
 
         return code, modifications

@@ -308,7 +308,7 @@ class ConversionVideoTests(unittest.TestCase):
 
     def test_convert_video_to_avi(self):
         """
-        Tests video conversion to avi.
+        Tests video conversion to AVI.
         """
         status = None
         code = None
@@ -326,10 +326,9 @@ class ConversionVideoTests(unittest.TestCase):
 
     def test_negative_max_frames_as_avi(self):
         """
-        Tests video conversion to avi.
+        Tests negative max_frames when convert to AVI.
         """
         status = None
-        code = None
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
@@ -341,10 +340,9 @@ class ConversionVideoTests(unittest.TestCase):
 
     def test_negative_max_frames_as_frames(self):
         """
-        Tests video conversion to avi.
+        Tests negative max_frames when convert to frames.
         """
         status = None
-        code = None
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
@@ -353,13 +351,12 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
         finally:
             self.assertEqual(status, 'KO')
-    
+
     def test_float_max_frames_as_frames(self):
         """
-        Tests video conversion to avi.
+        Tests float max_frames value when convert to frames.
         """
         status = None
-        code = None
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
@@ -371,10 +368,9 @@ class ConversionVideoTests(unittest.TestCase):
 
     def test_float_max_frames_as_avi(self):
         """
-        Tests video conversion to avi.
+        Tests float max_frames value when convert to AVI.
         """
         status = None
-        code = None
         try:
             input_file = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
