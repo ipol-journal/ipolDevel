@@ -61,11 +61,12 @@ class Video(object):
         """
         Extract frames from video.
         """
+        self.validate_max_frames(max_frames)
+
         dst_folder = os.path.join(self.input_dir, self.input_name)
         max_pixels = evaluate(max_pixels)
         video_pixel_count = self.height * self.width
 
-        self.validate_max_frames(max_frames)
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
 
@@ -86,11 +87,10 @@ class Video(object):
         """
         Create AVI video
         """
-        ffmpeg_command = "ffmpeg -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path) #ffmpeg base command line
-
-        max_pixels = evaluate(max_pixels)
         self.validate_max_frames(max_frames)
-
+        
+        ffmpeg_command = "ffmpeg -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path) #ffmpeg base command line
+        max_pixels = evaluate(max_pixels)
         ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
 
         processed_video = os.path.join(self.input_dir, self.input_name + ".avi")
@@ -102,15 +102,15 @@ class Video(object):
 
     def get_time_for_frames(self, max_frames):
         """
-        Get the correct time relative to the maximum number of frames allowed.
+        Get the time interval according to the maximum number of frames allowed.
         """
         required_time = max_frames / self.fps
         from_time = self.duration / 2.0 - required_time / 2.0
         to_time = self.duration / 2.0 + required_time / 2.0
 
-        frame_time = required_time/max_frames
-        from_frame = (from_time * max_frames) / required_time
-        to_frame = (to_time * max_frames) / required_time
+        frame_time = required_time / max_frames
+        from_frame = from_time * max_frames / required_time
+        to_frame = to_time * max_frames / required_time
 
         if to_frame - from_frame + 1 > max_frames:
             to_time = to_time - frame_time
@@ -124,7 +124,9 @@ class Video(object):
         options = ""
         if max_frames < self.frame_count:
             from_time, to_time = self.get_time_for_frames(max_frames)
-            options += "-ss {} -to {}".format(str(datetime.timedelta(seconds=from_time)), str(datetime.timedelta(seconds=to_time)))
+            options += "-ss {} -to {}".format(\
+              str(datetime.timedelta(seconds=from_time)), \
+              str(datetime.timedelta(seconds=to_time)))
 
         width, height = self.get_size(max_pixels)
         if self.width != width or self.height != height:
@@ -134,7 +136,7 @@ class Video(object):
 
     def get_size(self, max_pixels):
         """
-        Get frame size under the max_pixels limit keeping the aspect ratio.
+        Get frame size after being eventually rescaled to max_pixels. It keeps the aspect ratio.
         """
         if max_pixels < self.height * self.width:
             scaling_factor = self.get_scaling_factor(max_pixels)
@@ -143,7 +145,7 @@ class Video(object):
 
     def get_scaling_factor(self, max_pixels):
         """
-        Get calculated scaling factor to reduce the image keeping the aspect ratio.
+        Compute the scaling factor to reduce the image keeping its aspect ratio.
         """
         return math.sqrt(max_pixels / (self.height * self.width))
 
@@ -166,9 +168,9 @@ class Video(object):
     @staticmethod
     def validate_max_frames(max_frames):
         """
-        Check max_frames value and type.
+        Check max_frames range and type
         """
         if not isinstance(max_frames, int):
-            raise IPOLConvertInputError('DDL error. max_frames must be integer')
+            raise IPOLConvertInputError('Type error: max_frames must be an integer')
         if max_frames < 1:
-            raise IPOLConvertInputError('DDL error. max_frames cannot be less than 1')
+            raise IPOLConvertInputError('Range error: max_frames must be positive')
