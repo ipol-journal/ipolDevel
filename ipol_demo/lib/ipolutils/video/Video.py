@@ -48,29 +48,26 @@ class Video(object):
 
         self.frame_count = self.capture.get(cv2.CAP_PROP_FRAME_COUNT)
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
-        self.duration = self.frame_count / self.fps
 
         self.width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
         self.full_path = os.path.realpath(src)
-        self.input_dir, self.input_filename = os.path.split(self.full_path)
-        self.input_name, self.input_ext = os.path.splitext(self.input_filename)
 
     def extract_frames(self, max_frames, max_pixels):
         """
-        Extract frames from video.
+        Extract the required number of frames and save them as image files.
         """
         self.validate_max_frames(max_frames)
 
-        dst_folder = os.path.join(self.input_dir, self.input_name)
+        dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
         max_pixels = evaluate(max_pixels)
         video_pixel_count = self.height * self.width
 
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
 
-        frames_count = self.get_number_of_frames_to_extact(max_frames)
+        frames_count = self.get_number_of_frames_to_extract(max_frames)
         width, height = self.get_size(max_pixels)
         for frame_number in range(frames_count):
             ret, frame = self.capture.read()
@@ -82,18 +79,17 @@ class Video(object):
             if not im:
                 raise IPOLConvertInputError('Conversion error, frame could not be written to the file')
 
-
     def create_avi(self, max_frames, max_pixels):
         """
         Create AVI video
         """
         self.validate_max_frames(max_frames)
-        
+
         ffmpeg_command = "ffmpeg -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path) #ffmpeg base command line
         max_pixels = evaluate(max_pixels)
         ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
 
-        processed_video = os.path.join(self.input_dir, self.input_name + ".avi")
+        processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
         convert_proc = Popen([ffmpeg_command + " " + processed_video], shell=True)
         convert_proc.wait()
 
@@ -104,9 +100,10 @@ class Video(object):
         """
         Get the time interval according to the maximum number of frames allowed.
         """
+        video_duration = self.frame_count / self.fps
         required_time = max_frames / self.fps
-        from_time = self.duration / 2.0 - required_time / 2.0
-        to_time = self.duration / 2.0 + required_time / 2.0
+        from_time = video_duration / 2.0 - required_time / 2.0
+        to_time = video_duration / 2.0 + required_time / 2.0
 
         frame_time = required_time / max_frames
         from_frame = from_time * max_frames / required_time
@@ -149,7 +146,7 @@ class Video(object):
         """
         return math.sqrt(max_pixels / (self.height * self.width))
 
-    def get_number_of_frames_to_extact(self, max_frames):
+    def get_number_of_frames_to_extract(self, max_frames):
         """
         Get number of frames of the final input.
         """
@@ -164,6 +161,18 @@ class Video(object):
         """
         first_frame = int(self.frame_count / 2) - int(max_frames / 2)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, first_frame)
+
+    def get_input_dir(self):
+        """
+        Get input directory from full path.
+        """
+        return os.path.split(self.full_path)[0]
+
+    def get_input_name(self):
+        """
+        Get input name from full path.
+        """
+        return os.path.splitext(os.path.split(self.full_path)[1])[0]
 
     @staticmethod
     def validate_max_frames(max_frames):
