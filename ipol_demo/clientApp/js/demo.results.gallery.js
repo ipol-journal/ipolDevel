@@ -12,7 +12,7 @@ $.fn.gallery = function(result, index)  {
   var gallerySelector = "gallery-" + index;
   $(this).append('<div class="' + gallerySelector + ' gallery-container" ></div>');
 
-  var blobsArray = getGalleryImages(result.contents, work_url);
+  var blobsArray = getGalleryImages(result.contents);
 
   var leftItems = "gallery-left-items-" + index;
   var rightItems = "gallery-right-items-" + index;
@@ -42,7 +42,7 @@ $.fn.gallery = function(result, index)  {
   if (blobsArray.length > 1) $("." + leftItems).appendCompare(index, rightItems, imgContainerRight);
 }
 
-function getGalleryImages(contentArray, work_url) {
+function getGalleryImages(contentArray) {
   var allSrc = [];
   var keys = Object.keys(contentArray);
   for (var i = 0; i < keys.length; i++) {
