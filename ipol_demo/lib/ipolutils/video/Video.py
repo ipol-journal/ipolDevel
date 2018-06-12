@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
+
 """
 Video wrapper for conversion, resizing, reencode.
 """
@@ -32,7 +33,7 @@ from ipolutils.evaluator.evaluator import evaluate
 
 class Video(object):
     """
-    Generic video class.
+    Video conversion object
     """
 
     def __init__(self, src):
@@ -81,7 +82,7 @@ class Video(object):
 
     def create_avi(self, max_frames, max_pixels):
         """
-        Create AVI video
+        Create AVI video file
         """
         self.validate_max_frames(max_frames)
 
@@ -94,7 +95,7 @@ class Video(object):
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
-            raise IPOLConvertInputError('Conversion error, video could not be converted to AVI')
+            raise IPOLConvertInputError('Conversion error: video could not be converted to AVI')
 
     def get_time_for_frames(self, max_frames):
         """
