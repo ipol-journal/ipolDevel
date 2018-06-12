@@ -3,68 +3,84 @@ When new members arrive at the development team they need to set up their enviro
 
 \paragraph{General} \hspace{0pt} \\
 \begin{itemize}
- \item Install Debian Stable.
- \item Signup in Trello, Github, and Slack.
- \item Add the emails of the new members to the send\_to.txt file (in ipolDevel/ci\_tests/).
- \item Sign up in our Demo Editing group in Google Groups
- \item Create a new RSA key with {\tt ssh-keygen}
- \item Clone the repository from GitHub: {\tt git clone git@github.com:mcolom/ipolDevel.git}
- \item Download a good Python IDE. For example: Pycharm.
+    \item Install Debian Stable.
+    \item Signup in Trello, Github, and Slack.
+    \item Add the emails of the new members to the send\_to.txt file (in {\tt ipolDevel/ci\_tests/}).
+    \item Sign up in our Demo Editing group in Google Groups
+    \item Create a new RSA key with {\tt ssh-keygen}
+    \item Clone the repository from GitHub: {\tt git clone git@github.com:mcolom/ipolDevel.git}
+    \item Download a good Python IDE. For example: Pycharm.
 \end{itemize}
 
 \paragraph{SSH} \hspace{0pt} \\
 \begin{itemize}
- \item Add your public key to the authorized\_keys file in the servers.
- \item Optional: Install the SSH server in your machine and add your public key to your own authorized\_keys to start the modules with the IPOL Terminal.
+    \item Add your public key to the authorized\_keys file in the servers.
+    \item Optional: Install the SSH server in your machine and add your public key to your own authorized\_keys to start the modules with the IPOL Terminal.
 \end{itemize}
 
 \paragraph{Documentation} \hspace{0pt} \\
 \begin{itemize}
- \item Download a \LaTeX editor. For example: Kile.
- \item To be able to compile the documentation install texlive-full.
-  \begin{lstlisting}[language=Bash]
-  ~/sudo apt-get texlive-full
-  \end{lstlisting}
- \item Generate all the PDFs of the documentation.
+    \item Download a \LaTeX editor. For example: Kile.
+    \item To be able to compile the documentation install texlive-full
+    \item Generate all the PDFs of the documentation.
 \end{itemize}
 
 \paragraph{Libraries} \hspace{0pt} \\
 \begin{itemize}
- \item Install all the python libraries with the following command:
-  \begin{lstlisting}[language=Bash]
-  ~/pip install -r requirements.txt
-  \end{lstlisting}
- \item Install all the libraries described in doc/system/ipol.pdf in the ``general\_notes'' section.
+    \item Install all the Python libraries with the following command: {\tt sudo pip install -r requirements.txt}
+    \item Install all the libraries described in {\tt doc/system/ipol.pdf} in the ``general\_notes'' section.
 \end{itemize}
 
 \paragraph{NGINX} \hspace{0pt} \\
 \begin{itemize}
- \item Install nginx.
-  \begin{lstlisting}[language=Bash]
-  ~/sudo apt-get install nginx
-  \end{lstlisting}
- \item Copy the config files that are in sysadmin/configs/nginx/default-local into the nginx folder /etc/nginx/sites-available/default and change the variable \$my\_user
+    \item Install nginx: {\tt sudo apt-get install nginx}
+    \item Copy the config files that are in sysadmin/configs/nginx/default-local into the nginx folder {\tt/etc/nginx/sites-available/default} and change the variable \$my\_user
 \end{itemize}
 
 \paragraph{Modules} \hspace{0pt} \\
 \begin{itemize}
- \item Copy manually all the files that are not in the repository:
- 
-  \begin{itemize}
-   \item ipol\_demo/modules/config\_common/authorized\_patterns.conf
-   \item ipol\_demo/modules/config\_common/emails.conf
-  \end{itemize}
-
- \item Copy from integration the DB and the staticData from the demoinfo and blobs modules.
- \item Update the XML files in config\_common
+    \item Copy manually all the files that are not in the repository:
+    \begin{itemize}
+        \item {\tt ipol\_demo/modules/config\_common/authorized\_patterns.conf}
+        \item {\tt ipol\_demo/modules/config\_common/emails.conf}
+    \end{itemize}
+    \item Copy from integration the DB and the staticData from the demoinfo and blobs modules.
+    \item Update the XML files in config\_common
 \end{itemize}
 
 \paragraph{Control Panel} \hspace{0pt} \\
 \begin{itemize}
- \item Add the hostname to the list ``local\_machines'' in the file ipol\_webapp/ipol\_webapp/ settings.py
- \item Follow the steps described in ipol\_webapp/docs
- \item Create a new superuser in the local Control Panel
-  \begin{lstlisting}[language=Bash]
-  ~/ipolDevel/ipol_webapp/python manage.py createsuperuser
-  \end{lstlisting}
+    \item Add the hostname to the list ``local\_machines'' in  {\tt ipol\_webapp/ipol\_webapp/ settings.py}
+    \item Follow the steps described in ipol\_webapp/docs
+    \item Create a new superuser in the local Control Panel: {\tt ipolDevel/ipol\_webapp/python manage.py createsuperuser}
 \end{itemize}
+
+\subsection{SSL certificate}
+In order to use HTTPS, a SSL certificate must be installed in the machine which serves the pages. In our case, it is the \emph{ipolcore} machine.
+The first step is to create a Certificate Signing Request (CSR). The CSR is given to the Certificate Authority (CA) when applying for an SSL certificate, and contains the public key that will be added to the certificate, as well as other data (domain name, country, \dots).
+
+The following command creates {\tt server.csr}. It will ask for a challenge password:
+
+{\tt openssl req -new -newkey rsa:2048 -nodes -keyout server.key -out server.csr}.
+
+Once created, the CSR must be sent to the Certification Authority, which will responde the request with a set of files. In our case, it was:
+\begin{itemize}
+    \item ipolcore\_ipol\_im.ca-bundle: public keys of the CAs;
+    \item ipolcore\_ipol\_im.crt: public key of the SSL certificate;
+    \item ipolcore\_ipol\_im.p7b: public keys of the server and CAs.
+\end{itemize}
+
+In order to use the certificate with nginx it is needed to concatenate the public key of the certificate with the public keys of the CAs:
+
+{\tt cat ipolcore\_ipol\_im.crt ipolcore\_ipol\_im.ca-bundle > ssl-bundle.crt}.
+
+\textbf{Important}: we found that the files did not end with a carriage return and therefore a direct concatenate of the files created a corrupted certificate. It is important to eventually add these carriage returns and check that the final certificate is valid.
+
+The hosting provider will generate a private key {\tt server.key}.
+The {\tt ssl-bundle.crt} (public) and {\tt server.key} (private) must be copied to the server (with permission 400 to the server):
+\begin{itemize}
+    \item {\tt /etc/ssl/certs/ssl-bundle.crt}
+    \item {\tt /etc/ssl/private/server.key}
+\end{itemize}
+
+Once these files are installed, the nginx must be correctly configured and restarted. In {\tt sysadmin/configs/nginx/} there are examples of the right configuration.
