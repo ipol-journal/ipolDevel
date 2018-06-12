@@ -1,9 +1,9 @@
 upstream ipol_webapp_server {
-    # fail_timeout=0 means we always retry an upstream even if it failed
-    # to return a good HTTP response (in case the Unicorn master nukes a
-    # single worker for timing out).
+  # fail_timeout=0 means we always retry an upstream even if it failed
+  # to return a good HTTP response (in case the Unicorn master nukes a
+  # single worker for timing out).
 
-    server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
+  server unix:/home/ipol/ipolDevel/ipol_webapp/run/gunicorn.sock fail_timeout=0;
 }
 
 # This is used by named sections since they can't have alias, but proxy
@@ -14,16 +14,16 @@ server {
         deny all;
 
         listen *:81;
-        proxy_send_timeout          600;
-        proxy_read_timeout          600;
-        send_timeout                600;
+        proxy_send_timeout          700;
+        proxy_read_timeout          700;
+        send_timeout                700;
         client_max_body_size        500m;
 
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
         location /demo/clientApp/ {
-                expires 1m;
+                expires 24h;
                 resolver 127.0.0.1;
                 alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
@@ -32,11 +32,16 @@ server {
 
 server {
     listen       *:80 default_server;
-    server_name  ipolcore.ipol.im;
-    proxy_send_timeout          600;
-    proxy_read_timeout          600;
-    send_timeout                600;
+    server_name   ipolcore.ipol.im;
+    proxy_send_timeout          700;
+    proxy_read_timeout          700;
+    send_timeout                700;
     client_max_body_size        500m;
+
+    # Enable SSL
+    listen *:443 ssl http2 default_server;
+    include snippets/certificate.conf;
+    include snippets/ssl-params.conf;
 
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -53,6 +58,12 @@ server {
     location /static/ {
         expires 24h;
         alias  /home/ipol/static/;
+    }
+
+    # Easter egg
+    location /sexy.gif {
+        expires 30d;
+        alias  /home/ipol/static/easter-egg/sexy.gif;
     }
 
     # IPOL favicon
@@ -98,7 +109,8 @@ server {
         proxy_pass   http://$host:8080;
     }
 
-    # OLD WEB INTERFACE. Remove after migration
+    # OLD WEB INTERFACE. Remove after the old interface is not used anymore
+    # OK
     location /demo/clientAppOld/ {
         expires 24h;
         alias /home/ipol/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
