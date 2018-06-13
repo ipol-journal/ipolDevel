@@ -1,0 +1,64 @@
+\section{The Conversion module}
+\label{sec:conversion}
+
+
+\subsection{Introduction}
+\label{sec:archive_introduction}
+
+%\paragraph{Introduction} \hspace{0pt} \\
+The conversion module is a standalone application dedicated to conversions of input files. 
+
+\paragraph{Technologies} \hspace{0pt} \\
+\begin{itemize}
+\item Python (with packages available from PIP)
+\item cherrypy (framework for webservices)
+\item simplejson (required by cherrypy, JSON is the syntax to communicate with the module)
+\item opencv-python (Python binding for the image processing library OpenCV)
+\item libtiff (Python binding for the libtiff library, used to load and save tiff images)
+\item numpy (a Python library for matrix calculation, used to modify image data)
+\end{itemize}
+
+
+\subsection{Image library}
+
+Multiple libraries are available in Python to load and save images. IPOL has some requirements, in order of importance:
+
+\begin{itemize}
+\item open source,
+\item available as a pip package,
+\item support of data type other than integer 8 bits, especially in tiff (uint16, uint32, float16, float32),
+\item exporting image data as a numpy matrix,
+\item maturity and sustainability of the project,
+\item intuitive API and good documentation,
+\item fast.
+\end{itemize}
+
+\paragraph{OpenCV} \hspace{0pt} \\
+Many libraries have been tested, the final choice has been OpenCV. OpenCV (Open Computer Vision) is a well known open source library in the domain of computer vision. It is a C++ program with a Python binding. After tests, it appears that loading and saving tiff files was not correct for uint32, float16 and float32 formats, reason why libtiff is used in IPOL for loading and saving tiff images. The documentation could be improved, the API is a bit conplex, but globally, OpenCV is efficient, with intesting algorithms (even they are not yet used by IPOL).
+
+\paragraph{libtiff} \hspace{0pt} \\
+Libtiff is a Python wrapper of the classical C libtiff library providind numpy.memmap view of tiff files. This library is more tested than OpenCV to load and save exotic TIFF formats, the numpy data can be converted to the OpenCV format.
+
+\paragraph{pillow} \hspace{0pt} \\
+Pillow is the most common Python library for images. It is well documented with a simple API, but, it does not support other formats than the common integer 8 bits.
+
+\paragraph{ImageMagick} \hspace{0pt} \\
+ImageMagick is a classical C library used with command line, and also available in with other languages. There are too many Python bindings, most are badly supported or discontinued. Wand is the most known library, but it is not yet available by pip. There are also problems in ImageMagick API to control the Tiff parameters for saving.
+
+\paragraph{GDAL} \hspace{0pt} \\
+GDAL (Geospatial Data Abstraction Library) is a C library dedicated to geospatial images, with a Python wrapper. It handles a vast list of specific formats, and among tham, have a decent tiff support. It is supposed to be available by pip, but installation does not work. It is possible to install python-gdal as a Debian package, but this produces insconsistency in Python packages when used in conjunction with pip, especially for numpy.
+
+\paragraph{SimpleITK} \hspace{0pt} \\
+ITK is a C++ library to process medical images. SimpleITK is a layer on ITK, supposed to simplify the API for script languages. The library is working well, available by pip, but the API is not stable enough to invest code on it.
+
+\paragraph{pyPNG} \hspace{0pt} \\
+PyPNG is a pure Python library, handling the PNG format. It could be very slow (40 times more than OpenCV on read for big images). 
+
+\paragraph{imageio} \hspace{0pt} \\
+Imageio is a Python library that provides an interface to read and write a wide range of image data for numpy. But it has no original code, it silently choses among plugins like Pillow, OpenCV or SimpleITK, according to the extension, but without access to all the options of the original library.
+
+\paragraph{scikit-image} \hspace{0pt} \\
+Scikit is a Python library for image processing, designed to interoperate with scipy and numpy. This solution maybe promoted to handle images other than integer 8 bits, but it uses OpenCV behind the API.
+
+
+
