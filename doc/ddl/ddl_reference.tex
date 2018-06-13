@@ -1,14 +1,14 @@
 \section{Introduction}
-The Demo Description Lines (DDL) define an abstract syntax, written in JSON (JavaScript Object Notation) format, that specifies the IPOL demos. Their main objective is to simplify, as much as possible, the creation of demos by providing a system that describes them without the neccesity of writing HTML or Python code. This should facilitate to increment the number of publications in the journal. Each main key in the description file is described in the following sections:
+The Demo Description Lines (DDL) define an abstract syntax, written in JSON (JavaScript Object Notation) format, that specifies the IPOL demos. Their main objective is to simplify as much as possible the creation of demos by describing them without the need of writing Python or HTML. This allows fast demo editing in the journal. The following sections describe each of the main keys of the DDL:
 
 \begin{itemize}
   \item \textit{general}: general options (required);
   \item \textit{build}: download and compile the source code (required);
-  \item \textit{inputs}: description of the different inputs  (optional);
+  \item \textit{inputs}: description of the inputs  (optional);
   \item \textit{params}: description of the parameters and user control (optional);
-  \item \textit{run}: command to run the demo (required);
+  \item \textit{run}: script or binary which needs to be called for the execution, along with its parameters (required);
   \item \textit{archive}: which parameters and files will be stored in the archive (optional);
-  \item \textit{results}: displaying the result page (required).
+  \item \textit{results}: which elements will be displayed as results (required).
 \end{itemize}
 
 \vspace{1em}
@@ -17,7 +17,7 @@ The IPOL control panel provides a JSON editor with a simple validator. Most of t
 
 %-------------------------------------------------------------------------------
 \section{The \emph{general} section}
-The general section describes global information about the demo. It is a set of (key,value) pairs, described in the following table. The column \emph{req} refers to a required field. This type of tables will be used in all the sections of this document.
+The general section describes global information about the demo. It is a set of (key, value) pairs, described in the following table. The column \emph{req} refers to a required field. This type of tables will be used in all the sections of this document.
 
 % 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 
@@ -25,21 +25,20 @@ The general section describes global information about the demo. It is a set of 
 \hline
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
- demo\_title         & Title of the demo. It appears at the top of the web interface. & no\\ \hline
+ demo\_title         & Title of the demo. & no\\ \hline
  input\_description  & Description of the inputs. It contains HTML as a single string or as an array of string that will be concatenated and separated with spaces. & no \\ \hline
- param\_description  & Description at the top of the parameters page, contains HTML as a single string or as an array of string that will be concatenated and separated with spaces. & no
+ param\_description  & Description for the parameters. It contains HTML code as a single string or as an array of string that will be concatenated and separated with spaces. & no
 \\ \hline
- xlink\_article     & It defines the link to the article webpage & no  \\ \hline
- crop\_maxsize      & It is the allowed limit for the crop size in both width and height, the string can contain a JavaScript expression which will be evaluated & no \\ \hline
- requirements 	    & It specifies the particular requirements needed for the execution of the demo separated by commas. e.g. Matlab. & no \\ \hline
- timeout 	    & It specifies maximum time in seconds to execute the algorithm. If the execution takes longer than the specified time the system kills the process.& no \\ \hline
-\caption{Fields that manages the properties in the \emph{general} section.}
+ xlink\_article     & Link to the article webpage & no  \\ \hline
+ requirements 	    & It specifies particular requirements needed for the execution of the demo, separated by commas. e.g. Matlab. & no \\ \hline
+ timeout 	    & It specifies maximum time in seconds allows to execute the algorithm. If the execution takes longer than the specified time the system stops the exection. & no \\ \hline
+\caption{Fields in the \emph{general} section.}
 \end{longtable}
 
 %-------------------------------------------------------------------------------
 \section{The \emph{build} section}
 
-The build section is a set of one or more sets, each one providing information to obtain and compile the source codes needed for a given demo. If the demo needs to compile several files from different links, the build sets must be indexed as build1, build2,..., build\textit{n} being \textit{n} the total number of links (see example \ref{build_example}). It is mandatory to write at least build1. Three steps are needed to build a demo: 
+The build section is a set of one or more sets, each one providing information to obtain and compile the source codes needed for a given demo. If the demo needs to compile several files from different links, the build sets must be indexed as build1, build2,..., build\textit{n} being \textit{n} the total number of builds (see the example below). It is mandatory to write at least build1. Three steps are needed to build a demo: 
 
 \begin{itemize}
   \item Download the original sources codes (with optional userid and password for private demos);
@@ -51,16 +50,15 @@ The build section is a set of one or more sets, each one providing information t
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- url        & Full link to download the source codes as a compressed file. & yes \\ \hline
+ url        & Link to download the source codes as a compressed file. & yes \\ \hline
  username   & Username for private demos. & no \\ \hline
  password   & Password for private demos. & no \\ \hline
  construct  & Shell command needed to compile the downloaded source code. & no  \\ \hline
- move       & List of files needed to execute the demo separated with commas (see example \ref{build_example}) & yes  \\ \hline
+ move       & List of files needed to execute the demo separated with commas (see example below) & yes  \\ \hline
 \caption{Build fields}
 \end{longtable}
 
 \paragraph{Example:}
-\label{build_example}
 In this case, the demo needs to compile from two different compressed files. The DDL uses the \textit{move} statement to copy the obtained files after the compilation into a run context.%\\
 \begin{lstlisting}[language=json,firstnumber=1]
 "build": {
@@ -87,11 +85,11 @@ The inputs section describes the characteristics of the input data for the algor
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- type         & image & yes \\ \hline
+ type         & type of the input: image & yes \\ \hline
  description  & Short name or description. This is used by the web interface. & no \\ \hline
- max\_pixels  & This value sets the maximum number of pixels allowed for the input. If an uploaded image superates the size, it will be downsized. If the value is zero no resizing is done. The value can be a number or an arithmetic expression (ex: "1000*1000" = 1 Mpx).  & yes \\ \hline
- max\_weight   & Maximum weight (in bytes) of an input file. This prevents uploading too large files. The value can be a number or an arithmetic expression (ex: "100*1024*1024"= 100 Mb). & no \\ \hline
- dtype        & Expected data type for image to process:
+ max\_pixels  & This value sets the maximum number of pixels allowed for the input. If the size of the image is over this the limit it will be resized. The value can be a number or an arithmetic expression (ex:  ``1000*1000" = 1 Mpx).  & yes \\ \hline
+ max\_weight   & Maximum weight (in bytes) of an input file. This prevents uploading too large files. The value can be a number or an arithmetic expression (ex: ``100*1024*1024"= 100 Mb). & no \\ \hline
+ dtype        & Final format for the image. Some examples:
 \begin{itemize}
   \setlength\itemsep{-0.5em}
   \item \textit{1x8i}: gray, unsigned integer 8 bits;
@@ -100,12 +98,12 @@ The inputs section describes the characteristics of the input data for the algor
   \item \textit{3x16i}: color, RGB unsigned integer 16 bits.
 \end{itemize} 
  & yes \\ \hline
- ext          & input image expected extension (ie. file format) & yes \\ \hline
+ ext          & input extension (ie. file format) & yes \\ \hline
 forbid\_preprocess & Forbids any pre-processing of the input data. 
 Submitted image is kept as-is. Used by algorithms like noise estimation or modification detection, where re-sampling will affect results. 
-If a processing is needed, according to the expected properties upper, the user will be informed by a message.
+If a processing is needed according to the expected properties, an error message will be displayed to the user.
 & no \\ \hline
-\caption{Fields that manages an \emph{image} as input.}
+\caption{Fields for an \emph{image} as input.}
 \end{longtable}
 
 \subsection{The \emph{video} type}
@@ -114,23 +112,21 @@ If a processing is needed, according to the expected properties upper, the user 
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- type         & video & yes \\ \hline
+ type         & type of the input: image & yes \\ \hline
  description  & Short name or description. This is used by the web interface. & no \\ \hline
  as\_frames & Boolean value. The input video will be converted to png images for each frame according to the max\_frames field. Frames
  will be stored in a temporal folder inside the execution directory with the name. (ex: ./input\_0/frame\_000.png ) & no \\ \hline
- max\_pixels   & This value sets the maximum number of pixels allowed for the input video per frame. If this size is superated, the video frames will be downsized. The value can be a number or an arithmetic expression (ex: "1000*1000" = 1 Mpx).  & yes \\ \hline 
- max\_frames  &  Maximum number of frames after conversion, either as frames or video. The frames will be taken from
- the middle of the duration of the video. (ex: given a video with 100 frames and max\_frames = 50. It will result in a video/frames
- from frame 25 to frame 75) & yes \\ \hline
- max\_weight   & Maximum weight (in bytes) of an input file. This prevents uploading too large files. The value can be a number or an arithmetic expression (ex: "100*1024*1024"= 100 Mb). & no \\ \hline
-forbid\_preprocess & Forbids any pre-processing of the input data by the IPOL system. Submitted video is kept as-is. Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results. If a processing is needed, according to the expected properties upper, the user will be informed by a message.
+ max\_pixels   & This value sets the maximum number of pixels allowed for the input video per frame. If the size of the input is over, the video frames will be resized. The value can be a number or an arithmetic expression (ex: ``1000*1000" = 1 Mpx).  & yes \\ \hline 
+ max\_frames  &  Maximum number of frames after conversion, either as frames or video.  & yes \\ \hline
+ max\_weight   & Maximum weight (in bytes) of an input file. This prevents uploading too large files. The value can be a number or an arithmetic expression (ex: ``100*1024*1024"= 100 Mb). & no \\ \hline
+forbid\_preprocess & Forbids any pre-processing of the input data by the IPOL system. Submitted video is kept as-is. Used by algorithms like noise-estimation or modification detection, where re-sampling will affect results.If a processing is needed according to the expected properties, an error message will be displayed to the user.
 & no \\ \hline
-\caption{Fields that manages a \emph{video} as input.}
+\caption{Fields for a \emph{video} as input.}
 \end{longtable}
 
 %-------------------------------------------------------------------------------
 \section{The \emph{params} section}
-The \emph{params} section describes the set of parameters needed by a demo, their constraints and the visual appearance of the user control. It is defined as an array of sets, where each set contains (key,value) pairs. In this section, we show examples of the expected appearance of these parameters in the web interface. The pictures have been taken using a Chromium browser - version 65.0.3325.181 running on Ubuntu 17.10 (64 bits). Note that the appearance might differs in other browsers.
+The \emph{params} section describes the set of parameters needed by a demo, their constraints and the visual appearance of the user control. It is defined as an array of sets, where each set contains (key, value) pairs. In this section, we show examples of the expected appearance of these parameters in the web interface. The look of the controls might differ depending on the operating system and the browser used.
 
 \subsection{The \emph{range} type}
 
@@ -147,19 +143,18 @@ The \emph{range} type is used as an horizontal slider constrained by a minimum a
                       \\ \hline
  comments & A description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
-            & no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  values & Sets min, max, step and default values using a key/value 
 scheme \{ 'min':val, 'max':val, 'step':val, 'default':val \}. 
 Ex: to select a value included in (-1, -0.5, 0, 0.5, 1) write \texttt{"values": \{"min": -5, "max": 5, "step": 0.5, "default": 0\}}  & yes
                       \\ \hline
-\caption{Fields that manages the properties of the \emph{range} type.}
+\caption{Fields for the properties of the \emph{range} type.}
 \end{longtable}
 
 \begin{figure}[h]
 \centering
 \tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.35]{Images/slider_examples.png}}
-\caption{Range type example. We see a slider that uses values from 0.02 to 0.2.}
+\caption{Range type example. It shows a slider with values from 0.02 to 0.2.}
 \label{fig:sliders}
 \end{figure}
 
@@ -178,14 +173,14 @@ The \emph{selection\_collapsed} type returns one string selected by a key (for e
                       \\ \hline
  comments & A description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
+ visible    & Javascript expression evaluated as a boolean.
             & no \\ \hline
  values & set of (key, value) pairs, where the key is the displayed text and the 
 value is the string returned, for example \texttt{"values": \{"black": "000000", "white": "FFFFFF"\}} & yes
                       \\ \hline
  default\_value & defines the default value for this parameter, should be one 
 the values defined in 'values'. & yes \\ \hline
-\caption{Fields that manages the properties of the \emph{selection\_collapsed} type.}
+\caption{Fields for the properties of the \emph{selection\_collapsed} type.}
 \end{longtable}
 
 \begin{figure}[h]
@@ -211,7 +206,7 @@ The \emph{selection\_radio} returns one string selected by a key (for example, a
                       \\ \hline
  comments & Description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
+ visible    & Javascript expression evaluated as a boolean.
             & no \\ \hline
  values   & set of (key, value) pairs, where the key is the displayed text and the 
 value is the string returned, for example \texttt{"values": \{"black": "000000", "white": "FFFFFF"\}} & yes
@@ -219,13 +214,13 @@ value is the string returned, for example \texttt{"values": \{"black": "000000",
  default\_value & defines the default value for this parameter, should be one 
 the values defined in 'values'. & yes \\ \hline
  vertical & It is boolean value. The button distribution is vertical when the value is activated (true), otherwise, the visualization is horizontal as default. & no \\ \hline
-\caption{Fields that manages the properties of the \emph{selection\_radio} type.}
+\caption{Fields for the properties of the \emph{selection\_radio} type.}
 \end{longtable}
 
 \begin{figure}[h]
 \centering
 \tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.35]{Images/selection_radio_example.png}}
-\caption{Radio buttons example. In this case, the label description is Mode and the parameter offers two radio buttons. The vertical option is disabled.}
+\caption{Radio buttons example. The label description is Mode and the parameter offers two radio buttons. The vertical option is disabled.}
 \label{fig:selection_radio_example}
 \end{figure}
 
@@ -240,15 +235,15 @@ The \emph{label} type can be used to separate groups of parameters or to include
 \tabularnewline \hline \hline
  type  & label       & yes \\ \hline
  label & HTML text to display, as a single string or as an array of strings. & yes \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
+ visible    & Javascript expression evaluated as a boolean.
             & no \\ \hline
-\caption{Fields that manages the properties of the \emph{label} type.}
+\caption{Fields for the properties of the \emph{label} type.}
 \end{longtable}
 
 \begin{figure}[h]
 \centering
 \tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.30]{Images/label_example.png}}
-\caption{Label example. In this case, the label explains that the sliders below represent matrix values according to the image depicted in the label.}
+\caption{Label example. The label explains that the sliders below represent matrix values according to the image depicted in the label.}
 \label{fig:label_example}
 \end{figure}
 
@@ -267,7 +262,7 @@ The \emph{checkbox} type returns a boolean value. The user control is a checkbox
                       \\ \hline
  comments & A description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. & no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  default\_value & boolean: True for checked & \\ \hline
 \caption{Fields that manages the properties of the \emph{checkbox} type.}
 \end{longtable}
@@ -294,16 +289,15 @@ The \emph{numeric} type returns a numeric value validated against constraints (m
                       \\ \hline
  comments & A description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
-            & no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  values     & Set min, max, and default values using the following key/value scheme \texttt{"values": \{"min": -5, "max": 5, "default": 0\}} & yes \\ \hline
-\caption{Fields that manages the properties of the \emph{numeric} type.}
+\caption{Fields for the properties of the \emph{numeric} type.}
 \end{longtable}
 
 \begin{figure}[h!]
 \centering
 \tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.30]{Images/numeric_example.png}}
-\caption{Numeric example. In this case, the label explains that the sliders below represent matrix values according to the image depicted in the label.}
+\caption{Numeric example. The label explains that the sliders below represent matrix values according to the image depicted in the label.}
 \label{fig:numeric_example}
 \end{figure}
 
@@ -322,10 +316,9 @@ The \emph{text} type returns a string. The user control is an input field.
                       \\ \hline
  comments & A description of the parameter. It appears on the right side in the web interface. & no
                       \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.
-            & no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  values     & set maxlength in characters and default values using the following key/value scheme \texttt{"values": \{"maxlength": 3, "default": "fr"\}} & no \\ \hline
-\caption{Fields that manages the properties of the \emph{text} type.}
+\caption{Fields for the properties of the \emph{text} type.}
 \end{longtable}
 
 \begin{figure}[h]
@@ -365,24 +358,24 @@ Example of a DDL when using a text area. %\\
  label          & name and/or description of the parameter. It appears on the left side. & no \\ \hline
  id             & Used to identify the parameter. & yes \\ \hline
  default\_value  & Text to include in the text area & no \\ \hline
-visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.& no  \\\hline
+visible    & Javascript expression evaluated as a boolean. & no  \\\hline
 height  & Set the height of your textarea. The maximum value is 2000px.  & no \\ \hline
 width  & Set the width of your textarea. If you do not include the parameter it will be 100\%.  & no \\ \hline
 wrap   & This attribute specifies how the text in a text area is wrapped. False means that the line is not adapted to the textarea. True the opposite. & no \\ \hline
-\caption{Fields that manages the properties of the \emph{textarea} type.}
+\caption{Fields for the properties of the \emph{textarea} type.}
 \end{longtable}
 
 \begin{figure}[h!]
 \centering
 \tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.30]{Images/textarea_example.png}}
-\caption{textarea example. In this case, the label explains that the sliders below represent matrix values according to the image depicted in the label.}
+\caption{textarea example. The label explains that the sliders below represent matrix values according to the image depicted in the label.}
 \label{fig:textarea_example}
 \end{figure}
 
 \section{The \emph{params\_layout} section}
 
 The default layout of parameters is to stack them together within an 'HTML field'
-entitle 'Parameters:'. However, if a demo needs to group together some parameters,
+of title \emph{Parameters}. However, if a demo needs to group together some parameters,
 it can use a specific params\_layout section that contains an array of
 sets of parameters, where each set is defined by an array containing the group 
 title as the first element and the list of parameters ids as the second element,
@@ -397,36 +390,36 @@ where the parameters ids are their position in the params section (starting at 0
     ],
 \end{lstlisting}
 
+\ToDo{Add a figure showing this layout}
+
 %-------------------------------------------------------------------------------
 \section{The \emph{run} section}
 
-The \emph{run} section contains the shell command to run a demo. This command will be executed in an environment where the binaries defined by the build/copy subsection are available in the \$PATH. The input files defined in the \emph{input} section are available as arguments with a normalized name input\_\{0..n\}.\{extension\} (ex: input\_0.png). The parameters define in \emph{params} section are available by their id with a 
-\$ as a prefix (ex: "id": "width", \$width).
+The \emph{run} section specifies which script or binary needs to be called to run a demo, along with its parameters. The input files defined in the \emph{input} section are available as arguments with a normalized name input\_\{0..n\}.\{extension\} (ex: input\_0.png). The parameters define in \emph{params} section are available by their id with \$ as a prefix (ex: "id": "width", \$width).
 
 In this example, the demo is executed by the binary file jpegblocks (compiled and moved in the \emph{build} section), with input\_0.png as an input and \$block\_size as a parameter.
 \begin{lstlisting}[language=json,firstnumber=1]
   "run": "jpegblocks input_0.png $block_size"\end{lstlisting}
 
-Next, the execution is conducted by the run.sh script, provided in the optional demoextras.zip, with input\_0.png \$width for arguments.
+The execution is then passed to the \emph{run.sh} script, provided in the optional demoextras.zip, with input\_0.png \$width as arguments.
 \begin{lstlisting}[language=json,firstnumber=1]
-  "run": "${demoextras}/run.sh input_0.png $width"\end{lstlisting}
+  "run": "${demoextras}/run.sh input_0.png $width"
+\end{lstlisting}
 
 
 %-------------------------------------------------------------------------------
 \section{The \emph{archive} section}
 
-The \emph{archive} section defines the data (files, parameters, running time, etc.) to be stored for each experiment. The IPOL system will sort the results in the archive interface according to the order written in this section. The normal behaviour is to archive only the original data uploaded by the users. However, a demo editor can also allow to store all the experiments done without distinguish if this is original or not.
+The \emph{archive} section defines the data (files, parameters, running time, \dots) to be stored for each experiment performed with original data uploaded by the user. The normal behaviour is to archive only the original data uploaded by the users. However, a demo editor can also allow to store all the experiments done even if the data does not come from an upload (see the \emph{archive\_always} field).
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.28\linewidth}|L{\dimexpr 0.6\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
- files    & (key,value) pairs where key is the file to archive and value is the associated text information. & no \\ \hline
+ files    & (key, value) pairs where key is the file to archive and value is the name. & no \\ \hline
 hidden\_files    & This field contains files as in the above one. This is used to store files required for a correct reconstruction of an experiment but that the demo editor does not want to show in the archive. & no \\ \hline            
- compressed\_\-files   & Compressed files to archive. These files will be stored in a similar way to the other files. & no \\ \hline
- params  & List of parameters to archive. The system maintains the order of the list. & no \\ \hline
- info    & info variables to archive. & no \\ \hline
- enable\_reconstruct & Enable a button to reconstruct an experiment stored in the archive. & no \\ \hline
+ params  & List of parameters to archive. & no \\ \hline
+ enable\_reconstruct & Show a button to reconstruct an experiment stored in the archive. & no \\ \hline
  archive\_always     & The archive will store the experiments even if they are performed with the data proposed by the demo (if the private mode is not set). & no \\ \hline
 \caption{The \emph{archive} section, properties}
 \end{longtable}
@@ -455,7 +448,7 @@ Here, we see DDL's needed to activate the reconstruct and archive\_always option
 %-------------------------------------------------------------------------------
 \section{The \emph{results} section}
 
-The results section controls the resources to display as a result of an experiment. It is an array of sets, where each entry describes one type of output from the algorithm. There are displayed sequentially one below the other, apart from warnings that are displayed at the top of the page. 
+The results specifies what to display as a result of an experiment. It is an array of sets, where each entry describes one type of output from the algorithm. There are displayed sequentially one below the other.
 
 %------ gallery  ------
 \subsection{The \emph{gallery} type}
@@ -467,8 +460,7 @@ The results \emph{gallery} type displays images. These ones can be displayed in 
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery  & yes \\ \hline
- visible    & A Javascript expression evaluated as a boolean, hides the item if
-              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean. & no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated. & no \\ \hline
  contents   & A set of sets, each entry describes one or more images with a key and properties:
@@ -481,10 +473,10 @@ The results \emph{gallery} type displays images. These ones can be displayed in 
     \item \textit{repeat}, optional, a Javascript expression, will create a loop in the form idx=0..range-1
 \end{itemize} 
 \vspace{-1em} & yes \\ \hline
- options    & A set of (key,value) pairs. Currently
+ options    & A set of (key, value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              mininal size of image display. & no \\ \hline
-\caption{Properties respect to the \emph{gallery} type in the results section.}
+              minimal size of image display. & no \\ \hline
+\caption{Properties of the \emph{gallery} type in the results section.}
 \end{longtable}
 
 \paragraph{Example:}
@@ -530,8 +522,7 @@ The results \emph{gallery\_video} type displays video files. This type is quite 
  \centering {key}     & \centering {\bf description} & {\bf req} 
 \tabularnewline \hline \hline
  type       & gallery\_video  & yes \\ \hline
- visible    & A Javascript expression evaluated as a boolean, hides the item if
-              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean. & no \\ \hline
  label      & HTML label for the gallery, can be either a single string or 
              a list of string that will be concatenated. & no \\ \hline
  contents   & A set of sets, each entry describes one or more images with a key and properties:
@@ -544,10 +535,10 @@ The results \emph{gallery\_video} type displays video files. This type is quite 
     \item \textit{repeat}, optional, a Javascript expression, will create a loop in the form idx=0..range-1
 \end{itemize} 
 \vspace{-1em} & yes \\ \hline
- options    & A set of (key,value) pairs. Currently
+ options    & A set of (key, value) pairs. Currently
               'minwidth' and 'minheight' (in pixels) options are available to force
-              mininal size of video display. & no \\ \hline
-\caption{Properties respect to the \emph{gallery\_video} type in the results section.}
+              minimal size of video display. & no \\ \hline
+\caption{Properties of the \emph{gallery\_video} type in the results section.}
 \end{longtable}
 
 \paragraph{Examples:}
@@ -583,8 +574,7 @@ The results \emph{file\_download} type proposes a link to download a file.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & file\_download  & yes \\ \hline
- visible    & A Javascript expression evaluated as a boolean, hides the item if
-              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean. & no \\ \hline
  repeat    & range expression (evaluated in Javascript):
               will create a loop in the form idx=0..range-1 & no \\ \hline
  label     & HTML title associated to the file to download. In case of repeat, 
@@ -593,10 +583,10 @@ The results \emph{file\_download} type proposes a link to download a file.
  contents  & either a single string of the filename to download, or a list
               of label:filename pairs for files to download. In case of repeat, 
             evaluated as an expression with idx variable. & yes \\ \hline
-\caption{Properties respect to the \emph{file\_download} type in the results section.}
+\caption{Properties of the \emph{file\_download} type in the results section.}
 \end{longtable}
 
-Next, we show two examples: the first one is to download one result while the second is to download several results in the same line.
+We show two examples: the first one is to download one result and the second is to download several results in the same line.
 
 \paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
@@ -618,7 +608,7 @@ Next, we show two examples: the first one is to download one result while the se
     }
 }
 \end{lstlisting}
-Example using 'repeat':
+Example using \emph{repeat}:
 \begin{lstlisting}[language=json,firstnumber=1]
 { 
     "type"     : "file_download", 
@@ -631,19 +621,18 @@ Example using 'repeat':
 %------ html_text  ------
 \subsection{ \emph{html\_text} type}
 
-The results \emph{html\_text} type displays an html file.
+It \emph{html\_text} renders the contents of a file as HTML code.
 
 \begin{longtable}{|>{\bf}L{\dimexpr 0.15\linewidth}|L{\dimexpr 0.7\linewidth}|c|}
 \hline
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & html\_text  & yes \\ \hline
- visible    & A Javascript expression evaluated as a boolean, hides the item if
-              strictly equals to false (if equals to undefined, the item is still visible).& no \\ \hline
+ visible    & A Javascript expression evaluated as a boolean. & no \\ \hline
  contents  & An array of strings, that will be concatenated to form the HTML 
              content. This content can contain Javascript expression if it starts
             with a single quote. & yes \\ \hline
-\caption{Properties respect to the \emph{html\_text} type in the results section.}
+\caption{Properties of the \emph{html\_text} type in the results section.}
 \end{longtable}
 
 \paragraph{Example}:\\
@@ -671,12 +660,12 @@ The results \emph{text\_file} type displays a text file.
 \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type      & text\_file  & yes \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.& no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  label     & HTML label. & yes \\ \hline
  contents  & A text filename to display. & yes \\ \hline
  style     & CSS rules written in a JSON string, ex 
              \texttt{"style": "\{'font-weight': 'bolder', 'color': 'red'\}"} & yes \\ \hline
-\caption{Properties respect to the \emph{text\_file} type in the results section.}
+\caption{Properties of the \emph{text\_file} type in the results section.}
 \end{longtable}
 
 \paragraph{Example}:\\
@@ -701,10 +690,10 @@ used for warning or error messages.
  \centering {key}     & \centering {\bf description} & {\bf req} \tabularnewline 
 \hline \hline
  type       & message  & yes \\ \hline
- visible    & Javascript expression evaluated as a boolean. This field hides the parameter if the condition is strictly fulfilled. It can also evaluate several conditions.& no \\ \hline
+ visible    & Javascript expression evaluated as a boolean. & no \\ \hline
  contents   & A string which will be evaluated by Javascript to get the message. & yes \\ \hline
  textColor  & The name of a color or a CSS-compatible color. & no \\ \hline
-\caption{Properties respect to the \emph{message} type in the results section.}
+\caption{Properties of the \emph{message} type in the results section.}
 \end{longtable}
 
 \paragraph{Examples}:\\
