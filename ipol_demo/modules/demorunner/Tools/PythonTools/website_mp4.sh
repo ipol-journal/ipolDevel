@@ -25,4 +25,4 @@ output=$2
 
 # -y: overwrite output without asking
 # -an: drop audio
-ffmpeg -i "$1" -y -an -c:v libx264 -crf 1 "$2"
+avconv -i "$1" -y -an -c:v libx264 -crf 1 "$2"
