@@ -26,7 +26,6 @@ parameters.printParameters = function() {
         printParameter(param, i);
       } else console.error(param.type + ' param type is not correct');
     }
-    if (demoInfo.params_layout) addLayout();
   }
 }
 
@@ -125,9 +124,3 @@ function checkVisibility(param) {
   else $('.' + param.id).removeClass('di-none');
 }
 
-// Print upper the layout items the layout header.
-$.fn.addLayoutHeader = function(label) {
-  $("<div class=label-param></div>").insertBefore($(this))
-    .addClass('param-container')
-    .append('<h3>' + label + '</h3>');
-}
