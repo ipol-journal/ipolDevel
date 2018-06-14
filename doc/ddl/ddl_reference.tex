@@ -372,27 +372,6 @@ wrap   & This attribute specifies how the text in a text area is wrapped. False 
 \label{fig:textarea_example}
 \end{figure}
 
-\section{The \emph{params\_layout} section}
-
-The default layout of parameters is to stack them together within an 'HTML field' of title \emph{Parameters}. However, if a demo needs to group together some parameters, it can use a specific params\_layout section that contains an array of sets of parameters, where each set is defined by an array containing the group 
-title as the first element and the list of parameters ids as the second element, where the parameters ids are their position in the params section (starting at 0).
-
-\paragraph{Examples}:\\
-\begin{lstlisting}[language=json,firstnumber=1]
-"params_layout": [
-		  ["Epipolar", [0, 1 ]],
-		  ["Methods :", [2]],
-      ["Weights :", [4]]
-],
-\end{lstlisting}
-
-\begin{figure}[h!]
-\centering
-\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.25]{Images/params_layout_example.png}}
-\caption{params\_layout example. It has been used to separate the parameters with different labels.}
-\label{fig:params_layout}
-\end{figure}
-
 %-------------------------------------------------------------------------------
 \section{The \emph{run} section}
 
