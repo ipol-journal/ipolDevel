@@ -193,8 +193,8 @@ class Conversion(object):
             input_list = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
-            i = 0
-            for input_desc in input_list:
+            
+            for i, input_desc in enumerate(input_list):
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
                 # Search for a file for this input
@@ -224,7 +224,6 @@ class Conversion(object):
                     info[i]['code'] = self.convert_video(input_file, input_desc)
                 else:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
-                i += 1
 
         except IPOLConvertInputError as ex:
             self.logger.exception(ex)
