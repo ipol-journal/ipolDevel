@@ -1,8 +1,8 @@
 #!/bin/sh
 
-################################################
-#  Convert a list of frames into an MP4 video  #
-################################################
+#########################################################################
+#  Convert a list of frames into an lossless Huffman-encoded AVI video  #
+#########################################################################
 
 # Example:
 # ./frames_to_avi_huff.sh input_0/frame_%05d.png 25 spiderman.avi
