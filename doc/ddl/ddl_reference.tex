@@ -374,23 +374,24 @@ wrap   & This attribute specifies how the text in a text area is wrapped. False 
 
 \section{The \emph{params\_layout} section}
 
-The default layout of parameters is to stack them together within an 'HTML field'
-of title \emph{Parameters}. However, if a demo needs to group together some parameters,
-it can use a specific params\_layout section that contains an array of
-sets of parameters, where each set is defined by an array containing the group 
-title as the first element and the list of parameters ids as the second element,
-where the parameters ids are their position in the params section (starting at 0).
+The default layout of parameters is to stack them together within an 'HTML field' of title \emph{Parameters}. However, if a demo needs to group together some parameters, it can use a specific params\_layout section that contains an array of sets of parameters, where each set is defined by an array containing the group 
+title as the first element and the list of parameters ids as the second element, where the parameters ids are their position in the params section (starting at 0).
 
 \paragraph{Examples}:\\
 \begin{lstlisting}[language=json,firstnumber=1]
-  "params_layout": [
-        [ "General parameters:",          [ 0,1]  ],
-        [ "Sampled Gaussian kernel",      [2]     ],
-        [ "Lindeberg's smoothing method", [3]     ]
-    ],
+"params_layout": [
+		  ["Epipolar", [0, 1 ]],
+		  ["Methods :", [2]],
+      ["Weights :", [4]]
+],
 \end{lstlisting}
 
-\ToDo{Add a figure showing this layout}
+\begin{figure}[h!]
+\centering
+\tcbox[sharp corners, boxsep=0.0mm, boxrule=0.5mm, colback=white]{\includegraphics[scale=0.30]{Images/params_layout_example.png}}
+\caption{params\_layout example. It has been used to separate the parameters with different labels.}
+\label{fig:params_layout}
+\end{figure}
 
 %-------------------------------------------------------------------------------
 \section{The \emph{run} section}
