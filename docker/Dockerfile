@@ -1,9 +1,5 @@
 FROM debian:stable
 
-ENV home /home/ipol
-ENV ipolDevel ~/ipolDevel
-ENV host docker
-
 # ipol user config
 RUN useradd -ms /bin/zsh ipol
 RUN adduser ipol sudo
@@ -47,8 +43,6 @@ COPY ./ipol_demo/modules/config_common/authorized_patterns.conf.sample ~/ipolDev
 RUN ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""  && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && chmod og-wx ~/.ssh/authorized_keys
 USER root
 
-
 EXPOSE 80
-EXPOSE 22
 
 ENTRYPOINT service ssh start && nginx && zsh

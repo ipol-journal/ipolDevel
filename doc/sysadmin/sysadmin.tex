@@ -562,14 +562,14 @@ With this command we will have docker create an image from the Dockerfile in the
 
 \paragraph{Docker run}:\\
 \begin{lstlisting}[firstnumber=1,breaklines]
-  $ docker run -it -v $(pwd):/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
+  $ docker run -it -v ./ipolDevel:/home/ipol/ipolDevel -p 80:80 -h docker --add-host docker:127.0.0.1 --name ipol ipol
 \end{lstlisting}
 
 This command will create a container and log us in the terminal. Explanation:
 \begin{itemize}
   \item docker run: command to create a container
   \item -it: makes the container interactive and attaches to a tty or terminal.
-  \item -v \$(pwd):/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
+  \item -v ./ipolDevel:/home/ipol/ipolDevel: Creates a volume to share the project folder between the container and the host machine.
   \item -p 80:80: exposes port 80 in the container and links it to port 80 in the host machine.
   \item -h docker: defines the container's hostname
   \item --add-host docker:127.0.0.1: adds an entry to /etc/hosts mapping 127.0.0.1 to the host
