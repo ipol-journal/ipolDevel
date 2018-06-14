@@ -76,7 +76,7 @@ class Video(object):
                 break
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_AREA)
-            im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:03d}.png'.format(frame_number)), frame)
+            im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
             if not im:
                 raise IPOLConvertInputError('Conversion error, frame could not be written to the file')
 
