@@ -125,17 +125,21 @@ class ConversionImageTests(unittest.TestCase):
         code = None
         try:
             ext = '.bmp'
-            input_file = os.path.split(self.blob_path)[0]
+            input_dir = os.path.split(self.blob_path)[0]
+            src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             crop_info = None
-            response = self.convert(input_file, input_desc, crop_info)
+            response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_path)
+            os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
+            self.assertTrue((src_im.data == dst_im.data).all(), msg="Changing image extension has change the data.")
 
     def test_convert_image_that_do_not_need_conversion(self):
         """
@@ -145,11 +149,11 @@ class ConversionImageTests(unittest.TestCase):
         code = None
         try:
             ext = '.png'
-            input_file = os.path.split(self.blob_path)[0]
+            input_dir = os.path.split(self.blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             crop_info = None
-            response = self.convert(input_file, input_desc, crop_info)
+            response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
             os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
@@ -165,16 +169,21 @@ class ConversionImageTests(unittest.TestCase):
         code = None
         try:
             ext = '.png'
-            input_file = os.path.split(self.blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '150', 'ext': ext,
+            input_dir = os.path.split(self.blob_path)[0]
+            max_pixels = 150
+            input_desc = [{'description': 'input', 'max_pixels': max_pixels, 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
-            response = self.convert(input_file, input_desc, None)
+            response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_path)
+            dst_pixels = dst_im.width() * dst_im.height()
+            os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
+            self.assertTrue(dst_pixels < max_pixels, msg="Input image has not be reduced under max_pixels {} >= {}".format(dst_pixels, max_pixels))
 
     def test_convert_resize_image_with_crop(self):
         """
@@ -184,17 +193,25 @@ class ConversionImageTests(unittest.TestCase):
         code = None
         try:
             ext = '.png'
-            input_file = os.path.split(self.blob_path)[0]
+            input_dir = os.path.split(self.blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
-            crop_info = json.dumps({"x":81, "y":9.2, "width":105, "height":79.6, "rotate":0, "scaleX":1, "scaleY":1})
-            response = self.convert(input_file, input_desc, crop_info)
+            width = 105
+            height = 79.6
+            crop_info = json.dumps({"x":81, "y":9.2, "width": width, "height": height, "rotate":0, "scaleX":1, "scaleY":1})
+            response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_path)
+            os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
+            self.assertTrue(
+                dst_im.width() == round(width) and dst_im.height() == round(height),
+                msg="Input image {}x{} has not be cropped to {}x{}".format(dst_im.width(), dst_im.height(), width, height)
+            )
 
     def test_convert_conversion_needed_but_forbiden(self):
         """
@@ -203,17 +220,21 @@ class ConversionImageTests(unittest.TestCase):
         status = None
         code = None
         try:
+            src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
             ext = '.png'
-            input_file = os.path.split(self.blob_path)[0]
+            input_dir = os.path.split(self.blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '10 * 9', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
-            response = self.convert(input_file, input_desc, None)
+            response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_path)
+            os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '2')
+            self.assertTrue((src_im.data == dst_im.data).all(), msg="Preprocess is forbidden but the image data have been modified.")
 
     def test_convert_conversion_not_needed_and_forbiden(self):
         """
@@ -222,17 +243,21 @@ class ConversionImageTests(unittest.TestCase):
         status = None
         code = None
         try:
+            src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
             ext = '.png'
-            input_file = os.path.split(self.blob_path)[0]
+            input_dir = os.path.split(self.blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
-            response = self.convert(input_file, input_desc, None)
+            response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_path)
+            os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '0')
+            self.assertTrue((src_im.data == dst_im.data).all(), msg="Preprocess is forbidden but the image data have been modified.")
 
     ####################
     #      TOOLS       #
@@ -245,11 +270,11 @@ class ConversionImageTests(unittest.TestCase):
         url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
         return requests.post(url, params=params, data=data, files=files, json=servicejson)
 
-    def convert(self, input_file, input_desc, crop_info):
+    def convert(self, input_dir, input_desc, crop_info):
         """
         Calls the convert method in the conversion module
         """
-        params = {'work_dir': input_file, 'inputs_description': json.dumps(input_desc), 'crop_info': crop_info}
+        params = {'work_dir': input_dir, 'inputs_description': json.dumps(input_desc), 'crop_info': crop_info}
         response = self.post(self.module, 'convert', params=params)
         return response.json()
 
