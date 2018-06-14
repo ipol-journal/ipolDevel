@@ -86,7 +86,7 @@ class Video(object):
         """
         self.validate_max_frames(max_frames)
 
-        ffmpeg_command = "ffmpeg -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path) #ffmpeg base command line
+        ffmpeg_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
         max_pixels = evaluate(max_pixels)
         ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
 
