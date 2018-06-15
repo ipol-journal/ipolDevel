@@ -129,5 +129,5 @@ STATIC_ROOT = '/home/ipol/ipolDevel/cp2/ControlPanel/static_cp/'
 INTERNAL_IPS = []
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static_cp"),
+    os.path.join(BASE_DIR, "static"),
 ]

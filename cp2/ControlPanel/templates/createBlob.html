@@ -1,0 +1,106 @@
+{% extends "base.html" %} {% block title %}createBlob{% endblock %} {% block bodyid %}createBlob{% endblock %} {% block header %}
+<h2>Add Blob to Template<p id="nameOfTemplate"></p></h2>
+{% endblock %} {% block content %}
+<div>
+    <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+    <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+</div>
+<form id="createBlobForm">
+    {% csrf_token %}
+    <p>
+        <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()"/>
+    </p>
+    <p>
+        <label>Title</label><input type="text" id="Title">
+    </p>
+    <p>
+        <label>SET</label><input type="text" id="SET">
+    </p>
+    <p>
+        <label>Position in set</label><input type="text" id="PositionSet">
+    </p>
+    <p>
+        <label>Credit</label><input type="text" id="Credit">
+    </p>
+    <p>
+        <label>Tags</label><input type="text" id="Tags">
+    </p>
+    <p>
+        <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
+    </p>
+<button id="ButtonAddBlob">SAVE</button>
+</form>
+<a id="GoPreviousPage" href="">Go Previous Page</a>
+{% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+<script type="text/javascript">
+var VRImage;
+var blobImage;
+var templateSelection = getParameterByName('template');
+//Rajoute le nameoftemplate en titre sur la page 
+document.getElementById("nameOfTemplate").innerHTML = templateSelection;
+$("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
+// $(document).ready(function() {
+//     $("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
+//     });
+
+// $(document).ready(function() {
+//     $("#ButtonAddBlob").click(addBlob);
+// });
+
+// $(".submitbtn").on("click", function(e) {
+
+// var form = $("#Form");
+
+// // you can't pass Jquery form it has to be javascript form object
+// var formData = new FormData(form[0]);
+
+ //<img src=blob.jpg  <img src=blob.jpg onError=setBrokenImage(this)> > 
+// $("form#createBlobForm").submit( function (e) {
+//     var formData = new FormData();
+//     for (var value of formData.values()) {
+//    console.log(value); 
+// }
+var form = document.getElementById('createBlobForm');
+//Je peux créer plusieurs fois le même blob 
+form.onsubmit = function (e) {
+    e.preventDefault();
+    var formData = new FormData();
+    formData.append('Title', $('#Title').val());
+    formData.append('SET' , $('#SET').val());
+    formData.append('PositionSet', $('#PositionSet').val());
+    formData.append('Credit', $('#Credit').val());
+    formData.append('Tags', $('#Tags').val());
+    formData.append('TemplateSelection', templateSelection);
+    formData.append('Blobs', blobImage, blobImage.name);
+    if (VRImage) {
+        formData.append('VR', VRImage, VRImage.name);
+    }
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    $.ajax({
+        url: 'createBlob/ajax',
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        type: 'POST',
+        dataType : 'json',
+        success: function(data) {
+            if (data.status === 'OK') {
+                alert("Redirection Templates List...")
+                document.location.href = "/cp2/showTemplates?template="+templateSelection
+            } else {
+                alert("Error to add this Blob to the Template")
+            }
+        },
+    })
+};
+</script>
+{% endblock %}

@@ -1,0 +1,156 @@
+ {% extends "base.html" %} {% block title %}showDemo{% endblock %} {% block bodyid %}showDemo{% endblock %} {% block header %}
+<h2>
+    Demo Editor
+</h2>
+<style type="text/css" media="screen">
+    .ace_editor {
+        border: 1px solid lightgray;
+        margin: auto;
+        height: 200px;
+        width: 80%;
+    }
+    
+    .scrollmargin {
+        height: 80px;
+        text-align: center;
+    }
+</style>
+<div id="headerShowDemo">
+    <h3>
+        Demo ID : <span id="demo_id"></span>
+    </h3>
+    <h3>
+        Title : <span id="title"></span>
+    </h3>
+</div>
+{% endblock %} {% block content %}
+<div id="ddlDemo">
+    <p> DDL :</p>
+    <p>Press Ctrl+F to search</p>
+    <div>
+        <pre id="editor2"></pre>
+        <div class="scrollmargin"></div>
+    </div>
+    <div>
+        <button id="changeThemeWhite">White Theme</button>
+        <button id="changeThemeDark">Dark Theme</button>
+    </div>
+    <div class="optionLine">
+        <div>
+            <h4>Editors/Authors:</h4>
+            <a href="">Editors</a><a href="">Authors</a>
+        </div>
+        <div>
+            <h4>Demo Extras:</h4>
+            <a id="demoExtras" href="">Demo Extras</a>
+        </div>
+        <div>
+            <h4>Archives:</h4>
+            <a href="">Archives</a>
+        </div>
+        <div>
+            <h4>Blobs:</h4>
+            <a id="showBlobsDemo" href="" >Blobs</a>
+        </div>
+    </div>
+    <div>
+        <a id="GoPreviousPage" href="/cp2">Go Previous Page</a>
+    </div>
+</div>
+<pre id="editor3"></pre>
+<div class="scrollmargin"></div>
+
+
+
+{% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+<script>
+    var section = document.querySelector('section');
+    var demo_id = getParameterByName('demo_id');
+    var title = getParameterByName('title');
+    var modification = getParameterByName('modification');
+    var state = getParameterByName('state');
+    document.getElementById("demo_id").innerHTML = demo_id;
+    document.getElementById("title").innerHTML = title;
+    $("#showBlobsDemo").attr('href', '/cp2/showBlobsDemo?demo_id='+demo_id+"&title="+title+"&modification="+modification+"&state="+state);
+    $("#demoExtras").attr('href', '/cp2/demoExtras?demo_id='+demo_id+"&title="+title+"&modification="+modification+"&state="+state);
+
+
+
+
+    $(document).ready(function() {
+        showDDL();
+    });
+
+    $("#changeThemeWhite").click(function() {
+        editor2.setTheme("");
+    });
+
+    $("#changeThemeDark").click(function() {
+        editor2.setTheme("ace/theme/tomorrow_night_blue");
+    });
+
+    var editor2 = ace.edit("editor2", {
+        //theme: "ace/theme/tomorrow_night_blue",
+        mode: "ace/mode/json",
+        autoScrollEditorIntoView: true,
+        maxLines: 20,
+    });
+    editor2.renderer.setScrollMargin(20, 20, 20, 20);
+
+    //editor2.setTheme("");
+
+    //editor2.setValue("");
+
+    // var editor = ace.edit("editor");
+    // editor.setTheme("ace/theme/tomorrow");
+    // editor.session.setMode("ace/mode/html");
+    // editor.setAutoScrollEditorIntoView(true);
+    // editor.setOption("maxLines", 100);
+
+    function showDDL() {
+        $.ajax({
+            data: ({
+                demoID: demo_id,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            }),
+            type: 'POST',
+            dataType: 'json',
+            url: 'showDemo/ajax_showDDL',
+            success: function(data) {
+                if (data.status === 'OK') {
+                    // var myDiv1 = document.createElement('div');
+                    // myDiv1.setAttribute("id","ddlDemo");
+                    // section.appendChild(myDiv1);
+                    var demoString = JSON.stringify(data.last_demodescription);
+                    //document.getElementById("ddlDemo").innerHTML = demoString;
+                    document.getElementById('editor2').style.fontSize = '15px';
+                    editor2.setValue(data.last_demodescription.ddl);
+                } else {
+                    alert("Error to show the DDL of this Demo")
+                }
+            },
+        });
+    };
+
+
+
+    //searching
+    // editor.find('needle',{
+    //     backwards: false,
+    //     wrap: false,
+    //     caseSensitive: false,
+    //     wholeWord: false,
+    //     regExp: false
+    // });
+    // editor.findNext();
+    // editor.findPrevious();
+</script>
+{% endblock %}

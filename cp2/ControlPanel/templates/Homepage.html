@@ -70,7 +70,9 @@
         var demoList = jsonObj['demo_list'];
 
         for (var i = 0; i < demoList.length; i++) {
-            var myArticle = document.createElement('article');
+            var myArticle = document.createElement('a');
+            myArticle.setAttribute("href", "/cp2/showDemo?demo_id="+demoList[i].editorsdemoid+"&title="+demoList[i].title+"&modification="+demoList[i].modification+"&state="+demoList[i].state);
+            myArticle.setAttribute("class", "listOfDemo")
             var myH2 = document.createElement('ul');
             var myPara1 = document.createElement('li');
             var myPara2 = document.createElement('li');
@@ -91,7 +93,7 @@
     }
 
     function cleanDemos() {
-        $("article").remove();
+        $(".listOfDemo").remove();
     }
 
     function cleanPagination() {

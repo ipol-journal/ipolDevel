@@ -10,6 +10,11 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/cp2/static/js/functions.js"></script>
+    <!--<script type="text/javascript" src="/cp2/static/js/require_js.js"></script>-->
+    <!--<script type="text/javascript" src="/cp2/static/js/demo_edition.js"></script>-->
+    <!--<script type="text/javascript" src="/cp2/static/ace/mode_json.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.3/ace.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body id="{% block bodyid %}genericpage{% endblock %}">
@@ -18,7 +23,7 @@
         {% block header %}{% endblock %}
     </header>
     <section id="content">
-        {% block content %}{% endblock %} {% block js %}{% endblock %}
+        {% block content %}{% endblock %}
     </section>
     <footer>
         {% block footer %}{% endblock %}

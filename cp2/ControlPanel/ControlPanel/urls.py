@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url
-from ControlPanel.view import Homepage, loginPage, signout, logoff, status, addDemo, ajax_add_demo, templates, showTemplates, ajax_add_template
+from ControlPanel.view import Homepage, loginPage, signout, logoff, status, addDemo, ajax_add_demo, templates, showTemplates, ajax_add_template, ajax_delete_blob, ajax_delete_template, CreateBlob, ajax_add_blob, detailsBlob, ajax_edit_blob_template, showDemo, ajax_show_DDL, showBlobsDemo, demoExtras, ajax_add_template_to_demo, ajax_remove_template_to_demo
 
 
 urlpatterns = [
@@ -31,4 +31,17 @@ urlpatterns = [
     path('cp2/templates', templates),
     path('cp2/templates/ajax', ajax_add_template),
     path('cp2/showTemplates', showTemplates),
+    path('cp2/showTemplates/ajax', ajax_delete_blob),
+    path('cp2/showTemplates/ajax_delete_template', ajax_delete_template),
+    path('cp2/createBlob', CreateBlob),
+    path('cp2/createBlob/ajax', ajax_add_blob),
+    path('cp2/detailsBlob', detailsBlob),
+    path('cp2/detailsBlob/ajax', ajax_edit_blob_template),
+    path('cp2/showDemo', showDemo),
+    path('cp2/showDemo/ajax_showDDL', ajax_show_DDL),
+    path('cp2/showBlobsDemo', showBlobsDemo),
+    path('cp2/demoExtras', demoExtras),
+    path('cp2/showBlobsDemo/ajax_add_template_to_demo', ajax_add_template_to_demo),
+    path('cp2/showBlobsDemo/ajax_remove_template_to_demo', ajax_remove_template_to_demo),
 ]
+

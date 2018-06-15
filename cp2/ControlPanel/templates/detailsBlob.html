@@ -1,0 +1,102 @@
+{% extends "base.html" %} {% block title %}detailsBlob{% endblock %} {% block bodyid %}detailsBlob{% endblock %} {% block header %}
+{% endblock %} {% block content %}
+<div>
+    <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
+    <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
+</div>
+<form id="editBlobForm">
+    {% csrf_token %}
+    <p>
+        <label>Title</label><input type="text" id="Title" value= "" >
+    </p>
+    <p>
+        <label>SET</label><input type="text" id="SET" value= "">
+    </p>
+    <p>
+        <label>Position in set</label><input type="text" id="PositionSet" value= "">
+    </p>
+    <p>
+        <label>Credit</label><input type="text" id="Credit" value= "">
+    </p>
+    <p>
+        <label>Tags</label><input type="text" id="Tags"value = "">
+    </p>
+    <p>
+        <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
+    </p>
+<button id="ButtonAddBlob">SAVE</button>
+</form>
+<a id="GoPreviousPage" href="">Go Previous Page</a>
+{% endblock %} {% block footer %}
+<nav id="footer" class="navbar_default">
+    <a class="navbar_brand" href="/cp2">
+        <img src="/cp2/static/images/IPOL-header-logo.png"></a>
+    <ul class="navbar">
+        <li class="nav-footer"><a href="/cp2/templates">Templates</a></li>
+        <li class="nav-footer"><a href="/cp2/status">Status</a></li>
+    </ul>
+</nav>
+<script>
+//http://127.0.0.1/api/blobs/edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,new_pos_set=None, title=None, credit=None, vr=None)
+
+var VRImage;
+var completeURL = document.location.href;
+var decoded = decodeURI(completeURL);
+var title = getParameterByName('title');
+var set = getParameterByName('set');
+var pos = getParameterByName('pos');
+var credit = getParameterByName('credit');
+var tags = getParameterByName('tags');
+var thumbnail_vr = getParameterByName('thumbnail');
+var templateSelection = getParameterByName('template')
+var blob = getParameterByName('blob');""
+
+
+document.getElementById("Title").value = title;
+document.getElementById("SET").value = set;
+document.getElementById("PositionSet").value = pos;
+document.getElementById("Credit").value = credit;
+document.getElementById("Tags").value = tags;
+document.getElementById("thumbnail_vr").src = thumbnail_vr;
+document.getElementById("thumbnail").src = blob;
+document.getElementById("GoPreviousPage").href = "/cp2/showTemplates?template="+templateSelection;
+
+
+
+var form = document.getElementById('editBlobForm');
+form.onsubmit = function (e) {
+    e.preventDefault();
+    var formData = new FormData();
+    formData.append('old_set', set)
+    formData.append('old_pos', pos)
+    formData.append('Title', $('#Title').val());
+    formData.append('SET' , $('#SET').val());
+    formData.append('PositionSet', $('#PositionSet').val());
+    formData.append('Credit', $('#Credit').val());
+    formData.append('Tags', $('#Tags').val());
+    formData.append('TemplateSelection', templateSelection);
+    if (VRImage) {
+        formData.append('VR', VRImage, VRImage.name);
+    }
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    $.ajax({
+        url: 'detailsBlob/ajax',
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        type: 'POST',
+        dataType : 'json',
+        success: function(data) {
+            if (data.status === 'OK') {
+                alert("Redirection Templates List...")
+                document.location.href = "/cp2/showTemplates?template="+templateSelection
+            } else {
+                alert("Error to add this Blob to the Template")
+            }
+        },
+    })
+};
+
+</script>
+{% endblock %}

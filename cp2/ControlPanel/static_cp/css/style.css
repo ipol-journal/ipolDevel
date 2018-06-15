@@ -163,7 +163,6 @@ input[type="checkbox"] {
 }
 
 #footer {
-    height: 90px;
     background-color: #f8f8f8;
     border-color: #e7e7e7;
     position: fixed;
@@ -182,7 +181,6 @@ input[type="checkbox"] {
     font-size: 18px;
     line-height: 20px;
     padding: 6px 10px;
-    margin: 5px auto;
 }
 
 .navbar_default {
@@ -230,7 +228,7 @@ ul.navbar li {
     float: left;
     margin-right: 30px;
     margin-left: 50px;
-    padding-top: 15px;
+    padding-top: 10px;
     font-size: 20px;
 }
 
@@ -257,7 +255,7 @@ ul.navbar li {
     position: relative;
     margin-right: 15%;
 }
-
+/*
 article li {
     display: inline;
     list-style: none;
@@ -267,7 +265,7 @@ article li {
 article ul {
     position : center;
 }
-
+*/
 #content {
     margin: 0 0 7em 0;
 }
@@ -489,3 +487,33 @@ input#id_Title {
     color : #fff;
     font-size: 16px;
  }
+
+ div#headerShowDemo {
+     display : inline;
+     position : flex;
+ }
+
+ .optionLine {
+     display : inline-flex;
+ }
+
+ #editor2 {
+     z-index: 0;
+ }
+
+ div.block {
+     margin-left: 15px;
+     margin-top : 20px;
+     clear : both;
+ }
+ div.image_files {
+     display : flex-start;
+     float : left;
+     margin-right: 25px;
+ }
+
+.ButtonDelete {
+    margin-bottom: 20px;
+}
+
+ 

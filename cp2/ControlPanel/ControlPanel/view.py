@@ -82,10 +82,163 @@ def ajax_add_template(request):
         return HttpResponse(json.dumps(response), 'application/json')
     else :
         response['status'] = 'OK'
-        return HttpResponse(json.dumps(response, 'application/json'))
+        return HttpResponse(json.dumps(response), 'application/json')
 
-@login_required(login_url='/cp2/loginPage')
 def showTemplates(request):
     return render(request, 'showTemplates.html')
 
+@login_required(login_url = '/cp2/loginPage')
+@csrf_protect
+def ajax_delete_blob(request):
+    template_name = request.POST['template_name']
+    pos_set = request.POST['pos_set']
+    blob_set = request.POST['blob_set']
+    response = {}
+    settings = {'template_name' : template_name, 'blob_set' : blob_set, 'pos_set' : pos_set }
+    response_api = requests.post("http://127.0.0.1/api/blobs/remove_blob_from_template", params = settings)
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
 
+@login_required(login_url = '/cp2/loginPage')
+def ajax_delete_template(request):
+    template_name = request.POST['template_name']
+    response = {}
+    settings = {'template_name' : template_name }
+    response_api = requests.post("http://127.0.0.1/api/blobs/delete_template", params = settings)
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
+        
+
+@login_required(login_url='/cp2/loginPage')
+def CreateBlob(request):
+    return render(request, 'createBlob.html')
+
+@login_required(login_url = '/cp2/loginPage')
+def ajax_add_blob(request):
+    tags = request.POST['Tags']
+    blob_set = request.POST['SET']
+    pos_set = request.POST['PositionSet']
+    title = request.POST['Title']
+    credit = request.POST['Credit']
+    template_name = request.POST['TemplateSelection']
+    files = {'blob': request.FILES['Blobs'].file}
+    if 'VR' in request.FILES:
+        files['blob_vr'] = request.FILES['VR'].file
+
+    response = {}
+    settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+    response_api = requests.post("http://127.0.0.1/api/blobs/add_blob_to_template", params = settings, files = files )
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
+
+@login_required(login_url= '/cp2/loginPage')
+def detailsBlob(request):
+    return render(request, 'detailsBlob.html')
+
+
+@login_required(login_url = '/cp2/loginPage')
+def ajax_edit_blob_template(request):
+    tags = request.POST['Tags']
+    new_blob_set = request.POST['SET']
+    blob_set = request.POST['old_set']
+    new_pos_set = request.POST['PositionSet']
+    pos_set = request.POST['old_pos']
+    title = request.POST['Title']
+    credit = request.POST['Credit']
+    template_name = request.POST['TemplateSelection']
+    files = {}
+    if 'VR' in request.FILES:
+        files['vr'] = request.FILES['VR'].file
+    
+    response = {}
+    settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
+    response_api = requests.post("http://127.0.0.1/api/blobs/edit_blob_from_template", params = settings, files = files )
+    print(type(response_api))
+    print("************" + response_api.content.decode("utf-8"))
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] =  'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
+
+@login_required(login_url='/cp2/loginPage')
+def showDemo(request):
+    return render(request, 'showDemo.html')
+
+
+@login_required(login_url='/cp2/loginPage')
+def ajax_show_DDL(request):
+    demo_id = request.POST['demoID']
+    settings = {'demo_id': demo_id}
+    response = {}
+    response_api = requests.post("http://127.0.0.1/api/demoinfo/get_ddl", params = settings)
+    #print(response_api)
+    #print("************" + response_api.content.decode("utf-8"))
+    result = response_api.json()
+    #print(result)
+    if result.get('status') != 'OK':
+        return HttpResponse(json.dumps(result), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(result), 'application/json')
+
+
+@login_required(login_url='/cp2/loginPage')
+def showBlobsDemo(request):
+    return render(request, 'showBlobsDemo.html')
+
+@login_required(login_url='/cp2/loginPage')
+def demoExtras(request):
+    return render(request, 'demoExtras.html')
+
+@login_required(login_url='/cp2/loginPage')
+def ajax_add_template_to_demo(request):
+    demo_id = request.POST['demoId']
+    template_name = request.POST['template_name']
+    settings = {'demo_id': demo_id, 'template_names': template_name}
+    response = {}
+    response_api = requests.post("http://127.0.0.1/api/blobs/add_templates_to_demo", params = settings)
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
+
+
+@login_required(login_url='/cp2/loginPage')
+def ajax_remove_template_to_demo(request):
+    demo_id = request.POST['demoId']
+    template_name = request.POST['template_name']
+    settings = {'demo_id': demo_id, 'template_name': template_name}
+    response = {}
+    print(settings)
+    response_api = requests.post("http://127.0.0.1/api/blobs/remove_template_to_demo", params = settings)
+    #print(response_api)
+    print("************" + response_api.content.decode("utf-8"))
+    result = response_api.json()
+    #print(result)
+    if result.get('status') != 'OK':
+        response['status'] = 'KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else :
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
