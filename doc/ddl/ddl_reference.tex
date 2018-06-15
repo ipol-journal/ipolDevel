@@ -69,7 +69,7 @@ In this case, the demo needs to compile from two different compressed files. The
     },
     "build2":{
         "url": "http://dev.ipol.im/~monasse/orthoPose_1.0.tar.gz",
-        "construct": "/usr/local/MATLAB/bin/matlab -nodisplay -nosplash -nodesktop -r \"cd orthoPose_1.0/; mcc -m mainPoseEstimation.m -a lib/; exit;\"",
+        "construct": "matlab -nodisplay -nosplash -nodesktop -r \"cd orthoPose_1.0/; mcc -m mainPoseEstimation.m -a lib/; exit;\"",
         "move": "orthoPose_1.0/mainPoseEstimation, orthoPose_1.0/run_mainPoseEstimation.sh"
     }
 }
