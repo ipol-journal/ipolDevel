@@ -689,6 +689,11 @@ It can be done easily by running the virtual machine (with ssh -X ...) and in th
 Probably it is because the binaries where staticly compiled againts libraries whose versions are no longer installed in our servers. Remove the directory {\tt ipolDevel/ipol\_demo/modules/demorunner/binaries} of all the machines where a demoRunner module has been installed.
 \vspace{0.5cm}
 
+\textbf{It installed a package but it does not seem to be installed}
+
+It is possible that you installed a Python 3 package and you are looking for the Python 2 version, or the opposite. Pay attention to use the right package according to the Python version when installing with {\tt apt-get}. With {\tt pip} write explicitly {\tt pip2} or {\tt pip3} when installing.
+\vspace{0.5cm}
+
 
 \textbf{Python fails to import libtiff}
 
@@ -700,7 +705,28 @@ It needs to generate a header in a directory at which only root can write. Thus,
 Normally the reason is that pip is not managing the cache correctly and it is installing an old version of the package which needs an old version of the system library. Remove the pip cache: {\tt rm -rf /root/.cache/pip}.
 \vspace{0.5cm}
 
+\textbf{Even though, some packages can not be installed.}
+
+It might happen that one of the packages to be installed needs a version behind the last version of package that is also going to be installed. For example, we found that with netcdf and numpy. In that case, unfortunately the best is not to install the last version of numpy or the affected package and let the other install a not-so-updated dependency.
+
+It also can happen that you do not manage to install the last version of the packages because of the cache. In that case, remove both the cache and the installed files on disk. For example:
+
+\begin{verbatim}
+pip2 uninstall netcdf numpy tensorflow opencv-python
+
+rm /root/.cache/pip -rf
+
+rm -rf /usr/local/lib/python2.7/dist-packages/opencv_python*
+rm -rf /usr/local/lib/python2.7/dist-packages/numpy*
+rm -rf usr/local/lib/python2.7/dist-packages/tensorflow*
+rm -rf usr/local/lib/python2.7/dist-packages/netcdf*
+
+pip2 install numpy tensorflow opencv-python netcdf
+\end{verbatim}
+\vspace{0.5cm}
+
 \textbf{VirtualBox does not work.}
+
 Check that you have installed the needed VirtualBox packages, specially the kernel module (virtualbox-guest-dkms).
 If you have everything installed and it is still not working, then execute {\tt dpkg-reconfigure virtualbox-guest-dkms} to force the re-compilation of the kernel module.
 
