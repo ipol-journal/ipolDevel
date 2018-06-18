@@ -47,11 +47,11 @@ class Video(object):
             raise OSError(errno.ENODATA, "Could not load.", src)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        self.frame_count = self.capture.get(cv2.CAP_PROP_FRAME_COUNT)
-        self.fps = self.capture.get(cv2.CAP_PROP_FPS)
+        self.frame_count = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.fps = int(self.capture.get(cv2.CAP_PROP_FPS))
 
-        self.width = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
         self.full_path = os.path.realpath(src)
 
@@ -75,7 +75,7 @@ class Video(object):
             if not ret:
                 break
             if max_pixels < video_pixel_count:
-                frame = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_AREA)
+                frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
             im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
             if not im:
                 raise IPOLConvertInputError('Conversion error, frame could not be written to the file')
@@ -101,8 +101,8 @@ class Video(object):
         """
         Get the time interval according to the maximum number of frames allowed.
         """
-        video_duration = self.frame_count / self.fps
-        required_time = max_frames / self.fps
+        video_duration = float(self.frame_count) / float(self.fps)
+        required_time = max_frames / float(self.fps)
         from_time = video_duration / 2.0 - required_time / 2.0
         to_time = video_duration / 2.0 + required_time / 2.0
 
@@ -138,7 +138,7 @@ class Video(object):
         """
         if max_pixels < self.height * self.width:
             scaling_factor = self.get_scaling_factor(max_pixels)
-            return np.floor(scaling_factor * self.width), np.floor(scaling_factor * self.height)
+            return int(np.floor(scaling_factor * self.width)), int(np.floor(scaling_factor * self.height))
         return self.width, self.height
 
     def get_scaling_factor(self, max_pixels):
@@ -160,7 +160,7 @@ class Video(object):
         """
         Set capture pos based on frame count and max_frames.
         """
-        first_frame = int(self.frame_count / 2) - int(max_frames / 2)
+        first_frame = self.frame_count / 2 - max_frames / 2
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, first_frame)
 
     def get_input_dir(self):
