@@ -23,6 +23,7 @@ from ipolutils.evaluator.evaluator import evaluate
 
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
+from errors import IPOLTypeError
 
 
 def authenticate(func):
@@ -225,12 +226,11 @@ class Conversion(object):
                 else:
                     info[i]['error'] = "{}: unknown input type".format(input_type)
 
-        except IPOLConvertInputError as ex:
+        except (IPOLConvertInputError, IPOLCropInputError) as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
-        except IPOLCropInputError as ex:
-            self.logger.exception(ex)
+        except IPOLTypeError as ex:
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
         except (OSError, IOError, RuntimeError) as ex:

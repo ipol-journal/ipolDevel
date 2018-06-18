@@ -18,6 +18,12 @@ class IPOLConvertInputError(Exception):
 
 class IPOLThumbnailError(OSError):
     """
-    IPOLConvertInputError
+    IPOLThumbnailError
+    """
+    pass
+    
+class IPOLTypeError(Exception):
+    """
+    IPOLTypeError
     """
     pass

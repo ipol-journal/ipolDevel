@@ -28,6 +28,7 @@ import cv2
 import numpy as np
 
 from errors import IPOLConvertInputError
+from errors import IPOLTypeError
 from ipolutils.evaluator.evaluator import evaluate
 
 
@@ -86,12 +87,12 @@ class Video(object):
         """
         self.validate_max_frames(max_frames)
 
-        ffmpeg_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
+        avconv_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
         max_pixels = evaluate(max_pixels)
-        ffmpeg_command += self.get_ffmpeg_options(max_pixels, max_frames)
+        avconv_command += self.get_avconv_options(max_pixels, max_frames)
 
         processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
-        convert_proc = Popen([ffmpeg_command + " " + processed_video], shell=True)
+        convert_proc = Popen([avconv_command + " -loglevel error " + processed_video], shell=True)
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
@@ -115,9 +116,9 @@ class Video(object):
 
         return from_time, to_time
 
-    def get_ffmpeg_options(self, max_pixels, max_frames):
+    def get_avconv_options(self, max_pixels, max_frames):
         """
-        Get ffmpeg options if needed.
+        Get avconv options if needed.
         """
         options = ""
         if max_frames < self.frame_count:
@@ -181,6 +182,6 @@ class Video(object):
         Check max_frames range and type
         """
         if not isinstance(max_frames, int):
-            raise IPOLConvertInputError('Type error: max_frames must be an integer')
+            raise IPOLTypeError('Type error: max_frames must be an integer')
         if max_frames < 1:
-            raise IPOLConvertInputError('Range error: max_frames must be positive')
+            raise IPOLTypeError('Range error: max_frames must be positive')
