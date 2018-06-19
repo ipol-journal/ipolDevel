@@ -319,7 +319,7 @@ class ConversionVideoTests(unittest.TestCase):
         Tests video conversion to frames. No resize or frame crop needed.
         """
         status = None
-        code = None 
+        code = None
         try:
             work_dir = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '15000 * 10000',
@@ -332,7 +332,7 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -358,7 +358,7 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -384,14 +384,14 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
             self.assertEqual(frame_count, 5)
             self.assertEqual(frame_width * frame_height, input_video["width"] * input_video["height"])
             shutil.rmtree(os.path.split(self.video_blob_path)[0] + '/input_0')
-    
+
     def test_convert_video_to_frames_with_resize_and_max_frames(self):
         """
         Tests video conversion to frames with resize and max frames.
@@ -410,7 +410,6 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -433,15 +432,15 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
             self.assertEqual(avi_video["frame_count"], input_video["frame_count"])
             self.assertEqual(avi_video["width"] * avi_video["height"], input_video["width"] * input_video["height"])
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_resize(self):
         """
         Tests video conversion to AVI with resize.
@@ -457,15 +456,15 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
             self.assertEqual(avi_video["frame_count"], input_video["frame_count"])
             self.assertLessEqual(avi_video["width"] * avi_video["height"], 150 * 100)
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_max_frames(self):
         """
         Tests video conversion to AVI with max frames.
@@ -481,15 +480,15 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
             self.assertEqual(avi_video["frame_count"], 6)
             self.assertEqual(avi_video["width"] * avi_video["height"], input_video["width"] * input_video["height"])
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_resize_and_max_frames(self):
         """
         Tests video conversion to AVI with resize and max frames.
@@ -505,15 +504,13 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
             self.assertEqual(avi_video["frame_count"], 6)
             self.assertLessEqual(avi_video["width"] * avi_video["height"], 150 * 100)
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
 
     def test_negative_max_frames_as_avi(self):
         """
@@ -591,7 +588,8 @@ class ConversionVideoTests(unittest.TestCase):
         response = self.post(self.module, 'convert', params=params)
         return response.json()
 
-    def load_video(self, src):
+    @staticmethod
+    def load_video(src):
         """
         Return video properties for tests (frame_count, width, height).
         """
@@ -601,7 +599,7 @@ class ConversionVideoTests(unittest.TestCase):
         frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        
+
         return {"frame_count": frame_count, "width": width, "height": height}
 
 if __name__ == '__main__':
