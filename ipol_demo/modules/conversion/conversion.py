@@ -194,7 +194,7 @@ class Conversion(object):
             input_list = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
-            
+
             for i, input_desc in enumerate(input_list):
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
