@@ -4,12 +4,12 @@
         <li>
             <a class="nav-demo" href="/cp2">Demos</a>
         </li>
-        <li class="nav-item">
+        <!--     <li class="nav-item">
             <a href="???">Authors</a>
         </li>
         <li class="nav-item">
             <a href="???">Editors</a>
-        </li>
+        </li>-->
         <li class="name_user">
             Welcome {{ user.first_name }}
         </li>
@@ -52,6 +52,7 @@
     var filter;
     var section = document.querySelector('section');
     var request = new XMLHttpRequest();
+    //document.getElementById('previous_page').style.visibility='hidden';
 
     /*-----------------------------------------HomePage-----------------------------------------*/
 
@@ -63,6 +64,10 @@
         showDemos(demo);
         paginationDemo(demo);
     }
+    /*------Initialisation for document get ready---------*/
+    if (!numPagePrev) {
+        document.getElementById('previous_page').style.visibility= 'hidden';
+    }
 
     /*-----------------------------------------JS Functions-----------------------------------------*/
 
@@ -70,25 +75,41 @@
         var demoList = jsonObj['demo_list'];
 
         for (var i = 0; i < demoList.length; i++) {
+            var Div = document.createElement('div');
             var myArticle = document.createElement('a');
-            myArticle.setAttribute("href", "/cp2/showDemo?demo_id="+demoList[i].editorsdemoid+"&title="+demoList[i].title+"&modification="+demoList[i].modification+"&state="+demoList[i].state);
-            myArticle.setAttribute("class", "listOfDemo")
+            myArticle.setAttribute("href", "/cp2/showDemo?demo_id=" + demoList[i].editorsdemoid + "&title=" + demoList[i].title + "&modification=" + demoList[i].modification + "&state=" + demoList[i].state);
+            Div.setAttribute("class", "listOfDemo");
             var myH2 = document.createElement('ul');
+            myH2.setAttribute("class", "identity");
+            var myDiv = document.createElement('div');
+            myDiv.setAttribute("class", "DemoInformation");
             var myPara1 = document.createElement('li');
             var myPara2 = document.createElement('li');
             var myPara3 = document.createElement('li');
+            var titleBold = document.createElement('b');
+            titleBold.setAttribute("style", "color: black");
+            var date = new Date(demoList[i].modification);
+            var monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 
             myH2.textContent = 'ID:  ' + demoList[i].editorsdemoid;
-            myPara1.textContent = 'last modification: ' + demoList[i].modification;
+            myPara1.textContent = 'last modification: ' + date.getDate() +"  "+ monthArray[date.getMonth()]+"  "+date.getFullYear();
             myPara2.textContent = 'State: ' + demoList[i].state;
-            myPara3.textContent = 'Title: ' + demoList[i].title;
+            myPara3.textContent = 'Title: ';
+            titleBold.textContent =  demoList[i].title;
 
             myArticle.appendChild(myH2);
-            myArticle.appendChild(myPara1);
-            myArticle.appendChild(myPara2);
-            myArticle.appendChild(myPara3);
+            myArticle.appendChild(myDiv);
+            //myDiv.appendChild(myArticle);
+            myDiv.appendChild(myPara1);
+            myDiv.appendChild(myPara2);
+            myDiv.appendChild(myPara3);
+            myPara3.appendChild(titleBold);
 
-            section.appendChild(myArticle);
+            section.appendChild(Div);
+            //myH2.appendChild(Div);
+            Div.appendChild(myArticle);
+            //Div.appendChild(myArticle);
         };
     }
 
@@ -120,10 +141,39 @@
     };
 
     function checkNext() {
-        if (!numPageNext) {
+        if (!numPageNext) {     
             return false;
         } else {
             return true;
+        }
+    }
+
+    function showHideNext() {
+        if (numPagePrev == (nbPage - 1) && !numPageNext) {
+            document.getElementById('next_page').style.visibility= 'hidden';
+            }
+        else {
+            document.getElementById('next_page').style.visibility= 'visible';
+        }
+    }
+
+    function HideButtonPage() {
+        if (!numPageNext && !numPagePrev) {
+            document.getElementById('next_page').style.visibility='hidden';
+            document.getElementById('previous_page').style.visibility='hidden';
+        }
+        else {
+            showHideNext();
+            showHidePrev();
+        }
+    }
+
+    function showHidePrev() {
+        if ( numPageNext == "2" ) {
+            document.getElementById('previous_page').style.visibility= 'hidden';
+            }
+        else {
+            document.getElementById('previous_page').style.visibility= 'visible';
         }
     }
 
@@ -151,6 +201,7 @@
                     cleanPagination();
                     showDemos(data);
                     paginationDemo(data);
+                    HideButtonPage();
                     return filter;
                 },
             });
@@ -168,6 +219,7 @@
                     if (checkFilter()) {
                         settings.url += '&qfilter=' + filter;
                     }
+                    //showHideNext(numPageNext, numPagePrev, nbPage);
                     return checkNext();
                 },
                 type: 'GET',
@@ -178,6 +230,8 @@
                     cleanPagination();
                     showDemos(data);
                     paginationDemo(data);
+                    showHideNext();
+                    showHidePrev();
                 },
             });
             return false;
@@ -203,6 +257,8 @@
                     cleanPagination();
                     showDemos(data);
                     paginationDemo(data);
+                    showHideNext();
+                    showHidePrev();
                 },
             });
             return false;

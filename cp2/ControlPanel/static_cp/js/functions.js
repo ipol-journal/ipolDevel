@@ -46,3 +46,14 @@ function setBrokenImage(image) {
 // get_ddl_history(demo_id)
 // get_interface_ddl(demo_id)
 // read_ddl(ddl_id)
+
+// function templatesList_not_used(Array1, Array2){
+//     for (var i=0; i< Array1.length; i++){
+//         for(var j=0; j< Array2.length; j++){
+//             if (Array1.includes(Array2[j])){
+//                 Array1.splice(i,1); 
+//             }
+//         }
+//     }
+//     return Array1;
+// }

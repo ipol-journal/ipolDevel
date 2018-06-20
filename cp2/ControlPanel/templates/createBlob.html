@@ -1,10 +1,10 @@
 {% extends "base.html" %} {% block title %}createBlob{% endblock %} {% block bodyid %}createBlob{% endblock %} {% block header %}
-<h2>Add Blob to Template<p id="nameOfTemplate"></p></h2>
+<h2>Add Blob to Template : <span id="nameOfTemplate"></span></h2>
 {% endblock %} {% block content %}
-<div>
+<div id="blobCreation">
     <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
     <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-</div>
+
 <form id="createBlobForm">
     {% csrf_token %}
     <p>
@@ -30,6 +30,7 @@
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
+</div>
 <a id="GoPreviousPage" href="">Go Previous Page</a>
 {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
@@ -44,30 +45,9 @@
 var VRImage;
 var blobImage;
 var templateSelection = getParameterByName('template');
-//Rajoute le nameoftemplate en titre sur la page 
 document.getElementById("nameOfTemplate").innerHTML = templateSelection;
 $("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
-// $(document).ready(function() {
-//     $("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
-//     });
-
-// $(document).ready(function() {
-//     $("#ButtonAddBlob").click(addBlob);
-// });
-
-// $(".submitbtn").on("click", function(e) {
-
-// var form = $("#Form");
-
-// // you can't pass Jquery form it has to be javascript form object
-// var formData = new FormData(form[0]);
-
- //<img src=blob.jpg  <img src=blob.jpg onError=setBrokenImage(this)> > 
-// $("form#createBlobForm").submit( function (e) {
-//     var formData = new FormData();
-//     for (var value of formData.values()) {
-//    console.log(value); 
-// }
+//pb sur la representation du blob, le premier tiff affiche la bonne image mais apres c mauvais
 var form = document.getElementById('createBlobForm');
 //Je peux créer plusieurs fois le même blob 
 form.onsubmit = function (e) {

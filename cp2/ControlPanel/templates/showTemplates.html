@@ -4,7 +4,7 @@
 {% block fond %}
 {% endblock %}
 {% block header %}
-<h1>Template : <span id="nameOfTemplate"></span></h1>
+<h1>Template : <b><span id="nameOfTemplate"></span></b></h1>
 <h2>
     Blobs list
 </h2>
@@ -27,6 +27,7 @@ var request1 = new XMLHttpRequest();
 var templateSelection = getParameterByName('template');
 //Rajoute le nameoftemplate en titre sur la page 
 document.getElementById("nameOfTemplate").innerHTML = templateSelection;
+nameOfTemplate.setAttribute("style", "text-decoration: underline");
 //Manque partie Demo Using this Template
 //http://127.0.0.1/api/blobs/remove_blob_from_template? opur virer le blob de la template
 //http://127.0.0.1/api/blobs/remove_blob_from_template?template_name=denoisingTemplate&blob_set=book&pos_set=0
@@ -69,11 +70,13 @@ function showTemplates(jsonObj) {
         //for (var j=0; j< set_keys.length; j++) { 
             var myDiv1 = document.createElement('div');
             myDiv1.setAttribute("class","block");
+            //var container = document.createElement('div');
+            //container.setAttribute("class", "myContainer");
             var myH3 = document.createElement('h3');
             myH3.setAttribute("id", blobsList[i].name)
             myH3.textContent = "Title SET : "+blobsList[i].name;
+            section.appendChild(myH3);
             section.appendChild(myDiv1);
-            myDiv1.appendChild(myH3);
             for (let blob_pos of set_keys ) {
         //var y = Object.values(Blobs);
         //console.log(x);
@@ -100,24 +103,29 @@ function showTemplates(jsonObj) {
             myHref.setAttribute("href", "/cp2/detailsBlob?title="+Blobs[blob_pos].title+"&set="+blobsList[i].name+"&pos="+blob_pos+"&credit="+blob.credit+"&tags="+blob.tags+"&thumbnail="+blob.thumbnail+"&template="+templateSelection+"&blob="+blob.blob);
             var image_src = document.createElement('img');
             image_src.setAttribute("src",blob.thumbnail);
-            var myPara2 = document.createElement('p');
+            image_src.setAttribute("style", "margin-right: 25px");
+            //var myPara2 = document.createElement('p');
             var removeBlobs = document.createElement('div');
             var button = document.createElement('button');
             button.setAttribute("class","ButtonDelete");
             button.setAttribute('blobName', blobsList[i].name);
             button.setAttribute('blobSet', blob_pos)
 
-            //myH3.textContent = "Title SET : "+blobsList[i].name;
-            myPara2.textContent = "Credit: " + blob.credit;
+            myH3.textContent = "Title SET : "+blobsList[i].name;
+            //myPara2.textContent = "Credit: " + blob.credit;
             button.textContent = "Delete blob";
 
 
-            // section.appendChild(myDiv1);
-            // myDiv1.appendChild(myH3);
-            myDiv1.appendChild(myDiv2);
+            //section.appendChild(myDiv1);
+            //myDiv1.appendChild(myH3);
+            //myDiv1.appendChild(myDiv2);
+            //myDiv1.appendChild(container);
+            myDiv1.appendChild(myDiv2)
+            //myH3.appendChild(myDiv2);
             myDiv2.appendChild(myHref);
             myHref.appendChild(image_src);
-            myDiv2.appendChild(myPara2);
+            //myDiv2.appendChild(myPara2);
+            //myHref.appendChild(removeBlobs);
             myDiv2.appendChild(removeBlobs);
             removeBlobs.appendChild(button);
         };
@@ -131,10 +139,11 @@ function show_demo_using_template(jsonObj){
     var demos_using_template = jsonObj['demos']
     for (var i = 0; i < demos_using_template.length; i++) {
         var myDiv = document.createElement('div');
+        myDiv.setAttribute("class", "demoUsingTemplate");
         var myHref = document.createElement('a');
-        myHref.setAttribute("href", "#");
+        myHref.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demos_using_template[i]);
 
-        myHref.textContent = demos_using_template[i];
+        myHref.textContent = "ID: "+demos_using_template[i];
         section.appendChild(myDiv);
         myDiv.appendChild(myHref);
     };  

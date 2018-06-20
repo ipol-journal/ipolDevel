@@ -255,7 +255,67 @@ ul.navbar li {
     position: relative;
     margin-right: 15%;
 }
+
+article a {
+    text-decoration: None;
+}
+
+#content article a {
+    text-decoration: None;
+    list-style-type:None;
+    color : blueviolet;
+}
+
+#content a {
+    text-decoration: None;
+}
+
+#content a li {
+    display : inline-block;
+    margin : 5px 5% 10px 15px;
+    color : blue;
+}
+
+#content ul {
+    text-decoration: None;
+    margin-bottom: 5px;
+}
+
+.identity {
+    border : 3px solid grey;
+    padding : 10px 10px 15px 10px;
+    height: 10px;
+    max-width: 20%;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    background-color: #777;
+    border-radius: 15px;
+}
 /*
+.DemoInformation {
+    border : 3px solid lightgrey;
+    padding : 20px 10px 5px 10px;
+    max-width: 60%;
+    border-radius: 10px;
+}
+*/
+.listOfDemo {
+    display : block;
+    border : 3px solid lightgrey;
+    padding : 0px 0px 0px 10px;
+    max-width: 85%;
+    border-radius: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+/*
+
 article li {
     display: inline;
     list-style: none;
@@ -308,6 +368,7 @@ h3 {
     margin: 10px 50% 10px 10px;
     padding : 10px 10px 10px 30px;
     border-radius: 4px;
+    font-size : 17px;
 }
 
 .pagination {
@@ -502,18 +563,232 @@ input#id_Title {
  }
 
  div.block {
-     margin-left: 15px;
-     margin-top : 20px;
-     clear : both;
+     margin-left: 50px;
+     margin-top : 25px;
+     margin-right: 10px;
+     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+     display : flex;
+     flex-direction: row;
+     flex-wrap: wrap;
+     justify-content: flex-start;
+     border : 3px double black;
+     padding : 25px 0px 0px 2%;
+     max-width: 85%;
  }
- div.image_files {
-     display : flex-start;
-     float : left;
-     margin-right: 25px;
+ /*div.image_files {
+     border : 3px double black;
+     padding : 10px 2% 0px 2%;
+     max-width: 20%;
+     max-height: 20%;
+     margin-left: 15px;
+     margin-right: 15px;
+     content: "";
+     clear: both;
+     display: table;
+
+ }*/
+
+ h2 {
+     clear : left;
+ }
+
+ #myContainer {
+     display : flex;
+     flex-wrap: wrap;
+     overflow: auto;
  }
 
 .ButtonDelete {
     margin-bottom: 20px;
 }
 
- 
+
+#TemplatesDetails h2 {
+    margin-left: 25px;
+    font-size: 30px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-weight: normal;
+    margin-top :50px;
+}
+
+#TemplatesDetails #addBlob {
+    border-radius: 2px;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    text-decoration: none;
+    color: #fff;
+    padding: 5px 5px 5px 5px;
+    margin-left: 50px;
+    margin-right: 25px;
+}
+
+#TemplatesDetails #deleteTemplate {
+    border-radius: 2px;
+    background-color: lightcoral;
+    border-color: lightcoral;
+    text-decoration: none;
+    color: white;
+    padding: 5px 5px 5px 5px;
+    margin-left: 15px;
+    font-size: 14px;
+}
+
+.ButtonDelete {
+    border-radius: 2px;
+    background-color: black;
+    border-color: black;
+    text-decoration: none;
+    color: white; 
+    padding: 5px 5px 5px 5px; 
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+#TemplatesDetails #content h3 {
+    color: black;
+    margin-left: 5%;
+    margin-top: 25px;
+    font-size: 22px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.demoUsingTemplate a {
+    color :#2e6da4;
+    padding : 10px 10px 10px 10px;
+    margin : 10px 10px 10px 10px;
+    font-size: 25px;
+}
+
+.demoUsingTemplate {
+    border: 2px solid #2e6da4;
+    padding : 10px 10px 10px 10px;
+    margin : 25px 25px 25px 50px;
+    max-width: 50%;
+}
+
+#blobCreation {
+    border : 2px solid lightslategray;
+    padding : 50px 0px 50px 40px;
+    margin : 30px 30% 30px 10%;
+}
+
+#createBlobForm input {
+    padding: 6px 12px;
+    font-size: 14px;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    width: 40%;
+    margin : 0px 0px 5px 0px;
+    text-align: center;
+}
+
+#createBlobForm label {
+    width: 30%;
+    font-size: 15px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: #ccc;
+    padding: 7px 12px;
+}
+
+#ButtonAddBlob {
+    border-radius: 2px;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    text-decoration: none;
+    color: #fff;
+    padding: 10px 10px 10px 10px;
+}
+
+#blobCreation #thumbnail {
+    max-width: 350px;
+    max-height: 350px;
+}
+
+#blobCreation #thumbnail_vr {
+    max-width: 350px;
+    max-height: 350px;
+    margin-left: 10%;
+}
+
+#createBlob h2 {
+    margin : 50px 50px 0px 50px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+#nameOfTemplate {
+    text-decoration: underline;
+    font-size: 35px;
+}
+
+#GoPreviousPage {
+    color: #fff;
+    background-color: #5bc0de;
+    border-color: #46b8da;
+    border-radius: 5px;
+    text-decoration: none;
+    padding: 10px 10px 10px 10px;
+    margin-left: 10%;
+}
+
+#DetailsBlob {
+    border: 2px solid lightslategray;
+    padding: 50px 0px 50px 40px;
+    margin: 30px 30% 30px 10%;
+}
+
+#DetailsBlob #thumbnail {
+    max-width: 350px;
+    max-height: 350px;
+}
+
+#DetailsBlob #thumbnail_vr {
+    max-width: 350px;
+    max-height: 350px;
+    margin-left: 10%;
+}
+
+#DetailsBlob label {
+    width: 30%;
+    font-size: 15px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: #ccc;
+    padding: 7px 12px;
+}
+
+#DetailsBlob input {
+    padding: 6px 12px;
+    font-size: 14px;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    width: 40%;
+    margin: 0px 0px 5px 0px;
+    text-align: center;
+}
+
+#setName {
+    margin-left: 10%;
+    margin-top : 30px;
+    font-size: 30px;
+}
+
+.ace_editor {
+    border: 1px solid lightgray;
+    margin: auto;
+    height: 200px;
+    width: 80%;
+}
+
+.scrollmargin {
+    height: 80px;
+    text-align: center;
+}
+
+#save_ddl_container {
+    display : inline-flex;
+}
