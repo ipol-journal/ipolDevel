@@ -14,10 +14,7 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-# Extract filename without extension
-filename=$(basename "$1")
-filename="${filename%.*}"
-
+input=$1
 output=$2
 
 # High quality
@@ -25,4 +22,4 @@ output=$2
 
 # -y: overwrite output without asking
 # -an: drop audio
-avconv -i "$1" -y -an -c:v libx264 -crf 1 "$2"
+avconv -i "$input" -y -an -c:v libx264 -crf 1 "$output"

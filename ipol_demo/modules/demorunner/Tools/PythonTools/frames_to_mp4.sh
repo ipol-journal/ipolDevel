@@ -24,4 +24,4 @@ output=$3 # Output MP4 filename
 # -y: overwrite output without asking
 # -an: drop audio
 #avconv -i "$1" -y -an -c:v libx264 -crf 1 "${filename}_out.mp4"
-avconv -framerate ${fps} -f image2 -i ${frame_filename} -y -an -c:v libx264 -crf 1 ${output}
+avconv -f image2 -i "${frame_filename}" -framerate ${fps} -y -an -c:v libx264 -crf 1 "${output}"
