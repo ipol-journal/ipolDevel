@@ -263,7 +263,6 @@ class Conversion(object):
         # Image has to be always loaded to test width and size
         im = Image.load(input_file)
         dst_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
-        modifications = []
 
         program = [
             # Color conversion, usually reducing to gray, sooner is better
@@ -300,7 +299,6 @@ class Conversion(object):
                 modifications.append(task.label)
         # do not forget to write modifications
         im.write(dst_file)
-        print dst_file
         return 1, modifications
 
     @staticmethod
@@ -404,7 +402,7 @@ class ConverterDepth(ConverterImage):
 
 class ConverterChannels(ConverterImage):
     """
-    Converts number of channels of an image (ex: to gray)
+    Converts number of channels of an image (ex: color to gray)
     """
     label = "colors"
     def __init__(self, im, input_desc):
