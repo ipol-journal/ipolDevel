@@ -14,6 +14,7 @@ import tempfile
 import cv2
 import requests
 import magic
+import traceback
 import numpy as np
 from ipolutils.image.Image import Image
 
@@ -58,8 +59,7 @@ class ConversionImageTests(unittest.TestCase):
         """
         Creates a standard image matrix for tests.
         """
-        depth_dtypes = {'8i': np.uint8, '16i': np.uint16, '32i': np.uint32, '16f': np.float16, '32f': np.float32}
-        dtype = depth_dtypes[depth]
+        dtype = Image.DEPTH_DTYPE[depth]
         if np.issubdtype(dtype, np.integer):
             dtype_max = np.iinfo(dtype).max
         else:
@@ -81,11 +81,12 @@ class ConversionImageTests(unittest.TestCase):
                 im = Image.data(data)
                 im.convert_depth(dst_depth)
                 im.write(tif_file.name)
+
                 im = Image.load(tif_file.name)
                 data = self.data_matrix(dst_depth)
                 self.assertTrue(
                     im.data.dtype is data.dtype,
-                    msg="dtype expected={} found={}, alteration during conversion {} > {}".format(
+                    msg="dtype expected={} found={}, conversion failed {} > {}".format(
                         data.dtype, im.data.dtype, src_depth, dst_depth
                     )
                 )
@@ -155,14 +156,14 @@ class ConversionImageTests(unittest.TestCase):
             response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + dst_ext
-            dst_im = Image.load(dst_path)
-            good_mime = (magic.from_file(dst_path, mime=True) == dst_mime)
-            os.remove(dst_path)
+            dst_file = os.path.split(self.blob_path)[0] + '/input_0' + dst_ext
+            good_mime = (magic.from_file(dst_file, mime=True) == dst_mime)
+            dst_im = Image.load(dst_file)
+            os.remove(dst_file)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
-            self.assertTrue(good_mime, msg="Bad file encoding, {} is not {}".format(dst_path, dst_mime))
+            self.assertTrue(good_mime, msg="Bad file encoding, {} is not {}".format(dst_file, dst_mime))
             self.assertTrue((src_im.data == dst_im.data).all(), msg="Changing image extension has change the data.")
 
     def test_convert_image_that_do_not_need_conversion(self):
@@ -204,10 +205,10 @@ class ConversionImageTests(unittest.TestCase):
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
-            dst_im = Image.load(dst_path)
+            dst_file = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_file)
             dst_pixels = dst_im.width() * dst_im.height()
-            os.remove(dst_path)
+            os.remove(dst_file)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -230,9 +231,9 @@ class ConversionImageTests(unittest.TestCase):
             response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
-            dst_im = Image.load(dst_path)
-            os.remove(dst_path)
+            dst_file = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_file)
+            os.remove(dst_file)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -256,9 +257,9 @@ class ConversionImageTests(unittest.TestCase):
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
-            dst_im = Image.load(dst_path)
-            os.remove(dst_path)
+            dst_file = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_file)
+            os.remove(dst_file)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '2')
@@ -279,9 +280,9 @@ class ConversionImageTests(unittest.TestCase):
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
-            dst_im = Image.load(dst_path)
-            os.remove(dst_path)
+            dst_file = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_im = Image.load(dst_file)
+            os.remove(dst_file)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '0')

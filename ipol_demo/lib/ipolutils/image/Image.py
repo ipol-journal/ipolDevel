@@ -30,6 +30,8 @@ class Image(object):
     '''
     Generic image class, dealing with the best python libraries for performances, and formats (currently : OpenCV).
     '''
+    DEPTH_DTYPE = {'8i': np.uint8, '8': np.uint8, '16i': np.uint16, '16': np.uint16, '32i': np.uint32,
+                   '32': np.uint32, '16f': np.float16, '32f': np.float32}
 
     @staticmethod
     def load(src, flags=cv2.IMREAD_UNCHANGED):
@@ -50,12 +52,8 @@ class Image(object):
             del tif
         else:
             im.data = cv2.imread(src, flags)
-        if im.data is None:
+        if type(im.data).__module__ != np.__name__:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
-        im.src_file = src
-        im.src_path = os.path.realpath(src)
-        im.src_dir, im.src_basename = os.path.split(im.src_path)
-        im.src_name, im.src_ext = os.path.splitext(im.src_basename)
         return im
 
     @staticmethod
@@ -125,7 +123,7 @@ class Image(object):
             os.makedirs(dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == 'image/tiff': # use libtiff
-            data = self._blend_alpha(self.data) # assume that tiff do not support alpha
+            data = self.blend_alpha_static(self.data) # assume that tiff do not support alpha
             if len(data.shape) > 2 and data.shape[2] == 3: # BGR > RGB
                 data = data[..., ::-1]
             tif = TIFF.open(dst_file, mode='w')
@@ -165,8 +163,8 @@ class Image(object):
         '''
         Prepare data for JPEG, before saving to file or return bytes (blend alpha, 8 bits).
         '''
-        data = self._blend_alpha(self.data)
-        data, _ = self._convert_depth(data, '8i')
+        data = self.blend_alpha_static(self.data)
+        data = self.convert_depth_static(data, '8i')
         # not found in OpenCV API subsampling, ex: '4:4:4'
         pars = []
         if optimize:
@@ -185,17 +183,16 @@ class Image(object):
         pars = []
         data = self.data
         if data.dtype != np.uint8 and data.dtype != np.uint16:
-            data, _ = self._convert_depth(data, '16i')
+            data = self.convert_depth_static(data, '16i')
         if compression >= 0 and compression <= 9:
             pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
         return data, pars
-
 
     def _4tiff(self):
         '''
         Prepare data for TIFF, before saving to file or return bytes (blend alpha).
         '''
-        data = self._blend_alpha(self.data) # assume that tiff do not support alpha
+        data = self.blend_alpha_static(self.data) # assume that tiff do not support alpha
         pars = []
         return data, pars
 
@@ -290,72 +287,69 @@ class Image(object):
             raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
         self.data = self.data[y:y+height, x:x+width]
 
-    def convert(self, mode):
-        '''
-        Converts data of the image according to a mode (number of channels and depth).
-        '''
-        # ret = True, if data have been modified. This flag allow to rewite an image with no modification.
-        # mode: 1x8i, 3x8i, 1x16i, 3x16i, 1x32i, 3x32i
-        channels, depth = mode.split('x')
-        data = self.data
-        data, ret1 = self._convert_channels(data, int(channels))
-        data, ret2 = self._convert_depth(data, depth)
-        self.data = data
-        return ret1 | ret2
+    def get_channels(self):
+        """
+        Returns the number of channels of the image data loaded.
+        """
+        if len(self.data.shape) == 2:
+            self.data.shape = [self.data.shape[0], self.data.shape[1], 1]
+        return self.data.shape[2]
 
-    def convert_channels(self, channels):
+    def check_channels(self, channels):
         '''
-        Converts image data to grey=1 or color=3.
+        Is a conversion needed to change channels?
         '''
-        self.data, ret = self._convert_channels(self.data, int(channels))
-        return ret
+        return channels == self.get_channels()
 
-    def convert_depth(self, depth):
-        '''
-        Converts image data color depth.
-        '''
-        self.data, ret = self._convert_depth(self.data, depth)
-        return ret
-
-    @staticmethod
-    def _convert_channels(data, dst_channels):
+    def convert_channels(self, dst_channels):
         '''
         Converts the number of channels of an image matrix.
         '''
         if not dst_channels:
-            return data, False
+            return False
         dst_channels = int(dst_channels)
-        # always blend alpha
-        data = Image._blend_alpha(data)
-        if len(data.shape) == 2:
-            data.shape = [data.shape[0], data.shape[1], 1]
-        src_channels = data.shape[2]
+        src_channels = self.get_channels()
         if src_channels == dst_channels:
-            return data, False
+            return False
+        # always blend alpha before
+        self.data = self.blend_alpha_static(self.data)
+
         if src_channels == 3 and dst_channels == 1:
-            data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+            self.data = cv2.cvtColor(self.data, cv2.COLOR_BGR2GRAY)
         elif src_channels == 1 and dst_channels == 3:
-            data = cv2.cvtColor(data, cv2.COLOR_GRAY2BGR)
+            self.data = cv2.cvtColor(self.data, cv2.COLOR_GRAY2BGR)
         else: # unknown number of channels
             raise ValueError("Convert channels '{}', number of channels not yet supported.".format(dst_channels))
-        return data, True
+        return True
+
+    def check_depth(self, depth):
+        '''
+        Tests if the depth is equal to the matrix dtype.
+        '''
+        dtype = self.DEPTH_DTYPE[depth]
+        return self.data.dtype == dtype
+
+    def convert_depth(self, dst_depth):
+        """
+        Converts the depth of image data.
+        """
+        self.data = self.convert_depth_static(self.data, dst_depth)
 
     @staticmethod
-    def _convert_depth(data, dst_depth):
-        '''
+    def convert_depth_static(data, dst_depth):
+        """
         Converts the depth of an image matrix.
-        '''
-        depth_dtypes = {'8i': np.uint8, '8': np.uint8, '16i': np.uint16, '16': np.uint16, '32i': np.uint32,
-                        '32': np.uint32, '16f': np.float16, '32f': np.float32}
-        if not dst_depth in depth_dtypes:
+        Used as a static method, before saving as jpeg, without affecting underlaying data.
+        """
+        if not dst_depth in Image.DEPTH_DTYPE:
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
         src_dtype = data.dtype
-        dst_dtype = depth_dtypes[dst_depth]
+        dst_dtype = Image.DEPTH_DTYPE[dst_depth]
 
 
         # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
-            return data, False
+            return data
 
         # Source is float
         if np.issubdtype(src_dtype, np.floating):
@@ -368,7 +362,7 @@ class Image(object):
                 # normalize to range [0, 1] and multiply to max for int format
                 data = (data - src_min) / float(src_max - src_min) * np.iinfo(dst_dtype).max
                 data = data.astype(dst_dtype, copy=False)
-            return data, True
+            return data
 
         # int -> int
         elif np.issubdtype(dst_dtype, np.integer): #check condition
@@ -382,18 +376,20 @@ class Image(object):
                 data = data.astype(dst_dtype, copy=False)
                 k = dst_max / src_max # keep k as int, if k is float (data * k) will become float
                 data = data * k
+            return data
 
-            return data, True
-        # int -> float 32
+        # int -> float
         elif np.issubdtype(dst_dtype, np.floating):
-            return data.astype(dst_dtype, copy=False), True
+            data = data.astype(dst_dtype, copy=False), True
+            return data
 
         raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
 
     @staticmethod
-    def _blend_alpha(data, back_color=(255, 255, 255)):
+    def blend_alpha_static(data, back_color=(255, 255, 255)):
         '''
-        If an image matrix has an alpha layer, blend it with a background color
+        If an image matrix has an alpha layer, blend it with a background color.
+        Used as a static method, before saving as tiff or jpeg, without affecting underlaying data.
         '''
         if len(data.shape) == 2:
             data.shape = [data.shape[0], data.shape[1], 1]

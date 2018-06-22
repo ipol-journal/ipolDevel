@@ -194,7 +194,7 @@ class Conversion(object):
             input_list = json.loads(inputs_description)
             if crop_info is not None:
                 crop_info = json.loads(crop_info)
-            
+
             for i, input_desc in enumerate(input_list):
                 # before transformation success, default return code is failure
                 info[i] = {'code': -1}
@@ -260,55 +260,48 @@ class Conversion(object):
         """
         Convert image if needed
         """
-        code = 0 # default return code, image not modified
-        modifications = []
         # Image has to be always loaded to test width and size
         im = Image.load(input_file)
-        # convert image matrix if needed (before resize)
-        dtype = input_desc.get('dtype')
-        if dtype and im.convert(dtype):
-            code = 1 # image type modified
-            modifications.append('type') # image type modified
+        dst_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
+        modifications = []
 
-        # crop before reducing image to max_pixels (or the crop box will be outside of scope)
-        if crop_info is not None:
-            # Crop is needed
-            x = int(round(crop_info.get('x')))
-            y = int(round(crop_info.get('y')))
-            width = int(round(crop_info.get('width')))
-            height = int(round(crop_info.get('height')))
-            im.crop(x=x, y=y, width=width, height=height)
-            code = 1 # image cropped
-            modifications.append('crop')
-
-        max_pixels = evaluate(input_desc.get('max_pixels'))
-        input_pixels = im.width() * im.height()
-        if input_pixels > max_pixels:
-            fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
-            im.resize(fx=fxy, fy=fxy)
-            code = 1 # image resized to maximum expected
-            modifications.append('resize')
-
-        input_file_type, _ = mimetypes.guess_type(input_file)
-        input_desc_type, _ = mimetypes.guess_type("dummy." + input_desc.get('ext'))
-        input_path, _ = os.path.splitext(input_file)
-        dst_file = input_path + input_desc.get('ext')
-        # new encoding needed (ex: jpeg > png), according to the input and destination extension
-        if input_file_type != input_desc_type:
-            code = 1 # will be done below by im.write()
-            modifications.append('encode')
-        # same encoding,
-        elif code == 1:
-            pass
-        # no conversion needed but not the expected extension (.jpe > .jpeg; .tif > .tiff)
-        else:
-            os.rename(input_file, dst_file)
-        # image data have been modified, save it
-        if code == 1:
-            if input_desc.get("forbid_preprocess", False):
-                return 2, [] # Conversion needed but forbidden
-            im.write(dst_file)
-        return code, modifications
+        program = [
+            # Color conversion, usually reducing to gray, sooner is better
+            ConverterChannels(im, input_desc),
+            # Depth conversion, usually reducing to 8 bits, sooner is better
+            ConverterDepth(im, input_desc),
+            # Crop before reducing image to max_pixels (or the crop box will be outside of scope)
+            ConverterCrop(im, crop_info),
+            # Resize image if bigger than a max.
+            ConverterMaxpixels(im, input_desc),
+            # Re-encoding (ex: jpg > png)
+            ConverterExtension(input_file, dst_file),
+        ]
+        # Is there an operation to do ?
+        todo = False
+        for task in program:
+            if task.todo:
+                todo = True
+        # Nothing to do, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
+        if not todo:
+            if input_file != dst_file:
+                os.rename(input_file, dst_file)
+            return 0, []
+        # Something to do, but forbidden, ensure expected extension
+        if input_desc.get("forbid_preprocess", False):
+            if input_file != dst_file:
+                os.rename(input_file, dst_file)
+            return 2, [] # Conversion needed but forbidden
+        # do work
+        modifications = []
+        for task in program:
+            if task.todo:
+                task.do_convert()
+                modifications.append(task.label)
+        # do not forget to write modifications
+        im.write(dst_file)
+        print dst_file
+        return 1, modifications
 
     @staticmethod
     def convert_video(input_file, input_desc):
@@ -369,3 +362,114 @@ class Conversion(object):
             print traceback.format_exc()
             self.logger.exception(message)
         return json.dumps(data, indent=4)
+
+class ConverterImage(object):
+    """
+    Interface of a conversion task for an image.
+    """
+    todo = False
+    done = False
+    def _do(self):
+        """
+        The specific action of the converter, with parameters prepared by the constructor.
+        """
+        raise NotImplementedError
+    def do_convert(self):
+        """
+        Do conversion if allowed.
+        """
+        if not self.todo:
+            return self.done
+        self._do()
+        self.done = True
+        return self.done
+
+class ConverterDepth(ConverterImage):
+    """
+    Converts image depth by pixel (ex: 'i8' for uint8, int 8 bits)
+    """
+    label = "depth"
+    def __init__(self, im, input_desc):
+        dtype = input_desc.get('dtype')
+        if not dtype:
+            return
+        _, depth = dtype.split('x')
+        if im.check_depth(depth):
+            return
+        self.im = im
+        self.depth = depth
+        self.todo = True
+    def _do(self):
+        self.im.convert_depth(self.depth)
+
+class ConverterChannels(ConverterImage):
+    """
+    Converts number of channels of an image (ex: to gray)
+    """
+    label = "colors"
+    def __init__(self, im, input_desc):
+        dtype = input_desc.get('dtype')
+        if not dtype:
+            return
+        channels, _ = dtype.split('x')
+        if im.check_channels(channels):
+            return
+        self.im = im
+        self.channels = channels
+        self.todo = True
+    def _do(self):
+        self.im.convert_channels(self.channels)
+
+class ConverterCrop(ConverterImage):
+    """
+    Crops an image according to a json specification.
+    """
+    label = "crop"
+    def __init__(self, im, crop_info):
+        if crop_info is None:
+            return
+        self.im = im
+        self.x = int(round(crop_info.get('x')))
+        self.y = int(round(crop_info.get('y')))
+        self.width = int(round(crop_info.get('width')))
+        self.height = int(round(crop_info.get('height')))
+        self.todo = True
+    def _do(self):
+        self.im.crop(x=self.x, y=self.y, width=self.width, height=self.height)
+
+class ConverterMaxpixels(ConverterImage):
+    """
+    Resizes image if bigger than max_pixels.
+    """
+    label = "resize"
+    def __init__(self, im, input_desc):
+        max_pixels = input_desc.get('max_pixels')
+        if max_pixels is None:
+            return
+        max_pixels = evaluate(max_pixels)
+        if max_pixels <= 0:
+            return
+        input_pixels = im.width() * im.height()
+        if input_pixels < max_pixels:
+            return
+        self.im = im
+        self.fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
+        self.todo = True
+    def _do(self):
+        self.im.resize(fx=self.fxy, fy=self.fxy)
+
+class ConverterExtension(ConverterImage):
+    """
+    Change extension
+    """
+    label = "extension"
+    def __init__(self, src_file, dst_file):
+        src_type, _ = mimetypes.guess_type(src_file)
+        dst_type, _ = mimetypes.guess_type(dst_file)
+        if src_type == dst_type:
+            return
+        self.todo = True
+    def _do(self):
+        # new encoding needed (ex: jpeg > png), according to the input and destination extension
+        # nothing to do here, will be done by aving image
+        pass
