@@ -13,6 +13,7 @@ import sys
 import tempfile
 import cv2
 import requests
+import magic
 import numpy as np
 from ipolutils.image.Image import Image
 
@@ -63,11 +64,10 @@ class ConversionImageTests(unittest.TestCase):
             dtype_max = np.iinfo(dtype).max
         else:
             dtype_max = 1
-        data = np.zeros((32, 48, 3))
+        data = np.zeros((32, 48, 3), dtype=dtype)
         data[0:16, :, 0] = dtype_max
         data[:, 0:32, 1] = dtype_max
         data[:, 0:16, 2] = dtype_max
-        data = data.astype(dtype, copy=False)
         return data
 
     def test_tiff_depths(self):
@@ -81,10 +81,17 @@ class ConversionImageTests(unittest.TestCase):
                 im = Image.data(data)
                 im.convert_depth(dst_depth)
                 im.write(tif_file.name)
-                im = im.load(tif_file.name)
+                im = Image.load(tif_file.name)
                 data = self.data_matrix(dst_depth)
-                self.assertTrue((im.data == data).all(), msg="{} > {}".format(src_depth, dst_depth))
+                self.assertTrue(
+                    im.data.dtype is data.dtype,
+                    msg="dtype expected={} found={}, alteration during conversion {} > {}".format(
+                        data.dtype, im.data.dtype, src_depth, dst_depth
+                    )
+                )
+                self.assertTrue((im.data == data).all(), msg="data alteration during conversion {} > {}".format(src_depth, dst_depth))
         tif_file.close()
+
 
     def test_8i_extensions(self):
         """
@@ -92,15 +99,28 @@ class ConversionImageTests(unittest.TestCase):
         """
         data = self.data_matrix('8i')
         # gif is not supported by OpenCV, .jpg do not keep exact colors
-        exts = ('.bmp', '.png', '.tif', '.TIFF')
-        for src_ext in exts:
+        exts = {
+            '.bmp': 'image/x-ms-bmp',
+            '.png': 'image/png',
+            '.tif': 'image/tiff',
+            '.TIFF': 'image/tiff',
+        }
+        for src_ext, src_mime in exts.iteritems():
             src_file = tempfile.NamedTemporaryFile(suffix=src_ext, prefix="ipol_", delete=True)
             src_im = Image.data(data)
             src_im.write(src_file.name)
+            self.assertTrue(
+                magic.from_file(src_file.name, mime=True) == src_mime,
+                msg="Bad file encoding, {} is not {}".format(src_file.name, src_mime)
+            )
             src_im = Image.load(src_file.name)
-            for dst_ext in exts:
+            for dst_ext, dst_mime in exts.iteritems():
                 dst_file = tempfile.NamedTemporaryFile(suffix=dst_ext, prefix="ipol_", delete=True)
-                src_im.write(dst_file.name)
+                src_im.write(dst_file.name) # write to dest should encoding conversion
+                self.assertTrue(
+                    magic.from_file(dst_file.name, mime=True) == dst_mime,
+                    msg="Bad file encoding, {} is not {}".format(dst_file.name, dst_mime)
+                )
                 dst_im = Image.load(dst_file.name)
                 self.assertTrue((src_im.data == dst_im.data).all(), msg="{} > {}".format(src_ext, dst_ext))
                 dst_file.close()
@@ -125,21 +145,24 @@ class ConversionImageTests(unittest.TestCase):
         status = None
         code = None
         try:
-            ext = '.bmp'
+            dst_ext = '.bmp'
+            dst_mime = 'image/x-ms-bmp'
             input_dir = os.path.split(self.blob_path)[0]
             src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
-            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': dst_ext,
                            'type': 'image', 'max_weight': 5242880}]
             crop_info = None
             response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + ext
+            dst_path = os.path.split(self.blob_path)[0] + '/input_0' + dst_ext
             dst_im = Image.load(dst_path)
+            good_mime = (magic.from_file(dst_path, mime=True) == dst_mime)
             os.remove(dst_path)
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
+            self.assertTrue(good_mime, msg="Bad file encoding, {} is not {}".format(dst_path, dst_mime))
             self.assertTrue((src_im.data == dst_im.data).all(), msg="Changing image extension has change the data.")
 
     def test_convert_image_that_do_not_need_conversion(self):
@@ -151,14 +174,18 @@ class ConversionImageTests(unittest.TestCase):
         try:
             ext = '.png'
             input_dir = os.path.split(self.blob_path)[0]
+            src_path = input_dir + '/input_0' + ext
+            src_size = os.path.getsize(src_path)
             input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             crop_info = None
             response = self.convert(input_dir, input_desc, crop_info)
             status = response.get('status')
             code = response.get('info').get('0').get('code')
-            os.remove(os.path.split(self.blob_path)[0] + '/input_0' + ext)
+            dst_size = os.path.getsize(src_path)
+            os.remove(src_path)
         finally:
+            self.assertEqual(src_size, dst_size, msg="{} != {}, file have been modified")
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '0')
 
@@ -319,7 +346,7 @@ class ConversionVideoTests(unittest.TestCase):
         Tests video conversion to frames. No resize or frame crop needed.
         """
         status = None
-        code = None 
+        code = None
         try:
             work_dir = os.path.split(self.video_blob_path)[0]
             input_desc = [{'description': 'input', 'max_pixels': '15000 * 10000',
@@ -391,7 +418,7 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertEqual(frame_count, 5)
             self.assertEqual(frame_width * frame_height, input_video["width"] * input_video["height"])
             shutil.rmtree(os.path.split(self.video_blob_path)[0] + '/input_0')
-    
+
     def test_convert_video_to_frames_with_resize_and_max_frames(self):
         """
         Tests video conversion to frames with resize and max frames.
@@ -441,7 +468,7 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertEqual(avi_video["frame_count"], input_video["frame_count"])
             self.assertEqual(avi_video["width"] * avi_video["height"], input_video["width"] * input_video["height"])
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_resize(self):
         """
         Tests video conversion to AVI with resize.
@@ -465,7 +492,7 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertEqual(avi_video["frame_count"], input_video["frame_count"])
             self.assertLessEqual(avi_video["width"] * avi_video["height"], 150 * 100)
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_max_frames(self):
         """
         Tests video conversion to AVI with max frames.
@@ -489,7 +516,7 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertEqual(avi_video["frame_count"], 6)
             self.assertEqual(avi_video["width"] * avi_video["height"], input_video["width"] * input_video["height"])
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
     def test_convert_video_to_avi_with_resize_and_max_frames(self):
         """
         Tests video conversion to AVI with resize and max frames.
@@ -513,7 +540,7 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertEqual(avi_video["frame_count"], 6)
             self.assertLessEqual(avi_video["width"] * avi_video["height"], 150 * 100)
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-    
+
 
     def test_negative_max_frames_as_avi(self):
         """
@@ -601,7 +628,7 @@ class ConversionVideoTests(unittest.TestCase):
         frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        
+
         return {"frame_count": frame_count, "width": width, "height": height}
 
 if __name__ == '__main__':

@@ -74,7 +74,7 @@ class Image(object):
     @staticmethod
     def data(data):
         '''
-        Factory, return am image object build with the data matrix.
+        Factory, returns an image object build with the data matrix.
         '''
         im = Image()
         im.data = data
@@ -83,7 +83,7 @@ class Image(object):
     @staticmethod
     def video_frame(video_file, pos_ratio=0.5, pos_max=7500):
         '''
-        From a video, returns a significative frame as an image object
+        From a video, returns a significative frame as an image object.
         '''
         cap = cv2.VideoCapture(video_file)
         pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
@@ -351,6 +351,8 @@ class Image(object):
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
         src_dtype = data.dtype
         dst_dtype = depth_dtypes[dst_depth]
+
+
         # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
             return data, False
@@ -370,12 +372,15 @@ class Image(object):
 
         # int -> int
         elif np.issubdtype(dst_dtype, np.integer): #check condition
-            k = float(np.iinfo(dst_dtype).max) / np.iinfo(src_dtype).max
-            if k < 1: # Reduce bits, cast after
-                data = data * k
+            dst_max = np.iinfo(dst_dtype).max
+            src_max = np.iinfo(src_dtype).max
+            if dst_max < src_max: # Reduce bits, cast after
+                k = src_max / dst_max
+                data = data / k
                 data = data.astype(dst_dtype, copy=False)
-            else: # Increase bits, cast before
+            else: # Increase bits, cast before to have place for max value
                 data = data.astype(dst_dtype, copy=False)
+                k = dst_max / src_max # keep k as int, if k is float (data * k) will become float
                 data = data * k
 
             return data, True
