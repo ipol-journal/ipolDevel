@@ -17,52 +17,53 @@ Another of its main functions is to serve static files and to expose them on a p
 The system serves these static files directly with Nginx, without the need to reach directly Django. Nginx also serves the static files of demo system as for example HTML pages, CSS, and the static data from the blobs and archive modules.
 
 \subsection{Private demos}
-The IPOL system provides private demos which require authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this mechanism, Nginx checks the argument ID from the URL looking for a numeric pattern, checks this number, redirects to the authorization page and depending on the company name it will contrast the information provided by the user against this company credentials. If it is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the
-demo and redirects the authentication process if the pattern matches.
+The IPOL system provides private demos which require authentication using a username and password. The system decides if a demo is private or public depending on its ID. To implement this mechanism, Nginx checks the argument ID from the URL looking for a numeric pattern, checks this number, redirects to the authorization page and depending on the company name it will contrast the information provided by the user against this company credentials. If it is successful the system will grant access, otherwise an error will be shown. The following configuration example checks the ID of the demo and redirects the authentication process if the pattern matches.
 
+\begin{footnotesize}
 \begin{lstlisting}[language=Bash]
 location /demo/clientApp/ {
-        expires 24h;
-        if ($args ~ ".*id=33333001\d*") {
-            error_page 418 = @CompanyNamePasswd;
-            return 418;
-        }
-        alias  /resource_folder/;
+    expires 24h;
+    if ($args ~ ".*id=33333001\d*") {
+        error_page 418 = @CompanyNamePasswd;
+        return 418;
     }
+    alias  /resource_folder/;
+}
     
 location @CompanyNamePasswd {
-	auth_basic "Restricted";
-	auth_basic_user_file /etc/nginx/.passwd/companyName;
-        proxy_pass  http://127.0.0.1:81/$request_uri;
-    }
- \end{lstlisting}
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.passwd/companyName;
+    proxy_pass  http://127.0.0.1:81/$request_uri;
+}
+\end{lstlisting}
+\end{footnotesize}
 
-With this declaration Nginx uses a special code (418) to redirect to another location (@CompanyNamePasswd) which is unique for each 
-company with private demos in the system. This way each company has its own username/password. For each company there exists a file
-({\tt /etc/nginx/.passwd/companyName}) containing a username and password hash pair to evaluate the given authentication data in the server.
+In the previous declaration, Nginx uses a special code (418) to redirect to another location (@CompanyNamePasswd) which is unique for each company with private demos in the system. This configuration allows that Nginx uses a file ({\tt /etc/nginx/.passwd/companyName}) for each company containing the username and password hash pair to evaluate the given authentication data in the server. This way each company has its own username/password.
 
 A second server that can only be accessed by the local machine evaluates this authentication in order to avoid that a user passes over the authentication step and goes directly to the final page. In case of a successful verification this second server grants access to the demo page that serves the static files or otherwise it redirects to an error page.
 
 An example of this second server:
+\begin{footnotesize}
 \begin{lstlisting}
 server {
-        allow 5.196.85.84;
-        allow 127.0.0.1;
-        deny all;
+    allow 5.196.85.84;
+    allow 127.0.0.1;
+    deny all;
 
-        listen *:81;
-        proxy_send_timeout          700;
-        proxy_read_timeout          700;
-        send_timeout                700;
-        client_max_body_size        500m;
+    listen *:81;
+    proxy_send_timeout          700;
+    proxy_read_timeout          700;
+    send_timeout                700;
+    client_max_body_size        500m;
 
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-        location /demo/clientApp/ {
-                expires 24h;
-                resolver 127.0.0.1;
-                alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
-        }
+    location /demo/clientApp/ {
+            expires 24h;
+            resolver 127.0.0.1;
+            alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
+    }
 }
 \end{lstlisting}
+\end{footnotesize}

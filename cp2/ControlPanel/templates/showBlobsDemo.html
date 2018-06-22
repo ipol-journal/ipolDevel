@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %}showBlobsDemo{% endblock %} {% block bodyid %}showBlobsDemo{% endblock %} {% block header %}
 <h1>Manage Blobs for demo <span id="demo_id"></span> </h1>
-<a id="GoPreviousPage" href="">Go Previous Page</a> {% endblock %} {% block content %} {% endblock %} {% block footer %}
+<a id="GoPreviousPage" href="javascript:history.back()">Go Previous Page</a> {% endblock %} {% block content %} {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
     <a class="navbar_brand" href="/cp2">
         <img src="/cp2/static/images/IPOL-header-logo.png"></a>
@@ -27,9 +27,8 @@
     var state = getParameterByName('state');
     var templateSelection;
     document.getElementById("demo_id").innerHTML = demo_id;
-    document.getElementById("GoPreviousPage").href = "/cp2/showDemo?demo_id=" + demo_id + "&title=" + title + "&modification=" + modification + "&state=" + state;
+    //document.getElementById("GoPreviousPage").href = "/cp2/showDemo?demo_id=" + demo_id + "&title=" + title + "&modification=" + modification + "&state=" + state;
     request.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
-    //autre fonction que avoir toute templates, il ne faut que celles qui ne sont pas prises
     request2.open('GET', '/api/blobs/get_all_templates');
     request2.send();
     request2.responseType = 'json';
@@ -81,22 +80,13 @@
         var buttonDelete = document.createElement('button');
         buttonDelete.textContent = "Unlink";
         buttonDelete.setAttribute("class", "buttonDelete")
-        buttonDelete.setAttribute('templateName', templateSelection);
-        href.appendChild(buttonDelete);
+        buttonDelete.setAttribute('id', templateSelection);
+        buttonDelete.setAttribute("onclick", "remove_template_to_demo(this)");
+        H4.appendChild(buttonDelete);
         templates_used.push(templateSelection);
         return templates_used;
     }
 
-    // function templatesList_not_used(Array1, Array2){
-    //     for (var i=0; i< Array1.length; i++){
-    //         for(var j=0; j< Array2.length; j++){
-    //             if (Array1.includes(Array2[j])){
-    //                 Array1.splice(i,1); 
-    //             }
-    //         }
-    //     }
-    //     return Array1;
-    // }
 
     function showBlobsAndTemplatesDemo(jsonObj, templates_used_for_demo) {
         var div = document.createElement('div');
@@ -156,37 +146,8 @@
         };
     };
 
-    // <input type="text" name="search" id="search" placeholder="Type Something" list="searchresults" autocomplete="on">
-    //     <datalist id="searchresults">
-    //         <option data-id="286217" value="The Martian"></option>
-    //         <option data-id="116741" value="The Internship"></option>
-    //         <option data-id="122917" value="The Hobbit: The Battle of the Five Armies"></option>
-    //         <option data-id="24428" value="The Avengers"></option>
-    //         <option data-id="156022" value="The Equalizer"></option>
-    //         <option data-id="207703" value="Kingsman: The Secret Service"></option>
-    //     </datalist>
-
-    // $("#templateSelection").change(function (){
-    //                 var val = $('#templateSelection').val()
-    //                 var id = $('#TemplateToDemo option').filter(function() {
-    //                     return this.value == val;
-    //                 }).data("id");
-    //                 alert(val);
-    //                 console.log(id);
-    //                 alert(id)
-    //             });
-    // $("#templateSelection").on( "focus", function(event){
-    //   var val = $('#search').val()
-    //   var id = $('#TemplateToDemo option').filter(function() {
-    //       return this.value === val;
-    //   }).data("id");
-    //   console.log(id);
-    // });
-
-
     function showTemplatesList(jsonObj) {
         templatesList = jsonObj['templates'];
-        //console.log(List);
         var dataList = document.createElement('datalist');
         dataList.setAttribute("id", "TemplateToDemo");
         var input = document.createElement('input');
@@ -211,14 +172,7 @@
         inputValidation.setAttribute("onclick", "add_template_to_demo()");
         inputValidation.textContent = "SAVE";
         section.appendChild(inputValidation);
-        // var div = document.createElement('div');
-        // div.setAttribute('id', 'blockTemplates');
-        // section.appendChild(div);
-        //return templatesList;
     }
-
-    //def add_templates_to_demo(self, demo_id, template_names):
-    //def remove_template_from_demo(self, demo_id, template_name):
 
     function add_template_to_demo() {
         templateSelection = document.getElementById("templateSelection").value;
@@ -264,13 +218,12 @@
             dataType: 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    alert("Template added to this demo")
+                    document.location.href = "/cp2/showBlobsDemo?demo_id="+demo_id+"&title="+title+"&modification="+modification+"&state="+state;
                 } else {
-                    alert("Error to added this demo to the template or any template selected")
+                    alert("Error to delete this template to the demo");
                 }
             },
         })
     };
 </script>
-
 {% endblock %}

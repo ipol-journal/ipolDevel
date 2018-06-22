@@ -14,7 +14,6 @@ import tempfile
 import cv2
 import requests
 import magic
-import traceback
 import numpy as np
 from ipolutils.image.Image import Image
 
@@ -360,7 +359,7 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -386,7 +385,7 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -412,7 +411,7 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -438,7 +437,6 @@ class ConversionVideoTests(unittest.TestCase):
             frame_count = len(os.listdir(os.path.split(self.video_blob_path)[0] + '/input_0'))
             frame = cv2.imread(os.path.split(self.video_blob_path)[0] + '/input_0/frame_00000.png')
             frame_width, frame_height, _ = frame.shape
-            input_video = self.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -461,8 +459,8 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -485,8 +483,8 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -509,8 +507,8 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -533,8 +531,7 @@ class ConversionVideoTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')[0]
 
-            avi_video = self.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
-            input_video = self.load_video(work_dir + '/input_0.mp4')
+            avi_video = ConversionVideoTests.load_video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
         finally:
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '1')
@@ -619,7 +616,8 @@ class ConversionVideoTests(unittest.TestCase):
         response = self.post(self.module, 'convert', params=params)
         return response.json()
 
-    def load_video(self, src):
+    @staticmethod
+    def load_video(src):
         """
         Return video properties for tests (frame_count, width, height).
         """

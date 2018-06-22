@@ -86,13 +86,6 @@ function addMaxMin(param, index) {
   if (param.values.min) $('#maxmin-' + index).append("<span> Min: " + param.values.min + "</span>");
 }
 
-function addLayout() {
-  for (let i = 0; i < demoInfo.params_layout.length; i++) {
-    var firstLayoutElement = demoInfo.params_layout[i];
-    $(".param-" + firstLayoutElement[1][0]).addLayoutHeader(firstLayoutElement[0]);
-  }
-}
-
 function updateParamsArrayValue(param_id, value) {
   params[param_id] = value;
   checkParamsVisibility();

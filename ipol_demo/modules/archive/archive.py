@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -132,7 +132,7 @@ class Archive(object):
         It is false if something went wrong.
         """
 
-        if not self.check_config():
+        if not Archive.check_config():
             print "ERROR: fields missing in the configuration file."
             sys.exit(1)
 
@@ -149,9 +149,9 @@ class Archive(object):
         except Exception:
             self.number_of_experiments_by_pages = 10
 
-        self.mkdir_p(self.database_dir)
-        self.mkdir_p(self.blobs_dir)
-        self.mkdir_p(self.blobs_thumbs_dir)
+        Archive.mkdir_p(self.database_dir)
+        Archive.mkdir_p(self.blobs_dir)
+        Archive.mkdir_p(self.blobs_thumbs_dir)
 
         # Logs
         try:
@@ -357,8 +357,8 @@ class Archive(object):
             if not os.path.isfile(blob_path):
                 return None, None
 
-            hash_file = self.get_hash_blob(blob_path)
-            format_file = self.file_format(blob_path)
+            hash_file = Archive.get_hash_blob(blob_path)
+            format_file = Archive.file_format(blob_path)
 
             _, type_file = os.path.splitext(blob_path)
             type_file = type_file.split('.')[1]
@@ -437,11 +437,11 @@ class Archive(object):
         try:
             demo_id = int(demo_id)
             conn = lite.connect(self.database_file)
-            id_experiment = self.update_exp_table(conn, demo_id, parameters, execution)
+            id_experiment = Archive.update_exp_table(conn, demo_id, parameters, execution)
             data["id_experiment"] = id_experiment
             dict_corresp = {}
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
-            self.update_correspondence_table(conn, id_experiment, dict_corresp)
+            Archive.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
             conn.close()
         except Exception as ex:
@@ -540,7 +540,8 @@ class Archive(object):
 
         return meta_info
 
-    def get_dict_file(self, path_file, path_thumb, name, id_blob):
+    @staticmethod
+    def get_dict_file(path_file, path_thumb, name, id_blob):
         """
         Build a dict containing the path to the file, the path to the thumb
                 and the name of the file.
@@ -580,7 +581,7 @@ class Archive(object):
                 thumb_dir = '{}/{}'.format(self.blobs_thumbs_dir, subdirs)
                 thumb_name = '{}.jpeg'.format(row[0])
                 path_thumb = os.path.join(thumb_dir, thumb_name)
-                list_files.append(self.get_dict_file(path_file, path_thumb, row[2], row[3]))
+                list_files.append(Archive.get_dict_file(path_file, path_thumb, row[2], row[3]))
 
             dict_exp["id"] = id_exp
             dict_exp["date"] = date

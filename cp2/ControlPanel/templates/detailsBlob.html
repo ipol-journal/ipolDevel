@@ -1,9 +1,10 @@
 {% extends "base.html" %} {% block title %}detailsBlob{% endblock %} {% block bodyid %}detailsBlob{% endblock %} {% block header %}
+
 {% endblock %} {% block content %}
-<div>
-    <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
+<h2 id="setName"></h2>
+<div id ="DetailsBlob">
     <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
-</div>
+    <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
 <form id="editBlobForm">
     {% csrf_token %}
     <p>
@@ -26,7 +27,8 @@
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
-<a id="GoPreviousPage" href="">Go Previous Page</a>
+</div>
+<a id="GoPreviousPage" href="javascript:history.back()">Go Previous Page</a>
 {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
     <a class="navbar_brand" href="/cp2">
@@ -49,9 +51,9 @@ var credit = getParameterByName('credit');
 var tags = getParameterByName('tags');
 var thumbnail_vr = getParameterByName('thumbnail');
 var templateSelection = getParameterByName('template')
-var blob = getParameterByName('blob');""
+var blob = getParameterByName('blob');
 
-
+document.getElementById("setName").textContent = set;
 document.getElementById("Title").value = title;
 document.getElementById("SET").value = set;
 document.getElementById("PositionSet").value = pos;
@@ -59,7 +61,6 @@ document.getElementById("Credit").value = credit;
 document.getElementById("Tags").value = tags;
 document.getElementById("thumbnail_vr").src = thumbnail_vr;
 document.getElementById("thumbnail").src = blob;
-document.getElementById("GoPreviousPage").href = "/cp2/showTemplates?template="+templateSelection;
 
 
 

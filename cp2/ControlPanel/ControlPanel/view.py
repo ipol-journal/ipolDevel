@@ -231,11 +231,11 @@ def ajax_remove_template_to_demo(request):
     settings = {'demo_id': demo_id, 'template_name': template_name}
     response = {}
     print(settings)
-    response_api = requests.post("http://127.0.0.1/api/blobs/remove_template_to_demo", params = settings)
-    #print(response_api)
+    response_api = requests.post("http://127.0.0.1/api/blobs/remove_template_from_demo", params = settings)
+    print(response_api)
     print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
-    #print(result)
+    print(result)
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')

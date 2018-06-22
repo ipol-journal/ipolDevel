@@ -2,31 +2,15 @@
 <h2>
     Demo Editor
 </h2>
-<style type="text/css" media="screen">
-    .ace_editor {
-        border: 1px solid lightgray;
-        margin: auto;
-        height: 200px;
-        width: 80%;
-    }
-    
-    .scrollmargin {
-        height: 80px;
-        text-align: center;
-    }
-</style>
 <div id="headerShowDemo">
     <h3>
-        Demo ID : <span id="demo_id"></span>
-    </h3>
-    <h3>
-        Title : <span id="title"></span>
+        Demo ID : <span id="demo_id"></span> Title : <span id="title"></span>
     </h3>
 </div>
 {% endblock %} {% block content %}
 <div id="ddlDemo">
     <p> DDL :</p>
-    <p>Press Ctrl+F to search</p>
+    <p>Press <i>Ctrl+F</i> to search</p>
     <div>
         <pre id="editor2"></pre>
         <div class="scrollmargin"></div>
@@ -34,6 +18,18 @@
     <div>
         <button id="changeThemeWhite">White Theme</button>
         <button id="changeThemeDark">Dark Theme</button>
+    </div>
+    <div id="save_ddl_container">
+        <div>
+            <button>Save DDL</button>
+        </div>
+        <div>
+            <p>DDL already saved</p>
+            <p>There are unsaved changes.</p>
+        </div>
+        <div>
+            <a href="">DDL History</a>
+        </div>
     </div>
     <div class="optionLine">
         <div>
@@ -53,10 +49,11 @@
             <a id="showBlobsDemo" href="" >Blobs</a>
         </div>
     </div>
+</div>
     <div>
         <a id="GoPreviousPage" href="/cp2">Go Previous Page</a>
     </div>
-</div>
+
 <pre id="editor3"></pre>
 <div class="scrollmargin"></div>
 
