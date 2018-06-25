@@ -100,7 +100,7 @@ function showTemplates(jsonObj) {
             var myDiv2 = document.createElement('div');
             myDiv2.setAttribute("class","image_files");
             var myHref = document.createElement('a');
-            myHref.setAttribute("href", "/cp2/detailsBlob?title="+Blobs[blob_pos].title+"&set="+blobsList[i].name+"&pos="+blob_pos+"&credit="+blob.credit+"&tags="+blob.tags+"&thumbnail="+blob.thumbnail+"&template="+templateSelection+"&blob="+blob.blob);
+            myHref.setAttribute("href", "/cp2/detailsBlob?title="+Blobs[blob_pos].title+"&set="+blobsList[i].name+"&pos="+blob_pos+"&credit="+blob.credit+"&tags="+blob.tags+"&thumbnail="+blob.thumbnail+"&template="+templateSelection+"&vr="+blob.vr);
             var image_src = document.createElement('img');
             image_src.setAttribute("src",blob.thumbnail);
             image_src.setAttribute("style", "margin-right: 25px");
@@ -155,9 +155,6 @@ function deleteBlob() {
     $("button.ButtonDelete").click(function () {
         var blobSelection = $(this).attr('blobName');
         var $pos_set = $(this).attr('blobSet')
-        console.log(blobSelection);
-        console.log($pos_set);
-        console.log(templateSelection);
         $.ajax({
             beforeSend: function(xhr, settings) {
                 return (confirm("Are you sure?"))

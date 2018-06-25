@@ -26,7 +26,7 @@ SECRET_KEY = 'ng&u0bv6bm6cs+w+c#=*b0-#g-e_*t(my7(q@&1@^b5m@-)&^!'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [socket.getfqdn()]
+ALLOWED_HOSTS = [socket.getfqdn(), '127.0.0.1']
 
 
 # Application definition

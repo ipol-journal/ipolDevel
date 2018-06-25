@@ -110,7 +110,11 @@ def ajax_delete_template(request):
     response = {}
     settings = {'template_name' : template_name }
     response_api = requests.post("http://127.0.0.1/api/blobs/delete_template", params = settings)
+    print(response_api)
+    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
+    print(result)
+
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
@@ -138,7 +142,10 @@ def ajax_add_blob(request):
     response = {}
     settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
     response_api = requests.post("http://127.0.0.1/api/blobs/add_blob_to_template", params = settings, files = files )
+    print(response_api)
+    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
+    print(result)
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')

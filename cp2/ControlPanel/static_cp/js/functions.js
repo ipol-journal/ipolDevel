@@ -12,20 +12,19 @@ function vrUploaded(){
   var thumbnail = document.getElementById("thumbnail_vr");
   var vr = document.getElementById("VR");
   var fr = new FileReader();
-  fr.onload = function(e) { thumbnail_vr.src = this.result; };
+  fr.onload = function() { thumbnail.src = this.result; };
   fr.readAsDataURL(vr.files[0]);
   if (vr.files.length > 0) {
       VRName = vr.files[0].name;
   }
   return VRImage = vr.files[0];
-  return VRName;
 };
 
 function blobUploaded(){
   var thumbnail = document.getElementById("thumbnail");
   var blob = document.getElementById("Blob");
   var fr = new FileReader();
-  fr.onload = function(e) { thumbnail.src = this.result; };
+  fr.onload = function() { thumbnail.src = this.result; };
   fr.readAsDataURL(blob.files[0]);
   if (blob.files.length > 0) {
       blobName = blob.files[0].name;
@@ -33,11 +32,17 @@ function blobUploaded(){
   return blobImage = blob.files[0];
 };
 
+function removeFile(){
+  file = null;
+  document.getElementById("VR").innerHTML = "";
+}
+
 function setBrokenImage(image) {
   image.onerror = "";
   image.src = "/cp2/static/images/non_viewable_inputs.png";
   return true;
 }
+
 
 //functions in demoinfo : 
 //read_ddl(ddl_id) 

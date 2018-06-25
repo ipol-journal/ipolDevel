@@ -3,8 +3,16 @@
 {% endblock %} {% block content %}
 <h2 id="setName"></h2>
 <div id ="DetailsBlob">
-    <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
-    <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
+    <div id="blobRepresentation">
+        <div id="blobThumbnail">
+            <p>Blob thumbnail</p>
+            <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
+        </div>
+        <div id="vrThumbnail">
+            <p>Visual representation</p>
+                <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
+        </div>
+    </div>
 <form id="editBlobForm">
     {% csrf_token %}
     <p>
@@ -24,6 +32,7 @@
     </p>
     <p>
         <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
+        <a href="" id="removeFile">X</a>
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
@@ -40,7 +49,7 @@
 </nav>
 <script>
 //http://127.0.0.1/api/blobs/edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,new_pos_set=None, title=None, credit=None, vr=None)
-
+//lorqu'on click sur blob on le telecharge
 var VRImage;
 var completeURL = document.location.href;
 var decoded = decodeURI(completeURL);
@@ -49,9 +58,9 @@ var set = getParameterByName('set');
 var pos = getParameterByName('pos');
 var credit = getParameterByName('credit');
 var tags = getParameterByName('tags');
-var thumbnail_vr = getParameterByName('thumbnail');
+var thumbnail_vr = getParameterByName('vr');
 var templateSelection = getParameterByName('template')
-var blob = getParameterByName('blob');
+var blob = getParameterByName('thumbnail');
 
 document.getElementById("setName").textContent = set;
 document.getElementById("Title").value = title;

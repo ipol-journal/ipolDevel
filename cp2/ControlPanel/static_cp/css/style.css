@@ -735,19 +735,18 @@ input#id_Title {
 
 #DetailsBlob {
     border: 2px solid lightslategray;
-    padding: 50px 0px 50px 40px;
+    padding: 20px 0px 50px 40px;
     margin: 30px 30% 30px 10%;
 }
 
 #DetailsBlob #thumbnail {
-    max-width: 350px;
-    max-height: 350px;
+    max-width: 300px;
+    max-height: 300px;
 }
 
 #DetailsBlob #thumbnail_vr {
-    max-width: 350px;
-    max-height: 350px;
-    margin-left: 10%;
+    max-width: 300px;
+    max-height: 300px;
 }
 
 #DetailsBlob label {
@@ -791,4 +790,35 @@ input#id_Title {
 
 #save_ddl_container {
     display : inline-flex;
+}
+
+#blobRepresentation {
+    display : inline-flex;
+    width: 100%;
+    font-family:  'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    text-decoration: underline;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+#blobThumbnail {
+    text-align: center;
+    width: 250px;
+}
+
+#vrThumbnail {
+    text-align: center;
+    margin-left: 10%;
+    width: 100%;
+    margin-right: 10%;
+}
+
+#removeFile {
+    padding : 8px 8px 8px 8px;
+    background-color:lightcoral;
+    border-color: red;
+    border-radius: 2px;
+    text-decoration: none;
+    color: black;
+
 }

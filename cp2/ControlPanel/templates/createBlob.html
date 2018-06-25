@@ -2,13 +2,21 @@
 <h2>Add Blob to Template : <span id="nameOfTemplate"></span></h2>
 {% endblock %} {% block content %}
 <div id="blobCreation">
-    <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-    <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-
+    <div id="blobRepresentation">
+    <div id="blobThumbnail">
+        <p>Blob thumbnail</p>
+        <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+    </div>
+    <div id="vrThumbnail">
+        <p>Visual representation</p>
+        <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+    </div>
+    </div>
 <form id="createBlobForm">
     {% csrf_token %}
     <p>
         <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()"/>
+        <a href="" id="removeFile">X</a>
     </p>
     <p>
         <label>Title</label><input type="text" id="Title">
@@ -27,6 +35,7 @@
     </p>
     <p>
         <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
+        <a id ="removeFile"href="">X</a>
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
