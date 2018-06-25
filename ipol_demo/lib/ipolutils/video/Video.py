@@ -22,6 +22,7 @@ import errno
 import os
 import datetime
 import math
+import shlex
 
 from subprocess import Popen
 import cv2
@@ -29,8 +30,6 @@ import numpy as np
 
 from errors import IPOLConvertInputError
 from errors import IPOLTypeError
-from ipolutils.evaluator.evaluator import evaluate
-
 
 class Video(object):
     """
@@ -63,7 +62,6 @@ class Video(object):
         self.validate_max_frames(max_frames)
 
         dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
-        max_pixels = evaluate(max_pixels)
         video_pixel_count = self.height * self.width
 
         if not os.path.exists(dst_folder):
@@ -87,12 +85,12 @@ class Video(object):
         """
         self.validate_max_frames(max_frames)
 
-        avconv_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
-        max_pixels = evaluate(max_pixels)
-        avconv_command += self.get_avconv_options(max_pixels, max_frames)
-
         processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
-        convert_proc = Popen([avconv_command + " -loglevel error " + processed_video], shell=True)
+        avconv_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
+        avconv_command += self.get_avconv_options(max_pixels, max_frames)
+        avconv_command += " -loglevel error " + processed_video
+
+        convert_proc = Popen(shlex.split(avconv_command))
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
@@ -102,17 +100,12 @@ class Video(object):
         """
         Get the time interval according to the maximum number of frames allowed.
         """
-        video_duration = float(self.frame_count) / float(self.fps)
-        required_time = max_frames / float(self.fps)
-        from_time = video_duration / 2.0 - required_time / 2.0
-        to_time = video_duration / 2.0 + required_time / 2.0
+        middle_frame = self.get_middle_frame()
+        from_frame, to_frame = self.get_from_to_frames(middle_frame, max_frames)
 
-        frame_time = required_time / max_frames
-        from_frame = from_time * max_frames / required_time
-        to_frame = to_time * max_frames / required_time
-
-        if to_frame - from_frame + 1 > max_frames:
-            to_time = to_time - frame_time
+        frame_time = 1 / float(self.fps)
+        from_time = from_frame * frame_time
+        to_time = to_frame * frame_time
 
         return from_time, to_time
 
@@ -161,8 +154,34 @@ class Video(object):
         """
         Set capture pos based on frame count and max_frames.
         """
-        first_frame = self.frame_count / 2 - max_frames / 2
-        self.capture.set(cv2.CAP_PROP_POS_FRAMES, first_frame)
+        middle_frame = self.get_middle_frame()
+        from_frame, _ = self.get_from_to_frames(middle_frame, max_frames)
+
+        self.capture.set(cv2.CAP_PROP_POS_FRAMES, from_frame)
+
+    def get_middle_frame(self):
+        """
+        Get the middle frame.
+        """
+
+        if self.frame_count % 2 == 0:
+            return self.frame_count / 2
+        else:
+            return (self.frame_count - 1) / 2
+
+    @staticmethod
+    def get_from_to_frames(middle_frame, max_frames):
+        """
+        Get the first and last frame to extract.
+        """
+        if max_frames % 2 == 0:
+            from_frame = middle_frame - (max_frames / 2)
+            to_frame = middle_frame + (max_frames / 2) - 1
+        else:
+            from_frame = middle_frame - ((max_frames - 1) / 2)
+            to_frame = middle_frame + ((max_frames - 1) / 2)
+
+        return from_frame, to_frame
 
     def get_input_dir(self):
         """

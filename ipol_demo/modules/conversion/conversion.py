@@ -249,7 +249,6 @@ class Conversion(object):
         """
         Return a JSON KO response with an error message.
         """
-        traceback.print_exc(file=sys.stdout)
         response = {'status':'KO'}
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
@@ -308,11 +307,10 @@ class Conversion(object):
         """
         code = 0 # default return code, video not modified
         modifications = []
-
         video = Video(input_file)
         as_frames = input_desc.get('as_frames', None)
         max_frames = input_desc.get('max_frames')
-        max_pixels = input_desc.get('max_pixels')
+        max_pixels = evaluate(input_desc.get('max_pixels'))
         if as_frames:
             video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
             code = 1
