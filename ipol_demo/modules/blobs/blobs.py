@@ -268,14 +268,19 @@ class Blobs(object):
             blob_id = self.store_blob(conn, blob.file, credit, blob_hash, ext, blob_format)
 
             try:
-                if blob_vr is not None:
+                if blob_vr:
+                    # If the user specified to use a new VR, then we use it
                     _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
                     blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
                     self.create_thumbnail(blob_file, blob_hash)
                 else:
-                    blob_file = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
-                    blob_file = os.path.join(blob_file, blob_hash + ext)
-                    self.create_thumbnail(blob_file, blob_hash)
+                    # The user didn't give any new VR.
+                    # We'll update the thumbnail only if it doesn't have already a VR
+                    if not self.blob_has_VR(blob_hash):
+                        blob_file = os.path.join(self.blob_dir, self.get_subdir(blob_hash))
+                        blob_file = os.path.join(blob_file, blob_hash + ext)
+                        self.create_thumbnail(blob_file, blob_hash)
+
             except IPOLBlobsThumbnailError as ex:
                 # An error in the creation of the thumbnail doesn't stop the execution of the method
                 self.logger.exception("Error creating the thumbnail")
@@ -284,7 +289,7 @@ class Blobs(object):
             self.associate_tags_to_blob(conn, blob_id, tags)
 
             # If the set is empty the module generates an unique set name
-            if blob_set is None:
+            if not blob_set:
                 blob_set = self.generate_set_name(blob_id)
                 pos_set = 0
 
@@ -679,6 +684,23 @@ class Blobs(object):
                 conn.close()
         return json.dumps(data)
 
+    def blob_has_thumbnail(self, blob_hash):
+        '''
+        Check if the blob has already thumbnail
+        '''
+        subdir = self.get_subdir(blob_hash)
+        thumb_physical_dir = os.path.join(self.thumb_dir, subdir)
+        return os.path.isfile(os.path.join(self.module_dir, thumb_physical_dir, blob_hash + '.jpg'))
+
+    def blob_has_VR(self, blob_hash):
+        '''
+        Check if the blob is associated to a VR
+        '''
+        subdir = self.get_subdir(blob_hash)
+        vr_physical_dir = os.path.join(self.vr_dir, subdir)
+        vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob_hash)
+        return vr_extension is not None
+
     def get_blob_info(self, blob):
         """
         Return the required information from the blob
@@ -700,7 +722,7 @@ class Blobs(object):
                      'tags': blob['tags'],
                      'pos_set': blob['pos_set']}
 
-        if os.path.isfile(os.path.join(self.module_dir, thumb_physical_dir, blob['hash'] + '.jpg')):
+        if self.blob_has_thumbnail(blob['hash']):
             blob_info['thumbnail'] = os.path.join(self.module_dir, thumbnail_url, blob['hash'] + '.jpg')
 
         vr_extension = self.get_vr_extension(os.path.join(self.module_dir, vr_physical_dir), blob['hash'])
