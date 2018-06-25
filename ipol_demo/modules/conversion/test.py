@@ -16,6 +16,7 @@ import requests
 import magic
 import numpy as np
 from ipolutils.image.Image import Image
+from ipolutils.video.Video import Video
 
 
 #####################
@@ -596,9 +597,64 @@ class ConversionVideoTests(unittest.TestCase):
         finally:
             self.assertEqual(status, 'KO')
 
-    ####################
-    #      TOOLS       #
-    ####################
+    def test_get_middle_frame_even(self):
+        """
+        Tests calculate the middle frame when the video frame count is even.
+        """
+        try:
+            video = Video(self.video_blob_path)
+            middle_frame = video.get_middle_frame()
+        finally:
+            self.assertEqual(middle_frame, 125)
+
+    def test_get_middle_frame_odd(self):
+        """
+        Tests calculate the middle frame when the video frame count is odd.
+        """
+        try:
+            work_dir = os.path.split(self.video_blob_path)[0]
+            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
+                           'type': 'video', 'max_weight': 5242880, 'max_frames': 11}]
+            response = self.convert(work_dir, input_desc, None)
+            status = response.get('status')
+
+            video = Video(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+            middle_frame = video.get_middle_frame()
+        finally:
+            self.assertEqual(status, 'OK')
+            self.assertEqual(middle_frame, 5)
+            os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
+
+    def test_get_from_to_frames_from_even_max_frames(self):
+        """
+        Tests calculate the first and last frame to extracts when the max frames is even.
+        """
+        try:
+            video = Video(self.video_blob_path)
+            middle_frame = video.get_middle_frame()
+            from_frame, to_frame = video.get_from_to_frames(middle_frame, 10)
+        finally:
+            self.assertEqual(middle_frame, 125)
+            self.assertEqual(from_frame, 120)
+            self.assertEqual(to_frame, 129)
+
+    def test_get_from_to_frames_from_odd_max_frames(self):
+        """
+        Tests calculate the first and last frame to extracts when the max frames is odd.
+        """
+        try:
+            video = Video(self.video_blob_path)
+            middle_frame = video.get_middle_frame()
+            from_frame, to_frame = video.get_from_to_frames(middle_frame, 11)
+        finally:
+            self.assertEqual(middle_frame, 125)
+            self.assertEqual(from_frame, 120)
+            self.assertEqual(to_frame, 130)
+
+
+    ###################
+    ##      TOOLS    ##
+    ###################
 
     def post(self, module, service, params=None, data=None, files=None, servicejson=None):
         """
