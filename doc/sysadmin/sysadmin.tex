@@ -539,11 +539,12 @@ container before actually running the server. For this purpose there is a script
  \begin{itemize}
  	\item terminal: cd into the terminal directory and execute terminal.py
  	\item cpanel: Launches the control panel at 127.0.0.1 on port 8000.
+ 	\item cp2: Launches control panel 2 at 127.0.0.1 on port 8000.
  	\item collectstatic: collects all the static files for the control panel.
  	\item runtest: runs all the tests for each module.
  	\item module\_name: There is an alias for every module to excecute them separatelly. e.g. blobs.
+ 	\item rund: change directory to the run folder
  \end{itemize}
- 
 
 
 \paragraph{Docker build}:\\
@@ -737,6 +738,13 @@ apt-get purge virtualbox-dkms virtualbox-guest-dkms
 apt-get install linux-headers-amd64 virtualbox-5.1
 \end{verbatim}
 
+\textbf{Docker container stuck in a loop on start.}
+
+The main reason this can happen is probably a broken NGINX configuration file preventing the container to boot up as it launches NGINX on startup. To solve this copy either an empty file into the container's volume, or better yet, a correct version of the file that broke it in the first place thus enabling NGINX to start using the following command:
+
+\begin{verbatim}
+docker cp correct_file_version ipol:/path_to_broken_nginx_file
+\end{verbatim}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
