@@ -5,6 +5,7 @@
 requests
 opencv-python
 scikit-image
+virtualenv
 
 
 # These are needed by some workshops
