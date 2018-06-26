@@ -69,6 +69,7 @@ ipol_demo/modules/archive/logs/error.log
 # Editor temporal files
 *.kilepr
 .idea
+.vscode
 .synctex.gz
 
 # Static data in all modules
