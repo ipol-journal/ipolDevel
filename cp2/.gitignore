@@ -5,3 +5,5 @@ pyvenv.cfg
 lib
 lib64
 bin
+pip-selfcheck.json
+include
