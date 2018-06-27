@@ -43,13 +43,14 @@ class Image(object):
         im = Image()
 
         mime_type, _ = mimetypes.guess_type(src)
+
         if mime_type == 'image/tiff': # use libtiff
             tif = TIFF.open(src, mode='r')
             im.data = tif.read_image()
-            if len(im.data.shape) > 2 and im.data.shape[2] == 3: # BGR > RGB
-                im.data = im.data[..., ::-1]
             tif.close()
             del tif
+            if len(im.data.shape) > 2 and im.data.shape[2] > 2: # BGR > RGB
+                im.data = im.data[..., ::-1]
         else:
             im.data = cv2.imread(src, flags)
         if type(im.data).__module__ != np.__name__:
@@ -79,17 +80,14 @@ class Image(object):
         return im
 
     @staticmethod
-    def video_frame(video_file, pos_ratio=0.5, pos_max=7500):
+    def video_frame(video_file, pos_ratio=0.3):
         '''
         From a video, returns a significative frame as an image object.
         '''
         cap = cv2.VideoCapture(video_file)
         pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
-        pos_frame = min(pos_frame, pos_max)
-        for _ in range(1, pos_frame):
-            cap.read()
+        cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frame)
         _, frame = cap.read()
-        # When everything done, release the capture
         cap.release()
         im = Image()
         im.data = frame
@@ -291,13 +289,14 @@ class Image(object):
         """
         Returns the number of channels of the image data loaded.
         """
-        if len(self.data.shape) == 2:
-            self.data.shape = [self.data.shape[0], self.data.shape[1], 1]
+        # impossible to keep self.data.shape[2] = 1 for gray image, is deleted by cv2 ops.
+        if len(self.data.shape) < 3:
+            return 1
         return self.data.shape[2]
 
     def check_channels(self, channels):
         '''
-        Is a conversion needed to change channels?
+        Returns true if number of channels of the image is equals to the int parameter.
         '''
         return channels == self.get_channels()
 
@@ -391,9 +390,7 @@ class Image(object):
         If an image matrix has an alpha layer, blend it with a background color.
         Used as a static method, before saving as tiff or jpeg, without affecting underlaying data.
         '''
-        if len(data.shape) == 2:
-            data.shape = [data.shape[0], data.shape[1], 1]
-        if data.shape[2] not in [2, 4]:
+        if len(data.shape) < 3 or data.shape[2] not in [2, 4]:
             return data
         # check if alpha is just a 100% layer
         if np.unique(data[:, :, -1]).size == 1:
