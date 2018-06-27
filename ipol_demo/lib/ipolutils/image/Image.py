@@ -320,17 +320,18 @@ class Image(object):
             return False
         dst_channels = int(dst_channels)
         src_channels = self.get_channels()
+        # if alpha, blend it, and retake the src channels
+        if src_channels == 2 or src_channels == 4:
+            self.data = self.blend_alpha_static(self.data)
+            src_channels = self.get_channels()
         if src_channels == dst_channels:
             return False
-        # always blend alpha before
-        self.data = self.blend_alpha_static(self.data)
-
         if src_channels == 3 and dst_channels == 1:
             self.data = cv2.cvtColor(self.data, cv2.COLOR_BGR2GRAY)
         elif src_channels == 1 and dst_channels == 3:
             self.data = cv2.cvtColor(self.data, cv2.COLOR_GRAY2BGR)
         else: # unknown number of channels
-            raise ValueError("Convert channels '{}', number of channels not yet supported.".format(dst_channels))
+            raise ValueError("Channel conversion, {} > {} not yet supported.".format(src_channels, dst_channels))
         return True
 
     def check_depth(self, depth):
