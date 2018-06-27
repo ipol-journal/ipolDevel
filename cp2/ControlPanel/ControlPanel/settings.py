@@ -124,11 +124,5 @@ USE_TZ = True
 # python3 manage.py collectstatic pour copier les fichiers static (du projet et de l'admin) dans 
 #static Root
 
-STATIC_URL = 'cp2/static/'
-STATIC_ROOT = '/home/ipol/ipolDevel/cp2/ControlPanel/static_cp/'
-
-INTERNAL_IPS = []
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
+STATIC_URL = '/cp2/static/'
+STATIC_ROOT = BASE_DIR + '/static_cp/'
