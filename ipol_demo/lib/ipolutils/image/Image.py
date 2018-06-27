@@ -46,13 +46,25 @@ class Image(object):
 
         if mime_type == 'image/tiff': # use libtiff
             tif = TIFF.open(src, mode='r')
-            im.data = tif.read_image()
+            bits = tif.GetField('BitsPerSample')
+            sample_format = tif.GetField('SampleFormat')
+            dtype = tif.get_numpy_type(bits, sample_format)
+            if not(dtype == np.uint8 or dtype == np.uint16): # exotic formats, work with libtiff
+                im.data = tif.read_image()
+                tif.close()
+                del tif
+                if len(im.data.shape) < 3:
+                    pass
+                elif im.data.shape[2] > 3: # RGBA > BGRA
+                    im.data = im.data[..., [2, 1, 0, 3]]
+                elif im.data.shape[2] == 3: # RGB > BGR
+                    im.data = im.data[..., [2, 1, 0]]
+                return im
+            # let OpenCV
             tif.close()
             del tif
-            if len(im.data.shape) > 2 and im.data.shape[2] > 2: # BGR > RGB
-                im.data = im.data[..., ::-1]
-        else:
-            im.data = cv2.imread(src, flags)
+
+        im.data = cv2.imread(src, flags)
         if type(im.data).__module__ != np.__name__:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
         return im
