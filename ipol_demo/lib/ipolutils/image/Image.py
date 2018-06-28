@@ -24,7 +24,7 @@ import os
 
 import cv2
 import numpy as np
-from libtiff import TIFF
+import tifffile
 
 class Image(object):
     '''
@@ -44,27 +44,16 @@ class Image(object):
 
         mime_type, _ = mimetypes.guess_type(src)
 
-        if mime_type == 'image/tiff': # use libtiff
-            tif = TIFF.open(src, mode='r')
-            bits = tif.GetField('BitsPerSample')
-            sample_format = tif.GetField('SampleFormat')
-            dtype = tif.get_numpy_type(bits, sample_format)
-            if not(dtype == np.uint8 or dtype == np.uint16): # exotic formats, work with libtiff
-                im.data = tif.read_image()
-                tif.close()
-                del tif
-                if len(im.data.shape) < 3:
-                    pass
-                elif im.data.shape[2] > 3: # RGBA > BGRA
-                    im.data = im.data[..., [2, 1, 0, 3]]
-                elif im.data.shape[2] == 3: # RGB > BGR
-                    im.data = im.data[..., [2, 1, 0]]
-                return im
-            # let OpenCV
-            tif.close()
-            del tif
-
-        im.data = cv2.imread(src, flags)
+        if mime_type == 'image/tiff': # use tifffile
+            im.data = tifffile.imread(src)
+            if len(im.data.shape) < 3:
+                pass
+            elif im.data.shape[2] > 3: # RGBA > BGRA
+                im.data = im.data[..., [2, 1, 0, 3]]
+            elif im.data.shape[2] == 3: # RGB > BGR
+                im.data = im.data[..., [2, 1, 0]]
+        else:
+            im.data = cv2.imread(src, flags)
         if type(im.data).__module__ != np.__name__:
             raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
         return im
@@ -132,14 +121,15 @@ class Image(object):
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
-        if mime_type == 'image/tiff': # use libtiff
-            data = self.blend_alpha_static(self.data) # assume that tiff do not support alpha
-            if len(data.shape) > 2 and data.shape[2] == 3: # BGR > RGB
-                data = data[..., ::-1]
-            tif = TIFF.open(dst_file, mode='w')
-            tif.write_image(data, write_rgb=True)
-            tif.close()
-            del tif
+        if mime_type == 'image/tiff': # use tifffile
+            data = self.data
+            if len(data.shape) < 3:
+                pass
+            elif data.shape[2] > 3: # BGRA > RGBA
+                data = data[..., [2, 1, 0, 3]]
+            elif data.shape[2] == 3: # BGR > RGB
+                data = data[..., [2, 1, 0]]
+            tifffile.imsave(dst_file, data)
         else:
             data, pars = self._4ser(dst_file, **kwargs)
             if not cv2.imwrite(dst_file, data, pars):
