@@ -14,7 +14,7 @@ The Conversion module is a standalone application dedicated to conversions of in
 \item cherrypy (framework for webservices)
 \item simplejson (required by cherrypy, JSON is the syntax to communicate with the module)
 \item opencv-python (Python binding for the image processing library OpenCV, used for images and video)
-\item libtiff (Python binding for the libtiff library, used to get tiff tags, to load uint32 and float depth images, and save to tiff encoding)
+\item tifffile (a Python binding for the libtiff library, used to load and save images in tiff format)
 \item numpy (a Python library for matrix calculation, used to modify image data)
 \end{itemize}
 
@@ -36,8 +36,11 @@ Multiple libraries are available in Python to load and save images. IPOL has som
 \paragraph{OpenCV} \hspace{0pt} \\
 Many libraries have been tested, the final choice has been OpenCV. OpenCV (Open Computer Vision) is a well known open source library in the domain of computer vision. It is a C++ program with a Python binding. After tests, it appears that loading and saving tiff files was not correct for uint32, float16 and float32 formats. The documentation could be improved, the API is a bit complex, but globally, OpenCV is efficient, with interesting algorithms (even they are not yet used by IPOL), and video support.
 
+\paragraph{tifffile} \hspace{0pt} \\
+Tifffile is a Python wrapper for the C libtiff library providing a numpy access to image data. This library seems actually the more robust, no bug has been found yet.
+
 \paragraph{libtiff} \hspace{0pt} \\
-Libtiff is a Python wrapper of the classical C libtiff library providind numpy.memmap view of tiff data. This library is more robust than OpenCV to load and save exotic TIFF formats, but a bug has been observed on reading when endianess is ``MSB''. OpenCV is kept to load tiff uint8 and uint16.
+Libtiff is a Python wrapper for the C libtiff library, providing numpy.memmap view of tiff data. This library is quite robust but a bug has been observed on reading images with endianess equals to ``MSB''.
 
 \paragraph{pillow} \hspace{0pt} \\
 Pillow is the most common Python library for images. It is well documented with a simple API, but, it does not support other formats than the common integer 8 bits.
