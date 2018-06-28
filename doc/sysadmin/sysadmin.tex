@@ -738,12 +738,12 @@ apt-get purge virtualbox-dkms virtualbox-guest-dkms
 apt-get install linux-headers-amd64 virtualbox-5.1
 \end{verbatim}
 
-\textbf{Docker container stuck in a loop on start.}
+\textbf{A docker container will not run after a daemon fails to start}
 
-The main reason this can happen is probably a broken NGINX configuration file preventing the container to boot up as it launches NGINX on startup. To solve this copy either an empty file into the container's volume, or better yet, a correct version of the file that broke it in the first place thus enabling NGINX to start using the following command:
+The main reason is a broken configuration file of a daemon. To fix this copy a correct version of the configuration file that prevents the container to start. You can use the {\tt docker cp} command to do it:
 
 \begin{verbatim}
-docker cp correct_file_version ipol:/path_to_broken_nginx_file
+docker cp correct_config ipol:/path_to_broken_config
 \end{verbatim}
 
 \bibliographystyle{plain}
