@@ -28,8 +28,7 @@ from subprocess import Popen
 import cv2
 import numpy as np
 
-from errors import IPOLConvertInputError
-from errors import IPOLTypeError
+from .. import errors
 
 class Video(object):
     """
@@ -43,7 +42,7 @@ class Video(object):
         if not os.path.isfile(src):
             raise OSError(errno.ENOENT, "File not found", src)
         self.capture = cv2.VideoCapture(src)
-        if self.capture is None:
+        if not self.capture:
             raise OSError(errno.ENODATA, "Could not load.", src)
         self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -68,20 +67,25 @@ class Video(object):
             os.makedirs(dst_folder)
 
         frames_count = self.get_number_of_frames_to_extract(max_frames)
+        if frames_count == max_frames:
+            self.set_capture_from_the_middle(max_frames)
+
         width, height = self.get_size(max_pixels)
+        # Iterate through all the frames of the video
         for frame_number in range(frames_count):
             ret, frame = self.capture.read()
             if not ret:
                 break
+            # If the frame is bigger than allowed, resize it down
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
             im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
             if not im:
-                raise IPOLConvertInputError('Conversion error, frame could not be written to the file')
+                raise errors.IPOLConvertInputError('Conversion error, frame could not be written to the file {}'.format(self.get_input_name()))
 
     def create_avi(self, max_frames, max_pixels):
         """
-        Create AVI video file
+        Create Huffman-encoded AVI video file
         """
         self.validate_max_frames(max_frames)
 
@@ -90,11 +94,12 @@ class Video(object):
         avconv_command += self.get_avconv_options(max_pixels, max_frames)
         avconv_command += " -loglevel error " + processed_video
 
+        # shlex can be useful when determining the correct tokenization for args, especially in complex cases
         convert_proc = Popen(shlex.split(avconv_command))
         convert_proc.wait()
 
         if convert_proc.returncode != 0:
-            raise IPOLConvertInputError('Conversion error: video could not be converted to AVI')
+            raise errors.IPOLConvertInputError('Conversion error: video could not be converted to AVI')
 
     def get_time_for_frames(self, max_frames):
         """
@@ -111,9 +116,10 @@ class Video(object):
 
     def get_avconv_options(self, max_pixels, max_frames):
         """
-        Get avconv options if needed.
+        Get avconv conversion options.
         """
         options = ""
+        # Temporal crop of the video given the start and ending time
         if max_frames < self.frame_count:
             from_time, to_time = self.get_time_for_frames(max_frames)
             options += "-ss {} -to {}".format(\
@@ -121,6 +127,7 @@ class Video(object):
               str(datetime.timedelta(seconds=to_time)))
 
         width, height = self.get_size(max_pixels)
+        # Resize down the size of the frames
         if self.width != width or self.height != height:
             options += " -vf scale={}:{}".format(width, height)
 
@@ -132,25 +139,24 @@ class Video(object):
         """
         if max_pixels < self.height * self.width:
             scaling_factor = self.get_scaling_factor(max_pixels)
-            return int(np.floor(scaling_factor * self.width)), int(np.floor(scaling_factor * self.height))
+            return int(np.floor(math.sqrt(scaling_factor) * self.width)), int(np.floor(math.sqrt(scaling_factor) * self.height))
         return self.width, self.height
 
     def get_scaling_factor(self, max_pixels):
         """
         Compute the scaling factor to reduce the image keeping its aspect ratio.
         """
-        return math.sqrt(max_pixels / (self.height * self.width))
+        return max_pixels / (self.height * self.width)
 
     def get_number_of_frames_to_extract(self, max_frames):
         """
         Get number of frames of the final input.
         """
         if max_frames < self.frame_count:
-            self.set_capture_pos(max_frames)
             return max_frames
         return self.frame_count
 
-    def set_capture_pos(self, max_frames):
+    def set_capture_from_the_middle(self, max_frames):
         """
         Set capture pos based on frame count and max_frames.
         """
@@ -163,7 +169,6 @@ class Video(object):
         """
         Get the middle frame.
         """
-
         if self.frame_count % 2 == 0:
             return self.frame_count / 2
         else:
@@ -201,6 +206,6 @@ class Video(object):
         Check max_frames range and type
         """
         if not isinstance(max_frames, int):
-            raise IPOLTypeError('Type error: max_frames must be an integer')
+            raise errors.IPOLTypeError('Type error: max_frames must be an integer')
         if max_frames < 1:
-            raise IPOLTypeError('Range error: max_frames must be positive')
+            raise errors.IPOLTypeError('Range error: max_frames must be positive')
