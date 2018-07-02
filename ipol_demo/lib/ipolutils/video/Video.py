@@ -94,7 +94,7 @@ class Video(object):
         avconv_command += self.get_avconv_options(max_pixels, max_frames)
         avconv_command += " -loglevel error " + processed_video
 
-        # shlex can be useful when determining the correct tokenization for args, especially in complex cases
+        # Tokenike args, to prevent shell-injection attacks
         convert_proc = Popen(shlex.split(avconv_command))
         convert_proc.wait()
 
