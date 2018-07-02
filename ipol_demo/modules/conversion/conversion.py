@@ -23,7 +23,7 @@ from ipolutils.evaluator.evaluator import evaluate
 
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
-from errors import IPOLTypeError
+from ipolutils.errors import IPOLTypeError
 
 
 def authenticate(func):

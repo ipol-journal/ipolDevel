@@ -22,8 +22,3 @@ class IPOLThumbnailError(OSError):
     """
     pass
 
-class IPOLTypeError(Exception):
-    """
-    IPOLTypeError
-    """
-    pass
