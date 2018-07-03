@@ -1731,13 +1731,16 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def get_ddl(self, demo_id):
+    def get_ddl(self, demo_id, section=None):
         """
         Reads the current DDL of the demo
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
             if ddl is not None:
+                if section is not None:
+                    ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
+                    ddl = ddl.get(section)
                 return json.dumps({'status': 'OK', 'last_demodescription': ddl})
             raise Exception
         except Exception as ex:
