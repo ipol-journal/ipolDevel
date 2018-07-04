@@ -6,12 +6,21 @@ from django.contrib.auth import logout, authenticate, login
 from .forms import loginForm
 from django.http import HttpRequest
 import json, requests
-from .utils import api_post
+from .utils import api_post, email_check
+from django.contrib.auth.decorators import user_passes_test
+
+
 
 
 @login_required(login_url='/cp2/loginPage')
 def Homepage(request):
+    # user_profil = User.objects.get(username=request.user.name)
+    # print(user_profil)
+    # user_email = request.user.email
+    # print(user_email)
     return render(request, 'Homepage.html')
+    #return render(request, 'Homepage.html', { 'user_profil' : user_profil })
+
 
 @csrf_protect
 def loginPage(request):
@@ -37,11 +46,6 @@ def logoff(request):
 @login_required(login_url='/cp2/loginPage')
 def status(request):
     return render(request, 'status.html')
-
-@login_required(login_url='/cp2/loginPage')
-@csrf_protect
-def addDemo(request):
-    return render(request, 'addDemo.html')
 
 @login_required(login_url='/cp2/loginPage')
 @csrf_protect
@@ -132,6 +136,8 @@ def ajax_delete_template(request):
 
 @login_required(login_url='/cp2/loginPage')
 def CreateBlob(request):
+    # demo_id = request.POST['demo_id']
+    # email_checked = email_check('10078')
     return render(request, 'createBlob.html')
 
 @login_required(login_url = '/cp2/loginPage')
@@ -194,8 +200,24 @@ def ajax_edit_blob_template(request):
 
 @login_required(login_url='/cp2/loginPage')
 def showDemo(request):
+   # email_check(user, '1000013')
     return render(request, 'showDemo.html')
 
+@login_required(login_url='/cp2/loginPage')
+def ajax_remove_vr(request):
+    print(request.POST)
+    blob_id = request.POST['blob_id']
+    print(blob_id)
+    settings = {'blob_id' : blob_id}
+    response = {}
+    response_api = api_post("/api/blobs/delete_vr_from_blob", settings)
+    result = response_api.json()
+    if result.get('status') != 'OK':
+        response['status'] ='KO'
+        return HttpResponse(json.dumps(response), 'application/json')
+    else : 
+        response['status'] = 'OK'
+        return HttpResponse(json.dumps(response), 'application/json')
 
 @login_required(login_url='/cp2/loginPage')
 def ajax_show_DDL(request):

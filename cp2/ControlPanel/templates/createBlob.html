@@ -50,46 +50,5 @@
         <li class="nav-footer"><a href="/cp2/status">Status</a></li>
     </ul>
 </nav>
-<script type="text/javascript">
-var VRImage;
-var blobImage;
-var templateSelection = getParameterByName('template');
-document.getElementById("nameOfTemplate").innerHTML = templateSelection;
-$("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
-//pb sur la representation du blob, le premier tiff affiche la bonne image mais apres c mauvais
-var form = document.getElementById('createBlobForm');
-//Je peux créer plusieurs fois le même blob 
-form.onsubmit = function (e) {
-    e.preventDefault();
-    var formData = new FormData();
-    formData.append('Title', $('#Title').val());
-    formData.append('SET' , $('#SET').val());
-    formData.append('PositionSet', $('#PositionSet').val());
-    formData.append('Credit', $('#Credit').val());
-    formData.append('Tags', $('#Tags').val());
-    formData.append('TemplateSelection', templateSelection);
-    formData.append('Blobs', blobImage, blobImage.name);
-    if (VRImage) {
-        formData.append('VR', VRImage, VRImage.name);
-    }
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    $.ajax({
-        url: 'createBlob/ajax',
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        type: 'POST',
-        dataType : 'json',
-        success: function(data) {
-            if (data.status === 'OK') {
-                alert("Redirection Templates List...")
-                document.location.href = "/cp2/showTemplates?template="+templateSelection
-            } else {
-                alert("Error to add this Blob to the Template")
-            }
-        },
-    })
-};
-</script>
+<script type="text/javascript" src="/cp2/static/js/createBlob.js"></script>
 {% endblock %}

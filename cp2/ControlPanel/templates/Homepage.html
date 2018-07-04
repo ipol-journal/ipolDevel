@@ -1,20 +1,23 @@
-{% extends "base.html" %} {% block title %}DemoInfo{% endblock %} {% block bodyid %}DemoList{% endblock %} {% block header %}
+{% extends "base.html" %} 
+{% block title %}DemoInfo{% endblock %} 
+{% block bodyid %}DemoList{% endblock %}
+{% block fond %}
+<div id="fond"></div>
+{% endblock %} 
+{% block header %}
 <div id="navbar_top">
     <ul class="nav-pills">
         <li>
             <a class="nav-demo" href="/cp2">Demos</a>
         </li>
-        <!--     <li class="nav-item">
-            <a href="???">Authors</a>
-        </li>
-        <li class="nav-item">
-            <a href="???">Editors</a>
-        </li>-->
         <li class="name_user">
             Welcome {{ user.first_name }}
         </li>
         <li class="nav-logout">
-            <a href="/cp2/signout">Logout</a>
+            <a href ="/cp2/signout"><i class="fas fa-sign-out-alt"> Logout</i></a>
+        </li>
+        <li class="ion-ionic" data-pack="default" data-tags="badass, framework, sexy, hawt">
+
         </li>
     </ul>
 </div>
@@ -27,11 +30,13 @@
         </form>
     </h2>
     <div class="pagination">
-        <button id="previous_page"><i>previous</i></button>
-        <button id="next_page"><i>next</i></button>
+        <button id="previous_page"><img src="/cp2/static/images/flecheblanchegauche.png"></button>
+        <button id="pageMax"></button>
+        <button id="next_page"><img src="/cp2/static/images/flecheblanchedroite.png"></button>
     </div>
     <div class="addDemos">
-        <a href="/cp2/addDemo">Add Demo</a>
+        <a href="" id="show">Add Demo</a>
+        <div id="modal" class="popup"></div>
     </div>
 </div>
 {% endblock %} {% block footer %}
@@ -43,228 +48,5 @@
         <li class="nav-footer"><a href="/cp2/status">Status</a></li>
     </ul>
 </nav>
-
-<script type="text/javascript">
-    /*-----------------------------------------Variables-----------------------------------------*/
-    var numPageNext;
-    var numPagePrev;
-    var nbPage;
-    var filter;
-    var section = document.querySelector('section');
-    var request = new XMLHttpRequest();
-    //document.getElementById('previous_page').style.visibility='hidden';
-
-    /*-----------------------------------------HomePage-----------------------------------------*/
-
-    
-
-    request.open('GET', '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=1');
-    request.responseType = 'json';
-    request.send();
-    request.onload = function() {
-        var demo = request.response;
-        showDemos(demo);
-        paginationDemo(demo);
-    }
-    /*------Initialisation for document get ready---------*/
-    if (!numPagePrev) {
-        document.getElementById('previous_page').style.visibility= 'hidden';
-    }
-
-    /*-----------------------------------------JS Functions-----------------------------------------*/
-
-    function showDemos(jsonObj) {
-        var demoList = jsonObj['demo_list'];
-
-        for (var i = 0; i < demoList.length; i++) {
-            var Div = document.createElement('div');
-            var myArticle = document.createElement('a');
-            myArticle.setAttribute("href", "/cp2/showDemo?demo_id=" + demoList[i].editorsdemoid + "&title=" + demoList[i].title + "&modification=" + demoList[i].modification + "&state=" + demoList[i].state);
-            Div.setAttribute("class", "listOfDemo");
-            var myH2 = document.createElement('ul');
-            myH2.setAttribute("class", "identity");
-            var myDiv = document.createElement('div');
-            myDiv.setAttribute("class", "DemoInformation");
-            var myPara1 = document.createElement('li');
-            var myPara2 = document.createElement('li');
-            var myPara3 = document.createElement('li');
-            var titleBold = document.createElement('b');
-            titleBold.setAttribute("style", "color: black");
-            var date = new Date(demoList[i].modification);
-            var monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-
-            myH2.textContent = 'ID:  ' + demoList[i].editorsdemoid;
-            myPara1.textContent = 'last modification: ' + date.getDate() +"  "+ monthArray[date.getMonth()]+"  "+date.getFullYear();
-            myPara2.textContent = 'State: ' + demoList[i].state;
-            myPara3.textContent = 'Title: ';
-            titleBold.textContent =  demoList[i].title;
-
-            myArticle.appendChild(myH2);
-            myArticle.appendChild(myDiv);
-            //myDiv.appendChild(myArticle);
-            myDiv.appendChild(myPara1);
-            myDiv.appendChild(myPara2);
-            myDiv.appendChild(myPara3);
-            myPara3.appendChild(titleBold);
-
-            section.appendChild(Div);
-            //myH2.appendChild(Div);
-            Div.appendChild(myArticle);
-            //Div.appendChild(myArticle);
-        };
-    }
-
-    function cleanDemos() {
-        $(".listOfDemo").remove();
-    }
-
-    function cleanPagination() {
-        $('#next_page p').remove();
-        $('#previous_page p').remove();
-        $('.vider').remove();
-    }
-
-    function paginationDemo(jsonObj) {
-        $('.pagination').append('<p class="vider">Pages : ' + jsonObj.number + '</p>');
-        $('#next_page').append('<p><b>' + jsonObj.next_page_number + '</b></p>');
-        $('#previous_page').append('<p><b> ' + jsonObj.previous_page_number + '</b></p>');
-        numPageNext = jsonObj.next_page_number;
-        numPagePrev = jsonObj.previous_page_number;
-        nbPage = jsonObj.number;
-    }
-
-    function checkPrevious() {
-        if (!numPagePrev) {
-            return false;
-        } else {
-            return true;
-        }
-    };
-
-    function checkNext() {
-        if (!numPageNext) {     
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    function showHideNext() {
-        if (numPagePrev == (nbPage - 1) && !numPageNext) {
-            document.getElementById('next_page').style.visibility= 'hidden';
-            }
-        else {
-            document.getElementById('next_page').style.visibility= 'visible';
-        }
-    }
-
-    function HideButtonPage() {
-        if (!numPageNext && !numPagePrev) {
-            document.getElementById('next_page').style.visibility='hidden';
-            document.getElementById('previous_page').style.visibility='hidden';
-        }
-        else {
-            showHideNext();
-            showHidePrev();
-        }
-    }
-
-    function showHidePrev() {
-        if ( numPageNext == "2" ) {
-            document.getElementById('previous_page').style.visibility= 'hidden';
-            }
-        else {
-            document.getElementById('previous_page').style.visibility= 'visible';
-        }
-    }
-
-    function checkFilter() {
-        if (!filter) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /*-----------------------------------------Request AJAX-----------------------------------------*/
-
-    /*Request AJAX for searching Demos*/
-
-    $(function() {
-        $("#action").click(function() {
-            filter = $("#demo_selector").val();
-            $.ajax({
-                type: 'GET',
-                dataType: 'json',
-                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=1&qfilter=' + filter,
-                success: function(data) {
-                    cleanDemos();
-                    cleanPagination();
-                    showDemos(data);
-                    paginationDemo(data);
-                    HideButtonPage();
-                    return filter;
-                },
-            });
-            return false;
-        });
-    });
-
-
-    /* Request AJAX for next page */
-
-    $(function() {
-        $("#next_page").click(function() {
-            $.ajax({
-                beforeSend: function(xhr, settings) {
-                    if (checkFilter()) {
-                        settings.url += '&qfilter=' + filter;
-                    }
-                    //showHideNext(numPageNext, numPagePrev, nbPage);
-                    return checkNext();
-                },
-                type: 'GET',
-                dataType: 'json',
-                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=' + numPageNext,
-                success: function(data) {
-                    cleanDemos();
-                    cleanPagination();
-                    showDemos(data);
-                    paginationDemo(data);
-                    showHideNext();
-                    showHidePrev();
-                },
-            });
-            return false;
-        });
-    });
-
-    /* Request AJAX for previous page */
-
-    $(function() {
-        $("#previous_page").click(function() {
-            $.ajax({
-                beforeSend: function(xhr, settings) {
-                    if (checkFilter()) {
-                        settings.url += '&qfilter=' + filter;
-                    }
-                    return checkPrevious();
-                },
-                type: 'GET',
-                dataType: 'json',
-                url: '/api/demoinfo/demo_list_pagination_and_filter?num_elements_page=5&page=' + numPagePrev,
-                success: function(data) {
-                    cleanDemos();
-                    cleanPagination();
-                    showDemos(data);
-                    paginationDemo(data);
-                    showHideNext();
-                    showHidePrev();
-                },
-            });
-            return false;
-        });
-    });
-</script>
+<script type="text/javascript" src="/cp2/static/js/Homepage.js"></script>
 {% endblock %}

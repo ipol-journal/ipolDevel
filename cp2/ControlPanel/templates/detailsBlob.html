@@ -6,11 +6,15 @@
     <div id="blobRepresentation">
         <div id="blobThumbnail">
             <p>Blob thumbnail</p>
+            <a id="download_blob" target="_blank">
             <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
+            </a>
         </div>
         <div id="vrThumbnail">
             <p>Visual representation</p>
-                <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this)>
+            <a id="download_vr" target="_black">
+                <img id="thumbnail_vr" title="Visual Representation" onError=setBrokenImage(this) >
+            </a>
         </div>
     </div>
 <form id="editBlobForm">
@@ -36,6 +40,7 @@
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
+<button id="removeVr">Remove Visual Representation</button>
 </div>
 <a id="GoPreviousPage" href="javascript:history.back()">Go Previous Page</a>
 {% endblock %} {% block footer %}
@@ -47,66 +52,5 @@
         <li class="nav-footer"><a href="/cp2/status">Status</a></li>
     </ul>
 </nav>
-<script>
-//http://127.0.0.1/api/blobs/edit_blob_from_template(self, template_name=None, tags=None, blob_set=None, new_blob_set=None, pos_set=None,new_pos_set=None, title=None, credit=None, vr=None)
-//lorqu'on click sur blob on le telecharge
-var VRImage;
-var completeURL = document.location.href;
-var decoded = decodeURI(completeURL);
-var title = getParameterByName('title');
-var set = getParameterByName('set');
-var pos = getParameterByName('pos');
-var credit = getParameterByName('credit');
-var tags = getParameterByName('tags');
-var thumbnail_vr = getParameterByName('vr');
-var templateSelection = getParameterByName('template')
-var blob = getParameterByName('thumbnail');
-
-document.getElementById("setName").textContent = set;
-document.getElementById("Title").value = title;
-document.getElementById("SET").value = set;
-document.getElementById("PositionSet").value = pos;
-document.getElementById("Credit").value = credit;
-document.getElementById("Tags").value = tags;
-document.getElementById("thumbnail_vr").src = thumbnail_vr;
-document.getElementById("thumbnail").src = blob;
-
-
-
-var form = document.getElementById('editBlobForm');
-form.onsubmit = function (e) {
-    e.preventDefault();
-    var formData = new FormData();
-    formData.append('old_set', set)
-    formData.append('old_pos', pos)
-    formData.append('Title', $('#Title').val());
-    formData.append('SET' , $('#SET').val());
-    formData.append('PositionSet', $('#PositionSet').val());
-    formData.append('Credit', $('#Credit').val());
-    formData.append('Tags', $('#Tags').val());
-    formData.append('TemplateSelection', templateSelection);
-    if (VRImage) {
-        formData.append('VR', VRImage, VRImage.name);
-    }
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    $.ajax({
-        url: 'detailsBlob/ajax',
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        type: 'POST',
-        dataType : 'json',
-        success: function(data) {
-            if (data.status === 'OK') {
-                alert("Redirection Templates List...")
-                document.location.href = "/cp2/showTemplates?template="+templateSelection
-            } else {
-                alert("Error to add this Blob to the Template")
-            }
-        },
-    })
-};
-
-</script>
+<script type="text/javascript" src="/cp2/static/js/detailsBlob.js"></script>
 {% endblock %}
