@@ -43,14 +43,23 @@ function setBrokenImage(image) {
   return true;
 }
 
+/*  secure AJAX POST to ws ,from django docs  */
+function getCookie(name) {
+	var cookieValue = null;
+	if (document.cookie && document.cookie != '') {
+		var cookies = document.cookie.split(';');
+		for (var i = 0; i < cookies.length; i++) {
+			var cookie = jQuery.trim(cookies[i]);
+			if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+}
 
-//functions in demoinfo : 
-//read_ddl(ddl_id) 
-// read_demo(demo_id)
-// get_ddl(demo_id)
-// get_ddl_history(demo_id)
-// get_interface_ddl(demo_id)
-// read_ddl(ddl_id)
+
 
 // function templatesList_not_used(Array1, Array2){
 //     for (var i=0; i< Array1.length; i++){
@@ -62,3 +71,18 @@ function setBrokenImage(image) {
 //     }
 //     return Array1;
 // }
+
+
+//mettre tout le JS ds ce repertoire avec le nom des pages dependante HTML
+//exemple homepgae.js
+//exemple loginpage.js
+//Remove green code
+//faire de meme avec le CSS (que le JS)
+//homepage.css
+//centrer les elements
+// exemple homepage avec list of demos
+//meme style pour les boutons 
+//codepen pour l'inspiration du CSS
+
+
+
