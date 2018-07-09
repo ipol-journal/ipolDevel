@@ -1698,11 +1698,8 @@ class DemoInfo(object):
             if 'run' in ddl:
                 del ddl['run']
             if sections is not None:
-                # This is needed as python treats json arrays as unicode iterables
-                if isinstance(sections, unicode):
-                    sections = [str(sections)]
                 result_dll = OrderedDict()
-                for section in sections:
+                for section in sections.split(','):
                     if ddl.get(section):
                         result_dll[str(section)] = ddl.get(section)
                 return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(result_dll)}})
@@ -1748,12 +1745,9 @@ class DemoInfo(object):
             ddl = self.get_stored_ddl(demo_id)
             if ddl is not None:
                 if sections is not None:
-                    # This is needed as python treats json arrays as unicode iterables
-                    if isinstance(sections, unicode):
-                        sections = [str(sections)]
                     ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
                     result_dll = OrderedDict()
-                    for section in sections:
+                    for section in sections.split(','):
                         if ddl.get(section):
                             result_dll[str(section)] = ddl.get(section)
                     return json.dumps({'status': 'OK', 'last_demodescription': result_dll})
