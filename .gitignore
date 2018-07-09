@@ -51,6 +51,8 @@ app/
 *.lof
 *.toc
 *.out
+*.fls
+*.fdb_latexmk
 
 # Generated PDF and .tex files
 doc/api/api.pdf
@@ -70,7 +72,7 @@ ipol_demo/modules/archive/logs/error.log
 *.kilepr
 .idea
 .vscode
-.synctex.gz
+*.synctex.gz
 
 # Static data in all modules
 staticData/
