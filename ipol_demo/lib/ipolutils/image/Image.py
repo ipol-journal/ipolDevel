@@ -300,7 +300,7 @@ class Image(object):
         '''
         Returns true if number of channels of the image is equals to the int parameter.
         '''
-        return channels == self.get_channels()
+        return int(channels) == int(self.get_channels())
 
     def convert_channels(self, dst_channels):
         '''
@@ -328,6 +328,8 @@ class Image(object):
         '''
         Tests if the depth is equal to the matrix dtype.
         '''
+        if not depth in self.DEPTH_DTYPE:
+            return False
         dtype = self.DEPTH_DTYPE[depth]
         return self.data.dtype == dtype
 

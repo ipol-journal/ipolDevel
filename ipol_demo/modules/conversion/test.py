@@ -186,9 +186,9 @@ class ConversionImageTests(unittest.TestCase):
             dst_size = os.path.getsize(src_path)
             os.remove(src_path)
         finally:
-            self.assertEqual(src_size, dst_size, msg="{} != {}, file have been modified")
             self.assertEqual(status, 'OK')
             self.assertEqual(str(code), '0')
+            self.assertEqual(src_size, dst_size, msg="{} != {}, file have been modified")
 
     def test_convert_resize_image(self):
         """

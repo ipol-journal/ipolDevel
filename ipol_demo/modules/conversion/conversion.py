@@ -278,22 +278,20 @@ class Conversion(object):
         # Is there an operation to do ?
         todo = False
         for task in program:
-            if task.todo:
+            if task.can_convert():
                 todo = True
         # Nothing to do, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
         if not todo:
             if input_file != dst_file:
                 os.rename(input_file, dst_file)
             return 0, []
-        # Something to do, but forbidden, ensure expected extension
+        # Something to do, but forbidden
         if input_desc.get("forbid_preprocess", False):
-            if input_file != dst_file:
-                os.rename(input_file, dst_file)
             return 2, [] # Conversion needed but forbidden
         # do work
         modifications = []
         for task in program:
-            if task.todo:
+            if task.can_convert():
                 task.do_convert()
                 modifications.append(task.label)
         # do not forget to write modifications
@@ -359,68 +357,53 @@ class Conversion(object):
             self.logger.exception(message)
         return json.dumps(data, indent=4)
 
-class ConverterImage(object):
-    """
-    Interface of a conversion task for an image.
-    """
-    todo = False
-    done = False
-    def _do(self):
-        """
-        The specific action of the converter, with parameters prepared by the constructor.
-        """
-        raise NotImplementedError
-    def do_convert(self):
-        """
-        Do conversion if allowed.
-        """
-        if not self.todo:
-            return self.done
-        self._do()
-        self.done = True
-        return self.done
 
-class ConverterDepth(ConverterImage):
+class ConverterDepth():
     """
     Converts image depth by pixel (ex: 'i8' for uint8, int 8 bits)
     """
     label = "depth"
+    depth = None
     def __init__(self, im, input_desc):
-        dtype = input_desc.get('dtype')
-        if not dtype:
-            return
-        _, depth = dtype.split('x')
-        if im.check_depth(depth):
-            return
         self.im = im
-        self.depth = depth
-        self.todo = True
-    def _do(self):
+        dtype = input_desc.get('dtype')
+        if dtype:
+            _, self.depth = dtype.split('x')
+    def can_convert(self):
+        if not self.depth:
+            return False
+        if self.im.check_depth(self.depth):
+            return False
+        return True
+    def do_convert(self):
         self.im.convert_depth(self.depth)
 
-class ConverterChannels(ConverterImage):
+class ConverterChannels():
     """
     Converts number of channels of an image (ex: color to gray)
     """
     label = "colors"
+    channels = None
     def __init__(self, im, input_desc):
-        dtype = input_desc.get('dtype')
-        if not dtype:
-            return
-        channels, _ = dtype.split('x')
-        if im.check_channels(channels):
-            return
         self.im = im
-        self.channels = channels
-        self.todo = True
-    def _do(self):
+        dtype = input_desc.get('dtype')
+        if dtype:
+            self.channels, _ = dtype.split('x')
+    def can_convert(self):
+        if self.channels < 1:
+            return False
+        if self.im.check_channels(self.channels):
+            return False
+        return True
+    def do_convert(self):
         self.im.convert_channels(self.channels)
 
-class ConverterCrop(ConverterImage):
+class ConverterCrop():
     """
     Crops an image according to a json specification.
     """
     label = "crop"
+    x = -1
     def __init__(self, im, crop_info):
         if crop_info is None:
             return
@@ -429,43 +412,51 @@ class ConverterCrop(ConverterImage):
         self.y = int(round(crop_info.get('y')))
         self.width = int(round(crop_info.get('width')))
         self.height = int(round(crop_info.get('height')))
-        self.todo = True
-    def _do(self):
+    def can_convert(self):
+        if self.x < 0 or self.y < 0 or self.width <= 0 or self.height <= 0:
+            return False
+        if self.x + self.width > self.im.width() or self.y + self.height > self.im.height():
+            return False
+        return True
+    def do_convert(self):
         self.im.crop(x=self.x, y=self.y, width=self.width, height=self.height)
 
-class ConverterMaxpixels(ConverterImage):
+class ConverterMaxpixels():
     """
     Resizes image if bigger than max_pixels.
     """
     label = "resize"
+    max_pixels = -1
     def __init__(self, im, input_desc):
+        self.im = im
         max_pixels = input_desc.get('max_pixels')
         if max_pixels is None:
             return
-        max_pixels = evaluate(max_pixels)
-        if max_pixels <= 0:
-            return
-        input_pixels = im.width() * im.height()
-        if input_pixels < max_pixels:
-            return
-        self.im = im
-        self.fxy = math.sqrt(float(max_pixels - 1) / float(input_pixels))
-        self.todo = True
-    def _do(self):
-        self.im.resize(fx=self.fxy, fy=self.fxy)
+        self.max_pixels = evaluate(max_pixels)
+    def can_convert(self):
+        if self.max_pixels <= 0:
+            return False
+        if (self.im.width() * self.im.height()) < self.max_pixels:
+            return False
+        return True
+    def do_convert(self):
+        # the destination size should be an int rectangle, so it will not be equals to max_pixels
+        fxy = math.sqrt(float(self.max_pixels - 1) / float(self.im.width() * self.im.height()))
+        self.im.resize(fx=fxy, fy=fxy)
 
-class ConverterExtension(ConverterImage):
+class ConverterExtension():
     """
     Change extension
     """
     label = "extension"
     def __init__(self, src_file, dst_file):
-        src_type, _ = mimetypes.guess_type(src_file)
-        dst_type, _ = mimetypes.guess_type(dst_file)
-        if src_type == dst_type:
-            return
-        self.todo = True
-    def _do(self):
+        self.src_type, _ = mimetypes.guess_type(src_file)
+        self.dst_type, _ = mimetypes.guess_type(dst_file)
+    def can_convert(self):
+        if self.src_type == self.dst_type:
+            return False
+        return True
+    def do_convert(self):
         # new encoding needed (ex: jpeg > png), according to the input and destination extension
         # nothing to do here, will be done by aving image
         pass
