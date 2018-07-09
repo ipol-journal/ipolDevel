@@ -1683,7 +1683,7 @@ class DemoInfo(object):
         return json.dumps(data)
 
     @cherrypy.expose
-    def get_interface_ddl(self, demo_id):
+    def get_interface_ddl(self, demo_id, sections=None):
         """
         Read the DDL of the specified demo without unneeded or private fields. Used by the website interface.
         """
@@ -1697,6 +1697,15 @@ class DemoInfo(object):
                 del ddl['build']
             if 'run' in ddl:
                 del ddl['run']
+            if sections is not None:
+                # This is needed as python treats json arrays as unicode iterables
+                if isinstance(sections, unicode):
+                    sections = [str(sections)]
+                result_dll = OrderedDict()
+                for section in sections:
+                    if ddl.get(section):
+                        result_dll[str(section)] = ddl.get(section)
+                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(result_dll)}})
             return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
@@ -1731,16 +1740,23 @@ class DemoInfo(object):
 
     @cherrypy.expose
     @authenticate
-    def get_ddl(self, demo_id, section=None):
+    def get_ddl(self, demo_id, sections=None):
         """
         Reads the current DDL of the demo
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
             if ddl is not None:
-                if section is not None:
+                if sections is not None:
+                    # This is needed as python treats json arrays as unicode iterables
+                    if isinstance(sections, unicode):
+                        sections = [str(sections)]
                     ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
-                    ddl = ddl.get(section)
+                    result_dll = OrderedDict()
+                    for section in sections:
+                        if ddl.get(section):
+                            result_dll[str(section)] = ddl.get(section)
+                    return json.dumps({'status': 'OK', 'last_demodescription': result_dll})
                 return json.dumps({'status': 'OK', 'last_demodescription': ddl})
             raise Exception
         except Exception as ex:
