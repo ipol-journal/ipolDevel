@@ -176,3 +176,10 @@ Deletes all experiments for a demo.
 \begin{verbatim}
 {status: "OK/KO"}
 \end{verbatim} 
+
+\subsection{Reconstruction}
+The IPOL archive reconstruction mechanism allows users to reload archive experiments results and run them again.
+
+To allow the archive reconstruction of a demo, the editor has to specify the field "enable\_reconstruct": True, in the archive DDL section. To make it works correctly all the related files and inputs should be stored in the archive. The "hidden\_files" field it's available to store files in the archive without showing them in the archive page, then they will be only used when the reconstruct happens.
+
+All the stored files must have different names to avoid filename conflicts. 

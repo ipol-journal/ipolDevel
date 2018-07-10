@@ -172,3 +172,13 @@ The interaction diagram is shown in Fig. \ref{fig:execution_flow}.
 	\caption{Execution flow diagram for the functionality of saving/recovering the state of the demo page.} 
 	\label{fig:execution_flow}
 \end{figure}
+
+\subsection{Archive experiment reconstruction}
+The idea behind the archive experiment reconstruction is the same as execution recovery explained in the previous section. The user is able to reconstruct the experiment with the same inputs, parameters and results as the original experiment. The difference between execution recovery and archive experiment reconstruction is that the second one is not temporal. The experiment is stored in the database so users are able to reconstruct them anytime.
+\bigbreak
+
+There are two ways to reconstruct an experiment from the archive:
+\begin{itemize}
+	\item Clicking the button on the archive page of the specific experiment.
+	\item Using the URL with the parameter  "archive=XXX". Useful to share results.
+\end{itemize}
