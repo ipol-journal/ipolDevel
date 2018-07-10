@@ -14,11 +14,10 @@ $(document).ready(function() {
   // if storage was used, clear it ?
   // sessionStorage.clear();
   // populate page from infos about the demo
-  var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id;
+  var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general";
   $.getJSON(url, function(data) {
     // ddl is provided as a string (why ? isn't it correct json ?)
     ddl = JSON.parse(data.last_demodescription.ddl);
-    // console.log(ddl);
     $("#pageTitle").html(ddl.general.demo_title);
     // this message is shared with demo.js
     $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
