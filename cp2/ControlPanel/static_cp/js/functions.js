@@ -37,11 +37,11 @@ function removeFile(){
   document.getElementById("VR").innerHTML = "";
 }
 
-function setBrokenImage(image) {
-  image.onerror = "";
-  image.src = "/cp2/static/images/non_viewable_inputs.png";
-  return true;
-}
+// function setBrokenImage(image) {
+//   image.onerror = "";
+//   image.src = "/cp2/static/images/non_viewable_inputs.png";
+//   return true;
+// }
 
 /*  secure AJAX POST to ws ,from django docs  */
 function getCookie(name) {
@@ -58,6 +58,23 @@ function getCookie(name) {
 	}
 	return cookieValue;
 }
+
+// function update_edit_demo() {
+//   $.ajax({
+//       data: ({
+//           demoID: demo_id,
+//           csrfmiddlewaretoken: csrftoken,
+//       }),
+//       dataType : 'json',
+//       type: 'POST',
+//       url: 'showDemo/ajax_user_can_edit_demo',
+//       success: function(data) {
+//           if (data.can_edit === 'NO') {
+//               console.log("gagner");
+//           }
+//       },
+//   });
+// };
 
 
 

@@ -2,119 +2,120 @@
     var templates_used = [];
     var csrftoken = getCookie('csrftoken');
     var section = document.querySelector('section');
-    var request = new XMLHttpRequest();
-    var request1 = new XMLHttpRequest();
-    var request2 = new XMLHttpRequest();
+    var get_demo_blobs = new XMLHttpRequest();
+    var get_demo_using_the_template = new XMLHttpRequest();
+    var get_all_templates = new XMLHttpRequest();
     var demo_id = getParameterByName('demo_id');
-    var title = getParameterByName('title');
-    var modification = getParameterByName('modification');
-    var state = getParameterByName('state');
+
     var templateSelection;
     document.getElementById("demo_id").innerHTML = demo_id;
-    request.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
-    request2.open('GET', '/api/blobs/get_all_templates');
-    request2.send();
-    request2.responseType = 'json';
-    request1.open('GET', '/api/blobs/get_demo_templates?demo_id='+ demo_id);
-    request1.responseType = 'json';
-    request1.send();
+    get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
+    get_all_templates.open('GET', '/api/blobs/get_all_templates');
+    get_all_templates.send();
+    get_all_templates.responseType = 'json';
+    get_demo_using_the_template.open('GET', '/api/blobs/get_demo_templates?demo_id='+ demo_id);
+    get_demo_using_the_template.responseType = 'json';
+    get_demo_using_the_template.send();
 
-    request1.onload = function() {
-        var templates = request1.response;
+    get_demo_using_the_template.onload = function() {
+        var templates = get_demo_using_the_template.response;
         templates_used = templates['templates'];
-        request.send();
-        request.responseType = 'json';
+        get_demo_blobs.send();
+        get_demo_blobs.responseType = 'json';
         return templates_used;
     }
 
-    request2.onload = function() {
-        var allTemplatesList = request2.response;
-        showTemplatesList(allTemplatesList);
+    get_all_templates.onload = function() {
+        var allTemplatesList = get_all_templates.response;
+        var templates = allTemplatesList['templates'];
+        showTemplatesList(templates);
     }
 
-    request.onload = function() {
-        var blobs = request.response;
-        showBlobsAndTemplatesDemo(blobs, templates_used);
+    get_demo_blobs.onload = function() {
+        var blobs = get_demo_blobs.response;
+        var sets = blobs['sets'];
+        showBlobsAndTemplatesDemo(sets, templates_used);
+        update_edit_demo();
+        deleteBlob();
     }
 
 
     function add_the_template_to_DOM(){
-        var H4 = document.createElement('h4');
-        var href = document.createElement('a');
-        href.setAttribute("href", "showTemplates?template="+templateSelection);
-        href.textContent= templateSelection;
-        blockTemplates.appendChild(H4);
-        H4.appendChild(href);
+        var templateName = document.createElement('h4');
+        var templateRef = document.createElement('a');
+        templateRef.setAttribute("href", "showTemplates?template="+templateSelection);
+        templateRef.textContent= templateSelection;
+        blockTemplates.appendChild(templateName);
+        templateName.appendChild(templateRef);
         var buttonDelete = document.createElement('button');
         buttonDelete.textContent = "Unlink";
         buttonDelete.setAttribute("class", "buttonDelete")
         buttonDelete.setAttribute('id', templateSelection);
         buttonDelete.setAttribute("onclick", "remove_template_to_demo(this)");
-        H4.appendChild(buttonDelete);
+        templateName.appendChild(buttonDelete);
         templates_used.push(templateSelection);
         return templates_used;
     }
 
 
-    function showBlobsAndTemplatesDemo(jsonObj, templates_used_for_demo) {
-        var div = document.createElement('div');
-        div.setAttribute("id", "blockTemplates");
-        section.appendChild(div);
-        for (var h=0; h< templates_used_for_demo.length; h++) {
-            var H4 = document.createElement('h4');
-            var href = document.createElement('a');
-            href.setAttribute("href", "/cp2/showTemplates?template="+templates_used_for_demo[h] );
-            href.textContent = templates_used_for_demo[h];
+    function showBlobsAndTemplatesDemo(sets, templates_used) {
+        var blockTemplates = document.createElement('div');
+        blockTemplates.setAttribute("id", "blockTemplates");
+        section.appendChild(blockTemplates);
+        for (var h=0; h< templates_used.length; h++) {
+            var templateName = document.createElement('h4');
+            var templateRef = document.createElement('a');
+            templateRef.setAttribute("href", "/cp2/showTemplates?template="+templates_used[h] );
+            templateRef.textContent = templates_used[h];
             var buttonDelete = document.createElement('button');
             buttonDelete.textContent = "Unlink";
             buttonDelete.setAttribute("class", "buttonDelete");
-            buttonDelete.setAttribute('id', templates_used_for_demo[h]);
+            buttonDelete.setAttribute('id', templates_used[h]);
             buttonDelete.setAttribute("onclick", "remove_template_to_demo(this)")
-            div.appendChild(H4);
-            H4.appendChild(href);
-            H4.appendChild(buttonDelete)
+            blockTemplates.appendChild(templateName);
+            templateName.appendChild(templateRef);
+            templateName.appendChild(buttonDelete)
         }
-        var blobsDemo = jsonObj['sets']
-        for (var i = 0; i < blobsDemo.length; i++) {
-            var Blobs = blobsDemo[i].blobs;
+        for (var i = 0; i < sets.length; i++) {
+            var Blobs = sets[i].blobs;
             var set_keys = Object.keys(Blobs);
-            var myDiv1 = document.createElement('div');
-            myDiv1.setAttribute("class", "block");
-            var myH3 = document.createElement('h3');
-            myH3.setAttribute("id", blobsDemo[i].name)
-            myH3.textContent = "Title SET : " + blobsDemo[i].name;
-            section.appendChild(myDiv1);
-            myDiv1.appendChild(myH3);
+            var block = document.createElement('div');
+            block.setAttribute("class", "block");
+            var titleSet = document.createElement('h3');
+            titleSet.setAttribute("id", sets[i].name)
+            titleSet.textContent = "Title SET : " + sets[i].name;
+            section.appendChild(block);
+            block.appendChild(titleSet);
             for (let blob_pos of set_keys) {
                 blob = Blobs[blob_pos];
-                var myDiv2 = document.createElement('div');
-                myDiv2.setAttribute("class", "image_files");
-                var myHref = document.createElement('a');
-                myHref.setAttribute("href", "/cp2/detailsBlob?title=" + Blobs[blob_pos].title + "&set=" + blobsDemo[i].name + "&pos=" + blob_pos + "&credit=" + blob.credit + "&tags=" + blob.tags + "&thumbnail=" + blob.thumbnail + "&blob=" + blob.blob);
+                var image = document.createElement('div');
+                image.setAttribute("class", "image_files");
+                var imageRef = document.createElement('a');
+                imageRef.setAttribute("href", "/cp2/detailsBlob?demo_id="+demo_id+"&set="+ sets[i].name+"&pos="+blob_pos)
+                //console.log("set="+sets[i].name+"\npos="+blob_pos);
                 var image_src = document.createElement('img');
                 image_src.setAttribute("src", blob.thumbnail);
-                var myPara2 = document.createElement('p');
+                var credit = document.createElement('p');
                 var removeBlobs = document.createElement('div');
                 var button = document.createElement('button');
-                button.setAttribute("class", "ButtonDelete");
-                button.setAttribute('blobName', blobsDemo[i].name);
+                button.setAttribute("class", "buttonDelete");
+                button.setAttribute('blobName', sets[i].name);
                 button.setAttribute('blobSet', blob_pos)
 
-                myPara2.textContent = "Credit: " + blob.credit;
+                credit.textContent = "Credit: " + blob.credit;
                 button.textContent = "Delete blob";
 
-                myDiv1.appendChild(myDiv2);
-                myDiv2.appendChild(myHref);
-                myHref.appendChild(image_src);
-                myDiv2.appendChild(myPara2);
-                myDiv2.appendChild(removeBlobs);
+                block.appendChild(image);
+                image.appendChild(imageRef);
+                imageRef.appendChild(image_src);
+                image.appendChild(credit);
+                image.appendChild(removeBlobs);
                 removeBlobs.appendChild(button);
             };
         };
     };
 
-    function showTemplatesList(jsonObj) {
-        templatesList = jsonObj['templates'];
+    function showTemplatesList(templates) {
         var dataList = document.createElement('datalist');
         dataList.setAttribute("id", "TemplateToDemo");
         var input = document.createElement('input');
@@ -124,11 +125,10 @@
         input.setAttribute("placeholder", "Add Template");
         input.setAttribute("id", "templateSelection");
         input.setAttribute("type", "text");
-        for (var i = 0; i < templatesList.length; i++) {
+        for (var i = 0; i < templates.length; i++) {
             var option = document.createElement('option');
-            option.textContent = templatesList[i];
-            option.setAttribute("value", templatesList[i]);
-
+            option.textContent = templates[i];
+            option.setAttribute("value", templates[i]);
             section.appendChild(label);
             section.appendChild(input);
             section.appendChild(dataList);
@@ -163,7 +163,6 @@
             dataType: 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    alert("Template added to this demo")
                     add_the_template_to_DOM();
                 } else {
                     alert("Error to added this demo to the template or any template selected")
@@ -185,10 +184,63 @@
             dataType: 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    document.location.href = "/cp2/showBlobsDemo?demo_id="+demo_id+"&title="+title+"&modification="+modification+"&state="+state;
+                    document.location.href = "/cp2/showBlobsDemo?demo_id="+demo_id;
                 } else {
                     alert("Error to delete this template to the demo");
                 }
             },
         })
+    };
+
+
+
+    function update_edit_demo() {
+        $.ajax({
+            data: ({
+                demoID: demo_id,
+                csrfmiddlewaretoken: csrftoken,
+            }),
+            dataType : 'json',
+            type: 'POST',
+            url: 'showDemo/ajax_user_can_edit_demo',
+            success: function(data) {
+                if (data.can_edit === 'NO') {
+                    var not_allowed = document.createElement('h3');
+                    not_allowed.textContent = "You are not allowed to edit this demo"
+                    can_edit.appendChild(not_allowed);
+                    $('#buttonAddTemplate').remove(); 
+                    $('.buttonDelete').remove();
+                    $('.ButtonDelete').remove();
+                }
+            },
+        });
+    };
+
+
+    function deleteBlob() {
+        $("button.ButtonDelete").click(function () {
+            var blobSelection = $(this).attr('blobName');
+            var $pos_set = $(this).attr('blobSet')
+            $.ajax({
+                beforeSend: function(xhr, settings) {
+                    return (confirm("Are you sure?"))
+                    },
+                data : ({
+                    blob_set : blobSelection,
+                    demo_id : demo_id,
+                    pos_set : $pos_set,
+                    csrfmiddlewaretoken: csrftoken,
+                }),
+                type: 'POST',
+                dataType: 'json',
+                url: 'showBlobsDemo/ajax',
+                success: function(data) {
+                    if (data.status === 'OK') {
+                        document.location.href = "showBlobsDemo?demo_id="+demo_id
+                    } else {
+                        alert("Error to delete this Blob");
+                    }
+                },
+            })
+        });
     };

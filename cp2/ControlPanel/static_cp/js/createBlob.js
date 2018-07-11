@@ -29,7 +29,6 @@ form.onsubmit = function (e) {
         dataType : 'json',
         success: function(data) {
             if (data.status === 'OK') {
-                alert("Redirection Templates List...")
                 document.location.href = "/cp2/showTemplates?template="+templateSelection
             } else {
                 alert("Error to add this Blob to the Template")
