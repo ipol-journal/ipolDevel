@@ -14,21 +14,23 @@ def api_post(resource, params=None, files=None):
     return requests.post(url, params=params, files=files)
 
 
-def email_check(request, demo_id):
-    user_email = request.user.email
-    #print(user_email)
+def user_can_edit_demo(user_email, demo_id):
     settings = {'demo_id' : demo_id}
     response_api = api_post("/api/demoinfo/demo_get_editors_list", settings)
     editors_list = response_api.json()
-    mail = editors_list['editor_list']
-    #print(mail)
-    email = mail.get('mail')
-    print(email)
     for editor in editors_list.get('editor_list'):
-         if editor.get('mail') == user_email:
-             print("gagné")
-             return True
+        if editor.get('mail') == user_email:
+            return True
     return False
+
+# def email_check(user, demo_id):
+#     setting = {'demo_id' : demo_id}
+#     response_api = api_post('api/demoinfo/demo_get_editors_list', setting)
+#     editors_list = response_api.json()
+#     for editor in editors_list.get('editor_list'):
+#         if editor.get('mail') == user.email:
+#             return True
+#     return False
 
 
 
