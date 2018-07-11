@@ -427,7 +427,7 @@ h3 {
 
 }
 
-.vider {
+.pageCount {
     font-size: 20px;
     width: 20px;
     height: 20px;
@@ -535,6 +535,17 @@ input#id_Title {
     border-radius: 4px;
     margin-left: 20%;
 }
+
+#buttonAddTemplate {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    display: inline-block;
+    padding : 5px 5px 5px 5px;
+    text-align: center;
+    border-radius: 4px;
+}
+
 #fond {
     position:absolute;
     z-index:9000;
@@ -683,7 +694,7 @@ input#id_Title {
      overflow: auto;
  }
 
-.ButtonDelete {
+.buttonDelete {
     margin-bottom: 20px;
 }
 
@@ -717,7 +728,7 @@ input#id_Title {
     font-size: 14px;
 }
 
-.ButtonDelete {
+.buttonDelete {
     /* border-radius: 2px;
     background-color: black;
     border-color: black;
@@ -726,7 +737,6 @@ input#id_Title {
     /* padding: 5px 5px 5px 5px; 
     border-radius: 10px; */
     margin-top: 15px;
-
     border-radius: 10px;
     background-color: lightcoral;
     text-decoration: none;
