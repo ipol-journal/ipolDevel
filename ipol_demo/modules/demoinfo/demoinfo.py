@@ -1689,26 +1689,36 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            if ddl is None:
-                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo"})
+            if not ddl:
+                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo {}".format(demo_id)})
 
             ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
+            # removing sections that shouldn't be obtained by the web interface
             if 'build' in ddl:
                 del ddl['build']
             if 'run' in ddl:
                 del ddl['run']
-            if sections is not None:
-                result_dll = OrderedDict()
-                for section in sections.split(','):
-                    if ddl.get(section):
-                        result_dll[str(section)] = ddl.get(section)
-                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(result_dll)}})
+            # obtaining the sections given as a parameter
+            if sections:
+                ddl_sections = self.get_ddl_sections(ddl, sections)
+                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl_sections)}})
             return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
         except Exception as ex:
-            error_string = "Failure in function get_interface_ddl, Error = {}".format(ex)
+            error_string = "Failure in function get_interface_ddl with demo {}, Error = {}".format(demo_id, ex)
             print error_string
             self.logger.exception(error_string)
             return json.dumps({'status': 'KO', 'error': error_string})
+
+    @staticmethod
+    def get_ddl_sections(ddl, ddl_sections):
+        """
+        Returns DDL sections
+        """
+        sections = OrderedDict()
+        for section in ddl_sections.split(','):
+            if ddl.get(section):
+                sections[str(section)] = ddl.get(section)
+        return sections
 
     @cherrypy.expose
     @authenticate
@@ -1743,16 +1753,14 @@ class DemoInfo(object):
         """
         try:
             ddl = self.get_stored_ddl(demo_id)
-            if ddl is not None:
-                if sections is not None:
-                    ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
-                    result_dll = OrderedDict()
-                    for section in sections.split(','):
-                        if ddl.get(section):
-                            result_dll[str(section)] = ddl.get(section)
-                    return json.dumps({'status': 'OK', 'last_demodescription': result_dll})
-                return json.dumps({'status': 'OK', 'last_demodescription': ddl})
-            raise Exception
+            if not ddl:
+                error = "There isn't any DDL for demo {}".format(demo_id)
+                return json.dumps({'status': 'KO', 'error': error})
+            if sections:
+                ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
+                ddl_sections = self.get_ddl_sections(ddl, sections)
+                return json.dumps({'status': 'OK', 'last_demodescription': ddl_sections})
+            return json.dumps({'status': 'OK', 'last_demodescription': ddl})
         except Exception as ex:
             error_string = "Failure in function get_ddl, Error = {}".format(ex)
             print error_string
