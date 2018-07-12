@@ -11,15 +11,13 @@ var ddl;
 $(document).ready(function() {
   $("#header").load("header.html");
   $("#footer").load("footer.html");
-  // if storage was used, clear it ?
-  // sessionStorage.clear();
-  // populate page from infos about the demo
+
+  // Read DDL and populate page
   var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general";
   $.getJSON(url, function(data) {
-    // ddl is provided as a string (why ? isn't it correct json ?)
     ddl = JSON.parse(data.last_demodescription.ddl);
     $("#pageTitle").html(ddl.general.demo_title);
-    // this message is shared with demo.js
+
     $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
     $("#citation-link").attr('href', ddl.general.xlink_article);
     $("#articleTab").attr('href', ddl.general.xlink_article);
@@ -50,13 +48,11 @@ $(document).ready(function() {
       
     })
     .fail(function() {
-      console.log("archive.js — page not found "+url);
-      // strange bug if ddl not found but archive found, maybe whe should return here
+      console.log("archive.js - failed to obtain experiment page " + url);
     });
   })
   .fail(function() {
-    console.log("archive.js — ddl load fail "+url);
-    // strange bug if ddl not found but archive found, maybe whe should return here
+    console.log("archive.js - failed to load DDL "+ url);
   });
 });
 
@@ -77,10 +73,6 @@ function paging(data) {
     if ( i == page ) html += ' class="this"';
     html += '>'+i+'</a>';
   }
-  // 23
-  // ◀
-  // ▶
-  // 1
   html += '\n</nav>';
   return html;
 }
@@ -94,16 +86,14 @@ function record(data) {
   html += '\n<div class="record">';
   html += '\n<header>';
   html += '\n<div class="legend" id=' + data.id + '>Experiment <b class="id">#'+data.id+'</b>.<br/>'+data.date;
-  // run time ? seconds ? important ?
+
   var runtime = data.parameters['run time']+0;
   if (runtime) {
     html += ' (done in '+runtime.toFixed(3)+' s)';
   }
   html += '.</div>';
-
   html += '\n</header>';
-
-  // contain pars and thumbs
+  
   html += '\n<div class="middle">';
 
   // loop on parameters
