@@ -5,7 +5,7 @@
 <div id ="DetailsBlob">
     <div id="blobRepresentation">
         <div id="blobThumbnail">
-            <p>Blob thumbnail</p>
+            <p>Blob</p>
             <a id="download_blob" target="_blank">
             <img id="thumbnail" title = "Blob" onError=setBrokenImage(this)>
             </a>
@@ -36,13 +36,13 @@
     </p>
     <p>
         <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
-        <a href="" id="removeFile">X</a>
+        <i class="fas fa-times" onclick="removeVr()"></i>
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
 <button id="removeVr">Remove Visual Representation</button>
 </div>
-<a id="GoPreviousPage" href="javascript:history.back()">Go Previous Page</a>
+<a id="goPreviousPage" href="javascript:history.back()">Go Previous Page</a>
 {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
     <a class="navbar_brand" href="/cp2">

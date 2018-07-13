@@ -655,7 +655,7 @@ input#id_Title {
      display : inline-flex;
  }
 
- #editor2 {
+ #aceEditor {
      z-index: 0;
  }
 
@@ -820,7 +820,7 @@ input#id_Title {
     font-size: 35px;
 }
 
-#GoPreviousPage {
+#goPreviousPage {
     color: #fff;
     background-color: #5bc0de;
     border-color: #46b8da;

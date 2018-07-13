@@ -3,23 +3,22 @@
 
 var csrftoken = getCookie('csrftoken');
 var section = document.querySelector('section');
-var get_template_blobs = new XMLHttpRequest();
 var templateSelection;
 /*-----------------------------------------Templates and add Templates-----------------------------------------*/
 
-get_template_blobs.open('GET', '/api/blobs/get_all_templates');
-get_template_blobs.responseType = 'json';
-get_template_blobs.send();
-get_template_blobs.onload = function() {
-    var templates = get_template_blobs.response;
-    templatesList = templates['templates'];
-    showTemplatesList(templatesList);
-}
 
 $(document).ready(function() {
+    var get_demo_blobs = new XMLHttpRequest();
+    get_demo_blobs.open('GET', '/api/blobs/get_all_templates');
+    get_demo_blobs.responseType = 'json';
+    get_demo_blobs.send();
+    get_demo_blobs.onload = function() {
+        var templates = get_demo_blobs.response;
+        templatesList = templates['templates'];
+        showTemplatesList(templatesList);
+    }
     $("button#saveTemplate").click(addTemplates);
     $('#show').click(function (event) {
-        //On désactive le comportement du lien
         event.preventDefault();
         showModal();
         addTemplates();
@@ -37,7 +36,6 @@ function showTemplatesList (templatesList) {
         var templateName = document.createElement('a');
         templateName.setAttribute("href","/cp2/showTemplates?template="+templatesList[i]);
         templateName.textContent = templatesList[i];
-
         templates.appendChild(templateName);
         section.appendChild(templates);
     };

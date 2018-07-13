@@ -338,3 +338,7 @@ def ajax_edit_blob_demo(request):
     else :
         print("KO")
         return render(request, 'Homepage.html')
+
+
+
+#Ajax request for add blob to a demo dans demo=>Blobs

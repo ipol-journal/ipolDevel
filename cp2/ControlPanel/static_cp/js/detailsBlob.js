@@ -5,13 +5,12 @@ var decoded = decodeURI(completeURL);
 var templateSelection = getParameterByName('template');
 var pos = getParameterByName('pos');
 var set = getParameterByName('set');
-var get_demo_blobs = new XMLHttpRequest();
-var real_blob;
 var vr;
 var blob_id;
 var demo_id;
 
 $(document).ready(function(){
+    var get_demo_blobs = new XMLHttpRequest();
     if (templateSelection) {
          get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
          get_demo_blobs.responseType = 'json';
@@ -47,7 +46,6 @@ $(document).ready(function(){
             dataType : 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    //console.log(templateSelection)
                     document.location.href = "/cp2/showTemplates?template="+templateSelection
                 } else {
                     alert("Error to add this Blob to the Template")
@@ -101,7 +99,7 @@ $(document).ready(function(){
         })
     }}
     $("#thumbnail").click(function () {
-        window.location = real_blob;
+        window.location = blob;
     });
     $('#thumbnail_vr').click(function (){
         if (vr){
@@ -115,25 +113,26 @@ function showDetails(sets) {
         var Blobs = sets[i].blobs;
         var set_keys = Object.keys(Blobs);
             for (let blob_pos of set_keys ) {
-                blob = Blobs[blob_pos];
+                var detailsBlob = Blobs[blob_pos];
                 if (sets[i].name == set & blob_pos == pos) {
-                    //console.log("title="+blob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+blob.credit+"\ntags="+blob.tags+"\nthumbnail="+blob.thumbnail+"\nvr="+blob.vr+"\nblob="+blob.blob+"\nid="+blob.id);
+                    console.log("title="+detailsBlob.title+"\nset="+sets[i].name+"\npos="+blob_pos+"\ncredit="+detailsBlob.credit+"\ntags="+detailsBlob.tags+"\nthumbnail="+detailsBlob.thumbnail+"\nvr="+detailsBlob.vr+"\nblob="+detailsBlob.blob+"\nid="+detailsBlob.id);
                     document.getElementById("setName").textContent = sets[i].name;
-                    document.getElementById("Title").value = blob.title;
+                    document.getElementById("Title").value = detailsBlob.title;
                     document.getElementById("SET").value = sets[i].name;
                     document.getElementById("PositionSet").value = blob_pos;
-                    document.getElementById("Credit").value = blob.credit;
-                    document.getElementById("Tags").value = blob.tags;
-                    if (blob.vr){
-                        document.getElementById("thumbnail_vr").src = blob.vr;
+                    document.getElementById("Credit").value = detailsBlob.credit;
+                    document.getElementById("Tags").value = detailsBlob.tags;
+                    if (detailsBlob.vr){
+                        document.getElementById("thumbnail_vr").src = detailsBlob.vr;
+                        document.getElementById("thumbnail_vr").style = "visibility : visible"
                     }
                     else {
-                        document.getElementById("thumbnail_vr").src = "/cp2/static/images/non_viewable_inputs.png";
+                        document.getElementById("thumbnail_vr").style = "visibility : hidden"
                     }
-                    document.getElementById("thumbnail").src = blob.thumbnail;
-                    real_blob = blob.blob;
-                    vr = blob.vr;
-                    blob_id = blob.id;
+                    document.getElementById("thumbnail").src = detailsBlob.blob;
+                    blob_id = detailsBlob.id
+                    vr = detailsBlob.vr
+                    blob = detailsBlob.blob
                 }
             };
         };
@@ -165,10 +164,12 @@ function update_edit_demo() {
 
 
 $(function() {
-    $("#removeVr").click(function() {
+    $("#removeVr").click(function(event) {
+        event.preventDefault()
         $.ajax({
             beforeSend: function(xhr, settings) {
                 delvr = confirm('Deleting visual representation will afect other demos and templates.\nAre you sure you want to continue?');
+                console.log(blob_id)
                 return delvr
             },
             data : ({
@@ -179,10 +180,8 @@ $(function() {
             dataType: 'json',
             url: 'detailsBlob/ajax_remove_vr',
             success: function(data) {
-                alert(data.status);
                 document.location.reload();
             },
         });
-        return false;
     });
 });

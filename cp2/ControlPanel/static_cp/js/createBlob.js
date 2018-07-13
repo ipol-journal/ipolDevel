@@ -3,7 +3,7 @@ var csrftoken = getCookie('csrftoken');
 var blobImage;
 var templateSelection = getParameterByName('template');
 document.getElementById("nameOfTemplate").innerHTML = templateSelection;
-$("#GoPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
+$("#goPreviousPage").attr('href', '/cp2/showTemplates?template='+templateSelection);
 var form = document.getElementById('createBlobForm');
 form.onsubmit = function (e) {
     e.preventDefault();

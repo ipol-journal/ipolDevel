@@ -1,19 +1,19 @@
 var section = document.querySelector('section');
 var csrftoken = getCookie('csrftoken');
-var get_template_blobs = new XMLHttpRequest();
+var get_demo_blobs = new XMLHttpRequest();
 var get_demo_using_the_template = new XMLHttpRequest();
 var templateSelection = getParameterByName('template');
 document.getElementById("nameOfTemplate").innerHTML = templateSelection;
 nameOfTemplate.setAttribute("style", "text-decoration: underline");
 
-get_template_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
+get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
 get_demo_using_the_template.open('GET','/api/blobs/get_demos_using_the_template?template_name='+templateSelection);
-get_template_blobs.responseType = 'json';
+get_demo_blobs.responseType = 'json';
 get_demo_using_the_template.responseType = 'json';
-get_template_blobs.send();
+get_demo_blobs.send();
 get_demo_using_the_template.send();
-get_template_blobs.onload = function() {
-    var templates = get_template_blobs.response;
+get_demo_blobs.onload = function() {
+    var templates = get_demo_blobs.response;
     var demo = get_demo_using_the_template.response;
     var sets = templates['sets'];
     var demos = demo['demos'];
@@ -39,15 +39,14 @@ function showTemplates(sets) {
             section.appendChild(titleSet);
             section.appendChild(block);
             for (let blob_pos of set_keys ) {
-            blob = Blobs[blob_pos];
+            detailsBlob = Blobs[blob_pos];
             var image = document.createElement('div');
             image.setAttribute("class","image_files");
             var blobDetails = document.createElement('a');
-            //myHref.setAttribute("href", "/cp2/detailsBlob?&template="+templateSelection+"&id="+blob.id);
             blobDetails.setAttribute("href", "/cp2/detailsBlob?&template="+templateSelection+"&set="+sets[i].name+"&pos="+blob_pos);
-            //console.log("set="+blobsList[i].name+"\npos="+blob_pos)
             var image_src = document.createElement('img');
-            image_src.setAttribute("src",blob.thumbnail);
+            image_src.setAttribute("src",detailsBlob.thumbnail);
+            image_src.setAttribute("onError", "setBrokenImage(this)");
             image_src.setAttribute("style", "margin-right: 25px");
             var removeBlobs = document.createElement('div');
             var button = document.createElement('button');

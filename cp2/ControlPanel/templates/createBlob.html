@@ -4,7 +4,7 @@
 <div id="blobCreation">
     <div id="blobRepresentation">
     <div id="blobThumbnail">
-        <p>Blob thumbnail</p>
+        <p>Blob</p>
         <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
     </div>
     <div id="vrThumbnail">
@@ -16,7 +16,7 @@
     {% csrf_token %}
     <p>
         <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()"/>
-        <a href="" id="removeFile">X</a>
+        <i class="fas fa-times" onclick="removeBlob()"></i>
     </p>
     <p>
         <label>Title</label><input type="text" id="Title">
@@ -35,12 +35,12 @@
     </p>
     <p>
         <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
-        <a id ="removeFile"href="">X</a>
+        <i class="fas fa-times" onclick="removeVr()"></i>
     </p>
 <button id="ButtonAddBlob">SAVE</button>
 </form>
 </div>
-<a id="GoPreviousPage" href="">Go Previous Page</a>
+<a id="goPreviousPage" href="">Go Previous Page</a>
 {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
     <a class="navbar_brand" href="/cp2">

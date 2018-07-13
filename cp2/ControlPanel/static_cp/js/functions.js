@@ -15,7 +15,8 @@ function vrUploaded(){
   fr.onload = function() { thumbnail.src = this.result; };
   fr.readAsDataURL(vr.files[0]);
   if (vr.files.length > 0) {
-      VRName = vr.files[0].name;
+    document.getElementById("thumbnail_vr").style = "visibility : visible";
+    VRName = vr.files[0].name;
   }
   return VRImage = vr.files[0];
 };
@@ -27,21 +28,27 @@ function blobUploaded(){
   fr.onload = function() { thumbnail.src = this.result; };
   fr.readAsDataURL(blob.files[0]);
   if (blob.files.length > 0) {
-      blobName = blob.files[0].name;
+    blobName = blob.files[0].name;
   }
   return blobImage = blob.files[0];
 };
 
-function removeFile(){
-  file = null;
-  document.getElementById("VR").innerHTML = "";
+function removeBlob(){
+  document.getElementById("Blob").value = "";
+  document.getElementById("thumbnail").src = "";
+  blobImage = null;
 }
 
-// function setBrokenImage(image) {
-//   image.onerror = "";
-//   image.src = "/cp2/static/images/non_viewable_inputs.png";
-//   return true;
-// }
+function removeVr(){
+  document.getElementById("VR").value = "";
+  document.getElementById("thumbnail_vr").src = "";
+  VRImage = null;
+}
+
+function setBrokenImage(image) {
+  image.onerror = "";
+  image.src = "/cp2/static/images/non_viewable_inputs.png";
+}
 
 /*  secure AJAX POST to ws ,from django docs  */
 function getCookie(name) {

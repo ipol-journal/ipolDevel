@@ -2,45 +2,46 @@
     var templates_used = [];
     var csrftoken = getCookie('csrftoken');
     var section = document.querySelector('section');
-    var get_demo_blobs = new XMLHttpRequest();
-    var get_demo_using_the_template = new XMLHttpRequest();
-    var get_all_templates = new XMLHttpRequest();
     var demo_id = getParameterByName('demo_id');
-
     var templateSelection;
-    document.getElementById("demo_id").innerHTML = demo_id;
-    get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
-    get_all_templates.open('GET', '/api/blobs/get_all_templates');
-    get_all_templates.send();
-    get_all_templates.responseType = 'json';
-    get_demo_using_the_template.open('GET', '/api/blobs/get_demo_templates?demo_id='+ demo_id);
-    get_demo_using_the_template.responseType = 'json';
-    get_demo_using_the_template.send();
+    
+    $(document).ready(function(){
+        var get_demo_blobs = new XMLHttpRequest();
+        var get_demo_using_the_template = new XMLHttpRequest();
+        var get_all_templates = new XMLHttpRequest();
+        document.getElementById("demo_id").innerHTML = demo_id;
+        get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
+        get_all_templates.open('GET', '/api/blobs/get_all_templates');
+        get_all_templates.send();
+        get_all_templates.responseType = 'json';
+        get_demo_using_the_template.open('GET', '/api/blobs/get_demo_templates?demo_id='+ demo_id);
+        get_demo_using_the_template.responseType = 'json';
+        get_demo_using_the_template.send();
 
-    get_demo_using_the_template.onload = function() {
-        var templates = get_demo_using_the_template.response;
-        templates_used = templates['templates'];
-        get_demo_blobs.send();
-        get_demo_blobs.responseType = 'json';
-        return templates_used;
-    }
+        get_demo_using_the_template.onload = function() {
+            var templates = get_demo_using_the_template.response;
+            templates_used = templates['templates'];
+            get_demo_blobs.send();
+            get_demo_blobs.responseType = 'json';
+            return templates_used;
+        }
 
-    get_all_templates.onload = function() {
-        var allTemplatesList = get_all_templates.response;
-        var templates = allTemplatesList['templates'];
-        showTemplatesList(templates);
-    }
+        get_all_templates.onload = function() {
+            var allTemplatesList = get_all_templates.response;
+            var templates = allTemplatesList['templates'];
+            showTemplatesList(templates);
+        }
 
-    get_demo_blobs.onload = function() {
-        var blobs = get_demo_blobs.response;
-        var sets = blobs['sets'];
-        showBlobsAndTemplatesDemo(sets, templates_used);
-        update_edit_demo();
-        deleteBlob();
-    }
+        get_demo_blobs.onload = function() {
+            var blobs = get_demo_blobs.response;
+            var sets = blobs['sets'];
+            showBlobsAndTemplatesDemo(sets, templates_used);
+            update_edit_demo();
+            deleteBlob();
+        }
+    });
 
-
-    function add_the_template_to_DOM(){
+    function add_the_template(){
         var templateName = document.createElement('h4');
         var templateRef = document.createElement('a');
         templateRef.setAttribute("href", "showTemplates?template="+templateSelection);
@@ -54,7 +55,7 @@
         buttonDelete.setAttribute("onclick", "remove_template_to_demo(this)");
         templateName.appendChild(buttonDelete);
         templates_used.push(templateSelection);
-        return templates_used;
+        //return templates_used;
     }
 
 
@@ -62,15 +63,15 @@
         var blockTemplates = document.createElement('div');
         blockTemplates.setAttribute("id", "blockTemplates");
         section.appendChild(blockTemplates);
-        for (var h=0; h< templates_used.length; h++) {
+        for (var i=0; i< templates_used.length; i++) {
             var templateName = document.createElement('h4');
             var templateRef = document.createElement('a');
-            templateRef.setAttribute("href", "/cp2/showTemplates?template="+templates_used[h] );
-            templateRef.textContent = templates_used[h];
+            templateRef.setAttribute("href", "/cp2/showTemplates?template="+templates_used[i] );
+            templateRef.textContent = templates_used[i];
             var buttonDelete = document.createElement('button');
             buttonDelete.textContent = "Unlink";
             buttonDelete.setAttribute("class", "buttonDelete");
-            buttonDelete.setAttribute('id', templates_used[h]);
+            buttonDelete.setAttribute('id', templates_used[i]);
             buttonDelete.setAttribute("onclick", "remove_template_to_demo(this)")
             blockTemplates.appendChild(templateName);
             templateName.appendChild(templateRef);
@@ -97,31 +98,31 @@
                 image_src.setAttribute("src", blob.thumbnail);
                 var credit = document.createElement('p');
                 var removeBlobs = document.createElement('div');
-                var button = document.createElement('button');
-                button.setAttribute("class", "buttonDelete");
-                button.setAttribute('blobName', sets[i].name);
-                button.setAttribute('blobSet', blob_pos)
+                var remobeBlobsButton = document.createElement('button');
+                remobeBlobsButton.setAttribute("class", "buttonDelete");
+                remobeBlobsButton.setAttribute('blobName', sets[i].name);
+                remobeBlobsButton.setAttribute('blobSet', blob_pos)
 
                 credit.textContent = "Credit: " + blob.credit;
-                button.textContent = "Delete blob";
+                remobeBlobsButton.textContent = "Delete blob";
 
                 block.appendChild(image);
                 image.appendChild(imageRef);
                 imageRef.appendChild(image_src);
                 image.appendChild(credit);
                 image.appendChild(removeBlobs);
-                removeBlobs.appendChild(button);
+                removeBlobs.appendChild(remobeBlobsButton);
             };
         };
     };
 
     function showTemplatesList(templates) {
         var dataList = document.createElement('datalist');
-        dataList.setAttribute("id", "TemplateToDemo");
+        dataList.setAttribute("id", "templateToDemo");
         var input = document.createElement('input');
         var label = document.createElement('label')
-        label.setAttribute('for', 'TemplateToDemo');
-        input.setAttribute("list", "TemplateToDemo");
+        label.setAttribute('for', 'templateToDemo');
+        input.setAttribute("list", "templateToDemo");
         input.setAttribute("placeholder", "Add Template");
         input.setAttribute("id", "templateSelection");
         input.setAttribute("type", "text");
@@ -144,7 +145,7 @@
     function add_template_to_demo() {
         templateSelection = document.getElementById("templateSelection").value;
         $.ajax({
-            beforeSend: function(xhr, settings) {
+            beforeSend: function() {
                 if (templates_used.includes(templateSelection)){
                     alert("This demo is already used")
                     return false
@@ -163,16 +164,16 @@
             dataType: 'json',
             success: function(data) {
                 if (data.status === 'OK') {
-                    add_the_template_to_DOM();
+                    add_the_template();
                 } else {
-                    alert("Error to added this demo to the template or any template selected")
+                    alert("Error to added the template to this demo or any template selected")
                 }
             },
         })
     };
 
-        function remove_template_to_demo(monID) {
-        templateSelection = monID.id;
+        function remove_template_to_demo(template) {
+        templateSelection = template.id;
         $.ajax({
             data: ({
                 demoId: demo_id,
@@ -186,7 +187,7 @@
                 if (data.status === 'OK') {
                     document.location.href = "/cp2/showBlobsDemo?demo_id="+demo_id;
                 } else {
-                    alert("Error to delete this template to the demo");
+                    alert("Error to delete this template from the demo");
                 }
             },
         })
@@ -210,7 +211,6 @@
                     can_edit.appendChild(not_allowed);
                     $('#buttonAddTemplate').remove(); 
                     $('.buttonDelete').remove();
-                    $('.ButtonDelete').remove();
                 }
             },
         });
@@ -218,12 +218,12 @@
 
 
     function deleteBlob() {
-        $("button.ButtonDelete").click(function () {
+        $("button.buttonDelete").click(function () {
             var blobSelection = $(this).attr('blobName');
             var $pos_set = $(this).attr('blobSet')
             $.ajax({
-                beforeSend: function(xhr, settings) {
-                    return (confirm("Are you sure?"))
+                beforeSend: function() {
+                    return (confirm("Are you sure to deleted this blob?"))
                     },
                 data : ({
                     blob_set : blobSelection,
@@ -238,7 +238,7 @@
                     if (data.status === 'OK') {
                         document.location.href = "showBlobsDemo?demo_id="+demo_id
                     } else {
-                        alert("Error to delete this Blob");
+                        alert("Error to delete this blob");
                     }
                 },
             })

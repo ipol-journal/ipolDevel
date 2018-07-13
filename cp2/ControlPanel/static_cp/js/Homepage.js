@@ -174,12 +174,11 @@
                 },
             });
         });
-    });
+
 
 
     /* Request AJAX for next page */
 
-    $(function() {
         $("#next_page").click(function(event) {
             event.preventDefault();
             $.ajax({
@@ -202,11 +201,9 @@
                 },
             });
         });
-    });
 
     /* Request AJAX for previous page */
 
-    $(function() {
         $("#previous_page").click(function(event) {
             event.preventDefault();
             $.ajax({
@@ -229,10 +226,8 @@
                 },
             });
         });
-    });
 
 
-    $(function() {
         $("#pageMax").click(function(event) {
             event.preventDefault();
             $.ajax({
@@ -259,7 +254,7 @@
     });
 
 
-    //look browser jquery modal
+
 function showModal(){
    var id = '#modal';
    $(id).html('<br><a >New Demo Data</a></br><select form="DemoForm" id="SelectDemoState"><option>Preprint</option><option>Published</option><option>Test</option><option>Workshop</option></select><form id="DemoForm"><p><label>Demo ID</label><input type="text" id="id_DemoId"></p><p><label>Title</label><input type="text" id="id_Title"></p></form><button id="ButtonAddDemo">SAVE</button><button class="close">CLOSE</button>');
