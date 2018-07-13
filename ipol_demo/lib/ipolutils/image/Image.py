@@ -44,7 +44,7 @@ class Image(object):
 
         mime_type, _ = mimetypes.guess_type(src)
 
-        if mime_type == 'image/tiff': # use tifffile
+        if mime_type == 'image/tiff':
             im.data = tifffile.imread(src)
             if len(im.data.shape) < 3:
                 pass
@@ -121,7 +121,7 @@ class Image(object):
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
-        if mime_type == 'image/tiff': # use tifffile
+        if mime_type == 'image/tiff':
             data = self.data
             if len(data.shape) < 3:
                 pass
@@ -294,7 +294,7 @@ class Image(object):
         # impossible to keep self.data.shape[2] = 1 for gray image, is deleted by cv2 ops.
         if len(self.data.shape) < 3:
             return 1
-        return self.data.shape[2]
+        return int(self.data.shape[2])
 
     def check_channels(self, channels):
         '''

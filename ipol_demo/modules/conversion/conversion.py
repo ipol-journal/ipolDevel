@@ -20,10 +20,9 @@ import cherrypy
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 from ipolutils.evaluator.evaluator import evaluate
-
+from ipolutils.errors import IPOLTypeError
 from errors import IPOLConvertInputError
 from errors import IPOLCropInputError
-from ipolutils.errors import IPOLTypeError
 
 
 def authenticate(func):
@@ -265,38 +264,31 @@ class Conversion(object):
 
         program = [
             # Color conversion, usually reducing to gray, sooner is better
-            ConverterChannels(im, input_desc),
+            ConverterChannels(input_desc, im),
             # Depth conversion, usually reducing to 8 bits, sooner is better
-            ConverterDepth(im, input_desc),
+            ConverterDepth(input_desc, im),
             # Crop before reducing image to max_pixels (or the crop box will be outside of scope)
-            ConverterCrop(im, crop_info),
+            ConverterCrop(input_desc, im, crop_info),
             # Resize image if bigger than a max.
-            ConverterMaxpixels(im, input_desc),
+            ConverterMaxpixels(input_desc, im),
             # Re-encoding (ex: jpg > png)
-            ConverterExtension(input_file, dst_file),
+            ConverterExtension(input_desc, input_file, dst_file),
         ]
-        # Is there an operation to do ?
-        todo = False
-        for task in program:
-            if task.can_convert():
-                todo = True
-        # Nothing to do, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
-        if not todo:
-            if input_file != dst_file:
-                os.rename(input_file, dst_file)
-            return 0, []
-        # Something to do, but forbidden
-        if input_desc.get("forbid_preprocess", False):
-            return 2, [] # Conversion needed but forbidden
-        # do work
         modifications = []
         for task in program:
-            if task.can_convert():
-                task.do_convert()
-                modifications.append(task.label)
-        # do not forget to write modifications
-        im.write(dst_file)
-        return 1, modifications
+            if not task.need_conversion():
+                continue
+            if not task.can_convert():
+                return 2, [] # Conversion needed but forbidden
+            modifications.append(task.convert())
+        # shall we return 1 or 0 if ops with no information loss have been done when preprocess id forbidden ?
+        if modifications: # something have been done, write file
+            im.write(dst_file)
+            return 1, modifications
+        # Nothing done, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
+        if input_file != dst_file:
+            os.rename(input_file, dst_file)
+        return 0, []
 
     @staticmethod
     def convert_video(input_file, input_desc):
@@ -352,111 +344,170 @@ class Conversion(object):
             data["status"] = "OK"
         except Exception:
             message = "TIFF to PNG for client, conversion failure."
-            print message
-            print traceback.format_exc()
             self.logger.exception(message)
         return json.dumps(data, indent=4)
 
-
-class ConverterDepth():
+class ConverterImage(object):
     """
-    Converts image depth by pixel (ex: 'i8' for uint8, int 8 bits)
+    Abstract class for a conversion task
     """
-    label = "depth"
-    depth = None
-    def __init__(self, im, input_desc):
+    #  Abstract class allow to documet repeated methods in one place.
+    def __init__(self, input_desc, im):
+        self.forbid_preprocess = input_desc.get("forbid_preprocess", False)
         self.im = im
-        dtype = input_desc.get('dtype')
-        if dtype:
-            _, self.depth = dtype.split('x')
+    def information_loss(self):
+        """
+        Returns True when conversion may lose information
+        """
+        raise NotImplementedError
     def can_convert(self):
-        if not self.depth:
+        """
+        Returns True if conversion is allowed, according to DDL (forbid_preprocess) and information loss
+        """
+        return not self.forbid_preprocess or not self.information_loss()
+    def need_conversion(self):
+        """
+        Returns True if conversion is needed
+        """
+        raise NotImplementedError
+    def convert(self):
+        """
+        Performs conversion on image data, returns label with the exact parameters when action is performed
+        """
+        raise NotImplementedError
+
+class ConverterDepth(ConverterImage):
+    """
+    Converts image depth by pixel (ex: '8i' for uint8 = int 8 bits)
+    """
+    def __init__(self, input_desc, im):
+        ConverterImage.__init__(self, input_desc, im)
+        dtype = input_desc.get('dtype', None)
+        if not dtype:
+            self.dst_depth = None
+            return
+        _, self.dst_depth = dtype.split('x')
+    def information_loss(self):
+        if not self.dst_depth:
             return False
-        if self.im.check_depth(self.depth):
+        info_level = {
+            '8i': 1, '8': 1, 'uint8': 1,
+            '16i': 2, '16': 2, 'uint16': 2,
+            '32i': 3, '32': 3, 'uint32': 4,
+            '16f': 4, 'float16': 4,
+            '32f': 5, 'float32': 5
+        }
+        dst_level = info_level.get(self.dst_depth)
+        if not dst_level:
+            return False
+        src_level = info_level.get(str(self.im.dtype()))
+        print "    ----- {}".format(str(self.im.dtype()))
+        if src_level <= dst_level:
             return False
         return True
-    def do_convert(self):
-        self.im.convert_depth(self.depth)
+    def need_conversion(self):
+        if not self.dst_depth:
+            return False
+        return not self.im.check_depth(self.dst_depth)
+    def convert(self):
+        src_dtype = self.im.dtype()
+        self.im.convert_depth(self.dst_depth)
+        return "depth {} => {}".format(src_dtype, self.im.dtype())
 
-class ConverterChannels():
+class ConverterChannels(ConverterImage):
     """
     Converts number of channels of an image (ex: color to gray)
     """
-    label = "colors"
     channels = None
-    def __init__(self, im, input_desc):
-        self.im = im
-        dtype = input_desc.get('dtype')
-        if dtype:
-            self.channels, _ = dtype.split('x')
-    def can_convert(self):
-        if self.channels < 1:
+    def __init__(self, input_desc, im):
+        ConverterImage.__init__(self, input_desc, im)
+        dtype = input_desc.get('dtype', None)
+        if not dtype:
+            self.dst_channels = -1
+            return
+        self.dst_channels, _ = dtype.split('x')
+        self.dst_channels = int(self.dst_channels)
+    def information_loss(self):
+        if self.dst_channels < 1:
             return False
-        if self.im.check_channels(self.channels):
+        return self.im.get_channels() > self.dst_channels
+    def need_conversion(self):
+        if self.dst_channels < 1:
+            return False
+        if self.im.check_channels(self.dst_channels):
             return False
         return True
-    def do_convert(self):
-        self.im.convert_channels(self.channels)
+    def convert(self):
+        src_channels = self.im.get_channels()
+        self.im.convert_channels(self.dst_channels)
+        return "colors {} => {}".format(src_channels, self.dst_channels)
 
-class ConverterCrop():
+class ConverterCrop(ConverterImage):
     """
     Crops an image according to a json specification.
     """
-    label = "crop"
-    x = -1
-    def __init__(self, im, crop_info):
+    def __init__(self, input_desc, im, crop_info):
+        ConverterImage.__init__(self, input_desc, im)
         if crop_info is None:
+            self.x = -1
             return
-        self.im = im
-        self.x = int(round(crop_info.get('x')))
-        self.y = int(round(crop_info.get('y')))
-        self.width = int(round(crop_info.get('width')))
-        self.height = int(round(crop_info.get('height')))
-    def can_convert(self):
+        self.x = int(round(crop_info.get('x', -1)))
+        self.y = int(round(crop_info.get('y', -1)))
+        self.width = int(round(crop_info.get('width', -1)))
+        self.height = int(round(crop_info.get('height', -1)))
+    def information_loss(self):
         if self.x < 0 or self.y < 0 or self.width <= 0 or self.height <= 0:
             return False
         if self.x + self.width > self.im.width() or self.y + self.height > self.im.height():
             return False
         return True
-    def do_convert(self):
+    def need_conversion(self):
+        return self.information_loss()
+    def convert(self):
         self.im.crop(x=self.x, y=self.y, width=self.width, height=self.height)
+        return "crop x={} y={} width={} height={}".format(self.x, self.y, self.width, self.height)
 
-class ConverterMaxpixels():
+class ConverterMaxpixels(ConverterImage):
     """
     Resizes image if bigger than max_pixels.
     """
-    label = "resize"
     max_pixels = -1
-    def __init__(self, im, input_desc):
-        self.im = im
-        max_pixels = input_desc.get('max_pixels')
-        if max_pixels is None:
-            return
-        self.max_pixels = evaluate(max_pixels)
-    def can_convert(self):
+    def __init__(self, input_desc, im):
+        ConverterImage.__init__(self, input_desc, im)
+        self.max_pixels = evaluate(input_desc.get('max_pixels', -1))
+    def information_loss(self):
         if self.max_pixels <= 0:
             return False
         if (self.im.width() * self.im.height()) < self.max_pixels:
             return False
         return True
-    def do_convert(self):
+    def need_conversion(self):
+        return self.information_loss()
+    def convert(self):
+        src_size = self.im.width() * self.im.height()
         # the destination size should be an int rectangle, so it will not be equals to max_pixels
         fxy = math.sqrt(float(self.max_pixels - 1) / float(self.im.width() * self.im.height()))
         self.im.resize(fx=fxy, fy=fxy)
+        return "resize {} px => {} px".format(src_size, self.max_pixels)
 
-class ConverterExtension():
+class ConverterExtension(ConverterImage):
     """
     Change extension
     """
-    label = "extension"
-    def __init__(self, src_file, dst_file):
+    def __init__(self, input_desc, src_file, dst_file):
+        ConverterImage.__init__(self, input_desc, None)
         self.src_type, _ = mimetypes.guess_type(src_file)
         self.dst_type, _ = mimetypes.guess_type(dst_file)
-    def can_convert(self):
+    def information_loss(self):
+        if self.dst_type != 'image/jpeg':
+            return False
+        if self.src_type == 'image/jpeg':
+            return False
+        return True
+    def need_conversion(self):
         if self.src_type == self.dst_type:
             return False
         return True
-    def do_convert(self):
-        # new encoding needed (ex: jpeg > png), according to the input and destination extension
-        # nothing to do here, will be done by aving image
-        pass
+    def convert(self):
+        # nothing to do here, will be done by saving image object
+        return "extension {} => {}".format(self.src_type, self.dst_type)
