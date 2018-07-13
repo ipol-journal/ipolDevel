@@ -10,6 +10,8 @@
         var get_demo_using_the_template = new XMLHttpRequest();
         var get_all_templates = new XMLHttpRequest();
         document.getElementById("demo_id").innerHTML = demo_id;
+        var previousPage = document.getElementById("goPreviousPage");
+        previousPage.setAttribute("href", "/cp2/showDemo?demo_id="+demo_id);
         get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id=' + demo_id);
         get_all_templates.open('GET', '/api/blobs/get_all_templates');
         get_all_templates.send();

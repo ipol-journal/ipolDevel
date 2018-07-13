@@ -11,7 +11,9 @@ var demo_id;
 
 $(document).ready(function(){
     var get_demo_blobs = new XMLHttpRequest();
+    var previousPage = document.getElementById("goPreviousPage");
     if (templateSelection) {
+        previousPage.setAttribute("href", "/cp2/showTemplates?template="+templateSelection);
          get_demo_blobs.open('GET', '/api/blobs/get_template_blobs?template_name='+templateSelection);
          get_demo_blobs.responseType = 'json';
          get_demo_blobs.send();
@@ -55,6 +57,7 @@ $(document).ready(function(){
     }}
     else {
         demo_id = getParameterByName('demo_id')
+        previousPage.setAttribute("href", "/cp2/showBlobsDemo?demo_id="+demo_id)
         get_demo_blobs.open('GET', '/api/blobs/get_demo_owned_blobs?demo_id='+demo_id);
         get_demo_blobs.responseType = 'json';
         get_demo_blobs.send();
