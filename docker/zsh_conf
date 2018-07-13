@@ -18,6 +18,7 @@ alias terminal="cd ~/ipolDevel/tools/terminal && ./terminal.py"
 # Control Panel
 alias cpanel="cd ~/ipolDevel/ipol_webapp && python manage.py runserver 127.0.0.1:8000"
 alias cp2="cd ~/ipolDevel && ./gunicorn_start_cp2"
+alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 
 # Collect all static files from CP.
 alias collectstatic="cd ~/ipolDevel/ipol_webapp && python manage.py collectstatic --noinput --clear"
@@ -28,11 +29,21 @@ alias runtest="cd ~/ipolDevel/ci_tests && python all.py"
 # Go to run directory
 alias rund="cd ~/ipolDevel/shared_folder/run/"
 
+#pylint of a module
+function lintmod() {
+    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc \
+    ~/ipolDevel/ipol_demo/modules/$1/$1.py
+}
+
+function lint() {
+    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1
+}
+
 # Modules start
-alias core="cd ~/ipolDevel/ipol_demo/modules/core && python main.py"
-alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && python main.py"
-alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && python main.py"
-alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && python main.py"
-alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && python main.py"
-alias demoinfo="cd ~/ipolDevel/ipol_demo/modules/demoinfo && python main.py"
-alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && python main.py"
+alias core="cd ~/ipolDevel/ipol_demo/modules/core && ./main.py"
+alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && ./main.py"
+alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && ./main.py"
+alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && ./main.py"
+alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && ./main.py"
+alias demoinfo="cd ~/ipolDevel/ipol_demo/modules/demoinfo && ./main.py"
+alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && ./main.py"
