@@ -101,3 +101,5 @@ libpoclu-dev
 libpoclu1
 pocl-doc
 pocl-opencl-icd
+clinfo
+
