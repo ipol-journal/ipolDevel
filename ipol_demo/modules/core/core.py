@@ -1349,7 +1349,7 @@ attached the failed experiment data.". \
                     raise IPOLConversionError(error_message)
                 elif conversion_info[input_key]['code'] == 1:# Conversion done
                     modifications_str = ', '.join(conversion_info[input_key]['modifications'])
-                    message = "Input #{} has been preprocessed [{}].".format(input_key, modifications_str)
+                    message = "Input #{} has been preprocessed {{{}}}.".format(input_key, modifications_str)
                     messages.append(message)
             return work_dir, key, messages
         except IPOLConversionError as ex:

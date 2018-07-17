@@ -440,7 +440,7 @@ class ConverterChannels(ConverterImage):
     def convert(self):
         src_channels = self.im.get_channels()
         self.im.convert_channels(self.dst_channels)
-        return "colors {} => {}".format(src_channels, self.dst_channels)
+        return "#channels: {} -> {}".format(src_channels, self.dst_channels)
 
 class ConverterCrop(ConverterImage):
     """
@@ -465,7 +465,7 @@ class ConverterCrop(ConverterImage):
         return self.information_loss()
     def convert(self):
         self.im.crop(x=self.x, y=self.y, width=self.width, height=self.height)
-        return "crop x={} y={} width={} height={}".format(self.x, self.y, self.width, self.height)
+        return "crop at [{}, {}]".format(self.x, self.y)
 
 class ConverterMaxpixels(ConverterImage):
     """
@@ -474,7 +474,7 @@ class ConverterMaxpixels(ConverterImage):
     max_pixels = -1
     def __init__(self, input_desc, im):
         ConverterImage.__init__(self, input_desc, im)
-        self.max_pixels = evaluate(input_desc.get('max_pixels', -1))
+        self.max_pixels = int(evaluate(input_desc.get('max_pixels', -1)))
     def information_loss(self):
         if self.max_pixels <= 0:
             return False
@@ -488,7 +488,7 @@ class ConverterMaxpixels(ConverterImage):
         # the destination size should be an int rectangle, so it will not be equals to max_pixels
         fxy = math.sqrt(float(self.max_pixels - 1) / float(self.im.width() * self.im.height()))
         self.im.resize(fx=fxy, fy=fxy)
-        return "resize {} px => {} px".format(src_size, self.max_pixels)
+        return "resized {0:.2f}%".format(fxy * 100)
 
 class ConverterExtension(ConverterImage):
     """
@@ -499,15 +499,14 @@ class ConverterExtension(ConverterImage):
         self.src_type, _ = mimetypes.guess_type(src_file)
         self.dst_type, _ = mimetypes.guess_type(dst_file)
     def information_loss(self):
-        if self.dst_type != 'image/jpeg':
-            return False
-        if self.src_type == 'image/jpeg':
-            return False
-        return True
+        return self.dst_type == 'image/jpeg'
+
     def need_conversion(self):
         if self.src_type == self.dst_type:
             return False
         return True
     def convert(self):
         # nothing to do here, will be done by saving image object
-        return "extension {} => {}".format(self.src_type, self.dst_type)
+        src_type = self.src_type.split('/')[1]
+        dst_type = self.dst_type.split('/')[1]
+        return "encoding: {} -> {}".format(src_type, dst_type)
