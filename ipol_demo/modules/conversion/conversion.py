@@ -182,10 +182,10 @@ class Conversion(object):
         Pre-process the input data in their working directory, according to the DDL specs and optional crop.
         """
         # For each file processed, return a code
-        # -1: exception, response KO.
-        # 0:  No conversion needed.
-        # 1:  Conversion performed (ex: image resizing).
-        # 2:  Conversion is not authorized by DDL.
+        # -1: exception, response KO
+        # 0:  No conversion needed or converted without loosing information
+        # 1:  Conversion with information loss performed (ex: image resizing)
+        # 2:  Conversion is not authorized by DDL
         # Info is a dictionary for each input, with return code and possible error
         info = {}
         # Global try, will stop at first exception in an input
@@ -274,17 +274,22 @@ class Conversion(object):
             # Re-encoding (ex: jpg > png)
             ConverterExtension(input_desc, input_file, dst_file),
         ]
-        modifications = []
+        messages = []
+        modification = None
         for task in program:
             if not task.need_conversion():
                 continue
             if not task.can_convert():
                 return 2, [] # Conversion needed but forbidden
-            modifications.append(task.convert())
+            info_loss = task.information_loss()
+            modification = task.convert()
+            if info_loss:
+                messages.append(modification)
         # shall we return 1 or 0 if ops with no information loss have been done when preprocess id forbidden ?
-        if modifications: # something have been done, write file
-            im.write(dst_file)
-            return 1, modifications
+        if modification: # something have been done, write file
+            write = im.write(dst_file)
+        if messages:
+            return 1, messages
         # Nothing done, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
         if input_file != dst_file:
             os.rename(input_file, dst_file)
@@ -478,7 +483,7 @@ class ConverterMaxpixels(ConverterImage):
     def information_loss(self):
         if self.max_pixels <= 0:
             return False
-        if (self.im.width() * self.im.height()) < self.max_pixels:
+        if (self.im.width() * self.im.height()) <= self.max_pixels:
             return False
         return True
     def need_conversion(self):
@@ -486,7 +491,7 @@ class ConverterMaxpixels(ConverterImage):
     def convert(self):
         src_size = self.im.width() * self.im.height()
         # the destination size should be an int rectangle, so it will not be equals to max_pixels
-        fxy = math.sqrt(float(self.max_pixels - 1) / float(self.im.width() * self.im.height()))
+        fxy = math.sqrt(float(self.max_pixels) / float(self.im.width() * self.im.height()))
         self.im.resize(fx=fxy, fy=fxy)
         return "resized {0:.2f}%".format(fxy * 100)
 
