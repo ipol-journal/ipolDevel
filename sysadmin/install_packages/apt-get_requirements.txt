@@ -71,7 +71,6 @@ libavfilter-dev
 libavutil-dev
 liblas-bin
 
-
 ###################################################################
 
 # The following packages are needed in our of our private projects on satellite imaging
@@ -93,3 +92,12 @@ python3-caffe-cpu
 
 # JPEG processing workshops
 libjpeg-progs
+
+# openCL CPU
+libpocl-dev
+libpocl1
+libpocl1-common
+libpoclu-dev
+libpoclu1
+pocl-doc
+pocl-opencl-icd
