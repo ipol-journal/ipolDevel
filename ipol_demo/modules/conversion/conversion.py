@@ -503,6 +503,7 @@ class ConverterExtension(ConverterImage):
         ConverterImage.__init__(self, input_desc, None)
         self.src_type, _ = mimetypes.guess_type(src_file)
         self.dst_type, _ = mimetypes.guess_type(dst_file)
+
     def information_loss(self):
         return self.dst_type == 'image/jpeg'
 
