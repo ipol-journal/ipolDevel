@@ -275,24 +275,30 @@ class Conversion(object):
             ConverterExtension(input_desc, input_file, dst_file),
         ]
         messages = []
-        modification = None
+        lossy_modification = False
+        modification = False
+
         for task in program:
             if not task.need_conversion():
                 continue
             if not task.can_convert():
                 return 2, [] # Conversion needed but forbidden
+
             info_loss = task.information_loss()
-            modification = task.convert()
+            message = task.convert()
+            modification = True
             if info_loss:
-                messages.append(modification)
-        # shall we return 1 or 0 if ops with no information loss have been done when preprocess id forbidden ?
+                messages.append(message)
+                lossy_modification = True
+        
         if modification: # something have been done, write file
-            write = im.write(dst_file)
-        if messages:
-            return 1, messages
+            im.write(dst_file)
         # Nothing done, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
-        if input_file != dst_file:
+        if not modification and input_file != dst_file:
             os.rename(input_file, dst_file)
+
+        if lossy_modification:
+            return 1, messages
         return 0, []
 
     @staticmethod
