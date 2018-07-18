@@ -41,17 +41,9 @@ class Image(object):
         if not os.path.isfile(src):
             raise OSError(errno.ENOENT, "File not found", src)
         im = Image()
-
         mime_type, _ = mimetypes.guess_type(src)
-
         if mime_type == 'image/tiff':
-            im.data = tifffile.imread(src)
-            if len(im.data.shape) < 3:
-                pass
-            elif im.data.shape[2] > 3: # RGBA > BGRA
-                im.data = im.data[..., [2, 1, 0, 3]]
-            elif im.data.shape[2] == 3: # RGB > BGR
-                im.data = im.data[..., [2, 1, 0]]
+            im.data = Image.channels_flip(tifffile.imread(src)) # tiffile reads as RGB, OpenCV need BGR
         else:
             im.data = cv2.imread(src, flags)
         if type(im.data).__module__ != np.__name__:
@@ -94,6 +86,26 @@ class Image(object):
         im.data = frame
         return im
 
+    @staticmethod
+    def get_dtype_by_depth(depth):
+        '''
+        Returns a dtype object by a string depth.
+        '''
+        return np.dtype(Image.DEPTH_DTYPE.get(depth, None))
+
+    @staticmethod
+    def channels_flip(data):
+        """
+        Reverse the color order (RGB > BGR), for compatibility between libraries.
+        """
+        if len(data.shape) < 3: # grey
+            return data
+        elif data.shape[2] > 3: # BGRA > RGBA or RGBA > BGRA
+            return data[..., [2, 1, 0, 3]]
+        elif data.shape[2] == 3: # BGR > RGB or RGB > BGR
+            return data[..., [2, 1, 0]]
+        return data # grey+alpha or ?
+
     def width(self):
         '''
         Returns width of image.
@@ -110,26 +122,19 @@ class Image(object):
         '''
         Returns data type of image matrix.
         '''
-        return self.data.dtype
+        return np.dtype(self.data.dtype)
 
     def write(self, dst_file, **kwargs):
-        '''
+        """
         Save image matrix to destination file, encoded according to file extension.
-        '''
+        """
         # warning, cv2.imwrite will not create subdirectories and silently fail
         dst_dir = os.path.dirname(dst_file)
         if dst_dir and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == 'image/tiff':
-            data = self.data
-            if len(data.shape) < 3:
-                pass
-            elif data.shape[2] > 3: # BGRA > RGBA
-                data = data[..., [2, 1, 0, 3]]
-            elif data.shape[2] == 3: # BGR > RGB
-                data = data[..., [2, 1, 0]]
-            tifffile.imsave(dst_file, data)
+            tifffile.imsave(dst_file, self.channels_flip(self.data)) # tifffile is RGB (OpenCV is BGR)
         else:
             data, pars = self._4ser(dst_file, **kwargs)
             if not cv2.imwrite(dst_file, data, pars):
@@ -209,42 +214,17 @@ class Image(object):
             raise ValueError("{}={} < min={}".format(name, value, amin))
         return value
 
-    def resize(self, width=None, height=None, fx=None, fy=None,
-               preserve_ratio=True, interpolation=None, max_width=5000, max_height=5000):
+    def resize(self, width=None, height=None, interpolation=None, max_width=5000, max_height=5000):
         '''
         Resize image data.
         '''
         src_height, src_width = self.data.shape[:2]
-        width = self.valid_numeric('width', width, amax=max_width, amin=1)
-        height = self.valid_numeric('height', height, amax=max_height, amin=1)
-        fx = self.valid_numeric('fx', fx, amax=float(max_width)/src_width, amin=1.0/src_width)
-        fy = self.valid_numeric('fy', fy, amax=float(max_height)/src_height, amin=1.0/src_height)
-        if fx or fy:
-            if not fx:
-                fx = fy
-            if not fy:
-                fy = fx
-            if interpolation: # keep requested interpolation
-                pass
-            elif fx > 0 and fy > 0: # augmentation, pixelise
-                interpolation = cv2.INTER_NEAREST
-            else: # diminution, for thumbnail, some interpolation
-                interpolation = cv2.INTER_AREA
-            self.data = cv2.resize(self.data, None, fx=float(fx), fy=float(fy), interpolation=interpolation)
-            return self
+        dst_width = self.valid_numeric('width', width, amax=max_width, amin=1)
+        dst_height = self.valid_numeric('height', height, amax=max_height, amin=1)
 
-        dst_width = width
-        dst_height = height
-
-        # containing box
+        # forced witdth*height (no ratio preservation)
         if dst_width > 0 and dst_height > 0:
-            if preserve_ratio:
-                ratio_width = float(dst_width) / src_width
-                ratio_height = float(dst_height) / src_height
-                if ratio_width < ratio_height:
-                    dst_height = float(src_height) * ratio_width
-                else:
-                    dst_width = float(src_width) * ratio_height
+            pass
         # forced height
         elif dst_height > 0:
             max_width = 3*dst_height # avoid extreme ratio
@@ -324,15 +304,6 @@ class Image(object):
             raise ValueError("Channel conversion, {} > {} not yet supported.".format(src_channels, dst_channels))
         return True
 
-    def check_depth(self, depth):
-        '''
-        Tests if the depth is equal to the matrix dtype.
-        '''
-        if not depth in self.DEPTH_DTYPE:
-            return False
-        dtype = self.DEPTH_DTYPE[depth]
-        return self.data.dtype == dtype
-
     def convert_depth(self, dst_depth):
         """
         Converts the depth of image data.
@@ -345,10 +316,11 @@ class Image(object):
         Converts the depth of an image matrix.
         Used as a static method, before saving as jpeg, without affecting underlaying data.
         """
-        if not dst_depth in Image.DEPTH_DTYPE:
+        dst_dtype = Image.DEPTH_DTYPE.get(dst_depth, None)
+        if not dst_dtype:
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
         src_dtype = data.dtype
-        dst_dtype = Image.DEPTH_DTYPE[dst_depth]
+
 
 
         # same source and destination dtype, do nothing

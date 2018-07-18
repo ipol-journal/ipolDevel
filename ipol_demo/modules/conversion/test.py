@@ -157,7 +157,6 @@ class ConversionImageTests(unittest.TestCase):
             status = response.get('status')
             code = response.get('info').get('0').get('code')
             dst_file = os.path.split(self.blob_path)[0] + '/input_0' + dst_ext
-            print magic.from_file(dst_file, mime=True)
             good_mime = (magic.from_file(dst_file, mime=True) == dst_mime)
             dst_im = Image.load(dst_file)
             os.remove(dst_file)
@@ -178,7 +177,7 @@ class ConversionImageTests(unittest.TestCase):
             input_dir = os.path.split(self.blob_path)[0]
             src_path = input_dir + '/input_0' + ext
             src_size = os.path.getsize(src_path)
-            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             crop_info = None
             response = self.convert(input_dir, input_desc, crop_info)
@@ -201,7 +200,7 @@ class ConversionImageTests(unittest.TestCase):
             ext = '.png'
             input_dir = os.path.split(self.blob_path)[0]
             max_pixels = 150
-            input_desc = [{'description': 'input', 'max_pixels': max_pixels, 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': max_pixels, 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
@@ -224,7 +223,7 @@ class ConversionImageTests(unittest.TestCase):
         try:
             ext = '.png'
             input_dir = os.path.split(self.blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880}]
             width = 105
             height = 79.6
@@ -253,7 +252,7 @@ class ConversionImageTests(unittest.TestCase):
             src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
             ext = '.png'
             input_dir = os.path.split(self.blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '10 * 9', 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': '10 * 9', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')
@@ -276,7 +275,7 @@ class ConversionImageTests(unittest.TestCase):
             src_im = Image.load(self.blob_path) # image in resource folder should be not jpeg
             ext = '.png'
             input_dir = os.path.split(self.blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'ext': ext,
+            input_desc = [{'description': 'input', 'max_pixels': '1024 * 2000', 'dtype': '3x8i', 'ext': ext,
                            'type': 'image', 'max_weight': 5242880, 'forbid_preprocess': 'true'}]
             response = self.convert(input_dir, input_desc, None)
             status = response.get('status')

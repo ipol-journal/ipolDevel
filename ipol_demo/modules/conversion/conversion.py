@@ -14,9 +14,9 @@ import ConfigParser
 import re
 import base64
 import mimetypes
-import traceback
 
 import cherrypy
+import numpy as np
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 from ipolutils.evaluator.evaluator import evaluate
@@ -77,7 +77,7 @@ class Conversion(object):
 
     def __init__(self):
         """
-        Consructor.
+        Constructor.
         """
         self.base_directory = os.getcwd()
         self.logs_dir = cherrypy.config.get("logs_dir")
@@ -270,9 +270,9 @@ class Conversion(object):
             # Crop before reducing image to max_pixels (or the crop box will be outside of scope)
             ConverterCrop(input_desc, im, crop_info),
             # Resize image if bigger than a max.
-            ConverterMaxpixels(input_desc, im),
+            ConverterMaxPixels(input_desc, im),
             # Re-encoding (ex: jpg > png)
-            ConverterExtension(input_desc, input_file, dst_file),
+            ConverterEncoding(input_desc, input_file, dst_file),
         ]
         messages = []
         lossy_modification = False
@@ -290,13 +290,13 @@ class Conversion(object):
             if info_loss:
                 messages.append(message)
                 lossy_modification = True
-        
-        if modification: # something have been done, write file
+
+        # something have been done, write file
+        if modification:
             im.write(dst_file)
         # Nothing done, ensure expected extension (.jpe > .jpeg; .tif > .tiff)
-        if not modification and input_file != dst_file:
+        elif input_file != dst_file:
             os.rename(input_file, dst_file)
-
         if lossy_modification:
             return 1, messages
         return 0, []
@@ -304,7 +304,7 @@ class Conversion(object):
     @staticmethod
     def convert_video(input_file, input_desc):
         """
-        Convert video according to DDL specification
+        Convert video
         """
         code = 0 # default return code, video not modified
         modifications = []
@@ -360,94 +360,87 @@ class Conversion(object):
 
 class ConverterImage(object):
     """
-    Abstract class for a conversion task
+    Base class for a conversion task
     """
-    #  Abstract class allow to documet repeated methods in one place.
+
     def __init__(self, input_desc, im):
         self.forbid_preprocess = input_desc.get("forbid_preprocess", False)
         self.im = im
+
     def information_loss(self):
         """
-        Returns True when conversion may lose information
+        Checks if the conversion may lose information
         """
         raise NotImplementedError
+
     def can_convert(self):
         """
-        Returns True if conversion is allowed, according to DDL (forbid_preprocess) and information loss
+        Checks if the conversion is allowed
         """
         return not self.forbid_preprocess or not self.information_loss()
+
     def need_conversion(self):
         """
-        Returns True if conversion is needed
+        Checks if the conversion is needed
         """
         raise NotImplementedError
+
     def convert(self):
         """
-        Performs conversion on image data, returns label with the exact parameters when action is performed
+        Performs conversion on image data, returns label with the exact parameters if the action was performed
         """
         raise NotImplementedError
 
 class ConverterDepth(ConverterImage):
     """
-    Converts image depth by pixel (ex: '8i' for uint8 = int 8 bits)
+    Converts pixel depth (ex: '8i' for uint8 = int 8 bits)
     """
+
     def __init__(self, input_desc, im):
-        ConverterImage.__init__(self, input_desc, im)
+        super(ConverterDepth, self).__init__(input_desc, im)
         dtype = input_desc.get('dtype', None)
-        if not dtype:
-            self.dst_depth = None
-            return
         _, self.dst_depth = dtype.split('x')
+        self.dst_dtype = Image.get_dtype_by_depth(self.dst_depth)
+
     def information_loss(self):
-        if not self.dst_depth:
+        if not self.dst_dtype:
             return False
         info_level = {
-            '8i': 1, '8': 1, 'uint8': 1,
-            '16i': 2, '16': 2, 'uint16': 2,
-            '32i': 3, '32': 3, 'uint32': 4,
-            '16f': 4, 'float16': 4,
-            '32f': 5, 'float32': 5
+            np.dtype(np.uint8): 1,
+            np.dtype(np.uint16): 2,
+            np.dtype(np.uint32): 3,
+            np.dtype(np.float16): 4,
+            np.dtype(np.float32): 5
         }
-        dst_level = info_level.get(self.dst_depth)
-        if not dst_level:
-            return False
-        src_level = info_level.get(str(self.im.dtype()))
-        print "    ----- {}".format(str(self.im.dtype()))
-        if src_level <= dst_level:
-            return False
-        return True
+        return info_level.get(self.im.dtype()) > info_level.get(self.dst_dtype)
+
     def need_conversion(self):
-        if not self.dst_depth:
+        if not self.dst_dtype:
             return False
-        return not self.im.check_depth(self.dst_depth)
+        return self.dst_dtype != self.im.dtype()
+
     def convert(self):
         src_dtype = self.im.dtype()
         self.im.convert_depth(self.dst_depth)
-        return "depth {} => {}".format(src_dtype, self.im.dtype())
+        return "depth {} -> {}".format(src_dtype, self.im.dtype())
 
 class ConverterChannels(ConverterImage):
     """
     Converts number of channels of an image (ex: color to gray)
     """
-    channels = None
+
     def __init__(self, input_desc, im):
-        ConverterImage.__init__(self, input_desc, im)
+        super(ConverterChannels, self).__init__(input_desc, im)
         dtype = input_desc.get('dtype', None)
-        if not dtype:
-            self.dst_channels = -1
-            return
         self.dst_channels, _ = dtype.split('x')
         self.dst_channels = int(self.dst_channels)
+
     def information_loss(self):
-        if self.dst_channels < 1:
-            return False
         return self.im.get_channels() > self.dst_channels
+
     def need_conversion(self):
-        if self.dst_channels < 1:
-            return False
-        if self.im.check_channels(self.dst_channels):
-            return False
-        return True
+        return self.im.get_channels() != self.dst_channels
+
     def convert(self):
         src_channels = self.im.get_channels()
         self.im.convert_channels(self.dst_channels)
@@ -455,58 +448,61 @@ class ConverterChannels(ConverterImage):
 
 class ConverterCrop(ConverterImage):
     """
-    Crops an image according to a json specification.
+    Crops the image.
     """
+
     def __init__(self, input_desc, im, crop_info):
-        ConverterImage.__init__(self, input_desc, im)
-        if crop_info is None:
+        super(ConverterCrop, self).__init__(input_desc, im)
+        if not crop_info:
             self.x = -1
             return
         self.x = int(round(crop_info.get('x', -1)))
         self.y = int(round(crop_info.get('y', -1)))
         self.width = int(round(crop_info.get('width', -1)))
         self.height = int(round(crop_info.get('height', -1)))
+
     def information_loss(self):
-        if self.x < 0 or self.y < 0 or self.width <= 0 or self.height <= 0:
-            return False
-        if self.x + self.width > self.im.width() or self.y + self.height > self.im.height():
-            return False
-        return True
+        return (
+            self.x > 0 and self.y > 0 and self.width >= 0 and self.height >= 0
+            and self.x + self.width < self.im.width() and self.y + self.height < self.im.height()
+        )
+
     def need_conversion(self):
         return self.information_loss()
+
     def convert(self):
         self.im.crop(x=self.x, y=self.y, width=self.width, height=self.height)
         return "crop at [{}, {}]".format(self.x, self.y)
 
-class ConverterMaxpixels(ConverterImage):
+class ConverterMaxPixels(ConverterImage):
     """
-    Resizes image if bigger than max_pixels.
+    Resizes the image if it's larger than max_pixels.
     """
-    max_pixels = -1
+
     def __init__(self, input_desc, im):
-        ConverterImage.__init__(self, input_desc, im)
+        super(ConverterMaxPixels, self).__init__(input_desc, im)
         self.max_pixels = int(evaluate(input_desc.get('max_pixels', -1)))
+
     def information_loss(self):
-        if self.max_pixels <= 0:
-            return False
-        if (self.im.width() * self.im.height()) <= self.max_pixels:
-            return False
-        return True
+        return self.max_pixels > 0 and self.im.width() * self.im.height() > self.max_pixels
+
     def need_conversion(self):
         return self.information_loss()
-    def convert(self):
-        src_size = self.im.width() * self.im.height()
-        # the destination size should be an int rectangle, so it will not be equals to max_pixels
-        fxy = math.sqrt(float(self.max_pixels) / float(self.im.width() * self.im.height()))
-        self.im.resize(fx=fxy, fy=fxy)
-        return "resized {0:.2f}%".format(fxy * 100)
 
-class ConverterExtension(ConverterImage):
+    def convert(self):
+        scaling_factor = self.max_pixels / float(self.im.width() * self.im.height())
+        dst_width = np.floor(math.sqrt(scaling_factor) * self.im.width())
+        dst_height = np.floor(math.sqrt(scaling_factor) * self.im.height())
+        self.im.resize(width=dst_width, height=dst_height)
+        return "resized {0:.2f}%".format(scaling_factor * 100)
+
+class ConverterEncoding(ConverterImage):
     """
-    Change extension
+    Changes the image encoding on save.
     """
+
     def __init__(self, input_desc, src_file, dst_file):
-        ConverterImage.__init__(self, input_desc, None)
+        super(ConverterEncoding, self).__init__(input_desc, None)
         self.src_type, _ = mimetypes.guess_type(src_file)
         self.dst_type, _ = mimetypes.guess_type(dst_file)
 
@@ -514,11 +510,8 @@ class ConverterExtension(ConverterImage):
         return self.dst_type == 'image/jpeg'
 
     def need_conversion(self):
-        if self.src_type == self.dst_type:
-            return False
-        return True
+        return self.src_type != self.dst_type
+
     def convert(self):
-        # nothing to do here, will be done by saving image object
-        src_type = self.src_type.split('/')[1]
-        dst_type = self.dst_type.split('/')[1]
-        return "encoding: {} -> {}".format(src_type, dst_type)
+        # nothing to do here, will be done when saving the image
+        return "encoding: {} -> {}".format(self.src_type.split('/')[1], self.dst_type.split('/')[1])
