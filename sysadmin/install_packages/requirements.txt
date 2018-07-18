@@ -25,6 +25,10 @@ utm
 validoot
 weightedstats
 
+# For the DR venv
+scipy
+tensorflow
+joblib
 
 # Needed in one of our private projects on satellite imaging
 # The package libgeos-dev needs to be installed with apt-get first
@@ -34,5 +38,3 @@ planet
 rasterio
 shapely
 
-# Some workshops need tensorflow
-tensorflow
