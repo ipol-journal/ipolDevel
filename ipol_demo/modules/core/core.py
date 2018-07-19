@@ -1462,21 +1462,6 @@ attached the failed experiment data.". \
         return demorunner_response
 
     @cherrypy.expose
-    def get_experiment_from_archive(self, experiment_id):
-        """
-        Replay an experiment from archive.
-        """
-        try:
-            resp = self.post('api/archive/get_experiment', data={"experiment_id": experiment_id})
-            response = resp.json()
-        except Exception:
-            message = "Failed to obtain the experiment {}".format(experiment_id)
-            res_data = {'error': message, 'status': 'KO'}
-            return json.dumps(res_data)
-
-        return json.dumps(response)
-
-    @cherrypy.expose
     def run2(self, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to execute a demo.

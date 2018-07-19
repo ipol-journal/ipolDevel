@@ -31,7 +31,7 @@ window.onpopstate = function() {
   $("#inputEditorContainer").empty();
 
   if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
-  else if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
+  else if (getArchiveExperimentId()) loadExecution("/api/archive/get_experiment?experiment_id=" + getArchiveExperimentId());
   else {
     $('.results').addClass('di-none');
     $('.results-container').empty();
