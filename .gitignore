@@ -4,6 +4,9 @@ gi_*
 # compiled Python code
 *.pyc
 
+# python virtualenv folder of each module
+venv/
+
 # Archive data
 ipol_demo/modules/archive/blobs/*
 ipol_demo/modules/archive/blobs_thumbs/*
