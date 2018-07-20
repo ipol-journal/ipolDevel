@@ -8,6 +8,7 @@ import urllib2
 import time
 import tarfile
 import zipfile
+import shlex
 from subprocess import Popen
 import cherrypy
 
@@ -161,7 +162,7 @@ def run(command, stdout, cwd=None, env=None):
     # TODO : fix'n'clean
     logfile.close()
     logfile = open(stdout, 'a')
-    process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
+    process = Popen(shlex.split(command), stdout=logfile, stderr=logfile,
                     cwd=cwd, env=env)
     process.wait()
     logfile.close()

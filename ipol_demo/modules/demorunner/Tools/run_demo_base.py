@@ -5,6 +5,7 @@ import subprocess
 import time
 import psutil
 import re
+import shlex
 import math
 # importing image for python commands in DDL scripts
 import signal
@@ -172,7 +173,8 @@ class RunDemoBase:
         newenv.update({'PATH': path, 'LD_LIBRARY_PATH': self.bin_dir})
 
         # run
-        return Popen(args, stdin=stdin, stdout=stdout, stderr=stderr,
+        cmd = shlex.split(" ".join(args))
+        return Popen(cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                      env=newenv, cwd=self.work_dir)
 
     # -----------------------------------------------------------------------------

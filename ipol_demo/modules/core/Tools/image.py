@@ -16,6 +16,7 @@ from   timeit   import default_timer as timer
 
 
 import subprocess
+import shlex
 
 def _deinterlace_png(path):
     """
@@ -77,7 +78,8 @@ def _optimize_png(fname):
                + " && mv -f %(tmpfile)s %(infile)s") \
                % {'infile': os.path.basename(fname),
                   'tmpfile': os.path.basename(fname) + ".tmp"}
-    p = subprocess.Popen(cmdline, shell=True,
+    cmdline = shlex.split(cmdline)
+    p = subprocess.Popen(cmdline,
                          cwd=os.path.dirname(fname),
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return p

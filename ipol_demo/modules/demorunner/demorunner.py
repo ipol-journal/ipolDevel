@@ -11,6 +11,7 @@ import os
 import urllib2
 import json
 import shutil
+import shlex
 import time
 import subprocess
 import errno
@@ -253,13 +254,13 @@ class DemoRunner(object):
         data = {}
         data["status"] = "OK"
         # Command to obtain the workload for a specific user
-        cmd = "ps -eo %U,%C| grep ipol | cut -d \",\" -f2"
+        cmd = 'ps -eo %U,%C| grep ipol | cut -d "," -f2'
         try:
             # Get the workload
-            processes, _ = subprocess.Popen(cmd + " &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
+            processes, _ = subprocess.Popen(cmd, shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE).communicate()
             # Get the number of cores
-            nproc, _ = subprocess.Popen("nproc &", shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
+            nproc, _ = subprocess.Popen("nproc", shell=True, executable="/bin/bash", stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE).communicate()
             total = 0.0
             # Get the total workload

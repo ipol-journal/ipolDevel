@@ -5,6 +5,7 @@ import time
 import random
 from subprocess import Popen, PIPE
 import os
+import shlex
 
 user = getpass.getuser()
 
@@ -59,7 +60,8 @@ def run_tests():
         if module_name == '': module_name = 'System'
 
         # Execute test
-        process = Popen(['python', test, resources, demorunners, shared_folder], stdout=PIPE, stderr=PIPE)
+        cmd = shlex.split(" ".join(['python', test, resources, demorunners, shared_folder]))
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
