@@ -66,7 +66,7 @@ ul.nav-pills li.name_user {
 }
 
 .container_login p label {
-    display : none;
+    display: none;
 }
 
 .container {
@@ -74,12 +74,12 @@ ul.nav-pills li.name_user {
     margin-left: auto;
     max-width: 300px;
     padding-bottom: 15px;
-    margin-left : 50px;
-    display : inline-block;
+    margin-left: 50px;
+    display: inline-block;
 }
 
 .container #action {
-    display : none;
+    display: none;
 }
 
 .Demo {
@@ -174,7 +174,7 @@ input[type="checkbox"] {
     right: 0;
     left: 0;
     bottom: 0;
-    padding : 0px 10px 0px 0px;
+    padding: 0px 10px 0px 0px;
 }
 
 .navbar_brand {
@@ -210,17 +210,16 @@ input[type="checkbox"] {
 
 .nav-logout {
     font-size: 25px;
-    padding : 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
     position: absolute;
-    border : 2px solid lightslategray;
+    border: 2px solid lightslategray;
     border-radius: 4px;
     bottom: 12px;
 }
 
 .nav-logout .fa-sign-out-alt {
-    color : black;
+    color: black;
 }
-
 
 .nav-footer a {
     text-decoration: none;
@@ -266,8 +265,8 @@ article a {
 
 #content article a {
     text-decoration: None;
-    list-style-type:None;
-    color : blue;
+    list-style-type: None;
+    color: blue;
 }
 
 #content a {
@@ -275,9 +274,9 @@ article a {
 }
 
 #content a li {
-    display : inline-block;
-    margin : 5px 5% 10px 15px;
-    color :#3479b7;
+    display: inline-block;
+    margin: 5px 5% 10px 15px;
+    color: #3479b7;
 }
 
 #content ul {
@@ -286,8 +285,8 @@ article a {
 }
 
 .identity {
-    border : 3px solid #9a9a9a;
-    padding : 10px 10px 15px 10px;
+    border: 3px solid #9a9a9a;
+    padding: 10px 10px 15px 10px;
     height: 10px;
     max-width: 20%;
     text-align: center;
@@ -298,7 +297,7 @@ article a {
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
-    background-color:#9a9a9a;
+    background-color: #9a9a9a;
     border-radius: 15px;
 }
 
@@ -307,16 +306,17 @@ article a {
 }
 
 .listOfDemo {
-    display : block;
-    border : 3px solid lightgrey;
-    padding : 0px 0px 0px 10px;
+    display: block;
+    border: 3px solid lightgrey;
+    padding: 0px 0px 0px 10px;
     max-width: 85%;
     border-radius: 10px;
     /* margin-top: 5px;
     margin-bottom: 5px; */
-    margin : auto;
-
+    margin: auto;
 }
+
+
 /*
 
 article li {
@@ -329,6 +329,7 @@ article ul {
     position : center;
 }
 */
+
 #content {
     margin: 0 0 7em 0;
 }
@@ -359,19 +360,19 @@ h1 {
 
 h4 {
     color: green;
-    margin : 0px;
+    margin: 0px;
 }
 
 h3 {
-    color : red;
+    color: red;
 }
 
 .module {
     border: 2px solid lightgray;
     margin: 10px 50% 10px 10px;
-    padding : 10px 10px 10px 30px;
+    padding: 10px 10px 10px 30px;
     border-radius: 4px;
-    font-size : 17px;
+    font-size: 17px;
 }
 
 .addDemos #modal {
@@ -379,27 +380,27 @@ h3 {
 }
 
 .addDemos #modal a {
-    border : 4px solid lightskyblue;
-    padding : 5px 5px 5px 5px;
+    border: 4px solid lightskyblue;
+    padding: 5px 5px 5px 5px;
     background-color: inherit, transparent;
     background-color: inherit;
     border-radius: 4px;
-    color : black;
-    height : 25%;
+    color: black;
+    height: 25%;
     width: 25%;
     font-size: 20px;
 }
 
-
 .pagination {
-    display : inline-flex;
+    display: inline-flex;
     margin-left: 15%;
     height: 15%;
     width: 15%;
 }
 
-.pagination p,i {
-    color : #d9dfea;
+.pagination p,
+i {
+    color: #d9dfea;
 }
 
 .Demo .addDemos {
@@ -424,16 +425,15 @@ h3 {
     text-decoration: none;
     color: #fff;
     padding: 5px 5px 5px 5px;
-
 }
 
 .pageCount {
     font-size: 20px;
     width: 20px;
     height: 20px;
-    padding : auto;
+    padding: auto;
     text-align: center;
-    margin : auto;
+    margin: auto;
 }
 
 #pageMax {
@@ -456,7 +456,6 @@ h3 {
     background-color: lightblue;
     height: 55%;
     padding-left: 2%; */
-
     background-color: #444B6E;
     padding: 5px 10px;
     border-radius: 5px 0 0 5px;
@@ -465,7 +464,6 @@ h3 {
     margin-top: 15px;
     width: 30%;
 }
-
 
 .pagination #next_page {
     /* margin: 10px 0px 10px 2.5px;
@@ -484,9 +482,8 @@ h3 {
     width: 30%;
 }
 
-
 #SelectDemoState {
-    border : 2px solid lightblue;
+    border: 2px solid lightblue;
     background-color: lightblue;
     border-radius: 2px;
     width: 20%;
@@ -494,19 +491,21 @@ h3 {
 }
 
 #addDemo {
-    margin-top : 15%;
+    margin-top: 15%;
     text-align: center;
 }
+
 #DemoForm p {
-    margin : 20px 10px 15px 10px;
+    margin: 20px 10px 15px 10px;
 }
+
 #id_DemoId {
     margin: 10px 10px 10px 10px;
 }
 
 input#id_DemoId {
     padding-left: 50px;
-    border : 2px solid black;
+    border: 2px solid black;
     padding-right: 25px;
 }
 
@@ -514,11 +513,10 @@ input#id_DemoId {
     margin-left: 10px;
 }
 
-
 input#id_Title {
     width: 45%;
-    border : 2px solid black;
-    padding : 10px 10px 10px 10px;
+    border: 2px solid black;
+    padding: 10px 10px 10px 10px;
 }
 
 #DemoForm p {
@@ -530,7 +528,7 @@ input#id_Title {
     background-color: #337ab7;
     border-color: #2e6da4;
     display: inline-block;
-    padding : 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
     text-align: center;
     border-radius: 4px;
     margin-left: 20%;
@@ -541,137 +539,137 @@ input#id_Title {
     background-color: #337ab7;
     border-color: #2e6da4;
     display: inline-block;
-    padding : 5px 5px 5px 5px;
+    padding: 5px 5px 5px 5px;
     text-align: center;
     border-radius: 4px;
 }
 
 #fond {
-    position:absolute;
-    z-index:9000;
-    background-color:#000;
-    display:none;
+    position: absolute;
+    z-index: 9000;
+    background-color: #000;
+    display: none;
     border-radius: 10px;
- }
- 
- .addDemos #modal .close {
-     margin-left: 50px;
-     font-size: 12px;
-     border-radius: 4px;
-     padding : 4px 5px 4px 5px;
- }
+}
 
- .popup {
-    position:fixed;
-    width:300px;
-    height:200px;
-    display:none;
-    z-index:9999;
-    padding:20px;
+.addDemos #modal .close {
+    margin-left: 50px;
+    font-size: 12px;
+    border-radius: 4px;
+    padding: 4px 5px 4px 5px;
+}
+
+.popup {
+    position: fixed;
+    width: 300px;
+    height: 200px;
+    display: none;
+    z-index: 9999;
+    padding: 20px;
     border-radius: 10px;
     background-color: white;
     border: 1px solid grey;
- }
+}
 
- .addDemos .popup {
-     height :250px;
-     width: 500px;
- }
+.addDemos .popup {
+    height: 250px;
+    width: 500px;
+}
 
-
- 
- #modal {
+#modal {
     widows: 300px;
-    height:150px;
- }
+    height: 150px;
+}
 
- #show {
+#show {
     border-radius: 4px;
     background-color: #337ab7;
     border-color: #2e6da4;
     text-decoration: none;
-    color : #fff;
-    padding : 5px 5px 5px 5px;
+    color: #fff;
+    padding: 5px 5px 5px 5px;
     margin-left: 15px;
- }
+}
 
- #Templates article {
-     margin-top : 30px;
-     margin-right: 50%;
-     border : 2px solid lightgray;
-     font-size: 20px;
- }
+#Templates article {
+    margin-top: 30px;
+    margin-right: 50%;
+    border: 2px solid lightgray;
+    font-size: 20px;
+}
 
- #Templates h1 {
-     margin-bottom: 50px;
- }
+#Templates h1 {
+    margin-bottom: 50px;
+}
 
- #modal #titleAddTemplate {
-     font-size: 25px;
-     text-align: center;
-     margin-left: 15%;
-     color : #337ab7;
-     font-weight: bolder;
- }
+#modal #titleAddTemplate {
+    font-size: 25px;
+    text-align: center;
+    margin-left: 15%;
+    color: #337ab7;
+    font-weight: bolder;
+}
 
- #modal #labelAddTemplate {
-     margin-top : 30px;
-     color : #337ab7;
-     margin-right: 15px;
-     margin-bottom: 35px;
- }
+#modal #labelAddTemplate {
+    margin-top: 30px;
+    color: #337ab7;
+    margin-right: 15px;
+    margin-bottom: 35px;
+}
 
- #modal #Template_name {
-     border-radius: 2px;
-     width: 50%;
-     border : solid 2px lightblue;
- }
+#modal #Template_name {
+    border-radius: 2px;
+    width: 50%;
+    border: solid 2px lightblue;
+}
 
- #modal .close {
-     margin-left: 30%;
-     margin-right: 15%;
-     text-decoration: none;
-     border-radius: 4px;
-     background-color: #337ab7;
-     border-color: #2e6da4;
-     color : #fff;
-     font-size: 16px;
- }
-
- #modal #saveTemplate {
+#modal .close {
+    margin-left: 30%;
+    margin-right: 15%;
+    text-decoration: none;
     border-radius: 4px;
     background-color: #337ab7;
     border-color: #2e6da4;
-    color : #fff;
+    color: #fff;
     font-size: 16px;
- }
+}
 
- div#headerShowDemo {
-     display : inline;
-     position : flex;
- }
+#modal #saveTemplate {
+    border-radius: 4px;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    color: #fff;
+    font-size: 16px;
+}
 
- .optionLine {
-     display : inline-flex;
- }
+div#headerShowDemo {
+    display: inline;
+    position: flex;
+}
 
- #aceEditor {
-     z-index: 0;
- }
+.optionLine {
+    display: inline-flex;
+}
 
- div.block {
-     margin-left: 50px;
-     margin-top : 25px;
-     margin-right: 10px;
-     display : flex;
-     flex-direction: row;
-     flex-wrap: wrap;
-     justify-content: flex-start;
-     border : 3px double black;
-     padding : 25px 0px 0px 2%;
-     max-width: 85%;
- }
- /*div.image_files {
+#aceEditor {
+    z-index: 0;
+}
+
+div.block {
+    margin-left: 50px;
+    margin-top: 25px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    border: 3px double black;
+    padding: 25px 0px 0px 2%;
+    max-width: 85%;
+}
+
+
+/*div.image_files {
      border : 3px double black;
      padding : 10px 2% 0px 2%;
      max-width: 20%;
@@ -684,26 +682,25 @@ input#id_Title {
 
  }*/
 
- h2 {
-     clear : left;
- }
+h2 {
+    clear: left;
+}
 
- #myContainer {
-     display : flex;
-     flex-wrap: wrap;
-     overflow: auto;
- }
+#myContainer {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: auto;
+}
 
 .buttonDelete {
     margin-bottom: 20px;
 }
 
-
 #TemplatesDetails h2 {
     margin-left: 25px;
     font-size: 30px;
     font-weight: normal;
-    margin-top :50px;
+    margin-top: 50px;
 }
 
 #TemplatesDetails #addBlob {
@@ -752,23 +749,23 @@ input#id_Title {
 }
 
 .demoUsingTemplate a {
-    color :#2e6da4;
-    padding : 10px 10px 10px 10px;
-    margin : 10px 10px 10px 10px;
+    color: #2e6da4;
+    padding: 10px 10px 10px 10px;
+    margin: 10px 10px 10px 10px;
     font-size: 25px;
 }
 
 .demoUsingTemplate {
     border: 2px solid #2e6da4;
-    padding : 10px 10px 10px 10px;
-    margin : 25px 25px 25px 50px;
+    padding: 10px 10px 10px 10px;
+    margin: 25px 25px 25px 50px;
     max-width: 50%;
 }
 
 #blobCreation {
-    border : 2px solid lightslategray;
-    padding : 50px 0px 50px 40px;
-    margin : 30px 30% 30px 10%;
+    border: 2px solid lightslategray;
+    padding: 50px 0px 50px 40px;
+    margin: 30px 30% 30px 10%;
 }
 
 #createBlobForm input {
@@ -780,7 +777,7 @@ input#id_Title {
     border: 2px solid #ccc;
     border-radius: 4px;
     width: 40%;
-    margin : 0px 0px 5px 0px;
+    margin: 0px 0px 5px 0px;
     text-align: center;
 }
 
@@ -800,6 +797,17 @@ input#id_Title {
     padding: 10px 10px 10px 10px;
 }
 
+#addBlob {
+    border-radius: 4px;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    text-decoration: none;
+    color: #fff;
+    padding: 5px 5px 5px 5px;
+    margin-left: 50px;
+    margin-right: 25px;
+}
+
 #blobCreation #thumbnail {
     max-width: 350px;
     max-height: 350px;
@@ -812,7 +820,7 @@ input#id_Title {
 }
 
 #createBlob h2 {
-    margin : 50px 50px 0px 50px;
+    margin: 50px 50px 0px 50px;
 }
 
 #nameOfTemplate {
@@ -868,7 +876,7 @@ input#id_Title {
 
 #setName {
     margin-left: 10%;
-    margin-top : 30px;
+    margin-top: 30px;
     font-size: 30px;
 }
 
@@ -885,11 +893,11 @@ input#id_Title {
 }
 
 #save_ddl_container {
-    display : inline-flex;
+    display: inline-flex;
 }
 
 #blobRepresentation {
-    display : inline-flex;
+    display: inline-flex;
     width: 100%;
     text-decoration: underline;
     margin-bottom: 20px;
@@ -909,12 +917,12 @@ input#id_Title {
 }
 
 #removeFile {
-    padding : 8px 8px 8px 8px;
-    background-color:lightcoral;
+    padding: 8px 8px 8px 8px;
+    background-color: lightcoral;
     border-color: red;
     border-radius: 2px;
     text-decoration: none;
-    color: black; 
+    color: black;
 }
 
 #removeVr {
@@ -926,9 +934,7 @@ input#id_Title {
     padding: 5px 5px 5px 5px;
     font-size: 14px;
     margin-top: 20px;
-    
 }
-
 
 
 /* a:hover {

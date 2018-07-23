@@ -1,47 +1,46 @@
 {% extends "base.html" %} {% block title %}createBlob{% endblock %} {% block bodyid %}createBlob{% endblock %} {% block header %}
-<h2>Add Blob to Template : <span id="nameOfTemplate"></span></h2>
+<h2>Add Blob to : <span id="nameOfTemplate"></span></h2>
 {% endblock %} {% block content %}
 <div id="blobCreation">
     <div id="blobRepresentation">
-    <div id="blobThumbnail">
-        <p>Blob</p>
-        <img id="thumbnail" title ="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+        <div id="blobThumbnail">
+            <p>Blob</p>
+            <img id="thumbnail" title="Blob" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+        </div>
+        <div id="vrThumbnail">
+            <p>Visual representation</p>
+            <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
+        </div>
     </div>
-    <div id="vrThumbnail">
-        <p>Visual representation</p>
-        <img id="thumbnail_vr" title="Visual Representation" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onError=setBrokenImage(this)>
-    </div>
-    </div>
-<form id="createBlobForm">
-    {% csrf_token %}
-    <p>
-        <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()"/>
-        <i class="fas fa-times" onclick="removeBlob()"></i>
-    </p>
-    <p>
-        <label>Title</label><input type="text" id="Title">
-    </p>
-    <p>
-        <label>SET</label><input type="text" id="SET">
-    </p>
-    <p>
-        <label>Position in set</label><input type="text" id="PositionSet">
-    </p>
-    <p>
-        <label>Credit</label><input type="text" id="Credit">
-    </p>
-    <p>
-        <label>Tags</label><input type="text" id="Tags">
-    </p>
-    <p>
-        <label>Visual Representation</label><input type = "file" accept="image/*" id="VR" onchange="vrUploaded()">
-        <i class="fas fa-times" onclick="removeVr()"></i>
-    </p>
-<button id="ButtonAddBlob">SAVE</button>
-</form>
+    <form id="createBlobForm">
+        {% csrf_token %}
+        <p>
+            <label>Blob</label><input type="file" id="Blob" onchange="blobUploaded()" />
+            <i class="fas fa-times" onclick="removeBlob()"></i>
+        </p>
+        <p>
+            <label>Title</label><input type="text" id="Title">
+        </p>
+        <p>
+            <label>SET</label><input type="text" id="SET">
+        </p>
+        <p>
+            <label>Position in set</label><input type="text" id="PositionSet">
+        </p>
+        <p>
+            <label>Credit</label><input type="text" id="Credit">
+        </p>
+        <p>
+            <label>Tags</label><input type="text" id="Tags">
+        </p>
+        <p>
+            <label>Visual Representation</label><input type="file" accept="image/*" id="VR" onchange="vrUploaded()">
+            <i class="fas fa-times" onclick="removeVr()"></i>
+        </p>
+        <button id="ButtonAddBlob">SAVE</button>
+    </form>
 </div>
-<a id="goPreviousPage" href="">Go Previous Page</a>
-{% endblock %} {% block footer %}
+<a id="goPreviousPage" href="">Go Previous Page</a> {% endblock %} {% block footer %}
 <nav id="footer" class="navbar_default">
     <a class="navbar_brand" href="/cp2">
         <img src="/cp2/static/images/IPOL-header-logo.png"></a>

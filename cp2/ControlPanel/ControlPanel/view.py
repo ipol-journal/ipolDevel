@@ -50,17 +50,10 @@ def ajax_add_demo(request):
     title = request.POST['Title']
     demoid = request.POST['DemoId']
     response = {}
-    #i need to check the HOST_NAME in order to know if we are in production, integration, localhost instead of the "127.0.0.1"
-    #in setting.py with the sentence "htttp://{HOST_NAME}/api/demoinfo/add_demo" like in the old CP
-    #other pb with the socket and Gunicorn : "Ignoring EPIPE"
-    #when i use requests do .json() to have a json 
     
     settings = {'state': state, 'title': title, 'editorsdemoid': demoid}
     response_api = api_post("/api/demoinfo/add_demo", settings)
-    print(response_api)
-    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
-    print(result)
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         response['message'] = result.get('error')
@@ -80,9 +73,6 @@ def ajax_add_template(request):
     response = {}
     settings = {'template_name' : NameTemplate }
     response_api = api_post("/api/blobs/create_template", settings)
-    #response_api = requests.post("/api/blobs/create_template", params = settings)
-    print(response_api)
-    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
     if result.get('status') != 'OK':
         response['status'] = 'KO'
@@ -96,7 +86,7 @@ def showTemplates(request):
 
 @login_required(login_url = '/cp2/loginPage')
 @csrf_protect
-def ajax_delete_blob(request):
+def ajax_delete_blob_template(request):
     template_name = request.POST['template_name']
     pos_set = request.POST['pos_set']
     blob_set = request.POST['blob_set']
@@ -137,11 +127,7 @@ def ajax_delete_template(request):
     response = {}
     settings = {'template_name' : template_name }
     response_api = api_post("/api/blobs/delete_template", settings)
-    print(response_api)
-    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
-    print(result)
-
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
@@ -155,7 +141,34 @@ def CreateBlob(request):
     return render(request, 'createBlob.html')
 
 @login_required(login_url = '/cp2/loginPage')
-def ajax_add_blob(request):
+def ajax_add_blob_demo(request):
+    tags = request.POST['Tags']
+    blob_set = request.POST['SET']
+    pos_set = request.POST['PositionSet']
+    title = request.POST['Title']
+    credit = request.POST['Credit']
+    demo_id = request.POST['demo_id']
+    files = {'blob': request.FILES['Blobs'].file}
+    if 'VR' in request.FILES:
+        files['blob_vr'] = request.FILES['VR'].file
+
+    response = {}
+    if user_can_edit_demo(request.user.email, demo_id):
+        settings = {'demo_id' : demo_id, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
+        response_api = api_post("/api/blobs/add_blob_to_demo",settings , files)
+        result = response_api.json()
+        if result.get('status') != 'OK':
+            response['status'] = 'KO'
+            return HttpResponse(json.dumps(response), 'application/json')
+        else :
+            response['status'] = 'OK'
+            return HttpResponse(json.dumps(response), 'application/json')
+    else : 
+        return render(request, 'Homepage.html')
+
+
+@login_required(login_url = '/cp2/loginPage')
+def ajax_add_blob_template(request):
     tags = request.POST['Tags']
     blob_set = request.POST['SET']
     pos_set = request.POST['PositionSet']
@@ -169,17 +182,14 @@ def ajax_add_blob(request):
     response = {}
     settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'pos_set' : pos_set, 'title' : title, 'credit' : credit}
     response_api = api_post("/api/blobs/add_blob_to_template",settings , files)
-    #print(response_api)
-    #print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
-    #print(result)
     if result.get('status') != 'OK':
         response['status'] = 'KO'
         return HttpResponse(json.dumps(response), 'application/json')
     else :
         response['status'] = 'OK'
         return HttpResponse(json.dumps(response), 'application/json')
-
+    
 @login_required(login_url= '/cp2/loginPage')
 def detailsBlob(request):
     return render(request, 'detailsBlob.html')
@@ -202,11 +212,7 @@ def ajax_edit_blob_template(request):
     response = {}
     settings = {'template_name' : template_name, 'tags' : tags, 'blob_set' : blob_set, 'new_blob_set' : new_blob_set, 'pos_set' : pos_set, 'new_pos_set' : new_pos_set, 'title' : title, 'credit' : credit}
     response_api = api_post("/api/blobs/edit_blob_from_template",settings ,files )
-    print(response_api)
-    print(type(response_api))
-    print("************" + response_api.content.decode("utf-8"))
     result = response_api.json()
-    print(result)
     if result.get('status') != 'OK':
         response['status'] =  'KO'
         return HttpResponse(json.dumps(response), 'application/json')
@@ -338,7 +344,3 @@ def ajax_edit_blob_demo(request):
     else :
         print("KO")
         return render(request, 'Homepage.html')
-
-
-
-#Ajax request for add blob to a demo dans demo=>Blobs
