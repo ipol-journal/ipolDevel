@@ -8,7 +8,6 @@ import urllib2
 import time
 import tarfile
 import zipfile
-import shlex
 from subprocess import Popen
 import cherrypy
 
@@ -156,16 +155,13 @@ def run(command, stdout, cwd=None, env=None):
         env = environ
 
     # open the log file and write the command
-    logfile = open(stdout, 'w')
-    logfile.write("%s : %s\n" % (time.strftime(TIME_FMT),
+    with open(stdout, 'w') as logfile:
+        logfile.write("%s : %s\n" % (time.strftime(TIME_FMT),
                                  command))
-    # TODO : fix'n'clean
-    logfile.close()
-    logfile = open(stdout, 'a')
-    process = Popen(shlex.split(command), stdout=logfile, stderr=logfile,
+    with open(stdout, 'a') as logfile:
+        process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
                     cwd=cwd, env=env)
     process.wait()
-    logfile.close()
     if 0 != process.returncode:
         raise IPOLCompilationError
     return process.returncode

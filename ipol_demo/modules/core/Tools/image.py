@@ -42,48 +42,6 @@ def _deinterlace_png(path):
     print "_deinterlace_png {0} took {1} sec".format(path,timer()-start)
     return
 
-# This function is kept here for information but not used; we prefer
-# to run the optimizations on all the files (thumbnails and full-size)
-# via cron
-def _optimize_png(fname):
-    """
-    Try to compress a png image with optipng.
-
-    The returned compress can be ignored to let the optimization run
-    in background. If optipng is not on the system, this will fail
-    without touching the file and will not disturb the program
-    execution.
-    """
-
-    # We use a temporary outfile because optipng (version 0.6.5) is
-    # not atomic. UNIX mv is atomic, so this file strategy ensures we
-    # always have a valid file.
-    # This implies a shell and "&&" because we don't want to wait for
-    # the end of the process. If optipng is not on the machine, the
-    # shell fails but sends no exception.
-    #
-    # With an atomic optipng (feature request sent 2011-02-25), we
-    # could do:
-    # try:
-    #     p = subprocess.Popen(["optipng", "-q", "-o2",
-    #                           os.path.basename(fname)],
-    #                          cwd=os.path.dirname(fname),
-    #                          stdout=subprocess.PIPE,
-    #                          stderr=subprocess.STDOUT)
-    # except OSError:
-    #     p = None
-    # return p
-
-    cmdline = ("optipng -o 2 -out %(tmpfile)s %(infile)s"
-               + " && mv -f %(tmpfile)s %(infile)s") \
-               % {'infile': os.path.basename(fname),
-                  'tmpfile': os.path.basename(fname) + ".tmp"}
-    cmdline = shlex.split(cmdline)
-    p = subprocess.Popen(cmdline,
-                         cwd=os.path.dirname(fname),
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    return p
-
 def thumbnail(fname, size=(128, 128), ext=".png"):
     """
     image thumbnailing function

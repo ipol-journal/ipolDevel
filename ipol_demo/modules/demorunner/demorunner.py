@@ -489,6 +489,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. I/O error. {}".format(str(ex))
+        except OSError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed. OS error: {}".format(str(ex))
         except ValueError as ex:
             data = {}
             data['status'] = 'KO'

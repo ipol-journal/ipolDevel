@@ -240,7 +240,8 @@ class IntegrationTests(unittest.TestCase):
                     'origin': 'blobSet',
                     'params': {},
                     'crop_info': {'x': 20, 'y': 9.199999999999996,'width': width, 'height': height, 'rotate': 0, 'scaleX': 1, 'scaleY': 1},
-                    'blobs': {'id_blobs': [blob_id]}                  }
+                    'blobs': {'id_blobs': [blob_id]}                  
+                }
         response = self.post('core', 'run2', data={"clientData": json.dumps(params)})
         return response.json()
 

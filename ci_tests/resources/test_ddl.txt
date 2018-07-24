@@ -69,7 +69,7 @@
         "build1": {
             "url": "http://www.ipol.im/pub/art/2012/gjmr-lsd/lsd_1.6.zip",
             "move": "lsd_1.6/lsd",
-            "construct": "make  -C lsd_1.6"
+            "construct": "make -C lsd_1.6 && make -C lsd_1.6"
         }
     },
     "archive": {
