@@ -22,7 +22,7 @@ The Javascript application is made of the following modules:
 Each of them is described in the following sections.
 
 \subsection{Inputs}
-This module manages the list of blobs used as examples in the demo and renders them on the web page. This module is the first which is loaded and it communicates with the DemoInfo and Blobs modules, see Fig. \ref{fig:server_interaction}. Note that neither the web interface nor any of the modules in the IPOL's architecture of microservices needs to know of the existance of any module. Instead, a generic API providing services is used, without the need to reach a particular endpoint. The details of the backend architecture are hidden to both the interface and other modules.
+This module manages the list of blobs used as examples in the demo and renders them on the web page. This module is the first which is loaded and it communicates with the DemoInfo and Blobs modules, see Fig. \ref{fig:server_interaction}. Note that neither the web interface nor any of the modules in the IPOL's architecture of microservices need to know of the existence of any module. Instead, a generic API providing services are used, without the need to reach a particular endpoint. The details of the back-end architecture are hidden to both the interface and other modules.
 
 This Inputs module allows the user to choose one or many blobs in the demo. These blobs can be for example images, videos, or audio files. It displays a line of blobs or sets of blobs to choose from.
 
@@ -30,7 +30,7 @@ This Inputs module allows the user to choose one or many blobs in the demo. Thes
 \subsection{Upload}
 If the users want to use their own blobs for the demo this module lets you upload them. Every demo has predefined 
 upload slots each with their own characteristics like maximum file size and maximum image size. The user is able to upload the 
-minimum required number of uploads. This module listen for events in every upload slot and get the file information in order to 
+minimum required number of uploads. This module listens for events in every upload slot and gets the file information in order to 
 upload them when the run button is pressed.
 
 
@@ -67,7 +67,7 @@ All of these result types are defined in the DDL documentation.
 
 
 \subsection{Helpers}
-This module acts as an interface for common utility methods like read and write to sessionStorage, make HTTP requests and 
+This module acts as an interface for common utility methods like reading and writing to sessionStorage, make HTTP requests and 
 read the origin of the chosen blobs for the demo, this could be blobset, meaning blobs are chosen from the ones offered by the 
 demo, and upload, meaning the user has uploaded his own blobs.
 
@@ -82,10 +82,10 @@ demo, and upload, meaning the user has uploaded his own blobs.
 
 \section{Flow diagram}
 When the application is loaded, the input module will locate the demo according to its ID. This ID is a get parameter from the URL.
-Once the demo has this ID parameter, the main file, demo.js will load the different html files into the DOM. They have been divided 
+Once the demo has this ID parameter, the main file, demo.js will load the different HTML files into the DOM. They have been divided 
 into several files to improve maintainability and coupling.
 
-After this process is done, the app will continue rendering the main section to the DOM, containing in this case the blobs viewer and 
+After this process is done, the app will continue rendering the main section to the DOM, containing, in this case, the blobs viewer and 
 the blob upload dialog. The information regarding the DDL and the blobs specification will be saved in sessionStorage once it has been retrieved by the asynchronous calls for easy access.
 
 \begin{figure}[h]
@@ -124,7 +124,7 @@ mode there is a checkbox in the lower part of the upload dialog.
 \subsection{External modules}
 
 The IPOL demo Web interface uses external libraries for extra functionalities.
-Currently it uses:
+Currently, it uses:
 
 \begin{itemize}
 \item Cropper.js: Cropper.js it is a simple image cropping JQuery plugin. It is used in the editor panel with the image blobs.
@@ -139,7 +139,7 @@ The current version uses asynchronous calls for:
 \begin{itemize}
 \item Get the demo DDL: Used to show the inputs description and the upload modal in the Inputs panel, also uses this information to show the parameters.
 \item Get blobs: Used to show the blobs in the inputs panel.
-\item Run demo: It will send all parameters needed to run the demo enclosed in the runData variable and will respond with either the results of 
+\item Run demo: It will send all the parameters needed to run the demo enclosed in the runData variable and will respond with either the results of 
 the demo or an error response.
 \end{itemize}
 
@@ -147,22 +147,22 @@ the demo or an error response.
 
 \subsection{Data types}
 The IPOL platform supports images, audio and video files to use in demos. The new web interface 
-allows to choose a set with any combination of images, audio and video. Depending on the data types and sets length options will vary. 
+allows choosing a set with any combination of images, audio and video. Depending on the data types and sets length options will vary. 
 If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
-one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inprinting editing.
+one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inpainting editing.
 
 \section{Implementation of Features}
 This section describes how particular features on the web interface are implemented.
 
 %
 \subsection{Execution recovery}
-It is common that a researcher get an interesting result after executing a demo with some particular input and parameters and want to share with a colleague. The first intuition is to simple copy the URL shown in the browser and ask the other persons to paste it in their browsers, to get the same page. Note that this is different from browsing the archive or to recover an archived experiment.
+It is common that a researcher gets an interesting result after executing a demo with some particular input and parameters and want to share with a colleague. The first intuition is to simply copy the URL shown in the browser and ask the other persons to paste it in their own browser, to get the same page. Note that this is different from browsing the archive or to recover an archived experiment.
 
-The IPOL webpage is AJAX dynamic and therefore this need that the web interface and the backend do dome extra work. The idea is to save the \emph{state} of the page after the execution, including the origin of the blobs used (uploaded original content or examples from the demo), the crop, parameters, and the results displayed. In general, any data needed to recover the same page state.
+The IPOL webpage is AJAX dynamic and therefore this need that the web interface and the back-end do some extra work. The idea is to save the \emph{state} of the page after the execution, including the origin of the blobs used (uploaded original content or examples from the demo), the crop, parameters, and the results displayed. In general, any data needed to recover the same page state.
 
-After the execution of the demo the Core module saves the run request and the corresponding response into a {\tt execution.json} text file after the web interface requests the {\tt save\_execution} service. This file is saved at the temporal execution folder.
+After the execution of the demo, the Core module saves the run request and the corresponding response into a {\tt execution.json} text file after the web interface requests the {\tt save\_execution} service. This file is saved at the temporal execution folder.
 %
-When the web interface needs to recover the state of the page it invokes the {\tt load\_execution} service of the Core along with the demo ID and the execution key. The Core reads the text file and sends back to the web interface all the information needed to put the demo page in the apropriate state.
+When the web interface needs to recover the state of the page it invokes the {\tt load\_execution} service of the Core along with the demo ID and the execution key. The Core reads the text file and sends back to the web interface all the information needed to put the demo page in the appropriate state.
 
 The interaction diagram is shown in Fig. \ref{fig:execution_flow}.
 
@@ -174,7 +174,10 @@ The interaction diagram is shown in Fig. \ref{fig:execution_flow}.
 \end{figure}
 
 \subsection{Archive experiment reconstruction}
-The idea behind the archive experiment reconstruction is the same as execution recovery explained in the previous section. The user is able to reconstruct the experiment with the same inputs, parameters and results as the original experiment. The difference between execution recovery and archive experiment reconstruction is that the second one is not temporal. The experiment is stored in the database so users are able to reconstruct them anytime.
+The purpose of this functionality is not only to show the experiment results but the demo page.
+
+The user is able to reconstruct the experiment with the same inputs, parameters and results as the original experiment. The web interface sends a request to "/api/archive/get\_experiment?experiment\_id=XXX" to get all the needed information (for example, the images URLs or user parameters) to reconstruct the page in the same state after the execution. 
+
 \bigbreak
 
 There are two ways to reconstruct an experiment from the archive:

@@ -177,9 +177,11 @@ Deletes all experiments for a demo.
 {status: "OK/KO"}
 \end{verbatim} 
 
-\subsection{Reconstruction}
-The IPOL archive reconstruction mechanism allows users to reload archive experiments results and run them again.
+\subsection{Experiment reconstruction}
+The IPOL archive reconstruction mechanism allows users to reload archived experiments with the corresponding parameters and eventually run the experiment again. This allows the users to recover a view of the demo page showing the execution of the archived experiment. Note that this mechanism only reads the inputs, parameters and results from the archive, but does not execute again the experiment. 
 
-To allow the archive reconstruction of a demo, the editor has to specify the field "enable\_reconstruct": True, in the archive DDL section. To make it works correctly all the related files and inputs should be stored in the archive. The "hidden\_files" field it's available to store files in the archive without showing them in the archive page, then they will be only used when the reconstruct happens.
+The information to reconstruct the experiment is obtained with the service that allows to retrieve any stored experiment. Along with the experiment data itself, the response adds also the execution request sent by the client and its response. With this, the client has complete information to render back the experiment page.
+
+To allow the archive reconstruction of a demo, the editor has to specify the field "enable\_reconstruct": true, in the {\tt archive} DDL section. Since all the data for the reconstruction comes from the archived experiment, it is required that the editor ensures that all the needed files are archived in order to reconstruct correctly the demo page without broken images. It might happen that the editor does not want to show in the page of the archive. The "hidden\_files" field it is available to store files in the archive without showing them in the archive page, then they will be only used when the reconstruct happens.
 
 All the stored files must have different names to avoid filename conflicts. 
