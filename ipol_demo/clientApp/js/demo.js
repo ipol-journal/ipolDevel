@@ -58,7 +58,7 @@ function getBlobSets() {
     helpers.addToStorage("blobs", blobs.sets);
     input.printSets(blobs.sets);
     if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
-    if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
+    if (getArchiveExperimentId()) loadExecution("/api/archive/get_experiment?experiment_id=" + getArchiveExperimentId());
   });
 }
 
@@ -72,7 +72,7 @@ function getDemoinfo() {
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
     if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
-    if (getArchiveExperimentId()) loadExecution("/api/core/get_experiment_from_archive?experiment_id=" + getArchiveExperimentId());
+    if (getArchiveExperimentId()) loadExecution("/api/archive/get_experiment?experiment_id=" + getArchiveExperimentId());
   });
 }
 
