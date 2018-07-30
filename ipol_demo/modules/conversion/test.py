@@ -363,7 +363,7 @@ class ConversionVideoTests(unittest.TestCase):
             input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
-            self.assertEqual(str(code), '1')
+            self.assertEqual(str(code), '0')
             self.assertEqual(frame_count, input_video["frame_count"])
             self.assertEqual(frame_width * frame_height, input_video["width"] * input_video["height"])
             shutil.rmtree(os.path.split(self.video_blob_path)[0] + '/input_0')
@@ -464,7 +464,7 @@ class ConversionVideoTests(unittest.TestCase):
             input_video = ConversionVideoTests.load_video(work_dir + '/input_0.mp4')
         finally:
             self.assertEqual(status, 'OK')
-            self.assertEqual(str(code), '1')
+            self.assertEqual(str(code), '0')
             self.assertEqual(avi_video["frame_count"], input_video["frame_count"])
             self.assertEqual(avi_video["width"] * avi_video["height"], input_video["width"] * input_video["height"])
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')

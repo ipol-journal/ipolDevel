@@ -58,6 +58,7 @@ class Video(object):
         """
         Extract the required number of frames and save them as image files.
         """
+        code = 0
         self.validate_max_frames(max_frames)
 
         dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
@@ -66,9 +67,12 @@ class Video(object):
         if not os.path.exists(dst_folder):
             os.makedirs(dst_folder)
 
-        frames_count = self.get_number_of_frames_to_extract(max_frames)
-        if frames_count == max_frames:
+        if max_frames < self.frame_count:
+            frames_count = max_frames
             self.set_capture_from_the_middle(max_frames)
+            code = 1
+        else:
+            frames_count = self.frame_count
 
         width, height = self.get_size(max_pixels)
         # Iterate through all the frames of the video
@@ -79,9 +83,11 @@ class Video(object):
             # If the frame is bigger than allowed, resize it down
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+                code = 1
             im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
             if not im:
                 raise errors.IPOLConvertInputError('Conversion error, frame could not be written to the file {}'.format(self.get_input_name()))
+        return code
 
     def create_avi(self, max_frames, max_pixels):
         """
@@ -90,8 +96,9 @@ class Video(object):
         self.validate_max_frames(max_frames)
 
         processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
+        avconv_options = self.get_avconv_options(max_pixels, max_frames)
         avconv_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
-        avconv_command += self.get_avconv_options(max_pixels, max_frames)
+        avconv_command += avconv_options
         avconv_command += " -loglevel error " + processed_video
 
         # Tokenize args, to prevent shell-injection attacks
@@ -100,6 +107,10 @@ class Video(object):
 
         if convert_proc.returncode != 0:
             raise errors.IPOLConvertInputError('Conversion error: video could not be converted to AVI')
+        
+        if avconv_options:
+            return 1 #lossy
+        return 0 #lossless
 
     def get_time_for_frames(self, max_frames):
         """
@@ -147,14 +158,6 @@ class Video(object):
         Compute the scaling factor to reduce the image keeping its aspect ratio.
         """
         return max_pixels / (self.height * self.width)
-
-    def get_number_of_frames_to_extract(self, max_frames):
-        """
-        Get number of frames of the final input.
-        """
-        if max_frames < self.frame_count:
-            return max_frames
-        return self.frame_count
 
     def set_capture_from_the_middle(self, max_frames):
         """
