@@ -182,6 +182,7 @@ $.fn.appendZoom = function(index, leftItems) {
   var newZoomID= "gallery-" +index+ "-zoom";
   zoom.attr("id", newZoomID).appendTo($(this));
   zoom.removeClass("di-none");
+  zoom.show();
   $("#" + newZoomID + " > .zoom-info > #editor-image-size").remove();
   $("#" + newZoomID + " > input").on('input', function() {
     var zoomLevel = $(this).val();
