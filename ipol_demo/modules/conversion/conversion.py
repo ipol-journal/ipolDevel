@@ -398,7 +398,9 @@ class ConverterDepth(ConverterImage):
         super(ConverterDepth, self).__init__(input_desc, im)
         dtype = input_desc.get('dtype', None)
         _, self.dst_depth = dtype.split('x')
-        self.dst_dtype = Image.get_dtype_by_depth(self.dst_depth)
+        self.dst_dtype = None
+        if self.dst_depth:
+            self.dst_dtype = Image.get_dtype_by_depth(self.dst_depth)
 
     def information_loss(self):
         if not self.dst_dtype:
@@ -431,13 +433,14 @@ class ConverterChannels(ConverterImage):
         super(ConverterChannels, self).__init__(input_desc, im)
         dtype = input_desc.get('dtype', None)
         self.dst_channels, _ = dtype.split('x')
-        self.dst_channels = int(self.dst_channels)
+        if self.dst_channels:
+            self.dst_channels = int(self.dst_channels)
 
     def information_loss(self):
         return self.im.get_channels() > self.dst_channels
 
     def need_conversion(self):
-        return self.im.get_channels() != self.dst_channels
+        return self.dst_channels and self.im.get_channels() != self.dst_channels
 
     def convert(self):
         src_channels = self.im.get_channels()
