@@ -528,6 +528,18 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['status'] = 'KO'
         return json.dumps(data)
 
+    @cherrypy.expose
+    def delete_compilation(self, demo_id):
+        """
+        Remove compilation folder if exists
+        """
+        path_of_the_compilation = os.path.join(self.main_bin_dir, demo_id)
+        try:
+            if os.path.isdir(path_of_the_compilation):
+                shutil.rmtree(path_of_the_compilation)
+        except Exception as ex:
+                self.logger.exception("Exception trying to delete the compilation folder, demo {}. {}".format(demo_id, str(ex)))
+
     def compile_source(self, ddl_build, path_for_the_compilation):
         """
         Do the compilation
