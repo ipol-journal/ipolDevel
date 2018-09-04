@@ -46,7 +46,7 @@ class DemorunnerTests(unittest.TestCase):
     module = 'demorunner'
 
     # Demo
-    demo_id = 0
+    demo_id = -1
     execution_folder = '48AF3CB426BA877EA46E7B24A98ADA9B'
 
     # Shared folder
@@ -122,6 +122,8 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
+                data = {'demo_id': self.demo_id}
+                self.post(host, self.module, 'delete_compilation', data=data)
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
 
@@ -145,6 +147,8 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
+                data = {'demo_id': self.demo_id}
+                host = self.demorunners[demorunner].get('server')
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
 
@@ -172,6 +176,8 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
+                data = {'demo_id': self.demo_id}
+                host = self.demorunners[demorunner].get('server')
                 self.ensure_compilation(host, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
@@ -203,6 +209,8 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
+                data = {'demo_id': self.demo_id}
+                host = self.demorunners[demorunner].get('server')
                 self.ensure_compilation(host, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
