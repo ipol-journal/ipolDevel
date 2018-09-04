@@ -43,7 +43,11 @@ class Image(object):
         im = Image()
         mime_type, _ = mimetypes.guess_type(src)
         if mime_type == 'image/tiff':
-            im.data = Image.channels_flip(tifffile.imread(src)) # tiffile reads as RGB, OpenCV need BGR
+            # tiffile reads as RGB, OpenCV need BGR
+            im.data = Image.reverse_channels_order(tifffile.imread(src))
+        elif mime_type == 'image/jpeg':
+            # cv2.IMREAD_COLOR will resolve orientation exif flag, but drops alpha and force 8 bits
+            im.data = cv2.imread(src, cv2.IMREAD_COLOR)
         else:
             im.data = cv2.imread(src, flags)
         if type(im.data).__module__ != np.__name__:
@@ -94,7 +98,7 @@ class Image(object):
         return np.dtype(Image.DEPTH_DTYPE.get(depth, None))
 
     @staticmethod
-    def channels_flip(data):
+    def reverse_channels_order(data):
         """
         Reverse the color order (RGB > BGR), for compatibility between libraries.
         """
@@ -134,7 +138,7 @@ class Image(object):
             os.makedirs(dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == 'image/tiff':
-            tifffile.imsave(dst_file, self.channels_flip(self.data)) # tifffile is RGB (OpenCV is BGR)
+            tifffile.imsave(dst_file, self.reverse_channels_order(self.data)) # tifffile is RGB (OpenCV is BGR)
         else:
             data, pars = self._4ser(dst_file, **kwargs)
             if not cv2.imwrite(dst_file, data, pars):
@@ -201,60 +205,37 @@ class Image(object):
         pars = []
         return data, pars
 
-    @staticmethod
-    def valid_numeric(name, value, amax=None, amin=None):
-        """
-        Validate values
-        """
-        if value is None:
-            return value
-        if value > amax:
-            raise ValueError("{}={} > max={}".format(name, value, amax))
-        if value < amin:
-            raise ValueError("{}={} < min={}".format(name, value, amin))
-        return value
-
     def resize(self, width=None, height=None, interpolation=None, max_width=5000, max_height=5000):
         '''
         Resize image data.
         '''
-        src_height, src_width = self.data.shape[:2]
-        dst_width = self.valid_numeric('width', width, amax=max_width, amin=1)
-        dst_height = self.valid_numeric('height', height, amax=max_height, amin=1)
+        # avoid gigantic image
+        if width > max_width:
+            raise ValueError("width={} > max={}".format(width, max_width))
+        if height > max_height:
+            raise ValueError("height={} > max={}".format(height, max_height))
 
+        src_height, src_width = self.data.shape[:2]
         # forced witdth*height (no ratio preservation)
-        if dst_width > 0 and dst_height > 0:
+        if width > 0 and height > 0:
             pass
         # forced height
-        elif dst_height > 0:
-            max_width = 3*dst_height # avoid extreme ratio
-            # if src image is for example a line of 1 pixel height, keep original height
-            if src_height < 10:
-                dst_height = src_height
-            dst_width = int(round(float(src_width * dst_height) / src_height))
-            dst_width = min(dst_width, max_width)
-            if dst_width <= 0:
-                dst_width = src_width
+        elif height > 0:
+            width = int(round(float(src_width * height) / src_height))
         # forced width
-        elif dst_width > 0:
-            max_height = 2*dst_width # avoid extreme ratio
-            # if src image is for example a line of 1 pixel width, keep original width
-            if src_width < 10:
-                dst_width = src_width
-            dst_height = int(round(float(src_height * dst_width) / src_width))
-            dst_height = min(dst_height, max_height)
-            if dst_height <= 0:
-                dst_height = src_height
+        elif width > 0:
+            print("resize by width")
+            height = int(round(float(src_height * width) / src_width))
         else:
             raise ValueError("Image.resize(), not enough parameters to resize image.")
         # dtype of matrix is still kept
         if interpolation: # keep requested interpolation
             pass
-        elif (dst_width > src_width) or (dst_height > src_height): # augmentation, pixelise
+        elif (width > src_width) or (height > src_height): # augmentation, pixelise
             interpolation = cv2.INTER_NEAREST
         else: # diminution, for thumbnail, some interpolation
             interpolation = cv2.INTER_AREA
-        self.data = cv2.resize(self.data, (int(dst_width), int(dst_height)), interpolation=interpolation)
+        self.data = cv2.resize(self.data, (int(width), int(height)), interpolation=interpolation)
         return self
 
     def crop(self, x=0, y=0, width=0, height=0):

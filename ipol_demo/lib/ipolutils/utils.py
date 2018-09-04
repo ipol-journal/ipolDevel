@@ -19,17 +19,12 @@ Utils shared among IPOL modules.
 import os
 import mimetypes
 import errno
-import sys
 from image.Image import Image
 
 def thumbnail(src_file, height, dst_file):
     """
     Return a jpeg thumbnail for the src parameter (file path relative to shared_folder/run).
     """
-    # height=256 -- forced height with preserved ratio
-    # width=256 -- forced width with preserved ratio
-    # width=256&height=256 -- containing box with preserved ratio
-    # width=256&height=256&preserve_ratio=False --forced width height (ratio is not preserved)
     if not os.path.isfile(src_file):
         raise OSError(errno.ENOENT, "ipolutils.thumbnail(), file not found", src_file)
     mime_type, _ = mimetypes.guess_type(src_file)
@@ -40,9 +35,8 @@ def thumbnail(src_file, height, dst_file):
         im = Image.load(src_file)
     elif media_type == "video":
         im = Image.video_frame(src_file)
-    im.resize(
-        max_height=max(im.height(), 500),
-        max_width=max(im.width(), 500),
-        height=height
-    )
+    if im.width() > 3 * im.height(): # avoid too wide thumbnail
+        im.resize(width=(3*height))
+    else:
+        im.resize(height=height)
     im.write(dst_file)
