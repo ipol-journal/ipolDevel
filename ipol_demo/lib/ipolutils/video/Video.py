@@ -58,7 +58,7 @@ class Video(object):
         """
         Extract the required number of frames and save them as image files.
         """
-        code = 0
+        code = 0 # No conversion needed or converted without information loss
         self.validate_max_frames(max_frames)
 
         dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
@@ -70,7 +70,7 @@ class Video(object):
         if max_frames < self.frame_count:
             frames_count = max_frames
             self.set_capture_from_the_middle(max_frames)
-            code = 1
+            code = 1 # Conversion with information loss performed
         else:
             frames_count = self.frame_count
 
@@ -83,7 +83,7 @@ class Video(object):
             # If the frame is bigger than allowed, resize it down
             if max_pixels < video_pixel_count:
                 frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
-                code = 1
+                code = 1 # Conversion with information loss performed
             im = cv2.imwrite(os.path.join(dst_folder, 'frame_{:05d}.png'.format(frame_number)), frame)
             if not im:
                 raise errors.IPOLConvertInputError('Conversion error, frame could not be written to the file {}'.format(self.get_input_name()))

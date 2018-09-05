@@ -183,7 +183,7 @@ class Conversion(object):
         """
         # For each file processed, return a code
         # -1: exception, response KO
-        # 0:  No conversion needed or converted without loosing information
+        # 0:  No conversion needed or converted without information loss
         # 1:  Conversion with information loss performed (ex: image resizing)
         # 2:  Conversion is not authorized by DDL
         # Info is a dictionary for each input, with return code and possible error
@@ -306,7 +306,6 @@ class Conversion(object):
         """
         Convert video
         """
-        code = 0 # default return code, video not modified
         modifications = []
         video = Video(input_file)
         as_frames = input_desc.get('as_frames', None)
@@ -329,7 +328,7 @@ class Conversion(object):
         """
         ext = input_desc.get('ext')
         if ext is None:
-            raise IPOLConvertInputError('DDL Error, missing extension field (to convert the input in the expected format by demo)')
+            raise IPOLConvertInputError('No format extension given')
         filename_no_ext, _ = os.path.splitext(input_file)
         input_with_extension = filename_no_ext + ext
         os.rename(input_file, input_with_extension)
