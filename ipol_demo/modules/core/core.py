@@ -334,7 +334,7 @@ class Core(object):
             try:
                 dr_server = self.demorunners[dr_name]['server']
                 resp = self.post('api/demorunner/get_workload', host=dr_server)
-                if not resp.ok:
+                if not resp or not resp.ok:
                     error_message = "Bad post response from DR='{}'".format(dr_name)
                     self.error_log("demorunners_workload", error_message)
                     continue
@@ -1466,6 +1466,7 @@ attached the failed experiment data.". \
         """
         Run a demo. The presentation layer requests the Core to execute a demo.
         """
+        demo_id = None
         try:
             demo_id, origin, params, crop_info, private_mode, blobs = self.decode_interface_request(kwargs)
 
