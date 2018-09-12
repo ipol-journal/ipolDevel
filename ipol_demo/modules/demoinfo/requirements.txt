@@ -1,0 +1,11 @@
+backports.functools-lru-cache==1.5
+cheroot==6.3.3
+CherryPy==17.0.0
+configparser==3.5.0
+jaraco.functools==1.20
+more-itertools==4.2.0
+portend==2.3
+python-magic==0.4.15
+pytz==2018.5
+six==1.11.0
+tempora==1.13
