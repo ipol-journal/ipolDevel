@@ -58,6 +58,7 @@ from errors import IPOLWorkDirError
 from errors import IPOLKeyError
 from errors import IPOLDecodeInterfaceRequestError
 from errors import IPOLReadDDLError
+from errors import IPOLCheckDDLError
 from errors import IPOLFindSuitableDR
 from errors import IPOLEnsureCompilationError
 from errors import IPOLConversionError
@@ -1220,30 +1221,17 @@ attached the failed experiment data.". \
         """
         This function returns the DDL after checking its syntax.
         """
-        try:
-            userdata = {'demo_id': demo_id}
-            demoinfo_resp = self.post('api/demoinfo/get_ddl', data=userdata)
-            demoinfo_response = demoinfo_resp.json()
+        userdata = {'demo_id': demo_id}
+        demoinfo_resp = self.post('api/demoinfo/get_ddl', data=userdata)
+        demoinfo_response = demoinfo_resp.json()
 
-            if demoinfo_response['status'] != 'OK':
-                error_message = "Demoinfo answered KO for demo #{}".format(demo_id)
-                raise IPOLReadDDLError(error_message)
+        if demoinfo_response['status'] != 'OK':
+            error_message = "Demoinfo answered KO for demo #{}".format(demo_id)
+            return error_message
 
-            last_demodescription = demoinfo_response['last_demodescription']
-            ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
-
-            # Check the DDL for missing required sections and their format
-            error_message = self.check_ddl(ddl)
-            if error_message:
-                error_message = error_message + " Demo {}".format(demo_id)
-                raise IPOLReadDDLError(error_message)
-            return ddl
-        except IPOLReadDDLError as ex:
-            raise
-        except Exception as ex:
-            error_message = "Failed to read the DDL of demo {}. Error: {}".format(demo_id, ex)
-            self.logger.exception(error_message)
-            raise IPOLReadDDLError(error_message)
+        last_demodescription = demoinfo_response['last_demodescription']
+        ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
+        return ddl
 
     def find_suitable_demorunner(self, general_info):
         """
@@ -1470,7 +1458,20 @@ attached the failed experiment data.". \
         try:
             demo_id, origin, params, crop_info, private_mode, blobs = self.decode_interface_request(kwargs)
 
-            ddl = self.read_ddl(demo_id)
+            try:
+                ddl = self.read_ddl(demo_id)
+                if not isinstance(ddl, OrderedDict):
+                    raise IPOLReadDDLError(ddl)
+            except Exception as ex:
+                error_message = "Failed to read the DDL of demo {}. Error: {}".format(demo_id, ex)
+                self.logger.exception(error_message)
+                raise IPOLReadDDLError(error_message)
+
+            # Check the DDL for missing required sections and their format
+            error_message = self.check_ddl(ddl)
+            if error_message:
+                error_message = error_message + " Demo {}".format(demo_id)
+                raise IPOLCheckDDLError(error_message)
 
             # Find a demorunner according the requirements of the demo and the dispatcher policy
             dr_name, dr_server = self.find_suitable_demorunner(ddl['general'])
@@ -1531,7 +1532,7 @@ attached the failed experiment data.". \
             internal_error_message = (error_message + ". Error: {}").format(str(ex))
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
-        except IPOLReadDDLError as ex:
+        except (IPOLReadDDLError, IPOLCheckDDLError) as ex:
             return json.dumps({'error': str(ex), 'status': 'KO'})
         except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
             if ex.email_message:

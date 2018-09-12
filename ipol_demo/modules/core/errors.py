@@ -87,6 +87,12 @@ class IPOLReadDDLError(Exception):
     """
     pass
 
+class IPOLCheckDDLError(Exception):
+    """
+    IPOLCheckDDLError
+    """
+    pass
+
 class IPOLFindSuitableDR(Exception):
     """
     IPOLFindSuitableDR
