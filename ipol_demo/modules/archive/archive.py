@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -14,20 +14,22 @@
 This microservices stores the experiments made with data uploaded by
 the users.
 """
-from collections import OrderedDict
-import sqlite3 as lite
-import sys
+import configparser
 import errno
 import hashlib
-import logging
 import json
+import logging
 import os
 import os.path
-import shutil
-import ConfigParser
 import re
-import magic
+import shutil
+import sqlite3 as lite
+import sys
+from collections import OrderedDict
+
 import cherrypy
+import magic
+
 
 def authenticate(func):
     """
@@ -42,7 +44,7 @@ def authenticate(func):
                 and not ("X-Real-IP" in cherrypy.request.headers
                          and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -63,7 +65,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Archive(object):
+class Archive():
     """
     This class implement an archive system for experiments and
     calculations done with the IPOL demo image system.
@@ -102,10 +104,10 @@ class Archive(object):
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        return cherrypy.config.has_key("blobs_dir") and \
-               cherrypy.config.has_key("database_dir") and \
-               cherrypy.config.has_key("blobs_thumbs_dir") and \
-               cherrypy.config.has_key("logs_dir")
+        return "blobs_dir" in cherrypy.config and \
+               "database_dir" in cherrypy.config and \
+               "blobs_thumbs_dir" in cherrypy.config and \
+               "logs_dir" in cherrypy.config
 
     @staticmethod
     def get_hash_blob(path):
@@ -133,7 +135,7 @@ class Archive(object):
         """
 
         if not Archive.check_config():
-            print "ERROR: fields missing in the configuration file."
+            print("ERROR: fields missing in the configuration file.")
             sys.exit(1)
 
         self.blobs_dir = cherrypy.config.get("blobs_dir")
@@ -159,7 +161,7 @@ class Archive(object):
                 os.makedirs(self.logs_dir)
             self.logger = self.init_logging()
         except Exception as ex:
-            print "Failed to create log dir. Error: {}".format(ex)
+            print("Failed to create log dir. Error: {}".format(ex))
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -187,13 +189,13 @@ class Archive(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -226,7 +228,7 @@ class Archive(object):
             file_info = os.stat(self.database_file)
 
             if file_info.st_size == 0:
-                print str(self.database_file) + ' is empty. Removing the file...'
+                print(str(self.database_file) + ' is empty. Removing the file...')
                 try:
                     self.error_log("init_database", 'Database file was empty')
                     os.remove(self.database_file)
@@ -235,7 +237,7 @@ class Archive(object):
                     self.logger.exception(message)
                     return False
 
-                print "Creating a correct new database"
+                print("Creating a correct new database")
 
         if not os.path.isfile(self.database_file):
 
@@ -308,7 +310,7 @@ class Archive(object):
         except Exception as ex:
             message = "Failure in copy_file_in_folder. Error={}".format(ex)
             self.logger.exception(message)
-            print message
+            print(message)
             raise
 
     def add_blob_in_the_database(self, conn, hash_file, type_file, format_file):
@@ -344,14 +346,14 @@ class Archive(object):
         # List of copied files. Useful to delete them if an exception is thrown
         # copied_files = []
         try:
-            thumb_key = list(key for key, value in blob_dict.iteritems() if 'thumbnail' in key)
+            thumb_key = list(key for key, value in blob_dict.items() if 'thumbnail' in key)
             if thumb_key:
                 blob_thumbnail_name = thumb_key[0]
                 blob_thumbnail_path = blob_dict[blob_thumbnail_name]
                 del blob_dict[blob_thumbnail_name]
 
-            blob_name = blob_dict.keys()[0]
-            blob_path = blob_dict.values()[0]
+            blob_name = list(blob_dict.keys())[0]
+            blob_path = list(blob_dict.values())[0]
 
             # If the file doesn't exist, just return None
             if not os.path.isfile(blob_path):
@@ -376,7 +378,7 @@ class Archive(object):
         except Exception as ex:
             message = "Failure in add_blob. Error = {}".format(ex)
             self.logger.exception(message)
-            print message
+            print(message)
             raise
 
     @staticmethod
@@ -460,7 +462,7 @@ class Archive(object):
             except Exception:
                 pass
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     #####
     # displaying a single experiment of archive
@@ -491,7 +493,7 @@ class Archive(object):
             if conn is not None:
                 conn.close()
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     #####
     # displaying a page of archive
@@ -532,7 +534,7 @@ class Archive(object):
             pages_to_add = 0
 
         number_of_pages = \
-            (number_of_experiments / self.number_of_experiments_by_pages) + \
+            int(number_of_experiments / self.number_of_experiments_by_pages) + \
             pages_to_add
 
         meta_info["first_date_of_an_experiment"] = first_date_of_an_experiment
@@ -591,7 +593,7 @@ class Archive(object):
             return dict_exp
         except Exception as ex:
             message = "Failure in get_data_experiment. Error = {}".format(ex)
-            print message
+            print(message)
             self.logger.exception(message)
             raise
 
@@ -639,7 +641,7 @@ class Archive(object):
                 data["meta"] = meta_info
                 data["experiments"] = {}
                 data["status"] = "OK"
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             if page > meta_info["number_of_pages"] or page <= 0:
                 page = meta_info["number_of_pages"]
@@ -661,7 +663,7 @@ class Archive(object):
             except Exception:
                 pass
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     #####
     # deleting an experiment
@@ -745,14 +747,14 @@ class Archive(object):
 
         except Exception as ex:
             self.error_log("delete_experiment", str(ex))
-            print traceback.format_exc()
+            print(traceback.format_exc())
             try:
                 conn.rollback()
                 conn.close()
             except Exception as ex:
                 pass
 
-        return json.dumps(status)
+        return json.dumps(status).encode()
 
     #####
     # deleting a blob
@@ -773,7 +775,7 @@ class Archive(object):
             for row in cursor_db.execute("""
 SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                                          (id_blob,)):
-                tmp = unicode(str(row[0]), "utf-8")
+                tmp = row[0]
                 list_tmp.append(tmp)
 
             for value in list_tmp:
@@ -789,7 +791,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 conn.close()
             except Exception as ex:
                 pass
-        return json.dumps(status)
+        return json.dumps(status).encode()
 
     @staticmethod
     @cherrypy.expose
@@ -798,7 +800,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         Ping service: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -813,7 +815,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             data["status"] = "OK"
         except Exception as ex:
             self.error_log("shutdown", str(ex))
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def stats(self):
@@ -839,13 +841,13 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
 
         except Exception as ex:
             message = "Failure in stats function. Error: {}".format(ex)
-            print message
+            print(message)
             self.logger.exception(message)
         finally:
             if conn is not None:
                 conn.close()
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @staticmethod
@@ -864,7 +866,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         data = {}
         data["status"] = "KO"
         data["message"] = "Unknown service '{}'".format(attr)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
 
     @cherrypy.expose
@@ -895,7 +897,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 conn.close()
             except Exception as ex:
                 pass
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -913,7 +915,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             experiment_id_list = cursor_db.fetchall()
 
             if not experiment_id_list:
-                return json.dumps(status)
+                return json.dumps(status).encode()
 
             # Delete experiments and files
             for experiment_id in experiment_id_list:
@@ -931,7 +933,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             except Exception as ex:
                 pass
 
-        return json.dumps(status)
+        return json.dumps(status).encode()
 
     @cherrypy.expose
     def update_demo_id(self, old_demo_id, new_demo_id):
@@ -954,7 +956,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.close()
             status = {"status": "OK"}
 
-            return json.dumps(status)
+            return json.dumps(status).encode()
 
         except Exception as ex:
             status = {"status": "KO"}
@@ -964,4 +966,4 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 conn.rollback()
                 conn.close()
 
-            return json.dumps(status)
+            return json.dumps(status).encode()

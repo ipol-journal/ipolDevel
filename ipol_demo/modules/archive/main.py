@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,9 @@ Main function.
 
 import os
 import sys
+
 import cherrypy
+
 from archive import Archive
 
 

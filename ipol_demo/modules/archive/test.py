@@ -1,14 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 ArchiveTests
 """
+import json
 # Unit tests for the Blobs module
 import os
 import socket
-import unittest
 import sys
-import json
+import unittest
+
 import requests
 
 
