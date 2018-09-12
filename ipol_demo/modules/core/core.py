@@ -763,6 +763,8 @@ class Core(object):
                     'data' : ('ext',)\
                     }
 
+                fields_positive = ('max_pixels', 'max_frames')
+
                 for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
                     if not 'type' in input_in_ddl:
@@ -774,6 +776,9 @@ class Core(object):
                     for required_field in required_fields[input_in_ddl['type']]:
                         if not required_field in input_in_ddl:
                             return "Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter)
+
+                        if required_field in fields_positive and (not isinstance(input_in_ddl[required_field], int) or input_in_ddl[required_field] < 1):
+                            return "Bad DDL inputs section: '{}' field must be a postive value in input #{}.".format(required_field, inputs_counter)
 
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
