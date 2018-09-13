@@ -25,6 +25,7 @@ import re
 import shutil
 import sqlite3 as lite
 import sys
+import traceback
 from collections import OrderedDict
 
 import cherrypy
