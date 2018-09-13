@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
 Dispatcher: choose the best demorunner according to a policy
@@ -7,15 +7,17 @@ All exposed WS return JSON with a status OK/KO, along with an error
 description if that's the case.
 """
 
+import configparser
+import json
 import logging
 import os
-import json
 import random
-import sys
-import ConfigParser
 import re
-import requests
+import sys
+
 import cherrypy
+
+import requests
 
 
 def authenticate(func):
@@ -30,7 +32,7 @@ def authenticate(func):
         if not is_authorized_ip(cherrypy.request.remote.ip) and not (
                 "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -51,7 +53,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Dispatcher(object):
+class Dispatcher():
     """
     The Dispatcher chooses the best DR according to a policy
     """
@@ -104,13 +106,13 @@ class Dispatcher(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -154,8 +156,8 @@ class Dispatcher(object):
         except Exception as ex:
             data["message"] = "Can not refresh the demorunners"
             self.logger.exception("Can not refresh the demorunners")
-            print "Can not refresh the demorunners", ex
-        return json.dumps(data)
+            print("Can not refresh the demorunners", ex)
+        return json.dumps(data).encode()
 
     # ---------------------------------------------------------------------------
     def init_logging(self):
@@ -197,7 +199,7 @@ class Dispatcher(object):
         Default method invoked when asked for non-existing service.
         """
         data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @staticmethod
     @cherrypy.expose
@@ -206,7 +208,7 @@ class Dispatcher(object):
         Ping service: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -221,7 +223,7 @@ class Dispatcher(object):
         except Exception as ex:
             self.logger.error("Failed to shutdown : {}".format(ex))
             sys.exit(1)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -241,7 +243,7 @@ class Dispatcher(object):
             self.error_log("set_policy", "Policy {} is not a known policy".format(policy))
             self.policy = orig_policy
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demorunner(self, demorunners_workload, requirements=None):
@@ -257,19 +259,19 @@ class Dispatcher(object):
             dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
 
             if dr_winner is None:
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             data["name"] = dr_winner.name
             data["status"] = "OK"
 
         except Exception as ex:
             self.logger.exception("No demorunner for the requirements and {} policy".format(self.policy))
-            print "No demorunner for the requirements and {} policy - {}".format(self.policy, ex)
+            print("No demorunner for the requirements and {} policy - {}".format(self.policy, ex))
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
 
-class Policy(object):
+class Policy():
     """
     This class represents the policy used to pick a demoRunner at each
     execution.
@@ -282,9 +284,9 @@ class Policy(object):
         """
         if policy == "random":
             return RandomPolicy()
-        elif policy == "sequential":
+        if policy == "sequential":
             return SequentialPolicy()
-        elif policy == "lowest_workload":
+        if policy == "lowest_workload":
             return LowestWorkloadPolicy()
 
         return None
@@ -330,11 +332,11 @@ class RandomPolicy(Policy):
             suitable_dr = Policy().get_suitable_demorunners(requirements, demorunners)
             if suitable_dr:
                 return suitable_dr[random.randrange(0, len(suitable_dr), 1)]
-            print "RandomPolicy could not find any DR available"
+            print("RandomPolicy could not find any DR available")
             return None
 
         except Exception as ex:
-            print "Error in execute policy Random", ex
+            print("Error in execute policy Random", ex)
             raise
 
 
@@ -356,11 +358,11 @@ class SequentialPolicy(Policy):
                 dr_winner = suitable_dr[self.iterator % len(suitable_dr)]
                 self.iterator = (self.iterator + 1) % len(demorunners)
                 return dr_winner
-            print "SequentialPolicy could not find any DR available"
+            print("SequentialPolicy could not find any DR available")
             return None
 
         except Exception as ex:
-            print "Error in execute policy Sequential", ex
+            print("Error in execute policy Sequential", ex)
             raise
 
 
@@ -376,7 +378,7 @@ class LowestWorkloadPolicy(Policy):
         try:
             suitable_drs = Policy().get_suitable_demorunners(requirements, demorunners)
             if not suitable_drs:
-                print "LowestWorkloadPolicy could not find any DR available"
+                print("LowestWorkloadPolicy could not find any DR available")
                 return None
 
             # Adds the workload of each demorunner to a dict
@@ -393,11 +395,11 @@ class LowestWorkloadPolicy(Policy):
             return lowest_workload_dr
 
         except Exception as ex:
-            print "Error in execute policy Lowest Workload", ex
+            print("Error in execute policy Lowest Workload", ex)
             raise
 
 
-class DemoRunnerInfo(object):
+class DemoRunnerInfo():
     """
     Demorunner information object
     """

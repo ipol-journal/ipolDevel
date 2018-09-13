@@ -1,14 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Dispatcher test
 """
+import json
 # Unit tests for the Blobs module
 import socket
-import unittest
-import json
 import sys
+import unittest
 import xml.etree.ElementTree as ET
+
 import requests
 
 
@@ -42,7 +43,7 @@ class DispatcherTests(unittest.TestCase):
     HOST = socket.gethostbyname(socket.gethostname())
     module = 'dispatcher'
 
-    demorunners = None
+    demorunners = []
 
     #####################
     #       Tests       #
