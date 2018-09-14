@@ -745,16 +745,16 @@ class Core(object):
         sections = ('general', 'build', 'run', 'results')
         for section in sections:
             if not section in ddl:
-                return "Bad DDL syntax: missing '{}' section.".format(section)
+                raise IPOLCheckDDLError("Bad DDL syntax: missing '{}' section.".format(section))
 
         # Empty run
         if not ddl['run'] or ddl['run'].decode('utf-8').isspace():
-            return "Bad DDL run section: run is empty."
+            raise IPOLCheckDDLError("Bad DDL run section: run is empty.")
 
         if 'inputs' in ddl:
             # Inputs must be a list.
             if not isinstance(ddl['inputs'], list):
-                return "Bad DDL inputs section: expected list."
+                raise IPOLCheckDDLError("Bad DDL inputs section: expected list.")
 
             if ddl['inputs']:
                 required_fields = {\
@@ -768,22 +768,21 @@ class Core(object):
                 for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
                     if not 'type' in input_in_ddl:
-                        return "Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter)
+                        raise IPOLCheckDDLError("Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter))
 
                     if not input_in_ddl['type'] in required_fields:
-                        return "Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter)
+                        raise IPOLCheckDDLError("Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter))
 
                     for required_field in required_fields[input_in_ddl['type']]:
                         if not required_field in input_in_ddl:
-                            return "Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter)
+                            raise IPOLCheckDDLError("Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter))
 
                         if required_field in fields_positive and (not isinstance(input_in_ddl[required_field], int) or input_in_ddl[required_field] < 1):
-                            return "Bad DDL inputs section: '{}' field must be a positive value in input #{}.".format(required_field, inputs_counter)
+                            raise IPOLCheckDDLError("Bad DDL inputs section: '{}' field must be a positive value in input #{}.".format(required_field, inputs_counter))
 
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
-            return "Bad DDL archive section: expected list of parameters, but found {}".\
-              format(type(ddl['archive']['params']).__name__)
+            raise IPOLCheckDDLError("Bad DDL archive section: expected list of parameters, but found {}".format(type(ddl['archive']['params']).__name__))
 
         # None = no errors detected
         return None
@@ -1231,8 +1230,7 @@ attached the failed experiment data.". \
         demoinfo_response = demoinfo_resp.json()
 
         if demoinfo_response['status'] != 'OK':
-            error_message = "Demoinfo answered KO for demo #{}".format(demo_id)
-            return error_message
+            raise IPOLReadDDLError("Demoinfo answered KO.")
 
         last_demodescription = demoinfo_response['last_demodescription']
         ddl = json.loads(last_demodescription['ddl'], object_pairs_hook=OrderedDict)
@@ -1463,20 +1461,10 @@ attached the failed experiment data.". \
         try:
             demo_id, origin, params, crop_info, private_mode, blobs = self.decode_interface_request(kwargs)
 
-            try:
-                ddl = self.read_ddl(demo_id)
-                if not isinstance(ddl, OrderedDict):
-                    raise IPOLReadDDLError(ddl)
-            except Exception as ex:
-                error_message = "Failed to read the DDL of demo {}. Error: {}".format(demo_id, ex)
-                self.logger.exception(error_message)
-                raise IPOLReadDDLError(error_message)
+            ddl = self.read_ddl(demo_id)
 
             # Check the DDL for missing required sections and their format
-            error_message = self.check_ddl(ddl)
-            if error_message:
-                error_message = error_message + " Demo {}".format(demo_id)
-                raise IPOLCheckDDLError(error_message)
+            self.check_ddl(ddl)
 
             # Find a demorunner according the requirements of the demo and the dispatcher policy
             dr_name, dr_server = self.find_suitable_demorunner(ddl['general'])
@@ -1538,7 +1526,8 @@ attached the failed experiment data.". \
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'})
         except (IPOLReadDDLError, IPOLCheckDDLError) as ex:
-            return json.dumps({'error': str(ex), 'status': 'KO'})
+            error_message = str(ex) + " Demo #{}".format(demo_id)
+            return json.dumps({'error': error_message, 'status': 'KO'})
         except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
             if ex.email_message:
                 self.send_internal_error_email(ex.email_message)
@@ -1651,9 +1640,7 @@ attached the failed experiment data.". \
             ddl = json.loads(last_demodescription['ddl'])
 
             # Check the DDL for missing required sections and their format
-            error_message = self.check_ddl(ddl)
-            if error_message:
-                return json.dumps({'status': 'KO', 'error': error_message})
+            self.check_ddl(ddl)
 
             ddl_build = ddl['build']
             ddl_inputs = ddl.get('inputs')
