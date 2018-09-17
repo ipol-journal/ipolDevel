@@ -104,17 +104,13 @@ class DemoRunner(object):
         Implement the UNIX shell command "mkdir -p"
         with given path as parameter.
         """
-        created = 'false'
         try:
             os.makedirs(path)
-            created = 'true'
         except OSError as exc:
             if exc.errno == errno.EEXIST and os.path.isdir(path):
                 pass
             else:
                 raise
-
-        return created
 
     def init_logging(self):
         """
@@ -342,7 +338,7 @@ class DemoRunner(object):
             # Download
             extract_needed = build.download(url, tgz_file, username, password)
 
-            # Check if a rebuild is nedded
+            # Check if a rebuild is needed
             if extract_needed or not self.all_files_exist(files_path):
                 with self.lock_construct:
                     if os.path.isdir(src_dir):
@@ -409,7 +405,7 @@ format(path_from))
     def ensure_compilation(self, demo_id, ddl_build):
         """
         Ensures that the source codes of the given demo are compiled and
-        moved correcty.
+        moved correctly.
         """
         ddl_build = json.loads(ddl_build)
 
