@@ -14,7 +14,7 @@ def is_json(myjson):
     try:
         json_object = json.loads(myjson)
         del json_object
-    except Exception, e:
-        print "is_json e:%s" % e
+    except Exception as e:
+        print("is_json e:%s" % e)
         return False
     return True

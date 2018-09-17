@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
@@ -15,34 +15,26 @@ To test the POST WS use the following:
 
 """
 
-import sys
+import configparser
 import errno
-import logging
-import shutil
-import json
-from math import ceil
-import re
-import os
-from sqlite3 import IntegrityError
-import sqlite3 as lite
-import ConfigParser
-from collections import OrderedDict
 import glob
-import cherrypy
+import json
+import logging
+import os
+import re
+import shutil
+import sqlite3 as lite
+import sys
+from collections import OrderedDict
+from math import ceil
+from sqlite3 import IntegrityError
 
+import cherrypy
 import magic
 
-from model import Demo
-from model import Author
-from model import Editor
-from model import DemoDemoDescriptionDAO
-from model import DemoDAO
-from model import DemoDescriptionDAO
-from model import AuthorDAO
-from model import DemoAuthorDAO
-from model import EditorDAO
-from model import DemoEditorDAO
-from model import initDb
+from model import (Author, AuthorDAO, Demo, DemoAuthorDAO, DemoDAO,
+                   DemoDemoDescriptionDAO, DemoDescriptionDAO, DemoEditorDAO,
+                   Editor, EditorDAO, initDb)
 from tools import is_json
 
 # GLOBAL VARS
@@ -62,7 +54,7 @@ def authenticate(func):
                 and not ("X-Real-IP" in cherrypy.request.headers
                          and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -84,7 +76,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class DemoInfo(object):
+class DemoInfo():
     """
     Implement the demoinfo webservices.
     """
@@ -142,7 +134,7 @@ class DemoInfo(object):
                 try:
                     os.remove(self.database_file)
                 except Exception as ex:
-                    self.logger.exception("init_database: " + str(ex))
+                    self.logger.exception("init_database: {}".format(str(ex)))
                     return False
 
         if not os.path.isfile(self.database_file):
@@ -166,13 +158,13 @@ class DemoInfo(object):
                 # Initializes the DB
                 initDb(self.database_file)
             except Exception as ex:
-                self.logger.exception("init_database - " + (str(ex)))
+                self.logger.exception("init_database - {}".format(str(ex)))
 
                 if os.path.isfile(self.database_file):
                     try:
                         os.remove(self.database_file)
                     except Exception as ex:
-                        self.logger.exception("init_database - " + str(ex))
+                        self.logger.exception("init_database - {}".format(str(ex)))
                         return False
 
         return True
@@ -196,9 +188,8 @@ class DemoInfo(object):
         """
         Check if needed datas exist correctly in the config of cherrypy.
         """
-        if not (cherrypy.config.has_key("database_dir") and cherrypy.config.has_key(
-                "database_name") and cherrypy.config.has_key("logs_dir")):
-            print "Missing elements in configuration file."
+        if not ("database_dir" in cherrypy.config and "database_name" in cherrypy.config and "logs_dir" in cherrypy.config):
+            print("Missing elements in configuration file.")
             return False
         return True
 
@@ -215,13 +206,13 @@ class DemoInfo(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -255,7 +246,7 @@ class DemoInfo(object):
         data = {}
         data["status"] = "KO"
         data["message"] = "Unknown service '{}'".format(attr)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def get_compressed_file_url(self, demo_id):
         """
@@ -285,7 +276,7 @@ class DemoInfo(object):
         except Exception as ex:
             data['status'] = "KO"
             self.logger.exception(str(ex))
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -299,11 +290,11 @@ class DemoInfo(object):
             demo_dao = DemoDAO(conn)
 
             if not demo_dao.exist(demo_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             if demoextras is None:
                 data['error_message'] = "File not found"
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             mime_type = magic.from_buffer(demoextras.file.read(1024), mime=True)
             _, type_of_file = mime_type.split("/")
@@ -318,7 +309,7 @@ class DemoInfo(object):
 
             if type_of_file not in accepted_types:
                 data['error_message'] = "Unexpected type: {}.".format(mime_type)
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
             if os.path.exists(demoextras_folder):
@@ -332,13 +323,13 @@ class DemoInfo(object):
                 shutil.copyfileobj(demoextras.file, f)
 
             data['status'] = "OK"
-            return json.dumps(data)
+            return json.dumps(data).encode()
 
         except Exception as ex:
             error_message = "Failure in 'add_demoextras' for demo '{}'. Error {}".format(demo_id, ex)
             self.logger.exception(error_message)
             data['error_message'] = error_message
-            return json.dumps(data)
+            return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demo_extras_info(self, demo_id):
@@ -351,7 +342,7 @@ class DemoInfo(object):
 
             if demoExtras_url is None:
                 # DemoInfo does not have any demoExtras
-                return json.dumps({'status': 'OK'})
+                return json.dumps({'status': 'OK'}).encode()
 
             demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
             demoExtras_path = glob.glob(demoextras_folder+"/*")[0]
@@ -361,12 +352,12 @@ class DemoInfo(object):
             data['size'] = file_stats.st_size
             data['url'] = demoExtras_url
             data['status'] = 'OK'
-            return json.dumps(data)
+            return json.dumps(data).encode()
 
         except Exception as ex:
             self.logger.exception("Failure in get_demo_extras_info")
-            print "get_demo_extras_info. Error: {}".format(ex)
-            return json.dumps(data)
+            print("get_demo_extras_info. Error: {}".format(ex))
+            return json.dumps(data).encode()
 
     # todo check its not usefull any more and delete...remeber deleting from test/demoinfotest.py
     @cherrypy.expose
@@ -388,7 +379,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -397,7 +388,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def demo_list_by_demoeditorid(self, demoeditorid_list):
@@ -413,9 +404,9 @@ class DemoInfo(object):
         if is_json(demoeditorid_list):
             demoeditorid_list = json.loads(demoeditorid_list)
         else:
-            print "demoeditorid_list is not a valid JSON"
+            print("demoeditorid_list is not a valid JSON")
             data["error"] = "demoeditorid_list is not a valid JSON"
-            return json.dumps(data)
+            return json.dumps(data).encode()
 
         try:
             conn = lite.connect(self.database_file)
@@ -430,7 +421,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_list_by_demoeditorid error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -439,7 +430,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def demo_list_pagination_and_filter(self, num_elements_page, page, qfilter=None):
@@ -512,7 +503,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_list_pagination_and_filter error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()  # [ToDo] It seems that this should do in a
@@ -522,7 +513,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -537,7 +528,7 @@ class DemoInfo(object):
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             if not demo_dao.exist(demo_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             da_dao = DemoAuthorDAO(conn)
 
@@ -550,7 +541,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_get_authors_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -558,7 +549,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -591,7 +582,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_get_available_authors_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -599,7 +590,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -615,7 +606,7 @@ class DemoInfo(object):
             demo_dao = DemoDAO(conn)
 
             if not demo_dao.exist(demo_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             de_dao = DemoEditorDAO(conn)
 
@@ -628,7 +619,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo demo_get_editors_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -636,7 +627,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -669,7 +660,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo demo_get_available_editors_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -677,7 +668,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def read_demo(self, demoid):
         """
@@ -693,7 +684,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = ("read_demo  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             conn.close()
 
         return demo
@@ -712,7 +703,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = ("read_demo_by_editordemoid  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             conn.close()
 
         return demo
@@ -729,9 +720,8 @@ class DemoInfo(object):
             demo = self.read_demo(demoid)
             if demo is None:
                 data['error'] = "No demo retrieved for this id"
-                print "No demo retrieved for this id"
-                return json.dumps(data)
-
+                print("No demo retrieved for this id")
+                return json.dumps(data).encode()
             data["editorsdemoid"] = demo.editorsdemoid
             data["title"] = demo.title
             data["state"] = demo.state
@@ -741,12 +731,12 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo read_demo_metainfo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -766,7 +756,7 @@ class DemoInfo(object):
             # Check if the demo already exists
             # In that case, get out with an error
             if dao.exist(int(editorsdemoid)):
-                return json.dumps({"status": "KO", "error": "Demo ID={} already exists".format(editorsdemoid)})
+                return json.dumps({"status": "KO", "error": "Demo ID={} already exists".format(editorsdemoid)}).encode()
 
             if ddl:
                 # creates a demodescription and asigns it to demo
@@ -803,7 +793,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = " demoinfo add_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -811,7 +801,7 @@ class DemoInfo(object):
                 pass
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -841,7 +831,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo delete_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -850,7 +840,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -863,7 +853,7 @@ class DemoInfo(object):
 
         demo_json = json.loads(demo)
 
-        if demo_json.has_key('creation'):
+        if 'creation' in demo_json:
             # Change creation date
             d = Demo(demo_json.get('editorsdemoid'), demo_json.get('title'), demo_json.get('state'),
                      demo_json.get('creation'))
@@ -895,14 +885,14 @@ class DemoInfo(object):
             data["error"] = "demoinfo update_demo error {}".format(ex)
         except Exception as ex:
             error_string = (" demoinfo update_demo error %s" % (str(ex)))
-            print error_string
+            print(error_string)
             try:
                 conn.close()
             except Exception as ex:
                 pass
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # AUTHOR
 
@@ -929,7 +919,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo author_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -937,7 +927,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1007,7 +997,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo author_list_pagination_and_filter error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1016,7 +1006,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1038,11 +1028,11 @@ class DemoInfo(object):
                 conn.close()
             except Exception as ex:
                 error_string = ("read_author  e:%s" % (str(ex)))
-                print error_string
+                print(error_string)
 
             if author is None:
-                print "No author retrieved for this id"
-                return json.dumps(data)
+                print("No author retrieved for this id")
+                return json.dumps(data).encode()
 
             data["id"] = author.id
             data["name"] = author.name
@@ -1052,7 +1042,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo read_author error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1061,7 +1051,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def author_get_demos_list(self, author_id):
@@ -1076,7 +1066,7 @@ class DemoInfo(object):
             author_dao = AuthorDAO(conn)
 
             if not author_dao.exist(author_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             da_dao = DemoAuthorDAO(conn)
 
@@ -1090,7 +1080,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo author_get_demos_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1098,7 +1088,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST', 'GET'])  # allow only post
@@ -1119,18 +1109,18 @@ class DemoInfo(object):
             data["authorid"] = the_id
 
         except IntegrityError as ex:
-            print ex
+            print(ex)
             data['error'] = str(ex)
             if conn is not None:
                 conn.close()
         except Exception as ex:
             error_string = "demoinfo add_author error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             if conn is not None:
                 conn.close()
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1147,7 +1137,7 @@ class DemoInfo(object):
             author_dao = AuthorDAO(conn)
 
             if not demo_dao.exist(demo_id) or not author_dao.exist(author_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao = DemoAuthorDAO(conn)
             dao.add(int(demo_id), int(author_id))
@@ -1155,7 +1145,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo add_author_to_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1163,7 +1153,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1180,7 +1170,7 @@ class DemoInfo(object):
             author_dao = AuthorDAO(conn)
 
             if not demo_dao.exist(demo_id) or not author_dao.exist(author_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao = DemoAuthorDAO(conn)
             dao.remove_author_from_demo(int(demo_id), int(author_id))
@@ -1188,7 +1178,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo remove_author_from_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1196,7 +1186,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1228,7 +1218,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo remove_author error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1236,7 +1226,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1248,7 +1238,7 @@ class DemoInfo(object):
         data = {"status": "KO"}
 
         json_author = json.loads(author)
-        if json_author.has_key('creation'):
+        if 'creation' in json_author:
             a = Author(json_author.get('name'), json_author.get('mail'), json_author.get('id'),
                        json_author.get('creation'))
         else:
@@ -1261,14 +1251,14 @@ class DemoInfo(object):
             dao = AuthorDAO(conn)
 
             if not dao.exist(a.id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao.update(a)
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo update_author error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1276,7 +1266,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # EDITOR
 
@@ -1302,7 +1292,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo editor_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1310,7 +1300,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1378,7 +1368,7 @@ class DemoInfo(object):
             conn.close()
         except Exception as ex:
             error_string = "demoinfo editor_list_pagination_and_filter error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1387,7 +1377,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def editor_get_demos_list(self, editor_id):
@@ -1402,7 +1392,7 @@ class DemoInfo(object):
             editor_dao = EditorDAO(conn)
 
             if not editor_dao.exist(editor_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             de_dao = DemoEditorDAO(conn)
 
@@ -1415,7 +1405,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo editor_get_demos_list error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1423,7 +1413,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1444,12 +1434,12 @@ class DemoInfo(object):
                 conn.close()
             except Exception as ex:
                 error_string = ("read_editor  e:%s" % (str(ex)))
-                print error_string
+                print(error_string)
 
             if editor is None:
-                print "No editor retrieved for this id"
+                print("No editor retrieved for this id")
                 data['error'] = "No editor retrieved for this id"
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             data["id"] = editor.id
             data["name"] = editor.name
@@ -1459,7 +1449,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo read_editor error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1468,7 +1458,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1489,19 +1479,19 @@ class DemoInfo(object):
             data["editorid"] = the_id
 
         except IntegrityError as ex:
-            print ex
+            print(ex)
             data['error'] = str(ex)
             if conn is not None:
                 conn.close()
         except Exception as ex:
             error_string = "demoinfo add_editor error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             if conn is not None:
                 conn.close()
 
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1518,7 +1508,7 @@ class DemoInfo(object):
             editor_dao = EditorDAO(conn)
 
             if not demo_dao.exist(demo_id) or not editor_dao.exist(editor_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao = DemoEditorDAO(conn)
             dao.add(int(demo_id), int(editor_id))
@@ -1526,7 +1516,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo add_editor_to_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1534,7 +1524,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1551,7 +1541,7 @@ class DemoInfo(object):
             editor_dao = EditorDAO(conn)
 
             if not demo_dao.exist(demo_id) or not editor_dao.exist(editor_id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao = DemoEditorDAO(conn)
             dao.remove_editor_from_demo(int(demo_id), int(editor_id))
@@ -1559,7 +1549,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo remove_editor_from_demo error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1567,7 +1557,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1597,7 +1587,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo remove_editor error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1605,7 +1595,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])  # allow only post
@@ -1617,7 +1607,7 @@ class DemoInfo(object):
         data = {"status": "KO"}
 
         json_editor = json.loads(editor)
-        if json_editor.has_key('creation'):
+        if 'creation' in json_editor:
             e = Editor(json_editor.get('name'), json_editor.get('mail'), json_editor.get('id'),
                        json_editor.get('creation'))
         else:
@@ -1629,14 +1619,14 @@ class DemoInfo(object):
             dao = EditorDAO(conn)
 
             if not dao.exist(e.id):
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             dao.update(e)
             conn.close()
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo update_editor error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1644,7 +1634,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # DDL
 
@@ -1671,7 +1661,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo read_ddl error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1680,7 +1670,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_interface_ddl(self, demo_id, sections=None):
@@ -1690,7 +1680,7 @@ class DemoInfo(object):
         try:
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
-                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo {}".format(demo_id)})
+                return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo {}".format(demo_id)}).encode()
 
             ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
             # removing sections that shouldn't be obtained by the web interface
@@ -1701,13 +1691,13 @@ class DemoInfo(object):
             # obtaining the sections given as a parameter
             if sections:
                 ddl_sections = self.get_ddl_sections(ddl, sections)
-                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl_sections)}})
-            return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}})
+                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl_sections)}}).encode()
+            return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}}).encode()
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl with demo {}, Error = {}".format(demo_id, ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
-            return json.dumps({'status': 'KO', 'error': error_string})
+            return json.dumps({'status': 'KO', 'error': error_string}).encode()
 
     @staticmethod
     def get_ddl_sections(ddl, ddl_sections):
@@ -1734,16 +1724,16 @@ class DemoInfo(object):
             ddl_history = dd_dao.read_history(demo_id)
             if not ddl_history:
                 data['error'] = "There isn't any DDL for demo {}".format(demo_id)
-                return json.dumps(data)
+                return json.dumps(data).encode()
             data['ddl_history'] = ddl_history
             data['status'] = 'OK'
-            return json.dumps(data)
+            return json.dumps(data).encode()
         except Exception as ex:
             error_msg = "Failure in function get_ddl_history. Error: {}".format(ex)
             self.logger.exception(error_msg)
-            print error_msg
+            print(error_msg)
             data['error'] = error_msg
-            return json.dumps(data)
+            return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1755,17 +1745,17 @@ class DemoInfo(object):
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
                 error = "There isn't any DDL for demo {}".format(demo_id)
-                return json.dumps({'status': 'KO', 'error': error})
+                return json.dumps({'status': 'KO', 'error': error}).encode()
             if sections:
                 ddl = json.loads(ddl.get("ddl"), object_pairs_hook=OrderedDict)
                 ddl_sections = self.get_ddl_sections(ddl, sections)
-                return json.dumps({'status': 'OK', 'last_demodescription': ddl_sections})
-            return json.dumps({'status': 'OK', 'last_demodescription': ddl})
+                return json.dumps({'status': 'OK', 'last_demodescription': ddl_sections}).encode()
+            return json.dumps({'status': 'OK', 'last_demodescription': ddl}).encode()
         except Exception as ex:
             error_string = "Failure in function get_ddl, Error = {}".format(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
-            return json.dumps({'status': 'KO'})
+            return json.dumps({'status': 'KO'}).encode()
 
     def get_stored_ddl(self, demo_id):
         """
@@ -1791,20 +1781,20 @@ class DemoInfo(object):
         data = {}
         data["status"] = "KO"
         cl = cherrypy.request.headers['Content-Length']
-        ddl = cherrypy.request.body.read(int(cl))
+        ddl = cherrypy.request.body.read(int(cl)).decode()
         if not is_json(ddl):
-            print "\n save_ddl ddl is not a valid json "
-            print "ddl: ", ddl
-            print "ddl type: ", type(ddl)
+            print("\n save_ddl ddl is not a valid json ")
+            print("ddl: ", ddl)
+            print("ddl type: ", type(ddl))
             data['error'] = "save_ddl ddl is not a valid json"
-            return json.dumps(data)
+            return json.dumps(data).encode()
         try:
             conn = lite.connect(self.database_file)
             demo_dao = DemoDAO(conn)
             demo = demo_dao.read(int(demoid))
             if demo is None:
                 data['error'] = 'There is no demo with that demoid'
-                return json.dumps(data)
+                return json.dumps(data).encode()
             state = demo_dao.read(int(demoid)).state
             if state != "published":  # If the demo is not published the DDL is overwritten
                 ddddao = DemoDemoDescriptionDAO(conn)
@@ -1833,7 +1823,7 @@ class DemoInfo(object):
 
         except Exception as ex:
             error_string = "demoinfo save_ddl error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1842,7 +1832,7 @@ class DemoInfo(object):
             # raise Exception
             data["error"] = error_string
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # MISCELLANEA
 
@@ -1863,7 +1853,7 @@ class DemoInfo(object):
         data = {}
         data["status"] = "OK"
         data["ping"] = "pong"
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1878,7 +1868,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             self.error_log("shutdown", str(ex))
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # todo hide sql
     @cherrypy.expose
@@ -1904,7 +1894,7 @@ class DemoInfo(object):
             data["status"] = "OK"
         except Exception as ex:
             error_string = "demoinfo stats error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1912,7 +1902,7 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # todo hide sql
     @cherrypy.expose
@@ -1938,7 +1928,7 @@ class DemoInfo(object):
             data["state_list"] = state_list
         except Exception as ex:
             error_string = "demoinfo read_states error %s" % str(ex)
-            print error_string
+            print(error_string)
             self.logger.exception(error_string)
             try:
                 conn.close()
@@ -1946,4 +1936,4 @@ class DemoInfo(object):
                 pass
             # raise Exception
             data["error"] = error_string
-        return json.dumps(data)
+        return json.dumps(data).encode()

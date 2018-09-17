@@ -10,10 +10,8 @@ in the DB that will be used by the webservices,
 
 """
 
-import sqlite3 as lite
 import datetime
-from validoot import validates, inst, typ, And, Or, email_address
-
+import sqlite3 as lite
 
 #####################
 #  helper clases    #
@@ -30,11 +28,6 @@ class Demo(object):
     creation = None
     modification = None
 
-    @validates(editorsdemoid=typ(int),
-               title=inst(basestring),
-               stateid=typ(str),
-               creation=Or(typ(datetime.datetime), inst(basestring)),
-               modification=Or(typ(datetime.datetime), inst(basestring)))
     def __init__(self, editorsdemoid, title,
                  state, creation=None, modification=None):
         """
@@ -71,13 +64,6 @@ class Author(object):
     creation = None
 
     # And(inst(basestring),len_between(4,100)),
-    @validates(
-        name=inst(basestring),
-        # mail=regex("[^@]+@[^@]+\.[^@]+"),
-        mail=type(email_address),
-        the_id=Or(typ(int), inst(basestring)),
-        creation=Or(typ(datetime.datetime), inst(basestring))
-    )
     def __init__(self, name, mail, the_id=None, creation=None):
         """
         Constructor.
@@ -109,13 +95,6 @@ class Editor(object):
     mail = None
     creation = None
 
-    @validates(
-        name=inst(basestring),
-        # mail=regex("[^@]+@[^@]+\.[^@]+"),
-        mail=type(email_address),
-        the_id=Or(typ(int), inst(basestring)),
-        creation=Or(typ(datetime.datetime), inst(basestring))
-    )
     def __init__(self, name, mail, the_id=None, creation=None):
         """
         Constructor.
@@ -160,7 +139,6 @@ class DemoDescriptionDAO(object):
 
     # conn.close()
 
-    # @validates(inst(Demo))
     def add(self, ddl):
         """
         Add description for the given demo.
@@ -170,7 +148,6 @@ class DemoDescriptionDAO(object):
         self.conn.commit()
         return self.cursor.lastrowid
 
-    @validates(typ(int))
     def delete(self, demo_description_id):
         """
         delete description for the given demo.
@@ -178,7 +155,6 @@ class DemoDescriptionDAO(object):
         self.cursor.execute("DELETE FROM demodescription WHERE id=?", (int(demo_description_id),))
         self.conn.commit()
 
-    # @validates(inst(Demo))
     def update(self, ddl, demo_id):
         """
         update description for a given demo.
@@ -197,12 +173,11 @@ class DemoDescriptionDAO(object):
 
         if self.cursor.rowcount == 0:
             error_string = ("Demo %s not updated in DemoDescriptionDAO" % (str(demo_id)))
-            print error_string
+            print(error_string)
             raise Exception(error_string)
 
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, demo_description_id):
         """
         read description for given demo.
@@ -238,7 +213,6 @@ class DemoDAO(object):
 
     # conn.close()
 
-    @validates(inst(Demo))
     def add(self, demo):
         """
         Add a demo.
@@ -255,7 +229,6 @@ class DemoDAO(object):
         self.conn.commit()
         return demo.editorsdemoid
 
-    @validates(typ(int))
     def delete(self, editor_demo_id):
         """
         delete a demo.
@@ -263,7 +236,6 @@ class DemoDAO(object):
         self.cursor.execute("DELETE FROM demo WHERE demo.editor_demo_id=?", (int(editor_demo_id),))
         self.conn.commit()
 
-    @validates(inst(Demo), And(typ(int)))
     def update(self, demo, old_editor_demo_id):
         """
         update a demo.
@@ -292,7 +264,6 @@ class DemoDAO(object):
                                  demo.creation, old_editor_demo_id))
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, editor_demo_id):
         """
         Return a description of the demo.
@@ -361,7 +332,6 @@ class DemoDemoDescriptionDAO(object):
 
     # conn.close()
 
-    @validates(typ(int), typ(int))
     def add(self, editorsdemoid, demodescriptionid):
         """
         Add an entry in the table.
@@ -375,7 +345,6 @@ class DemoDemoDescriptionDAO(object):
         self.cursor.execute('''UPDATE demo SET modification=? WHERE editor_demo_id=?''', (nowtmstmp, editorsdemoid))
         self.conn.commit()
 
-    @validates(typ(int))
     def delete(self, editorsdemoid):
         """
         Remove an entry.
@@ -388,7 +357,6 @@ class DemoDemoDescriptionDAO(object):
             where demo.editor_demo_id=?)''', (int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int))
     def delete_all_demodescriptions_for_demo(self, editorsdemoid):
         """
         remove all entries for a demo.
@@ -403,7 +371,6 @@ class DemoDemoDescriptionDAO(object):
                         WHERE demo.editor_demo_id=?))''', (int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int), typ(int))
     def remove_demodescription_from_demo(self, editorsdemoid, demodescriptionid):
         """
         remove editor from demo.
@@ -417,7 +384,6 @@ class DemoDemoDescriptionDAO(object):
                 WHERE demo.editor_demo_id =?)''', (int(demodescriptionid), int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, editorsdemoid):
         """
         Get the editor from a demo.
@@ -435,7 +401,6 @@ class DemoDemoDescriptionDAO(object):
 
         return result
 
-    @validates(typ(int))
     def get_ddl(self, editorsdemoid):
         """
         return last demo description entered for editorsdemoid.
@@ -452,7 +417,6 @@ class DemoDemoDescriptionDAO(object):
         if row:
             return {'ddl': row[0]}
 
-    @validates(typ(int))
     def read_demo_demodescriptions(self, editorsdemoid):
         """
         Return list of demo descriptions from given editor.
@@ -513,7 +477,6 @@ class AuthorDAO(object):
 
     # conn.close()
 
-    @validates(inst(Author))
     def add(self, author):
         """
         add an author to the db.
@@ -524,7 +487,6 @@ class AuthorDAO(object):
         self.conn.commit()
         return self.cursor.lastrowid
 
-    @validates(typ(int))
     def delete(self, the_id):
         """
         delete an author from the db.
@@ -532,7 +494,6 @@ class AuthorDAO(object):
         self.cursor.execute("DELETE FROM author WHERE id=?", (int(the_id),))
         self.conn.commit()
 
-    @validates(inst(Author))
     def update(self, author):
         """
         update an author entry.
@@ -547,7 +508,6 @@ class AuthorDAO(object):
 
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, the_id):
         """
         get the author info from their id.
@@ -608,7 +568,6 @@ class DemoAuthorDAO(object):
 
     # conn.close()
 
-    @validates(typ(int), typ(int))
     def add(self, editorsdemoid, authorid):
         """
         add an entry to the table.
@@ -623,10 +582,9 @@ class DemoAuthorDAO(object):
 
         except Exception as ex:
             error_string = ("add_demo_author  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             raise Exception(error_string)
 
-    @validates(typ(int))
     def delete(self, the_id):
         """
         delete an entry from the table.
@@ -636,10 +594,9 @@ class DemoAuthorDAO(object):
             self.conn.commit()
         except Exception as ex:
             error_string = ("delete_demo_author  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             raise Exception(error_string)
 
-    @validates(typ(int))
     def delete_all_authors_for_demo(self, editorsdemoid):
         """
         delete all authors for a demo.
@@ -654,10 +611,9 @@ class DemoAuthorDAO(object):
             self.conn.commit()
         except Exception as ex:
             error_string = ("delete_all_authors_for_demo  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             raise Exception(error_string)
 
-    @validates(typ(int), typ(int))
     def remove_author_from_demo(self, editorsdemoid, authorid):
         """
         remove all the authors for a given demo.
@@ -673,10 +629,9 @@ class DemoAuthorDAO(object):
             self.conn.commit()
         except Exception as ex:
             error_string = ("remove_author_from_demo  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
             raise Exception(error_string)
 
-    @validates(typ(int))
     def read(self, the_id):
         """
         return information on a given author/demo association.
@@ -695,10 +650,9 @@ class DemoAuthorDAO(object):
 
         except Exception as ex:
             error_string = ("read_demo_author  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
         return result
 
-    @validates(typ(int))
     def read_author_demos(self, authorid):
         """
         Get a list of the demos realised by a given author.
@@ -717,10 +671,9 @@ class DemoAuthorDAO(object):
 
         except Exception as ex:
             error_string = ("read_author_demos  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
         return demo_list
 
-    @validates(typ(int))
     def read_demo_authors(self, editordemoid):
         """
         Get a list of the authors of the demos edited by a given editor.
@@ -740,7 +693,7 @@ class DemoAuthorDAO(object):
 
         except Exception as ex:
             error_string = ("read_demo_authors  e:%s" % (str(ex)))
-            print error_string
+            print(error_string)
         return author_list
 
 
@@ -766,7 +719,6 @@ class EditorDAO(object):
 
     # conn.close()
 
-    @validates(inst(Editor))
     def add(self, editor):
         """
         Add an editor.
@@ -777,7 +729,6 @@ class EditorDAO(object):
         self.conn.commit()
         return self.cursor.lastrowid
 
-    @validates(typ(int))
     def delete(self, the_id):
         """
         delete an editor.
@@ -785,7 +736,6 @@ class EditorDAO(object):
         self.cursor.execute("DELETE FROM editor WHERE id=?", (int(the_id),))
         self.conn.commit()
 
-    @validates(inst(Editor))
     def update(self, editor):
         """
         update an editor.
@@ -804,7 +754,6 @@ class EditorDAO(object):
 
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, the_id):
         """
         get an editor from its ID.
@@ -868,7 +817,6 @@ class DemoEditorDAO(object):
 
     # conn.close()
 
-    @validates(typ(int), typ(int))
     def add(self, editorsdemoid, editorid):
         """
         Add an entry to the demo_editor table.
@@ -880,7 +828,6 @@ class DemoEditorDAO(object):
             WHERE demo.editor_demo_id=?))''', (int(editorid), int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int))
     def delete(self, the_id):
         """
         delete an entry from id.
@@ -888,7 +835,6 @@ class DemoEditorDAO(object):
         self.cursor.execute("DELETE FROM demo_editor WHERE id=?", (int(the_id),))
         self.conn.commit()
 
-    @validates(typ(int))
     def delete_all_editors_for_demo(self, editorsdemoid):
         """
         remove editor from demos/editor correspondence.
@@ -901,7 +847,6 @@ class DemoEditorDAO(object):
                 WHERE demo.editor_demo_id=?)''', (int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int), typ(int))
     def remove_editor_from_demo(self, editorsdemoid, editorid):
         """
         remove editor from demos/editor correspondence and editor id.
@@ -915,7 +860,6 @@ class DemoEditorDAO(object):
                 WHERE demo.editor_demo_id=?)''', (int(editorid), int(editorsdemoid),))
         self.conn.commit()
 
-    @validates(typ(int))
     def read(self, the_id):
         """
         get editor from id.
@@ -933,7 +877,6 @@ class DemoEditorDAO(object):
 
         return result
 
-    @validates(typ(int))
     def read_editor_demos(self, editorid):
         """
         get list of demos from an editor id.
@@ -950,7 +893,6 @@ class DemoEditorDAO(object):
             demo_list.append(d)
         return demo_list
 
-    @validates(typ(int))
     def read_demo_editors(self, editordemoid):
         """
         get list of editors from an editor-demo correspondence.
@@ -1005,9 +947,9 @@ def initDb(database_name):
     except Exception as ex:
 
         error_string = ("initDb e:%s" % (str(ex)))
-        print error_string
+        print(error_string)
         status = False
 
-    print "DB Initialized"
+    print("DB Initialized")
 
     return status

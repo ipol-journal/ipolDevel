@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,13 @@
 """
 Main function.
 """
-import sys
 import os
+import sys
+
 import cherrypy
+
 from demoinfo import DemoInfo
+
 
 def CORS():
     """
@@ -38,4 +41,4 @@ if __name__ == '__main__':
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.tools.CORS = cherrypy.Tool('before_handler', CORS)
     cherrypy.log.error_log.setLevel('ERROR')
-    cherrypy.quickstart(DemoInfo.get_instance(), '', config=CONF_FILE_ABS)
+    cherrypy.quickstart(DemoInfo.get_instance(), config=CONF_FILE_ABS)

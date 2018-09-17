@@ -1,14 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Demoinfo Test
 """
+import json
+import os
 # Unit tests for the DemoInfo module
 import socket
-import unittest
-import os
 import sys
-import json
+import unittest
+
 import requests
 
 
