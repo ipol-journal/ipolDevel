@@ -357,6 +357,13 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
 
     \end{enumerate}
     \end{enumerate}
+\end{enumerate}
+
+As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
+in the nginx.conf file under the sysadmin folder.
+
+\subsubsection{Private demos}
+\begin{enumerate}
     \item Add authentication for demos. Only in the machine which serves the static files of the demo, of course.
     \begin{enumerate}
     \item Create subfolder .passwd in /etc/nginx
@@ -394,14 +401,10 @@ To configure the reverse proxy, we will use the sites-enabled, sites-available d
     /etc/nginx/sites-enabled/
     \end{lstlisting}
 
-    \item Check Nginx configuration
-    \begin{lstlisting}[language=Bash]
+    \item Check the nginx's configuration with {\tt sudo nginx -t}
 
-    \end{lstlisting}
+    \item Reload the nginx's configuration with {\tt sudo nginx -s reload}
 \end{enumerate}
-
-As a good practice we enable Nginx gzip compression for static files. An example of this configuration part is located at the project repository 
-in the nginx.conf file under the sysadmin folder.
 
 \subsection{Management}
 
