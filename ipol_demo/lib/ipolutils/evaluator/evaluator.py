@@ -1,3 +1,7 @@
+"""
+IPOL Evaluator wrapper
+"""
+
 import ast
 
 
@@ -51,4 +55,4 @@ def _operate(operation, left, right):
     elif isinstance(operation, ast.Mod):
         return left % right
     else:
-        print "operation {} not supported".format(type(operation))
+        print("operation {} not supported".format(type(operation)))

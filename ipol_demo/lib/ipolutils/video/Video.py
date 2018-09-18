@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # GNU General Public Licence (GPL)
 #
@@ -18,17 +18,19 @@
 Video wrapper for conversion, resizing, reencode.
 """
 
-import errno
-import os
 import datetime
+import errno
 import math
+import os
 import shlex
-
 from subprocess import Popen
-import cv2
+
 import numpy as np
 
+import cv2
+
 from .. import errors
+
 
 class Video(object):
     """
@@ -107,7 +109,7 @@ class Video(object):
 
         if convert_proc.returncode != 0:
             raise errors.IPOLConvertInputError('Conversion error: video could not be converted to AVI')
-        
+
         if avconv_options:
             return 1 #lossy
         return 0 #lossless

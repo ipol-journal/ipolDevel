@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # GNU General Public Licence (GPL)
 #
@@ -22,9 +22,11 @@ import errno
 import mimetypes
 import os
 
-import cv2
 import numpy as np
+
+import cv2
 import tifffile
+
 
 class Image(object):
     '''
@@ -243,9 +245,9 @@ class Image(object):
         Crop data according to a 4-tuple rectangle (left, upper, right, lower)
         '''
         if width <= 0 or height <= 0 or x < 0 or y < 0:
-            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
-        if x + width > self.width or y + height > self.height:
-            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width, self.height))
+            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width(), self.height()))
+        if x + width > self.width() or y + height > self.height():
+            raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width(), self.height()))
         self.data = self.data[y:y+height, x:x+width]
 
     def get_channels(self):

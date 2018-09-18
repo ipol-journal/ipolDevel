@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # GNU General Public Licence (GPL)
 #
@@ -16,10 +16,12 @@
 """
 Utils shared among IPOL modules.
 """
-import os
-import mimetypes
 import errno
-from image.Image import Image
+import mimetypes
+import os
+
+from .image.Image import Image
+
 
 def thumbnail(src_file, height, dst_file):
     """
