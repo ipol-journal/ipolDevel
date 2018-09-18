@@ -40,10 +40,10 @@ function lint() {
 }
 
 # Modules start
-alias core="cd ~/ipolDevel/ipol_demo/modules/core && ./main.py"
-alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && ./main.py"
-alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && ./main.py"
-alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && ./main.py"
-alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && ./main.py"
-alias demoinfo="cd ~/ipolDevel/ipol_demo/modules/demoinfo && ./main.py"
-alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && ./main.py"
+alias core="cd ~/ipolDevel/ipol_demo/modules/core && source venv/bin/activate && ./main.py"
+alias conversion="cd ~/ipolDevel/ipol_demo/modules/conversion && source venv/bin/activate && ./main.py"
+alias blobs="cd ~/ipolDevel/ipol_demo/modules/blobs && source venv/bin/activate && ./main.py"
+alias dispatcher="cd ~/ipolDevel/ipol_demo/modules/dispatcher && source venv/bin/activate && ./main.py"
+alias demorunner="cd ~/ipolDevel/ipol_demo/modules/demorunner && source venv/bin/activate && ./main.py"
+alias demoinfo="cd ~/ipolDevel/ipol_demo/modules/demoinfo && source venv/bin/activate && ./main.py"
+alias archive="cd ~/ipolDevel/ipol_demo/modules/archive && source venv/bin/activate && ./main.py"
