@@ -1,20 +1,22 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Conversion tests.
 """
+import json
+import os
+import shutil
 # Unit tests for the Conversion module
 import socket
-import json
-import unittest
-import shutil
-import os
 import sys
 import tempfile
-import cv2
-import requests
+import unittest
+
 import magic
 import numpy as np
+
+import cv2
+import requests
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
 
@@ -106,7 +108,7 @@ class ConversionImageTests(unittest.TestCase):
             '.tif': 'image/tiff',
             '.TIFF': 'image/tiff',
         }
-        for src_ext, src_mime in exts.iteritems():
+        for src_ext, src_mime in list(exts.items()):
             src_file = tempfile.NamedTemporaryFile(suffix=src_ext, prefix="ipol_", delete=True)
             src_im = Image.data(data)
             src_im.write(src_file.name)
@@ -115,7 +117,7 @@ class ConversionImageTests(unittest.TestCase):
                 msg="Bad file encoding, {} is not {}".format(src_file.name, src_mime)
             )
             src_im = Image.load(src_file.name)
-            for dst_ext, dst_mime in exts.iteritems():
+            for dst_ext, dst_mime in list(exts.items()):
                 dst_file = tempfile.NamedTemporaryFile(suffix=dst_ext, prefix="ipol_", delete=True)
                 src_im.write(dst_file.name) # write to dest should encoding conversion
                 self.assertTrue(

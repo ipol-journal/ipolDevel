@@ -1,28 +1,28 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
 IPOL Conversion module, services to convert blobs.
 """
 
-import logging
-import os
+import base64
+import configparser
 import glob
 import json
-import sys
+import logging
 import math
-import ConfigParser
-import re
-import base64
 import mimetypes
+import os
+import re
+import sys
 
 import cherrypy
 import numpy as np
+
+from errors import IPOLConvertInputError, IPOLCropInputError
+from ipolutils.errors import IPOLTypeError
+from ipolutils.evaluator.evaluator import evaluate
 from ipolutils.image.Image import Image
 from ipolutils.video.Video import Video
-from ipolutils.evaluator.evaluator import evaluate
-from ipolutils.errors import IPOLTypeError
-from errors import IPOLConvertInputError
-from errors import IPOLCropInputError
 
 
 def authenticate(func):
@@ -38,7 +38,7 @@ def authenticate(func):
                         "X-Real-IP" in cherrypy.request.headers and is_authorized_ip(\
                     cherrypy.request.headers["X-Real-IP"])):
             error = {'status': 'KO', 'error': "Authentication Failed"}
-            return json.dumps(error, indent=4)
+            return json.dumps(error, indent=4).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -109,13 +109,13 @@ class Conversion(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -150,7 +150,7 @@ class Conversion(object):
         Default method invoked when asked for non-existing service.
         """
         data = {'status': 'KO', "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @staticmethod
     @cherrypy.expose
@@ -159,7 +159,7 @@ class Conversion(object):
         Ping service: answer with a PONG.
         """
         data = {'status': 'OK', "ping": "pong"}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -174,7 +174,7 @@ class Conversion(object):
         except Exception as ex:
             self.logger.exception("Failed to shutdown. {}: {}".format(type(ex).__name__, str(ex)))
             sys.exit(1)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def convert(self, work_dir, inputs_description, crop_info=None):
@@ -241,7 +241,7 @@ class Conversion(object):
             message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
             return self.make_KO_response(message, work_dir)
         # globally OK (no exception), but for some input, a return code could be -1
-        return json.dumps({'status': 'OK', 'info': info})
+        return json.dumps({'status': 'OK', 'info': info}).encode()
 
     @staticmethod
     def make_KO_response(message, work_dir):
@@ -251,7 +251,7 @@ class Conversion(object):
         response = {'status':'KO'}
         # do not send full path to client
         response['error'] = message.replace(work_dir, '<work_dir>')
-        return json.dumps(response, indent=4)
+        return json.dumps(response, indent=4).encode()
 
     @staticmethod
     def convert_image(input_file, input_desc, crop_info=None):
@@ -353,7 +353,7 @@ class Conversion(object):
         except Exception:
             message = "TIFF to PNG for client, conversion failure."
             self.logger.exception(message)
-        return json.dumps(data, indent=4)
+        return json.dumps(data, indent=4).encode()
 
 class ConverterImage(object):
     """
