@@ -1,6 +1,7 @@
 backports.functools-lru-cache==1.5
 cheroot==6.4.0
 CherryPy==17.0.0
+configparser==3.5.0
 jaraco.functools==1.20
 more-itertools==4.3.0
 numpy==1.15.0

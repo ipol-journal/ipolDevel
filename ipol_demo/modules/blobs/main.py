@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
@@ -10,8 +10,11 @@ Create the cherrypy server
 
 import os
 import sys
+
 import cherrypy
+
 from blobs import Blobs
+
 
 def CORS():
     """

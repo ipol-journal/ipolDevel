@@ -1,14 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Blobs tests
 """
+import os
 # Unit tests for the Blobs module
 import socket
-import unittest
-import os
 import sys
+import unittest
+
 import requests
+
 
 class BlobsTests(unittest.TestCase):
     """

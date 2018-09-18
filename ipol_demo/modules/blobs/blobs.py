@@ -1,34 +1,31 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
 This file implements the system core of the server
 It implements Blob object and web service
 """
+import configparser
+import glob
 import hashlib
 import json
-import os
-import sys
 import logging
-import glob
 import mimetypes
-
 import operator
-import ConfigParser
+import os
 import re
 import shutil
-from threading import Lock
 import sqlite3 as lite
-import magic
-import cherrypy
-from ipolutils.utils import thumbnail
+import sys
+from threading import Lock
 
+import cherrypy
+import magic
 
 import database
-from errors import IPOLBlobsDataBaseError
-from errors import IPOLBlobsTemplateError
-from errors import IPOLBlobsThumbnailError
-from errors import IPOLRemoveDirError
+from errors import (IPOLBlobsDataBaseError, IPOLBlobsTemplateError,
+                    IPOLBlobsThumbnailError, IPOLRemoveDirError)
+from ipolutils.utils import thumbnail
 
 
 def authenticate(func):
@@ -44,7 +41,7 @@ def authenticate(func):
                 and not ("X-Real-IP" in cherrypy.request.headers
                          and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -100,7 +97,7 @@ class Blobs(object):
                 os.makedirs(self.logs_dir)
             self.logger = self.init_logging()
         except Exception as ex:
-            print "Failed to create log dir. Error: {}".format(ex)
+            print("Failed to create log dir. Error: {}".format(ex))
 
         # Lock
         self.lock = Lock()
@@ -199,13 +196,13 @@ class Blobs(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -224,7 +221,7 @@ class Blobs(object):
         Default method invoked when asked for non-existing service.
         """
         data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @staticmethod
     @cherrypy.expose
@@ -233,7 +230,7 @@ class Blobs(object):
         Ping service: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -248,7 +245,7 @@ class Blobs(object):
         except Exception as ex:
             self.logger.error("Failed to shutdown : {}".format(ex))
             sys.exit(1)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def add_blob(self, blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
         """
@@ -283,7 +280,7 @@ class Blobs(object):
             except IPOLBlobsThumbnailError as ex:
                 # An error in the creation of the thumbnail doesn't stop the execution of the method
                 self.logger.exception("Error creating the thumbnail")
-                print "Couldn't create the thumbnail. Error: {}".format(ex)
+                print("Couldn't create the thumbnail. Error: {}".format(ex))
 
             self.associate_tags_to_blob(conn, blob_id, tags)
 
@@ -313,15 +310,15 @@ class Blobs(object):
 
         except IOError as ex:
             self.logger.exception("Error copying uploaded blob")
-            print "Couldn't copy uploaded blob. Error: {}".format(ex)
+            print("Couldn't copy uploaded blob. Error: {}".format(ex))
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Error adding blob info to DB")
-            print "Couldn't add blob info to DB. Error: {}".format(ex)
+            print("Couldn't add blob info to DB. Error: {}".format(ex))
         except IPOLBlobsTemplateError as ex:
-            print "Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(ex)
+            print("Couldn't add blob to template. blob. Template doesn't exists. Error: {}".format(ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while adding the blob")
-            print "*** Unhandled exception while adding the blob. Error: {}".format(ex)
+            print("*** Unhandled exception while adding the blob. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -337,9 +334,9 @@ class Blobs(object):
         """
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
-            return json.dumps({"status": "OK"})
+            return json.dumps({"status": "OK"}).encode()
 
-        return json.dumps({"status": "KO"})
+        return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
@@ -351,8 +348,8 @@ class Blobs(object):
         dest = {"dest": "template", "name": template_name}
 
         if self.add_blob(blob, tags, blob_set, pos_set, title, credit, dest, blob_vr):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     def store_blob(self, conn, blob, credit, blob_hash, ext, blob_format):
         """
@@ -368,7 +365,7 @@ class Blobs(object):
             blob_id = database.store_blob(conn, blob_hash, blob_format, ext, credit)
             conn.commit()
             return blob_id
-        except (IPOLBlobsDataBaseError):
+        except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
@@ -429,7 +426,7 @@ class Blobs(object):
                 database.create_demo(conn, demo_id)
             database.add_blob_to_demo(conn, demo_id, blob_id, pos_set, blob_set, blob_title)
             conn.commit()
-        except (IPOLBlobsDataBaseError):
+        except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
@@ -444,7 +441,7 @@ class Blobs(object):
 
             database.add_blob_to_template(conn, template_name, blob_id, pos_set, blob_set, blob_title)
             conn.commit()
-        except (IPOLBlobsDataBaseError):
+        except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
@@ -471,7 +468,7 @@ class Blobs(object):
                 database.create_tags(conn, tag_list)
             database.add_tags_to_blob(conn, tag_list, blob_id)
             conn.commit()
-        except (IPOLBlobsDataBaseError):
+        except IPOLBlobsDataBaseError:
             conn.rollback()
             raise
 
@@ -494,17 +491,17 @@ class Blobs(object):
             if conn is not None:
                 conn.rollback()
             self.logger.exception("Fail creating template {}".format(template_name))
-            print "Couldn't create the template {}. Error: {}".format(template_name, ex)
+            print("Couldn't create the template {}. Error: {}".format(template_name, ex))
         except Exception as ex:
             if conn is not None:
                 conn.rollback()
             self.logger.exception("*** Unhandled exception while creating the template {}".format(template_name))
-            print "*** Unhandled exception while creating the template {}. Error: {}".format(template_name, ex)
+            print("*** Unhandled exception while creating the template {}. Error: {}".format(template_name, ex))
 
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(status)
+        return json.dumps(status).encode()
 
     @cherrypy.expose
     @authenticate
@@ -532,22 +529,22 @@ class Blobs(object):
             if conn is not None:
                 conn.rollback()
             self.logger.exception("Fails linking templates {} to the demo #{}".format(template_names, demo_id))
-            print "Couldn't link templates {} to the demo #{}. Error: {}".format(template_names, demo_id, ex)
+            print("Couldn't link templates {} to the demo #{}. Error: {}".format(template_names, demo_id, ex))
         except IPOLBlobsTemplateError as ex:
             if conn is not None:
                 conn.rollback()
-            print "Some of the templates {} does not exist. Error: {}".format(template_names, ex)
+            print("Some of the templates {} does not exist. Error: {}".format(template_names, ex))
         except Exception as ex:
             if conn is not None:
                 conn.rollback()
             self.logger.exception("*** Unhandled exception while linking the templates {} to the demo #{}"
                                   .format(template_names, demo_id))
-            print "*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}" \
-                .format(template_names, demo_id, ex)
+            print("*** Unhandled exception while linking the templates {} to the demo #{}. Error:{}" \
+                .format(template_names, demo_id, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(status)
+        return json.dumps(status).encode()
 
     @cherrypy.expose
     def get_blobs(self, demo_id):
@@ -570,16 +567,16 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining all the blobs from demo #{}".format(demo_id))
-            print "Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex)
+            print("Couldn't obtain all the blobs from demo #{}. Error: {}".format(demo_id, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining all the blobs from demo #{}"
                                   .format(demo_id))
-            print "*** Unhandled exception while obtaining all the blobs from demo #{}. Error: {}" \
-                .format(demo_id, ex)
+            print("*** Unhandled exception while obtaining all the blobs from demo #{}. Error: {}" \
+                .format(demo_id, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def prepare_list(self, blobs):
         """
@@ -593,7 +590,7 @@ class Blobs(object):
             else:
                 sets[blob_set] = [self.get_blob_info(blob)]
 
-        sorted_sets = sorted(sets.items(), key=operator.itemgetter(0))
+        sorted_sets = sorted(list(sets.items()), key=operator.itemgetter(0))
         result = []
         for blob_set in sorted_sets:
             dic = {}
@@ -617,7 +614,7 @@ class Blobs(object):
 
             if not database.template_exist(conn, template_name):
                 # If the requested template doesn't exist the method will return a KO
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             sets = self.prepare_list(database.get_template_blobs(conn, template_name))
 
@@ -626,16 +623,16 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from template '{}'".format(template_name))
-            print "Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_name, ex)
+            print("Couldn't obtain owned blobs from template '{}'. Error: {}".format(template_name, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the owned blobs from template '{}'"
                                   .format(template_name))
-            print "*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}" \
-                .format(template_name, ex)
+            print("*** Unhandled exception while obtaining the owned blobs from template '{}'. Error: {}" \
+                .format(template_name, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demo_owned_blobs(self, demo_id):
@@ -654,16 +651,16 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned blobs from demo #{}".format(demo_id))
-            print "Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex)
+            print("Couldn't obtain owned blobs from demo #{}. Error: {}".format(demo_id, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the owned blobs from demo #{}"
                                   .format(demo_id))
-            print "*** Unhandled exception while obtaining the owned blobs from demo #{}. Error: {}" \
-                .format(demo_id, ex)
+            print("*** Unhandled exception while obtaining the owned blobs from demo #{}. Error: {}" \
+                .format(demo_id, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def blob_has_thumbnail(self, blob_hash):
         '''
@@ -744,16 +741,16 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the owned templates from demo #{}".format(demo_id))
-            print "Couldn't obtain owned templates from demo #{}. Error: {}".format(demo_id, ex)
+            print("Couldn't obtain owned templates from demo #{}. Error: {}".format(demo_id, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the owned templates from demo #{}"
                                   .format(demo_id))
-            print "*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}" \
-                .format(demo_id, ex)
+            print("*** Unhandled exception while obtaining the owned templates from demo #{}. Error: {}" \
+                .format(demo_id, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -770,15 +767,15 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Failed to add the tags to blob")
-            print "Failed to add the tags to blob. DB Error: {}".format(ex)
+            print("Failed to add the tags to blob. DB Error: {}".format(ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while adding the tags to blob")
-            print "*** Unhandled exception while adding the tags to blob. Error: {}" \
-                .format(ex)
+            print("*** Unhandled exception while adding the tags to blob. Error: {}" \
+                .format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def remove_blob(self, blob_set, pos_set, dest):
         """
@@ -813,19 +810,19 @@ class Blobs(object):
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing blob")
-            print "Failed to remove blob from DB. Error: {}".format(ex)
+            print("Failed to remove blob from DB. Error: {}".format(ex))
         except OSError as ex:
             conn.rollback()
             self.logger.exception("OS error while deleting blob file")
-            print "Failed to remove blob from file system. Error: {}".format(ex)
+            print("Failed to remove blob from file system. Error: {}".format(ex))
         except IPOLRemoveDirError as ex:
             # There is no need to do a rollback if the problem was deleting directories
             self.logger.exception("Failed to remove directories")
-            print "Failed to remove directories. Error: {}".format(ex)
+            print("Failed to remove directories. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while removing the blob")
-            print "*** Unhandled exception while removing the blob. Error: {}".format(ex)
+            print("*** Unhandled exception while removing the blob. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -839,8 +836,8 @@ class Blobs(object):
         """
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.remove_blob(blob_set, pos_set, dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
@@ -850,8 +847,8 @@ class Blobs(object):
         """
         dest = {"dest": "template", "name": template_name}
         if self.remove_blob(blob_set, pos_set, dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     def delete_blob_container(self, dest):
         """
@@ -884,19 +881,19 @@ class Blobs(object):
         except OSError as ex:
             conn.rollback()
             self.logger.exception("OS error while deleting blob file")
-            print "Failed to remove blob from file system. Error: {}".format(ex)
+            print("Failed to remove blob from file system. Error: {}".format(ex))
         except IPOLRemoveDirError as ex:
             # There is no need to do a rollback if the problem was deleting directories
             self.logger.exception("Failed to remove directories")
-            print "Failed to remove directories. Error: {}".format(ex)
+            print("Failed to remove directories. Error: {}".format(ex))
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the demo/template")
-            print "Failed to remove the demo/template. Error: {}".format(ex)
+            print("Failed to remove the demo/template. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while removing the demo/template")
-            print "*** Unhandled exception while removing the demo/template. Error: {}".format(ex)
+            print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -910,8 +907,8 @@ class Blobs(object):
         """
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.delete_blob_container(dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
@@ -921,8 +918,8 @@ class Blobs(object):
         """
         dest = {"dest": "template", "name": template_name}
         if self.delete_blob_container(dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
@@ -940,15 +937,15 @@ class Blobs(object):
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the template from the demo")
-            print "Failed to remove the template from the demo. Error: {}".format(ex)
+            print("Failed to remove the template from the demo. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while removing the template from the demo")
-            print "*** Unhandled exception while removing the template from the demo. Error: {}".format(ex)
+            print("*** Unhandled exception while removing the template from the demo. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -967,15 +964,15 @@ class Blobs(object):
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while removing the demo/template")
-            print "Failed to remove the demo/template. Error: {}".format(ex)
+            print("Failed to remove the demo/template. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while removing the demo/template")
-            print "*** Unhandled exception while removing the demo/template. Error: {}".format(ex)
+            print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def remove_files_associated_to_a_blob(self, blob_hash):
         """
@@ -1034,8 +1031,8 @@ class Blobs(object):
         """
         dest = {"dest": "demo", "demo_id": demo_id}
         if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1046,8 +1043,8 @@ class Blobs(object):
         """
         dest = {"dest": "template", "name": template_name}
         if self.edit_blob(tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, vr, dest):
-            return json.dumps({"status": "OK"})
-        return json.dumps({"status": "KO"})
+            return json.dumps({"status": "OK"}).encode()
+        return json.dumps({"status": "KO"}).encode()
 
     def edit_blob(self, tags, blob_set, new_blob_set, pos_set, new_pos_set, title, credit, blob_vr, dest):
         """
@@ -1095,18 +1092,18 @@ class Blobs(object):
                     self.create_thumbnail(blob_file, blob_hash)
                 except IPOLBlobsThumbnailError as ex:
                     self.logger.exception("Error creating the thumbnail")
-                    print "Couldn't create the thumbnail. Error: {}".format(ex)
+                    print("Couldn't create the thumbnail. Error: {}".format(ex))
             conn.commit()
             res = True
 
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while editing the blob")
-            print "Failed editing the blob. Error: {}".format(ex)
+            print("Failed editing the blob. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while editing the blob")
-            print "*** Unhandled exception while editing the blob. Error: {}".format(ex)
+            print("*** Unhandled exception while editing the blob. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
@@ -1134,14 +1131,14 @@ class Blobs(object):
             data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while reading all the templates")
-            print "Failed reading all the templates. Error: {}".format(ex)
+            print("Failed reading all the templates. Error: {}".format(ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while reading all the templates")
-            print "*** Unhandled exception while reading all the templates. Error: {}".format(ex)
+            print("*** Unhandled exception while reading all the templates. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1155,7 +1152,7 @@ class Blobs(object):
             conn = lite.connect(self.database_file)
             blob_data = database.get_blob_data(conn, blob_id)
             if blob_data is None:
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             blob_hash = blob_data.get('hash')
             subdir = self.get_subdir(blob_hash)
@@ -1185,21 +1182,21 @@ class Blobs(object):
                         self.create_thumbnail(blobs_in_dir[0], blob_hash)
             except IPOLBlobsThumbnailError as ex:
                 self.logger.exception("Error creating the thumbnail")
-                print "Couldn't create the thumbnail. Error: {}".format(ex)
+                print("Couldn't create the thumbnail. Error: {}".format(ex))
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB error while removing the visual representation")
-            print "Failed removing the visual representation. Error: {}".format(ex)
+            print("Failed removing the visual representation. Error: {}".format(ex))
         except Exception as ex:
             mess = "*** Unhandled exception while removing the visual representation."
             self.logger.exception(mess)
-            print "{} Error: {}".format(mess, ex)
+            print("{} Error: {}".format(mess, ex))
         finally:
             if conn is not None:
                 conn.close()
 
         data['status'] = 'OK'
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -1217,15 +1214,15 @@ class Blobs(object):
         except IPOLBlobsDataBaseError as ex:
             conn.rollback()
             self.logger.exception("DB error while updating demo id")
-            print "Failed while updating demo id. Error: {}".format(ex)
+            print("Failed while updating demo id. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while updating demo id")
-            print "*** Unhandled exception while updating demo id. Error: {}".format(ex)
+            print("*** Unhandled exception while updating demo id. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_blobs_location(self, blobs_ids):
@@ -1249,15 +1246,15 @@ class Blobs(object):
             data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting blob location")
-            print "DB operation failed while getting blob location. Error: {}".format(ex)
+            print("DB operation failed while getting blob location. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while getting blob location")
-            print "*** Unhandled exception while getting blob location. Error: {}".format(ex)
+            print("*** Unhandled exception while getting blob location. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demos_using_the_template(self, template_name):
@@ -1272,15 +1269,15 @@ class Blobs(object):
             data['status'] = 'OK'
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("DB operation failed while getting the list of demos that uses the template")
-            print "DB operation failed while getting the list of demos that uses the template. Error: {}".format(ex)
+            print("DB operation failed while getting the list of demos that uses the template. Error: {}".format(ex))
         except Exception as ex:
             conn.rollback()
             self.logger.exception("*** Unhandled exception while getting the list of demos that uses the template")
-            print "*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(ex)
+            print("*** Unhandled exception while getting the list of demos that uses the template. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def stats(self):
@@ -1297,11 +1294,11 @@ class Blobs(object):
             data['status'] = 'OK'
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while getting the blobs stats")
-            print "*** Unhandled exception while getting the blobs stats. Error: {}".format(ex)
+            print("*** Unhandled exception while getting the blobs stats. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # ----------- DEPRECATED FUNCTIONS ---------------
     # This functions are for the OLD web interface and
@@ -1335,16 +1332,16 @@ class Blobs(object):
 
         except IPOLBlobsDataBaseError as ex:
             self.logger.exception("Fails obtaining the blobs from demo #{}".format(demo_name))
-            print "Couldn't obtain the blobs from demo #{}. Error: {}".format(demo_name, ex)
+            print("Couldn't obtain the blobs from demo #{}. Error: {}".format(demo_name, ex))
         except Exception as ex:
             self.logger.exception("*** Unhandled exception while obtaining the blobs from demo #{}"
                                   .format(demo_name))
-            print "*** Unhandled exception while obtaining the blobs from demo #{}. Error: {}" \
-                .format(demo_name, ex)
+            print("*** Unhandled exception while obtaining the blobs from demo #{}. Error: {}" \
+                .format(demo_name, ex))
         finally:
             if conn is not None:
                 conn.close()
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     def prepare_list_deprecated(self, blobs):
         """
@@ -1358,7 +1355,7 @@ class Blobs(object):
             else:
                 sets[blob_set] = [self.get_blob_info_deprecated(blob)]
 
-        sorted_sets = sorted(sets.items(), key=operator.itemgetter(0))
+        sorted_sets = sorted(list(sets.items()), key=operator.itemgetter(0))
         result = []
         for element in sorted_sets:
             blob_set = [{'set_name': element[0], 'size': len(element[1])}]
