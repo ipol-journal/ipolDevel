@@ -1,18 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
 Helper functions for core, related to the archive module.
 """
 
-from collections import OrderedDict
-
-import os
-import traceback
 import gzip
 import json
+import os
+import traceback
+from collections import OrderedDict
+
 import requests
 from ipolutils.utils import thumbnail
+
 
 def create_thumbnail(src_file):
     """
@@ -40,7 +41,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
     # let's add all the parameters
     parameters = OrderedDict()
     blobs = []
-    for key, values in ddl_archive.iteritems():
+    for key, values in ddl_archive.items():
         if  key == 'params':
             for p in values:
                 if p in res_data['params']:
@@ -50,7 +51,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 if i in res_data['algo_info']:
                     parameters[values[i]] = res_data['algo_info'][i]
         elif key == 'files' or key == 'hidden_files':
-            for file_name, file_label in values.iteritems():
+            for file_name, file_label in values.items():
 
                 src_file = os.path.join(work_dir, file_name)
                 if not os.path.exists(src_file):
@@ -62,12 +63,12 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                 try: # to get a thumbnail
                     thumb_file = create_thumbnail(src_file)
                 except Exception:
-                    print traceback.format_exc()
+                    print(traceback.format_exc())
                 if thumb_file:
                     value[os.path.basename(thumb_file)] = thumb_file
                 blobs.append(value)
         elif  key == 'compressed_files':
-            for file_name, file_label in values.iteritems():
+            for file_name, file_label in values.items():
 
                 src_file = os.path.join(work_dir, file_name)
                 if not os.path.exists(src_file):
@@ -91,17 +92,15 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             # Count how many file entries and remove them
             file_keys = [key for key in request if key.startswith("file_")]
             files = request.copy()
-            map(files.pop, file_keys)
+            list(map(files.pop, file_keys))
             clientData["files"] = len(file_keys)
 
-        clientData = json.dumps(clientData)
+        execution = {}
+        execution['demo_id'] = demo_id
+        execution['request'] = clientData
+        execution['response'] = res_data
 
-        execution_json = {}
-        execution_json['demo_id'] = demo_id
-        execution_json['request'] = clientData
-        execution_json['response'] = res_data
-
-        execution_json = json.dumps(execution_json)
+        execution_json = json.dumps(execution)
     else:
         execution_json = None
 

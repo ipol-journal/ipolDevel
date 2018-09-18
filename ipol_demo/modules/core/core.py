@@ -1,77 +1,53 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 """
 IPOL Core module
 """
-import re
-# To send emails
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
-
-import xml.etree.ElementTree as ET
-
-import shutil
-import json
-import ConfigParser
-
+import configparser
 import errno
+import glob
+import hashlib
+import json
 import logging
+import mimetypes
 import os
 import os.path
-import traceback
-
-import urllib
-
-import hashlib
-from datetime import datetime
-from random import random
-import glob
-import time
-
-import tarfile
-import zipfile
-
+import re
+import shutil
+# To send emails
+import smtplib
 import socket
-
-import mimetypes
-
+import tarfile
+import time
+import traceback
+import urllib.error
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+import zipfile
 from collections import OrderedDict
+from datetime import datetime
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from random import random
 
-import requests
 import cherrypy
 import magic
 
-
+import requests
 from archive import send_to_archive
-
-from errors import IPOLDemoExtrasError
-from errors import IPOLExtractError
-from errors import IPOLInputUploadError
-from errors import IPOLCopyBlobsError
-from errors import IPOLInputUploadTooLargeError
-from errors import IPOLUploadedInputRejectedError
-from errors import IPOLMissingRequiredInputError
-from errors import IPOLProcessInputsError
-
-from errors import IPOLWorkDirError
-from errors import IPOLKeyError
-from errors import IPOLDecodeInterfaceRequestError
-from errors import IPOLReadDDLError
-from errors import IPOLCheckDDLError
-from errors import IPOLFindSuitableDR
-from errors import IPOLEnsureCompilationError
-from errors import IPOLConversionError
-from errors import IPOLPrepareFolderError
-from errors import IPOLExecutionError
-from errors import IPOLDemoRunnerResponseError
-from ipolutils.evaluator.evaluator import evaluate
-from ipolutils.evaluator.evaluator import IPOLEvaluateError
-
+from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
+                    IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError,
+                    IPOLDemoRunnerResponseError, IPOLEnsureCompilationError,
+                    IPOLExecutionError, IPOLExtractError, IPOLFindSuitableDR,
+                    IPOLInputUploadError, IPOLInputUploadTooLargeError,
+                    IPOLKeyError, IPOLMissingRequiredInputError,
+                    IPOLPrepareFolderError, IPOLProcessInputsError,
+                    IPOLReadDDLError, IPOLUploadedInputRejectedError,
+                    IPOLWorkDirError)
+from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 # deprecated, should be droped with old run
 from Tools.image import image
-
-
 
 
 def authenticate(func):
@@ -87,7 +63,7 @@ def authenticate(func):
                 and not ("X-Real-IP" in cherrypy.request.headers
                          and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip_number):
@@ -198,7 +174,7 @@ class Core(object):
             self.mkdir_p(self.demo_extras_main_dir)
 
             self.load_demorunners()
-        except Exception as ex:
+        except Exception:
             self.logger.exception("__init__")
 
     def read_authorized_patterns(self):
@@ -214,13 +190,13 @@ class Core(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -264,11 +240,11 @@ class Core(object):
                 data['status'] = 'OK'
 
         except Exception as ex:
-            print ex
+            print(ex)
             self.logger.exception("refresh_demorunners")
             data["error"] = "Can not refresh demorunners"
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demorunners(self):
@@ -279,12 +255,12 @@ class Core(object):
         try:
             data["demorunners"] = str(self.demorunners)
         except Exception as ex:
-            print ex
+            print(ex)
             self.logger.exception("get_demorunners")
             data["status"] = "KO"
             data["message"] = "Can't get demorunners"
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_demorunners_stats(self):
@@ -319,12 +295,12 @@ class Core(object):
                 continue
             except Exception as ex:
                 message = "Couldn't get the DRs workload. Error = {}".format(ex)
-                print message
+                print(message)
                 self.logger.exception(message)
-                return json.dumps({'status': 'KO', 'message': message})
+                return json.dumps({'status': 'KO', 'message': message}).encode()
 
         # Return the DRs in the response
-        return json.dumps({'status': 'OK', 'demorunners': demorunners})
+        return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
 
     def demorunners_workload(self):
         """
@@ -431,7 +407,7 @@ class Core(object):
         for publication_state in demos_by_state:
             # Sort demo list by demo ID
             demos_by_state[publication_state] = sorted(demos_by_state[publication_state],\
-                                                key=lambda(d): (d['editorsdemoid']), \
+                                                key=lambda d: (d['editorsdemoid']), \
                                                 reverse=True)
 
             if demos_by_state[publication_state]:
@@ -484,7 +460,7 @@ class Core(object):
         Ping: answer with a PONG.
         """
         data = {"status": "OK", "ping": "pong"}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -498,7 +474,7 @@ class Core(object):
             data["status"] = "OK"
         except Exception:
             self.logger.exception("shutdown")
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @staticmethod
     @cherrypy.expose
@@ -507,7 +483,7 @@ class Core(object):
         Default method invoked when asked for a non-existing service.
         """
         data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     # ---------------------------------------------------------------------------
     # INPUT HANDLING TOOLS (OLD with a few modifications)
@@ -647,7 +623,7 @@ class Core(object):
             file_up = blobs.pop('file_%i' % i, None)
 
             if file_up is None or file_up.filename == '':
-                if 'required' not in inputs_desc[i].keys() or \
+                if 'required' not in list(inputs_desc[i].keys()) or \
                         inputs_desc[i]['required']:
                     # missing file
                     raise IPOLMissingRequiredInputError(i)
@@ -678,7 +654,7 @@ class Core(object):
             # the actual content.
             # Later Core will eventually ask the system to convert the
             # data (for example, encode in PNG).
-            file_save = file(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
+            file_save = open(os.path.join(work_dir, 'input_%i' % i + ext_of_uploaded_blob), 'wb')
 
             # Read and save the file
             size = 0
@@ -715,7 +691,7 @@ class Core(object):
                     shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
                 except Exception as ex:
                     self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
-                    print "Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex)
+                    print("Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex))
 
                 index += 1
         else:
@@ -748,7 +724,7 @@ class Core(object):
                 raise IPOLCheckDDLError("Bad DDL syntax: missing '{}' section.".format(section))
 
         # Empty run
-        if not ddl['run'] or ddl['run'].decode('utf-8').isspace():
+        if not ddl['run'] or ddl['run'].isspace():
             raise IPOLCheckDDLError("Bad DDL run section: run is empty.")
 
         if 'inputs' in ddl:
@@ -756,49 +732,43 @@ class Core(object):
             if not isinstance(ddl['inputs'], list):
                 raise IPOLCheckDDLError("Bad DDL inputs section: expected list.")
 
-            if ddl['inputs']:
-                required_fields = {\
-                    'video' : ('max_pixels', 'max_frames'),\
-                    'image' : ('max_pixels', 'ext', 'dtype'),\
-                    'data' : ('ext',)\
-                    }
+            required_fields = {\
+                'video' : ('max_pixels', 'max_frames'),\
+                'image' : ('max_pixels', 'ext', 'dtype'),\
+                'data' : ('ext',)\
+            }
 
-                fields_positive = ('max_pixels', 'max_frames')
+            # Integer and positive values
+            natural_fields = ('max_pixels', 'max_frames')
 
-                for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
+            for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
-                    if not 'type' in input_in_ddl:
-                        raise IPOLCheckDDLError("Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter))
+                if not 'type' in input_in_ddl:
+                    raise IPOLCheckDDLError("Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter))
 
-                    if not input_in_ddl['type'] in required_fields:
-                        raise IPOLCheckDDLError("Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter))
+                if not input_in_ddl['type'] in required_fields:
+                    raise IPOLCheckDDLError("Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter))
 
-                    for required_field in required_fields[input_in_ddl['type']]:
-                        if not required_field in input_in_ddl:
-                            raise IPOLCheckDDLError("Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter))
+                for required_field in required_fields[input_in_ddl['type']]:
+                    if not required_field in input_in_ddl:
+                        raise IPOLCheckDDLError("Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter))
 
-                        if required_field in fields_positive:
-                            value = evaluate(input_in_ddl[required_field])
-                            integer = float(value) == int(value)
-                            if value <= 0 or not integer:
-                                raise IPOLCheckDDLError("Bad DDL inputs section: '{}' field must be a positive integer value in input #{}.".format(required_field, inputs_counter))
+                    if required_field in natural_fields:
+                        value = evaluate(input_in_ddl[required_field])
+                        integer = float(value) == int(value)
+                        if value <= 0 or not integer:
+                            raise IPOLCheckDDLError("Bad DDL inputs section: '{}' field must be a positive integer value in input #{}.".format(required_field, inputs_counter))
 
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
             raise IPOLCheckDDLError("Bad DDL archive section: expected list of parameters, but found {}".format(type(ddl['archive']['params']).__name__))
-
-        # None = no errors detected
-        return None
 
     @staticmethod
     def download(url_file, filename):
         """
         Downloads a file from its URL
         """
-        url_handle = urllib.urlopen(url_file)
-        file_handle = open(filename, 'w')
-        file_handle.write(url_handle.read())
-        file_handle.close()
+        urllib.request.urlretrieve(url_file, filename)
 
 
     @staticmethod
@@ -933,7 +903,7 @@ class Core(object):
                  random()]
 
         for seed in seeds:
-            keygen.update(str(seed))
+            keygen.update(str(seed).encode())
         key = keygen.hexdigest().upper()
 
         # check key
@@ -1066,8 +1036,8 @@ class Core(object):
         text += "Traceback follows:\n"
         text += traceback.format_exc()
 
-        print "**** INTERNAL ERROR!\n\n"
-        print text
+        print("**** INTERNAL ERROR!\n\n")
+        print(text)
 
         self.send_email(subject, text, emails, config_emails['sender'])
 
@@ -1078,7 +1048,7 @@ class Core(object):
         try:
             emails_file_path = os.path.join(self.project_folder,
                                             "ipol_demo", "modules", "config_common", "emails.conf")
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             if not os.path.isfile(emails_file_path):
                 self.error_log("read_emails_from_config",
                                "Can't open {}".format(emails_file_path))
@@ -1094,7 +1064,7 @@ class Core(object):
             return emails
         except Exception as ex:
             self.logger.exception("Can't read emails of journal staff")
-            print "Fail reading emails config. Exception:", ex
+            print("Fail reading emails config. Exception:", ex)
 
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
@@ -1201,7 +1171,6 @@ attached the failed experiment data.". \
         """
         Decode the arguments and extract the files send by the web interface
         """
-        # Method could be a function (no-self-use)
         clientdata = json.loads(interface_arguments['clientData'])
         origin = clientdata.get('origin', None)
         if origin is not None:
@@ -1289,7 +1258,7 @@ attached the failed experiment data.". \
 
         # Check if the compilation was successful
         if demorunner_response['status'] != 'OK':
-            print "Compilation error in demo #{}".format(demo_id)
+            print("Compilation error in demo #{}".format(demo_id))
             # Add the compilation failure info into the exception
             buildlog = demorunner_response.get('buildlog', '').encode('utf8')
             demorunner_message = demorunner_response['message'].encode('utf8')
@@ -1306,7 +1275,8 @@ attached the failed experiment data.". \
             raise IPOLKeyError("**INTERNAL ERROR**. Failed to create a valid execution key")
         try:
             work_dir = self.create_run_dir(demo_id, key)
-            # save parameters as a params.json file. Used in failure email or as an input for DemoExtras
+            # save parameters as a params.json file.
+            # Used in failure email or as an input for DemoExtras
             try:
                 json_filename = os.path.join(work_dir, 'params.json')
                 with open(json_filename, 'w') as resfile:
@@ -1407,7 +1377,7 @@ attached the failed experiment data.". \
             raise IPOLExecutionError(error_message, error_message)
 
         if demorunner_response['status'] != 'OK':
-            print "DR answered KO for demo #{}".format(demo_id)
+            print("DR answered KO for demo #{}".format(demo_id))
             demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
             # Message for the web interface
@@ -1506,51 +1476,51 @@ attached the failed experiment data.". \
             messages = []
             messages.extend(prepare_folder_messages)
 
-            return json.dumps(dict(demorunner_response, **{'messages': messages}))
+            return json.dumps(dict(demorunner_response, **{'messages': messages})).encode()
         except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
             self.logger.exception(error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
+            return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLEnsureCompilationError as ex:
             error_message = " --- Compilation error. --- {}".format(str(ex))
             self.send_compilation_error_email(demo_id, error_message)
-            return json.dumps({'error': str(ex), 'status': 'KO'})
+            return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
         except IPOLFindSuitableDR as ex:
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
                 self.send_email_no_demorunner(demo_id)
             error_message = str(ex)
             self.logger.exception(error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
+            return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLWorkDirError as ex:
             error_message = "Could not create work_dir for demo {}".format(demo_id)
             # do not output full path for public
             internal_error_message = (error_message + ". Error: {}").format(str(ex))
             self.logger.exception(internal_error_message)
-            return json.dumps({'error': error_message, 'status': 'KO'})
+            return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError, IPOLCheckDDLError) as ex:
             error_message = str(ex) + " Demo #{}".format(demo_id)
-            return json.dumps({'error': error_message, 'status': 'KO'})
+            return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
             if ex.email_message:
                 self.send_internal_error_email(ex.email_message)
-            return json.dumps({'error': ex.interface_message, 'status': 'KO'})
+            return json.dumps({'error': ex.interface_message, 'status': 'KO'}).encode()
         except IPOLDemoRunnerResponseError as ex:
             # Send email to the editors
             # (unless it's a timeout in a published demo)
             if not (ex.demo_state == 'published' and ex.error == 'IPOLTimeoutError'):
                 self.send_runtime_error_email(demo_id, ex.key, ex.message)
-            return json.dumps({'error': ex.message, 'status': 'KO'})
+            return json.dumps({'error': ex.message, 'status': 'KO'}).encode()
         except Exception as ex:
             # We should never get here.
             #
             # If we arrive here it means that we missed to catch and
             # take care of some exception type.
             error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
-            print traceback.format_exc()
+            print(traceback.format_exc())
             self.logger.exception(error_message)
             self.send_internal_error_email(error_message)
-            return json.dumps({'status': 'KO', 'error': error_message})
+            return json.dumps({'status': 'KO', 'error': error_message}).encode()
 
     @staticmethod
     def save_execution(demo_id, request, response, work_dir):
@@ -1562,7 +1532,7 @@ attached the failed experiment data.". \
         if clientdata.get("origin", "") == "upload":
             # Count how many file entries and remove them
             file_keys = [key for key in request if key.startswith("file_")]
-            map(request.pop, file_keys)
+            list(map(request.pop, file_keys))
             clientdata["files"] = len(file_keys)
 
         clientdata = json.dumps(clientdata)
@@ -1585,8 +1555,8 @@ attached the failed experiment data.". \
         if not os.path.isfile(filename):
             message = "Execution with key={} not found".format(key)
             res_data = {'error': message, 'status': 'KO'}
-            print message
-            return json.dumps(res_data)
+            print(message)
+            return json.dumps(res_data).encode()
 
         try:
             with open(filename, "r") as open_file:
@@ -1596,9 +1566,9 @@ attached the failed experiment data.". \
             self.logger.exception(message)
             self.send_internal_error_email(message)
             res_data = {'error': message, 'status': 'KO'}
-            return json.dumps(res_data)
+            return json.dumps(res_data).encode()
 
-        return json.dumps({'status': 'OK', 'execution': lines})
+        return json.dumps({'status': 'OK', 'execution': lines}).encode()
 
 
     @cherrypy.expose
@@ -1614,7 +1584,7 @@ attached the failed experiment data.". \
         else:
             response = {"status": "KO"}
             self.error_log("run", "No 'input_type' passed to the run function.")
-            return json.dumps(response)
+            return json.dumps(response).encode()
 
         params = kwargs.get('params')
 
@@ -1650,10 +1620,10 @@ attached the failed experiment data.". \
 
         except Exception as ex:
             message = "Failed to obtain the DDL of demo {}".format(demo_id)
-            print message, ex
+            print(message, ex)
             self.logger.exception(message)
             res_data = {'error': message, 'status': 'KO'}
-            return json.dumps(res_data)
+            return json.dumps(res_data).encode()
         # End block to obtain the DDL
 
         # Create a new execution key
@@ -1663,7 +1633,7 @@ attached the failed experiment data.". \
             self.logger.exception(message)
             self.send_internal_error_email(message)
             res_data = {'error': message, 'status': 'KO'}
-            return json.dumps(res_data)
+            return json.dumps(res_data).encode()
 
         try:
             work_dir = self.create_run_dir(demo_id, key)
@@ -1671,8 +1641,8 @@ attached the failed experiment data.". \
             res_data = {'error': 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex),
                         'status': 'KO'}
             self.logger.exception("Could not create work_dir for demo {}".format(demo_id))
-            print 'Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex)
-            return json.dumps(res_data)
+            print('Could not create work_dir for demo {}. Error:{}'.format(demo_id, ex))
+            return json.dumps(res_data).encode()
 
         # Copy input blobs
         if input_type != 'noinputs':
@@ -1683,50 +1653,50 @@ attached the failed experiment data.". \
                 message = 'Uploaded input #{} over the maximum allowed weight {} bytes'.format(ex.index, ex.max_weight)
                 res_data = {'error': message,
                             'status': 'KO'}
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
             except IPOLMissingRequiredInputError as ex:
                 message = 'Missing required input #{}'.format(ex.index)
                 res_data = {'error': message,
                             'status': 'KO'}
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
             except IPOLEvaluateError as ex:
                 message = 'Invalid expression "{}" found in the DDL of demo {}'.format(ex, demo_id)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
+                print(message)
+                return json.dumps(res_data).encode()
             except IPOLCopyBlobsError as ex:
                 message = 'Error copying blobs of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
+                print(message)
+                return json.dumps(res_data).encode()
             except IPOLUploadedInputRejectedError as ex:
                 res_data = {'error': str(ex), 'status': 'KO'}
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
             except IPOLInputUploadError as ex:
                 message = 'Error uploading input of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
+                print(message)
+                return json.dumps(res_data).encode()
             except IPOLProcessInputsError as ex:
                 message = 'Error processing inputs of demo {}: {}'.format(demo_id, ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
+                print(message)
+                return json.dumps(res_data).encode()
             except IOError as ex:
                 message = 'I/O error processing inputs - {}'.format(ex)
                 res_data = {'error': message,
                             'status': 'KO'}
                 self.logger.exception(message)
-                print message
-                return json.dumps(res_data)
+                print(message)
+                return json.dumps(res_data).encode()
             except Exception as ex:
                 # ToDo: send email
                 message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
@@ -1734,7 +1704,7 @@ attached the failed experiment data.". \
                 self.send_internal_error_email(message)
                 res_data = {'error': message,
                             'status': 'KO'}
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
 
         try:
             # Find a DR with satisfies the requirements
@@ -1747,7 +1717,7 @@ attached the failed experiment data.". \
                 response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
                 if self.get_demo_metadata(demo_id)["state"].lower() == "published":
                     self.send_email_no_demorunner(demo_id)
-                return json.dumps(response)
+                return json.dumps(response).encode()
 
             # Ensure that the demoExtras are updated
             try:
@@ -1755,9 +1725,9 @@ attached the failed experiment data.". \
             except IPOLDemoExtrasError as ex:
                 message = 'Error processing the demoExtras of demo {}: {}'.format(demo_id, ex)
                 self.logger.exception(message)
-                print message
+                print(message)
                 response = {'status': 'KO', 'error': message}
-                return json.dumps(response)
+                return json.dumps(response).encode()
 
             # Ensure that the source code is updated
             userdata = {"demo_id": demo_id, "ddl_build": json.dumps(ddl_build)}
@@ -1765,7 +1735,7 @@ attached the failed experiment data.". \
             demorunner_response = resp.json()
             status = demorunner_response['status']
             if status != 'OK':
-                print "COMPILATION FAILURE in demo = ", demo_id
+                print("COMPILATION FAILURE in demo = ", demo_id)
 
                 # Send compilation message to the editors
                 text = "DR={}, {} - {}".format(dr_name, demorunner_response.get("buildlog", "").encode('utf8'),
@@ -1775,7 +1745,7 @@ attached the failed experiment data.". \
 
                 # Message for the web interface
                 response = {"error": " --- Compilation error. --- {}".format(text), "status": "KO"}
-                return json.dumps(response)
+                return json.dumps(response).encode()
 
             # save parameters as a params.json file
             try:
@@ -1786,9 +1756,9 @@ attached the failed experiment data.". \
             except (OSError, IOError) as ex:
                 message = "Failed to save {} in demo {}".format(json_filename, demo_id)
                 self.logger.exception(message)
-                print message
+                print(message)
                 response = {'status': 'KO', 'error': message}
-                return json.dumps(response)
+                return json.dumps(response).encode()
 
             userdata = {"demo_id": demo_id, "key": key, "params": params}
 
@@ -1804,10 +1774,10 @@ attached the failed experiment data.". \
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
                 core_response = {"status": "KO", "error": "{}".format(message)}
-                return json.dumps(core_response)
+                return json.dumps(core_response).encode()
 
             if demorunner_response['status'] != 'OK':
-                print "DR answered KO for demo #{}".format(demo_id)
+                print("DR answered KO for demo #{}".format(demo_id))
                 demo_state = self.get_demo_metadata(demo_id)["state"].lower()
 
                 # Message for the web interface
@@ -1828,7 +1798,7 @@ attached the failed experiment data.". \
                 # (unless it's a timeout in a published demo)
                 if not (demo_state == 'published' and error == 'IPOLTimeoutError'):
                     self.send_runtime_error_email(demo_id, key, website_message)
-                return json.dumps(response)
+                return json.dumps(response).encode()
 
             # Check if the user created a demo_failure.txt file
             # This is part of the mechanism which allows the user to signal that
@@ -1872,13 +1842,13 @@ attached the failed experiment data.". \
             self.logger.exception(message)
             self.send_internal_error_email(message)
             core_response = {"status": "KO", "error": "{}".format(message)}
-            return json.dumps(core_response)
+            return json.dumps(core_response).encode()
 
         dic = self.read_algo_info(work_dir)
         for name in dic:
             demorunner_response["algo_info"][name] = dic[name]
 
-        return json.dumps(demorunner_response)
+        return json.dumps(demorunner_response).encode()
 
     def read_algo_info(self, work_dir):
         """
@@ -1898,7 +1868,7 @@ attached the failed experiment data.". \
             # Read with format A = B, where B can contain the '=' sign
             if len(line.split("=", 1)) < 2 or \
                             line.split("=", 1)[0].strip() == "":
-                print "incorrect format in algo_info.txt, in line {}".format(line)
+                print("incorrect format in algo_info.txt, in line {}".format(line))
                 self.error_log("run", "incorrect format in algo_info.txt, at line {}".format(line))
                 continue
 
@@ -1951,7 +1921,7 @@ attached the failed experiment data.". \
             else:
                 self.error_log("get_demorunner",
                                "Module {} unresponsive".format(dr_name))
-                print "Module {} unresponsive".format(dr_name)
+                print("Module {} unresponsive".format(dr_name))
                 unresponsive_demorunners.add(dr_name)
 
             # At half of the tries wait 5 secs and try again
@@ -1973,5 +1943,5 @@ attached the failed experiment data.". \
             return requests.post(url, data=data)
         except Exception as ex:
             error_message = "Failure in the post function of the CORE using: URL={}, exception={}".format(url, ex)
-            print error_message
+            print(error_message)
             self.logger.exception(error_message)

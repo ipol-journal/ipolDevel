@@ -30,7 +30,7 @@ def _deinterlace_png(path):
         try:
             im.getpixel((0, 0))
         except IOError:
-            print "_deinterlace_png exception on getpixel(0,0) calling convert ..."
+            print("_deinterlace_png exception on getpixel(0,0) calling convert ...")
             # check the file exists
             assert os.path.isfile(path)
             # convert it to non-interlaced
@@ -39,7 +39,7 @@ def _deinterlace_png(path):
             im = PIL.Image.open(path)
             # try once again, in case there is another problem
             im.getpixel((0, 0))
-    print "_deinterlace_png {0} took {1} sec".format(path,timer()-start)
+    print("_deinterlace_png {0} took {1} sec".format(path,timer()-start))
     return
 
 def thumbnail(fname, size=(128, 128), ext=".png"):
@@ -118,7 +118,7 @@ class image(object):
         """
         if isinstance(src, PIL.Image.Image):
             self.im = src
-        if isinstance(src, basestring):
+        if isinstance(src, str):
             _deinterlace_png(src)
             self.im = PIL.Image.open(src)
 

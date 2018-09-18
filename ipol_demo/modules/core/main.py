@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
 
     if not os.path.isfile(CONF_FILE_ABS):
-        print "Error: the conf file is missing, "
+        print("Error: the conf file is missing, ")
         sys.exit(-1)
     cherrypy.config.update(CONF_FILE_ABS)
     cherrypy.log.error_log.setLevel('ERROR')

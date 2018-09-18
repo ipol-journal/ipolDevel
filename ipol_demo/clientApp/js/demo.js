@@ -109,9 +109,11 @@ function loadExecution(url){
     if (helpers.getFromStorage("demoInfo") != null && helpers.getFromStorage("blobs") != null) {
       $.getJSON(url, function(data) {
         if (data.status === "OK") {
+          console.log(data);
           experiment = data.experiment;
           var execution = JSON.parse(data.execution || experiment.execution);
-          var request = execution != null ? JSON.parse(execution.request) : null;
+          console.log(execution.request)
+          var request = execution != null ? execution.request : null;
           
           renderExperiment(request, execution.response);
         } else {
