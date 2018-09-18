@@ -86,7 +86,7 @@ def authenticate(func):
 
 
 # -------------------------------------------------------------------------------
-class Core(object):
+class Core():
     """
     Core index used as the root app
     """
@@ -420,7 +420,7 @@ class Core(object):
                     editorsdemoid,
                     "(private)" if editorsdemoid.startswith("33333") else "",
                     editorsdemoid,
-                    demo_data['title'].encode('utf-8'))
+                    demo_data['title'])
 
         string = """
                  <!DOCTYPE html>
