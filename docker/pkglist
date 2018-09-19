@@ -78,6 +78,9 @@ python3-caffe-cpu
 
 libjpeg-progs
 
+libsndfile1-dev
+libsndfile1
+
 nano
 sudo
 vim
