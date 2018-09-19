@@ -184,8 +184,7 @@ class Archive():
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
+            self.logger.exception("Can't open {}".format(authorized_patterns_path))
             return []
 
         # Read config file
@@ -212,13 +211,6 @@ class Archive():
         logger.addHandler(handler)
         return logger
 
-    def error_log(self, function_name, error):
-        """
-        Write an error log in the logs_dir defined in archive.conf
-        """
-        error_string = function_name + ": " + error
-        self.logger.error(error_string)
-
     def init_database(self):
         """
         Initialize the database used by the module if it doesn't exist.
@@ -231,7 +223,7 @@ class Archive():
             if file_info.st_size == 0:
                 print(str(self.database_file) + ' is empty. Removing the file...')
                 try:
-                    self.error_log("init_database", 'Database file was empty')
+                    self.logger.exception("Database file was empty")
                     os.remove(self.database_file)
                 except Exception as ex:
                     message = "Error in init_database. Error = {}".format(ex)
@@ -489,7 +481,7 @@ class Archive():
             conn.close()
         except Exception as ex:
             data["status"] = "KO"
-            self.error_log("get_experiment", str(ex))
+            self.logger.exception("Impossible to get experiment #{}".format(experiment_id))
 
             if conn is not None:
                 conn.close()
@@ -647,7 +639,6 @@ class Archive():
             if page > meta_info["number_of_pages"] or page <= 0:
                 page = meta_info["number_of_pages"]
                 experiments = self.get_experiment_page(conn, id_demo, page)
-
             else:
                 experiments = self.get_experiment_page(conn, id_demo, page)
 
@@ -658,7 +649,7 @@ class Archive():
 
         except Exception as ex:
             data["status"] = "KO"
-            self.error_log("get_page", str(ex))
+            self.logger.exception("Impossible to get page #{} from demo #{}".format(demo_id, page))
             try:
                 conn.close()
             except Exception:
@@ -747,7 +738,7 @@ class Archive():
                 status["status"] = "OK"
 
         except Exception as ex:
-            self.error_log("delete_experiment", str(ex))
+            self.logger.exception("Impossible to delete experiment #{}".format(experiment_id))
             print(traceback.format_exc())
             try:
                 conn.rollback()
@@ -786,7 +777,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.close()
             status["status"] = "OK"
         except Exception as ex:
-            self.error_log("delete_blob_w_deps", str(ex))
+            self.logger.exception("Impossible to delete blob (with deps) #{}".format(id_blob))
             try:
                 conn.rollback()
                 conn.close()
@@ -815,7 +806,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.error_log("shutdown", str(ex))
+            self.logger.exception("Impossible to shutdown archive module")
         return json.dumps(data).encode()
 
     @cherrypy.expose
@@ -927,7 +918,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             status["status"] = "OK"
 
         except Exception as ex:
-            self.error_log("delete_demo", str(ex))
+            self.logger.exception("Impossible to delete demo #{}".format(demo_id))
             try:
                 conn.rollback()
                 conn.close()
@@ -962,7 +953,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         except Exception as ex:
             status = {"status": "KO"}
             status = {"error": "blobs update_demo_id error: {}".format(ex)}
-            self.error_log("update_demo_id", str(ex))
+            self.logger.exception("Impossible to update demo id from #{} to #{}".format(old_demo_id, new_demo_id))
             if conn is not None:
                 conn.rollback()
                 conn.close()
