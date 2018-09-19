@@ -18,6 +18,7 @@ Image wrapper for conversion, resizing, reencode.
 """
 
 from __future__ import print_function
+
 import errno
 import mimetypes
 import os
@@ -213,14 +214,13 @@ class Image(object):
         '''
         src_height, src_width = self.data.shape[:2]
         # forced witdth*height (no ratio preservation)
-        if width > 0 and height > 0:
+        if width and height:
             pass
         # forced height
-        elif height > 0:
+        elif height:
             width = int(round(float(src_width * height) / src_height))
         # forced width
-        elif width > 0:
-            print("resize by width")
+        elif width:
             height = int(round(float(src_height * width) / src_width))
         else:
             raise ValueError("Image.resize(), not enough parameters to resize image.")
