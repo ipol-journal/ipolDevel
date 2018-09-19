@@ -38,3 +38,6 @@ planet
 rasterio
 shapely
 
+# Audio demos
+libsndfile1-dev
+libsndfile1
