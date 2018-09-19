@@ -207,16 +207,10 @@ class Image(object):
         pars = []
         return data, pars
 
-    def resize(self, width=None, height=None, interpolation=None, max_width=5000, max_height=5000):
+    def resize(self, width=None, height=None, interpolation=None):
         '''
         Resize image data.
         '''
-        # avoid gigantic image
-        if width > max_width:
-            raise ValueError("width={} > max={}".format(width, max_width))
-        if height > max_height:
-            raise ValueError("height={} > max={}".format(height, max_height))
-
         src_height, src_width = self.data.shape[:2]
         # forced witdth*height (no ratio preservation)
         if width > 0 and height > 0:
