@@ -383,7 +383,7 @@ class Core():
         demo_list = response['demo_list']
 
         # Get all publication states
-        demos_by_state = dict()
+        demos_by_state = OrderedDict()
         for demo in demo_list:
             editorsdemoid = demo['editorsdemoid']
 
