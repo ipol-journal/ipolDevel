@@ -12,6 +12,7 @@
   <demorunner name="dr_local1">
     <module>demorunner</module>
     <server>127.0.1.1</server>
+    <capability>DEBIAN_STABLE</capability>
     <!--<capability>Matlab</capability>-->
     <serverSSH>localhost</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
