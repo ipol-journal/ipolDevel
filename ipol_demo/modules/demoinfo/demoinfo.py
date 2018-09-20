@@ -304,7 +304,8 @@ class DemoInfo():
                 "zip",
                 "tar",
                 "gzip",
-                "x-tar"
+                "x-tar",
+                "x-bzip2"
             )
 
             if type_of_file not in accepted_types:
