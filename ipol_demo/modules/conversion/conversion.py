@@ -211,7 +211,7 @@ class Conversion(object):
                     continue
                 input_file = input_files[0]
                 # Is file too large for expected input in DDL?
-                if input_desc.get('max_weight') and os.path.getsize(input_file) > input_desc.get('max_weight'):
+                if input_desc.get('max_weight') and os.path.getsize(input_file) > evaluate(input_desc.get('max_weight')):
                     info[i]['error'] = "File too large: {}".format(input_file)
                     continue
                 # check input type
