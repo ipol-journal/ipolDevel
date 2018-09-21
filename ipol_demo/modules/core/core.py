@@ -978,7 +978,7 @@ class Core():
         msg.preamble = text
 
         if zip_filename is not None:
-            with open(zip_filename) as open_file:
+            with open(zip_filename, 'rb') as open_file:
                 zip_data = MIMEApplication(open_file.read())
                 zip_data.add_header('Content-Disposition', 'attachment', filename="experiment.zip")
             msg.attach(zip_data)
