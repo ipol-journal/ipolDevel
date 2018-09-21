@@ -28,6 +28,8 @@ weightedstats
 # For the DR venv
 scipy
 tensorflow
+torch
+keras
 joblib
 
 # Needed in one of our private projects on satellite imaging

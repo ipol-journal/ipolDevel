@@ -6,6 +6,7 @@ requests
 opencv-python
 scikit-image
 virtualenv
+python-magic
 
 # For the DR venv
 scipy
