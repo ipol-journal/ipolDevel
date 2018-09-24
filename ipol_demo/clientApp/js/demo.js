@@ -113,7 +113,7 @@ function loadExecution(url){
           experiment = data.experiment;
           var execution = JSON.parse(data.execution || experiment.execution);
           console.log(execution.request)
-          var request = execution != null ? execution.request : null;
+          var request = execution != null ? JSON.parse(execution.request) : null;
           
           renderExperiment(request, execution.response);
         } else {
