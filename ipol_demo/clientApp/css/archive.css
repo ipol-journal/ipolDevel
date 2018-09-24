@@ -130,7 +130,9 @@ table.pars tr:hover {
   color: #000;
   border-color: #000;
 }
-
+form.page {
+  display: inline;
+}
 .reconstruct-btn {
   margin: 0;
 }

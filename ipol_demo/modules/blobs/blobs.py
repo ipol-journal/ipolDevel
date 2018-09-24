@@ -386,6 +386,9 @@ class Blobs(object):
         """
         mime_format = mime.split('/')[0]
         ext = mimetypes.guess_extension(mime)
+        # some mime type maybe unknown, especially for exotic file format
+        if not ext:
+            ext = '.dat'
         return mime_format, ext
 
     @staticmethod

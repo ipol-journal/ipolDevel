@@ -66,6 +66,7 @@ $.fn.addClickEvent = function() {
  * Page slider
  */
 function paging(data) {
+  if (page < 1 || page > data.number_of_pages) page = data.number_of_pages;
   var diff = 5;
   var from = +page - diff;
   from = (from < 1)?1:from;
@@ -78,9 +79,21 @@ function paging(data) {
     html += '\n<a href="?id=' + demo_id + '&page=' + (from-1) + '">◀◀</a>';
   }
   for (var i=from; i<=to; i++) {
-    html += '\n<a href="?id=' + demo_id + '&page=' + i + '"';
-    if ( i == page ) html += ' class="this"';
-    html += '>'+i+'</a>';
+    if (i == page) {
+      html += '\n<form class="page">';
+      html += '\n  <input name="id" type="hidden" value="'+demo_id+'"/>';
+      html += '\n  <select name="page" onchange="this.form.submit()">';
+      for (var j=1; j <= data.number_of_pages; j++) {
+        html += '\n    <option';
+        if (j == page) html += ' selected="selected"';
+        html += '>' + j + '</option>';
+      }
+      html += '\n  </select>';
+      html += '\n</form>';
+    }
+    else {
+      html += '\n<a href="?id=' + demo_id + '&page=' + i + '">'+i+'</a>';
+    }
   }
   if (to < data.number_of_pages) {
     html += '\n<a href="?id=' + demo_id + '&page=' + (to+1) + '">▶▶</a>';
