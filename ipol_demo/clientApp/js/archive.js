@@ -67,9 +67,9 @@ $.fn.addClickEvent = function() {
  */
 function paging(data) {
   var diff = 5;
-  var from = -page - diff;
+  var from = +page - diff;
   from = (from < 1)?1:from;
-  var to = -page + diff;
+  var to = +page + diff;
   to = (to > data.number_of_pages)?data.number_of_pages:to;
 
   var html = '';
