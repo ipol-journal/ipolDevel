@@ -1543,8 +1543,6 @@ attached the failed experiment data.". \
             list(map(request.pop, file_keys))
             clientdata["files"] = len(file_keys)
 
-        clientdata = json.dumps(clientdata)
-
         execution_json = {}
         execution_json['demo_id'] = demo_id
         execution_json['request'] = clientdata
