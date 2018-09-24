@@ -3,7 +3,7 @@
 // global, the demo id
 var demo_id = getParameterByName('id');
 // global, the requested page, null if undefined
-var page = getParameterByName('page');
+var page = +getParameterByName('page');
 var ddl;
 /**
  * document.onload, global populate page
@@ -22,7 +22,7 @@ $(document).ready(function() {
     $("#citation-link").attr('href', ddl.general.xlink_article);
     $("#articleTab").attr('href', ddl.general.xlink_article);
     $("#demoTab")[0].href = 'demo.html?id=' + demo_id;
-    
+
     if ( page == null ) page = -1;
     var url = '/api/archive/get_page?page=' + page + '&demo_id=' + demo_id;
     $.getJSON(url, function(data) {
@@ -40,12 +40,12 @@ $(document).ready(function() {
       }
       html += paging(data.meta);
       $("#results").html(html);
-      
+
       var reconstruct_buttons = $('.reconstruct-btn');
       for (let i = 0; i < reconstruct_buttons.length; i++) {
         $(reconstruct_buttons[i]).addClickEvent();
       }
-      
+
     })
     .fail(function() {
       console.log("archive.js - failed to obtain experiment page " + url);
@@ -66,12 +66,24 @@ $.fn.addClickEvent = function() {
  * Page slider
  */
 function paging(data) {
+  var diff = 5;
+  var from = -page - diff;
+  from = (from < 1)?1:from;
+  var to = -page + diff;
+  to = (to > data.number_of_pages)?data.number_of_pages:to;
+
   var html = '';
   html += '\n<nav class="paging">';
-  for (var i=1; i<=data.number_of_pages; i++) {
+  if (from > 1) {
+    html += '\n<a href="?id=' + demo_id + '&page=' + (from-1) + '">◀◀</a>';
+  }
+  for (var i=from; i<=to; i++) {
     html += '\n<a href="?id=' + demo_id + '&page=' + i + '"';
     if ( i == page ) html += ' class="this"';
     html += '>'+i+'</a>';
+  }
+  if (to < data.number_of_pages) {
+    html += '\n<a href="?id=' + demo_id + '&page=' + (to+1) + '">▶▶</a>';
   }
   html += '\n</nav>';
   return html;
@@ -93,7 +105,7 @@ function record(data) {
   }
   html += '.</div>';
   html += '\n</header>';
-  
+
   html += '\n<div class="middle">';
 
   // loop on parameters
@@ -132,7 +144,7 @@ function record(data) {
 
   html += '\n</div>'; // middle
 
-  
+
   // other files, below thumbnails
   var files = "";
   var max = data.files.length;
@@ -150,10 +162,10 @@ function record(data) {
     html += files;
     html += '.</footer>';
   }
-  
+
   if (ddl.archive.enable_reconstruct && data.execution)
     html += '\n<button class="reconstruct-btn btn" data-experiment-id=' + data.id + '>Reconstruct</button>';
- 
+
   html += '\n</div>\n';
   return html;
 }
