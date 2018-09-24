@@ -38,6 +38,7 @@
 
 .blobEditorAudio {
   min-width: 400px;
+  width: 100%;
 }
 
 .audioThumbnail {

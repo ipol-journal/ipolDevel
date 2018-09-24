@@ -30,9 +30,11 @@ function printEditorPanel() {
   $("#right-container").printEditorBlob(editorBlobs[blobs[0]], "right");
   var $blob = $("#editor-blob-left");
 
-  if (areAllImages()) $("#zoom-container").removeClass("di-none");
-  if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-  else if (blobs.length == 1 && ((editorBlobs[blobs[0]].format == "image" && !isTiff(editorBlobs[blobs[0]]))|| editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
+  if (areAllImages()){
+    $("#zoom-container").removeClass("di-none");
+    if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
+    else if (blobs.length == 1 && ((editorBlobs[blobs[0]].format == "image" && !isTiff(editorBlobs[blobs[0]]))|| editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
+  } 
 
   var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
@@ -175,7 +177,7 @@ function loadMultiBlobControls(blob) {
 function areAllImages() {
   var blobs = Object.keys(editorBlobs);
   for (var i = 0; i < blobs.length; i++) {
-    if (editorBlobs[blobs[i]].format != "image" && !editorBlobs[blobs[i]].vr)
+    if ((editorBlobs[blobs[i]].format != "image" && !editorBlobs[blobs[i]].vr) || editorBlobs[blobs[i]].format == "audio" ||  editorBlobs[blobs[i]].format == "video")
       return false;
   }
   return true;
@@ -190,7 +192,7 @@ $.fn.printEditorBlob = function(editorBlob, side) {
   } else if (blobType == "audio") {
     $(this).empty();
     var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
-    $(this).append("<img src=" + audioThumbnail + " class=audioThumbnail><br><audio src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorAudio controls></audio>");
+    $(this).append("<img src=" + audioThumbnail + " class=audioThumbnail><br><audio src=" + editorBlob.blob + " id=editor-blob-" + side + " class=blobEditorAudio controls></audio>");
   } else {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
