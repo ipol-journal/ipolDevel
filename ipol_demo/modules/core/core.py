@@ -1524,7 +1524,7 @@ attached the failed experiment data.". \
             #
             # If we arrive here it means that we missed to catch and
             # take care of some exception type.
-            error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}".format(demo_id, ex)
+            error_message = "**INTERNAL ERROR** in the run function of the Core in demo {}, {}. Received kwargs: {}".format(demo_id, ex, str(kwargs))
             print(traceback.format_exc())
             self.logger.exception(error_message)
             self.send_internal_error_email(error_message)
