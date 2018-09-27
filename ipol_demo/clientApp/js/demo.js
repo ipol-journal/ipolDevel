@@ -7,23 +7,29 @@ var files = [];
 // Initial trigger.
 $(document).ready(function() {
   demo_id = getDemoId();
-  
+
   // Workaround: use the old interface only for inpainting demos
   if ($.inArray(parseInt(demo_id), [189, 198, 228, 333330030001]) != -1) {
     // Move to the old interface
     window.location = "/demo/clientAppOld/demo.html?id=" + demo_id;
+  } 
+
+  var isNumber = (/^\d+$/.test(demo_id))
+  if (demo_id && isNumber){
+    $("#header").load("header.html");
+    $("#inputEditorContainer").load("editor.html");
+    $("#parameters").load("parameters.html");
+    $("#footer").load("footer.html");
+    sessionStorage.clear();
+    
+    $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
+    
+    getBlobSets();
+    getDemoinfo();
+  } else{ 
+    alert("Wrong demo id: " + demo_id);
+    window.location = '/demo';
   }
-  
-  $("#header").load("header.html");
-  $("#inputEditorContainer").load("editor.html");
-  $("#parameters").load("parameters.html");
-  $("#footer").load("footer.html");
-  sessionStorage.clear();
-  
-  $('#archiveTab').attr('href', 'archive.html?id=' + demo_id);
-  
-  getBlobSets();
-  getDemoinfo();
 });
 
 window.onpopstate = function() {
@@ -55,6 +61,10 @@ function getArchiveExperimentId(){
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
     console.log("get_globs", blobs);
+    if (blobs.status != "OK") {
+      alert("Wrong demo id: " + demo_id);
+      window.location = '/demo';
+    }
     helpers.addToStorage("blobs", blobs.sets);
     input.printSets(blobs.sets);
     if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
@@ -64,6 +74,10 @@ function getBlobSets() {
 
 function getDemoinfo() {
   helpers.getFromAPI("/api/demoinfo/get_interface_ddl?demo_id=" + demo_id, function(payload) {
+    if (payload.status != "OK") {
+      alert("Wrong demo id: " + demo_id);
+      window.location = '/demo';
+    }
     var response = helpers.getJSON(payload.last_demodescription.ddl);
     console.log("get_interface_ddl", response);
     displayInputHeaders(response);

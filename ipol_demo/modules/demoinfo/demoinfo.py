@@ -1679,6 +1679,12 @@ class DemoInfo():
         Read the DDL of the specified demo without unneeded or private fields. Used by the website interface.
         """
         try:
+            # Validate demo_id 
+            try:
+                demo_id = int(demo_id)
+            except(TypeError, ValueError) as ex: 
+                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
                 return json.dumps({'status': 'KO', 'error': "There isn't any DDL for the demo {}".format(demo_id)}).encode()
@@ -1743,6 +1749,12 @@ class DemoInfo():
         Reads the current DDL of the demo
         """
         try:
+            # Validate demo_id 
+            try:
+                demo_id = int(demo_id)
+            except(TypeError, ValueError) as ex: 
+                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+
             ddl = self.get_stored_ddl(demo_id)
             if not ddl:
                 error = "There isn't any DDL for demo {}".format(demo_id)

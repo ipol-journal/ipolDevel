@@ -557,6 +557,12 @@ class Blobs(object):
         data = {"status": "KO"}
         conn = None
         try:
+            # Validate demo_id 
+            try:
+                demo_id = int(demo_id)
+            except(TypeError, ValueError) as ex: 
+                return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
+
             conn = lite.connect(self.database_file)
 
             demo_blobs = database.get_demo_owned_blobs(conn, demo_id)
