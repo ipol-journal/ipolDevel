@@ -111,8 +111,13 @@ function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, b
       var repeat = line.repeat != undefined ? checkRepeat(line.repeat) : 1;
       for (var idx = 0; idx < repeat; idx++) {
         var text = getEvalText(contentKeys[i]);
-        var spanId = 'gallery-' + index + '-item-' + side +'-'+ i + '-' + idx;
-        $('#gallery-'+index+'-blobList-'+side).append('<span id=' +spanId+ ' class=gallery-item-selector>' + eval(text) + '</span>');
+        var spanId = 'gallery-' + index + '-item-' + side +'-'+ i + '-' + idx;  
+        try {
+          title = eval(text)
+        } catch (err) {
+          title = text
+        }
+        $('#gallery-'+index+'-blobList-'+side).append('<span id=' +spanId+ ' class=gallery-item-selector>' + title + '</span>');
         $('#' + spanId).addHoverFeatures(index, side, blobsArray[itemIndex], itemIndex);
         itemIndex++;
       }
