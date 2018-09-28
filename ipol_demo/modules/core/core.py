@@ -757,7 +757,7 @@ class Core():
                         try:
                             value = evaluate(input_in_ddl[required_field])
                         except IPOLEvaluateError as ex:
-                            raise IPOLCheckDDLError("Bad DDL inputs section: Invalid expression '{}' in '{}' field at input #{}.".format(ex, required_field, inputs_counter))
+                            raise IPOLCheckDDLError("Bad DDL inputs section: invalid expression '{}' in '{}' field at input #{}.".format(ex, required_field, inputs_counter))
 
                         integer = float(value) == int(value)
                         if value <= 0 or not integer:

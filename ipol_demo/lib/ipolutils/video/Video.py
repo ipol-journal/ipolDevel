@@ -61,7 +61,6 @@ class Video(object):
         Extract the required number of frames and save them as image files.
         """
         code = 0 # No conversion needed or converted without information loss
-        self.validate_max_frames(max_frames)
 
         dst_folder = os.path.join(self.get_input_dir(), self.get_input_name())
         video_pixel_count = self.height * self.width
@@ -95,7 +94,6 @@ class Video(object):
         """
         Create Huffman-encoded AVI video file
         """
-        self.validate_max_frames(max_frames)
 
         processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
         avconv_options = self.get_avconv_options(max_pixels, max_frames)
@@ -204,13 +202,3 @@ class Video(object):
         Get input name from full path.
         """
         return os.path.splitext(os.path.split(self.full_path)[1])[0]
-
-    @staticmethod
-    def validate_max_frames(max_frames):
-        """
-        Check max_frames range and type
-        """
-        if not isinstance(max_frames, int):
-            raise errors.IPOLTypeError('Type error: max_frames must be an integer')
-        if max_frames < 1:
-            raise errors.IPOLTypeError('Range error: max_frames must be positive')

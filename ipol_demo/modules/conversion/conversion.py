@@ -309,8 +309,8 @@ class Conversion(object):
         modifications = []
         video = Video(input_file)
         as_frames = input_desc.get('as_frames', None)
-        max_frames = input_desc.get('max_frames')
-        max_pixels = evaluate(input_desc.get('max_pixels'))
+        max_frames = int(evaluate(input_desc.get('max_frames')))
+        max_pixels = int(evaluate(input_desc.get('max_pixels')))
         if as_frames:
             code = video.extract_frames(max_frames=max_frames, max_pixels=max_pixels)
             modifications.append('extracted to frames')
