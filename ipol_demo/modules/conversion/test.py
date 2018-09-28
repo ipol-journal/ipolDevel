@@ -542,63 +542,6 @@ class ConversionVideoTests(unittest.TestCase):
             self.assertLessEqual(avi_video["width"] * avi_video["height"], 150 * 100)
             os.remove(os.path.split(self.video_blob_path)[0] + '/input_0.avi')
 
-
-    def test_negative_max_frames_as_avi(self):
-        """
-        Tests negative max_frames when convert to AVI.
-        """
-        status = None
-        try:
-            work_dir = os.path.split(self.video_blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'max_frames': -1}]
-            response = self.convert(work_dir, input_desc, None)
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_negative_max_frames_as_frames(self):
-        """
-        Tests negative max_frames when convert to frames.
-        """
-        status = None
-        try:
-            work_dir = os.path.split(self.video_blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': -1}]
-            response = self.convert(work_dir, input_desc, None)
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_float_max_frames_as_frames(self):
-        """
-        Tests float max_frames value when convert to frames.
-        """
-        status = None
-        try:
-            work_dir = os.path.split(self.video_blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'as_frames': True, 'max_frames': 2.5}]
-            response = self.convert(work_dir, input_desc, None)
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
-    def test_float_max_frames_as_avi(self):
-        """
-        Tests float max_frames value when convert to AVI.
-        """
-        status = None
-        try:
-            work_dir = os.path.split(self.video_blob_path)[0]
-            input_desc = [{'description': 'input', 'max_pixels': '150 * 100',
-                           'type': 'video', 'max_weight': 5242880, 'max_frames': 2.5}]
-            response = self.convert(work_dir, input_desc, None)
-            status = response.get('status')
-        finally:
-            self.assertEqual(status, 'KO')
-
     def test_get_middle_frame_even(self):
         """
         Tests calculate the middle frame when the video frame count is even.
