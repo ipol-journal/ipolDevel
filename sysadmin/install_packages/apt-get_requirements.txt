@@ -104,3 +104,6 @@ pocl-doc
 pocl-opencl-icd
 clinfo
 
+# Audio processing demos
+libsndfile1-dev
+libsndfile1
