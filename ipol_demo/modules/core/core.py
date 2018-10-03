@@ -1503,10 +1503,10 @@ attached the failed experiment data.". \
             self.logger.exception(internal_error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
-            error_message = str(ex) + " Demo #{}".format(demo_id)
+            error_message = "{} Demo #{}".format(str(ex), demo_id)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
-            error_message = str(ex) + " Demo #{}".format(demo_id)
+            error_message = "{} Demo #{}".format(str(ex), demo_id)
             self.send_runtime_error_email(demo_id, "NA", error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
@@ -1514,10 +1514,9 @@ attached the failed experiment data.". \
                 self.send_internal_error_email(ex.email_message)
             return json.dumps({'error': ex.interface_message, 'status': 'KO'}).encode()
         except IPOLEvaluateError as ex:
-            message = 'IPOLEvaluateError detected in demo {}'.format(ex, demo_id)
-            res_data = {'error': message, 'status': 'KO'}
-            self.logger.exception(message)
-            return json.dumps(res_data).encode()
+            error_message = 'IPOLEvaluateError detected in demo {}'.format(str(ex), demo_id)
+            self.logger.exception(error_message)
+            return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLDemoRunnerResponseError as ex:
             # Send email to the editors
             # (unless it's a timeout in a published demo)
