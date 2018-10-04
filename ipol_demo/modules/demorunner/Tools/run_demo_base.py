@@ -1,20 +1,19 @@
+import math
 import os
-from os import path
-from subprocess import Popen
-import subprocess
-import time
-import psutil
 import re
 import shlex
-import math
 # importing image for python commands in DDL scripts
 import signal
-
-# from image import image
-# import PIL
-
+import subprocess
+import time
+from os import path
+from subprocess import Popen
 # -----------------------------------------------------------------------------
 from threading import Lock
+
+import psutil
+
+from .error import VirtualEnvError
 
 
 class IPOLTimeoutError(Exception):
@@ -27,7 +26,6 @@ class IPOLTimeoutError(Exception):
 
 # -------------------------------------------------------------------------------
 class RunDemoBase:
-    # default timeout to 1 minute
 
     # -----------------------------------------------------------------------------
     def __init__(self, base_dir, work_dir, logger, timeout):
@@ -38,10 +36,9 @@ class RunDemoBase:
 
         self.ipol_scripts = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PythonTools/')
         self.bin_dir = os.path.join(base_dir, 'bin/')
-        self.scripts_dir = os.path.join(base_dir, 'scripts/')
-        self.python_dir = os.path.join(base_dir, 'python/')
         self.dl_dir = os.path.join(base_dir, 'dl/')
         self.MATLAB_path = None
+        self.extra_path = None
         self.demo_id = None
 
     # -----------------------------------------------------------------------------
@@ -88,10 +85,7 @@ class RunDemoBase:
 
     # -----------------------------------------------------------------------------
     def get_extra_path(self):
-        try:
-            return self.extra_path
-        except:
-            return None
+        return self.extra_path
 
     # -----------------------------------------------------------------------------
     def set_MATLAB_path(self, p):
@@ -123,7 +117,7 @@ class RunDemoBase:
         with lock:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split()
-            print "prog_name_and_params ", prog_name_and_params
+            print("prog_name_and_params ", prog_name_and_params)
             p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file) if prog_name_and_params else None
 
         # Execute it
@@ -144,31 +138,24 @@ class RunDemoBase:
         newenv = os.environ.copy()
         # add local environment settings
         newenv.update(env)
-
+        
         newenv.update({'demoextras': self.get_demoExtras_main_folder()})
         newenv.update({'matlab_path': self.get_MATLAB_path()})
         newenv.update({'bin': self.bin_dir})
 
-        # TODO clear the PATH, hard-rewrite the exec arg0
-        # TODO use shell-string execution
-
         # Add PATH in configuration
-        # [Miguel] ToDo it seems that this is useless.
-        # IT should use only self.get_extra_path()
+        virtual_env = newenv.get("VIRTUAL_ENV")
+        if not virtual_env:
+            raise VirtualEnvError('Running without a virtualenv')
+        # Check if there are extra paths
+        extra_path = self.get_extra_path()
+        if not extra_path:
+            raise Exception("Missing extra_path field in config")
+
         path = self.bin_dir
-        path += ":/bin:/usr/bin:/usr/local/bin"
+        path += ":" + extra_path
         path += ":" + self.get_MATLAB_path()
         path += ":" + self.ipol_scripts  # scripts of PythonTools
-
-        ###TODO: Remove these lines when the DDL's are correct
-        # We are only using these for the moment
-        # We do not want to break the old system yet...
-        path += ":" + self.scripts_dir
-        path += ":" + self.python_dir  # Scripts of the demo
-
-        # Check if there are extra paths
-        if self.get_extra_path() is not None:
-            path += ":" + self.get_extra_path()
 
         newenv.update({'PATH': path, 'LD_LIBRARY_PATH': self.bin_dir})
 

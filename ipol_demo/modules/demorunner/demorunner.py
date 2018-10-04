@@ -1,28 +1,30 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
 The demoRunner module is responsible for running IPOL demos
 """
 
+import codecs
+import configparser
+import errno
+import json
+import logging
+import os
 # add lib path for import
 import os.path
-import os
-import urllib2
-import json
+import re
 import shutil
-import shlex
-import time
 import subprocess
-import errno
-import logging
-import urlparse
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from string import Template
 from threading import Lock
-import ConfigParser
-import re
-import codecs
+
 import cherrypy
+
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
 from Tools.run_demo_base import IPOLTimeoutError
@@ -59,7 +61,7 @@ def authenticate(func):
                 and not ("X-Real-IP" in cherrypy.request.headers
                          and is_authorized_ip(cherrypy.request.headers["X-Real-IP"])):
             error = {"status": "KO", "error": "Authentication Failed"}
-            return json.dumps(error)
+            return json.dumps(error).encode()
         return func(*args, **kwargs)
 
     def is_authorized_ip(ip):
@@ -147,6 +149,7 @@ class DemoRunner(object):
         self.main_log_name = cherrypy.config['main.log.name']
         self.share_demoExtras_dir = cherrypy.config['share.demoExtras.dir']
         self.MATLAB_path = cherrypy.config['demo.matlab_path']
+        self.extra_path = cherrypy.config['demo.extra_path']
         self.log_file = os.path.join(self.main_log_dir, self.main_log_name)
 
         self.png_compresslevel = 1
@@ -163,7 +166,7 @@ class DemoRunner(object):
         if not os.path.isdir(self.share_running_dir):
             error_message = "The folder does not exist: " + self.share_running_dir
             self.write_log("__init__", error_message)
-            print error_message
+            print(error_message)
 
 
     #####
@@ -184,13 +187,13 @@ class DemoRunner(object):
 
         # Read config file
         try:
-            cfg = ConfigParser.ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read([authorized_patterns_path])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
-        except ConfigParser.Error:
+        except configparser.Error:
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
@@ -211,7 +214,7 @@ class DemoRunner(object):
         data = {}
         data["status"] = "OK"
         data["ping"] = "pong"
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     @authenticate
@@ -226,7 +229,7 @@ class DemoRunner(object):
             data["status"] = "OK"
         except Exception as ex:
             self.write_log("shutdown", str(ex))
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
         # ---------------------------------------------------------------------------
 
@@ -239,7 +242,7 @@ class DemoRunner(object):
         data = {}
         data["status"] = "KO"
         data["message"] = "Unknown service '{}'".format(attr)
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
 
     @cherrypy.expose
@@ -260,16 +263,16 @@ class DemoRunner(object):
                                         stderr=subprocess.PIPE).communicate()
             total = 0.0
             # Get the total workload
-            for process in processes.split("\n"):
+            for process in processes.decode().split("\n"):
                 if process != "":
                     total += float(process)
             data['workload'] = total / float(nproc)
         except Exception as ex:
             data["status"] = "KO"
             self.logger.exception("Could not get workload from the DR")
-            print "Could not get workload from the DR -", ex
+            print("Could not get workload from the DR -", ex)
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def get_stats(self):
@@ -282,9 +285,9 @@ class DemoRunner(object):
             response['demo_id'] = self.last_execution['demo_id']
             response['key'] = self.last_execution['key']
             response['date'] = self.last_execution['date']
-            return json.dumps(response)
+            return json.dumps(response).encode()
         except Exception:
-            return json.dumps({'status': 'KO'})
+            return json.dumps({'status': 'KO'}).encode()
 
 
     @staticmethod
@@ -311,8 +314,7 @@ class DemoRunner(object):
         self.mkdir_p(dl_dir)
         self.mkdir_p(bin_dir)
 
-        for build_item in ddl_builds.values():
-
+        for build_item in list(ddl_builds.values()):
             # These are mandatory
             url = build_item.get('url')
             if not url:
@@ -327,7 +329,7 @@ class DemoRunner(object):
             username = build_item.get('username')
             password = build_item.get('password')
 
-            zip_filename = urlparse.urlsplit(url).path.split('/')[-1]
+            zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
             tgz_file = os.path.join(dl_dir, zip_filename)
 
             # Get files to move path
@@ -419,39 +421,39 @@ format(path_from))
                 data = {}
                 data['status'] = 'KO'
                 data['message'] = "Bad build syntax: 'build1' not found. \
-Build: {}".format(str(ddl_build)).encode('utf8')
-                return json.dumps(data)
+Build: {}".format(str(ddl_build))
+                return json.dumps(data).encode()
             data = {}
             data['status'] = "OK"
-            data['message'] = "Build of demo {0} OK".format(demo_id).encode('utf8')
+            data['message'] = "Build of demo {0} OK".format(demo_id)
 
         except build.IPOLHTTPMissingHeader as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Incomplete HTTP response. {}. Hint: do not use GitHub, \
 GitLab, or Dropbox as a file server.\nddl_build: {}".\
-format(str(ex), str(ddl_build)).encode('utf8')
+format(str(ex), str(ddl_build))
 
         except IPOLMissingBuildItem as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Missing build item: {}. ddl_build: {}".\
-format(str(ex), str(ddl_build)).encode('utf8')
+format(str(ex), str(ddl_build))
 
-        except urllib2.HTTPError as ex:
-            print "HTTPError"
+        except urllib.error.HTTPError as ex:
+            print("HTTPError")
             self.logger.exception("ensure_compilation - HTTPError")
             data = {}
 
-            build_name = ddl_build.keys()[0]
+            build_name = list(ddl_build.keys())[0]
             if 'password' in ddl_build[build_name]:
                 ddl_build[build_name]['password'] = "*****"
                 ddl_build[build_name]['username'] = "*****"
             data['status'] = 'KO'
-            data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build)).encode('utf8')
+            data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build))
 
         except build.IPOLCompilationError as ex:
-            print "Build failed with exception " + str(ex) + " in demo " + demo_id
+            print("Build failed with exception " + str(ex) + " in demo " + demo_id)
 
             build_filename = 'build.log'
             log_file = os.path.join(path_for_the_compilation, build_filename)
@@ -477,10 +479,10 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed: unauthorized access. Move: {}".format(str(ex))
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed. URL problem. {}".format(str(ex))
+            data['message'] = "Construct failed. Could not reach the source code."
         except IOError as ex:
             data = {}
             data['status'] = 'KO'
@@ -499,7 +501,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
             data['message'] = "INTERNAL ERROR in ensure_compilation"
             self.logger.exception("INTERNAL ERROR in ensure_compilation, demo {}".format(demo_id))
 
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
 
     @cherrypy.expose
@@ -517,12 +519,12 @@ format(str(ex), str(ddl_build)).encode('utf8')
             else:
                 data['status'] = 'KO'
                 data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
-                return json.dumps(data)
+                return json.dumps(data).encode()
 
             data['status'] = 'OK'
         except Exception:
             data['status'] = 'KO'
-        return json.dumps(data)
+        return json.dumps(data).encode()
 
     @cherrypy.expose
     def delete_compilation(self, demo_id):
@@ -534,7 +536,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
             if os.path.isdir(path_of_the_compilation):
                 shutil.rmtree(path_of_the_compilation)
         except Exception as ex:
-                self.logger.exception("Exception trying to delete the compilation folder, demo {}. {}".format(demo_id, str(ex)))
+            self.logger.exception("Exception trying to delete the compilation folder, demo {}. {}".format(demo_id, str(ex)))
 
     def compile_source(self, ddl_build, path_for_the_compilation):
         """
@@ -560,13 +562,14 @@ format(str(ex), str(ddl_build)).encode('utf8')
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
         rd.set_MATLAB_path(self.MATLAB_path)
+        rd.set_extra_path(self.extra_path)
         rd.set_demo_id(demo_id)
         rd.set_commands(ddl_run)
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
 
         # Note: use isinstance(s, str) if moving to Python 3
-        if not isinstance(ddl_run, basestring):
+        if not isinstance(ddl_run, str):
             return -1 # Bad run syntax: not a string
 
         # Substitute variables and run algorithm
@@ -631,7 +634,7 @@ format(str(ex), str(ddl_build)).encode('utf8')
                 err = 'Work directory does not exist: {}'.format(work_dir)
                 res_data['error'] = err
                 res_data['algo_info']['error_message'] = err
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
 
             run_time = time.time()
             timeout = float(timeout)
@@ -651,19 +654,19 @@ format(str(ex), str(ddl_build)).encode('utf8')
                 err = "Bad run syntax (not a string): {}".format(str(ddl_run))
                 res_data['error'] = err
                 res_data['algo_info']['error_message'] = err
-                return json.dumps(res_data)
+                return json.dumps(res_data).encode()
 
             res_data['algo_info']['error_message'] = " "
             res_data['algo_info']['run_time'] = time.time() - run_time
             res_data['status'] = 'OK'
-            return json.dumps(res_data)
+            return json.dumps(res_data).encode()
 
         except IPOLTimeoutError:
             res_data['status'] = 'KO'
             res_data['error'] = 'IPOLTimeoutError'
             res_data['algo_info']['error_message'] = 'IPOLTimeoutError, Timeout={} s'.format(timeout)
-            print "exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id)
-            return json.dumps(res_data)
+            print("exec_and_wait IPOLTimeoutError, demo_id={}".format(demo_id))
+            return json.dumps(res_data).encode()
         except RuntimeError as ex:
             # Read stderr and stdout
             stderr_content = self.read_workdir_file(work_dir, "stderr.txt")
@@ -673,8 +676,8 @@ format(str(ex), str(ddl_build)).encode('utf8')
 stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['status'] = 'KO'
             res_data['error'] = str(ex)
-            print res_data
-            return json.dumps(res_data)
+            print(res_data)
+            return json.dumps(res_data).encode()
 
         except OSError as ex:
             error_str = "{} - errno={}, filename={}, ddl_run={}".format(str(ex), ex.errno, ex.filename, ddl_run)
@@ -682,21 +685,21 @@ stderr: {}\nstdout: {}'.format(stderr_content, stdout_content)
             res_data['status'] = 'KO'
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
-            print res_data
-            return json.dumps(res_data)
+            print(res_data)
+            return json.dumps(res_data).encode()
         except KeyError as ex:
             error_str = "KeyError. Hint: variable not defined? - {}, ddl_run={}".format(str(ex), ddl_run)
             self.write_log("exec_and_wait", "KeyError, demo_id={}, {}".format(demo_id, error_str))
             res_data['status'] = 'KO'
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = error_str
-            print res_data
-            return json.dumps(res_data)
+            print(res_data)
+            return json.dumps(res_data).encode()
         except Exception as ex:
             error_str = "Uncatched Exception, demo_id={}".format(demo_id)
             self.logger.exception(error_str)
             res_data['status'] = 'KO'
             res_data['algo_info']['error_message'] = error_str
             res_data['error'] = 'Error: {}'.format(ex)
-            print res_data
-            return json.dumps(res_data)
+            print(res_data)
+            return json.dumps(res_data).encode()

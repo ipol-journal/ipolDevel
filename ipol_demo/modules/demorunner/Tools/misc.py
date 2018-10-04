@@ -6,6 +6,7 @@ import os
 import time
 from datetime import datetime
 import gzip as _gzip
+from functools import reduce
 
 #
 # TINY STUFF
@@ -21,7 +22,7 @@ def app_expose(function):
     """
     shortcut to expose app actions from the base class
     """
-    function.im_func.exposed = True
+    function.__func__.exposed = True
 
 #
 # TIME

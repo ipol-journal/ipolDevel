@@ -1,18 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Demorunner test
 """
+import json
+import os
+import shutil
+import sys
+import tarfile
 # Unit tests for the Blobs module
 import unittest
-import os
 import xml.etree.ElementTree as ET
-import sys
-import json
-import shutil
-import tarfile
-from PIL import Image
+
 import requests
+from PIL import Image
 
 
 def load_demorunners(demorunners_file):
@@ -147,7 +148,6 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                data = {'demo_id': self.demo_id}
                 host = self.demorunners[demorunner].get('server')
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
@@ -176,7 +176,6 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                data = {'demo_id': self.demo_id}
                 host = self.demorunners[demorunner].get('server')
                 self.ensure_compilation(host, self.demo_id, build)
 
@@ -209,7 +208,6 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                data = {'demo_id': self.demo_id}
                 host = self.demorunners[demorunner].get('server')
                 self.ensure_compilation(host, self.demo_id, build)
 
@@ -291,7 +289,7 @@ class DemorunnerTests(unittest.TestCase):
         """
         exec and wait
         """
-        data = {'demo_id': unicode(demo_id), 'key': key, 'params': params, 'ddl_run': ddl_run}
+        data = {'demo_id': str(demo_id), 'key': key, 'params': params, 'ddl_run': ddl_run}
         response = self.post(host, self.module, 'exec_and_wait', data=data)
         return response.json()
 

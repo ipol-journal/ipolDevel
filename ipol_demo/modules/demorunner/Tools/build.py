@@ -2,19 +2,20 @@
 build tools
 """
 import base64
-import os, shutil
-import urllib
-import urllib2
-import time
+import datetime
+import os
+import os.path
+import shutil
 import tarfile
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 import zipfile
 from subprocess import Popen
-import cherrypy
-
 from time import gmtime, strftime
-import datetime
 
-import os.path
+import cherrypy
 
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
@@ -48,18 +49,15 @@ def download(url, fname, username=None, password=None):
 
     # Open the url. Add authorization header if needed
     if username is None:
-        url_handle = urllib2.urlopen(url)
+        url_handle = urllib.request.urlopen(url)
     else:
-        request = urllib2.Request(url)
+        request = urllib.request.Request(url)
         base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
         request.add_header("Authorization", "Basic %s" % base64string)
-        url_handle = urllib2.urlopen(request)
-
+        url_handle = urllib.request.urlopen(request)
     if not os.path.isfile(fname):
         # no local copy : retrieve
-        file_handle = open(fname, 'w')
-        file_handle.write(url_handle.read())
-        file_handle.close()
+        urllib.request.urlretrieve(url, fname)
         return True
     else:
         # only retrieve if a newer version is available
@@ -78,10 +76,10 @@ def download(url, fname, username=None, password=None):
         need_download = url_size != file_size or url_ctime > file_ctime
         if need_download:
             # download
-            file_handle = open(fname, 'w')
+            file_handle = open(fname, 'wb')
             file_handle.write(url_handle.read())
             file_handle.close()
-            print "Retrieved"
+            print("Retrieved")
 
         return need_download
 
@@ -117,7 +115,7 @@ def extract(fname, target):
     # extract into the target dir
     try:
         ar.extractall(target)
-    except IOError, AttributeError:
+    except IOError as AttributeError:
         # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
         # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
         # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
@@ -157,10 +155,10 @@ def run(command, stdout, cwd=None, env=None):
     # open the log file and write the command
     with open(stdout, 'w') as logfile:
         logfile.write("%s : %s\n" % (time.strftime(TIME_FMT),
-                                 command))
+                                     command))
     with open(stdout, 'a') as logfile:
         process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
-                    cwd=cwd, env=env)
+                        cwd=cwd, env=env)
     process.wait()
     if 0 != process.returncode:
         raise IPOLCompilationError

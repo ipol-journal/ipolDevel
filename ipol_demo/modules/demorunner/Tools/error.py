@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 """
@@ -6,6 +6,7 @@ This file describes exception error class and printing color exception
 """
 
 import sys
+
 
 class   DatabaseError(Exception):
     """
@@ -34,6 +35,12 @@ class   DatabaseDeleteError(DatabaseError):
 class DatabaseUpdateError(DatabaseError):
     """
     Exception used when update instruction failed in database
+    """
+    pass
+
+class VirtualEnvError(Exception):
+    """
+    Exception raised when running without a virtual environment
     """
     pass
 
@@ -68,7 +75,7 @@ def print_exception_function(the_class, result):
     mess += "\n\t[Location]: " + name_function
     mess += "\n\t[Result]: " + result + PrintColors.ENDC
 
-    print >> sys.stderr, mess
+    print(mess, file=sys.stderr)
 
 def print_usage_function(executable):
     """
@@ -80,7 +87,7 @@ def print_usage_function(executable):
     mess = PrintColors.WARNING
     mess += "[Usage]: " + executable + " file.conf"
 
-    print >> sys.stderr, mess
+    print(mess, file=sys.stderr)
 
 def print_exception_thumbnail(result, name_function):
     """
@@ -94,7 +101,7 @@ def print_exception_thumbnail(result, name_function):
     mess += "\n\t[Location]: " + name_function
     mess += "\n\t[Result]: " + result + PrintColors.ENDC
 
-    print >> sys.stderr, mess
+    print(mess, file=sys.stderr)
 
 def print_exception_zip(name_function, name_zip):
     """
@@ -111,4 +118,4 @@ def print_exception_zip(name_function, name_zip):
     mess += "\n\t[Result]: index.cfg missing in " + name_zip
     mess += ": Cannot add item in database" + PrintColors.ENDC
 
-    print >> sys.stderr, mess
+    print(mess, file=sys.stderr)
