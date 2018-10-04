@@ -753,15 +753,16 @@ class Core():
                     if not required_field in input_in_ddl:
                         raise IPOLCheckDDLError("Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter))
 
-                    if required_field in natural_fields:
+                for natural_field in natural_fields:
+                    if natural_field in input_in_ddl:
                         try:
-                            value = evaluate(input_in_ddl[required_field])
+                            value = evaluate(input_in_ddl[natural_field])
                         except IPOLEvaluateError as ex:
-                            raise IPOLCheckDDLError("Bad DDL inputs section: invalid expression '{}' in '{}' field at input #{}.".format(ex, required_field, inputs_counter))
+                            raise IPOLCheckDDLError("Bad DDL inputs section: invalid expression '{}' in '{}' field at input #{}.".format(ex, natural_field, inputs_counter))
 
                         integer = float(value) == int(value)
                         if value <= 0 or not integer:
-                            raise IPOLCheckDDLError("Bad DDL inputs section: '{}' field must be a positive integer value in input #{}.".format(required_field, inputs_counter))
+                            raise IPOLCheckDDLError("Bad DDL inputs section: '{}' field must be a positive integer value in input #{}.".format(natural_field, inputs_counter))
 
         # The params must be a list
         if 'archive' in ddl and 'params' in ddl['archive'] and not isinstance(ddl['archive']['params'], list):
