@@ -1265,8 +1265,8 @@ attached the failed experiment data.". \
         if demorunner_response['status'] != 'OK':
             print("Compilation error in demo #{}".format(demo_id))
             # Add the compilation failure info into the exception
-            buildlog = demorunner_response.get('buildlog', '').encode('utf8')
-            demorunner_message = demorunner_response['message'].encode('utf8')
+            buildlog = demorunner_response.get('buildlog', '')
+            demorunner_message = demorunner_response['message']
             error_message = "DR={}, {}  - {}".format(dr_name, buildlog, demorunner_message)
             raise IPOLEnsureCompilationError(error_message)
 
@@ -1386,7 +1386,7 @@ attached the failed experiment data.". \
             demo_state = self.get_demo_metadata(demo_id)['state'].lower()
 
             # Message for the web interface
-            error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
+            error_msg = (demorunner_response['algo_info']['error_message']).strip()
             error = demorunner_response.get('error', '').strip()
 
             # Prepare a message for the website.
