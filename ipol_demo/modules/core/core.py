@@ -1514,8 +1514,9 @@ attached the failed experiment data.". \
                 self.send_internal_error_email(ex.email_message)
             return json.dumps({'error': ex.interface_message, 'status': 'KO'}).encode()
         except IPOLEvaluateError as ex:
-            error_message = 'IPOLEvaluateError detected in demo {}'.format(str(ex), demo_id)
+            error_message = "IPOLEvaluateError '{}' detected in demo {}".format(str(ex), demo_id)
             self.logger.exception(error_message)
+            self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLDemoRunnerResponseError as ex:
             # Send email to the editors
