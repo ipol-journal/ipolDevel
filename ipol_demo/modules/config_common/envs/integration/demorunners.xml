@@ -12,6 +12,7 @@
   <demorunner name="dr_integration">
     <module>demorunner</module>
     <server>integration.ipol.im</server>
+    <capability>DEBIAN_STABLE</capability>
     <!--<capability>Matlab</capability>-->
     <serverSSH>ipol_integration</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
