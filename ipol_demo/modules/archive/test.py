@@ -17,7 +17,7 @@ class ArchiveTests(unittest.TestCase):
     """
     ArchiveTests
     """
-    HOST = socket.gethostbyname(socket.gethostname())
+    HOST = socket.getfqdn()
     module = 'archive'
 
     # Blob info

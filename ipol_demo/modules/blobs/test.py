@@ -16,7 +16,7 @@ class BlobsTests(unittest.TestCase):
     """
     BlobsTests
     """
-    HOST = socket.gethostbyname(socket.gethostname())
+    HOST = socket.getfqdn()
     module = 'blobs'
 
     # Blob info

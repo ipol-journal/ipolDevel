@@ -18,7 +18,7 @@ class DemoinfoTests(unittest.TestCase):
     Demoinfo unit tests
     """
 
-    HOST = socket.gethostbyname(socket.gethostname())
+    HOST = socket.getfqdn()
     module = 'demoinfo'
 
     # Demo

@@ -28,7 +28,7 @@ class ConversionImageTests(unittest.TestCase):
     """
     Dispatcher tests.
     """
-    HOST = socket.gethostbyname(socket.gethostname())
+    HOST = socket.getfqdn()
     module = 'conversion'
     blob_path = None
 
