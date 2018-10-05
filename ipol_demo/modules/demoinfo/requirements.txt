@@ -9,3 +9,4 @@ python-magic==0.4.15
 pytz==2018.5
 six==1.11.0
 tempora==1.13
+pylint==2.1.1
