@@ -130,7 +130,6 @@ class Core():
         """
         try:
             ### Read the configuration file
-            self.host_name = cherrypy.config['server.socket_host']
 
             # Get the server environment (integration or production)
             hostname = socket.gethostname()
@@ -1466,7 +1465,7 @@ attached the failed experiment data.". \
             # Also check if it is an original uploaded data from the user (origin != 'blobset') or is enabled archive_always
             if not private_mode and 'archive' in ddl and (origin != 'blobset' or ddl['archive'].get('archive_always')):
                 try:
-                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, self.host_name)
+                    response = send_to_archive(demo_id, work_dir, kwargs, ddl['archive'], demorunner_response, socket.getfqdn())
                     if not response['status'] == 'OK':
                         id_experiment = response.get('id_experiment', None)
                         message = "KO from archive module when archiving an experiment: demo={}, key={}, id={}."
@@ -1843,7 +1842,7 @@ attached the failed experiment data.". \
             # exists in the DDL
             if (original_exp == 'true' or input_type == 'noinputs') and 'archive' in ddl:
                 try:
-                    send_to_archive(demo_id, work_dir, None, ddl['archive'], demorunner_response, self.host_name)
+                    send_to_archive(demo_id, work_dir, None, ddl['archive'], demorunner_response, socket.getfqdn())
                 except Exception as ex:
                     message = "Error archiving the experiment with key={} of demo {}, {}".format(key, demo_id, ex)
                     self.logger.exception(message)
@@ -1950,7 +1949,7 @@ attached the failed experiment data.". \
         """
         try:
             if host is None:
-                host = self.host_name
+                host = socket.getfqdn()
             url = 'http://{0}/{1}'.format(host, api_url)
             return requests.post(url, data=data)
         except Exception as ex:
