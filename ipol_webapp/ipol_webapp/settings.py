@@ -117,7 +117,7 @@ elif hostname in dev_machines_hostname:
 	####################################
 	#            IPOL WS               #
 	####################################
-	HOST_NAME = 'ns3018037.ip-151-80-24.eu'
+	HOST_NAME = 'integration.ipol.im'
 	# testing ENV 2
 	IPOL_SERVICES_MODULE_DEMO = None
 	# change /Users/josearrecio/Projects/ipolDevel/ipol_demo/modules/config_common/modules.xml to point locally (ns3018037.ip-151-80-24.eu)
