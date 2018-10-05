@@ -20,7 +20,10 @@ for module in ${modules}
 do
     echo "**** MODULE: ${module}" >> ${report}
     cd ${modulesDir}${module}
-    pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc *.py >> ${report}
+    # Lint the module after activating its virtualenv
+    source venv/bin/activate
+    pylint3 --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc *.py >> ${report}
+    deactivate
     cd ${cur_dir}
 done
 
