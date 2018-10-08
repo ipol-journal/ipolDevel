@@ -13,6 +13,7 @@ upstream ipol_webapp_server {
 # It simply serves static files
 server {
         listen [::]:81;
+	listen *:81;
         proxy_send_timeout          600;
         proxy_read_timeout          600;
         send_timeout                600;
@@ -30,6 +31,7 @@ server {
 
 server {
 	listen [::]:80 default_server;
+	listen *:80 default_server;
 	proxy_send_timeout          600;
         proxy_read_timeout          600;
         send_timeout                600;

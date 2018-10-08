@@ -15,6 +15,8 @@ server {
         deny all;
 
         listen [::]:81;
+        listen *:81;
+
         proxy_send_timeout          700;
         proxy_read_timeout          700;
         send_timeout                700;
@@ -33,6 +35,8 @@ server {
 
 server {
     listen       [::]:80 default_server;
+    listen *:80 default_server;
+
     server_name   ipolcore.ipol.im;
     proxy_send_timeout          700;
     proxy_read_timeout          700;
