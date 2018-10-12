@@ -139,12 +139,12 @@ def pil_4histo(im, bgcolor=(255, 255, 255)):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print "Histogram, need at least one input image to process"
+        print("Histogram, need at least one input image to process")
         sys.exit(0)
     # loop on argument, set max size of histogram for first image
     value_max = None
     for src in sys.argv[1:]:
-        print src
+        print(src)
         im = Image.open(src)
         im = pil_4histo(im) # ensure rgb or l
         hist = histogram(im, value_max=value_max)

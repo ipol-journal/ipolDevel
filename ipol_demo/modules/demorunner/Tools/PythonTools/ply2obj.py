@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # ply2obj.py : Convert a .ply mesh (Stanford) to a .obj mesh (wavefront)
 #
@@ -19,17 +19,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import os
 import string
+import sys
 
 
 def print_help():
-    print "Usage: "+os.path.basename(sys.argv[0])+" filein.ply [fileout.obj]"
+    print("Usage: "+os.path.basename(sys.argv[0])+" filein.ply [fileout.obj]")
     sys.exit()
 
 def print_error(str):
-    print "ERROR: "+str
+    print("ERROR: "+str)
     sys.exit()
 
 if (len(sys.argv) < 2):

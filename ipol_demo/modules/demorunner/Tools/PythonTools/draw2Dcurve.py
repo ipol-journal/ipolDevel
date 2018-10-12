@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # GNU General Public Licence (GPL)
@@ -22,13 +22,18 @@
 __author__  = '''Miguel Colom'''
 __docformat__ = 'plaintext'
 
-import matplotlib as mpl
-from cycler import cycler
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
 import optparse
 import sys
+
+import numpy as np
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from cycler import cycler
+
+plt.switch_backend('Agg')
+
+
 
 # Set color cycle
 mpl.rcParams['axes.prop_cycle'] = cycler('color', ['r', 'g', 'b', 'c', 'm', 'y', 'k', '#67d100'])   
@@ -55,7 +60,7 @@ parser.add_option('--style', help='use custom line style', default='')
 (opts, args) = parser.parse_args()
 
 if len(args) < 1:
-    print "Error: no input files specified!\n"
+    print("Error: no input files specified!\n")
     parser.print_help()
     sys.exit(-1)
 
@@ -114,14 +119,14 @@ for filename in args:
   # Guess number of channels
   numBins = len(lines)
   if numBins > 0:
-    numChannels = len(lines[0])/2
+    numChannels = len(lines[0])//2
   else:
     numChannels = 0
   
   # Check number of channels
   for i in range(numBins):
-    if len(lines[i])/2 <> numChannels:
-      print 'Error: in line ' + str(i+1) + ': number of channels doesn\'t match!'
+    if len(lines[i])/2 != numChannels:
+      print('Error: in line ' + str(i+1) + ': number of channels doesn\'t match!')
       sys.exit(-2)
   #
   # Check if number of channels keeps the same for all input files
@@ -129,7 +134,7 @@ for filename in args:
     num_channels_all = numChannels
   else: # Num channels check
     if numChannels != num_channels_all:
-      print 'Error: number of channels mismatch for file ' + filename
+      print('Error: number of channels mismatch for file ' + filename)
       exit(-2)
 
   # Read data values
@@ -148,21 +153,21 @@ for filename in args:
         indexes[ch] += 1
 
   if is_first_loop:
-    if legend <> '':
+    if legend != '':
       legendNames = legend.split(',')
-      if len(legendNames) <> numChannels:
-        print 'Error: number of legends doesn\'t match number of channels!'
+      if len(legendNames) != numChannels:
+        print('Error: number of legends doesn\'t match number of channels!')
         sys.exit(-3)
     #
-    if lines_style <> '':
+    if lines_style != '':
       lines_style_split = lines_style.split(',')
-      if len(lines_style_split)/2 <> numChannels:
-        print 'Error: number of parameters in styles doesn\'t match number of channels!'
+      if len(lines_style_split)/2 != numChannels:
+        print('Error: number of parameters in styles doesn\'t match number of channels!')
         sys.exit(-4)
       #
       lines_colors = []
       lines_sty = []
-      for i in range(len(lines_style_split)/2):
+      for i in range(len(lines_style_split)//2):
         lines_colors.append(lines_style_split[2*i])
         lines_sty.append(lines_style_split[2*i+1])
 
@@ -173,11 +178,11 @@ for filename in args:
       kwargs['marker'] = 'o'
       kwargs['markersize'] = markersize
   
-    if lines_style <> '':
+    if lines_style != '':
       kwargs['color'] = lines_colors[ch]
       kwargs['linestyle'] = lines_sty[ch]
   
-    if legend <> '':
+    if legend != '':
       chName = legendNames[ch]
       kwargs['label'] = chName
   
@@ -185,22 +190,22 @@ for filename in args:
 
   # Horizontal and vertical limits
   l0, l1 = plt.xlim()
-  if x0 <> const_NO_VALUE:
+  if x0 != const_NO_VALUE:
     l0 = x0
-  if x1 <> const_NO_VALUE:
+  if x1 != const_NO_VALUE:
     l1 = x1
   plt.xlim((l0, l1))
   
   l0, l1 = plt.ylim()
-  if y0 <> const_NO_VALUE:
+  if y0 != const_NO_VALUE:
     l0 = y0
-  if y1 <> const_NO_VALUE:
+  if y1 != const_NO_VALUE:
     l1 = y1
   plt.ylim((l0, l1))
 
 
   if is_first_loop:
-    if legend <> '':
+    if legend != '':
       leg = plt.legend(loc='best', fancybox=True)
       leg.get_frame().set_alpha(0.7)
       leg.get_frame().set_facecolor('0.85')
@@ -209,4 +214,3 @@ for filename in args:
   
 # Save result
 fig.savefig(outputName)
-
