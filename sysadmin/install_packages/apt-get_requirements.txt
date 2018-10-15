@@ -71,6 +71,7 @@ libavresample-dev
 libavfilter-dev
 libavutil-dev
 liblas-bin
+libatlas-base-dev
 
 ###################################################################
 
