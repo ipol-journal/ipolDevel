@@ -24,20 +24,24 @@ alias venvcp2="cd ~/ipolDevel/cp2 && source bin/activate"
 alias collectstatic="cd ~/ipolDevel/ipol_webapp && python manage.py collectstatic --noinput --clear"
 
 # Test all
-alias runtest="cd ~/ipolDevel/ci_tests && python all.py"
+alias runtest="cd ~/ipolDevel/ci_tests && python3 all.py"
 
 # Go to run directory
 alias rund="cd ~/ipolDevel/shared_folder/run/"
 
+# Activate venv
+alias venv="source venv/bin/activate"
+
 #pylint of a module
 function lintmod() {
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc \
+    pylint3 --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc \
     ~/ipolDevel/ipol_demo/modules/$1/$1.py
 }
 
 function lint() {
-    pylint --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1
+    pylint3 --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1
 }
+
 
 # Modules start
 alias core="cd ~/ipolDevel/ipol_demo/modules/core && source venv/bin/activate && ./main.py"

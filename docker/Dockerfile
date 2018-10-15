@@ -11,25 +11,14 @@ WORKDIR /home/ipol
 COPY ./docker/pkglist /home/ipol/pkglist
 RUN apt update && apt install -y $(cat pkglist)
 
-COPY ./sysadmin/install_packages/requirements.txt /home/ipol/requirements.txt
-RUN pip install -r requirements.txt
-
 COPY ./ipol_webapp/requirements.txt /home/ipol/cp_requirements.txt
-RUN pip install -r cp_requirements.txt
-
-COPY ./sysadmin/install_packages/pip3-requirements.txt /home/ipol/pip3-requirements.txt
-RUN pip3 install -r pip3-requirements.txt
-
-RUN pip install opencv-python
+RUN pip install -r cp_requirements.txt && pip3 install requests
 
 COPY ./docker/zsh_conf /home/ipol/zsh_conf
 
 # Nginx config file generation
 COPY ./sysadmin/configs/nginx/default-local /etc/nginx/sites-available/default
 RUN sed -i 's@miguel@ipol@g' /etc/nginx/sites-available/default
-
-# Libtiff bugfix
-RUN python -c 'import libtiff'
 
 RUN bash -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)" && \
     cp /home/ipol/zsh_conf /root/.zshrc
@@ -45,4 +34,4 @@ USER root
 
 EXPOSE 80
 
-ENTRYPOINT service ssh start && nginx && zsh
+ENTRYPOINT service ssh start && service bind9 start && nginx && zsh
