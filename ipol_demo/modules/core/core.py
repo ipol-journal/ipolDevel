@@ -635,9 +635,10 @@ class Core():
             mime_uploaded_blob = mime.from_buffer(file_up.file.read())
             type_of_uploaded_blob, _ = mime_uploaded_blob.split('/')
 
+            # Reject the uploaded file it it doesn't match the type in the DDL
             if inputs_desc[i]['type'] != type_of_uploaded_blob and inputs_desc[i]['type'] != "data":
                 message = "The DDL type ({}) doesn't match the uploaded blob ({})".format(inputs_desc[i]['type'], type_of_uploaded_blob)
-                raise IPOLInputUploadError(message)
+                raise IPOLUploadedInputRejectedError(message)
 
             # Reject the uploaded file it's not 'data' and it can't be guessed
             ext_of_uploaded_blob = mimetypes.guess_extension(mime_uploaded_blob)
@@ -1328,8 +1329,6 @@ attached the failed experiment data.". \
         except IPOLMissingRequiredInputError as ex:
             error_message = "Missing required input #{}".format(ex.index)
             raise IPOLPrepareFolderError(error_message)
-        except IPOLUploadedInputRejectedError as ex:
-            raise IPOLPrepareFolderError(str(ex))
         except IPOLEvaluateError as ex:
             error_message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
             raise IPOLPrepareFolderError(error_message)
@@ -1480,6 +1479,8 @@ attached the failed experiment data.". \
             messages.extend(prepare_folder_messages)
 
             return json.dumps(dict(demorunner_response, **{'messages': messages})).encode()
+        except IPOLUploadedInputRejectedError as ex:
+c            return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
         except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
