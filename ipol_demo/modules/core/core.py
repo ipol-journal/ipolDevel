@@ -1332,7 +1332,6 @@ attached the failed experiment data.". \
             raise IPOLPrepareFolderError(str(ex))
         except IPOLEvaluateError as ex:
             error_message = "Invalid expression '{}' found in the DDL of demo {}".format(str(ex), demo_id)
-            self.logger.exception(error_message)
             raise IPOLPrepareFolderError(error_message)
         except IPOLCopyBlobsError as ex:
             error_message = "** INTERNAL ERROR **. Error copying blobs of demo {}: {}".format(demo_id, ex)
@@ -1504,12 +1503,21 @@ attached the failed experiment data.". \
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLReadDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
+            self.logger.exception(error_message)
+            if ex.email_message:
+                self.send_internal_error_email(ex.email_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
             self.send_runtime_error_email(demo_id, "NA", error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
-        except (IPOLPrepareFolderError, IPOLExecutionError) as ex:
+        except IPOLPrepareFolderError as ex:
+            # Do not log: function prepare_folder_for_execution will decide when to log
+            if ex.email_message:
+                self.send_internal_error_email(ex.email_message)
+            return json.dumps({'error': ex.interface_message, 'status': 'KO'}).encode()
+        except IPOLExecutionError as ex:
+            # Do not log: function execute_experiment will decide when to log
             if ex.email_message:
                 self.send_internal_error_email(ex.email_message)
             return json.dumps({'error': ex.interface_message, 'status': 'KO'}).encode()
