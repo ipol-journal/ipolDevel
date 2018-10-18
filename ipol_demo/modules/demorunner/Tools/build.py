@@ -73,7 +73,7 @@ def download(url, fname, username=None, password=None):
         file_utc_ctime = datetime.datetime.utcfromtimestamp(os.path.getctime(fname))
         file_size = os.path.getsize(fname)
 
-        need_download = url_size != file_size or url_ctime > file_ctime
+        need_download = url_size != file_size or url_ctime > file_utc_ctime
         if need_download:
             # download
             file_handle = open(fname, 'wb')
