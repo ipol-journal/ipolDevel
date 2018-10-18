@@ -1000,7 +1000,10 @@ class Core():
         """
         emails = []
 
-        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        try:
+            demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        except BrokenPipeError:
+            demo_state = '<???>'
 
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
@@ -1084,7 +1087,11 @@ class Core():
         """
         Send email to editor when the execution fails
         """
-        demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        try:
+            demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+        except BrokenPipeError:
+            demo_state = '<???>'
+
         # Add Tech and Edit only if this is the production server and
         # the demo has been published
         emails = []
@@ -1380,7 +1387,11 @@ attached the failed experiment data.". \
 
         if demorunner_response['status'] != 'OK':
             print("DR answered KO for demo #{}".format(demo_id))
-            demo_state = self.get_demo_metadata(demo_id)['state'].lower()
+
+            try:
+                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+            except BrokenPipeError:
+                demo_state = '<???>'
 
             # Message for the web interface
             error_msg = (demorunner_response['algo_info']['error_message']).strip()
@@ -1388,12 +1399,13 @@ attached the failed experiment data.". \
 
             # Prepare a message for the website.
             website_message = "DR={}\n{}".format(dr_name, error_msg)
-            # In case of a timeout, let it be human oriented.
+            # In case of a timeout, send a human-oriented message to the web interface
             if error == 'IPOLTimeoutError':
                 website_message = "This execution had to be stopped because of TIMEOUT. \
                                       Please reduce the size of your input."
 
             raise IPOLDemoRunnerResponseError(website_message, demo_state, key, error)
+
 
         # Check if the user created a demo_failure.txt file
         # This is part of the mechanism which allows the user to signal that the execution can't go on,
@@ -1491,8 +1503,12 @@ attached the failed experiment data.". \
             self.send_compilation_error_email(demo_id, error_message)
             return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
         except IPOLFindSuitableDR as ex:
-            if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
-                self.send_email_no_demorunner(demo_id)
+            try:
+                if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
+                    self.send_email_no_demorunner(demo_id)
+            except BrokenPipeError:
+                pass
+
             error_message = str(ex)
             self.logger.exception(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
@@ -1735,8 +1751,12 @@ attached the failed experiment data.". \
                 self.demorunners_workload(), requirements)
             if dr_name is None:
                 response = {'status': 'KO', 'error': 'No DR satisfies the requirements: {}'.format(requirements)}
-                if self.get_demo_metadata(demo_id)["state"].lower() == "published":
-                    self.send_email_no_demorunner(demo_id)
+                try:
+                    if self.get_demo_metadata(demo_id)["state"].lower() == "published":
+                        self.send_email_no_demorunner(demo_id)
+                except BrokenPipeError:
+                    pass
+
                 return json.dumps(response).encode()
 
             # Ensure that the demoExtras are updated
@@ -1798,7 +1818,10 @@ attached the failed experiment data.". \
 
             if demorunner_response['status'] != 'OK':
                 print("DR answered KO for demo #{}".format(demo_id))
-                demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+                try:
+                    demo_state = self.get_demo_metadata(demo_id)["state"].lower()
+                except BrokenPipeError:
+                    demo_state = "<???>"
 
                 # Message for the web interface
                 error_msg = (demorunner_response['algo_info']['error_message']).encode('utf-8').strip()
