@@ -70,7 +70,7 @@ def download(url, fname, username=None, password=None):
         url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
 
         url_size = int(url_info['content-length'])
-        file_ctime = datetime.datetime.fromtimestamp(os.path.getctime(fname))
+        file_utc_ctime = datetime.datetime.utcfromtimestamp(os.path.getctime(fname))
         file_size = os.path.getsize(fname)
 
         need_download = url_size != file_size or url_ctime > file_ctime
