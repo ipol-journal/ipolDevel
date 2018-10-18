@@ -742,14 +742,14 @@ class Core():
 
             for inputs_counter, input_in_ddl in enumerate(ddl['inputs']):
 
-                if not 'type' in input_in_ddl:
+                if 'type' not in input_in_ddl:
                     raise IPOLCheckDDLError("Bad DDL inputs section: missing 'type' field in input #{}.".format(inputs_counter))
 
-                if not input_in_ddl['type'] in required_fields:
+                if input_in_ddl['type'] not in required_fields:
                     raise IPOLCheckDDLError("Bad DDL inputs section: unknown input type '{}' in input #{}".format(input_in_ddl['type'], inputs_counter))
 
                 for required_field in required_fields[input_in_ddl['type']]:
-                    if not required_field in input_in_ddl:
+                    if required_field not in input_in_ddl:
                         raise IPOLCheckDDLError("Bad DDL inputs section: missing '{}' field in input #{}.".format(required_field, inputs_counter))
 
                 for natural_field in natural_fields:
