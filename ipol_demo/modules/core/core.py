@@ -1480,7 +1480,7 @@ attached the failed experiment data.". \
 
             return json.dumps(dict(demorunner_response, **{'messages': messages})).encode()
         except IPOLUploadedInputRejectedError as ex:
-c            return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
+            return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
         except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
