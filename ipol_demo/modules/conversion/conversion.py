@@ -13,6 +13,7 @@ import math
 import mimetypes
 import os
 import re
+import errno
 import sys
 
 import cherrypy
@@ -232,7 +233,13 @@ class Conversion(object):
         except IPOLTypeError as ex:
             message = "Input #{}. {}".format(i, str(ex))
             return self.make_KO_response(message, work_dir)
-        except (OSError, IOError, RuntimeError) as ex:
+        except OSError as ex:
+            # Do not log if it's an unsupported file format
+            if ex.errno != errno.ENODATA or 'imread' not in ex.strerror:
+                self.logger.exception(ex)
+            message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
+            return self.make_KO_response(message, work_dir)
+        except (IOError, RuntimeError) as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir)
