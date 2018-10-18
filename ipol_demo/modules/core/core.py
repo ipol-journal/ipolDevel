@@ -882,8 +882,9 @@ class Core():
 
                 demoinfo_demoextras_date = demoinfo_resp['date']
                 demoinfo_demoextras_size = demoinfo_resp['size']
-                core_demoextras_date = os.stat(demoextras_file).st_mtime
-                core_demoextras_size = os.stat(demoextras_file).st_size
+                extras_stat = os.stat(demoextras_file)
+                core_demoextras_date = extras_stat.st_ctime
+                core_demoextras_size = extras_stat.st_size
                 if (core_demoextras_date <= demoinfo_demoextras_date or
                         core_demoextras_size != demoinfo_demoextras_size):
                     # DemoExtras needs an update
