@@ -237,10 +237,9 @@ class DemorunnerTests(unittest.TestCase):
         """
         create work dir
         """
-        blob = open(self.blob_path, 'r')
         run_folder = os.path.join(self.shared_folder, 'run', str(self.demo_id))
         os.makedirs(os.path.join(run_folder, self.execution_folder))
-        with open(os.path.join(run_folder, self.execution_folder, 'input_0.png'), 'w') as f:
+        with open(os.path.join(run_folder, self.execution_folder, 'input_0.png'), 'wb') as f, open(self.blob_path, 'rb') as blob:
             f.write(blob.read())
 
         blob.close()
@@ -259,10 +258,10 @@ class DemorunnerTests(unittest.TestCase):
         dl_extras_folder = os.path.join(self.shared_folder, 'dl_extras', str(self.demo_id))
         demo_extras_folder = os.path.join(self.shared_folder, 'demoExtras', str(self.demo_id))
 
-        demo_extras = open(self.test_demo_extras_file, 'r')
+        demo_extras = open(self.test_demo_extras_file, 'rb')
         os.makedirs(dl_extras_folder)
         os.makedirs(demo_extras_folder)
-        with open(os.path.join(dl_extras_folder, 'DemoExtras.tar.gz'), 'w') as f:
+        with open(os.path.join(dl_extras_folder, 'DemoExtras.tar.gz'), 'wb') as f:
             f.write(demo_extras.read())
 
         ar = tarfile.open(self.test_demo_extras_file)

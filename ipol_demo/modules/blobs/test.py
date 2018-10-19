@@ -66,10 +66,9 @@ class BlobsTests(unittest.TestCase):
         blob_vr = None
         delete_demo_status = None
         try:
-            blob = open(self.blob_path, 'r')
-
-            json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
+                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_blobs(self.demo_id)
@@ -104,12 +103,10 @@ class BlobsTests(unittest.TestCase):
         blob_vr = None
         delete_demo_status = None
         try:
-            blob = open(self.blob_path, 'r')
-            vr = open(self.blob_path, 'r')
-
-            json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                                  blob_vr=vr)
+            with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
+                json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
+                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, 
+                                                      title=self.title, blob_vr=vr)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_blobs(self.demo_id)
@@ -164,10 +161,9 @@ class BlobsTests(unittest.TestCase):
         try:
             self.create_template(self.template_name)
 
-            blob = open(self.blob_path, 'r')
-
-            json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
+                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_template_blobs(self.template_name)
@@ -204,12 +200,10 @@ class BlobsTests(unittest.TestCase):
         try:
             self.create_template(self.template_name)
 
-            blob = open(self.blob_path, 'r')
-            vr = open(self.blob_path, 'r')
-
-            json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                                      blob_vr=vr)
+            with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
+                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
+                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
+                                                          blob_vr=vr)
             add_blob_status = json_response.get('status')
 
             json_response = self.get_template_blobs(self.template_name)
@@ -240,9 +234,9 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
 
-            blob = open(self.blob_path, 'r')
-            json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                json_response = self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
+                                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
             status = json_response.get('status')
 
         finally:
@@ -255,9 +249,9 @@ class BlobsTests(unittest.TestCase):
         status = None
         set_list = None
         try:
-            blob = open(self.blob_path, 'r')
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
+                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
 
             response = self.remove_blob_from_demo(self.demo_id, self.blob_set, self.pos_in_set)
             status = response.get('status')
@@ -279,10 +273,9 @@ class BlobsTests(unittest.TestCase):
         try:
             self.create_template(self.template_name)
 
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
-                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_template(blob=blob, template_name=self.template_name, tags=self.tag,
+                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
 
             response = self.remove_blob_from_template(self.template_name, self.blob_set, self.pos_in_set)
             status = response.get('status')
@@ -357,10 +350,9 @@ class BlobsTests(unittest.TestCase):
         template_list = None
         template = None
         try:
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                  title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                                      pos_set=self.pos_in_set, title=self.title)
 
             self.create_template(self.template_name)
 
@@ -386,10 +378,9 @@ class BlobsTests(unittest.TestCase):
         """
         status = None
         try:
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                  title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
+                                      title=self.title)
 
             response = self.add_templates_to_demo(self.demo_id, self.template_name)
             status = response.get('status')
@@ -424,10 +415,9 @@ class BlobsTests(unittest.TestCase):
         status = None
         template_list = None
         try:
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                  title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                                      pos_set=self.pos_in_set, title=self.title)
 
             self.create_template(self.template_name)
             self.add_templates_to_demo(self.demo_id, self.template_name)
@@ -452,10 +442,9 @@ class BlobsTests(unittest.TestCase):
         """
         status = None
         try:
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                  title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                                      pos_set=self.pos_in_set, title=self.title)
 
             response = self.remove_template_from_demo(self.demo_id, self.template_name)
             status = response.get('status')
@@ -497,10 +486,9 @@ class BlobsTests(unittest.TestCase):
         the_set = None
         new_pos_in_set = self.pos_in_set + 1
         try:
-            blob = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, pos_set=self.pos_in_set,
-                                  title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                                      pos_set=self.pos_in_set, title=self.title)
 
             response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set,
                                                 new_blob_set=new_set, pos_set=self.pos_in_set,
@@ -560,9 +548,9 @@ class BlobsTests(unittest.TestCase):
         try:
             self.create_template(self.template_name)
 
-            blob = open(self.blob_path, 'r')
-            self.add_blob_to_template(blob=blob, template_name=self.template_name, blob_set=self.blob_set,
-                                      pos_set=self.pos_in_set, title=self.title)
+            with open(self.blob_path, 'rb') as blob:
+                self.add_blob_to_template(blob=blob, template_name=self.template_name, 
+                                          blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
 
             response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,
                                                     blob_set=self.blob_set, new_blob_set=new_set,
@@ -635,12 +623,10 @@ class BlobsTests(unittest.TestCase):
         status = None
         blob_vr = None
         try:
-            blob = open(self.blob_path, 'r')
-            vr = open(self.blob_path, 'r')
-
-            self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                  blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
-                                  blob_vr=vr)
+            with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
+                                      blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title,
+                                      blob_vr=vr)
             json_response = self.get_blobs(self.demo_id)
             blob_id = None
             try:

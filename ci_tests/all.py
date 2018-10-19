@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import getpass
-import time
-import random
-from subprocess import Popen, PIPE
 import os
+import random
 import shlex
+import time
+from subprocess import PIPE, Popen
 
 user = getpass.getuser()
 
@@ -59,15 +59,20 @@ def run_tests():
         module_name = os.path.basename(os.path.split(test)[0]).title()
         if module_name == '': module_name = 'System'
 
+        python_dir = 'python'
+        if module_name != 'Ci_Tests':
+            module_dir = os.path.dirname(test)
+            python_dir = module_dir + "/venv/bin/python"
         # Execute test
-        cmd = shlex.split(" ".join(['python', test, resources, demorunners, shared_folder]))
+        cmd = shlex.split(
+            " ".join([python_dir, test, resources, demorunners, shared_folder]))
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
-            print "{} test failed:".format(module_name)
-            print stderr
-            print stdout
+            print("{} test failed:".format(module_name))
+            print(stderr)
+            print(stdout)
             exit(process.returncode)
 
 

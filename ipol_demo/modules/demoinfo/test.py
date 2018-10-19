@@ -174,10 +174,11 @@ class DemoinfoTests(unittest.TestCase):
         try:
             self.add_demo(self.demo_id, self.demo_title, self.state)
 
-            demo_extras = self.read_demoextras()
-            demo_extras_name = os.path.basename(demo_extras.name)
-            json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
-            add_status = json_response.get('status')
+            with open(self.demo_extras_file, 'rb') as demo_extras:
+                demo_extras_name = os.path.basename(demo_extras.name)
+                json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
+                add_status = json_response.get('status')
+                extras_name = demo_extras.name
 
             # Check if added correctly
             json_response = self.get_demoextras_info(self.demo_id)
@@ -188,7 +189,7 @@ class DemoinfoTests(unittest.TestCase):
         finally:
             self.assertEqual(add_status, 'OK')
             self.assertEqual(get_status, 'OK')
-            self.assertEqual(size, os.stat(demo_extras.name).st_size)
+            self.assertEqual(size, os.stat(extras_name).st_size)
 
     def test_add_demoextras_to_non_existent_demo(self):
         """
@@ -196,10 +197,10 @@ class DemoinfoTests(unittest.TestCase):
         """
         status = None
         try:
-            demo_extras = self.read_demoextras()
-            demo_extras_name = os.path.basename(demo_extras.name)
-            json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
-            status = json_response.get('status')
+            with open(self.demo_extras_file, 'rb') as demo_extras:
+                demo_extras_name = os.path.basename(demo_extras.name)
+                json_response = self.add_demoextras(self.demo_id, demo_extras, demo_extras_name)
+                status = json_response.get('status')
         finally:
             self.assertEqual(status, 'KO')
 
@@ -967,12 +968,6 @@ class DemoinfoTests(unittest.TestCase):
         with open(self.ddl_file, 'r') as f:
             ddl = f.read()
         return ddl
-
-    def read_demoextras(self):
-        """
-        read demoextras
-        """
-        return open(self.demo_extras_file, 'r')
 
     def add_demo(self, demo_id, title, state):
         """
