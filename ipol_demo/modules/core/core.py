@@ -1184,6 +1184,8 @@ attached the failed experiment data.". \
         """
         Decode the arguments and extract the files send by the web interface
         """
+        if 'clientData' not in interface_arguments:
+            raise IPOLDecodeInterfaceRequestError("clientData not found.")
         clientdata = json.loads(interface_arguments['clientData'])
         origin = clientdata.get('origin', None)
         if origin is not None:
@@ -1198,7 +1200,7 @@ attached the failed experiment data.". \
                 i += 1
         elif origin == 'blobset':
             blobs = clientdata['blobs']
-        elif origin is None:
+        elif not origin:
             pass
         else:
             raise IPOLDecodeInterfaceRequestError("Wrong origin value from the interface.")
@@ -1492,9 +1494,9 @@ attached the failed experiment data.". \
             messages.extend(prepare_folder_messages)
 
             return json.dumps(dict(demorunner_response, **{'messages': messages})).encode()
-        except IPOLUploadedInputRejectedError as ex:
+        except (IPOLDecodeInterfaceRequestError, IPOLUploadedInputRejectedError) as ex:
             return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
-        except (IPOLDecodeInterfaceRequestError, IPOLDemoExtrasError, IPOLKeyError) as ex:
+        except (IPOLDemoExtrasError, IPOLKeyError) as ex:
             error_message = str(ex)
             self.send_internal_error_email(error_message)
             self.logger.exception(error_message)
