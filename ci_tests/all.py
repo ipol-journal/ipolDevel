@@ -39,7 +39,7 @@ def start():
 
 def can_execute():
     """
-    Check if the test can be executed. Only 1 test can be executed simultaneously
+    Check if the test can be executed. Only one test can be executed simultaneously
     """
     if os.path.isfile('test.lock'):
         return False
@@ -55,14 +55,9 @@ def run_tests():
     # wait 3 seconds to give time to restart the modules
     time.sleep(3)
     for test in tests:
-        # Print the tested module
-        module_name = os.path.basename(os.path.split(test)[0]).title()
-        if module_name == '': module_name = 'System'
+        module_dir = os.path.dirname(test)
+        python_dir = os.path.join(module_dir, "venv/bin/python")
 
-        python_dir = 'python'
-        if module_name != 'Ci_Tests':
-            module_dir = os.path.dirname(test)
-            python_dir = module_dir + "/venv/bin/python"
         # Execute test
         cmd = shlex.split(
             " ".join([python_dir, test, resources, demorunners, shared_folder]))
@@ -70,6 +65,9 @@ def run_tests():
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
+            module_name = os.path.basename(os.path.split(test)[0])
+            if module_name == 'ci_tests':
+                module_name = 'System'
             print("{} test failed:".format(module_name))
             print(stderr)
             print(stdout)

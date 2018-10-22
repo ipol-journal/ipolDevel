@@ -1,13 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import json
+import os
 import socket
+import sys
+import unittest
 
 import requests
-import json
 from PIL import Image
-import os
-import unittest
-import sys
 
 
 class IntegrationTests(unittest.TestCase):
@@ -67,22 +67,22 @@ class IntegrationTests(unittest.TestCase):
             add_ddl_status = response.get('status')
 
             # Add DemoExtras.gz
-            demo_extras = open(self.test_demo_extras_file, 'r')
-            demo_extras_name = os.path.basename(demo_extras.name)
-            response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
+            with open(self.test_demo_extras_file, 'rb') as demo_extras:
+                demo_extras_name = os.path.basename(demo_extras.name)
+                response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
             demo_extras_status = response.get('status')
 
             # Add the test blob to the demo in the Blobs module
-            blob = open(self.test_image_file, 'r')
-            response = self.add_blob(self.demo_id, blob, self.demo_title, self.blob_set_name,
-                                     self.blob_pos_in_set)
-            add_blob_status = response.get('status')
+            with open(self.test_image_file, 'rb') as blob:
+                response = self.add_blob(self.demo_id, blob, self.demo_title, self.blob_set_name,
+                                         self.blob_pos_in_set)
+                add_blob_status = response.get('status')
 
-            # Get the blob id
-            blob_id = self.get_blob_id(self.demo_id, self.blob_pos_in_set)
+                # Get the blob id
+                blob_id = self.get_blob_id(self.demo_id, self.blob_pos_in_set)
 
-            # Run the demo with the uploaded image
-            blob_image = Image.open(blob.name)
+                # Run the demo with the uploaded image
+                blob_image = Image.open(blob.name)
             response = self.run_demo_with_blobset(self.demo_id, blob_image, blob_id)
             run_status = response.get('status')
 
@@ -130,16 +130,16 @@ class IntegrationTests(unittest.TestCase):
             add_ddl_status = response.get('status')
 
             # Add DemoExtras.gz
-            demo_extras = open(self.test_demo_extras_file, 'r')
-            demo_extras_name = os.path.basename(demo_extras.name)
-            response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
+            with open(self.test_demo_extras_file, 'rb') as demo_extras:
+                demo_extras_name = os.path.basename(demo_extras.name)
+                response = self.add_demo_extras(self.demo_id, demo_extras, demo_extras_name)
             demo_extras_status = response.get('status')
 
             # Run the demo with the uploaded image
-            blob = open(self.test_image_file, 'r')
-            blob_image = Image.open(self.test_image_file)
-            width, height = blob_image.size
-            response = self.run_demo_with_uploaded_blob(self.demo_id, blob, width, height)
+            with open(self.test_image_file, 'rb') as blob:
+                blob_image = Image.open(self.test_image_file)
+                width, height = blob_image.size
+                response = self.run_demo_with_uploaded_blob(self.demo_id, blob, width, height)
             run_status = response.get('status')
 
             response = self.get_archive_experiments_by_page(self.demo_id)
@@ -186,7 +186,7 @@ class IntegrationTests(unittest.TestCase):
         If the response is not OK it will log the error
         """
         if 'status' not in response or response['status'] == 'KO':
-            print "{}. Response from the module: {}".format(error_msg, response)
+            print("{}. Response from the module: {}".format(error_msg, response))
 
     def create_demo(self, demo_id, title, state):
         """
