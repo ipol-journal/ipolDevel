@@ -14,7 +14,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 """
-Image wrapper for conversion, resizing, reencode.
+Image operations wrapper.
 """
 
 from __future__ import print_function
@@ -60,7 +60,7 @@ class Image(object):
     @staticmethod
     def decode(buf, flags=cv2.IMREAD_UNCHANGED):
         '''
-        Factory, returns an image object build from a string of bytes.
+        Returns an image object build from a string of bytes.
         '''
         # OpenCV loads bytes as one dimension numpy vector of uint8 numbers.
         buf = np.fromstring(buf, dtype=np.uint8)
@@ -82,7 +82,7 @@ class Image(object):
     @staticmethod
     def video_frame(video_file, pos_ratio=0.3):
         '''
-        From a video, returns a significative frame as an image object.
+        Extract a representative frame from a video (for example to be used as a thumbnail).
         '''
         cap = cv2.VideoCapture(video_file)
         pos_frame = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) * pos_ratio)
@@ -111,7 +111,7 @@ class Image(object):
             return data[..., [2, 1, 0, 3]]
         elif data.shape[2] == 3: # BGR > RGB or RGB > BGR
             return data[..., [2, 1, 0]]
-        return data # grey+alpha or ?
+        return data # grey+alpha or anything else
 
     def width(self):
         '''
@@ -154,7 +154,7 @@ class Image(object):
         data, pars = self._4ser('dummy.' + ext.lstrip('.'), **kwargs)
         ext = '.' + ext.lstrip('.')
         _, buf = cv2.imencode(ext, data, pars)
-        return buf.tostring()
+        return buf
 
     def _4ser(self, path, **kwargs):
         '''

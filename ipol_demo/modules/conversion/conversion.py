@@ -5,6 +5,7 @@ IPOL Conversion module, services to convert blobs.
 """
 
 import base64
+import binascii
 import configparser
 import glob
 import json
@@ -355,7 +356,7 @@ class Conversion(object):
             im = Image.decode(buf)
             im.convert_depth('8i')
             buf = im.encode('.png')
-            data["img"] = base64.b64encode(buf) # reencode bytes
+            data["img"] = binascii.b2a_base64(buf).decode() # re-encode bytes
             data["status"] = "OK"
         except Exception:
             message = "TIFF to PNG for client, conversion failure."
