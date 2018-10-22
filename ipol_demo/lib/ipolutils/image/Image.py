@@ -327,7 +327,7 @@ class Image(object):
                 data = data.astype(dst_dtype, copy=False)
             else: # Increase bits, cast before to have place for max value
                 data = data.astype(dst_dtype, copy=False)
-                k = dst_max // src_max # keep k as int, if k is float (data * k) will become float
+                k = int(dst_max / src_max)
                 data = data * k
             return data
 
