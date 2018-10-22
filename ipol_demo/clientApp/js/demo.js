@@ -85,9 +85,18 @@ function getDemoinfo() {
     demoInfo = response;
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
+    if (demoInfo.general.custom_js) loadDemoExtrasJS()
     if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
     if (getArchiveExperimentId()) loadExecution("/api/archive/get_experiment?experiment_id=" + getArchiveExperimentId());
   });
+}
+
+function loadDemoExtrasJS() {
+  var url = demoInfo.general.custom_js
+  $.getScript(url)
+    .fail(function () {
+      console.error("Could not load the script: " + url)
+    })
 }
 
 function displayInputHeaders(ddl) {
