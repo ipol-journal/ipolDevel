@@ -40,9 +40,7 @@ def get_compilation_path(demo_id):
     """
     Get compilation path
     """
-    path = os.path.join(compilation_path, str(demo_id))
-    create_dir(path)
-    return path
+    return os.path.join(compilation_path, str(demo_id))
 
 
 def create_dir(path):
