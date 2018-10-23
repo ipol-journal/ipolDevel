@@ -123,8 +123,7 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                data = {'demo_id': self.demo_id}
-                self.post(host, self.module, 'delete_compilation', data=data)
+                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
 
@@ -139,7 +138,6 @@ class DemorunnerTests(unittest.TestCase):
         """
         status_list = []
         try:
-
             for demorunner in self.demorunners:
 
                 with open(self.ddl_file, 'r') as f:
@@ -147,8 +145,8 @@ class DemorunnerTests(unittest.TestCase):
                 ddl_json = json.loads(ddl)
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
-
-                host = self.demorunners[demorunner].get('server')
+                
+                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
 
@@ -176,7 +174,7 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                host = self.demorunners[demorunner].get('server')
+                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
                 self.ensure_compilation(host, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
@@ -208,7 +206,7 @@ class DemorunnerTests(unittest.TestCase):
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
 
-                host = self.demorunners[demorunner].get('server')
+                self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
                 self.ensure_compilation(host, self.demo_id, build)
 
                 params = json.dumps({'x0': 0, 'x1': width, 'y0': 0, 'y1': height})
