@@ -452,6 +452,11 @@ format(str(ex), str(ddl_build))
             data['status'] = 'KO'
             data['message'] = "{}, ddl_build: {}".format(str(ex), str(ddl_build))
 
+        except urllib.error.URLError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed. Could not reach the source code."
+
         except build.IPOLCompilationError as ex:
             print("Build failed with exception " + str(ex) + " in demo " + demo_id)
 
@@ -463,42 +468,35 @@ format(str(ex), str(ddl_build))
             else:
                 content = ""
 
-            #content = ""
-            #if os.path.isfile(log_file):
-            #    with open(log_file) as f:
-            #        content = f.readlines()
             data = {}
             data['status'] = 'KO'
             data['message'] = "Build for demo #{} failed".format(demo_id).encode('utf8')
             data['buildlog'] = content
+
         except IPOLConstructFileNotFound as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. File not found. {}".format(str(ex))
+
         except IPOLUnauthorizedAccess as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed: unauthorized access. Move: {}".format(str(ex))
-        except urllib.error.URLError as ex:
+
+        except EnvironmentError as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed. Could not reach the source code."
-        except IOError as ex:
-            data = {}
-            data['status'] = 'KO'
-            data['message'] = "Construct failed. I/O error. {}".format(str(ex))
-        except OSError as ex:
-            data = {}
-            data['status'] = 'KO'
-            data['message'] = "Construct failed. OS error: {}".format(str(ex))
+            data['message'] = "Construct failed. Environment error. {}".format(str(ex))
+
         except ValueError as ex:
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. Bad URL value: {}".format(str(ex))
+
         except Exception as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "INTERNAL ERROR in ensure_compilation"
+            data['message'] = "INTERNAL ERROR in ensure_compilation. {}".format(str(ex))
             self.logger.exception("INTERNAL ERROR in ensure_compilation, demo {}".format(demo_id))
 
         return json.dumps(data).encode()
