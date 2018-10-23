@@ -503,6 +503,7 @@ format(str(ex), str(ddl_build))
 
 
     @cherrypy.expose
+    @authenticate
     def test_compilation(self, ddl_build, path_for_the_compilation):
         """
         Test the compilation in a test path, not in the demo path
