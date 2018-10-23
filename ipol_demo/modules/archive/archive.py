@@ -184,7 +184,7 @@ class Archive():
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.logger.exception("Can't open {}".format(authorized_patterns_path))
+            self.error_log("File {} doesn't exist".format(authorized_patterns_path))
             return []
 
         # Read config file
@@ -223,7 +223,7 @@ class Archive():
             if file_info.st_size == 0:
                 print(str(self.database_file) + ' is empty. Removing the file...')
                 try:
-                    self.logger.exception("Database file was empty")
+                    self.error_log("Database file was empty")
                     os.remove(self.database_file)
                 except Exception as ex:
                     message = "Error in init_database. Error = {}".format(ex)
