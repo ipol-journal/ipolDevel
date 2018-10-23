@@ -310,7 +310,12 @@ class Core():
             try:
                 dr_server = self.demorunners[dr_name]['server']
                 resp = self.post('api/demorunner/get_workload', host=dr_server)
-                if not resp or not resp.ok:
+                if not resp:
+                    error_message = "No response from DR='{}'".format(dr_name)
+                    self.error_log("demorunners_workload", error_message)
+                    continue
+                    
+                if not resp.ok:
                     error_message = "Bad post response from DR='{}'".format(dr_name)
                     self.error_log("demorunners_workload", error_message)
                     continue
@@ -1523,7 +1528,8 @@ attached the failed experiment data.". \
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
-            self.send_runtime_error_email(demo_id, "NA", error_message)
+            if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
+                self.send_runtime_error_email(demo_id, "<NA>", error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLPrepareFolderError as ex:
             # Do not log: function prepare_folder_for_execution will decide when to log
