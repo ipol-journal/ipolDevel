@@ -340,18 +340,12 @@ class Core():
         Create a directory given a path.
         It's like a "mkdir -p" command.
         """
-        created = 'false'
         try:
             os.makedirs(path)
-            created = 'true'
         except OSError as exc:
             # Better safe than sorry
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
+            if not (exc.errno == errno.EEXIST and os.path.isdir(path)):
                 raise
-
-        return created
 
     @cherrypy.expose
     def index(self, code_starts=None):
