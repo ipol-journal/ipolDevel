@@ -756,6 +756,10 @@ The main reason is a broken configuration file of a daemon. To fix this copy a c
 docker cp correct_config ipol:/path_to_broken_config
 \end{verbatim}
 
+\textbf{Nginx needs a webserver in docker}
+
+In order for Nginx to be able to resolve requests directed towards localhost the architecture needs a dns server. To fix this Bind9 was installed in order to translate localhost requests to 127.0.0.1. No configuration is needed, default configuration works out of the box.
+
 \bibliographystyle{plain}
 \bibliography{biblio}
 
