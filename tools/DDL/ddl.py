@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # GNU General Public Licence (GPL)
@@ -17,10 +17,12 @@
 #
 
 import argparse
-import sys
-import requests
 import json
 import os
+import sys
+
+import requests
+
 
 def post(service, host, params=None, json=None):
     try:
@@ -30,7 +32,7 @@ def post(service, host, params=None, json=None):
         )
         return requests.post(url, params=params, data=json)
     except Exception as ex:
-        print "ERROR: Failure in the post function - {}".format(str(ex))
+        print("ERROR: Failure in the post function - {}".format(str(ex)))
 
 
 def do_read(demos, host):
@@ -43,21 +45,21 @@ def do_read(demos, host):
             resp = post('get_ddl', host, params={"demo_id": editorsdemoid})
             response = resp.json()
             if response['status'] != 'OK':
-                print "ERROR: get_ddl returned KO for demo {}".format(editorsdemoid)
+                print("ERROR: get_ddl returned KO for demo {}".format(editorsdemoid))
                 continue
                 
             DDL = response['last_demodescription']
             if not DDL:
-                print "ERROR: Empty or non-existing DDL for demo #{}".format(editorsdemoid)
+                print("ERROR: Empty or non-existing DDL for demo #{}".format(editorsdemoid))
                 continue
                 
             last_demodescription = DDL
             ddl_json = last_demodescription['ddl']
 
-            file = open("DDLs/" + str(editorsdemoid) + ".json", "wb")
+            file = open("DDLs/" + str(editorsdemoid) + ".json", "w")
             file.write(ddl_json)
         except Exception as ex:
-            print "ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex)
+            print("ERROR: Failed to read DDL from {} - {}".format(editorsdemoid, ex))
         finally:
             if file:
                 file.close()
@@ -70,7 +72,7 @@ def do_read_all(host):
     resp = post('demo_list', host)
     response = resp.json()
     if response['status'] != 'OK':
-        print "ERROR: demo_list returned KO"
+        print("ERROR: demo_list returned KO")
         return
     demos = []
     for demo in response['demo_list']:
@@ -91,11 +93,11 @@ def do_write(demos, host):
             resp = post('save_ddl', host, params={"demoid": editorsdemoid}, json=ddl_json)
             response = resp.json()
             if response['status'] != 'OK':
-                print "ERROR: save_ddl returned KO for demo {}".format(editorsdemoid)
+                print("ERROR: save_ddl returned KO for demo {}".format(editorsdemoid))
         except ValueError:
-            print "ERROR: Invalid JSON for demo {}".format(editorsdemoid)
+            print("ERROR: Invalid JSON for demo {}".format(editorsdemoid))
         except Exception as ex:
-            print "ERROR: Could not write DDL for demo {} - {}".format(editorsdemoid, ex)
+            print("ERROR: Could not write DDL for demo {} - {}".format(editorsdemoid, ex))
 
 
 def do_write_all(host):
@@ -105,7 +107,7 @@ def do_write_all(host):
     resp = post('demo_list', host)
     response = resp.json()
     if response['status'] != 'OK':
-        print "ERROR: demo_list returned KO"
+        print("ERROR: demo_list returned KO")
         return
 
     demos = []
@@ -150,4 +152,4 @@ elif command == 'write' or command == 'put':
 elif command == 'writeall' or command == 'putall':
     do_write_all(host)
 else:
-    print "Error: unknown command '{}'".format(command)
+    print("Error: unknown command '{}'".format(command))
