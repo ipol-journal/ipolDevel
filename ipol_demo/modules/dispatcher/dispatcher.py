@@ -13,6 +13,7 @@ import logging
 import os
 import random
 import re
+import socket
 import sys
 
 import cherrypy
@@ -75,7 +76,6 @@ class Dispatcher():
         """
         self.base_directory = os.getcwd()
         self.logs_dir = cherrypy.config.get("logs_dir")
-        self.host_name = cherrypy.config.get("server.socket_host")
         self.demorunners = None
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
@@ -120,11 +120,7 @@ class Dispatcher():
         """
         Refresh the value of the demorunners
         """
-        url = 'http://{}/api/{}/{}'.format(
-            self.host_name,
-            'core',
-            'get_demorunners'
-        )
+        url = 'http://{}/api/core/get_demorunners'.format(socket.getfqdn())
         resp = requests.post(url)
 
         self.demorunners = []
