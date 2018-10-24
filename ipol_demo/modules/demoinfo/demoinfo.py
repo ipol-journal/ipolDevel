@@ -259,7 +259,7 @@ class DemoInfo():
             return None
 
         demoextras_name = os.path.basename(demoextras_file[0])
-        return "http://{0}/api/demoinfo/{}/{}/{}".format(
+        return "http://{}/api/demoinfo/{}/{}/{}".format(
           socket.getfqdn(),
           self.dl_extras_dir,
           demo_id,
