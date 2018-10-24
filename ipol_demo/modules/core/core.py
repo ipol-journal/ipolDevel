@@ -1165,7 +1165,7 @@ attached the failed experiment data.". \
         if not config_emails:
             return
 
-        if self.server_environment != 'production':
+        if self.server_environment == 'production':
             emails += config_emails['tech']['email'].split(",")
         if not emails:
             return
