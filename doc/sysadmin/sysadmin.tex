@@ -736,6 +736,11 @@ The main reason is a broken configuration file of a daemon. To fix this copy a c
 docker cp correct_config ipol:/path_to_broken_config
 \end{verbatim}
 
+\textbf{When updating nginx with apt I get the following error: systemd[1]: nginx.service: Control process exited. dpkg: error processing package nginx-full (--configure):  subprocess installed post-installation script returned error exit status 1 Errors were encountered while processing:  nginx-full}
+
+It happens sometimes is a previous version of nginx is running and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
+
+
 \textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server}
 
 Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}. The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
