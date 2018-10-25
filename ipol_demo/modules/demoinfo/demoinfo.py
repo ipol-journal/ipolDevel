@@ -24,6 +24,7 @@ import os
 import re
 import shutil
 import sqlite3 as lite
+import socket
 import sys
 from collections import OrderedDict
 from math import ceil
@@ -108,8 +109,7 @@ class DemoInfo():
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-        self.server_address = 'http://{0}/api/demoinfo/'.format(
-            cherrypy.config['server.socket_host'])
+        
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -254,12 +254,17 @@ class DemoInfo():
         """
         demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
         demoextras_file = glob.glob(demoextras_folder+"/*")
+        
+        if not demoextras_file:
+            return None
 
-        if demoextras_file:
-            demoextras_name = os.path.basename(demoextras_file[0])
-            return os.path.join(self.server_address, self.dl_extras_dir, demo_id, demoextras_name)
+        demoextras_name = os.path.basename(demoextras_file[0])
+        return "http://{}/api/demoinfo/{}/{}/{}".format(
+          socket.getfqdn(),
+          self.dl_extras_dir,
+          demo_id,
+          demoextras_name)
 
-        return None
 
     @cherrypy.expose
     @authenticate

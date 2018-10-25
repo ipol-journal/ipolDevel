@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
 # This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,12 @@ IPOL modules control terminal.
 A tool for sysadmins.
 """
 
+import json
 import os
 import subprocess
-import urllib
-import json
+import urllib.error
+import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 
 
@@ -45,7 +47,7 @@ class Terminal(object):
         '''
         link = self.get_modules_xml_filename()
         if not os.path.islink(link):
-            print "ERROR: file is not link! - {}".format(link)
+            print("ERROR: file is not link! - {}".format(link))
             sys.exit(0)
         filename = os.path.normpath(os.path.realpath(link))
         
@@ -61,12 +63,12 @@ class Terminal(object):
         # Get targets
         target_modules = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/modules.xml'.format(env))
         if not os.path.isfile(target_modules):
-            print "ERROR. File not found: {}".format(target_modules)
+            print("ERROR. File not found: {}".format(target_modules))
             return
 
         target_demorunners = os.path.expanduser('~/ipolDevel/ipol_demo/modules/config_common/envs/{}/demorunners.xml'.format(env))
         if not os.path.isfile(target_demorunners):
-            print "ERROR. File not found: {}".format(target_modules)
+            print("ERROR. File not found: {}".format(target_modules))
             return
 
         # Remove links
@@ -91,13 +93,13 @@ class Terminal(object):
 
         if len(args) == 0:
             # Show environment
-            print "\033[96m{}\033[0m".format(self.get_ipol_environment())
+            print("\033[96m{}\033[0m".format(self.get_ipol_environment()))
         elif len(args) == 1:
             # Set environment
             environment = args[0]
             self.set_ipol_environment(environment)
         else:
-            print "ERROR: wrong number or arguments"
+            print("ERROR: wrong number or arguments")
 
     def add_modules(self):
         """
@@ -173,7 +175,7 @@ class Terminal(object):
 
         # Get pull servers
         self.pull_servers = set()
-        for module in self.dict_modules.keys():
+        for module in list(self.dict_modules.keys()):
             self.pull_servers.add(self.dict_modules[module]["serverSSH"])
 
 
@@ -196,18 +198,18 @@ class Terminal(object):
         Print a list of the active modules.
         """
         modules_up = False
-        print "IPOL Control Terminal"
+        print("IPOL Control Terminal")
         environment = self.get_ipol_environment()
-        print "Environment: \033[96m{}\033[0m".format(environment)
-        print
+        print("Environment: \033[96m{}\033[0m".format(environment))
+        print()
 
-        for key, value in self.dict_modules.items():
+        for key, value in list(self.dict_modules.items()):
             list_tmp = [key, ]
             if self.ping_module(list_tmp):
                 modules_up = True
-        print "\n"
+        print("\n")
         if not modules_up:
-            print "\033[93mNo modules running. Check if NGINX is running\033[0m"
+            print("\033[93mNo modules running. Check if NGINX is running\033[0m")
 
     def check_module_input(self, command, args_array):
         """
@@ -216,15 +218,15 @@ class Terminal(object):
         """
         status = True
         if len(args_array) == 0:
-            print "Missing module parameter"
+            print("Missing module parameter")
             status = False
-        elif args_array[0] not in self.dict_modules.keys():
-            print "Given module doesn't exist."
+        elif args_array[0] not in list(self.dict_modules.keys()):
+            print("Given module doesn't exist.")
             status = False
         elif command not in self.dict_modules[args_array[0]]["commands"]:
             status = False
-            print ("command " + command + " unavailable for module"
-                   + args_array[0])
+            print(("command " + command + " unavailable for module"
+                   + args_array[0]))
         return status
 
     def ping_module(self, args_array):
@@ -235,30 +237,29 @@ class Terminal(object):
             return False
         name = args_array[0]
         try:
-            json_response = urllib.urlopen("http://{}/api/{}/ping".format(
+            json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
                 self.dict_modules[name]["server"],
                 self.dict_modules[name]["module"]
             )).read()
-
-            response = json.loads(json_response)
+            response = json.loads(json_response.decode())
             status = response['status']
 
             if status == "OK":
-                print "{} ({}): \033[92mOK\033[0m".format(name, self.dict_modules[name]["server"])
+                print("{} ({}): \033[92mOK\033[0m".format(name, self.dict_modules[name]["server"]))
                 return True
             else:
-                print "{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"])
+                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"]))
                 return False
         except Exception as ex:
             # No JSON object could be decoded exception
-            print "{} ({}): \033[31;1mUnresponsive\033[0m".format(name, self.dict_modules[name]["server"])
+            print("{} ({}): \033[31;1mUnresponsive\033[0m".format(name, self.dict_modules[name]["server"]))
             return False
 
     def ping_all(self, dummy=None):
         """
         ping all modules
         """
-        for module in self.dict_modules.keys():
+        for module in list(self.dict_modules.keys()):
             list_tmp = [module, ]
             self.ping_module(list_tmp)
 
@@ -271,7 +272,7 @@ class Terminal(object):
 
         name = args_array[0]
         try:
-            json_response = urllib.urlopen("http://{}/api/{}/shutdown".format(
+            json_response = urllib.request.urlopen("http://{}/api/{}/shutdown".format(
                 self.dict_modules[name]["server"],
                 self.dict_modules[name]["module"]
             )).read()
@@ -279,14 +280,14 @@ class Terminal(object):
             status = response['status']
 
             if status == "OK":
-                print "{} ({}): \033[93mStoppped\033[0m".format(name, self.dict_modules[name]["server"])
+                print("{} ({}): \033[93mStoppped\033[0m".format(name, self.dict_modules[name]["server"]))
             else:
-                print "{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"])
-                print name + "  (" + self.dict_modules[name][
-                    "server"] + ")" + " : JSON response is KO when shutting down the module"
+                print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"]))
+                print(name + "  (" + self.dict_modules[name][
+                    "server"] + ")" + " : JSON response is KO when shutting down the module")
         except Exception:
             # No JSON object could be decoded exception
-            print "{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, self.dict_modules[name]["server"])
+            print("{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, self.dict_modules[name]["server"]))
 
     def start_module(self, args_array):
         """
@@ -300,21 +301,21 @@ class Terminal(object):
             cmd = (" \"" + self.dict_modules[module]["path"] + "start.sh\" ")
             os.system("ssh " + self.dict_modules[module]["serverSSH"] + cmd)
         except Exception as ex:
-            print ex
+            print(ex)
 
     def start_all(self, dummy=None):
         """
         Start all the modules.
         """
-        for module in self.dict_modules.keys():
-            print "Starting {} ({})".format(module, self.dict_modules[module]["server"])
+        for module in list(self.dict_modules.keys()):
+            print("Starting {} ({})".format(module, self.dict_modules[module]["server"]))
             self.start_module([module, ])
 
     def stop_all(self, dummy=None):
         """
         Shutdown all the modules.
         """
-        for module in self.dict_modules.keys():
+        for module in list(self.dict_modules.keys()):
             self.stop_module([module, ])
 
     def restart_module(self, args_array):
@@ -332,25 +333,25 @@ class Terminal(object):
             return
 
         module = args_array[0]
-        print "List of avalaible commands for " + module + " module :"
+        print("List of avalaible commands for " + module + " module :")
         for command in self.dict_modules[module]["commands"]:
             if command != "info":
-                print "    " + command
-        print ""
+                print("    " + command)
+        print("")
 
     def display_modules(self, dummy=None):
         """
         Print the modules.
         """
-        print "list of modules :"
-        for module in self.dict_modules.keys():
-            print module
+        print("list of modules :")
+        for module in list(self.dict_modules.keys()):
+            print(module)
 
     def display_help(self, dummy=None):
         """
         Help of the terminal
         """
-        print """List of available commands:
+        print("""List of available commands:
     startall          : Start all IPOL modules
     start <module>    : Start selected module
     stopall           : Stop all IPOL modules
@@ -364,17 +365,17 @@ class Terminal(object):
     env               : get or set the current IPOL environment
     help              : List available commands
     exit              : Exit the terminal
-    """
-        print "For more detailed information please read the documentation."
+    """)
+        print("For more detailed information please read the documentation.")
 
     def pull(self, dummy=None):
         """
         Ssh into servers and pull.
         """
         for server in self.pull_servers:
-            print "\t * Pulling from {}".format(server)
+            print("\t * Pulling from {}".format(server))
             os.system('ssh {} "cd ipolDevel/ci_tests && bash pull.sh"'.format(server))
-            print
+            print()
 
     def exec_loop(self):
         """
@@ -402,16 +403,16 @@ class Terminal(object):
 
         try:
             while str_input != "exit":
-                str_input = raw_input(">")
+                str_input = input(">")
                 tab_input = str_input.split(" ", -1)
 
-                if tab_input[0] in entry_buffer.keys():
+                if tab_input[0] in list(entry_buffer.keys()):
                     entry_buffer[tab_input[0]](tab_input[1:])
                 else:
-                    print "Invalid command."
+                    print("Invalid command.")
 
         except (EOFError, KeyboardInterrupt):
-            print "\nexit"
+            print("\nexit")
 
 
 def main():
