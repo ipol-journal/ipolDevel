@@ -45,7 +45,7 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
 
-	server_name _;
+	server_name integration.ipol.im;
 
 	# DemoExtras static resources
         location ~ ^/demo/clientApp/static/(?<demo>\d+)/(?<resource>.+) {
