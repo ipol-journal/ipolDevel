@@ -187,12 +187,11 @@ We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH
 
 \section{Setup of a new machine}
 When a new machine is added to the IPOL infrastructure, the following needs to be done:
-- Create the {\tt ipol} user in a new machine: {\tt adduser --disabled-password ipol}
+- Create the {\tt ipol} user in a new machine: {\tt adduser ipol}
 
 - Install bash-completion {\tt apt-get install bash-completion}
 
 - Configure the SSH server to allow only access with public key and not with password. Set the following in /etc/ssh/sshd\_config:
-{\tt PasswordAuthentication no}
 
 {\tt RSAAuthentication yes}
 
