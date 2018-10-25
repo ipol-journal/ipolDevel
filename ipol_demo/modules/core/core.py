@@ -1523,8 +1523,7 @@ attached the failed experiment data.". \
         except (IPOLReadDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
             self.logger.exception(error_message)
-            if ex.email_message:
-                self.send_internal_error_email(ex.email_message)
+            self.send_internal_error_email(error_message)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
