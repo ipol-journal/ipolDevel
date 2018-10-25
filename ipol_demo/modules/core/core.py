@@ -807,7 +807,7 @@ class Core():
         try:
             compressed_file.extractall(target)
         except (IOError, AttributeError):
-            # DUE TO SOME ODD BEHAVIOR OF extractall IN Pthon 2.6.1 (OSX 10.6.8)
+            # DUE TO SOME ODD BEHAVIOR OF extractall IN Python 2.6.1 (OSX 10.6.8)
             # BEFORE TGZ EXTRACT FAILS INSIDE THE TARGET DIRECTORY A FILE
             # IS CREATED, ONE WITH THE NAME OF THE PACKAGE
             # SO WE HAVE TO CLEAN IT BEFORE STARTING OVER WITH ZIP
@@ -1117,7 +1117,12 @@ The execution with key={} of demo #{} has failed.\nProblem: {}.\nPlease find \
 attached the failed experiment data.". \
             format(hostname, hostbyname, key, demo_id, message)
 
-        subject = '[IPOL Core] Demo #{} execution failure'.format(demo_id)
+        if self.server_environment == 'production':
+            machine = 'Core'
+        else:
+            machine = 'Integration'
+
+        subject = '[IPOL {}] Demo #{} execution failure'.format(machine, demo_id)
 
         # Zip the contents of the tmp/ directory of the failed experiment
         zip_filename = '/tmp/{}.zip'.format(key)
@@ -1132,7 +1137,7 @@ attached the failed experiment data.". \
 
     def send_demorunner_unresponsive_email(self, unresponsive_demorunners):
         """
-        Send email to editor when the demorruner is down
+        Send email to tech if any demorunner is down
         """
         emails = []
         config_emails = self.read_emails_from_config()
@@ -1736,7 +1741,6 @@ attached the failed experiment data.". \
                 print(message)
                 return json.dumps(res_data).encode()
             except Exception as ex:
-                # ToDo: send email
                 message = '**INTERNAL ERROR**. Blobs operations of demo {} failed - {}'.format(demo_id, ex)
                 self.logger.exception(message)
                 self.send_internal_error_email(message)
@@ -1973,7 +1977,7 @@ attached the failed experiment data.". \
             if i == len(self.demorunners) - 1:
                 time.sleep(5)
 
-        # If there is no demorrunner active send an email with all the unresponsive DRs
+        # If there is no demorunner active send an email with all the unresponsive DRs
         self.send_demorunner_unresponsive_email(unresponsive_demorunners)
         raise Exception("No DR available after many tries")  # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
 
