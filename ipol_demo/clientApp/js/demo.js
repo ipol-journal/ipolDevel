@@ -79,16 +79,23 @@ function getDemoinfo() {
       window.location = '/demo';
     }
     var response = helpers.getJSON(payload.last_demodescription.ddl);
+    demoInfo = response;
     console.log("get_interface_ddl", response);
+    if(response.general.description) displayDemoDescription()
     displayInputHeaders(response);
     printDemoHeader(response);
-    demoInfo = response;
     helpers.addToStorage("demoInfo", response);
     parameters.printParameters();
     if (demoInfo.general.custom_js) loadDemoExtrasJS()
     if (getExecutionKey()) loadExecution("/api/core/load_execution?demo_id=" + demo_id + '&key=' + getExecutionKey());
     if (getArchiveExperimentId()) loadExecution("/api/archive/get_experiment?experiment_id=" + getArchiveExperimentId());
   });
+}
+
+function displayDemoDescription(){
+  $(".citation").after('<div class="container description-container"></div>');
+  $(".description-container").append('<h1 class="container-title m-y-5">Description</h1>');
+  $('.description-container').append('<p class=description > ' + demoInfo.general.description + '</p>');
 }
 
 function loadDemoExtrasJS() {
