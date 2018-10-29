@@ -48,7 +48,7 @@ python-magic==0.4.15
 pytz==2018.5
 PyWavelets==1.0.0
 rasterio==1.0.3.post1
-requests==2.19.1
+requests==2.20.0
 requests-futures==0.9.7
 scikit-image==0.14.0
 scikit-learn==0.19.2
