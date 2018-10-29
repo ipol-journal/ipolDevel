@@ -17,6 +17,8 @@ from time import gmtime, strftime
 
 import cherrypy
 
+from .error import VirtualEnvError
+
 TIME_FMT = "%a, %d %b %Y %H:%M:%S %Z"
 
 
@@ -137,7 +139,7 @@ def extract(fname, target):
     return content
 
 
-def run(command, stdout, cwd=None, env=None):
+def run(command, stdout, cwd=None):
     """
     run a build execution
 
@@ -146,19 +148,15 @@ def run(command, stdout, cwd=None, env=None):
 
     @return: the exit code
     """
-    # merge env with the current environment
-    if env != None:
-        environ = os.environ
-        environ.update(env)
-        env = environ
-
+    if "VIRTUAL_ENV" not in os.environ.copy():
+        raise VirtualEnvError('Running without a virtualenv')
     # open the log file and write the command
     with open(stdout, 'w') as logfile:
         logfile.write("%s : %s\n" % (time.strftime(TIME_FMT),
                                      command))
     with open(stdout, 'a') as logfile:
         process = Popen(command, shell=True, stdout=logfile, stderr=logfile,
-                        cwd=cwd, env=env)
+                        cwd=cwd)
     process.wait()
     if 0 != process.returncode:
         raise IPOLCompilationError

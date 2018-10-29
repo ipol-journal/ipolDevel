@@ -143,9 +143,7 @@ class RunDemoBase:
         newenv.update({'matlab_path': self.get_MATLAB_path()})
         newenv.update({'bin': self.bin_dir})
 
-        # Add PATH in configuration
-        virtual_env = newenv.get("VIRTUAL_ENV")
-        if not virtual_env:
+        if "VIRTUAL_ENV" not in newenv:
             raise VirtualEnvError('Running without a virtualenv')
         # Check if there are extra paths
         extra_path = self.get_extra_path()
