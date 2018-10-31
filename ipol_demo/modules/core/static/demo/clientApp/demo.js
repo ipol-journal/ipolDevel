@@ -241,7 +241,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
 		console.info(demo_ddl.status);
                 
 		if (demo_ddl.status == "OK") {
-                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.ddl);
+                    var ddl_json = demo_ddl.last_demodescription.ddl;
                     var str = JSON.stringify(ddl_json, undefined, 4);
                     $("#tabs-ddl pre").html(ipol.utils.syntaxHighlight(str));
                 } else {

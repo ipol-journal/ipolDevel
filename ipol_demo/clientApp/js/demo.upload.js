@@ -7,7 +7,6 @@ var uploadedFiles = {};
 clientApp.upload = upload;
 
 var _URL = window.URL || window.webkitURL;
-var demoInfo = helpers.getFromStorage("demoInfo");
 
 clientApp.upload.getUploadedFiles = function() {
   return uploadedFiles;
@@ -62,7 +61,8 @@ $(".upload-btn").click(function() {
 });
 
 // Print uploads dialog.
-upload.printUploads = function(inputs) {
+upload.printUploads = function() {
+  inputs = ddl.inputs
   for (var i = 0; i < inputs.length; i++) {
     var input = inputs[i];
     var inputType = input.type;
@@ -150,10 +150,9 @@ function addInputListener(index) {
 
 // if it's an Image, first of all it needs to convert the "file" to img to check resolution and upload it.
 function uploadImg(index, event) {
-  demoInfo = helpers.getFromStorage("demoInfo");
   var file = $("#file-" + index)[0].files[0];
   var inputKey = document.getElementById("file-" + index).name.split('-')[1];
-  var maxPixels = eval(demoInfo.inputs[inputKey].max_pixels);
+  var maxPixels = eval(ddl.inputs[inputKey].max_pixels);
   var img = new Image();
   img.onload = function() {
     upload(index, event);
@@ -163,12 +162,11 @@ function uploadImg(index, event) {
 
 // Upload the current Input
 function upload(index, event) {
-  demoInfo = helpers.getFromStorage("demoInfo");
   var file = $("#file-" + index)[0].files[0];
-  var inputs = demoInfo.inputs;
+  var inputs = ddl.inputs;
   var inputKey = document.getElementById("file-" + index).name.split('-')[1];
-  var maxWeight = demoInfo.inputs[inputKey].max_weight;
-  if (file && (!demoInfo.inputs[inputKey].max_weight || $("#file-" + index)[0].files[0].size < eval(maxWeight))) {
+  var maxWeight = ddl.inputs[inputKey].max_weight;
+  if (file && (!ddl.inputs[inputKey].max_weight || $("#file-" + index)[0].files[0].size < eval(maxWeight))) {
     var format = file.type.split('/')[0];
     if (format == "image" && file.type.split("/")[1] != "tiff") addThumbnail(event);
     blob = new Blob([file], { 
@@ -208,7 +206,7 @@ function addThumbnail(data) {
 
 // Check if all required inputs are uploaded before continue.
 function checkRequiredInputs() {
-  var inputs = demoInfo.inputs;
+  var inputs = ddl.inputs;
   var upload;
   for (var i = 0; i < inputs.length; i++) {
     upload = $("#file-" + i);
@@ -231,7 +229,7 @@ function printUploadFooter() {
 
 // Clear inputs.
 function clearUploads() {
-  var inputs = demoInfo.inputs;
+  var inputs = ddl.inputs;
   var imgElement;
   for (var i = 0; i < inputs.length; i++) {
     imgElement = $("#upload-thumbnail-" + i);
@@ -246,7 +244,7 @@ function clearUploads() {
 
 // Clear inputs.
 function clearUploadInput(id) {
-  var inputs = demoInfo.inputs;
+  var inputs = ddl.inputs;
   var imgElement = $("#upload-thumbnail-" + id);
   imgElement.attr("src", "#");
   imgElement.css("display", "none");

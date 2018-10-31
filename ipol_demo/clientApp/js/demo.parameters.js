@@ -9,15 +9,14 @@ var ddl_params = {};
 parameters.printParameters = function() {
   params,
   ddl_params = {};
-  demoInfo = helpers.getFromStorage('demoInfo');
-  printParamsInformationIcon(demoInfo);
-  if (demoInfo.params && demoInfo.params.length != 0) {
+  printParamsInformationIcon(ddl);
+  if (ddl.params && ddl.params.length != 0) {
     $('#parameters').removeClass('di-none');
-    var demoInfoParams = demoInfo.params;
+    var ddlParams = ddl.params;
     addResetButton();
     $('.param-container').remove();
-    for (var i = 0; i < demoInfoParams.length; i++) {
-      var param = demoInfoParams[i];
+    for (var i = 0; i < ddlParams.length; i++) {
+      var param = ddlParams[i];
       var functionName = $.fn[param.type];
       ddl_params[param.id] = param;
 
@@ -30,8 +29,8 @@ parameters.printParameters = function() {
 }
 
 parameters.setParametersValues = function(params_values){
-  for (var i = 0; i < demoInfo.params.length; i++) {
-    var param = demoInfo.params[i];
+  for (var i = 0; i < ddl.params.length; i++) {
+    var param = ddl.params[i];
     updateParamsArrayValue(param.id, params_values[param.id]);
     if(param.type == "range"){
       $('#number_' + param.id).val(parseFloat(params_values[param.id]));
@@ -53,8 +52,8 @@ parameters.setParametersValues = function(params_values){
 }
 
 function printParamsInformationIcon(){
-  checkParamsDescriptionIconVisibility(demoInfo.general);
-  $('#parameters-description').addDescription(demoInfo.general.param_description);
+  checkParamsDescriptionIconVisibility(ddl.general);
+  $('#parameters-description').addDescription(ddl.general.param_description);
 }
 
 function printParameter(param, index) {

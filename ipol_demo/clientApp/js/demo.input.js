@@ -57,9 +57,9 @@ function setBrokenImage(image) {
   return true;
 }
 
-input.printInputInformationIcon = function(ddl_general) {
-  checkInputDescriptionIconVisibility(ddl_general);
-  $('#inputs-description').addDescription(ddl_general.input_description);
+input.displayInputInformationIcon = function() {
+  checkInputDescriptionIconVisibility(ddl.general);
+  $('#inputs-description').addDescription(ddl.general.input_description);
 }
 
 function scrollHorizontally(e) {

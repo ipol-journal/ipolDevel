@@ -1,9 +1,8 @@
 "use strict"
 
-// global, the demo id
-var demo_id = getParameterByName('id');
+var demo_id = getParameterFromURL('id');
 // global, the requested page, null if undefined
-var page = +getParameterByName('page');
+var page = +getParameterFromURL('page');
 var ddl;
 /**
  * document.onload, global populate page
@@ -15,7 +14,7 @@ $(document).ready(function() {
   // Read DDL and populate page
   var url = "/api/demoinfo/get_interface_ddl?demo_id=" + demo_id + "&sections=archive,general";
   $.getJSON(url, function(data) {
-    ddl = JSON.parse(data.last_demodescription.ddl);
+    ddl = data.last_demodescription.ddl;
     $("#pageTitle").html(ddl.general.demo_title);
 
     $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
@@ -183,7 +182,7 @@ function record(data) {
   return html;
 }
 
-function getParameterByName(name) {
+function getParameterFromURL(name) {
   var url = window.location.href;
   name = name.replace(/[\[\]]/g, "\\$&");
   var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),

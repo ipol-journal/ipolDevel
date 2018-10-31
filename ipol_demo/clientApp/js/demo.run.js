@@ -49,8 +49,8 @@ function runDemo() {
 
 function updateURL(run_response){
   var url = window.location.href;
-  if (getParameterByName('key')) url = url.split('&')[0];
-  if (getParameterByName('archive')) url = url.split('&')[0];
+  if (getParameterFromURL('key')) url = url.split('&')[0];
+  if (getParameterFromURL('archive')) url = url.split('&')[0];
   
   window.history.pushState({}, null, url + '&key=' + run_response.key);
 }
@@ -93,7 +93,7 @@ function checkPostData() {
 }
 
 function checkPostInputs()  {
-  if (helpers.getFromStorage('demoInfo').inputs && helpers.getFromStorage('demoInfo').inputs.length != 0 && !helpers.getFromStorage('origin')) {
+  if (ddl.inputs && ddl.inputs.length != 0 && !helpers.getFromStorage('origin')) {
     errorMsg = 'Input/s required.'
     return false;
   }

@@ -1611,7 +1611,7 @@ attached the failed experiment data.". \
             res_data = {'error': message, 'status': 'KO'}
             return json.dumps(res_data).encode()
 
-        return json.dumps({'status': 'OK', 'execution': lines}).encode()
+        return json.dumps({'status': 'OK', 'experiment': lines}).encode()
 
 
     @cherrypy.expose

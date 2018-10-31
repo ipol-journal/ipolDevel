@@ -164,7 +164,7 @@ ipol.setDemoPage = function (demo_id,origin,func) {
             function(demo_ddl) {
 
                 if (demo_ddl.status == "OK") {
-                    var ddl_json = ipol.utils.DeserializeJSON(demo_ddl.last_demodescription.ddl);
+                    var ddl_json = demo_ddl.last_demodescription.ddl;
                 } else {
                     console.error(" --- failed to read DDL");
                 }

@@ -1703,8 +1703,8 @@ class DemoInfo():
             # obtaining the sections given as a parameter
             if sections:
                 ddl_sections = self.get_ddl_sections(ddl, sections)
-                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl_sections)}}).encode()
-            return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": json.dumps(ddl)}}).encode()
+                return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": ddl_sections}}).encode()
+            return json.dumps({'status': 'OK', 'last_demodescription': {"ddl": ddl}}).encode()
         except Exception as ex:
             error_string = "Failure in function get_interface_ddl with demo {}, Error = {}".format(demo_id, ex)
             print(error_string)

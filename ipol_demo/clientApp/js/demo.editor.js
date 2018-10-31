@@ -21,10 +21,9 @@ editor.printEditor = function(crop) {
 
 function printEditorPanel() {
   $(".editor-container").removeClass("di-none");
-  var demoInfo = helpers.getFromStorage("demoInfo");
   var blobs = Object.keys(editorBlobs);
 
-  printBlobsetList(demoInfo, blobs);
+  printBlobsetList(blobs);
 
   $("#left-container").printEditorBlob(editorBlobs[blobs[0]], "left");
   $("#right-container").printEditorBlob(editorBlobs[blobs[0]], "right");
@@ -65,13 +64,13 @@ function isTiff(blob){
 }
 
 // Print the chosen set blob list
-function printBlobsetList(demoInfo, blobs) {
+function printBlobsetList(blobs) {
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append(
       "<span class=editor-input-left-" +
         i +
         ">" +
-        demoInfo.inputs[i].description +
+        ddl.inputs[i].description +
         "</span>"
     );
     $(".editor-input-left-" + i).addClass("editor-input");
@@ -83,7 +82,7 @@ function printBlobsetList(demoInfo, blobs) {
       "<span class=editor-input-right-" +
         i +
         ">" +
-        demoInfo.inputs[i].description +
+        ddl.inputs[i].description +
         "</span>"
     );
     $(".editor-input-right-" + i).addClass("editor-input");

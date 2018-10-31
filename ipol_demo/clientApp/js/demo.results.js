@@ -2,10 +2,9 @@ var clientApp = clientApp || {};
 var helpers = clientApp.helpers || {};
 var results = clientApp.results || {};
 
-var ddl_results, work_url, info;
+var ddl_results, info;
 
 results.draw = function (run_response) {
-  var ddl = helpers.getFromStorage('demoInfo');
   ddl_results = ddl.results;
   work_url = run_response.work_url;
   info = run_response.algo_info;
@@ -37,8 +36,8 @@ function printResult(result, index) {
 }
 
 function getFileURL(file){
-  if (!getArchiveExperimentId()) return work_url + file;
-  var images_ddl = $.extend({}, demoInfo.archive.files, demoInfo.archive.hidden_files);
+  if (!getParameterFromURL('archive')) return work_url + file;
+  var images_ddl = $.extend({}, ddl.archive.files, ddl.archive.hidden_files);
   var images_ddl_keys = Object.keys(images_ddl);
   for (let i = 0; i < images_ddl_keys.length; i++) 
     for (let j = 0; j < experiment.files.length; j++)
