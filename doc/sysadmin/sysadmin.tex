@@ -95,30 +95,12 @@ The production servers use the {\tt master} branch, but for development the {\tt
 git checkout devel
 \end{verbatim}
 
-\section{Requirements: Debian and Python}
-A minimal requirement for IPOL is Debian Stable.
-Tools are provided to ease installation of dependencies in ~/ipolDevel/sysadmin/install\_packages/
-\begin{verbatim}
-~/ipolDevel$ cd sysadmin/install_packages/
-\end{verbatim}
-
-Install the Debian package list, apt-get\_requirements.txt:
-\begin{verbatim}
-~/ipolDevel/sysadmin/install_packages$ sudo ./install_dist_packages.sh
-\end{verbatim}
-
-Install the Python packages list with pip, requirements.txt:
-\begin{verbatim}
-pip install -r requirements.txt
-\end{verbatim}
-
-
 \subsection{External repositories}
 Some packages as for example Intel's IPP are not directly in the Debian Stable distribution and therefore they need to be added to APT manually. Normally it implies just adding the repository's \emph{.list} file to {\tt /etc/apt/sources.list.d}.
 
 \begin{itemize}
     \item For the specific instructions for VirtualBox, please refer to Sec. \ref{sec:virtual_machines}.
-    \item For Intel IPP, it is described in the corresponding website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
+    \item For Intel IPP, it is described in their website\footnote{\url{https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo}}.
 \end{itemize}
 
 
@@ -187,6 +169,9 @@ We use the host \emph{github\_deploy} in order to pick the deploy key in the SSH
 
 \section{Setup of a new machine}
 When a new machine is added to the IPOL infrastructure, the following needs to be done:
+
+- Install a Debian Stable distribution. That is very important: the minimal requirement is Debian Stable, not any Debian distribution below or over Stable.
+
 - Create the {\tt ipol} user in a new machine: {\tt adduser ipol}
 
 - Install bash-completion {\tt apt-get install bash-completion}
@@ -255,6 +240,14 @@ host github_deploy
 \end{verbatim}
 
 Then, clone the repository with {\tt git clone git@github\_deploy:mcolom/ipolDevel.git}
+
+In {\tt ipolDevel/sysadmin/install\_packages/} there is a script that needs to be run with {\tt sudo ./install\_dist\_packages.sh}. It will install all required Debian packages listed in apt-get\_requirements.txt.
+
+\subsection{Manual configurations}
+Some of the installed packages need manual changes in their configuration.
+
+- Octave: edit the file {\tt /usr/share/octave/site/m/startup/octaverc} and {\tt add pkg load image}.
+
 
 \section{Nginx}
 
