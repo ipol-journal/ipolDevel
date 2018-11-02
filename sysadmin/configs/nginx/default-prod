@@ -10,8 +10,9 @@ upstream ipol_webapp_server {
 # It simply serves static files
 server {
         allow 5.196.85.84;
-        allow 2001:41d0:a:7654::1;
         allow 127.0.0.1;
+        allow 2001:41d0:a:7654::1;
+        allow ::ffff:5.196.85.84;
         deny all;
 
         listen [::]:81;
@@ -35,9 +36,9 @@ server {
 
 server {
     listen       [::]:80 default_server;
-    listen *:80 default_server;
-
+    listen       *:80 default_server;
     server_name   ipolcore.ipol.im;
+
     proxy_send_timeout          700;
     proxy_read_timeout          700;
     send_timeout                700;
@@ -45,6 +46,7 @@ server {
 
     # Enable SSL
     listen *:443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
     include snippets/certificate.conf;
     include snippets/ssl-params.conf;
 
