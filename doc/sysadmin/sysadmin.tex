@@ -726,7 +726,6 @@ apt-get install linux-headers-amd64 virtualbox-5.1
 Probably you are editing the Python script in windows and it finished the line with {\tt CR LR} instead of just {\tt LF}, as used in Linux systems. This causes the shebang line to have an incorrect name for the interpreter: {\tt \#!/usr/bin/env python3<CR>}. To fix it, configure your editor you use {\tt LF} ({\tt \textbackslash n}) when saving the file.
 \vspace{0.5cm}
 
-
 \textbf{A docker container will not run after a daemon fails to start}
 
 The main reason is a broken configuration file of a daemon. To fix this copy a correct version of the configuration file that prevents the container to start. You can use the {\tt docker cp} command to do it:
@@ -738,7 +737,7 @@ docker cp correct_config ipol:/path_to_broken_config
 \textbf{When updating nginx with apt I get the following error: systemd[1]: nginx.service: Control process exited. dpkg: error processing package nginx-full (--configure):  subprocess installed post-installation script returned error exit status 1 Errors were encountered while processing:  nginx-full}
 
 It happens sometimes is a previous version of nginx is running and the system can't stop it before installing over the new one. Try {\tt sudo nginx -s stop} or it this fails directly kill the process with {\tt sudo killall nginx}.
-
+\vspace{0.5cm}
 
 \textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server}
 
