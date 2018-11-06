@@ -111,8 +111,14 @@ def extract(fname, target):
 
     # cleanup/create the target dir
     if os.path.isdir(target):
-        shutil.rmtree(target)
-    os.mkdir(target)
+        for entry in os.listdir(target):
+            file_path = os.path.join(target, entry)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            else:
+                shutil.rmtree(file_path)
+    else:
+        os.mkdir(target)
 
     # extract into the target dir
     try:

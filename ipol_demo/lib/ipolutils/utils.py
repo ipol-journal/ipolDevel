@@ -42,3 +42,11 @@ def thumbnail(src_file, height, dst_file):
     else:
         im.resize(height=height)
     im.write(dst_file)
+
+def rmdir_contents(target):
+    for entry in os.listdir(target):
+        file_path = os.path.join(target, entry)
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+        else:
+            shutil.rmtree(file_path)

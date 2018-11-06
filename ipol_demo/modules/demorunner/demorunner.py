@@ -14,6 +14,7 @@ import os
 # add lib path for import
 import os.path
 import re
+import shlex
 import shutil
 import subprocess
 import time
@@ -21,12 +22,15 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from string import Template
+from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
+from pip._internal import main as pipmain
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
+import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -45,6 +49,12 @@ class IPOLConstructFileNotFound(Exception):
 class IPOLUnauthorizedAccess(Exception):
     """
     IPOLUnauthorizedAccess
+    """
+    pass
+
+class IPOLConstructVirtualenvError(Exception):
+    """
+    IPOLConstructVirtualenvError
     """
     pass
 
@@ -351,8 +361,12 @@ class DemoRunner(object):
                     os.chdir(src_dir)
                     # Extract source code
                     build.extract(tgz_file, src_dir)
+                    
+                    # Create virtualenv if specified by DDL
+                    if "virtualenv" in build_item:
+                        self.create_venv(build_item, bin_dir, src_dir)
 
-                    if construct is not None:
+                    if construct:
                         # Execute the construct
                         build.run(construct, log_file, cwd=src_dir)
 
@@ -477,6 +491,11 @@ format(str(ex), str(ddl_build))
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. File not found. {}".format(str(ex))
+        
+        except IPOLConstructVirtualenvError as ex:
+            data = {}
+            data['status'] = 'KO'
+            data['message'] = "Construct failed. Can't create virtualenv:\n{}".format(str(ex))
 
         except IPOLUnauthorizedAccess as ex:
             data = {}
@@ -491,7 +510,7 @@ format(str(ex), str(ddl_build))
         except ValueError as ex:
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Construct failed. Bad URL value: {}".format(str(ex))
+            data['message'] = "Construct failed. Bad value: {}".format(str(ex))
 
         except Exception as ex:
             data = {}
@@ -549,6 +568,24 @@ format(str(ex), str(ddl_build))
 
         for build_block in builds:
             self.construct(path_for_the_compilation, build_block)
+
+    @staticmethod
+    def create_venv(build_item, bin_dir, src_dir):
+        """
+        Create a virtual environment with the packages specified by the DDL 
+        """
+        packages_file = build_item["virtualenv"]
+        venv_path = os.path.join(bin_dir, "venv")
+        pip_bin = os.path.join(venv_path, "bin/pip")
+        virtualenv.create_environment(venv_path)
+        
+        cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
+        cmd = shlex.split(" ".join(cmd))
+        install_proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout_data, stderr_data = install_proc.communicate()
+
+        if install_proc.returncode != 0:
+            raise IPOLConstructVirtualenvError(stderr_data)
 
     # ---------------------------------------------------------------------------
     # Algorithm runner
