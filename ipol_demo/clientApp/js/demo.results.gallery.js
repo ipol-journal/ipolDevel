@@ -1,6 +1,6 @@
 var helpers = clientApp.helpers || {};
 
-$.fn.gallery = function(result, index)  {
+$.fn.gallery = function (result, index) {
   if (result.visible) {
     var visible = eval(result.visible);
     if (!visible) return;
@@ -26,15 +26,15 @@ $.fn.gallery = function(result, index)  {
 
   var imgContainerLeft = "gallery-blobs-left-" + index;
   var imgContainerRight = "gallery-blobs-right-" + index;
-  $("." + blobsContainerSelector).append('<div id="'+ imgContainerLeft +'" class=gallery-blob-container></div>');
-  $("." + blobsContainerSelector).append('<div id="'+ imgContainerRight +'" class="gallery-blob-container di-none"></div>');
+  $("." + blobsContainerSelector).append('<div id="' + imgContainerLeft + '" class=gallery-blob-container></div>');
+  $("." + blobsContainerSelector).append('<div id="' + imgContainerRight + '" class="gallery-blob-container di-none"></div>');
 
   var firstVisibleBlobSet = blobsArray[0];
   for (var i = 0; i < firstVisibleBlobSet.length; i++) {
     $("#" + imgContainerRight).append(firstVisibleBlobSet[i].clone());
     $("#" + imgContainerLeft).append(firstVisibleBlobSet[i].clone());
   }
-  
+
   var allSrc = getAllSrc(blobsArray);
   $("." + gallerySelector).setGalleryMinHeight(allSrc);
   $(this).append("<div id=gallery-" + index + "-zoom-container></div>");
@@ -54,7 +54,7 @@ function getGalleryImages(contentArray) {
       var blobs = [];
       for (var idx = 0; idx < repeat; idx++) {
         blobs = [];
-        if (typeof(imgField) === 'string') {
+        if (typeof (imgField) === 'string') {
           var img = '<img src=' + getFileURL(imgField.indexOf("'") == -1 ? imgField : eval(imgField)) + ' class=gallery-img draggable=false></img>';
           blobs.push($(img));
         } else if (typeof (imgField) === 'object') {
@@ -100,7 +100,7 @@ function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, b
     var visibleField = contents[contentKeys[i]].hasOwnProperty('visible');
     if (!visibleField || (visibleField && eval(contents[contentKeys[i]].visible))) {
       var content = result.contents[contentKeys[i]].img;
-      if (typeof(content) === 'string') {
+      if (typeof (content) === 'string') {
         content = [content];
       }
       if (firstVisibleBlob) {
@@ -111,20 +111,20 @@ function renderGalleryBlobList(index, contentKeys, result, itemSelector, side, b
       var repeat = line.repeat != undefined ? checkRepeat(line.repeat) : 1;
       for (var idx = 0; idx < repeat; idx++) {
         var text = getEvalText(contentKeys[i]);
-        var spanId = 'gallery-' + index + '-item-' + side +'-'+ i + '-' + idx;  
+        var spanId = 'gallery-' + index + '-item-' + side + '-' + i + '-' + idx;
         try {
           title = eval(text)
         } catch (err) {
           title = text
         }
-        $('#gallery-'+index+'-blobList-'+side).append('<span id=' +spanId+ ' class=gallery-item-selector>' + title + '</span>');
+        $('#gallery-' + index + '-blobList-' + side).append('<span id=' + spanId + ' class=gallery-item-selector>' + title + '</span>');
         $('#' + spanId).addHoverFeatures(index, side, blobsArray[itemIndex], itemIndex);
         itemIndex++;
       }
     }
   }
   $(this).addMouseOut(index, side, blobsArray);
-  $("." +itemSelector+ " span:first-child").addClass("gallery-item-selected");
+  $("." + itemSelector + " span:first-child").addClass("gallery-item-selected");
 }
 
 $.fn.addMouseOut = function (galleryIndex, side, blobsArray) {
@@ -150,28 +150,28 @@ function getEvalText(str) {
   if (str.indexOf('+') != -1) {
     return str;
   } else {
-    return "\'"+str+"\'";
+    return "\'" + str + "\'";
   }
 }
 
-$.fn.addHoverFeatures = function(galleryIndex, side, src, itemIndex) {
-  var imgSelector = '.gallery-' +galleryIndex+ '-blob-' + side;
-  var selector = '#gallery-blobs-' +side+ '-' + galleryIndex;
-  $(this).mouseover(function() {
+$.fn.addHoverFeatures = function (galleryIndex, side, src, itemIndex) {
+  var imgSelector = '.gallery-' + galleryIndex + '-blob-' + side;
+  var selector = '#gallery-blobs-' + side + '-' + galleryIndex;
+  $(this).mouseover(function () {
     $(selector).empty();
     for (var i = 0; i < src.length; i++) {
       $(selector).append($(src[i]));
     }
-    $(selector + " > img").addClass('gallery-' +galleryIndex+ '-blob-'+side);
+    $(selector + " > img").addClass('gallery-' + galleryIndex + '-blob-' + side);
     var zoomValue = $("#gallery-" + galleryIndex + "-zoom > #editor-zoom").val();
     $("#gallery-" + galleryIndex + "-zoom > input").adjustSize(galleryIndex);
     setInterpolation(galleryIndex);
   });
-  $(this).on('click', function() {
-    var listSelector = ".gallery-" +side+ "-items-" + galleryIndex;
+  $(this).on('click', function () {
+    var listSelector = ".gallery-" + side + "-items-" + galleryIndex;
     $("#gallery-" + galleryIndex + "-blobList-" + side + " > .gallery-item-selected").toggleClass("gallery-item-selected");
     $(this).toggleClass("gallery-item-selected");
-    helpers.addToStorage("gallery-" +galleryIndex + "-" + side, itemIndex);
+    helpers.addToStorage("gallery-" + galleryIndex + "-" + side, itemIndex);
   });
 }
 
@@ -180,16 +180,28 @@ function setInterpolation(galleryIndex) {
   helpers.checkInterpolation(zoomValue, ".gallery-" + galleryIndex + " img");
 }
 
-$.fn.appendZoom = function(index, leftItems) {
+$.fn.appendZoom = function (index, leftItems) {
   var zoom = $("#zoom-container").clone();
   zoom.find('input').val('1.0');
   zoom.find('span').html('1x');
-  var newZoomID= "gallery-" +index+ "-zoom";
+  var newZoomID = "gallery-" + index + "-zoom";
   zoom.attr("id", newZoomID).appendTo($(this));
   zoom.removeClass("di-none");
   zoom.show();
+
+  getImagesWidth($("#gallery-blobs-left-" + index).children()).then(imagesTotalWidth => {
+    imagesTotalWidth = imagesTotalWidth.reduce((total, num) => total += num);
+    imagesContainerWidth = $("#gallery-blobs-left-" + index).width()
+    if (imagesTotalWidth > imagesContainerWidth) {
+      zoomAdjustedValue = ((imagesContainerWidth - $("#gallery-blobs-left-" + index).children().length * 10) / imagesTotalWidth).toFixed(2);
+      zoomAdjustedValue = zoomAdjustedValue < 0.25 ? 0.25 : zoomAdjustedValue;
+      updateZoomValue(zoom, zoomAdjustedValue);
+      $("#" + newZoomID + " > input").adjustSize(index);
+    }
+  });
+
   $("#" + newZoomID + " > .zoom-info > #editor-image-size").remove();
-  $("#" + newZoomID + " > input").on('input', function() {
+  $("#" + newZoomID + " > input").on('input', function () {
     var zoomLevel = $(this).val();
     let selector = ".gallery-" + index + " img";
     helpers.checkInterpolation(zoomLevel, selector);
@@ -200,9 +212,22 @@ $.fn.appendZoom = function(index, leftItems) {
   scrollSync(index);
 }
 
-$.fn.adjustSize = function(index) {
+function updateZoomValue(zoom, value){
+  zoom.find('input').val(value.toString());
+  zoom.find('span').html(value.toString() + 'x');
+}
+
+function getImageWidthAfterLoad(image) {
+  return new Promise(resolve => image.onload = () => resolve(image.width));
+}
+
+async function getImagesWidth(images) {
+  return Promise.all(images.map(img => getImageWidthAfterLoad(images[img])));
+}
+
+$.fn.adjustSize = function (index) {
   var zoomLevel = $(this).val();
-  $("#gallery-blobs-left-"+index + ", #gallery-blobs-right-"+index).children('img').each(function(i){
+  $("#gallery-blobs-left-" + index + ", #gallery-blobs-right-" + index).children('img').each(function (i) {
     if ($(this)[0].naturalHeight != 0 || $(this)[0].naturalWidth != 0) {
       $(this).height($(this)[0].naturalHeight * zoomLevel);
       $(this).width($(this)[0].naturalWidth * zoomLevel);
@@ -265,7 +290,7 @@ function scrollSync(index) {
   $('#gallery-blobs-left-' + index).attachDragger();
   $('#gallery-blobs-right-' + index).attachDragger();
 
-  leftDiv.onscroll = function() {
+  leftDiv.onscroll = function () {
     if (!isSyncingLeftScroll) {
       isSyncingRightScroll = true;
       rightDiv.scrollTop = this.scrollTop;
@@ -273,7 +298,7 @@ function scrollSync(index) {
     }
     isSyncingLeftScroll = false;
   }
-  rightDiv.onscroll = function() {
+  rightDiv.onscroll = function () {
     if (!isSyncingRightScroll) {
       isSyncingLeftScroll = true;
       leftDiv.scrollTop = this.scrollTop;
