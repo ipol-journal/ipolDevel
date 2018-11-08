@@ -9,7 +9,7 @@
   </commands>
 
 
-  <demorunner name="dr_local1">
+  <demorunner name="dr">
     <module>demorunner</module>
     <server>127.0.1.1</server>
     <capability>DEBIAN_STABLE</capability>
