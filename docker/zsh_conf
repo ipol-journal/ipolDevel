@@ -42,6 +42,10 @@ function lint() {
     pylint3 --rcfile=/home/ipol/ipolDevel/ci_tests/pylintrc $1
 }
 
+function demo_copy() {
+    cd ~/ipolDevel/tools/demo_copy && ./demo_copy.py $1 $2
+}
+
 
 # Modules start
 alias core="cd ~/ipolDevel/ipol_demo/modules/core && source venv/bin/activate && ./main.py"
