@@ -192,6 +192,7 @@ $.fn.appendZoom = function (index, leftItems) {
   getImagesWidth($("#gallery-blobs-left-" + index).children()).then(imagesTotalWidth => {
     imagesTotalWidth = imagesTotalWidth.reduce((total, num) => total += num);
     imagesContainerWidth = $("#gallery-blobs-left-" + index).width()
+    // Fit images size in the container if it's necessary
     if (imagesTotalWidth > imagesContainerWidth) {
       zoomAdjustedValue = ((imagesContainerWidth - $("#gallery-blobs-left-" + index).children().length * 10) / imagesTotalWidth).toFixed(2);
       zoomAdjustedValue = zoomAdjustedValue < 0.25 ? 0.25 : zoomAdjustedValue;
@@ -217,6 +218,7 @@ function updateZoomValue(zoom, value){
   zoom.find('span').html(value.toString() + 'x');
 }
 
+// Image properties are only accessible after it's completely loaded.  
 function getImageWidthAfterLoad(image) {
   return new Promise(resolve => image.onload = () => resolve(image.width));
 }
