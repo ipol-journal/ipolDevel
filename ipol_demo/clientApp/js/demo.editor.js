@@ -8,7 +8,6 @@ var scrollController = scrollController || {};
 var editorBlobs;
 var crop_info;
 
-// Print editor pannel.
 editor.printEditor = function(crop) {
   if (helpers.getOrigin() === 'upload') checkTiff();
   $("#inputEditorContainer").load("editor.html", function() {
@@ -23,29 +22,28 @@ function printEditorPanel() {
   $(".editor-container").removeClass("di-none");
   var blobs = Object.keys(editorBlobs);
 
-  printBlobsetList(blobs);
+  printBlobSetList(blobs);
 
   $("#left-container").printEditorBlob(editorBlobs[blobs[0]], "left");
   $("#right-container").printEditorBlob(editorBlobs[blobs[0]], "right");
-  var $blob = $("#editor-blob-left");
 
-  if (areAllImages()){
-    $("#zoom-container").removeClass("di-none");
-    if (blobs.length > 1) loadMultiBlobControls(editorBlobs[blobs[0]].blob);
-    else if (blobs.length == 1 && ((editorBlobs[blobs[0]].format == "image" && !isTiff(editorBlobs[blobs[0]]))|| editorBlobs[blobs[0]].vr)) loadSingleBlobControls($blob);
-  } 
+  if (areAllImages()) displayImagesControls(blobs, editorBlobs[blobs[0]])
 
-  var blobType = editorBlobs[blobs[0]].format;
   saveSelectedInput("right", blobs[0]);
   saveSelectedInput("left", blobs[0]);
 
-  $(".editor-input-left-0").addClass("editor-input-selected");
-  $(".editor-input-right-0").addClass("editor-input-selected");
+  $(".editor-input-left-0, .editor-input-right-0").addClass("editor-input-selected");
 
   scrollController.addScrollingEvents();
 
   $("#left-container").attachDragger("left");
   $("#right-container").attachDragger("right");
+}
+
+function displayImagesControls(blobs, blob){
+  $("#zoom-container").removeClass("di-none");
+  if (blobs.length > 1) loadMultiBlobControls();
+  else if (blobs.length == 1 && ((blob.format == "image" && !isTiff(blob)) || blob.vr)) loadSingleBlobControls($("#editor-blob-left"));
 }
 
 function saveSelectedInput(side, index) {
@@ -64,7 +62,7 @@ function isTiff(blob){
 }
 
 // Print the chosen set blob list
-function printBlobsetList(blobs) {
+function printBlobSetList(blobs) {
   for (let i = 0; i < blobs.length; i++) {
     $(".inputListContainerLeft").append(
       "<span class=editor-input-left-" +
@@ -97,44 +95,49 @@ function printBlobsetList(blobs) {
 
 // Single blob sets controls
 function loadSingleBlobControls($img) {
+  if (ddl.inputs[0].type == "image") displayCrop($img)
+  zoomController.singleBlob();
+}
+
+function displayCrop($img){
   $(".blobsList-left").append(
     "<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>"
   );
-    if (crop_info == null) {
-      $img.cropper({
-        viewMode: 1,
-        autoCrop: false,
-        dragMode: "move",
-        wheelZoomRatio: 0.1,
-        responsive: true,
-        toggleDragModeOnDblclick: false,
-        ready: setNaturalZoom
-      });
-    } else {
-      $img.cropper({
-        viewMode: 1,
-        autoCrop: true,
-        dragMode: "move",
-        wheelZoomRatio: 0.1,
-        responsive: true,
-        data: crop_info,
-        ready: getData,
-        toggleDragModeOnDblclick: false
-      });
-      $("#crop-btn").prop("checked", true);
-      $("#canvas-container").removeClass("di-none");
-    }
-  $img.on("cropmove cropstart cropend", function(e) {
+  if (crop_info == null) {
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: false,
+      dragMode: "move",
+      wheelZoomRatio: 0.1,
+      responsive: true,
+      toggleDragModeOnDblclick: false,
+      ready: setNaturalZoom
+    });
+  } else {
+    $img.cropper({
+      viewMode: 1,
+      autoCrop: true,
+      dragMode: "move",
+      wheelZoomRatio: 0.1,
+      responsive: true,
+      data: crop_info,
+      ready: getData,
+      toggleDragModeOnDblclick: false
+    });
+    $("#crop-btn").prop("checked", true);
+    $("#canvas-container").removeClass("di-none");
+  }
+  $img.on("cropmove cropstart cropend", function (e) {
     if ($("#crop-btn").prop("checked")) {
       var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
       $("#canvas-container").html($(croppedImage));
     }
   });
-  $img.on("zoom", function(e) {
+  $img.on("zoom", function (e) {
     if (e.ratio >= 0.25 && e.ratio <= 16) {
       let selector = "#canvas-container > canvas, .blobEditorImage, .cropper-container img";
       helpers.checkInterpolation(e.ratio, selector);
-     
+
       $("#editor-zoom").val(e.ratio);
       $("#editor-zoom-value").html(e.ratio.toFixed(2) + "x");
       if ($("#crop-btn").prop("checked")) {
@@ -148,14 +151,13 @@ function loadSingleBlobControls($img) {
     }
   });
   addCropEvent();
-  zoomController.singleBlob();
 }
 
-function setNaturalZoom(e) {
+function setNaturalZoom() {
   $("#editor-blob-left").cropper('zoomTo', 1);
 }
 
-function getData(e) {
+function getData() {
   var imgData = $("#editor-blob-left").cropper("getImageData");
   var zoom = imgData.height / imgData.naturalHeight;
   $("#editor-zoom").val(zoom);
@@ -164,7 +166,7 @@ function getData(e) {
 }
 
 // Multiple blob sets controls
-function loadMultiBlobControls(blob) {
+function loadMultiBlobControls() {
   $(".blobsList-left").append(
     "<input type=checkbox id=compare-btn class=hand><label for=compare-btn>Compare</label>"
   );
