@@ -481,7 +481,7 @@ class Archive():
             conn.close()
         except Exception as ex:
             data["status"] = "KO"
-            self.logger.exception("Impossible to get experiment #{}".format(experiment_id))
+            self.logger.exception("Error getting experiment #{}".format(experiment_id))
 
             if conn is not None:
                 conn.close()
@@ -638,9 +638,7 @@ class Archive():
 
             if page > meta_info["number_of_pages"] or page <= 0:
                 page = meta_info["number_of_pages"]
-                experiments = self.get_experiment_page(conn, id_demo, page)
-            else:
-                experiments = self.get_experiment_page(conn, id_demo, page)
+            experiments = self.get_experiment_page(conn, id_demo, page)
 
             data["meta"] = meta_info
             data["experiments"] = experiments
@@ -649,7 +647,7 @@ class Archive():
 
         except Exception as ex:
             data["status"] = "KO"
-            self.logger.exception("Impossible to get page #{} from demo #{}".format(demo_id, page))
+            self.logger.exception("Error getting page #{} from demo #{}".format(demo_id, page))
             try:
                 conn.close()
             except Exception:
@@ -738,7 +736,7 @@ class Archive():
                 status["status"] = "OK"
 
         except Exception as ex:
-            self.logger.exception("Impossible to delete experiment #{}".format(experiment_id))
+            self.logger.exception("Error deleting experiment #{}".format(experiment_id))
             print(traceback.format_exc())
             try:
                 conn.rollback()
@@ -777,7 +775,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.close()
             status["status"] = "OK"
         except Exception as ex:
-            self.logger.exception("Impossible to delete blob (with deps) #{}".format(id_blob))
+            self.logger.exception("Error deleting experiment with dependencies #{}".format(id_blob))
             try:
                 conn.rollback()
                 conn.close()
@@ -789,7 +787,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @cherrypy.expose
     def ping():
         """
-        Ping service: answer with a PONG.
+        Ping service: answer with a pong.
         """
         data = {"status": "OK", "ping": "pong"}
         return json.dumps(data).encode()
@@ -806,7 +804,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             cherrypy.engine.exit()
             data["status"] = "OK"
         except Exception as ex:
-            self.logger.exception("Impossible to shutdown archive module")
+            self.logger.exception("Error: module shutdown")
         return json.dumps(data).encode()
 
     @cherrypy.expose
@@ -918,7 +916,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             status["status"] = "OK"
 
         except Exception as ex:
-            self.logger.exception("Impossible to delete demo #{}".format(demo_id))
+            self.logger.exception("Error deleting demo #{}".format(demo_id))
             try:
                 conn.rollback()
                 conn.close()
@@ -953,7 +951,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         except Exception as ex:
             status = {"status": "KO"}
             status = {"error": "blobs update_demo_id error: {}".format(ex)}
-            self.logger.exception("Impossible to update demo id from #{} to #{}".format(old_demo_id, new_demo_id))
+            self.logger.exception("Error changing demo ID (#{} --> #{})".format(old_demo_id, new_demo_id))
             if conn is not None:
                 conn.rollback()
                 conn.close()
