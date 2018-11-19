@@ -117,7 +117,6 @@ class RunDemoBase:
         with lock:
             os.chdir(self.work_dir)
             prog_name_and_params = cmd.split()
-            print("prog_name_and_params ", prog_name_and_params)
             p = self.run_proc(prog_name_and_params, stdout=stdout_file, stderr=stderr_file) if prog_name_and_params else None
 
         # Execute it

@@ -590,7 +590,7 @@ format(str(ex), str(ddl_build))
     # ---------------------------------------------------------------------------
     # Algorithm runner
     # ---------------------------------------------------------------------------
-    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data, timeout):
+    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data, timeout, virtualenv=None):
         """
         the core algo runner
         """
@@ -604,7 +604,6 @@ format(str(ex), str(ddl_build))
 
         rd.set_share_demoExtras_dirs(self.share_demoExtras_dir, demo_id)
 
-        # Note: use isinstance(s, str) if moving to Python 3
         if not isinstance(ddl_run, str):
             return -1 # Bad run syntax: not a string
 
@@ -624,6 +623,7 @@ format(str(ex), str(ddl_build))
         params["demoextras"] = os.path.join(self.share_demoExtras_dir, demo_id)
         params["matlab_path"] = self.MATLAB_path
         params["bin"] = self.get_bin_dir(demo_id)
+        params["virtualenv"] = self.get_bin_dir(demo_id) + "venv"
         return Template(ddl_run).substitute(**params)
 
     def get_bin_dir(self, demo_id):
@@ -645,7 +645,7 @@ format(str(ex), str(ddl_build))
         return content.encode('utf8')
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, virtualenv=None, timeout=60):
         '''
         Run the algorithm
         '''
@@ -682,7 +682,8 @@ format(str(ex), str(ddl_build))
             # Run algorithm and control exceptions
             code = self.run_algo(demo_id, work_dir, \
                                  path_with_the_binaries, \
-                                 ddl_run, params, res_data, timeout)
+                                 ddl_run, params, res_data, \
+                                 timeout, virtualenv=virtualenv)
 
             if code == -1: # Bad run syntax
                 self.write_log("exec_and_wait", "Bad run syntax, demo_id={}".format(demo_id))
