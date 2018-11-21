@@ -12,7 +12,7 @@ The DemoRunner module executes the experiment according to this workflow:
     \item control exceptions and failures. 
 \end{enumerate}
 
-\paragraph{Ensure compilation}
+\subsection{Ensure compilation}
 \noindent
 
 This step ensures that IPOL always uses the last version of the source codes provided by the authors. 
@@ -21,7 +21,18 @@ The first time that a demo is executed, the module downloads, extracts, and comp
 
 Henceforth, DemoRunner will compare differences between the information from the HTTP header of the remote file with its local copy. If there have been any modifications in the size or the dates, the system will consider the local copy out of day and it will download and compile the sources again. 
 
-\paragraph{Execute and control}
+
+\subsubsection{Virtualenv}
+\noindent
+
+This step creates if specified by the DDL, a Virtualenv with the required packages. This process only executes when building the demo which is the first time it is executed or when a the source files are updated.
+
+A Virtualenv per demo is the only way to securely avoid package conflicts for each demo as different demos might need different package versions. Globally installing packages would end up in confliting package installation.
+
+The system will create the virtual environment inside the bin folder along with the binaries needed to execute the demo. To activate the Virtualenv the user will have to execute the activation script from a bash file for example.
+
+
+\subsection{Execute and control}
 \noindent
 
 The second responsibility of the module is to control the execution.  It can execute directly the authors binaries or, for more complex process, support scripts provided by the demo editors in a particular demo (see more about \textit{DemoExtras} in Sec.~\ref{sec:demoextras}). Besides, the demo editors can call some generic scripts provided by the system, for example to draw 2D curves, or draw histograms, among others. These scripts in the {\tt PythonTools} directory are added to the PATH during execution.
@@ -34,7 +45,7 @@ Nevertheless, in other cases the process is not so simple and some additional me
 This module provides a mechanism that allows the caller to recover information added during the execution. Let's think of a demo with a variable number of outputs. If the web interface uses a repeat gallery to show these images, it needs to know how many times it needs to repeat, but this information is only known after the execution. The solution is simple: the demo editor writes the name and value of one or many variables to a text file {\tt algo\_info.txt} and the system will read it after the execution.
 
 
-\paragraph{Control exceptions and failures}
+\subsection{Control exceptions and failures}
 \noindent
 
 The module takes care of stopping the demo execution if a problem is detected. It can be in the preparation of the execution (not supported inputs for the demo, a runtime error, incorrect syntax in the run section at the DDL, for example). In these cases, the module notifies the caller about the causes of the failure.
