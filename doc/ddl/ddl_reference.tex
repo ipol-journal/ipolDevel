@@ -38,7 +38,7 @@ The general section describes global information about the demo. It is a set of 
 %-------------------------------------------------------------------------------
 \section{The \emph{build} section}
 
-The build section is a set of one or more sets, each one providing information to obtain and compile the source codes needed for a given demo. If the demo needs to compile several files from different links, the build sets must be indexed as build1, build2,..., build\textit{n} being \textit{n} the total number of builds (see the example below). It is mandatory to write at least build1. Three steps are needed to build a demo: 
+The build section is a set of one or more sets, each one providing information to obtain and compile the source codes needed for a given demo. If the demo needs to compile several files from different links, the build sets must be indexed as build1, build2,..., build\textit{n} being \textit{n} the total number of builds (see the example below). It is mandatory to write at least build1. If a demo needs to make use of a python package in order to execute the user will have to specify the requirements.txt file location inside the source binary compressed file. Three steps are needed to build a demo: 
 
 \begin{itemize}
   \item Download the original sources codes (with optional userid and password for private demos);
@@ -55,6 +55,7 @@ The build section is a set of one or more sets, each one providing information t
  password   & Password for private demos. & no \\ \hline
  construct  & Shell command needed to compile the downloaded source code. & no  \\ \hline
  move       & List of files needed to execute the demo separated with commas (see example below) & yes  \\ \hline
+ virtualenv & Creates a python 3 virtualenv to install any needed python package inside the bin folder. & no  \\ \hline
 \caption{Build fields}
 \end{longtable}
 
@@ -71,6 +72,7 @@ In this case, the demo needs to compile from two different compressed files. The
         "url": "http://dev.ipol.im/~monasse/orthoPose_1.0.tar.gz",
         "construct": "matlab -nodisplay -nosplash -nodesktop -r \"cd orthoPose_1.0/; mcc -m mainPoseEstimation.m -a lib/; exit;\"",
         "move": "orthoPose_1.0/mainPoseEstimation, orthoPose_1.0/run_mainPoseEstimation.sh"
+        "virtualenv": "sift_anatomy_20141201/requirements.txt"
     }
 }
 \end{lstlisting}
