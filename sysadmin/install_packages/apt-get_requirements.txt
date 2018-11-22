@@ -11,6 +11,7 @@ python2.7
 wget
 cmake
 ccache
+libboost-all-dev
 bc
 libconfig9
 libconfig-dev
