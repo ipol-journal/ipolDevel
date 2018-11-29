@@ -8,6 +8,7 @@ python2.7
 wget
 cmake
 ccache
+libboost-all-dev
 libtiff5-dev
 libtiff-tools
 libjpeg-dev
