@@ -198,28 +198,6 @@ It is important to set the hostname with the real Internet address in {\tt /etc/
 
 Example of sending an email: {\tt cat email.txt | mail -s "This is the subject" john.doe@example.com,banania.guy@example.com}
 
-
-\begin{comment}
-- Setup priorities and memory limits to the processes of the users.
-
-Added this to /etc/security/limits.conf:
-\begin{verbatim}
-*               soft     priority            17
-ipol            soft     priority            0
-\end{verbatim}
-
-We need to set also limits for the memory usage per user. It'd be great if we could do it as a percentage of the free memory.
-
-git@github_deploy:mcolom/ipolDevel.git
-To limit the memory which a group of users can use, we should use {\tt cgroups} along with the {\tt Cgred} daemon.
-
-More info:
-
-\url{https://www.digitalocean.com/community/tutorials/how-to-limit-resources-using-cgroups-on-centos-6}
-
-\url{https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-Moving_a_Process_to_a_Control_Group.html}
-\end{comment}
-
 To clone the ipolDevel repository in a new machine, the SSH access must be configured with the RSA deploy key so ssh can use it to clone the repository. This allows to clone the repository even if it eventually becomes private.
 %
 The deploy private key must be copied to {\tt .ssh/id\_rsa\_deploy} and the following lines need to be added to .ssh/config:
@@ -612,7 +590,7 @@ Then add the following line to {\tt /etc/apt/sources.list} (change \emph{stretch
 
 The CPU priorities need to be added /etc/security/limits.conf:
 \begin{verbatim}
-*               soft     priority            17
+*               soft     priority            19
 ipol            soft     priority            0
 \end{verbatim}
 
