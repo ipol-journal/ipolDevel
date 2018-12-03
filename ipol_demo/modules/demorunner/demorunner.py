@@ -484,7 +484,7 @@ format(str(ex), str(ddl_build))
 
             data = {}
             data['status'] = 'KO'
-            data['message'] = "Build for demo #{} failed".format(demo_id).encode('utf8')
+            data['message'] = "Build for demo #{} failed".format(demo_id)
             data['buildlog'] = content
 
         except IPOLConstructFileNotFound as ex:
@@ -642,7 +642,7 @@ format(str(ex), str(ddl_build))
         if os.path.isfile(full_file):
             with codecs.open(full_file, "r", "utf8", errors="replace") as f:
                 content = f.read()
-        return content.encode('utf8')
+        return content
 
     @cherrypy.expose
     def exec_and_wait(self, demo_id, key, params, ddl_run, virtualenv=None, timeout=60):
