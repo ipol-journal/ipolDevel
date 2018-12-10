@@ -322,6 +322,9 @@ class DemoRunner(object):
 
         # Ensure needed compilation folders do exist
         self.mkdir_p(dl_dir)
+        if self.any_extraction_needed(ddl_builds, dl_dir):
+            if os.path.isdir(bin_dir):
+                shutil.rmtree(bin_dir)
         self.mkdir_p(bin_dir)
 
         for build_item in list(ddl_builds.values()):
@@ -407,6 +410,19 @@ format(path_from))
                             f.close()
                             raise
 
+    @staticmethod
+    def any_extraction_needed(ddl_builds, dl_dir):
+        for build_item in list(ddl_builds.values()):
+            url = build_item.get('url')
+            if not url:
+                raise IPOLMissingBuildItem("url")
+            username = build_item.get('username')
+            password = build_item.get('password')
+            zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
+            tgz_file = os.path.join(dl_dir, zip_filename)
+            if build.download(url, tgz_file, username, password):
+                return True
+        return False
 
     @staticmethod
     def all_files_exist(files):
