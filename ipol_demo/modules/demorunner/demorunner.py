@@ -588,7 +588,7 @@ format(str(ex), str(ddl_build))
     @staticmethod
     def create_venv(build_item, bin_dir, src_dir):
         """
-        Create a virtual environment with the packages specified by the DDL 
+        Create a virtualEnv and install the requirements specified within the source code 
         """
         packages_file = build_item["virtualenv"]
         venv_path = os.path.join(bin_dir, "venv")
@@ -598,7 +598,7 @@ format(str(ex), str(ddl_build))
         cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
         cmd = shlex.split(" ".join(cmd))
         install_proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout_data, stderr_data = install_proc.communicate()
+        _, stderr_data = install_proc.communicate()
 
         if install_proc.returncode != 0:
             raise IPOLConstructVirtualenvError(stderr_data)
