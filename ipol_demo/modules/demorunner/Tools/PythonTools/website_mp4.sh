@@ -24,4 +24,4 @@ output=$2
 # -an: drop audio
 # We use the 4:2:2 chroma subsampling instead of 4:4:4 (no subsampling) because
 # Firefox can't handle it.
-avconv -i "$input" -lossless 1 -y -an -c:v libx264 -crf 1 -pix_fmt yuv422p "$output"
+avconv -i "$input" -y -an -c:v libx264 -crf 1 -pix_fmt yuv420p "$output"
