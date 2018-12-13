@@ -22,4 +22,6 @@ output=$2
 
 # -y: overwrite output without asking
 # -an: drop audio
-avconv -i "$input" -y -an -c:v libx264 -crf 1 "$output"
+# We use the 4:2:2 chroma subsampling instead of 4:4:4 (no subsampling) because
+# Firefox can't handle it.
+avconv -i "$input" -lossless 1 -y -an -c:v libx264 -crf 1 -pix_fmt yuv422p "$output"
