@@ -424,7 +424,7 @@ class Archive():
     @authenticate
     def add_experiment(self, demo_id, blobs, parameters, execution=None):
         """
-        This function adds an experiment with all its data to the archive.
+        Add an experiment to the archive.
         """
         data = {"status": "OK"}
         # initialize list of copied files, to delete them in case of exception
@@ -464,7 +464,7 @@ class Archive():
     @cherrypy.expose
     def get_experiment(self, experiment_id):
         """
-        Get requested experiment
+        Get a single experiment
         """
         # id_demo = int(demo_id)
         experiment_id = int(experiment_id)
@@ -843,7 +843,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @staticmethod
     def index():
         """
-        Small index for the archive.
+        Default index
         """
         return "This is the IPOL Archive module"
 
@@ -851,7 +851,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @staticmethod
     def default(attr):
         """
-        Default method invoked when asked for non-existing service.
+        Default method invoked when asked for non-existing service
         """
         data = {}
         data["status"] = "KO"
@@ -862,7 +862,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @cherrypy.expose
     def demo_list(self):
         """
-        return the list of demos with experiments.
+        Return the list of demos with at least one experiment
         """
         data = {"status": "KO"}
         demo_list = list()
@@ -928,7 +928,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
     @cherrypy.expose
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
-        Change the given old demo id by the new demo id.
+        Change the given old demo ID by the new demo ID
         """
 
         conn = None

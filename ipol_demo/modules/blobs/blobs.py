@@ -552,7 +552,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_blobs(self, demo_id):
         """
-        Get all the blobs of the demo, from owned blobs and templates
+        Get all the blobs used by the demo: owned blobs and from templates
         """
         data = {"status": "KO"}
         conn = None
@@ -614,7 +614,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_template_blobs(self, template_name):
         """
-        Get the list of blobs for the template
+        Get the list of blobs in the given template
         """
         data = {"status": "KO"}
         conn = None
@@ -1130,7 +1130,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_all_templates(self):
         """
-        Return a list with all the templates
+        Return all the templates in the system
         """
         conn = None
         data = {'status': 'KO'}
@@ -1211,7 +1211,7 @@ class Blobs(object):
     @authenticate
     def update_demo_id(self, old_demo_id, new_demo_id):
         """
-        Update the given old demo id by the given new demo id.
+        Update an old demo ID by the given new ID
         """
         conn = None
         data = {'status': 'KO'}
@@ -1236,7 +1236,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_blobs_location(self, blobs_ids):
         """
-        Return the physical location of the blobs
+        Return the physical location of the requested blobs
         """
         conn = None
         data = {'status': 'KO'}
@@ -1317,7 +1317,7 @@ class Blobs(object):
     @cherrypy.expose
     def get_blobs_deprecated(self, demo_name):
         """
-        DEPRECATED - Return all demo blobs for the old interface
+        DEPRECATED - Return all demo blobs. Used only in the old interface
         """
         data = {"status": "KO"}
         conn = None

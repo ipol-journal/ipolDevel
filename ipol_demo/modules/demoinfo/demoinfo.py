@@ -270,7 +270,7 @@ class DemoInfo():
     @authenticate
     def delete_demoextras(self, demo_id):
         """
-        Delete the demoextras from the demo
+        Delete the demoExtras from a demo
         """
         data = {}
         data['status'] = "OK"
@@ -287,7 +287,7 @@ class DemoInfo():
     @authenticate
     def add_demoextras(self, demo_id, demoextras, demoextras_name):
         """
-        Add a new demoextras file to a demo
+        Add a new demoExtras file to a demo
         """
         data = {'status': 'KO'}
         try:
@@ -340,7 +340,7 @@ class DemoInfo():
     @cherrypy.expose
     def get_demo_extras_info(self, demo_id):
         """
-        Return the date of creation, the size of the file and the demoExtras file if exists
+        Return the date of creation, the size of the file, and eventually the demoExtras file name
         """
         data = {'status': 'KO'}
         try:
@@ -369,7 +369,7 @@ class DemoInfo():
     @cherrypy.expose
     def demo_list(self):
         """
-        Return the list of the demos of the module.
+        Return the list of the demos with at least one archived experiment
         """
         data = {}
         data["status"] = "KO"
@@ -399,7 +399,7 @@ class DemoInfo():
     @cherrypy.expose
     def demo_list_by_demoeditorid(self, demoeditorid_list):
         """
-        return demo metainformation from list of demo editor id.
+        Return the description of the requested editors
         """
 
         data = {}
@@ -717,7 +717,7 @@ class DemoInfo():
     @cherrypy.expose
     def read_demo_metainfo(self, demoid):
         """
-        return metainfo of given demo.
+        Return metadata of a demo.
         """
         data = dict()
         data["status"] = "KO"
@@ -1101,7 +1101,7 @@ class DemoInfo():
     @authenticate
     def add_author(self, name, mail):
         """
-        Add an author
+        Add an author globally in the system
         """
         data = {"status": "KO"}
         conn = None
@@ -1133,7 +1133,7 @@ class DemoInfo():
     @authenticate
     def add_author_to_demo(self, demo_id, author_id):
         """
-        Add an author to a demo.
+        Add an author to a particular demo
         """
         data = {}
         data["status"] = "KO"
@@ -1166,7 +1166,7 @@ class DemoInfo():
     @authenticate
     def remove_author_from_demo(self, demo_id, author_id):
         """
-        Remove the given author from the demo.
+        Remove an author from a particular demo
         """
         data = {}
         data["status"] = "KO"
@@ -1199,7 +1199,7 @@ class DemoInfo():
     @authenticate
     def remove_author(self, author_id):
         """
-        deleting given author, and its relationship with demos
+        Remove an author globally from the system
         """
         data = {}
         data["status"] = "KO"

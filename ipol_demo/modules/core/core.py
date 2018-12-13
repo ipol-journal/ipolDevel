@@ -1619,6 +1619,8 @@ attached the failed experiment data.". \
         """
         Run a demo. The presentation layer requests the Core to
         execute a demo.
+        DEPRECATED. This needs to be removed and run2 renamed to run
+        when the interactive controls are ready and the inpainting demos are ported.
         """
         demo_id = int(demo_id)
 
