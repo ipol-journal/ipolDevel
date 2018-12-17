@@ -189,7 +189,11 @@ $.fn.printEditorBlob = function(editorBlob, side) {
   var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
   if (blobType == "video") {
     $(this).empty();
-    $(this).append("<video src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorVideo controls></video>");
+    if (editorBlob.vr) {
+      $(this).append("<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorVideo controls></img>");
+    } else {
+      $(this).append("<video src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorVideo controls></video>");
+    }
   } else if (blobType == "audio") {
     $(this).empty();
     var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
