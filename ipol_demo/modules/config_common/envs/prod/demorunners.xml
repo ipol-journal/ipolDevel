@@ -28,6 +28,7 @@
     <module>demorunner</module>
     <server>green.hw.ipol.im</server>
     <capability>Matlab</capability>
+    <capability>GPU</capability>
     <serverSSH>ipol_green_dr</serverSSH>
     <path>~/ipolDevel/ipol_demo/modules/demorunner/</path>
   </demorunner>
