@@ -1363,11 +1363,6 @@ attached the failed experiment data.". \
             log_message = (error_message+". {}: {}").format(type(ex).__name__, str(ex))
             self.logger.exception(log_message)
             raise IPOLPrepareFolderError(error_message, log_message)
-        except Exception as ex:
-            error_message = "**INTERNAL ERROR**. Blobs operations of demo {} failed".format(demo_id)
-            log_message = (error_message+". {}: {}").format(type(ex).__name__, str(ex))
-            self.logger.exception(log_message)
-            raise IPOLPrepareFolderError(error_message, log_message)
 
     def execute_experiment(self, dr_server, dr_name, demo_id, key, params, ddl_run, ddl_general, work_dir):
         """
