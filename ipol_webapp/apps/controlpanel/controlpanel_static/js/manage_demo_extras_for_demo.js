@@ -52,7 +52,7 @@ function send_delete_demo_extra_request(wsurl, demo_id) {
 /*  change the name of the submitted file  */
 window.fileName = function(){
 	var x = document.getElementById("file");
-	if (!x.files[0].type.includes('zip') && !x.files[0].type.includes('x-rar') || x.files[0].type == '') {
+	if (!x.files[0].type.includes('zip') && !x.files[0].type.includes('x-rar') && !x.files[0].type.includes('x-tar') || x.files[0].type == '') {
 		alert('DemoExtras file format not valid, try again');
 		document.getElementById("name").innerHTML = "File...";
 		document.getElementById("name").style.color = "grey";
