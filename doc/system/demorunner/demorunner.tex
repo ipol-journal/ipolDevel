@@ -19,17 +19,17 @@ This step ensures that IPOL always uses the last version of the source codes pro
 
 The first time that a demo is executed, the module downloads, extracts, and compiles the source codes from the URL specified at the DDL. This URL is the link where the author's codes are stored. The, the specified files (say, the binaries or scripts) are moved to the binaries directory.
 
-Henceforth, DemoRunner will compare differences between the information from the HTTP header of the remote file with its local copy. If there have been any modifications in the size or the dates, the system will consider the local copy out of day and it will download and compile the sources again. 
+Therefore, DemoRunner will compare differences between the information from the HTTP header of the remote file with its local copy. If there have been any modifications in the size or the dates, the system will consider the local copy out of day and it will download and compile the sources again. 
 
 
-\subsubsection{Virtualenv}
+\subsubsection{VirtualEnv creation and installation of requirements}
 \noindent
 
-This step creates if specified by the DDL, a Virtualenv with the required packages. This process only executes when building the demo which is the first time it is executed or when a the source files are updated.
+The code submitted by the IPOL authors needs to run in a different environment which is isolated from the one running the system itself. Indeed, there is no reason why they should share the same libraries and actually they could require different versions. In Python the solution to this problem is to use the \emph{virtual environments} (virtualEnvs), which is an execution space where specific libraries are installed.
 
-A Virtualenv per demo is the only way to securely avoid package conflicts for each demo as different demos might need different package versions. Globally installing packages would end up in confliting package installation.
-
-The system will create the virtual environment inside the bin folder along with the binaries needed to execute the demo. To activate the Virtualenv the user will have to execute the activation script from a bash file for example.
+Therefore, as part of the build process of the sources of the demo, the virtualEnv is created and the required packages installed.
+%
+The system will create the virtualEnv inside the {\tt bin} folder along with the binaries needed to execute the demo. To activate the virtualEnv the user needs to execute the activation script, typically from a shell script.
 
 
 \subsection{Execute and control}
