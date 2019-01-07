@@ -276,15 +276,15 @@ class Terminal(object):
                 self.dict_modules[name]["server"],
                 self.dict_modules[name]["module"]
             )).read()
-            response = json.loads(json_response)
+            response = json.loads(json_response.decode())
             status = response['status']
 
             if status == "OK":
-                print("{} ({}): \033[93mStoppped\033[0m".format(name, self.dict_modules[name]["server"]))
+                print("{} ({}): \033[93mStopped\033[0m".format(name, self.dict_modules[name]["server"]))
             else:
                 print("{} ({}): \033[31;1m*** KO ***\033[0m".format(name, self.dict_modules[name]["server"]))
-                print(name + "  (" + self.dict_modules[name][
-                    "server"] + ")" + " : JSON response is KO when shutting down the module")
+                print(name + "  (" + self.dict_modules[name]["server"] 
+                        + "): JSON response is KO when shutting down the module")
         except Exception:
             # No JSON object could be decoded exception
             print("{} ({}): \033[31;1m*** KO (exception) ***\033[0m".format(name, self.dict_modules[name]["server"]))
