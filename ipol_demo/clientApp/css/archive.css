@@ -177,3 +177,11 @@ a.mpeg:before,
 a.avi:before {
   content: "\f008";
 }
+
+.files-footer {
+  margin: 10px 0;
+}
+
+.files-footer a{
+  margin: 0 5px;
+}
