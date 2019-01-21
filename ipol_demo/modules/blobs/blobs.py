@@ -790,52 +790,61 @@ class Blobs(object):
         """
         Remove the blob
         """
-        res = False
-        conn = None
-        try:
-            conn = lite.connect(self.database_file)
-            if dest["dest"] == "demo":
-                demo_id = dest["demo_id"]
-                blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
-                database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
-            elif dest["dest"] == "template":
-                template_name = dest["name"]
-                blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
-                database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
-            else:
-                self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
-                return res
+        with self.lock:
+            res = False
+            conn = None
+            try:
+                conn = lite.connect(self.database_file)
 
-            if blob_data is None:
-                return res
+                if dest["dest"] == "demo":
+                    demo_id = dest["demo_id"]
+                    blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
 
-            blob_hash = blob_data.get('hash')
-            blob_id = blob_data.get('id')
-            if not database.is_blob_used(conn, blob_id):
-                database.remove_blob(conn, blob_id)
-                self.remove_files_associated_to_a_blob(blob_hash)
-            conn.commit()
-            res = True
-        except IPOLBlobsDataBaseError as ex:
-            conn.rollback()
-            self.logger.exception("DB error while removing blob")
-            print("Failed to remove blob from DB. Error: {}".format(ex))
-        except OSError as ex:
-            conn.rollback()
-            self.logger.exception("OS error while deleting blob file")
-            print("Failed to remove blob from file system. Error: {}".format(ex))
-        except IPOLRemoveDirError as ex:
-            # There is no need to do a rollback if the problem was deleting directories
-            self.logger.exception("Failed to remove directories")
-            print("Failed to remove directories. Error: {}".format(ex))
-        except Exception as ex:
-            conn.rollback()
-            self.logger.exception("*** Unhandled exception while removing the blob")
-            print("*** Unhandled exception while removing the blob. Error: {}".format(ex))
-        finally:
-            if conn is not None:
-                conn.close()
-        return res
+                    blob_id = blob_data.get('id')
+                    num_refs = database.get_blob_refcount(conn, blob_id)
+
+                    database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
+                elif dest["dest"] == "template":
+                    template_name = dest["name"]
+                    blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+
+                    blob_id = blob_data.get('id')
+                    num_refs = database.get_blob_refcount(conn, blob_id)
+
+                    database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
+                else:
+                    self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                    return res
+
+                if blob_data is None:
+                    return res
+
+                blob_hash = blob_data.get('hash')
+                if num_refs == 1:
+                    database.remove_blob(conn, blob_id)
+                    self.remove_files_associated_to_a_blob(blob_hash)
+                conn.commit()
+                res = True
+            except IPOLBlobsDataBaseError as ex:
+                conn.rollback()
+                self.logger.exception("DB error while removing blob")
+                print("Failed to remove blob from DB. Error: {}".format(ex))
+            except OSError as ex:
+                conn.rollback()
+                self.logger.exception("OS error while deleting blob file")
+                print("Failed to remove blob from file system. Error: {}".format(ex))
+            except IPOLRemoveDirError as ex:
+                # There is no need to do a rollback if the problem was deleting directories
+                self.logger.exception("Failed to remove directories")
+                print("Failed to remove directories. Error: {}".format(ex))
+            except Exception as ex:
+                conn.rollback()
+                self.logger.exception("*** Unhandled exception while removing the blob")
+                print("*** Unhandled exception while removing the blob. Error: {}".format(ex))
+            finally:
+                if conn is not None:
+                    conn.close()
+            return res
 
     @cherrypy.expose
     @authenticate
@@ -863,50 +872,61 @@ class Blobs(object):
         """
         Remove the demo or template and all the blobs only used by them
         """
-        res = False
-        conn = None
-        try:
-            conn = lite.connect(self.database_file)
-            if dest["dest"] == "demo":
-                demo_id = dest["demo_id"]
-                blobs = database.get_demo_owned_blobs(conn, demo_id)
-                database.remove_demo_blobs_association(conn, demo_id)
-                database.remove_demo(conn, demo_id)
-            elif dest["dest"] == "template":
-                template_name = dest["name"]
-                blobs = database.get_template_blobs(conn, template_name)
-                database.remove_template_blobs_association(conn, template_name)
-                database.remove_template(conn, template_name)
-            else:
-                self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
-                return res
-            for blob in blobs:
-                if not database.is_blob_used(conn, blob['id']):
-                    database.remove_blob(conn, blob['id'])
-                    self.remove_files_associated_to_a_blob(blob['hash'])
+        with self.lock:
+            res = False
+            conn = None
+            ref_count = {} # Number of uses for  a blob before removing
+            try:
+                conn = lite.connect(self.database_file)
+                if dest["dest"] == "demo":
+                    demo_id = dest["demo_id"]
+                    blobs = database.get_demo_owned_blobs(conn, demo_id)
 
-            conn.commit()
-            res = True
-        except OSError as ex:
-            conn.rollback()
-            self.logger.exception("OS error while deleting blob file")
-            print("Failed to remove blob from file system. Error: {}".format(ex))
-        except IPOLRemoveDirError as ex:
-            # There is no need to do a rollback if the problem was deleting directories
-            self.logger.exception("Failed to remove directories")
-            print("Failed to remove directories. Error: {}".format(ex))
-        except IPOLBlobsDataBaseError as ex:
-            conn.rollback()
-            self.logger.exception("DB error while removing the demo/template")
-            print("Failed to remove the demo/template. Error: {}".format(ex))
-        except Exception as ex:
-            conn.rollback()
-            self.logger.exception("*** Unhandled exception while removing the demo/template")
-            print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
-        finally:
-            if conn is not None:
-                conn.close()
-        return res
+                    for blob in blobs:
+                        ref_count[blob] = database.get_blob_refcount(conn, blob.id)
+
+                    database.remove_demo_blobs_association(conn, demo_id)
+                    database.remove_demo(conn, demo_id)
+                elif dest["dest"] == "template":
+                    template_name = dest["name"]
+                    blobs = database.get_template_blobs(conn, template_name)
+
+                    for blob in blobs:
+                        ref_count[blob] = database.get_blob_refcount(conn, blob.id)
+
+                    database.remove_template_blobs_association(conn, template_name)
+                    database.remove_template(conn, template_name)
+                else:
+                    self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
+                    return res
+                
+                for blob in blobs:
+                    if ref_count[blob] == 0:
+                        database.remove_blob(conn, blob['id'])
+                        self.remove_files_associated_to_a_blob(blob['hash'])
+
+                conn.commit()
+                res = True
+            except OSError as ex:
+                conn.rollback()
+                self.logger.exception("OS error while deleting blob file")
+                print("Failed to remove blob from file system. Error: {}".format(ex))
+            except IPOLRemoveDirError as ex:
+                # There is no need to do a rollback if the problem was deleting directories
+                self.logger.exception("Failed to remove directories")
+                print("Failed to remove directories. Error: {}".format(ex))
+            except IPOLBlobsDataBaseError as ex:
+                conn.rollback()
+                self.logger.exception("DB error while removing the demo/template")
+                print("Failed to remove the demo/template. Error: {}".format(ex))
+            except Exception as ex:
+                conn.rollback()
+                self.logger.exception("*** Unhandled exception while removing the demo/template")
+                print("*** Unhandled exception while removing the demo/template. Error: {}".format(ex))
+            finally:
+                if conn is not None:
+                    conn.close()
+            return res
 
     @cherrypy.expose
     @authenticate
@@ -1093,7 +1113,9 @@ class Blobs(object):
             blob_id = blob_data.get('id')
             self.set_tags(conn, blob_id, tags)
 
-            if blob_vr is not None:
+            if blob_vr:
+                self.delete_vr_from_blob(blob_id)
+                
                 _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
 
                 blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)
@@ -1170,9 +1192,9 @@ class Blobs(object):
             vr_folder = os.path.join(self.vr_dir, subdir)
             if os.path.isdir(vr_folder):
                 files_in_dir = glob.glob(os.path.join(vr_folder, blob_hash + ".*"))
-                if files_in_dir:
-                    os.remove(files_in_dir[0])
-                    self.remove_dirs(vr_folder)
+                for f in files_in_dir:
+                    os.remove(f)
+                self.remove_dirs(vr_folder)
 
             # Delete old thumbnail
             thumb_folder = os.path.join(self.module_dir, self.thumb_dir, subdir)

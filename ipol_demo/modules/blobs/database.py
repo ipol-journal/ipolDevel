@@ -419,20 +419,21 @@ def remove_blob_from_template(conn, template_name, blob_set, pos_set):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def is_blob_used(conn, blob_id):
+def get_blob_refcount(conn, blob_id):
     """
-    Check if the blob is being used in any demo or template
+    Get number of references of the given blob
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT COUNT(*)
-            FROM blobs
-            WHERE id = ?
-            AND (id IN (SELECT blob_id FROM templates_blobs) OR
-                 id IN(SELECT blob_id FROM demos_blobs))
-                """, (blob_id,))
-        return cursor.fetchone()[0] >= 1
+            FROM(
+                SELECT id FROM demos_blobs WHERE blob_id = ?
+                UNION ALL
+                SELECT id FROM templates_blobs WHERE blob_id = ?
+            )
+                """, (blob_id, blob_id))
+        return cursor.fetchone()[0]
 
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
