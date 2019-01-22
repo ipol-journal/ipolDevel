@@ -883,7 +883,7 @@ class Blobs(object):
                     blobs = database.get_demo_owned_blobs(conn, demo_id)
 
                     for blob in blobs:
-                        ref_count[blob] = database.get_blob_refcount(conn, blob.id)
+                        ref_count[blob["id"]] = database.get_blob_refcount(conn, blob["id"])
 
                     database.remove_demo_blobs_association(conn, demo_id)
                     database.remove_demo(conn, demo_id)
@@ -892,7 +892,7 @@ class Blobs(object):
                     blobs = database.get_template_blobs(conn, template_name)
 
                     for blob in blobs:
-                        ref_count[blob] = database.get_blob_refcount(conn, blob.id)
+                        ref_count[blob["id"]] = database.get_blob_refcount(conn, blob["id"])
 
                     database.remove_template_blobs_association(conn, template_name)
                     database.remove_template(conn, template_name)
@@ -901,7 +901,7 @@ class Blobs(object):
                     return res
                 
                 for blob in blobs:
-                    if ref_count[blob] == 0:
+                    if ref_count[blob["id"]] == 1:
                         database.remove_blob(conn, blob['id'])
                         self.remove_files_associated_to_a_blob(blob['hash'])
 
