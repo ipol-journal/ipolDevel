@@ -1086,9 +1086,9 @@ class Blobs(object):
             if dest["dest"] == "demo":
                 demo_id = dest["demo_id"]
 
-                if new_pos_set != pos_set and \
-                        database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, new_pos_set):
-                    new_pos_set = database.get_max_pos_in_demo_set(conn, demo_id, blob_set) + 1
+                if new_blob_set != blob_set or new_pos_set != pos_set:
+                    if database.is_pos_occupied_in_demo_set(conn, demo_id, new_blob_set, new_pos_set):
+                        new_pos_set = database.get_max_pos_in_demo_set(conn, demo_id, new_blob_set) + 1
 
                 database.edit_blob_from_demo(conn, demo_id, blob_set, new_blob_set, pos_set, new_pos_set, title, credit)
                 blob_data = database.get_blob_data_from_demo(conn, demo_id, new_blob_set, new_pos_set)
