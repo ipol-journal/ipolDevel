@@ -47,7 +47,6 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 # deprecated, should be droped with old run
-from Tools.image import image
 
 
 def authenticate(func):

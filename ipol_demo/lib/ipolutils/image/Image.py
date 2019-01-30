@@ -16,68 +16,57 @@
 """
 Image operations wrapper.
 """
-
-from __future__ import print_function
-
 import errno
 import mimetypes
 import os
-
 import numpy as np
-
 import cv2
 import tifffile
 
-
 class Image(object):
     '''
-    Generic image class, dealing with the best python libraries for performances, and formats (currently : OpenCV).
+    Image container object.
     '''
     DEPTH_DTYPE = {'8i': np.uint8, '8': np.uint8, '16i': np.uint16, '16': np.uint16, '32i': np.uint32,
                    '32': np.uint32, '16f': np.float16, '32f': np.float32}
 
-    @staticmethod
-    def load(src, flags=cv2.IMREAD_UNCHANGED):
+    def __init__(self, data=None, buf=None, src=None):
         '''
-        Factory, returns an image object build from file.
+        Constructor
         '''
-        if not os.path.isfile(src):
-            raise OSError(errno.ENOENT, "File not found", src)
-        im = Image()
-        mime_type, _ = mimetypes.guess_type(src)
-        if mime_type == 'image/tiff':
-            # tiffile reads as RGB, OpenCV need BGR
-            im.data = Image.reverse_channels_order(tifffile.imread(src))
-        elif mime_type == 'image/jpeg':
-            # cv2.IMREAD_COLOR will resolve orientation exif flag, but drops alpha and force 8 bits
-            im.data = cv2.imread(src, cv2.IMREAD_COLOR)
-        else:
-            im.data = cv2.imread(src, flags)
-        if type(im.data).__module__ != np.__name__:
-            raise OSError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread", src)
-        return im
+        if np.count_nonzero(list(v is not None for v in (data, buf, src))) != 1:
+            raise Exception("You should specify only one origin (data, buf, or src)")
 
-    @staticmethod
-    def decode(buf, flags=cv2.IMREAD_UNCHANGED):
-        '''
-        Returns an image object build from a string of bytes.
-        '''
-        # OpenCV loads bytes as one dimension numpy vector of uint8 numbers.
-        buf = np.fromstring(buf, dtype=np.uint8)
-        im = Image()
-        im.data = cv2.imdecode(buf, flags)
-        if im.data is None:
-            raise RuntimeError(errno.ENODATA, "No data read. For supported image formats, see doc OpenCV imread")
-        return im
+        if data is not None:
+            self.data = data
+        elif buf:
+            buf = np.frombuffer(buf, dtype=np.uint8)
+            self.data = cv2.imdecode(buf, cv2.IMREAD_UNCHANGED)
+        elif src:
+            if not os.path.isfile(src):
+                raise OSError(errno.ENOENT, "File not found", src)
+            mime_type, _ = mimetypes.guess_type(src)
+            if mime_type == 'image/tiff':
+                self.data = tifffile.imread(src)
+                self.is_tiff = True
+                self.ensure_data_shape()
+                if self.is_tiff_image():
+                    self.data = self.reverse_channels_order() # tifffile reads as RGB, OpenCV need BGR
+            elif mime_type == 'image/jpeg':
+                # cv2.IMREAD_COLOR will take care of the orientation flag in the EXIF.
+                # As a collateral effect it'll drop the alpha channel and reduce the color depth to 8 bits, which
+                # is convenient since we're encoding to JPEG.
+                self.data = cv2.imread(src, cv2.IMREAD_COLOR)
+            else:
+                self.data = cv2.imread(src, cv2.IMREAD_UNCHANGED)
 
-    @staticmethod
-    def data(data):
+        self.ensure_data_shape()
+
+    def is_tiff_image(self):
         '''
-        Factory, returns an image object build with the data matrix.
+        Check if the given TIFF is an image (less or equal to 4 channels and uint8/uint16 depth).
         '''
-        im = Image()
-        im.data = data
-        return im
+        return self.get_channels() <= 4 and self.data.dtype in (np.uint8, np.uint16)
 
     @staticmethod
     def video_frame(video_file, pos_ratio=0.3):
@@ -89,131 +78,98 @@ class Image(object):
         cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frame)
         _, frame = cap.read()
         cap.release()
-        im = Image()
-        im.data = frame
-        return im
+        return Image(data=frame)
 
-    @staticmethod
-    def get_dtype_by_depth(depth):
-        '''
-        Returns a dtype object by a string depth.
-        '''
-        return np.dtype(Image.DEPTH_DTYPE.get(depth, None))
-
-    @staticmethod
-    def reverse_channels_order(data):
+    def reverse_channels_order(self):
         """
-        Reverse the color order (RGB > BGR), for compatibility between libraries.
+        Reverse the channels order (RGB > BGR), for compatibility among libraries.
         """
-        if len(data.shape) < 3: # grey
-            return data
-        elif data.shape[2] > 3: # BGRA > RGBA or RGBA > BGRA
-            return data[..., [2, 1, 0, 3]]
-        elif data.shape[2] == 3: # BGR > RGB or RGB > BGR
-            return data[..., [2, 1, 0]]
-        return data # grey+alpha or anything else
+        if self.data.shape[2] == 4: # BGRA > RGBA or RGBA > BGRA 
+            return self.data[..., [2, 1, 0, 3]]
+        elif self.data.shape[2] == 3: # BGR > RGB or RGB > BGR
+            return self.data[..., [2, 1, 0]]
+        return self.data
 
     def width(self):
         '''
-        Returns width of image.
+        Returns the width.
         '''
         return self.data.shape[1]
 
     def height(self):
         '''
-        Returns height of image.
+        Returns the height.
         '''
         return self.data.shape[0]
 
-    def dtype(self):
-        '''
-        Returns data type of image matrix.
-        '''
-        return np.dtype(self.data.dtype)
-
     def write(self, dst_file, **kwargs):
         """
-        Save image matrix to destination file, encoded according to file extension.
+        Save the image matrix into the destination file, encoded according to the file extension.
         """
         # warning, cv2.imwrite will not create subdirectories and silently fail
         dst_dir = os.path.dirname(dst_file)
-        if dst_dir and not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
+        if not os.path.exists(dst_dir):
+             raise OSError(errno.ENOENT, "Folder not found", src)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == 'image/tiff':
-            tifffile.imsave(dst_file, self.reverse_channels_order(self.data)) # tifffile is RGB (OpenCV is BGR)
+            tifffile.imsave(dst_file,
+                self.reverse_channels_order() if self.is_tiff_image() else self.data)
         else:
-            data, pars = self._4ser(dst_file, **kwargs)
-            if not cv2.imwrite(dst_file, data, pars):
-                raise OSError(errno.EBADFD, "OpenCV imwrite error", dst_file)
+            pars = self.prepare_for_save(dst_file, **kwargs)
+            if not cv2.imwrite(dst_file, self.data, pars):
+                raise Exception("OpenCV imwrite error", dst_file)
 
     def encode(self, ext, **kwargs):
         '''
-        Return image matrix as encoded bytes, format according to a file extension.
+        Convert according to the given extension, as bytes.
         '''
-        data, pars = self._4ser('dummy.' + ext.lstrip('.'), **kwargs)
-        ext = '.' + ext.lstrip('.')
-        _, buf = cv2.imencode(ext, data, pars)
+        pars = self.prepare_for_save('dummy{}'.format(ext), **kwargs)
+        _, buf = cv2.imencode(ext, self.data, pars)
         return buf
 
-    def _4ser(self, path, **kwargs):
+    def prepare_for_save(self, path, **kwargs):
         '''
-        Return data and parameters prepared for serialization (memory or file).
+        Return data and parameters for serialization.
         '''
-        # See _4{ext} for available options for each image encoding formats.
+        # See prepare_for_{ext} for available options for each image encoding formats.
         mime_type, _ = mimetypes.guess_type(path)
         if mime_type == 'image/jpeg':
-            return self._4jpeg(**kwargs)
+            return self.prepare_for_jpeg(**kwargs)
         elif mime_type == 'image/png':
-            return self._4png(**kwargs)
-        elif mime_type == 'image/tiff':
-            return self._4tiff(**kwargs)
-        return self.data, []
+            return self.prepare_for_png(**kwargs)
+        return []
 
-
-    def _4jpeg(self, optimize=True, progressive=True, quality=92):
+    def prepare_for_jpeg(self, optimize=True, progressive=True, quality=92):
         '''
-        Prepare data for JPEG, before saving to file or return bytes (blend alpha, 8 bits).
+        Prepare data for JPEG.
         '''
-        data = self.blend_alpha_static(self.data)
-        data = self.convert_depth_static(data, '8i')
+        if self.has_alpha():
+            self.data = self.remove_alpha(self.data)
+        self.convert_depth('8i')
         # not found in OpenCV API subsampling, ex: '4:4:4'
         pars = []
         if optimize:
             pars.extend([cv2.IMWRITE_JPEG_OPTIMIZE, 1])
         if progressive:
-            pars.extend([cv2.IMWRITE_JPEG_PROGRESSIVE, 1])
-        if quality >= 0 and quality <= 100:
-            pars.extend([cv2.IMWRITE_JPEG_QUALITY, quality])
-        return data, pars
+            pars.extend([cv2.IMWRITE_JPEG_PROGRESSIVE, 1]) 
+        pars.extend([cv2.IMWRITE_JPEG_QUALITY, quality])
+        return pars
 
-    def _4png(self, compression=9):
+    def prepare_for_png(self, compression=9):
         '''
-        Prepare data for PNG, before saving to file or return bytes.
+        Prepare data for PNG.
         '''
-        # no optimise flag found in OpenCV API
+        # no optimize flag found in OpenCV API
         pars = []
-        data = self.data
-        if data.dtype != np.uint8 and data.dtype != np.uint16:
-            data = self.convert_depth_static(data, '16i')
-        if compression >= 0 and compression <= 9:
-            pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
-        return data, pars
-
-    def _4tiff(self):
-        '''
-        Prepare data for TIFF, before saving to file or return bytes (blend alpha).
-        '''
-        data = self.blend_alpha_static(self.data) # assume that tiff do not support alpha
-        pars = []
-        return data, pars
+        pars.extend([cv2.IMWRITE_PNG_COMPRESSION, compression])
+        return pars
 
     def resize(self, width=None, height=None, interpolation=None):
         '''
         Resize image data.
         '''
         src_height, src_width = self.data.shape[:2]
-        # forced witdth*height (no ratio preservation)
+        # forced width*height (aspect ratio modified)
         if width and height:
             pass
         # forced height
@@ -224,19 +180,18 @@ class Image(object):
             height = int(round(float(src_height * width) / src_width))
         else:
             raise ValueError("Image.resize(), not enough parameters to resize image.")
-        # dtype of matrix is still kept
+        # dtype of matrix is kept
         if interpolation: # keep requested interpolation
             pass
-        elif (width > src_width) or (height > src_height): # augmentation, pixelise
-            interpolation = cv2.INTER_NEAREST
-        else: # diminution, for thumbnail, some interpolation
+        elif (width > src_width) or (height > src_height): # enlarge
+            interpolation = cv2.INTER_NEAREST # Nearest neighbors
+        else: # shrink, for thumbnail, some interpolation
             interpolation = cv2.INTER_AREA
-        self.data = cv2.resize(self.data, (int(width), int(height)), interpolation=interpolation)
-        return self
+        self.cv2_resize(int(width), int(height), interpolation)
 
     def crop(self, x=0, y=0, width=0, height=0):
         '''
-        Crop data according to a 4-tuple rectangle (left, upper, right, lower)
+        Rectangular crop.
         '''
         if width <= 0 or height <= 0 or x < 0 or y < 0:
             raise ValueError("Crop, bad arguments x={}, y={}, x+width={}, y+height={} outside image ({}, {})".format(x, y, x+width, y+height, self.width(), self.height()))
@@ -246,76 +201,52 @@ class Image(object):
 
     def get_channels(self):
         """
-        Returns the number of channels of the image data loaded.
+        Get the number of channels.
         """
-        # impossible to keep self.data.shape[2] = 1 for gray image, is deleted by cv2 ops.
-        if len(self.data.shape) < 3:
-            return 1
-        return int(self.data.shape[2])
-
-    def check_channels(self, channels):
-        '''
-        Returns true if number of channels of the image is equals to the int parameter.
-        '''
-        return int(channels) == int(self.get_channels())
+        return self.data.shape[2]
 
     def convert_channels(self, dst_channels):
         '''
-        Converts the number of channels of an image matrix.
+        Converts the number of channels.
         '''
-        if not dst_channels:
-            return False
         dst_channels = int(dst_channels)
         src_channels = self.get_channels()
         # if alpha, blend it, and retake the src channels
-        if src_channels == 2 or src_channels == 4:
-            self.data = self.blend_alpha_static(self.data)
+        if self.has_alpha():
+            self.data = self.remove_alpha(self.data)
             src_channels = self.get_channels()
         if src_channels == dst_channels:
-            return False
+            return
         if src_channels == 3 and dst_channels == 1:
-            self.data = cv2.cvtColor(self.data, cv2.COLOR_BGR2GRAY)
+            self.cv2_cvtColorToGray()
         elif src_channels == 1 and dst_channels == 3:
             self.data = cv2.cvtColor(self.data, cv2.COLOR_GRAY2BGR)
-        else: # unknown number of channels
+        else:
             raise ValueError("Channel conversion, {} > {} not yet supported.".format(src_channels, dst_channels))
-        return True
 
     def convert_depth(self, dst_depth):
         """
-        Converts the depth of image data.
+        Converts the depth.
         """
-        self.data = self.convert_depth_static(self.data, dst_depth)
-
-    @staticmethod
-    def convert_depth_static(data, dst_depth):
-        """
-        Converts the depth of an image matrix.
-        Used as a static method, before saving as jpeg, without affecting underlaying data.
-        """
-        dst_dtype = Image.DEPTH_DTYPE.get(dst_depth, None)
+        dst_dtype = Image.DEPTH_DTYPE[dst_depth]
         if not dst_dtype:
             raise ValueError("Destination depth '{}' not suppported for conversion.".format(dst_depth))
-        src_dtype = data.dtype
+        src_dtype = self.data.dtype
 
-
-
-        # same source and destination dtype, do nothing
         if src_dtype == dst_dtype:
-            return data
+            return
 
-        # Source is float
+        # Source is float 
         if np.issubdtype(src_dtype, np.floating):
             # float -> float
             if np.issubdtype(dst_dtype, np.floating):
-                data = data.astype(dst_dtype, copy=False)
+                self.data = self.data.astype(dst_dtype, copy=False)
             # float -> int
             else:
-                src_min, src_max = np.min(data), np.max(data)
+                src_min, src_max = np.min(self.data), np.max(self.data)
                 # normalize to range [0, 1] and multiply to max for int format
-                data = (data - src_min) / float(src_max - src_min) * np.iinfo(dst_dtype).max
-                data = data.astype(dst_dtype, copy=False)
-            return data
+                self.data = (self.data - src_min) / float(src_max - src_min) * np.iinfo(dst_dtype).max
+                self.data = self.data.astype(dst_dtype, copy=False)
 
         # int -> int
         elif np.issubdtype(dst_dtype, np.integer): #check condition
@@ -323,68 +254,99 @@ class Image(object):
             src_max = np.iinfo(src_dtype).max
             if dst_max < src_max: # Reduce bits, cast after
                 k = src_max / dst_max
-                data = data / k
-                data = data.astype(dst_dtype, copy=False)
-            else: # Increase bits, cast before to have place for max value
-                data = data.astype(dst_dtype, copy=False)
+                self.data = self.data / k
+                self.data = self.data.astype(dst_dtype, copy=False)
+            else: # Increase bits
+                self.data = self.data.astype(dst_dtype, copy=False)
                 k = int(dst_max / src_max)
-                data = data * k
-            return data
+                self.data = self.data * k
 
         # int -> float
         elif np.issubdtype(dst_dtype, np.floating):
-            data = data.astype(dst_dtype, copy=False), True
-            return data
+            self.data = self.data.astype(dst_dtype, copy=False), True
 
-        raise ValueError("Conversion from '{}' to '{}', not yet supported.".format(src_dtype, dst_depth))
+        else:
+            raise ValueError("Conversion from '{}' to '{}', not supported.".format(src_dtype, dst_depth))
+
+    def has_alpha(self):
+        '''
+        Check if the given image has an alpha channel. 
+        '''
+        return self.data.shape[2] in (2, 4) and self.data.dtype in (np.uint8, np.uint16)
 
     @staticmethod
-    def blend_alpha_static(data, back_color=(255, 255, 255)):
+    def remove_alpha(data, back_color=(255, 255, 255)):
         '''
-        If an image matrix has an alpha layer, blend it with a background color.
-        Used as a static method, before saving as tiff or jpeg, without affecting underlaying data.
+        If an image has an alpha layer, blend it with a background color.
         '''
-        if len(data.shape) < 3 or data.shape[2] not in [2, 4]:
-            return data
         # check if alpha is just a 100% layer
         if np.unique(data[:, :, -1]).size == 1:
             return data[:, :, 0:-1]
         orig_dtype = data.dtype # keep original depth
-        # 2 channels, Gray with alpha
-        if data.shape[2] == 2:
+        num_channels = data.shape[2]
+        # 2 channels, gray with alpha
+        if num_channels == 2:
             channels = 1
-            # convert back_color to a grey luminosity
+            # convert back_color to gray
             back_color = 0.21 * back_color[0] + 0.72 * back_color[1] + 0.07 * back_color[2]
             alpha_mask = data[:, :, 1].astype(np.float64)
         # 4 channels, BGRA
-        elif data.shape[2] == 4:
+        elif num_channels == 4:
             channels = 3
             # convert back_color to BGR (OpenCV format)
             back_color = np.array(tuple(reversed(back_color)))
-            # convert alpha mask to a 3 chanels gray
-            alpha_mask = cv2.cvtColor(data[:, :, 3], cv2.COLOR_GRAY2BGR).astype(np.float64)
+            # convert alpha mask to a 3 channels gray
+            alpha_mask = Image(data=data[:, :, 3])
+            alpha_mask.data = cv2.cvtColor(alpha_mask.data, cv2.COLOR_GRAY2BGR)
+            alpha_mask = alpha_mask.data.astype(np.float64)
         # convert alphamask as float [0, 1]
         if  np.issubdtype(orig_dtype, np.integer):
             alpha_min = data_min = 0
             alpha_max = data_max = np.iinfo(orig_dtype).max
         else: # float
-            alpha_min = np.nanmin(alpha_mask) # matrix may contain NaN
-            alpha_max = np.nanmax(alpha_mask)
-            data_min = np.nanmin(data[:, :, -1])
-            data_max = np.nanmax(data[:, :, -1])
+            alpha_min = np.min(alpha_mask)
+            alpha_max = np.max(alpha_mask)
+            data_min = np.min(data[:, :, -1])
+            data_max = np.max(data[:, :, -1])
         alpha_mask = (alpha_mask - alpha_min) / float(alpha_max - alpha_min)
         back_color = back_color / 255.0 * (data_max - data_min) + data_min
 
-        # build a background matrix as float
+        # build a background matrix of floats
         back_mat = np.zeros((data.shape[0], data.shape[1], channels), np.float64)
-        # fill it with background color
+        # fill it with a background color
         back_mat[:] = back_color
         # apply inverse mask to background
         back_mat = cv2.multiply(1.0 - alpha_mask, back_mat)
-        # apply mask to foregroung
+        # apply mask to foreground
         fore_mat = cv2.multiply(alpha_mask, data[:, :, :-1].astype(np.float64))
-        # merge back and fore
+        # merge back and foreground
         data = cv2.add(back_mat, fore_mat)
         # restore original dtype
         data = data.astype(orig_dtype, copy=False)
         return data
+
+    def ensure_data_shape(self):
+        '''
+        Ensure that the data shape contains the number of channels.
+        '''
+        if len(self.data.shape) != 3:
+            self.data.shape = self.data.shape + (1,)
+
+    ###################
+    # CV2 WRAPPER. 
+    # Needed because the operations below remove the channels dimension when it's 1.
+    ###################
+
+    def cv2_cvtColorToGray(self):
+        '''
+        CV2 cvtColor wrapper to convert from color to gray.
+        '''
+        self.data = cv2.cvtColor(self.data, cv2.COLOR_BGR2GRAY)
+        self.ensure_data_shape()
+
+    def cv2_resize(self, width, height, interpolation):
+        '''
+        CV2 resize wrapper.
+        '''
+        self.data = cv2.resize(self.data, (width, height), interpolation=interpolation)
+        self.ensure_data_shape()

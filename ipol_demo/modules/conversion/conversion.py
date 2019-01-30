@@ -206,7 +206,7 @@ class Conversion(object):
                 if len(input_files) < 1:
                     # optional is said by {"required": False}, absence of required field means: required
                     if not input_desc.get('required', True):
-                        del info[i] # input[i] not present but not required, say nothing
+                        del info[i] # input[i] not present but not required, do nothing
                         continue
                     # An input is required and is absent, warn but no exception
                     info[i]['error'] = "Input required, but file not found in: {}".format(pattern)
@@ -246,7 +246,7 @@ class Conversion(object):
             return self.make_KO_response(message, work_dir)
         except Exception as ex:
             self.logger.exception(ex)
-            message = "Input #{}, unexpected error. {}: {}. file: {}".format(i, type(ex).__name__, str(ex), input_file)
+            message = "Internal error. Input #{}. {}: {}. File: {}".format(i, type(ex).__name__, str(ex), input_file)
             return self.make_KO_response(message, work_dir)
         # globally OK (no exception), but for some input, a return code could be -1
         return json.dumps({'status': 'OK', 'info': info}).encode()
@@ -267,13 +267,13 @@ class Conversion(object):
         Convert image if needed
         """
         # Image has to be always loaded to test width and size
-        im = Image.load(input_file)
+        im = Image(src=input_file)
         dst_file = os.path.splitext(input_file)[0] + input_desc.get('ext')
 
         program = [
-            # Color conversion, usually reducing to gray, sooner is better
+            # Color conversion
             ConverterChannels(input_desc, im),
-            # Depth conversion, usually reducing to 8 bits, sooner is better
+            # Depth conversion
             ConverterDepth(input_desc, im),
             # Crop before reducing image to max_pixels (or the crop box will be outside of scope)
             ConverterCrop(input_desc, im, crop_info),
@@ -353,7 +353,7 @@ class Conversion(object):
             buf = base64.b64decode(img)
             # cv2.IMREAD_ANYCOLOR option try to convert to uint8, 7x faster than matrix conversion
             # but fails with some tiff formats (float)
-            im = Image.decode(buf)
+            im = Image(buf=buf)
             im.convert_depth('8i')
             buf = im.encode('.png')
             data["img"] = binascii.b2a_base64(buf).decode() # re-encode bytes
@@ -407,7 +407,7 @@ class ConverterDepth(ConverterImage):
         _, self.dst_depth = dtype.split('x')
         self.dst_dtype = None
         if self.dst_depth:
-            self.dst_dtype = Image.get_dtype_by_depth(self.dst_depth)
+            self.dst_dtype = np.dtype(Image.DEPTH_DTYPE[self.dst_depth])
 
     def information_loss(self):
         if not self.dst_dtype:
@@ -419,17 +419,17 @@ class ConverterDepth(ConverterImage):
             np.dtype(np.float16): 4,
             np.dtype(np.float32): 5
         }
-        return info_level.get(self.im.dtype()) > info_level.get(self.dst_dtype)
+        return info_level.get(self.im.data.dtype) > info_level.get(self.dst_dtype)
 
     def need_conversion(self):
         if not self.dst_dtype:
             return False
-        return self.dst_dtype != self.im.dtype()
+        return self.dst_dtype != self.im.data.dtype
 
     def convert(self):
-        src_dtype = self.im.dtype()
+        src_dtype = self.im.data.dtype
         self.im.convert_depth(self.dst_depth)
-        return "depth {} -> {}".format(src_dtype, self.im.dtype())
+        return "depth {} -> {}".format(src_dtype, self.im.data.dtype)
 
 class ConverterChannels(ConverterImage):
     """
@@ -489,10 +489,10 @@ class ConverterMaxPixels(ConverterImage):
 
     def __init__(self, input_desc, im):
         super(ConverterMaxPixels, self).__init__(input_desc, im)
-        self.max_pixels = int(evaluate(input_desc.get('max_pixels', -1)))
+        self.max_pixels = int(evaluate(input_desc.get('max_pixels'))) 
 
     def information_loss(self):
-        return self.max_pixels > 0 and self.im.width() * self.im.height() > self.max_pixels
+        return self.im.width() * self.im.height() > self.max_pixels
 
     def need_conversion(self):
         return self.information_loss()
