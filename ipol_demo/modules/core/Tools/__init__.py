@@ -1,3 +1,0 @@
-"""
-IPOL demo app module
-"""
