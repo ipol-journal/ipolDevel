@@ -13,7 +13,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from subprocess import Popen
-from time import gmtime, strftime
+from time import strftime
 
 import cherrypy
 
@@ -72,7 +72,7 @@ def download(url, fname, username=None, password=None):
         url_ctime = datetime.datetime.strptime(last_modified, TIME_FMT)
 
         url_size = int(url_info['content-length'])
-        file_utc_ctime = datetime.datetime.utcfromtimestamp(os.path.getctime(fname))
+        file_utc_ctime = datetime.datetime.utcfromtimestamp(os.path.getmtime(fname))
         file_size = os.path.getsize(fname)
 
         need_download = url_size != file_size or url_ctime > file_utc_ctime
