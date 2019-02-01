@@ -34,7 +34,7 @@ def thumbnail(src_file, height, dst_file):
     if media_type not in ('image', 'video') or mime_type == 'image/svg+xml':
         raise OSError(errno.EINVAL, "ipolutils.thumbnail(), format {} not yet supported.".format(mime_type), src_file)
     if media_type == "image":
-        im = Image.load(src_file)
+        im = Image(src=src_file)
     elif media_type == "video":
         im = Image.video_frame(src_file)
     if im.width() > 3 * im.height(): # avoid too wide thumbnail

@@ -75,7 +75,7 @@ for row in cur.execute("SELECT id, hash, type, format FROM blobs ORDER BY id DES
         if row[3] == 'image':
             if row[2] in ['svg']:
                 continue
-            im = Image.load(src_path)
+            im = Image(src=src_path)
             # a tiff used as a data container, not correctly loaded by OpenCV
             if row[2] == 'tiff' and im.data is None :
                 continue

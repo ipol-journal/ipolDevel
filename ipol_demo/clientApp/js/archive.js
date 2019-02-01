@@ -16,7 +16,7 @@ $(document).ready(function() {
   $.getJSON(url, function(data) {
     if (data.status != "OK") returnToDemoList("Wrong demo id: " + demo_id);
 
-    ddl = JSON.parse(data.last_demodescription.ddl);
+    ddl = data.last_demodescription.ddl;
     $("#pageTitle").html(ddl.general.demo_title);
 
     $(".citation").html('<span>Please cite <a id="citation-link">the reference article</a> if you publish results obtained with this online demo.</span>');
