@@ -293,7 +293,8 @@ class Blobs(object):
                 demo_id = dest["demo_id"]
                 # Check if the pos is empty
                 if database.is_pos_occupied_in_demo_set(conn, demo_id, blob_set, pos_set):
-                    pos_set = database.get_available_pos_in_demo_set(conn, demo_id, blob_set)
+                    editor_demo_id = database.get_demo_id(conn, demo_id)
+                    pos_set = database.get_available_pos_in_demo_set(conn, editor_demo_id, blob_set)
 
                 self.do_add_blob_to_demo(conn, demo_id, blob_id, blob_set, pos_set, title)
                 res = True
