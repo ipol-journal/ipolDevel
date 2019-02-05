@@ -723,20 +723,26 @@ def is_pos_occupied_in_template_set(conn, template_name, blob_set, pos):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def get_max_pos_in_demo_set(conn, editor_demo_id, blob_set):
+def get_available_pos_in_demo_set(conn, editor_demo_id, blob_set):
     """
-    Return the max position value of the set in the demo
+    Return the first available position value of the set in the demo
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT MAX(pos_in_set)
+            SELECT pos_in_set + 1
             FROM demos_blobs
-            WHERE blob_set = ?
-            AND demo_id = (SELECT id
-                            FROM demos
-                            WHERE editor_demo_id = ?)
-        """, (blob_set, editor_demo_id))
+            WHERE demo_id = ?
+            AND pos_in_set + 1 NOT IN 
+                (
+                SELECT pos_in_set 
+                FROM demos_blobs
+                WHERE demo_id = ?
+                AND blob_set = ?
+                )
+            ORDER BY pos_in_set
+            LIMIT 1
+        """, (editor_demo_id, editor_demo_id, blob_set,))
 
         return cursor.fetchone()[0]
 
@@ -744,20 +750,26 @@ def get_max_pos_in_demo_set(conn, editor_demo_id, blob_set):
         raise IPOLBlobsDataBaseError(ex)
 
 
-def get_max_pos_in_template_set(conn, template_name, blob_set):
+def get_available_pos_in_template_set(conn, template_id, blob_set):
     """
-    Return the max position value of the set in the demo
+    Return the first available position value of the set in the demo
     """
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT MAX(pos_in_set)
+            SELECT pos_in_set + 1
             FROM templates_blobs
-            WHERE blob_set = ?
-            AND template_id = (SELECT id
-                            FROM templates
-                            WHERE name = ?)
-        """, (blob_set, template_name))
+            WHERE template_id = ?
+            AND pos_in_set + 1 NOT IN 
+                (
+                SELECT pos_in_set 
+                FROM templates_blobs
+                WHERE template_id = ?
+                AND blob_set = ?
+                )
+            ORDER BY pos_in_set
+            LIMIT 1
+        """, (template_id, template_id, blob_set,))
 
         return cursor.fetchone()[0]
 
@@ -871,5 +883,41 @@ def get_nb_of_tags(conn):
         if data is None:
             return 0
         return data[0]
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+
+def get_demo_id(conn, demo_id):
+    """
+    Return the editor demo id
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id
+            FROM demos
+            WHERE editor_demo_id = ?
+        """, (demo_id,))
+        id = cursor.fetchone()[0]
+        if id:
+            return id
+    except Exception as ex:
+        raise IPOLBlobsDataBaseError(ex)
+
+
+def get_template_id(conn, template_name):
+    """
+    Return the template id
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id
+            FROM templates
+            WHERE name = ?
+        """, (template_name,))
+        id = cursor.fetchone()[0]
+        if id:
+            return id
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
