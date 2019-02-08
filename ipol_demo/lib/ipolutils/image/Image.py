@@ -109,7 +109,7 @@ class Image(object):
         # warning, cv2.imwrite will not create subdirectories and silently fail
         dst_dir = os.path.dirname(dst_file)
         if not os.path.exists(dst_dir):
-             raise OSError(errno.ENOENT, "Folder not found", src)
+             raise OSError(errno.ENOENT, "Folder not found", dst_dir)
         mime_type, _ = mimetypes.guess_type(dst_file)
         if mime_type == 'image/tiff':
             tifffile.imsave(dst_file,

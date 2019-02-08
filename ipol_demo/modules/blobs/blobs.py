@@ -457,6 +457,8 @@ class Blobs(object):
         src_file = os.path.realpath(src_file)
         thumb_height = 256
         dst_path = os.path.join(self.thumb_dir, self.get_subdir(blob_hash))
+        if not os.path.isdir(dst_path):
+            os.mkdir(dst_path)
         dst_file = os.path.join(dst_path, blob_hash + ".jpg")
         try:
             thumbnail(src_file, height=thumb_height, dst_file=dst_file)
