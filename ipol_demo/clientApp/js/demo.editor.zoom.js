@@ -8,7 +8,10 @@ zoomController.singleBlob = function() {
     helpers.checkInterpolation(zoomValue, selector);
 
     var $img = $("#editor-blob-left");
-    $img.cropper('zoomTo', zoomValue);
+
+    if (ddl.inputs[0].type == "image") $img.cropper('zoomTo', zoomValue)
+    else zoomController.changeImageZoom("left")
+
     $("#editor-zoom-value").html(zoomValue + "x");
     if ($("#crop-btn").prop('checked')) {
       let croppedImage = $("#left-container > img").cropper('getCroppedCanvas');
