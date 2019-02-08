@@ -24,6 +24,7 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
+import numpy as np
 from collections import OrderedDict
 from datetime import datetime
 from email.mime.application import MIMEApplication
@@ -46,6 +47,7 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLReadDDLError, IPOLUploadedInputRejectedError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
+from ipolutils.image.Image import Image
 # deprecated, should be droped with old run
 
 
@@ -482,18 +484,6 @@ class Core():
         data = {"status": "KO", "message": "Unknown service '{}'".format(attr)}
         return json.dumps(data).encode()
 
-    # ---------------------------------------------------------------------------
-    # INPUT HANDLING TOOLS (OLD with a few modifications)
-    # [Miguel] They're absolutely deprecated and need a full refactoring
-    # in the Conversion module.
-    # ---------------------------------------------------------------------------
-    @staticmethod
-    def save_image(im, fullpath):
-        """
-        Save image object given full path
-        """
-        im.save(fullpath, compresslevel=1)
-
     # --------------------------------------------------------------------------
     #           END BLOCK OF INPUT TOOLS
     # --------------------------------------------------------------------------
@@ -515,16 +505,10 @@ class Core():
         '''
         Process input of type 'image'
         '''
-        mode_kw = {'1x1i': '1',
-                   '1x1': '1',
-                   '1x8i': 'L',
-                   '1x8': 'L',
-                   '3x8i': 'RGB',
-                   '3x8': 'RGB'}
-        ddl_mode = mode_kw[input_desc['dtype']]
+        ddl_mode = input_desc['dtype']
 
         # Read the image
-        im = image(filename)
+        im = Image(src=filename)
 
         json_crop_info = json.loads(crop_info) if crop_info else None
         crop_enabled = json_crop_info and json_crop_info['enabled']
@@ -536,13 +520,16 @@ class Core():
 
         # Check if the size and the format are OK
         max_pixels = evaluate(input_desc['max_pixels'])
-        size_ok = (im.size[0] * im.size[1]) <= max_pixels
+        size_ok = (im.height() * im.width()) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
-        mode_ok = ddl_mode == im.im.mode
+        new_channels, new_depth = ddl_mode.split("x") 
+        np.dtype(Image.DEPTH_DTYPE[new_depth])
+        depth_ok = new_depth == im.data.dtype
+        channels_ok = new_channels == im.get_channels()
 
         input_first_part, input_ext = os.path.splitext(filename)
 
-        if not crop_enabled and size_ok and format_ok and mode_ok:
+        if not crop_enabled and size_ok and format_ok and depth_ok and channels_ok:
             # This is the most favorable case.
             # There is no crop and both the size and everything else
             # is the same.
@@ -563,18 +550,23 @@ class Core():
             y0 = int(round(json_crop_info['y']))
             x1 = int(round(json_crop_info['x'] + json_crop_info['w']))
             y1 = int(round(json_crop_info['y'] + json_crop_info['h']))
-            im.crop((x0, y0, x1, y1))
+            im.crop(x0, y0, x1, y1)
 
         # Set the mode
-        if not mode_ok:
-            im.im = im.im.convert(ddl_mode)
+        if not depth_ok:
+            im.convert_depth(new_depth)
+        if not channels_ok:        
+            im.convert_channels(new_channels)
 
         # resize if the (eventually) cropped image is too big
-        if max_pixels and (im.size[0] * im.size[1]) > max_pixels:
-            im.resize(int(max_pixels), method="antialias")
+        if max_pixels and (im.width() * im.height()) > max_pixels:
+            scaling_factor = max_pixels / float(im.width() * im.height())
+            dst_width = np.floor(math.sqrt(scaling_factor) * im.width())
+            dst_height = np.floor(math.sqrt(scaling_factor) * im.height())
+            im.resize(width=dst_width, height=dst_height)
 
         # Finally, save the processed image
-        self.save_image(im, os.path.join(work_dir, input_first_part + ext))
+        im.write(os.path.join(work_dir, input_first_part + ext))
 
     def process_inputs(self, work_dir, inputs_desc, crop_info=None):
         '''
