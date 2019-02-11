@@ -275,10 +275,11 @@ class Image(object):
         return self.data.shape[2] in (2, 4) and self.data.dtype in (np.uint8, np.uint16)
 
     @staticmethod
-    def remove_alpha(data, back_color=(255, 255, 255)):
+    def remove_alpha(data):
         '''
         If an image has an alpha layer, blend it with a background color.
         '''
+        back_color = (0, 0, 0) # The inpainting demos expect black 
         # check if alpha is just a 100% layer
         if np.unique(data[:, :, -1]).size == 1:
             return data[:, :, 0:-1]
