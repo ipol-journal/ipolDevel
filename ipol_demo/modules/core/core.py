@@ -560,7 +560,7 @@ class Core():
 
         # resize if the (eventually) cropped image is too big
         if max_pixels and (im.width() * im.height()) > max_pixels:
-            scaling_factor = max_pixels / float(im.width() * im.height())
+            scaling_factor = max_pixels / (im.width() * im.height())
             dst_width = np.floor(math.sqrt(scaling_factor) * im.width())
             dst_height = np.floor(math.sqrt(scaling_factor) * im.height())
             im.resize(width=dst_width, height=dst_height)

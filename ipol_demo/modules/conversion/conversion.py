@@ -498,7 +498,7 @@ class ConverterMaxPixels(ConverterImage):
         return self.information_loss()
 
     def convert(self):
-        scaling_factor = self.max_pixels / float(self.im.width() * self.im.height())
+        scaling_factor = self.max_pixels / (self.im.width() * self.im.height())
         dst_width = np.floor(math.sqrt(scaling_factor) * self.im.width())
         dst_height = np.floor(math.sqrt(scaling_factor) * self.im.height())
         self.im.resize(width=dst_width, height=dst_height)
