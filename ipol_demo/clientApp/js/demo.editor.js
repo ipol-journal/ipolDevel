@@ -95,14 +95,29 @@ function printBlobSetList(blobs) {
 
 // Single blob sets controls
 function loadSingleBlobControls($img) {
-  if (ddl.inputs[0].type == "image") displayCrop($img)
-  zoomController.singleBlob();
+  checkImageLoad($img[0].src).then(() => {
+    if (ddl.inputs[0].type == "image") displayCrop($img)
+    zoomController.singleBlob();
+  })
+  .catch(() => {
+    zoomController.singleBlob();
+  })
+}
+
+function checkImageLoad(src){
+  return new Promise((resolve, reject) => {
+    img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(img)
+    img.src = src
+  })
 }
 
 function displayCrop($img){
   $(".blobsList-left").append(
     "<input type=checkbox id=crop-btn class=hand><label for=crop-btn class=hand>Crop</label>"
   );
+
   if (crop_info == null) {
     $img.cropper({
       viewMode: 1,
@@ -127,6 +142,7 @@ function displayCrop($img){
     $("#crop-btn").prop("checked", true);
     $("#canvas-container").removeClass("di-none");
   }
+
   $img.on("cropmove cropstart cropend", function (e) {
     if ($("#crop-btn").prop("checked")) {
       var croppedImage = $("#left-container > img").cropper("getCroppedCanvas");
@@ -187,6 +203,7 @@ function areAllImages() {
 $.fn.printEditorBlob = function(editorBlob, side) {
   var blobType = editorBlob.format;
   var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
+  $("#broken-image-text-" + side).remove();
   if (blobType == "video") {
     $(this).empty();
     if (editorBlob.vr) {
@@ -201,25 +218,38 @@ $.fn.printEditorBlob = function(editorBlob, side) {
   } else {
     if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
-      $("#editor-blob-" + side).on('load', function(e) {
+      $("#editor-blob-" + side).attr("name", editorBlob.title);
+      $("#editor-blob-" + side).on('load', function() {
         $("#editor-blob-" + side).width($(this)[0].naturalWidth * $("#editor-zoom").val());
         $("#editor-blob-" + side).height($(this)[0].naturalHeight * $("#editor-zoom").val());
       });
       $("#editor-blob-" + side).displayImageSize();
     } else {
       $(this).empty();
-      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
+      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false name=" + editorBlob.title + ">";
       $(img).appendTo($(this));
       $(img).displayImageSize();
-      $("#editor-blob-left").on("error", function() {
-        $(this).attr("src", "assets/non_viewable_data.png");
-        $("#editor-blob-left").css({ width: "auto", height: "auto" });
-        $('.inputEditorContainer > .zoom-container').hide();
-      });
-      $("#editor-blob-left").css({ width: "auto", height: "auto" });
+      $("#editor-blob-" + side).css({ width: "auto", height: "auto" });
     }
+
+    $("#editor-blob-" + side).on("error", function(){ imageDisplayError(editorBlob, side)});
   }
 };
+
+function imageDisplayError(editorBlob, side){
+  $("#editor-blob-" + side).attr("src", "assets/non_viewable_data.png");
+  $("#editor-blob-left").css({
+    width: "auto",
+    height: "auto"
+  });
+
+  let text = (helpers.getOrigin() === 'upload') ? editorBlob.name : $("#editor-blob-" + side)[0].name;
+  if (text == "") text = "Non viewable data"
+  $("#broken-image-text-" + side).remove();
+  $("#editor-blob-" + side).parent().append('<span class=broken-image-text id=broken-image-text-' + side + '>' + text + '</span>');
+
+  $('.inputEditorContainer > .zoom-container').hide();
+}
 
 function isPreviousBlobImg(side) {
   var previousBlob = document.getElementById("editor-blob-" + side);

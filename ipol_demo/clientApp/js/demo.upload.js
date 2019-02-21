@@ -180,7 +180,8 @@ function upload(index, event) {
       uploadedFiles[index] = { 
         blob: evt.target.result, 
         format: format, 
-        thumbnail: "" 
+        thumbnail: "",
+        name: file.name
       };
     };
     fileReader.readAsDataURL(blob);
