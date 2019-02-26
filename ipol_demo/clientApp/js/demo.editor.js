@@ -226,7 +226,7 @@ $.fn.printEditorBlob = function(editorBlob, side) {
       $("#editor-blob-" + side).displayImageSize();
     } else {
       $(this).empty();
-      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false name=" + editorBlob.title + ">";
+      var img = "<img src=" + blobSrc + " id=editor-blob-" + side + " class=blobEditorImage draggable=false >";
       $(img).appendTo($(this));
       $(img).displayImageSize();
       $("#editor-blob-" + side).css({ width: "auto", height: "auto" });
@@ -243,7 +243,7 @@ function imageDisplayError(editorBlob, side){
     height: "auto"
   });
 
-  let text = (helpers.getOrigin() === 'upload') ? editorBlob.name : $("#editor-blob-" + side)[0].name;
+  let text = (helpers.getOrigin() === 'upload') ? editorBlob.name : editorBlob.title;
   if (text == "") text = "Non viewable data"
   $("#broken-image-text-" + side).remove();
   $("#editor-blob-" + side).parent().append('<span class=broken-image-text id=broken-image-text-' + side + '>' + text + '</span>');
