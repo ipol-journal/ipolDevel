@@ -236,3 +236,11 @@ div[class^="radio-option-"] {
   display: inline-block;
   padding: 10px 15px 10px 0;
 }
+
+.parameters-description {
+  display: block;
+  border: 1px solid #bcbcbc;
+  border-radius: 3px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+}

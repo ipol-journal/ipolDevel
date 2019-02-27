@@ -9,7 +9,7 @@ var ddl_params = {};
 parameters.printParameters = function() {
   params,
   ddl_params = {};
-  printParamsInformationIcon(ddl);
+  if (ddl.general.param_description != undefined) displayParametersDescription()
   if (ddl.params && ddl.params.length != 0) {
     $('#parameters').removeClass('di-none');
     var ddlParams = ddl.params;
@@ -26,6 +26,14 @@ parameters.printParameters = function() {
       } else console.error(param.type + ' param type is not correct');
     }
   }
+}
+
+function displayParametersDescription() {
+  $('#parameters-container').append(
+    '<div class=parameters-description></div>');
+  
+  var text = typeof ddl.general.param_description != 'string' ? ddl.general.param_description.join('') : ddl.general.param_description;
+  $('.parameters-description').append(text);
 }
 
 parameters.setParametersValues = function(params_values){
@@ -49,11 +57,6 @@ parameters.setParametersValues = function(params_values){
       $('#' + param.id).prop('checked', (params_values[param.id]));
     }
   }
-}
-
-function printParamsInformationIcon(){
-  checkParamsDescriptionIconVisibility(ddl.general);
-  $('#parameters-description').addDescription(ddl.general.param_description);
 }
 
 function printParameter(param, index) {
