@@ -33,8 +33,8 @@ def forward(apps, schema_editor):
 
     s = site()
     s.pk=3
-    s.domain='ns3018037.ip-151-80-24.eu:8010'
-    s.name='devmachine'
+    s.domain='ipolcore.ipol.im'
+    s.name='ipolcore.ipol.im'
     s.save()
 
 
