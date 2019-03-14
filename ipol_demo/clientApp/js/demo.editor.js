@@ -4,6 +4,7 @@ var helpers = clientApp.helpers || {};
 var upload = clientApp.upload || {};
 var zoomController = zoomController || {};
 var scrollController = scrollController || {};
+var inpaintingController = inpaintingController || {};
 
 var editorBlobs;
 var crop_info;
@@ -24,8 +25,8 @@ function printEditorPanel() {
 
   printBlobSetList(blobs);
 
-  $("#left-container").printEditorBlob(editorBlobs[blobs[0]], "left");
-  $("#right-container").printEditorBlob(editorBlobs[blobs[0]], "right");
+  $("#left-container").printEditorBlob(blobs[0], "left");
+  $("#right-container").printEditorBlob(blobs[0], "right");
 
   if (areAllImages()) displayImagesControls(blobs, editorBlobs[blobs[0]])
 
@@ -200,7 +201,8 @@ function areAllImages() {
   return true;
 }
 
-$.fn.printEditorBlob = function(editorBlob, side) {
+$.fn.printEditorBlob = function(index, side) {
+  let editorBlob = editorBlobs[index]
   var blobType = editorBlob.format;
   var blobSrc = editorBlob.vr ? editorBlob.vr : editorBlob.blob;
   $("#broken-image-text-" + side).remove();
@@ -216,7 +218,11 @@ $.fn.printEditorBlob = function(editorBlob, side) {
     var audioThumbnail = editorBlob.thumbnail ? editorBlob.thumbnail : "assets/non_viewable_data.png";
     $(this).append("<img src=" + audioThumbnail + " class=audioThumbnail><br><audio src=" + editorBlob.blob + " id=editor-blob-" + side + " class=blobEditorAudio controls></audio>");
   } else {
-    if (isPreviousBlobImg(side)) {
+    if (ddl.inputs[index].control && side == "left") {
+      $(this).empty();
+      $(this).append("<canvas id=editor-blob-" + side + " class=blobEditorCanvas></canvas>");
+      attatchInpaintingControls(index, blobSrc, side);
+    } else if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
       $("#editor-blob-" + side).attr("name", editorBlob.title);
       $("#editor-blob-" + side).on('load', function() {
@@ -295,7 +301,7 @@ $.fn.loadInputEvents = function(index, side) {
   var container = $("#" + side + "-container");
 
   $(this).on("mouseover", function() {
-    container.printEditorBlob(editorBlobs[index], side);
+    container.printEditorBlob(index, side);
     zoomSync(editorBlobs[index], side);
   });
 
@@ -303,7 +309,7 @@ $.fn.loadInputEvents = function(index, side) {
     var selectedInput = helpers.getFromStorage("selectedInput-" + side);
     $("." + selectedInput.text).removeClass("editor-input-selected");
     $(this).addClass("editor-input-selected");
-    container.printEditorBlob(editorBlobs[index], side);
+    container.printEditorBlob(index, side);
     saveSelectedInput(side, index);
     zoomSync(editorBlobs[index], side);
   });
@@ -317,7 +323,7 @@ $.fn.loadInputsContainerEvent = function(side) {
       return;
     }
     var inputName = helpers.getFromStorage("selectedInput-" + side);
-    container.printEditorBlob(editorBlobs[inputName.src], side);
+    container.printEditorBlob(inputName.src, side);
     zoomSync(editorBlobs[inputName.src], side);
   });
 };
@@ -333,3 +339,10 @@ $.fn.displayImageSize = function() {
     $("#editor-image-size").html($(this)[0].naturalWidth + " x " + $(this)[0].naturalHeight);
   });
 };
+
+attatchInpaintingControls = (index, blobSrc, side) => {
+  $.get("inpainting.html", function (data) {
+    $("#inpaintingContainer").html(data);
+    inpaintingController.init(index, blobSrc, side);
+  });
+}
