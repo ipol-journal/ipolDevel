@@ -11,25 +11,24 @@ $.fn.video_gallery = function (result, index) {
   if (result.label) $(this).appendLabel(result.label);
   var gallerySelector = 'gallery-' + index;
   $(this).append('<div class="' + gallerySelector + ' gallery-container" ></div>');
-  $(this).appendVideoTools();
-
+  
   var blobsArray = getGalleryVideos(result.contents, work_url);
-
+  
   var leftItems = 'left-blobs-' + index;
   var rightItems = 'right-blobs-' + index;
   renderVideoGalleryBlobList(index, contentKeys, result, leftItems, 'left', blobsArray);
-
+  
   var blobsContainerSelector = 'gallery-' + index + '-blobs-container';
   $('.' + gallerySelector).append('<div id="' + blobsContainerSelector + '" class="blobs-wrapper"></div>');
-
+  
   renderVideoGalleryBlobList(index, contentKeys, result, rightItems, 'right', blobsArray);
   $('.' + rightItems).addClass('gallery-item-list-right di-none');
-
+  
   var videoContainerLeft = 'gallery-blobs-left-' + index;
   var videoContainerRight = 'gallery-blobs-right-' + index;
   $('#' + blobsContainerSelector).append('<div id="' + videoContainerLeft + '" class=gallery-video-container></div>');
   $('#' + blobsContainerSelector).append('<div id="' + videoContainerRight + '" class="gallery-video-container di-none"></div>');
-
+  
   for (let i = 0; i < blobsArray.length; i++) {
     $('#' + videoContainerLeft).append('<div></div>');
     $('#' + videoContainerRight).append('<div></div>');
@@ -45,11 +44,12 @@ $.fn.video_gallery = function (result, index) {
   $('#' + videoContainerRight + ' div:first-child > video').on('loadedmetadata', function () {
     $(this).prop('muted', true);
   });
-
+  
   var allSrc = getAllSrc(blobsArray);
   $('.' + gallerySelector).setVideoGalleryMinHeight(allSrc);
   if (blobsArray.length > 1) $('.' + leftItems).appendVideoCompare(index, rightItems, videoContainerRight);
   scrollSync(index);
+  $(this).appendVideoTools();
 }
 
 $.fn.initVideoProps = function () {
@@ -188,38 +188,93 @@ $.fn.appendVideoCompare = function (galleryIndex, rightItems, videoContainerRigh
   });
 }
   
-
 $.fn.appendVideoTools = function() {
   $('<div class=video-tools ></div>')
   .appendTo($(this))
-  .append('<span class="fast-backward-btn"></span>')
-  .append('<span class="play-pause-btn pause-to-play"></span>')
-  .append('<span class=stop-btn></span>')
-  .append('<span class="fast-forward-btn"></span>');
+    .append('<div class=play-stop-container ><img class=play-pause-btn status=paused src=assets/media-controls/play.svg alt=play-pause>\
+                  <img class=stop-btn src=assets/media-controls/stop.svg alt=stop></div>')
+  .append('<div><img class=skip-backwards-1 src=assets/media-controls/step-backwards-1.svg alt=step-backwards-1s></div>')
+  .append('<div><img class=skip-forward-1 src=assets/media-controls/step-forward-1.svg alt=step-forward-1s></div>')
+  .append('<div><img class=skip-backwards-5 src=assets/media-controls/step-backwards-5.svg alt=step-backwards-5s></div>')
+  .append('<div><img class=skip-forward-5 src=assets/media-controls/step-forward-5.svg alt=step-forward-5s></div>')
+  .append('<div class=speed_control><img class=decrease_speed src=assets/media-controls/decrease.svg alt=decrease_speed><span class=speed><span class=speed_num>1.00</span>x</span><img class=increase_speed src=assets/media-controls/increase.svg alt=increase_speed></div>')
+  .append('<div><img class=loop src=assets/media-controls/loop.svg alt=loop status=off></div>')
+  $('.video-tools').css('margin-left', $('#gallery-0-blobs-container')[0].offsetLeft + 5)
   
   var videoGallery = $(this);
-  var playPauseBtn = $('.play-pause-btn', this);
   
   $('.play-pause-btn', this).click(function () {
-    if($(this).hasClass('pause-to-play')) $('video', videoGallery).playVideos();
-    else if ($(this).hasClass('play-to-pause')) $('video', videoGallery).pauseVideos();
-    
-    $('video', videoGallery).resetPlaybackRate();
-    $(this).toggleClass('play-to-pause pause-to-play');
+    if($(this).attr('status') == "paused"){
+      $('video', videoGallery).playVideos();
+      $(this).attr('status', "playing")
+      $(this).addClass('pause-btn');
+      $(this).attr("src", "assets/media-controls/pause.svg");
+    } else {
+      $('video', videoGallery).pauseVideos();
+      $('video', videoGallery).syncVideos($('video', videoGallery)[0].currentTime);
+      $(this).attr('status', "paused")
+      $(this).removeClass('pause-btn');
+      $(this).attr("src", "assets/media-controls/play.svg");
+    } 
   });
   
   $('.stop-btn', this).click(function() {
     $('video', videoGallery).stopVideos();
-    $('video', videoGallery).resetPlaybackRate();
-    playPauseBtn.attr('class', 'play-pause-btn pause-to-play');
+    $(".play-pause-btn").attr('status', "paused")
+    $(".play-pause-btn").removeClass('pause-btn');
+    $(".play-pause-btn").attr("src", "assets/media-controls/play.svg");
   });
 
-  $('.fast-backward-btn', this). click(function(){
-    $('video', videoGallery).changePlaybackRate(-0.1);
+  $('.decrease_speed', this). click(function(){
+    $('video', videoGallery).decreasePlaybackRate();
+    $(".speed_num", videoGallery)[0].textContent = ($("video", videoGallery)[0].playbackRate).toFixed(2);
   });
- 
-  $('.fast-forward-btn', this). click(function(){
-    $('video', videoGallery).changePlaybackRate(0.1);
+
+  $('.increase_speed', this). click(function(){
+    $('video', videoGallery).increasePlaybackRate();
+    $(".speed_num", videoGallery)[0].textContent = ($("video", videoGallery)[0].playbackRate).toFixed(2);
+  });
+
+  $('.skip-forward-1', this).click(function(){
+    $('video', videoGallery).skipForward(1);
+  })
+
+  $('.skip-backwards-1', this).click(function(){
+    $('video', videoGallery).skipBackwards(1);
+  })
+
+  $('.skip-forward-5', this).click(function(){
+    $('video', videoGallery).skipForward(5);
+  })
+
+  $('.skip-backwards-5', this).click(function(){
+    $('video', videoGallery).skipBackwards(5);
+  })
+
+  $('.loop', this).click(function () {
+    if ($(this).attr("status") == "off") $(this).attr("status", "on")
+    else $(this).attr("status", "off")
+    
+    $('video', videoGallery).loop();
+  })
+}
+
+$.fn.skipForward = function(time){
+  $(this).each(function () {
+    $(this)[0].currentTime += time;
+  });
+}
+
+
+$.fn.skipBackwards = function(time){
+  $(this).each(function () {
+    $(this)[0].currentTime -= time;
+  });
+}
+
+$.fn.loop = function () {
+  $(this).each(function () {
+    $(this)[0].loop = !$(this)[0].loop;
   });
 }
 
@@ -242,14 +297,34 @@ $.fn.stopVideos = function() {
   });
 }
 
-$.fn.changePlaybackRate = function(value) {
+$.fn.decreasePlaybackRate = function(){
+  speeds = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+  current_speed = $(this)[0].playbackRate;
+  if(current_speed == 0.1) return;
+  
   $(this).each(function () {
-    $(this)[0].playbackRate += value;
+    $(this)[0].playbackRate = speeds[speeds.indexOf(current_speed) - 1];
+  });
+}
+
+$.fn.increasePlaybackRate = function () {
+  speeds = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+  current_speed = $(this)[0].playbackRate;
+  if (current_speed == 2) return;
+
+  $(this).each(function () {
+    $(this)[0].playbackRate = speeds[speeds.indexOf(current_speed) + 1];
   });
 }
 
 $.fn.resetPlaybackRate = function() {
   $(this).each(function () {
     $(this)[0].playbackRate = 1.0;
+  });
+}
+
+$.fn.syncVideos = function(time){ 
+  $(this).each(function () {
+    $(this)[0].currentTime = time;
   });
 }

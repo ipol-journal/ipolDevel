@@ -1,0 +1,15 @@
+<svg width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <g id="Icon-Undo">
+   <path fill="#000000" id="Fill-83" d="m31.9,51.9c-10.9,0 -19.9,-8.9 -19.9,-19.9c0,-11 8.9,-19.9 19.9,-19.9c8.3,0 15.4,5.2 18.3,13.3l-2.7,1c-2.5,-7 -8.5,-11.4 -15.6,-11.4c-9.4,0 -17,7.6 -17,17s7.6,17 17,17c6.6,0 12.7,-3.9 15.5,-9.9l2.6,1.2c-3.2,7.1 -10.3,11.6 -18.1,11.6" class="st0"/>
+   <polyline fill="#000000" points="39.599998474121094,27.399993896484375 39.599998474121094,24.29998779296875 48.900001525878906,24.29998779296875 48.900001525878906,15.100006103515625 52,15.100006103515625 52,27.399993896484375 39.599998474121094,27.399993896484375 " id="Fill-84" class="st0"/>
+  </g>
+  <text style="cursor: move;" stroke="#000" transform="matrix(0.910207201763871,0,0,0.910207201763871,1.7802400657272797,4.2799704727187535) " xml:space="preserve" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="24" id="svg_2" y="38.724327" x="26.533901" stroke-width="0" fill="#000000">5</text>
+ </g>
+</svg>
