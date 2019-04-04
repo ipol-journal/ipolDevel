@@ -139,43 +139,34 @@ function showWrongDemoIdError(){
   window.location = '/demo';
 }
 
-function setFiles(request) {
+async function setFiles(request){
+  files = Array(ddl.inputs.length);
   var blobs = [];
+  var fetched_files = [];
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  var isMSEdge = window.navigator.userAgent.indexOf("Edge") > -1;
-
-  for (let i = 0; i < request.files; i++) {
-    let xhr = new XMLHttpRequest();
-    var file_url = getFileURL('input_' + i + ddl.inputs[i].ext);
-    xhr.open("GET", file_url);
-    xhr.responseType = "blob";
-    xhr.onload = function() {
-      if(xhr.status == 404){
-        console.error("Uploaded file not found.");
-        files = [];
-        blobs = [];
-        return;
-      }
-      let blob = xhr.response;
-
-      // Safari and MS Edge use blob instead of File object due to support issues.
-      if(isSafari || isMSEdge) files.push(blob);
-      else{
-        let myFile = new File([blob], "file_" + i, {
-          type: blob.type
-        });
-        files.push(myFile);
-      } 
-
-      let reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = function() {
-        blobs[i] = (reader.result);
-        setUploadEditor(request.files, blobs);
-      }
-    }
-    xhr.send();
+  var isMSEdge = window.navigator.userAgent.indexOf('Edge') > -1;
+  
+  for (let [i, input] of ddl.inputs.entries())
+    fetched_files[i] = new Promise((resolve) => {
+      let file_url = getFileURL('input_' + i + input.ext);
+      resolve(fetch(file_url));
+    })
+    
+  fetched_files = await Promise.all(fetched_files)
+  for (let [i, file] of fetched_files.entries())
+    if(file.ok) blobs[i] = new Promise((resolve) => { resolve(file.blob()); })
+  
+  blobs = await Promise.all(blobs)
+  for (let [i, blob] of blobs.entries()){
+    if(!blob) continue;
+    
+    if (isSafari || isMSEdge) files[i] = blob;
+    else files[i] = new File([blob], 'file_' + i, { type: blob.type });
+    blobs[i] = URL.createObjectURL(blob);
   }
+  
+  if (request.files != blobs.filter(blob => blob != undefined).length) console.error('Uploaded file/s not found.');
+  setUploadEditor(blobs); 
 }
 
 $(function() {

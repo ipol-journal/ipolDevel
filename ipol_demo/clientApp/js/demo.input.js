@@ -94,19 +94,18 @@ function setEditor(index, crop_info) {
   editor.printEditor(crop_info);
 }
 
-function setUploadEditor(files_count, blobs, crop_info) {
-  if (files_count == blobs.length) {
-    for (let i = 0; i < files.length; i++) {
-      uploadedFiles[i] = {
-        blob: blobs[i],
-        format: "image",
-        thumbnail: ""
-      };
-    }
-    helpers.setOrigin("upload");
-    editorBlobs = clientApp.upload.getUploadedFiles();
-    editor.printEditor(crop_info);
+function setUploadEditor(blobs, crop_info) {
+  for (let i = 0; i < ddl.inputs.length; i++) {
+    if(!blobs[i]) continue;
+    uploadedFiles[i] = {
+      blob: blobs[i],
+      format: "image",
+      thumbnail: ""
+    };
   }
+  helpers.setOrigin("upload");
+  editorBlobs = clientApp.upload.getUploadedFiles();
+  editor.printEditor(crop_info);
 }
 
 $.fn.addDescription = function(description) {

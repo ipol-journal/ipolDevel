@@ -64,7 +64,7 @@ function isTiff(blob){
 
 // Print the chosen set blob list
 function printBlobSetList(blobs) {
-  for (let i = 0; i < blobs.length; i++) {
+  for (let i of Object.values(blobs)) {
     $(".inputListContainerLeft").append(
       "<span class=editor-input-left-" +
         i +
@@ -74,7 +74,7 @@ function printBlobSetList(blobs) {
     );
     $(".editor-input-left-" + i).addClass("editor-input");
     $(".editor-input-left-" + i).loadInputEvents(
-      Object.keys(editorBlobs)[i],
+      i,
       "left"
     );
     $(".inputListContainerRight").append(
@@ -86,7 +86,7 @@ function printBlobSetList(blobs) {
     );
     $(".editor-input-right-" + i).addClass("editor-input");
     $(".editor-input-right-" + i).loadInputEvents(
-      Object.keys(editorBlobs)[i],
+      i,
       "right"
     );
   }
