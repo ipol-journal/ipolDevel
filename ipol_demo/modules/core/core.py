@@ -607,10 +607,10 @@ class Core():
         ddl_input is the input section of the demo description
         """
         nb_inputs = len(inputs_desc)
-
+        
         for i in range(nb_inputs):
             file_up = blobs.pop('file_%i' % i, None)
-
+            
             if file_up is None or file_up.filename == '':
                 if 'required' not in list(inputs_desc[i].keys()) or \
                         inputs_desc[i]['required']:
@@ -1188,11 +1188,11 @@ attached the failed experiment data.". \
 
         blobs = {}
         if origin == 'upload':
-            i = 0
-            while 'file_{0}'.format(i) in interface_arguments:
-                fname = 'file_{0}'.format(i)
-                blobs[fname] = interface_arguments[fname]
-                i += 1
+            for key,value in interface_arguments.items():
+                if key.startswith('file_'):
+                    fname = key
+                    blobs[fname] = value
+
         elif origin == 'blobset':
             blobs = clientdata['blobs']
         elif not origin:
