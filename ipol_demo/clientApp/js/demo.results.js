@@ -36,7 +36,7 @@ function printResult(result, index) {
 }
 
 function getFileURL(file){
-  if (file.startsWith('http')) return file;
+  if (file.startsWith('https://') || file.startsWith('http://')) return file;
   if (!getParameterFromURL('archive')) return work_url + file;
   var images_ddl = $.extend({}, ddl.archive.files, ddl.archive.hidden_files);
   var images_ddl_keys = Object.keys(images_ddl);
