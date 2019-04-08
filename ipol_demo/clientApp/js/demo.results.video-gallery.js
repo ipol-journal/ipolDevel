@@ -35,6 +35,8 @@ $.fn.video_gallery = function (result, index) {
     for (let j = 0; j < blobsArray[i].length; j++) {
       var leftClone = blobsArray[i][j].clone();
       var rightClone = blobsArray[i][j].clone();
+      leftClone.addFinishedEvent();
+      rightClone.addFinishedEvent();
       $('#' + videoContainerLeft + ' > div:nth-child(' + (i+1) + ')').append($(leftClone));
       $('#' + videoContainerRight + ' > div:nth-child(' + (i+1) + ')').append($(rightClone));
     }
@@ -50,6 +52,18 @@ $.fn.video_gallery = function (result, index) {
   if (blobsArray.length > 1) $('.' + leftItems).appendVideoCompare(index, rightItems, videoContainerRight);
   scrollSync(index);
   $(this).appendVideoTools();
+}
+
+$.fn.addFinishedEvent = function () {
+  $(this)[0].onended = function () {
+    let galleryVideos = $(this).parents().eq(2).find($('video'));
+    let playPauseBtn = $(this).parents().eq(4).find($('div.video-tools .play-pause-btn'));
+    for(let video of galleryVideos)
+      if(!video.paused || !video.ended) return;
+    playPauseBtn.attr('status', "paused")
+    playPauseBtn.removeClass('pause-btn');
+    playPauseBtn.attr("src", "assets/media-controls/play.svg");
+  }
 }
 
 $.fn.initVideoProps = function () {
