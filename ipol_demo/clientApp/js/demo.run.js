@@ -70,6 +70,7 @@ function setRunPostData() {
     if ($('#privateSwitch').is(':checked')) clientData.private_mode = true;
     setUploadedFiles();
   } 
+  setInpaintingData();
 
   checkCropper();
   runData.append('clientData', JSON.stringify(clientData));
@@ -79,6 +80,19 @@ function setUploadedFiles() {
   var uploads = clientApp.upload.getUploadedFiles();
   for (let i in uploads)
     runData.append('file_' + i, files[i], files[i].name);
+}
+
+function setInpaintingData() {
+  ddl.inputs.map((input, index) => {
+    if (input.hasOwnProperty('control') && inpaintingControls[index]) {
+      let data = inpaintingControls[index].getData();
+      if (input.control == 'mask') {
+        runData.set('inpainting_data_' + index, data, `mask_${index}.png`);
+      } else {
+        runData.set('inpainting_data_' + index, JSON.stringify(data));
+      }
+    }
+  });
 }
 
 function checkCropper() {

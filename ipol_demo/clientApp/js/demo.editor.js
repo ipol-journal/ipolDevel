@@ -220,8 +220,9 @@ $.fn.printEditorBlob = function(index, side) {
   } else {
     if (ddl.inputs[index].control && side == "left") {
       $(this).empty();
-      $(this).append("<canvas id=editor-blob-" + side + " class=blobEditorCanvas></canvas>");
-      attatchInpaintingControls(index, blobSrc, side);
+      $(this).append('<canvas id=editor-blob-' + side + ' class=blobEditorCanvas draggable=false></canvas>');
+      $("#editor-blob-" + side).css('background-image', 'url(' + blobSrc + ')');
+      attatchInpaintingControls(index, blobSrc, $('#editor-blob-' + side)[0]);
     } else if (isPreviousBlobImg(side)) {
       $("#editor-blob-" + side).attr("src", blobSrc);
       $("#editor-blob-" + side).attr("name", editorBlob.title);
@@ -340,9 +341,9 @@ $.fn.displayImageSize = function() {
   });
 };
 
-attatchInpaintingControls = (index, blobSrc, side) => {
+attatchInpaintingControls = (index, blobSrc, canvas) => {
   $.get("inpainting.html", function (data) {
-    $("#inpaintingContainer").html(data);
-    inpaintingController.init(index, blobSrc, side);
+    $("#inpaintingControls").html(data);
+    inpaintingController.init(index, blobSrc, canvas);
   });
 }

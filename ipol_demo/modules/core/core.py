@@ -24,7 +24,6 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
-import numpy as np
 from collections import OrderedDict
 from datetime import datetime
 from email.mime.application import MIMEApplication
@@ -34,6 +33,7 @@ from random import random
 
 import cherrypy
 import magic
+import numpy as np
 
 import requests
 from archive import send_to_archive
@@ -48,6 +48,7 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.image.Image import Image
+
 # deprecated, should be droped with old run
 
 
@@ -701,6 +702,36 @@ class Core():
             blobs_id_list = blobs['id_blobs']
             self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
 
+    def copy_inpainting_data(self, work_dir, blobs, ddl_inputs):
+        """
+        Copy the existing input inpainting data to the execution folder. 
+        """
+        for i, ddl_input in enumerate(ddl_inputs):
+            if 'inpainting_data_' + str(i) in blobs:
+                self.copy_data(
+                    work_dir, blobs['inpainting_data_' + str(i)], i, ddl_input)
+
+    def copy_data(self, work_dir, blob_data, input_index, ddl_input):
+        """
+        Copy data to work directory
+        """
+        if ddl_input['control'] == 'mask':
+            filename = 'mask_{}.png'.format(input_index)
+            file_path = open(os.path.join(work_dir, filename), 'wb')
+            size = 0
+            blob_data.file.seek(0)
+            while True:
+                data = blob_data.file.read(128)
+                if not data:
+                    break
+                size += len(data)
+                file_path.write(data)
+            file_path.close()
+        else:
+            filepath = '{}/inpainting_data_{}.txt'.format(work_dir, input_index)
+            with open(filepath, 'w') as f:
+                for point in json.loads(blob_data):
+                    f.write("%s\n" % point)
 
     @staticmethod
     def check_ddl(ddl):
@@ -1200,6 +1231,12 @@ attached the failed experiment data.". \
         else:
             raise IPOLDecodeInterfaceRequestError("Wrong origin value from the interface.")
 
+        j = 0
+        while 'inpainting_data_{0}'.format(j) in interface_arguments:
+            fname = 'inpainting_data_{0}'.format(j)
+            blobs[fname] = interface_arguments[fname]
+            j += 1
+
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
                   clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs
 
@@ -1302,6 +1339,7 @@ attached the failed experiment data.". \
         # Copy input blobs
         try:
             self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
+            self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
             params_conv = {'work_dir': work_dir}
             params_conv['inputs_description'] = json.dumps(ddl_inputs)
             params_conv['crop_info'] = json.dumps(crop_info)

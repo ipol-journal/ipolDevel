@@ -3,18 +3,12 @@
   <input id="color-picker" value="#ED313A" class="color-picker" type="color">
 </div>
 <div>
-  <label for="max-dots">N points</label>
-  <input id="max-dots" type="number" value="4" min="1" />
-</div>
-<div>
   <label for="size-selector">Size</label>
-  <input id="size-selector" type="range" value="4" min="1" max="20" />
+  <input id="size-selector" type="range" value="8" min="1" max="20" />
 </div>
 <label>Close figure?:
   <input type="checkbox" name="close" id="closeFigure" checked>
 </label>
-<input type="button" value="save" id="btn" size="30" onclick="save()">
-<input type="button" value="erase" id="clr" size="23" onclick="erase()">
 <input type="button" value="undo" id="ndo" size="23" onclick="tool.undo()">
 <input type="button" value="redo" id="rdo" size="23" onclick="tool.redo()">
-<input type="button" value="restore" id="restore" size="23" onclick="restoreDefault()">
+<input type="button" value="erase" id="clr" size="23" onclick="erase()">
