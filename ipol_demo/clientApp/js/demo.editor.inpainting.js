@@ -4,17 +4,19 @@ let canvas, context;
 let tool;
 let tools = {};
 let inpaintingControls = [];
+let background;
 let nDots;
 
-inpaintingController.init = (index, blobSrc, canvasElement) => {
+inpaintingController.init = async (index, blobSrc, canvasElement) => {
   canvas = canvasElement;
   context = canvas.getContext('2d');
-  nDots = ddl.inputs[index].max_dots;
+  if (ddl.inputs[index].max_dots) nDots = ddl.inputs[index].max_dots;
   if (!inpaintingControls[index]) {
     tool = new tools[ddl.inputs[index].control];
     inpaintingControls[index] = tool;
   } else {
     tool = inpaintingControls[index];
+    tool.draw();
   }
   
   $(canvas).mousedown(canvas_event);
@@ -25,17 +27,17 @@ inpaintingController.init = (index, blobSrc, canvasElement) => {
   $('#size-selector').change(setStyle);
   $("#closeFigure").change(tool.draw);
   
-  getBlobData(blobSrc).then(() => {
-    setStyle();
-    if (inpaintingControls[index]) tool.draw();
-  });
+  if (!background) background = await loadImage(blobSrc);
+  canvas.height = background.height;
+  canvas.width = background.width;
+  setStyle();
 }
 
 canvas_event = (ev) => {
   if (ev.layerX || ev.layerX == 0) { // Firefox
     ev._x = ev.layerX;
     ev._y = ev.layerY;
-  } else if (ev.offsetX || ev.offsetX == 0) { // Opera
+  } else if (ev.offsetX || ev.offsetX == 0) { // Chrome Opera
     ev._x = ev.offsetX;
     ev._y = ev.offsetY;
   }
@@ -45,13 +47,6 @@ canvas_event = (ev) => {
   if (tool_handler) {
     tool_handler(ev);
   }
-}
-
-const getBlobData = async (path) => {
-  let background;
-  if (!background) background = await loadImage(path);
-  canvas.height = background.height;
-  canvas.width = background.width;
 }
 
 function loadImage(src) {
@@ -77,18 +72,12 @@ function resetCanvas() {
   context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function erase() {
-  resetCanvas();
-  tool.eraseCoords();
-}
-
-//########################################################################
 tools.mask = function () {
   let tool = this;
   this.started = false;
   this.lastX = 0;
   this.lastY = 0;
-  let backwardsPoints = [$('#editor-blob-left')[0].toDataURL()];
+  let backwardsPoints = [];
   let forwardsPoints = [];
 
   this.mousedown = (ev) => {
@@ -145,7 +134,8 @@ tools.mask = function () {
 
   this.draw = () => {
     var canvasPic = new Image();
-    canvasPic.src = backwardsPoints[backwardsPoints.length - 1];
+    if (backwardsPoints.length > 0) 
+      canvasPic.src = backwardsPoints[backwardsPoints.length - 1];
     canvasPic.onload = function() {
       resetCanvas();
       context.drawImage(canvasPic, 0, 0);
@@ -157,9 +147,10 @@ tools.mask = function () {
     return dataURLtoBlob(dataURL);
   }
 
-  this.eraseCoords = ev => {
+  this.clear = ev => {
     backwardsPoints.length = 0;
     forwardsPoints.length = 0;
+    resetCanvas();
   }
 };
 
@@ -205,9 +196,10 @@ tools.lines = function () {
     context.stroke();
   }
 
-  this.eraseCoords = ev => {
+  this.clear = ev => {
     backwardsPoints.length = 0;
     forwardsPoints.length = 0;
+    resetCanvas();
   }
 
   this.getData = index => {
@@ -256,9 +248,10 @@ tools.dots = function () {
     context.stroke();
   }
 
-  this.eraseCoords = ev => {
+  this.clear = ev => {
     backwardsPoints.length = 0;
     forwardsPoints.length = 0;
+    resetCanvas();
   }
 
   this.getData = index => {

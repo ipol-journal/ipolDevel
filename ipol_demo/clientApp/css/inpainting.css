@@ -3,12 +3,25 @@
 }
 
 .color-picker-container {
+  display: flex;
+  align-content: center;
+  align-items: center;
+}
+
+.color-picker-label {
+  cursor: pointer;
+}
+
+.color-picker-circle {
   position: relative;
 
   overflow: hidden;
 
-  width: 40px;
-  height: 40px;
+  width: 20px;
+  height: 20px;
+  margin: 0 5px;
+
+  cursor: pointer;
 
   border: solid 2px #DDD;
   border-radius: 40px;
@@ -16,18 +29,40 @@
 
 .color-picker {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -7px;
+  right: -7px;
 
-  width: 56px;
-  height: 56px;
+  width: 30px;
+  height: 30px;
+
+  cursor: pointer;
 
   border: none;
 }
 
 .color-picker-label {
   cursor: pointer;
-  text-decoration: underline;
+}
 
-  color: #3498DB;
+.blobEditorCanvas {
+  cursor: crosshair;
+
+  background-size: cover;
+}
+
+#erase-btn:active, .activated {
+  color: red;
+}
+
+#size-selector-container {
+  display: flex;
+  align-items: center;
+}
+
+#size-selector {
+  cursor: pointer;
+}
+
+#closeFigure {
+  cursor: pointer;
 }

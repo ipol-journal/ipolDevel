@@ -345,5 +345,19 @@ attatchInpaintingControls = (index, blobSrc, canvas) => {
   $.get("inpainting.html", function (data) {
     $("#inpaintingControls").html(data);
     inpaintingController.init(index, blobSrc, canvas);
+    if (ddl.inputs[index].control != 'mask') {
+      $('#erase-btn').hide();
+    } else {
+      $('#erase-btn').show();
+      $('#erase-btn').click(function () {
+        if ($(this).hasClass('activated')) {
+          $(this).removeClass('activated');
+          context.globalCompositeOperation = 'source-over';
+        } else {
+          $(this).addClass('activated');
+          context.globalCompositeOperation = 'destination-out';
+        }
+      });
+    }
   });
 }
