@@ -16,21 +16,35 @@ inpaintingController.init = async (index, blobSrc, canvasElement) => {
     inpaintingControls[index] = tool;
   } else {
     tool = inpaintingControls[index];
-    tool.draw();
   }
   
   $(canvas).mousedown(canvas_event);
   $(canvas).mousemove(canvas_event);
   $(canvas).mouseup(canvas_event);
-
+  $(canvas).mouseout(canvas_event);
+  
   $('#color-picker').change(setStyle);
   $('#size-selector').change(setStyle);
   $("#closeFigure").change(tool.draw);
+  addEraseEvent();
   
   if (!background) background = await loadImage(blobSrc);
   canvas.height = background.height;
   canvas.width = background.width;
   setStyle();
+  tool.draw();
+}
+
+addEraseEvent = () => {
+  $('#erase-btn').click(function () {
+    if ($(this).hasClass('activated')) {
+      $(this).removeClass('activated');
+      context.globalCompositeOperation = 'source-over';
+    } else {
+      $(this).addClass('activated');
+      context.globalCompositeOperation = 'destination-out';
+    }
+  });
 }
 
 canvas_event = (ev) => {
@@ -77,8 +91,8 @@ tools.mask = function () {
   this.started = false;
   this.lastX = 0;
   this.lastY = 0;
-  let backwardsPoints = [];
-  let forwardsPoints = [];
+  let state = [$('#editor-blob-left')[0].toDataURL()];
+  let idx = 0;
 
   this.mousedown = (ev) => {
     tool.started = true;
@@ -99,6 +113,14 @@ tools.mask = function () {
     }
   }
 
+  this.mouseout = (ev) => {
+    if (tool.started) {
+      tool.mousemove(ev);
+      tool.started = false;
+      tool.push();
+    }
+  }
+
   this.drawStroke = (x, y, started) => {
     if (started) {
       context.beginPath();
@@ -111,31 +133,28 @@ tools.mask = function () {
   }
 
   this.push = () => {
-    forwardsPoints.length = 0;
-    backwardsPoints.push($('#editor-blob-left')[0].toDataURL());
+    if (state.length > idx + 1) state.splice(idx + 1);
+    idx++;
+    state.push($('#editor-blob-left')[0].toDataURL());
   }
 
   this.undo = () => {
-    if (backwardsPoints.length > 1) {
-      var lastPoint = backwardsPoints.pop();
-      if (backwardsPoints.slice(-1)[0]) {
-        tool.draw();
-      }
-      forwardsPoints.push(lastPoint);
+    if (idx > 0) {
+      idx--;
+      tool.draw();
     }
   }
 
   this.redo = () => {
-    if (forwardsPoints.length > 0) {
-      backwardsPoints.push(forwardsPoints.pop());
+    if (state[idx + 1]) {
+      idx++;
       tool.draw();
     }
   }
 
   this.draw = () => {
     var canvasPic = new Image();
-    if (backwardsPoints.length > 0) 
-      canvasPic.src = backwardsPoints[backwardsPoints.length - 1];
+    canvasPic.src = state[idx];
     canvasPic.onload = function() {
       resetCanvas();
       context.drawImage(canvasPic, 0, 0);
@@ -148,9 +167,8 @@ tools.mask = function () {
   }
 
   this.clear = ev => {
-    backwardsPoints.length = 0;
-    forwardsPoints.length = 0;
     resetCanvas();
+    tool.push();
   }
 };
 
@@ -158,7 +176,7 @@ tools.lines = function () {
   var tool = this;
   let backwardsPoints = [];
   let forwardsPoints = [];
-  
+  let history = [];
   this.mousedown = (ev) => {
     backwardsPoints.push([ev._x, ev._y]);
     tool.draw();
@@ -193,6 +211,7 @@ tools.lines = function () {
       var firstPoint = backwardsPoints[0];
       context.lineTo(firstPoint[0], firstPoint[1]);
     }
+    console.log(backwardsPoints);
     context.stroke();
   }
 
@@ -209,6 +228,7 @@ tools.lines = function () {
   this.push = () => {}
   this.mousemove = ev => {}
   this.mouseup = ev => {}
+  this.mouseout = ev => {}
 };
 
 tools.dots = function () {
@@ -261,6 +281,7 @@ tools.dots = function () {
   this.push = ev => {}
   this.mousemove = ev => {}
   this.mouseup = ev => {}
+  this.mouseout = ev => {}
 };
 
 function dataURLtoBlob(dataURI) {

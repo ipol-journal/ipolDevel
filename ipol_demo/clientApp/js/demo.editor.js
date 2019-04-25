@@ -41,7 +41,7 @@ function printEditorPanel() {
   $("#right-container").attachDragger("right");
 }
 
-function displayImagesControls(blobs, blob){
+function displayImagesControls(blobs, blob) {
   $("#zoom-container").removeClass("di-none");
   if (blobs.length > 1) loadMultiBlobControls();
   else if (blobs.length == 1 && ((blob.format == "image" && !isTiff(blob)) || blob.vr)) loadSingleBlobControls($("#editor-blob-left"));
@@ -345,19 +345,13 @@ attatchInpaintingControls = (index, blobSrc, canvas) => {
   $.get("inpainting.html", function (data) {
     $("#inpaintingControls").html(data);
     inpaintingController.init(index, blobSrc, canvas);
-    if (ddl.inputs[index].control != 'mask') {
-      $('#erase-btn').hide();
-    } else {
+    $('#erase-btn').hide();
+    $('#closed-fig-container').hide();
+    if (ddl.inputs[index].control == 'mask') {
       $('#erase-btn').show();
-      $('#erase-btn').click(function () {
-        if ($(this).hasClass('activated')) {
-          $(this).removeClass('activated');
-          context.globalCompositeOperation = 'source-over';
-        } else {
-          $(this).addClass('activated');
-          context.globalCompositeOperation = 'destination-out';
-        }
-      });
+    }
+    if (ddl.inputs[index].control == 'lines') {
+      $('#closed-fig-container').show();
     }
   });
 }
