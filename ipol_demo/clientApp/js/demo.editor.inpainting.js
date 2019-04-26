@@ -28,7 +28,7 @@ inpaintingController.init = async (index, blobSrc, canvasElement) => {
   $("#closeFigure").change(tool.draw);
   addEraseEvent();
   
-  if (!background) background = await loadImage(blobSrc);
+  background = await loadImage(blobSrc);
   canvas.height = background.height;
   canvas.width = background.width;
   setStyle();
@@ -95,6 +95,7 @@ tools.mask = function () {
   let idx = 0;
 
   this.mousedown = (ev) => {
+    if (state.length > idx + 1) state.splice(idx + 1);
     tool.started = true;
     tool.drawStroke(ev._x, ev._y, false);
   }
@@ -133,7 +134,6 @@ tools.mask = function () {
   }
 
   this.push = () => {
-    if (state.length > idx + 1) state.splice(idx + 1);
     idx++;
     state.push($('#editor-blob-left')[0].toDataURL());
   }
@@ -174,55 +174,59 @@ tools.mask = function () {
 
 tools.lines = function () {
   var tool = this;
-  let backwardsPoints = [];
-  let forwardsPoints = [];
-  let history = [];
+  let currentState = [];
+  let state = [currentState.map(x => ([...x]))];
+  let idx = 0;
+
   this.mousedown = (ev) => {
-    backwardsPoints.push([ev._x, ev._y]);
+    if (state.length > idx + 1) {
+      state.splice(idx + 1);
+    }
+    currentState.push([ev._x, ev._y]);
+    if (currentState.length > nDots) {
+      currentState.shift();
+    }
+    state.push(currentState.map(x => ([...x])));
+    idx++;
     tool.draw();
-    forwardsPoints.length = 0;
   }
 
-  this.undo = () => { 
-    if (backwardsPoints.length) {
-      var lastPoint = backwardsPoints.pop();
+  this.undo = () => {
+    if (idx > 0) {
+      idx--;
       tool.draw();
-      forwardsPoints.push(lastPoint);
     }
   }
   
   this.redo = () => {
-    if (forwardsPoints.length > 0) {
-      backwardsPoints.push(forwardsPoints.pop());
+    if (state[idx + 1]) {
+      idx++;
       tool.draw();
     }
   }
 
   this.draw = () => {
+    if (state[idx]) currentState = state[idx].map(x => ([...x]));
     resetCanvas();
     context.beginPath();
-    if (backwardsPoints.length > nDots) {
-      backwardsPoints.shift();
-    }
-    for (const point of backwardsPoints) {
+    for (const point of currentState) {
       context.lineTo(point[0], point[1]);
     }
-    if ($("#closeFigure").prop('checked') && backwardsPoints[0]) {
-      var firstPoint = backwardsPoints[0];
+    if ($("#closeFigure").prop('checked') && currentState[0]) {
+      var firstPoint = currentState[0];
       context.lineTo(firstPoint[0], firstPoint[1]);
     }
-    console.log(backwardsPoints);
     context.stroke();
   }
 
   this.clear = ev => {
-    backwardsPoints.length = 0;
-    forwardsPoints.length = 0;
+    state.push([]);
+    idx++;
     resetCanvas();
   }
 
   this.getData = index => {
-    return backwardsPoints.slice(backwardsPoints.length - nDots, backwardsPoints.length);
+    return state.slice(state.length - nDots, state.length);
   }
 
   this.push = () => {}
