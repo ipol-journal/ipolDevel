@@ -220,8 +220,12 @@ tools.lines = function () {
   }
 
   this.clear = ev => {
+    if (state.length > idx + 1) {
+      state.splice(idx + 1);
+    }
     state.push([]);
     idx++;
+    currentState = state[idx].map(x => ([...x]));
     resetCanvas();
   }
 
@@ -237,35 +241,42 @@ tools.lines = function () {
 
 tools.dots = function () {
   var tool = this;
-  let backwardsPoints = [];
-  let forwardsPoints = [];
+  let currentState = [];
+  let state = [currentState.map(x => ([...x]))];
+  let idx = 0;
 
   this.mousedown = (ev) => {
-    if (backwardsPoints.length >= nDots) backwardsPoints.shift();
-    backwardsPoints.push([ev._x, ev._y]);
+    if (state.length > idx + 1) {
+      state.splice(idx + 1);
+    }
+    currentState.push([ev._x, ev._y]);
+    if (currentState.length > nDots) {
+      currentState.shift();
+    }
+    state.push(currentState.map(x => ([...x])));
+    idx++;
     tool.draw();
-    forwardsPoints.length = 0;
   }
 
   this.undo = () => {
-    if (backwardsPoints.length) {
-      var lastPoint = backwardsPoints.pop();
+    if (idx > 0) {
+      idx--;
       tool.draw();
-      forwardsPoints.push(lastPoint);
     }
   }
 
   this.redo = () => {
-    if (forwardsPoints.length > 0) {
-      backwardsPoints.push(forwardsPoints.pop());
+    if (state[idx + 1]) {
+      idx++;
       tool.draw();
     }
   }
 
   this.draw = () => {
+    if (state[idx]) currentState = state[idx].map(x => ([...x]));
     resetCanvas();
     context.beginPath();
-    for (const point of backwardsPoints) {
+    for (const point of currentState) {
       context.moveTo(point[0], point[1]);
       context.lineTo(point[0], point[1]);
     }
@@ -273,13 +284,17 @@ tools.dots = function () {
   }
 
   this.clear = ev => {
-    backwardsPoints.length = 0;
-    forwardsPoints.length = 0;
+    if (state.length > idx + 1) {
+      state.splice(idx + 1);
+    }
+    state.push([]);
+    idx++;
+    currentState = state[idx].map(x => ([...x]));
     resetCanvas();
   }
 
   this.getData = index => {
-    return backwardsPoints.slice(backwardsPoints.length - nDots, backwardsPoints.length);
+    return currentState.slice(currentState.length - nDots, currentState.length);
   }
 
   this.push = ev => {}
