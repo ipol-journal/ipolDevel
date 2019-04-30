@@ -162,8 +162,7 @@ tools.mask = function () {
   }
 
   this.getData = () => {
-    let dataURL = canvas.toDataURL();
-    return dataURLtoBlob(dataURL);
+    return dataURLtoBlob(state[idx]);
   }
 
   this.clear = ev => {
@@ -230,7 +229,7 @@ tools.lines = function () {
   }
 
   this.getData = index => {
-    return state.slice(state.length - nDots, state.length);
+    return state[idx];
   }
 
   this.push = () => {}
@@ -294,7 +293,7 @@ tools.dots = function () {
   }
 
   this.getData = index => {
-    return currentState.slice(currentState.length - nDots, currentState.length);
+    return state[idx];
   }
 
   this.push = ev => {}
