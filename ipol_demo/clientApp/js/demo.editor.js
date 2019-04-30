@@ -20,6 +20,8 @@ editor.printEditor = function(crop) {
 };
 
 function printEditorPanel() {
+  let inpaintingIsUsed = ddl.inputs.filter(input => { return input.control }).length > 0;
+  inpaintingControls = [];
   $(".editor-container").removeClass("di-none");
   var blobs = Object.keys(editorBlobs);
 
@@ -28,7 +30,7 @@ function printEditorPanel() {
   $("#left-container").printEditorBlob(blobs[0], "left");
   $("#right-container").printEditorBlob(blobs[0], "right");
 
-  if (areAllImages()) displayImagesControls(blobs, editorBlobs[blobs[0]])
+  if (areAllImages() && !inpaintingIsUsed) displayImagesControls(blobs, editorBlobs[blobs[0]])
 
   saveSelectedInput("right", blobs[0]);
   saveSelectedInput("left", blobs[0]);
@@ -37,8 +39,8 @@ function printEditorPanel() {
 
   scrollController.addScrollingEvents();
 
-  $("#left-container").attachDragger("left");
-  $("#right-container").attachDragger("right");
+  if (!inpaintingIsUsed) $("#left-container").attachDragger("left");
+  if (!inpaintingIsUsed) $("#right-container").attachDragger("right");
 }
 
 function displayImagesControls(blobs, blob) {
