@@ -561,10 +561,10 @@ class Blobs(object):
         data = {"status": "KO"}
         conn = None
         try:
-            # Validate demo_id 
+            # Validate demo_id
             try:
                 demo_id = int(demo_id)
-            except(TypeError, ValueError) as ex: 
+            except(TypeError, ValueError) as ex:
                 return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
 
             conn = lite.connect(self.database_file)
@@ -903,7 +903,7 @@ class Blobs(object):
                 else:
                     self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                     return res
-                
+
                 for blob in blobs:
                     if ref_count[blob["id"]] == 1:
                         database.remove_blob(conn, blob['id'])
@@ -1121,7 +1121,7 @@ class Blobs(object):
 
             if blob_vr:
                 self.delete_vr_from_blob(blob_id)
-                
+
                 _, vr_ext = self.get_format_and_extension(self.get_blob_mime(blob_vr.file))
 
                 blob_file = self.copy_blob(blob_vr.file, blob_hash, vr_ext, self.vr_dir)

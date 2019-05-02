@@ -28,7 +28,6 @@ import socket
 import sys
 from collections import OrderedDict
 from math import ceil
-from sqlite3 import IntegrityError
 
 import cherrypy
 import magic
@@ -109,7 +108,7 @@ class DemoInfo():
         self.mkdir_p(self.dl_extras_dir)
         self.config_common_dir = cherrypy.config.get("config_common_dir")
 
-        
+
 
         # Security: authorized IPs
         self.authorized_patterns = self.read_authorized_patterns()
@@ -254,16 +253,16 @@ class DemoInfo():
         """
         demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
         demoextras_file = glob.glob(demoextras_folder+"/*")
-        
+
         if not demoextras_file:
             return None
 
         demoextras_name = os.path.basename(demoextras_file[0])
         return "http://{}/api/demoinfo/{}/{}/{}".format(
-          socket.getfqdn(),
-          self.dl_extras_dir,
-          demo_id,
-          demoextras_name)
+            socket.getfqdn(),
+            self.dl_extras_dir,
+            demo_id,
+            demoextras_name)
 
 
     @cherrypy.expose
@@ -792,7 +791,7 @@ class DemoInfo():
 
             data["status"] = "OK"
 
-        except IntegrityError as ex:
+        except lite.IntegrityError as ex:
             if conn is not None:
                 conn.close()
             data['error'] = str(ex)
@@ -1114,7 +1113,7 @@ class DemoInfo():
             data["status"] = "OK"
             data["authorid"] = the_id
 
-        except IntegrityError as ex:
+        except lite.IntegrityError as ex:
             print(ex)
             data['error'] = str(ex)
             if conn is not None:
@@ -1484,7 +1483,7 @@ class DemoInfo():
             data["status"] = "OK"
             data["editorid"] = the_id
 
-        except IntegrityError as ex:
+        except lite.IntegrityError as ex:
             print(ex)
             data['error'] = str(ex)
             if conn is not None:
@@ -1684,10 +1683,10 @@ class DemoInfo():
         Read the DDL of the specified demo without unneeded or private fields. Used by the website interface.
         """
         try:
-            # Validate demo_id 
+            # Validate demo_id
             try:
                 demo_id = int(demo_id)
-            except(TypeError, ValueError) as ex: 
+            except(TypeError, ValueError) as ex:
                 return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
 
             ddl = self.get_stored_ddl(demo_id)
@@ -1754,10 +1753,10 @@ class DemoInfo():
         Reads the current DDL of the demo
         """
         try:
-            # Validate demo_id 
+            # Validate demo_id
             try:
                 demo_id = int(demo_id)
-            except(TypeError, ValueError) as ex: 
+            except(TypeError, ValueError) as ex:
                 return json.dumps({'status': 'KO', 'error': "Invalid demo_id: {}".format(demo_id)}).encode()
 
             ddl = self.get_stored_ddl(demo_id)

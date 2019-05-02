@@ -434,7 +434,7 @@ class Archive():
             conn = lite.connect(self.database_file)
             id_experiment = Archive.update_exp_table(conn, demo_id, parameters, execution)
             data["id_experiment"] = id_experiment
-            dict_corresp = {}
+            dict_corresp = []
             dict_corresp = self.update_blob(conn, blobs, copied_files_list)
             Archive.update_correspondence_table(conn, id_experiment, dict_corresp)
             conn.commit()
@@ -479,7 +479,7 @@ class Archive():
             row = cursor_db.fetchone()
             data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
             conn.close()
-        except Exception as ex:
+        except Exception:
             data["status"] = "KO"
             self.logger.exception("Error getting experiment #{}".format(experiment_id))
 
@@ -645,7 +645,7 @@ class Archive():
 
             conn.close()
 
-        except Exception as ex:
+        except Exception:
             data["status"] = "KO"
             self.logger.exception("Error getting page #{} from demo #{}".format(demo_id, page))
             try:
@@ -735,13 +735,13 @@ class Archive():
                 conn.close()
                 status["status"] = "OK"
 
-        except Exception as ex:
+        except Exception:
             self.logger.exception("Error deleting experiment #{}".format(experiment_id))
             print(traceback.format_exc())
             try:
                 conn.rollback()
                 conn.close()
-            except Exception as ex:
+            except Exception:
                 pass
 
         return json.dumps(status).encode()
@@ -774,12 +774,12 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.commit()
             conn.close()
             status["status"] = "OK"
-        except Exception as ex:
+        except Exception:
             self.logger.exception("Error deleting experiment with dependencies #{}".format(id_blob))
             try:
                 conn.rollback()
                 conn.close()
-            except Exception as ex:
+            except Exception:
                 pass
         return json.dumps(status).encode()
 
@@ -803,7 +803,7 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
         try:
             cherrypy.engine.exit()
             data["status"] = "OK"
-        except Exception as ex:
+        except Exception:
             self.logger.exception("Error: module shutdown")
         return json.dumps(data).encode()
 
@@ -915,12 +915,12 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
             conn.close()
             status["status"] = "OK"
 
-        except Exception as ex:
+        except Exception:
             self.logger.exception("Error deleting demo #{}".format(demo_id))
             try:
                 conn.rollback()
                 conn.close()
-            except Exception as ex:
+            except Exception:
                 pass
 
         return json.dumps(status).encode()

@@ -240,7 +240,7 @@ class Conversion(object):
                 self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir)
-        except (IOError, RuntimeError) as ex:
+        except RuntimeError as ex:
             self.logger.exception(ex)
             message = "Input #{}. {}: {}".format(i, type(ex).__name__, str(ex))
             return self.make_KO_response(message, work_dir)
@@ -489,7 +489,7 @@ class ConverterMaxPixels(ConverterImage):
 
     def __init__(self, input_desc, im):
         super(ConverterMaxPixels, self).__init__(input_desc, im)
-        self.max_pixels = int(evaluate(input_desc.get('max_pixels'))) 
+        self.max_pixels = int(evaluate(input_desc.get('max_pixels')))
 
     def information_loss(self):
         return self.im.width() * self.im.height() > self.max_pixels

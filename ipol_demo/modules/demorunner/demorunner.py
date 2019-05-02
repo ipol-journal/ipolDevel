@@ -26,7 +26,6 @@ from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
-from pip._internal import main as pipmain
 
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
@@ -364,7 +363,7 @@ class DemoRunner(object):
                     os.chdir(src_dir)
                     # Extract source code
                     build.extract(tgz_file, src_dir)
-                    
+
                     # Create virtualenv if specified by DDL
                     if "virtualenv" in build_item:
                         self.create_venv(build_item, bin_dir, src_dir)
@@ -412,6 +411,9 @@ format(path_from))
 
     @staticmethod
     def any_extraction_needed(ddl_builds, dl_dir):
+        """
+        Check if binaries should be extracted
+        """
         for build_item in list(ddl_builds.values()):
             url = build_item.get('url')
             if not url:
@@ -507,7 +509,7 @@ format(str(ex), str(ddl_build))
             data = {}
             data['status'] = 'KO'
             data['message'] = "Construct failed. File not found. {}".format(str(ex))
-        
+
         except IPOLConstructVirtualenvError as ex:
             data = {}
             data['status'] = 'KO'
@@ -588,13 +590,13 @@ format(str(ex), str(ddl_build))
     @staticmethod
     def create_venv(build_item, bin_dir, src_dir):
         """
-        Create a virtualEnv and install the requirements specified within the source code 
+        Create a virtualEnv and install the requirements specified within the source code
         """
         packages_file = build_item["virtualenv"]
         venv_path = os.path.join(bin_dir, "venv")
         pip_bin = os.path.join(venv_path, "bin/pip")
         virtualenv.create_environment(venv_path)
-        
+
         cmd = [pip_bin, "install", "-r", os.path.join(src_dir, packages_file)]
         cmd = shlex.split(" ".join(cmd))
         install_proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -606,7 +608,7 @@ format(str(ex), str(ddl_build))
     # ---------------------------------------------------------------------------
     # Algorithm runner
     # ---------------------------------------------------------------------------
-    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data, timeout, virtualenv=None):
+    def run_algo(self, demo_id, work_dir, bin_path, ddl_run, params, res_data, timeout):
         """
         the core algo runner
         """
@@ -661,7 +663,7 @@ format(str(ex), str(ddl_build))
         return content
 
     @cherrypy.expose
-    def exec_and_wait(self, demo_id, key, params, ddl_run, virtualenv=None, timeout=60):
+    def exec_and_wait(self, demo_id, key, params, ddl_run, timeout=60):
         '''
         Run the algorithm
         '''
@@ -699,7 +701,7 @@ format(str(ex), str(ddl_build))
             code = self.run_algo(demo_id, work_dir, \
                                  path_with_the_binaries, \
                                  ddl_run, params, res_data, \
-                                 timeout, virtualenv=virtualenv)
+                                 timeout)
 
             if code == -1: # Bad run syntax
                 self.write_log("exec_and_wait", "Bad run syntax, demo_id={}".format(demo_id))

@@ -316,7 +316,7 @@ class Core():
                     error_message = "No response from DR='{}'".format(dr_name)
                     self.error_log("demorunners_workload", error_message)
                     continue
-                    
+
                 if not resp.ok:
                     error_message = "Bad post response from DR='{}'".format(dr_name)
                     self.error_log("demorunners_workload", error_message)
@@ -502,7 +502,8 @@ class Core():
         if input_ext != ext:
             os.rename(filename, input_first_part + ext)
 
-    def process_input_image(self, filename, work_dir, input_desc, crop_info):
+    @staticmethod
+    def process_input_image(filename, work_dir, input_desc, crop_info):
         '''
         Process input of type 'image'
         '''
@@ -523,7 +524,7 @@ class Core():
         max_pixels = evaluate(input_desc['max_pixels'])
         size_ok = (im.height() * im.width()) <= max_pixels
         format_ok = mimetypes.guess_type(filename)[0] == mimetypes.guess_type("dummy" + ext)[0]
-        new_channels, new_depth = ddl_mode.split("x") 
+        new_channels, new_depth = ddl_mode.split("x")
         np.dtype(Image.DEPTH_DTYPE[new_depth])
         depth_ok = new_depth == im.data.dtype
         channels_ok = new_channels == im.get_channels()
@@ -556,14 +557,14 @@ class Core():
         # Set the mode
         if not depth_ok:
             im.convert_depth(new_depth)
-        if not channels_ok:        
+        if not channels_ok:
             im.convert_channels(new_channels)
 
         # resize if the (eventually) cropped image is too big
         if max_pixels and (im.width() * im.height()) > max_pixels:
             scaling_factor = max_pixels / (im.width() * im.height())
-            dst_width = np.floor(math.sqrt(scaling_factor) * im.width())
-            dst_height = np.floor(math.sqrt(scaling_factor) * im.height())
+            dst_width = np.floor(np.sqrt(scaling_factor) * im.width())
+            dst_height = np.floor(np.sqrt(scaling_factor) * im.height())
             im.resize(width=dst_width, height=dst_height)
 
         # Finally, save the processed image
@@ -608,10 +609,10 @@ class Core():
         ddl_input is the input section of the demo description
         """
         nb_inputs = len(inputs_desc)
-        
+
         for i in range(nb_inputs):
             file_up = blobs.pop('file_%i' % i, None)
-            
+
             if file_up is None or file_up.filename == '':
                 if 'required' not in list(inputs_desc[i].keys()) or \
                         inputs_desc[i]['required']:
@@ -702,16 +703,17 @@ class Core():
             blobs_id_list = blobs['id_blobs']
             self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
 
-    def copy_inpainting_data(self, work_dir, blobs, ddl_inputs):
+    @staticmethod
+    def copy_inpainting_data(work_dir, blobs, ddl_inputs):
         """
-        Copy the existing input inpainting data to the execution folder. 
+        Copy the existing input inpainting data to the execution folder.
         """
         for i, ddl_input in enumerate(ddl_inputs):
             if 'inpainting_data_' + str(i) in blobs:
-                self.copy_data(
-                    work_dir, blobs['inpainting_data_' + str(i)], i, ddl_input)
+                Core.copy_data(work_dir, blobs['inpainting_data_' + str(i)], i, ddl_input)
 
-    def copy_data(self, work_dir, blob_data, input_index, ddl_input):
+    @staticmethod
+    def copy_data(work_dir, blob_data, input_index, ddl_input):
         """
         Copy data to work directory
         """
@@ -1206,7 +1208,8 @@ attached the failed experiment data.". \
         subject = '[IPOL Core] Not suitable DR'
         self.send_email(subject, text, emails, config_emails['sender'])
 
-    def decode_interface_request(self, interface_arguments):
+    @staticmethod
+    def decode_interface_request(interface_arguments):
         """
         Decode the arguments and extract the files send by the web interface
         """
@@ -1219,7 +1222,7 @@ attached the failed experiment data.". \
 
         blobs = {}
         if origin == 'upload':
-            for key,value in interface_arguments.items():
+            for key, value in interface_arguments.items():
                 if key.startswith('file_'):
                     fname = key
                     blobs[fname] = value
