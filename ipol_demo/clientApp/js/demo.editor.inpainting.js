@@ -33,6 +33,7 @@ inpaintingController.init = async (index, blobSrc, canvasElement) => {
   canvas.width = background.width;
   setStyle();
   tool.draw();
+  adjustZoom();
 }
 
 addEraseEvent = () => {
@@ -48,12 +49,13 @@ addEraseEvent = () => {
 }
 
 canvas_event = (ev) => {
+  let zoomValue = $("#editor-zoom").val();
   if (ev.layerX || ev.layerX == 0) { // Firefox
-    ev._x = ev.layerX;
-    ev._y = ev.layerY;
+    ev._x = ev.layerX / zoomValue;
+    ev._y = ev.layerY / zoomValue;
   } else if (ev.offsetX || ev.offsetX == 0) { // Chrome Opera
-    ev._x = ev.offsetX;
-    ev._y = ev.offsetY;
+    ev._x = ev.offsetX / zoomValue;
+    ev._y = ev.offsetY / zoomValue;
   }
 
   // Call the event handler of the tool.
@@ -84,6 +86,14 @@ function resetCanvas() {
   // Use the identity matrix while clearing the canvas
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function adjustZoom() {
+  let zoomValue = $("#editor-zoom").val();
+  let canvasElement = $("#editor-blob-left");
+  let zoomWidth = canvasElement[0].width * zoomValue;
+  let zoomHeight = canvasElement[0].height * zoomValue;
+  canvasElement.css({ 'width': zoomWidth, 'height': zoomHeight });
 }
 
 tools.mask = function () {
