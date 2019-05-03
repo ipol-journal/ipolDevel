@@ -30,7 +30,8 @@ function printEditorPanel() {
   $("#left-container").printEditorBlob(blobs[0], "left");
   $("#right-container").printEditorBlob(blobs[0], "right");
 
-  if (areAllImages() && !inpaintingIsUsed) displayImagesControls(blobs, editorBlobs[blobs[0]])
+  if (inpaintingIsUsed) zoomController.inpaintingBlob();
+  else if (areAllImages()) displayImagesControls(blobs, editorBlobs[blobs[0]])
 
   saveSelectedInput("right", blobs[0]);
   saveSelectedInput("left", blobs[0]);

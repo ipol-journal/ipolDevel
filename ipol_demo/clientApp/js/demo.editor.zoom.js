@@ -28,6 +28,22 @@ zoomController.multiBlob = function() {
   });
 }
 
+zoomController.inpaintingBlob = () => {
+  $("#zoom-container").removeClass("di-none");
+  $("#editor-zoom").on('change input', function () {
+    let zoomValue = $("#editor-zoom").val();
+    let selector = "#canvas-container > canvas, .blobEditorImage";
+    helpers.checkInterpolation(zoomValue, selector);
+
+    let element = $("#editor-blob-left");
+    $("#editor-zoom-value").html(zoomValue + "x");
+    if (element[0].height || element[0].width) {
+      sideWidth = element[0].width * zoomValue;
+      sideHeight = element[0].height * zoomValue;
+      $("#editor-blob-left").css({ 'width': sideWidth, 'height': sideHeight });
+    }
+  });
+}
 // Change zoom value for editor images
 zoomController.changeImageZoom = function(side) {
   var zoomValue = $("#editor-zoom").val();
