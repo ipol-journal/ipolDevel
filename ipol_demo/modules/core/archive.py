@@ -23,7 +23,7 @@ def create_thumbnail(src_file):
     thumb_height = 128
     if not os.path.exists(src_file):
         return False
-    thumb_name, _ = os.path.splitext(os.path.basename(src_file))
+    thumb_name = os.path.basename(src_file).replace(".", "_")
     thumb_name = thumb_name.lower() + '_thumbnail.jpeg'
     thumb_file = os.path.join(os.path.dirname(src_file), thumb_name)
     try:
@@ -61,6 +61,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
                     file_label = file_name
                 value = {file_label: src_file}
                 try: # to get a thumbnail
+                    print(src_file)
                     thumb_file = create_thumbnail(src_file)
                 except Exception:
                     print(traceback.format_exc())
