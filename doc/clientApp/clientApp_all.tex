@@ -40,6 +40,11 @@ the chosen blobs where there is a zoom and crop functions when the sets have one
 one blob per set, the user will have the possibility to compare them with the corresponding 'Compare button', but not a crop 
 an area.
 
+\subsubsection{Inpainting controls}
+When an inpainting control is specified in the DDL, the appropriate controls will appear under the blob list, adding the hability to draw on top of the blob. 
+
+The behaviour will depend on the type of control specified. The mask control will allow for free drawing inside the blob canvas, color change and an eraser tool, resulting in a mask image. The dots and lines controls will result in a text file containing every drawn point on the canvas with the only difference being the interface appearance in the drawing canvas. 
+
 \subsection{Parameters}
 This module renders the parameters of the demo described in the DDL after the user chooses blobs to use with the demo. 
 Parameters have as many types DDL specifies, so the interface renders each type accordingly.
