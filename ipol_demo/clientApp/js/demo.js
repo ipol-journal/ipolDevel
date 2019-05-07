@@ -5,10 +5,6 @@ var demo_id, ddl, experiment, work_url, files = [];
 $(document).ready(function() {
   demo_id = getParameterFromURL('id');
 
-  // Workaround: use the old interface only for inpainting demos
-  if ($.inArray(parseInt(demo_id), [189, 198, 228, 333330030001]) != -1)
-    window.location = "/demo/clientAppOld/demo.html?id=" + demo_id; // Move to the old interface
-
   var demo_id_is_number = (/^\d+$/.test(demo_id));
   if (demo_id_is_number) {
     $("#header").load("header.html");
@@ -35,7 +31,7 @@ window.onpopstate = function() {
     $('.results').addClass('di-none');
     $('.results-container').empty();
   }
-}
+} 
 
 function getBlobSets() {
   helpers.getFromAPI("/api/blobs/get_blobs?demo_id=" + demo_id, function(blobs) {
