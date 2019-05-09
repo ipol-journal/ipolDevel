@@ -59,7 +59,7 @@ $.fn.file_download = function (result, index) {
       var file = eval(result.contents);
       $('.file_download_content_' + index).append('<div class=download_' + index + '_' + idx + ' ></div>');
       $('.download_' + index + '_' + idx).addClass('file_download');
-      $('.download_' + index + '_' + idx).append('<a href=' + getFileURL(file) + ' download><img src=./assets/file.svg class=file-icon >' + eval(result.label) + '</a>')
+      $('.download_' + index + '_' + idx).append('<a href=' + getFileURL(file) + ' download=' + file + ' ><img src=./assets/file.svg class=file-icon >' + eval(result.label) + '</a>')
     }
   } else {
     $(this).append('<h4>' + result.label + '</h4>');
@@ -69,13 +69,13 @@ $.fn.file_download = function (result, index) {
     if (typeof result.contents == "string") {
       $('.file_download_content_' + index).append('<div class=download_' + index + ' ></div>');
       $('.download_' + index).addClass('file_download');
-      $('.download_' + index).append('<a href=' + getFileURL(result.contents) + ' download><img src=./assets/file.svg class=file-icon >' + result.contents + '</a>')
+      $('.download_' + index).append('<a href=' + getFileURL(result.contents) + ' download=' + result.contents + ' ><img src=./assets/file.svg class=file-icon >' + result.contents + '</a>')
     } else {
       var contentKeys = Object.keys(result.contents);
       for (let i = 0; i < contentKeys.length; i++) {
         $('.file_download_content_' + index).append('<div class=download_' + index + '_' + i + ' ></div>');
         $('.download_' + index + '_' + i).addClass('file_download');
-        $('.download_' + index + '_' + i).append('<a href=' + getFileURL(result.contents[contentKeys[i]]) + ' download><img src=./assets/file.svg class=file-icon >' + contentKeys[i] + '</a>')
+        $('.download_' + index + '_' + i).append('<a href=' + getFileURL(result.contents[contentKeys[i]]) + ' download=' + result.contents[contentKeys[i]] + ' ><img src=./assets/file.svg class=file-icon >' + contentKeys[i] + '</a>')
       }
     }
   }
