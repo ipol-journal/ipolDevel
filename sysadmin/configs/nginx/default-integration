@@ -128,6 +128,13 @@ server {
 		proxy_pass   http://$host:8080;
 	}
 	
+	# shared_folder, run static data
+	location /api/core/shared_folder/run/ {
+		expires 24h;
+		add_header 'Access-Control-Allow-Origin' '*';
+		add_header 'Access-Control-Allow-Methods' 'GET';
+		alias  /home/ipol/ipolDevel/shared_folder/run/;
+	}
 
         # BLOBS
         location /api/blobs/ {
