@@ -29,6 +29,7 @@ parameters.printParameters = function() {
 }
 
 function displayParametersDescription() {
+  $('.parameters-description').remove();
   $('#parameters-container').append(
     '<div class=parameters-description></div>');
   
