@@ -150,7 +150,7 @@ async function setFiles(request){
     
   fetched_files = await Promise.all(fetched_files)
   for (let [i, file] of fetched_files.entries())
-    if(file.ok && !file.redirected) blobs[i] = new Promise((resolve) => { resolve(file.blob()); })
+    if(file.ok) blobs[i] = new Promise((resolve) => { resolve(file.blob()); })
   
   blobs = await Promise.all(blobs)
   for (let [i, blob] of blobs.entries()){
