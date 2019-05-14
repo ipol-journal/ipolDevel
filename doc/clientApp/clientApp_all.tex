@@ -41,9 +41,13 @@ one blob per set, the user will have the possibility to compare them with the co
 an area.
 
 \subsubsection{Inpainting controls}
-When an inpainting control is specified in the DDL, the appropriate controls will appear under the blob list, adding the hability to draw on top of the blob. 
+When an inpainting control is specified in the DDL, the appropriate controls will appear under the blob list, adding the hability to draw on top of the blob. The behaviour will depend on the type of control specified. 
 
-The behaviour will depend on the type of control specified. The mask control will allow for free drawing inside the blob canvas, color change and an eraser tool, resulting in a mask image. The dots and lines controls will result in a text file containing every drawn point on the canvas with the only difference being the interface appearance in the drawing canvas. 
+Mask control will enable free drawing on top of the selected blob, color change and an eraser tool and will result in an image containing only the drawn strokes and transparent background.
+
+Dots control will display drawings in the form of dots on the canvas. An option is available to limit the number of allowed drawn dots on the canvas wich when reached will substitute the first drawn point when drawing a new one.
+
+The lines control has the only difference when compared to the dots control,  the way the drawing is displayed on the screen connecting the dots drawn in the canvas, everything else is will remain the same. Additionally this control will allow for the drawn lines to close the drawn figure.
 
 \subsection{Parameters}
 This module renders the parameters of the demo described in the DDL after the user chooses blobs to use with the demo. 
