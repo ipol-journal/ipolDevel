@@ -50,3 +50,15 @@ then
   exit 0
 fi
 \end{verbatim} 
+
+
+\subsection{Inpainting}
+Inpainting controls are available in order to let the user draw on top of blobs. When adding an inpainting control to the inputs of a demo, the core module will create files according to the data the interface sends before actual execution of the demo code. Here's a brief explanation for each kind of control.
+
+\subsubsection{Mask control}
+ For each input the core module will save an image with the name mask\_n.png, where 'n' is the number of the input with said control. This image comes from the client-side inside the run request.
+
+\subsubsection{Dots and lines control}
+The resulting text file will contain one line per coordinate on the image in a file in the execution folder, it will be named inpainting\_data\_n.txt where 'n' is the number of the input with said control.
+
+Lines control will have the same result and processing by the core module as the dots control.
