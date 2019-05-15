@@ -287,7 +287,7 @@ tools.dots = function () {
     context.beginPath();
     for (const point of currentState) {
       context.moveTo(point[0], point[1]);
-      context.lineTo(point[0], point[1]);
+      context.strokeRect(point[0], point[1], context.lineWidth, context.lineWidth);
     }
     context.stroke();
   }
