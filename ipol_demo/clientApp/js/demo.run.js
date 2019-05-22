@@ -70,7 +70,7 @@ function setRunPostData() {
     if ($('#privateSwitch').is(':checked')) clientData.private_mode = true;
     setUploadedFiles();
   } 
-  setInpaintingData();
+  if(ddl.inputs) setInpaintingData();
 
   checkCropper();
   runData.append('clientData', JSON.stringify(clientData));
