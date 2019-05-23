@@ -94,8 +94,6 @@ mailutils
 cron-apt
 bind9
 ipython
-pylint
-pylint3
 net-tools
 wget
 zip

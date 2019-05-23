@@ -1,0 +1,10 @@
+# Modules static folders in build phase
+ipol_demo/modules/*/venv
+ipol_demo/modules/*/staticData
+ipol_demo/modules/*/static
+ipol_demo/modules/*/binaries
+
+.git
+.vscode
+doc
+shared_folder
