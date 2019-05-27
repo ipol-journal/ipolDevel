@@ -116,14 +116,6 @@ server {
         proxy_pass   http://$host:8080;
     }
 
-    # OLD WEB INTERFACE. Remove after the old interface is not used anymore
-    # OK
-    location /demo/clientAppOld/ {
-        expires 24h;
-        alias /home/ipol/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
-    }
-
-
     # CORE
     location /api/core/{
         rewrite ^/api/core/(.*) /$1 break;

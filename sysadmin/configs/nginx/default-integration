@@ -66,12 +66,6 @@ server {
                 resolver 127.0.0.1;
                 alias  /home/ipol/ipolDevel/ipol_demo/clientApp/;
         }
-
-	# Old interface
-        location /demo/clientAppOld/ {
-                expires 1m;
-                alias  /home/ipol/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
-        }
     
 	# Authentication test. user: auth_test , password: auth_test
     	location @authTestPasswd {

@@ -34,12 +34,6 @@ server {
             expires 1s;
         }
 
-        location /demo/clientAppOld/ {
-            alias   /home/$my_user/ipolDevel/ipol_demo/modules/core/static/demo/clientApp/;
-            add_header      Cache-Control private;
-            expires 1s;
-        }
-
 	# DEMOS
 	location /demo/ {
 		# If you want to see the value of a variable, the easiest way is 
@@ -135,7 +129,6 @@ server {
 		# resolver 127.0.0.1;
                 proxy_pass   http://$host:9003;
         }
-
 
 	location /  {
         	return  301 /demo/;
