@@ -61,7 +61,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Conversion(object):
+class Conversion():
     """
     The Conversion module
     """
@@ -203,7 +203,7 @@ class Conversion(object):
                 pattern = os.path.join(work_dir, 'input_{}'.format(i)) + '.*'
                 input_files = glob.glob(pattern)
                 # no file found, is this input optional?
-                if len(input_files) < 1:
+                if not input_files:
                     # optional is said by {"required": False}, absence of required field means: required
                     if not input_desc.get('required', True):
                         del info[i] # input[i] not present but not required, do nothing
@@ -363,7 +363,7 @@ class Conversion(object):
             self.logger.exception(message)
         return json.dumps(data, indent=4).encode()
 
-class ConverterImage(object):
+class ConverterImage():
     """
     Base class for a conversion task
     """
