@@ -411,15 +411,14 @@ class Core():
                                                 reverse=True)
 
             if demos_by_state[publication_state]:
-                demos_string += "<h2><a id='{}'>{}</a></h2>".format(publication_state, publication_state)
+                demos_string += "<h2><a id='{0}'>{0}</a></h2>".format(publication_state)
             #
             for demo_data in demos_by_state[publication_state]:
                 editorsdemoid = str(demo_data['editorsdemoid'])
 
-                demos_string += "Demo #{} {}: <a href='/demo/clientApp/demo.html?id={}' target='_blank'>{}</a><br>".format(
+                demos_string += "Demo #{0} {1}: <a href='/demo/clientApp/demo.html?id={0}' target='_blank'>{2}</a><br>".format(
                     editorsdemoid,
                     "(private)" if editorsdemoid.startswith("33333") else "",
-                    editorsdemoid,
                     demo_data['title'])
 
         string = """
@@ -586,9 +585,8 @@ class Core():
                 if 'required' in inputs_desc[i] and inputs_desc[i]['required']:
                     # problem here
                     raise cherrypy.HTTPError(400, "Wrong number of inputs for an image")
-                else:
-                    # optional input missing, end of inputs
-                    break
+                # optional input missing, end of inputs
+                break
 
             input_filename = input_files[0]
 
@@ -618,9 +616,8 @@ class Core():
                         inputs_desc[i]['required']:
                     # missing file
                     raise IPOLMissingRequiredInputError(i)
-                else:
-                    # skip this input
-                    continue
+                # skip this input
+                continue
 
             mime = magic.Magic(mime=True)
             file_up.file.seek(0)
@@ -810,12 +807,12 @@ class Core():
             content_tar = ar_tar.getnames()
             return ar_tar, content_tar
 
-        elif zipfile.is_zipfile(filename):
+        if zipfile.is_zipfile(filename):
             ar_zip = zipfile.ZipFile(filename)
             content_zip = ar_zip.namelist()
             return ar_zip, content_zip
-        else:
-            raise IPOLExtractError('The file is neither a ZIP nor TAR')
+
+        raise IPOLExtractError('The file is neither a ZIP nor TAR')
 
     def extract(self, filename, target):
         """
@@ -1359,10 +1356,10 @@ attached the failed experiment data.". \
                     error = conversion_info[input_key]['error']
                     error_message = "Input #{}. {}".format(input_key, error)
                     raise IPOLConversionError(error_message)
-                elif conversion_info[input_key]['code'] == 2:# Conversion forbidden
+                if conversion_info[input_key]['code'] == 2:# Conversion forbidden
                     error_message = "Input #{} size too large but conversion forbidden".format(input_key)
                     raise IPOLConversionError(error_message)
-                elif conversion_info[input_key]['code'] == 1:# Conversion done
+                if conversion_info[input_key]['code'] == 1:# Conversion done
                     modifications_str = ', '.join(conversion_info[input_key]['modifications'])
                     message = "Input #{} has been preprocessed {{{}}}.".format(input_key, modifications_str)
                     messages.append(message)
@@ -1996,11 +1993,11 @@ attached the failed experiment data.". \
                 if unresponsive_demorunners:
                     self.send_demorunner_unresponsive_email(unresponsive_demorunners)
                 return dr_name, dr_server
-            else:
-                self.error_log("get_demorunner",
-                               "Module {} unresponsive".format(dr_name))
-                print("Module {} unresponsive".format(dr_name))
-                unresponsive_demorunners.add(dr_name)
+
+            self.error_log("get_demorunner",
+                           "Module {} unresponsive".format(dr_name))
+            print("Module {} unresponsive".format(dr_name))
+            unresponsive_demorunners.add(dr_name)
 
             # At half of the tries wait 5 secs and try again
             if i == len(self.demorunners) - 1:

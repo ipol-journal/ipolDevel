@@ -50,7 +50,7 @@ def send_to_archive(demo_id, work_dir, request, ddl_archive, res_data, host_name
             for i in values:
                 if i in res_data['algo_info']:
                     parameters[values[i]] = res_data['algo_info'][i]
-        elif key == 'files' or key == 'hidden_files':
+        elif key in ('files', 'hidden_files'):
             for file_name, file_label in values.items():
 
                 src_file = os.path.join(work_dir, file_name)

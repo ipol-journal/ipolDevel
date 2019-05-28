@@ -6,41 +6,31 @@ class IPOLDemoExtrasError(Exception):
     """
     IPOLDemoExtrasError
     """
-    pass
-
 
 class IPOLInputUploadError(Exception):
     """
     IPOLInputUploadError
     """
-    pass
 
 class IPOLUploadedInputRejectedError(Exception):
     """
     IPOLUploadedInputRejectedError
     """
-    pass
 
 class IPOLCopyBlobsError(Exception):
     """
     IPOLCopyBlobsError
     """
-    pass
-
 
 class IPOLProcessInputsError(Exception):
     """
     IPOLProcessInputsError
     """
-    pass
-
 
 class IPOLExtractError(Exception):
     """
     IPOLExtractError
     """
-    pass
-
 
 class IPOLInputUploadTooLargeError(Exception):
     """
@@ -51,7 +41,6 @@ class IPOLInputUploadTooLargeError(Exception):
         self.index = index
         self.max_weight = int(max_weight)
 
-
 class IPOLMissingRequiredInputError(Exception):
     """
     IPOLMissingRequiredInputError
@@ -60,56 +49,45 @@ class IPOLMissingRequiredInputError(Exception):
         super(IPOLMissingRequiredInputError, self).__init__()
         self.index = index
 
-
 class IPOLWorkDirError(Exception):
     """
     IPOLWorkDirError
     """
-    pass
 
 class IPOLKeyError(Exception):
     """
     IPOLKeyError
     """
-    pass
-
 
 class IPOLDecodeInterfaceRequestError(Exception):
     """
     IPOLDecodeInterfaceRequestError
     """
-    pass
-
 
 class IPOLReadDDLError(Exception):
     """
     IPOLReadDDLError
     """
-    pass
 
 class IPOLCheckDDLError(Exception):
     """
     IPOLCheckDDLError
     """
-    pass
 
 class IPOLFindSuitableDR(Exception):
     """
     IPOLFindSuitableDR
     """
-    pass
 
 class IPOLEnsureCompilationError(Exception):
     """
     IPOLEnsureCompilationError
     """
-    pass
 
 class IPOLConversionError(Exception):
     """
     IPOLConversionError
     """
-    pass
 
 class IPOLPrepareFolderError(Exception):
     """
