@@ -17,7 +17,7 @@ import sqlite3 as lite
 #  helper clases    #
 #####################
 
-class Demo(object):
+class Demo():
     """
     Class representing a demo.
     """
@@ -54,7 +54,7 @@ class Demo(object):
         return self.__dict__ == other.__dict__
 
 
-class Author(object):
+class Author():
     """
     Object representing an author.
     """
@@ -86,7 +86,7 @@ class Author(object):
         return self.__dict__ == other.__dict__
 
 
-class Editor(object):
+class Editor():
     """
     Object representing an editor.
     """
@@ -118,7 +118,7 @@ class Editor(object):
 #  DAO (data access obj) #
 ##########################
 
-class DemoDescriptionDAO(object):
+class DemoDescriptionDAO():
     """
     DAO for demodescription table.
     """
@@ -135,7 +135,6 @@ class DemoDescriptionDAO(object):
         """
         Destructor.
         """
-        pass
 
     # conn.close()
 
@@ -192,7 +191,7 @@ class DemoDescriptionDAO(object):
         return result
 
 
-class DemoDAO(object):
+class DemoDAO():
     """
     DAO for the demo table.
     """
@@ -209,7 +208,6 @@ class DemoDAO(object):
         """
         Destructor.
         """
-        pass
 
     # conn.close()
 
@@ -311,7 +309,7 @@ class DemoDAO(object):
         return self.cursor.fetchone()[0] == 1
 
 
-class DemoDemoDescriptionDAO(object):
+class DemoDemoDescriptionDAO():
     """
     DAO for the demo_demodescription junction table.
     """
@@ -328,9 +326,6 @@ class DemoDemoDescriptionDAO(object):
         """
         destructor
         """
-        pass
-
-    # conn.close()
 
     def add(self, editorsdemoid, demodescriptionid):
         """
@@ -456,7 +451,7 @@ class DemoDemoDescriptionDAO(object):
         return history
 
 
-class AuthorDAO(object):
+class AuthorDAO():
     """
     DAO for the author table.
     """
@@ -473,9 +468,6 @@ class AuthorDAO(object):
         """
         Destructor.
         """
-        pass
-
-    # conn.close()
 
     def add(self, author):
         """
@@ -547,7 +539,7 @@ class AuthorDAO(object):
         return self.cursor.fetchone()[0] == 1
 
 
-class DemoAuthorDAO(object):
+class DemoAuthorDAO():
     """
     DAO for the author/demo junction table.
     """
@@ -564,9 +556,6 @@ class DemoAuthorDAO(object):
         """
         destructor.
         """
-        pass
-
-    # conn.close()
 
     def add(self, editorsdemoid, authorid):
         """
@@ -697,7 +686,7 @@ class DemoAuthorDAO(object):
         return author_list
 
 
-class EditorDAO(object):
+class EditorDAO():
     """
     DAO for the editor table.
     """
@@ -715,9 +704,6 @@ class EditorDAO(object):
         """
         Destructor.
         """
-        pass
-
-    # conn.close()
 
     def add(self, editor):
         """
@@ -796,7 +782,7 @@ class EditorDAO(object):
         return self.cursor.fetchone()[0] == 1
 
 
-class DemoEditorDAO(object):
+class DemoEditorDAO():
     """
     DAO for the demo_editor junction table.
     """
@@ -813,9 +799,6 @@ class DemoEditorDAO(object):
         """
         destructor.
         """
-        pass
-
-    # conn.close()
 
     def add(self, editorsdemoid, editorid):
         """
