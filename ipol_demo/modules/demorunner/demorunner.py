@@ -27,9 +27,9 @@ from threading import Lock
 
 import cherrypy
 
+import virtualenv
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
-import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -37,25 +37,21 @@ class IPOLMissingBuildItem(Exception):
     """
     IPOLMissingBuildItem
     """
-    pass
 
 class IPOLConstructFileNotFound(Exception):
     """
     IPOLConstructFileNotFound
     """
-    pass
 
 class IPOLUnauthorizedAccess(Exception):
     """
     IPOLUnauthorizedAccess
     """
-    pass
 
 class IPOLConstructVirtualenvError(Exception):
     """
     IPOLConstructVirtualenvError
     """
-    pass
 
 def authenticate(func):
     '''
@@ -91,7 +87,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class DemoRunner(object):
+class DemoRunner():
     """
     This class implements Web services to run IPOL demos
     """

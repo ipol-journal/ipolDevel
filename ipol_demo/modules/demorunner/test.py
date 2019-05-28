@@ -59,7 +59,7 @@ class DemorunnerTests(unittest.TestCase):
     test_demo_extras_file = None
 
     # Demo Runners
-    demorunners = None
+    demorunners = []
 
     #####################
     #       Tests       #
@@ -145,7 +145,7 @@ class DemorunnerTests(unittest.TestCase):
                 ddl_json = json.loads(ddl)
                 build = json.dumps(ddl_json['build'])
                 host = self.demorunners[demorunner].get('server')
-                
+
                 self.post(host, self.module, 'delete_compilation', data={'demo_id': self.demo_id})
                 response = self.ensure_compilation(host, self.demo_id, build)
                 status_list.append(response.get('status'))
