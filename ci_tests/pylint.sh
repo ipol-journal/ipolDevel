@@ -22,7 +22,7 @@ do
     cd ${modulesDir}${module}
     # Lint the module after activating its virtualenv
     source venv/bin/activate
-    pylint3 --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc *.py >> ${report}
+    pylint --rcfile=/home/${me}/ipolDevel/ci_tests/pylintrc *.py >> ${report}
     deactivate
     cd ${cur_dir}
 done
