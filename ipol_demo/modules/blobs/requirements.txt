@@ -9,8 +9,8 @@ opencv-python==3.4.2.17
 portend==2.3
 python-magic==0.4.15
 pytz==2018.5
-requests==2.20.0
+requests==2.22.0
 six==1.11.0
 tempora==1.13
 tifffile==0.15.1
-pylint==2.1.1
+pylint==2.3.1
