@@ -184,7 +184,7 @@ class Archive():
         # Check if the config file exists
         authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
         if not os.path.isfile(authorized_patterns_path):
-            self.error_log("File {} doesn't exist".format(authorized_patterns_path))
+            self.error_log("read_authorized_patterns", "File {} doesn't exist".format(authorized_patterns_path))
             return []
 
         # Read config file
@@ -223,7 +223,7 @@ class Archive():
             if file_info.st_size == 0:
                 print(str(self.database_file) + ' is empty. Removing the file...')
                 try:
-                    self.error_log("Database file was empty")
+                    self.error_log("init_database", "Database file was empty")
                     os.remove(self.database_file)
                 except Exception as ex:
                     message = "Error in init_database. Error = {}".format(ex)
@@ -957,3 +957,10 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
                 conn.close()
 
             return json.dumps(status).encode()
+
+    def error_log(self, function_name, error):
+        """
+        Write an error log in the logs_dir defined in demo.conf
+        """
+        error_string = function_name + ": " + error
+        self.logger.error(error_string)
