@@ -62,7 +62,7 @@ def authenticate(func):
     return authenticate_and_call
 
 
-class Blobs(object):
+class Blobs():
     """
     Blobs module
     """

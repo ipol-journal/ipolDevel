@@ -105,7 +105,7 @@ class BlobsTests(unittest.TestCase):
         try:
             with open(self.blob_path, 'rb') as blob, open(self.blob_path, 'rb') as vr:
                 json_response = self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, tags=self.tag,
-                                                      blob_set=self.blob_set, pos_set=self.pos_in_set, 
+                                                      blob_set=self.blob_set, pos_set=self.pos_in_set,
                                                       title=self.title, blob_vr=vr)
             add_blob_status = json_response.get('status')
 
@@ -351,7 +351,7 @@ class BlobsTests(unittest.TestCase):
         template = None
         try:
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
             self.create_template(self.template_name)
@@ -416,7 +416,7 @@ class BlobsTests(unittest.TestCase):
         template_list = None
         try:
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
             self.create_template(self.template_name)
@@ -443,7 +443,7 @@ class BlobsTests(unittest.TestCase):
         status = None
         try:
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
             response = self.remove_template_from_demo(self.demo_id, self.template_name)
@@ -487,7 +487,7 @@ class BlobsTests(unittest.TestCase):
         new_pos_in_set = self.pos_in_set + 1
         try:
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set, 
+                self.add_blob_to_demo(blob=blob, demo_id=self.demo_id, blob_set=self.blob_set,
                                       pos_set=self.pos_in_set, title=self.title)
 
             response = self.edit_blob_from_demo(demo_id=self.demo_id, tags=self.tag, blob_set=self.blob_set,
@@ -549,7 +549,7 @@ class BlobsTests(unittest.TestCase):
             self.create_template(self.template_name)
 
             with open(self.blob_path, 'rb') as blob:
-                self.add_blob_to_template(blob=blob, template_name=self.template_name, 
+                self.add_blob_to_template(blob=blob, template_name=self.template_name,
                                           blob_set=self.blob_set, pos_set=self.pos_in_set, title=self.title)
 
             response = self.edit_blob_from_template(template_name=self.template_name, tags=self.tag,

@@ -898,9 +898,7 @@ def get_demo_id(conn, demo_id):
             FROM demos
             WHERE editor_demo_id = ?
         """, (demo_id,))
-        id = cursor.fetchone()[0]
-        if id:
-            return id
+        return cursor.fetchone()[0]
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
 
@@ -916,8 +914,6 @@ def get_template_id(conn, template_name):
             FROM templates
             WHERE name = ?
         """, (template_name,))
-        id = cursor.fetchone()[0]
-        if id:
-            return id
+        return cursor.fetchone()[0]
     except Exception as ex:
         raise IPOLBlobsDataBaseError(ex)
