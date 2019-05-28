@@ -312,8 +312,6 @@ class Policy():
         """
         Abstract method to choose a DemoRunner that matches the requirements
         """
-        pass
-
 
 class RandomPolicy(Policy):
     """
