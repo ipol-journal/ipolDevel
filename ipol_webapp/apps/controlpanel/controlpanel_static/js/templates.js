@@ -4,8 +4,8 @@ function deleteTemplate(url, name){
        var values = {
             'name': name,
         }
-        $.post(url, values, 'json');
-        window.location.reload();
+        $.post(url, values, 'json')
+            .always(() => { window.location.reload() });
     }
 }
 
@@ -14,7 +14,7 @@ function createTemplate(url){
    var values = {
         'name': name,
     }
-    $.post(url, values, 'json');
-    window.location.reload();
+    $.post(url, values, 'json')
+        .always(() => { window.location.reload() });
 }
 
