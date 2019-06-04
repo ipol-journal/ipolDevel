@@ -24,6 +24,7 @@ class IntegrationTests(unittest.TestCase):
 
     blob_set_name = 'set'
     blob_pos_in_set = 0
+    blobset_id = 0
 
     # Demo info
     demo_id = -1
@@ -80,10 +81,9 @@ class IntegrationTests(unittest.TestCase):
 
                 # Get the blob id
                 blob_id = self.get_blob_id(self.demo_id, self.blob_pos_in_set)
-
                 # Run the demo with the uploaded image
                 blob_image = Image.open(blob.name)
-            response = self.run_demo_with_blobset(self.demo_id, blob_image, blob_id)
+            response = self.run_demo_with_blobset(self.demo_id, blob_image, blob_id, self.blobset_id)
             run_status = response.get('status')
 
             # Delete demo in Demoinfo and Blobs
@@ -231,7 +231,7 @@ class IntegrationTests(unittest.TestCase):
         if json_response.get('status') == 'OK':
             return json_response['sets'][0]['blobs'][str(pos_in_set)]['id']
 
-    def run_demo_with_blobset(self, demo_id, blob, blob_id):
+    def run_demo_with_blobset(self, demo_id, blob, blob_id, blobset_id):
         """
         Runs the demo with the blob given
         """
@@ -240,7 +240,8 @@ class IntegrationTests(unittest.TestCase):
                     'origin': 'blobSet',
                     'params': {},
                     'crop_info': {'x': 20, 'y': 9.199999999999996,'width': width, 'height': height, 'rotate': 0, 'scaleX': 1, 'scaleY': 1},
-                    'blobs': {'id_blobs': [blob_id]}                  
+                    'blobs': {'id_blobs': [blob_id]},                
+                    'setId': blobset_id                  
                 }
         response = self.post('core', 'run2', data={"clientData": json.dumps(params)})
         return response.json()
