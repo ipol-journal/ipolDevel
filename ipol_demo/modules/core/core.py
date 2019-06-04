@@ -628,45 +628,38 @@ class Core():
                 file_save.write(data)
             file_save.close()
 
-    def copy_blobset_from_physical_location(self, work_dir, blobs_id_list):
+    def copy_blobset_from_physical_location(self, demo_id, work_dir, blobset_id):
         """
         use the selected available input images
         input parameters:
         returns:
         """
-        resp = self.post('api/blobs/get_blobs_location', data={'blobs_ids': blobs_id_list})
-        response = resp.json()
-
-        if response['status'] == 'OK':
-            physical_locations = response['physical_locations']
-
-            index = 0
-            for blob_path in physical_locations:
+        demo_blobs = self.post('api/blobs/get_blobs', data={'demo_id': demo_id}).json()
+        blobset = demo_blobs["sets"][blobset_id]
+        if demo_blobs['status'] == 'OK':
+            for input_idx, blob in blobset["blobs"].items():
+                blob_path = blob["blob"].split("/api/blobs/")[1]
                 try:
                     extension = os.path.splitext(blob_path)[1]
-                    final_path = os.path.join(work_dir, 'input_{0}{1}'.format(index, extension))
+                    final_path = os.path.join(work_dir, 'input_{0}{1}'.format(input_idx, extension))
                     shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
                 except Exception as ex:
                     self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
                     print("Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex))
 
-                index += 1
         else:
-            self.logger.exception("Blobs get_blobs_location returned KO at Core's copy_blobset_from_physical_location")
+            self.logger.exception("Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location")
 
-
-    def copy_blobs(self, work_dir, input_type, blobs, ddl_inputs):
+    def copy_blobs(self, work_dir, demo_id, input_type, blobs, blobset_id, ddl_inputs):
         """
         Copy the input blobs to the execution folder.
         """
         if input_type == 'upload':
             self.input_upload(work_dir, blobs, ddl_inputs)
         elif input_type == 'blobset':
-            if 'id_blobs' not in blobs:
-                raise IPOLCopyBlobsError("id_blobs absent")
-
-            blobs_id_list = blobs['id_blobs']
-            self.copy_blobset_from_physical_location(work_dir, blobs_id_list)
+            if blobset_id is None:
+                raise IPOLCopyBlobsError("blobset_id absent")
+            self.copy_blobset_from_physical_location(demo_id, work_dir, blobset_id)
 
     @staticmethod
     def copy_inpainting_data(work_dir, blobs, ddl_inputs):
@@ -1186,6 +1179,7 @@ attached the failed experiment data.". \
             origin = origin.lower()
 
         blobs = {}
+        blobset_id = None
         if origin == 'upload':
             for key, value in interface_arguments.items():
                 if key.startswith('file_'):
@@ -1194,6 +1188,7 @@ attached the failed experiment data.". \
 
         elif origin == 'blobset':
             blobs = clientdata['blobs']
+            blobset_id = clientdata['setId']
         elif not origin:
             pass
         else:
@@ -1206,7 +1201,7 @@ attached the failed experiment data.". \
             j += 1
 
         return clientdata['demo_id'], origin, clientdata.get('params', None), \
-                  clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs
+                  clientdata.get('crop_info', None), clientdata.get('private_mode', None), blobs, blobset_id
 
     def read_ddl(self, demo_id):
         """
@@ -1280,7 +1275,7 @@ attached the failed experiment data.". \
             error_message = "DR={}, {}  - {}".format(dr_name, buildlog, demorunner_message)
             raise IPOLEnsureCompilationError(error_message)
 
-    def prepare_folder_for_execution(self, demo_id, origin, blobs, ddl_inputs, params, crop_info):
+    def prepare_folder_for_execution(self, demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info):
         """
         Creates the working directory for a new execution. Then it copies and
         eventually converts the input blobs
@@ -1306,7 +1301,7 @@ attached the failed experiment data.". \
             return work_dir, key, []
         # Copy input blobs
         try:
-            self.copy_blobs(work_dir, origin, blobs, ddl_inputs)
+            self.copy_blobs(work_dir, demo_id, origin, blobs, blobset_id, ddl_inputs)
             self.copy_inpainting_data(work_dir, blobs, ddl_inputs)
             params_conv = {'work_dir': work_dir}
             params_conv['inputs_description'] = json.dumps(ddl_inputs)
@@ -1445,7 +1440,7 @@ attached the failed experiment data.". \
         """
         demo_id = None
         try:
-            demo_id, origin, params, crop_info, private_mode, blobs = self.decode_interface_request(kwargs)
+            demo_id, origin, params, crop_info, private_mode, blobs, blobset_id = self.decode_interface_request(kwargs)
 
             ddl = self.read_ddl(demo_id)
 
@@ -1464,7 +1459,7 @@ attached the failed experiment data.". \
             ddl_inputs = ddl.get('inputs')
             # Create run directory in the shared folder, copy blobs and delegate in the conversion module
             # the conversion of the input data if it is requested and not forbidden
-            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, ddl_inputs, params, crop_info)
+            work_dir, key, prepare_folder_messages = self.prepare_folder_for_execution(demo_id, origin, blobs, blobset_id, ddl_inputs, params, crop_info)
 
             # Delegate in the the chosen DR the execution of the experiment in the run folder
             demorunner_response = self.execute_experiment(dr_server, dr_name, demo_id, \

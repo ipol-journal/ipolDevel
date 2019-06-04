@@ -41,11 +41,7 @@ input.printSets = function(sets) {
   }
 
   var setsContainer = document.getElementById("sets");
-  var isChrome = !!window.chrome && !!window.chrome.webstore;
   var isFirefox = typeof InstallTrigger !== 'undefined';
-  var isSafari = /constructor/i.test(window.HTMLElement) || (function(p) {
-    return p.toString() === "[object SafariRemoteNotification]";
-  })(!window['safari'] || safari.pushNotification);
   if (isFirefox) {
     setsContainer.addEventListener("DOMMouseScroll", scrollHorizontally, false);
   }
@@ -82,9 +78,9 @@ function addSetClickEvent(blobSet, index) {
 function setEditor(index, crop_info) {
   var blobs = demo_sets[index].blobs;
   var id_blobs = [];
-  for (let i = 0; i < Object.keys(blobs).length; i++) {
-    id_blobs.push(blobs[Object.keys(blobs)[i]].id);
-  }
+  for (let blob of Object.values(blobs))
+    id_blobs.push(blob.id);
+  
   helpers.addToStorage("demoSet", blobs);
   helpers.addToStorage("setId", parseInt(index));
   helpers.addToStorage("id_blobs", {
