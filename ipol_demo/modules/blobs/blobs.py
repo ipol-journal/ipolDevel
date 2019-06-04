@@ -701,13 +701,13 @@ class Blobs():
         thumb_physical_dir = os.path.join(self.thumb_dir, subdir)
         blob_physical_dir = os.path.join(self.blob_dir, subdir)
 
-        vr_url = os.path.join('/api', 'blobs', vr_physical_dir)
-        thumbnail_url = os.path.join('/api', 'blobs', thumb_physical_dir)
-        blob_url = os.path.join('/api', 'blobs', blob_physical_dir)
+        vr_url = '/api/blobs/' + vr_physical_dir
+        thumbnail_url = '/api/blobs/' + thumb_physical_dir
+        blob_url = '/api/blobs/' + blob_physical_dir
 
         blob_info = {'id': blob['id'],
                      'title': blob['title'],
-                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
+                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),          
                      'format': blob['format'],
                      'credit': blob['credit'],
                      'tags': blob['tags'],
@@ -1256,38 +1256,6 @@ class Blobs():
             conn.rollback()
             self.logger.exception("*** Unhandled exception while updating demo id")
             print("*** Unhandled exception while updating demo id. Error: {}".format(ex))
-        finally:
-            if conn is not None:
-                conn.close()
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_blobs_location(self, blobs_ids):
-        """
-        Return the physical location of the requested blobs
-        """
-        conn = None
-        data = {'status': 'KO'}
-        try:
-            conn = lite.connect(self.database_file)
-            blobs_ids_list = blobs_ids if isinstance(blobs_ids, list) else [int(blobs_ids)]
-            physical_locations = []
-
-            for blob_id in blobs_ids_list:
-                blob = database.get_blob_data(conn, blob_id)
-                subdir = self.get_subdir(blob['hash'])
-                blob_physical_dir = os.path.join(self.blob_dir, subdir)
-                physical_locations.append(os.path.join(blob_physical_dir, blob['hash'] + blob['extension']))
-
-            data['physical_locations'] = physical_locations
-            data['status'] = 'OK'
-        except IPOLBlobsDataBaseError as ex:
-            self.logger.exception("DB operation failed while getting blob location")
-            print("DB operation failed while getting blob location. Error: {}".format(ex))
-        except Exception as ex:
-            conn.rollback()
-            self.logger.exception("*** Unhandled exception while getting blob location")
-            print("*** Unhandled exception while getting blob location. Error: {}".format(ex))
         finally:
             if conn is not None:
                 conn.close()
