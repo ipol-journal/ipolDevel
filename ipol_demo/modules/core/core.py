@@ -10,7 +10,6 @@ import json
 import logging
 import mimetypes
 import os
-import os.path
 import re
 import shutil
 # To send emails
@@ -48,8 +47,6 @@ from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
                     IPOLWorkDirError)
 from ipolutils.evaluator.evaluator import IPOLEvaluateError, evaluate
 from ipolutils.image.Image import Image
-
-# deprecated, should be droped with old run
 
 
 def authenticate(func):
@@ -107,11 +104,11 @@ class Core():
         """
         Initialize the error logs of the module.
         """
-        logs_dir_abs = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.logs_dir_rel)
+        logs_dir_abs = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs')
         self.mkdir_p(logs_dir_abs)
         logger = logging.getLogger(logs_dir_abs)
         logger.setLevel(logging.ERROR)
-        handler = logging.FileHandler(os.path.join(logs_dir_abs, self.logs_name))
+        handler = logging.FileHandler(os.path.join(logs_dir_abs, 'core_error.log'))
         formatter = logging.Formatter(
             '%(asctime)s ERROR in %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
@@ -135,9 +132,9 @@ class Core():
 
             # Get the server environment (integration or production)
             hostname = socket.gethostname()
-            if hostname == cherrypy.config.get('production_hostname', 'ipolcore'):
+            if hostname == 'ipolcore':
                 self.server_environment = 'production'
-            elif hostname == cherrypy.config.get('integration_hostname', 'integration'):
+            elif hostname == 'integration':
                 self.server_environment = 'integration'
             else:
                 self.server_environment = '<unknown>'
@@ -145,10 +142,7 @@ class Core():
             self.demorunners_file = cherrypy.config.get("demorunners_file")
             self.demorunners = {}
 
-            self.logs_dir_rel = cherrypy.config.get("logs.dir")
-            self.logs_name = cherrypy.config.get("logs.name")
             self.logger = self.init_logging()
-            self.common_config_dir = cherrypy.config.get("config_common_dir")
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
 
@@ -164,6 +158,7 @@ class Core():
                 self.shared_folder_abs, self.share_run_dir_rel)
 
             # Security: authorized IPs
+            self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
             self.authorized_patterns = self.read_authorized_patterns()
 
             # create needed directories
@@ -181,22 +176,21 @@ class Core():
         Read from the IPs conf file
         """
         # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.common_config_dir, "authorized_patterns.conf")
-        if not os.path.isfile(authorized_patterns_path):
+        if not os.path.isfile(self.authorized_patterns_file):
             self.error_log("read_authorized_patterns",
-                           "Can't open {}".format(authorized_patterns_path))
+                           "Can't open {}".format(self.authorized_patterns_file))
             return []
 
         # Read config file
         try:
             cfg = configparser.ConfigParser()
-            cfg.read([authorized_patterns_path])
+            cfg.read([self.authorized_patterns_file])
             patterns = []
             for item in cfg.items('Patterns'):
                 patterns.append(item[1])
             return patterns
         except configparser.Error:
-            self.logger.exception("Bad format in {}".format(authorized_patterns_path))
+            self.logger.exception("Bad format in {}".format(self.authorized_patterns_file))
             return []
 
     def load_demorunners(self):
@@ -976,7 +970,7 @@ class Core():
         except Exception:
             pass
 
-    def send_compilation_error_email(self, demo_id, text):
+    def send_compilation_error_email(self, demo_id, text, demorunner):
         """
         Send email to editor when compilation fails
         """
@@ -1004,7 +998,7 @@ class Core():
             return
 
         # Send the email
-        subject = 'Compilation of demo #{} failed'.format(demo_id)
+        subject = 'Compilation of demo #{} failed on {}'.format(demo_id, demorunner)
         self.send_email(subject, text, emails, config_emails['sender'])
 
     def send_internal_error_email(self, message):
@@ -1059,13 +1053,15 @@ class Core():
     # From http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
     @staticmethod
     def zipdir(path, ziph):
-        """ Zip a directory """
+        """
+        Zip a directory
+        """
         # ziph is zipfile handle
         for root, _, files in os.walk(path):
             for zip_file in files:
                 ziph.write(os.path.join(root, zip_file))
 
-    def send_runtime_error_email(self, demo_id, key, message):
+    def send_runtime_error_email(self, demo_id, key, message, demorunner):
         """
         Send email to editor when the execution fails
         """
@@ -1092,12 +1088,10 @@ class Core():
             return
 
         # Attach experiment in zip file and send the email
-        hostname = socket.gethostname()
-        hostbyname = socket.gethostbyname(hostname)
-        text = "This is the IPOL Core machine ({}, {}).\n\n\
-The execution with key={} of demo #{} has failed.\nProblem: {}.\nPlease find \
+        text = "This is the IPOL Core machine.\n\n\
+The execution with key={} of demo #{} on {} has failed.\nProblem: {}.\nPlease find \
 attached the failed experiment data.". \
-            format(hostname, hostbyname, key, demo_id, message)
+            format(key, demo_id, demorunner, message)
 
         if self.server_environment == 'production':
             machine = 'Core'
@@ -1494,7 +1488,7 @@ attached the failed experiment data.". \
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLEnsureCompilationError as ex:
             error_message = " --- Compilation error. --- {}".format(str(ex))
-            self.send_compilation_error_email(demo_id, error_message)
+            self.send_compilation_error_email(demo_id, error_message, dr_name)
             return json.dumps({'error': str(ex), 'status': 'KO'}).encode()
         except IPOLFindSuitableDR as ex:
             try:
@@ -1520,7 +1514,7 @@ attached the failed experiment data.". \
         except (IPOLCheckDDLError) as ex:
             error_message = "{} Demo #{}".format(str(ex), demo_id)
             if self.get_demo_metadata(demo_id)['state'].lower() == 'published':
-                self.send_runtime_error_email(demo_id, "<NA>", error_message)
+                self.send_runtime_error_email(demo_id, "<NA>", error_message, dr_name)
             return json.dumps({'error': error_message, 'status': 'KO'}).encode()
         except IPOLPrepareFolderError as ex:
             # Do not log: function prepare_folder_for_execution will decide when to log
@@ -1541,7 +1535,7 @@ attached the failed experiment data.". \
             # Send email to the editors
             # (unless it's a timeout in a published demo)
             if not (ex.demo_state == 'published' and ex.error == 'IPOLTimeoutError'):
-                self.send_runtime_error_email(demo_id, ex.key, ex.message)
+                self.send_runtime_error_email(demo_id, ex.key, ex.message, dr_name)
             return json.dumps({'error': ex.message, 'status': 'KO'}).encode()
         except Exception as ex:
             # We should never get here.
