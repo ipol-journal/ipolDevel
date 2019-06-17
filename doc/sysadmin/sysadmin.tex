@@ -176,13 +176,18 @@ When a new machine is added to the IPOL infrastructure, the following needs to b
 
 And restart the SSH server with {\tt service ssh restart}
 
-- Install cron-apt: {\tt apt-get install cron-apt}
+- Install unattended-upgrades and apt-listchanges: {\tt apt-get install unattended-upgrades apt-listchanges}
 
-And edit /etc/cron-apt/config:
+And edit /etc/apt/apt.conf.d/50unattended-upgrades, at least uncomment the following lines:
 \begin{verbatim}
-APTCOMMAND=/usr/bin/apt-get
-OPTIONS="-o quiet=1 -o Dir::Etc::SourceList=/etc/sources.list"
-SYSLOGON="always"
+  Unattended-Upgrade::Origins-Pattern {
+    "o=Debian,a=stable";
+    "o=Debian,a=stable-updates";
+  };
+
+  Unattended-Upgrade::Package-Blacklist {
+    "virtualbox-5.1";
+  };
 \end{verbatim}
 
 - Configuration of the email server to be able to send emails form any of the IPOL servers: configure with {\tt dpkg-reconfigure exim4-config} and be sure to choose the option to send email on the Internet, not local.
@@ -639,9 +644,40 @@ To allow the external users to access the virtual machine, we need to configure 
 It can be done easily by running the virtual machine (with ssh -X ...) and in the VirtualBox: Settings / Network / Port Forwarding: protocol TCP, Host Post 2222, Guest Port 22.
 
 \vspace{0.25cm}
-When the virtualbox service is running, the update script of the virtualbox Debian package does not stop, update, and restart. Thus, when upgrading all the packages of the distribution (say, with {\tt apt dist-upgrade} or via {\tt cron-apt}, it simply tries to update the running service and then it fails, breaking the update of all other packages.
+When the virtualbox service is running, the update script of the virtualbox Debian package does not stop, update, and restart. Thus, when upgrading all the packages of the distribution (say, with {\tt apt dist-upgrade} or via {\tt apt-listchanges}, it simply tries to update the running service and then it fails, breaking the update of all other packages.
 
 Thus, a workaround is to put the virtualbox packages on hold. First check which packages belong to virtualbox with {\tt dpkg-query -l |grep virtualbox} and put then on hold with {\tt apt-mark}. For example: {\tt apt-mark hold virtualbox-5.1 virtualbox-guest-utils}.
+
+\section{Unattended Upgrades}
+
+The system is automatically updated based on the latest stable version. To achieve this the IPOL servers use the UnattendedUpgrades package that allows a machine to download and upgrade the system according to the "Origins-Pattern" list without updating any package in the "Blacklist". These are useful commands to manage this package: 
+
+Edit the configuration: 
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ editor /etc/apt/apt.conf.d/50unattended-upgrades
+\end{lstlisting}
+
+Edit the downloads schedule: 
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ sudo systemctl edit apt-daily.timer
+  $ sudo systemctl restart apt-daily.timer
+\end{lstlisting}
+
+Edit the upgrade schedule: 
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ sudo systemctl edit apt-daily-upgrade.timer
+  $ sudo systemctl restart apt-daily-upgrade.timer
+\end{lstlisting}
+
+Check the next execution: 
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ systemctl list-timers
+\end{lstlisting}
+
+View the installed packages: 
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ cat /var/log/apt/history.log
+\end{lstlisting}
 
 \section{Troubleshooting}
 
