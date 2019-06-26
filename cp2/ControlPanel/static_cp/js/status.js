@@ -20,7 +20,7 @@
         $.ajax({
             type: 'GET',
             dataType: 'json',
-            url: '/api/core/get_demorunners_stats',
+            url: '/api/dispatcher/get_demorunners_stats',
             success: function(data) {
                 estate(data, "DR", "Demorunner");
                 chargeDR(data);

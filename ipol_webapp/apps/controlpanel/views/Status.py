@@ -1,16 +1,21 @@
-from apps.controlpanel.mixings import NavbarReusableMixinMF
-
-__author__ = 'josearrecio'
 import json
 import logging
-from django.views.generic import TemplateView
+
+from apps.controlpanel.mixings import NavbarReusableMixinMF
 from apps.controlpanel.views.ipolwebservices import ipolservices
-from apps.controlpanel.views.ipolwebservices.ipoldeserializers import DeserializeArchiveStatus, DeserializeDemoList, \
-        DeserializeDemoinfoStatus, DeserializeProxyStatus
-from ipol_webapp.settings import IPOL_SERVICES_MODULE_ACHIVE, IPOL_SERVICES_MODULE_BLOBS, IPOL_SERVICES_MODULE_DEMO, \
-        IPOL_SERVICES_MODULE_DEMOINFO, IPOL_SERVICES_MODULE_PROXY
+from apps.controlpanel.views.ipolwebservices.ipoldeserializers import (
+    DeserializeArchiveStatus, DeserializeDemoinfoStatus, DeserializeDemoList,
+    DeserializeProxyStatus)
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
+from ipol_webapp.settings import (IPOL_SERVICES_MODULE_ACHIVE,
+                                  IPOL_SERVICES_MODULE_BLOBS,
+                                  IPOL_SERVICES_MODULE_DEMO,
+                                  IPOL_SERVICES_MODULE_DEMOINFO,
+                                  IPOL_SERVICES_MODULE_PROXY)
+
+__author__ = 'josearrecio'
 logger = logging.getLogger(__name__)
 
 
@@ -99,7 +104,7 @@ class StatusView(NavbarReusableMixinMF,TemplateView):
         data = {'status': 'KO'}
         try:
             # DR stats
-            response = ipolservices.http_request('/api/core/get_demorunners_stats')
+            response = ipolservices.http_request('/api/dispatcher/get_demorunners_stats')
             json_response = json.loads(response)
             for dr in json_response.get('demorunners'):
                 if dr.get('status') == 'OK':
