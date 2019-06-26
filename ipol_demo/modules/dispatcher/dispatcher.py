@@ -13,7 +13,6 @@ import logging
 import os
 import random
 import re
-import socket
 import sys
 import xml.etree.ElementTree as ET
 
@@ -294,7 +293,7 @@ class Dispatcher():
         dr_response = requests.get('http://{}/api/demorunner/ping'.format(dr_server))
         if not dr_response:
             self.error_log("get_suitable_demorunner",
-                            "Module {} unresponsive".format(dr_name))
+                           "Module {} unresponsive".format(dr_name))
             print("Module {} unresponsive".format(dr_name))
             data['unresponsive_dr'] = dr_name
             return json.dumps(data).encode()
@@ -437,7 +436,7 @@ class LowestWorkloadPolicy(Policy):
     """
     LowestWorkloadPolicy
     """
-    def execute(self, demorunners, dr_workloads, requirements=None):
+    def execute(self, demorunners, demorunners_workload, requirements=None):
         """
         Chooses the DemoRunner with the lowest workload which
         satisfies the requirements.
@@ -452,8 +451,8 @@ class LowestWorkloadPolicy(Policy):
             lowest_workload_dr = None
 
             for dr in suitable_drs:
-                if dr.name in dr_workloads and float(dr_workloads[dr.name]) < min_workload:
-                    min_workload = dr_workloads[dr.name]
+                if dr.name in demorunners_workload and float(demorunners_workload[dr.name]) < min_workload:
+                    min_workload = demorunners_workload[dr.name]
                     lowest_workload_dr = dr
 
             return lowest_workload_dr

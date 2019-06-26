@@ -3,7 +3,6 @@
 """
 Dispatcher test
 """
-import json
 # Unit tests for the Blobs module
 import socket
 import sys
@@ -102,20 +101,6 @@ class DispatcherTests(unittest.TestCase):
                     status = 'OK'
         finally:
             self.assertEqual(status, 'OK')
-
-    #####################
-    #       TOOLS       #
-    #####################
-
-    def get_demorunner(self, demorunners_workload, requirements=None):
-        """
-        get demorunner
-        """
-        params = {'demorunners_workload': demorunners_workload}
-        if requirements is not None:
-            params['requirements'] = requirements
-        response = self.post(self.module, 'get_suitable_demorunner')
-        return response.json()
 
 if __name__ == '__main__':
     shared_folder = sys.argv.pop()
