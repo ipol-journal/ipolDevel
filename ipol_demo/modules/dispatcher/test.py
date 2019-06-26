@@ -23,14 +23,14 @@ def load_demorunners(demorunners_file):
 
     for demorunner in root.findall('demorunner'):
         dict_tmp = {}
-        list_tmp = []
+        capabilities = []
 
         for capability in demorunner.findall('capability'):
-            list_tmp.append(capability.text)
+            capabilities.append(capability.text)
 
         dict_tmp["server"] = demorunner.find('server').text
         dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-        dict_tmp["capability"] = list_tmp
+        dict_tmp["capabilities"] = ''.join(capabilities)
 
         dict_demorunners[demorunner.get('name')] = dict_tmp
 
@@ -54,46 +54,58 @@ class DispatcherTests(unittest.TestCase):
         """
         status = None
         try:
-            response = self.post(self.module, 'ping')
-            json_response = response.json()
-            status = json_response.get('status')
+            ping = 'http://{}/api/dispatcher/ping'.format(self.HOST)
+            response = requests.get(ping).json()
+            status = response.get('status')
         finally:
             self.assertEqual(status, 'OK')
 
-    def test_get_demorunner(self):
+    def test_find_suitable_demorunner(self):
         """
-        Test get demorunner
+        Test get suitable demorunner
         """
-        status = None
-        demorunner_name = None
-        lowest_demorunner = None
         try:
-            demorunner_workload = {}
-            i = 0
-            for demorunner in self.demorunners:
-                if i == 0:
-                    lowest_demorunner = demorunner
-                demorunner_workload[demorunner] = i
-                i += 1
-
-            json_response = self.get_demorunner(json.dumps(demorunner_workload))
-            status = json_response.get('status')
-            demorunner_name = json_response.get('name')
+            suitable_dr = 'http://{}/api/dispatcher/get_suitable_demorunner'.format(
+                self.HOST)
+            response = requests.get(suitable_dr).json()
+            status = response.get('status')
         finally:
             self.assertEqual(status, 'OK')
-            self.assertEqual(demorunner_name, lowest_demorunner)
+
+    def test_find_demorunner_with_requirement(self):
+        """
+        Test get suitable demorunner with requirements according to
+        local demorunners.xml
+        """
+        status = 'OK'
+        try:
+            suitable_dr = 'http://{}/api/dispatcher/get_suitable_demorunner'.format(
+                self.HOST)
+            for demorunner in self.demorunners:
+                payload = {'requirements': self.demorunners[demorunner]['capabilities']}
+                response = requests.get(suitable_dr, params=payload).json()
+                if response.get('status') != 'OK':
+                    status = response.get('status')
+        finally:
+            self.assertEqual(status, 'OK')
+
+    def test_get_demorunner_stats(self):
+        """
+        Test get demorunner stats
+        """
+        status = 'KO'
+        try:
+            dr_stats = 'http://{}/api/dispatcher/get_demorunners_stats'.format(self.HOST)
+            response = requests.get(dr_stats).json()
+            for dr in response.get('demorunners'):
+                if dr['status'] == 'OK' and 'workload' in dr:
+                    status = 'OK'
+        finally:
+            self.assertEqual(status, 'OK')
 
     #####################
     #       TOOLS       #
     #####################
-
-    def post(self, module, service, params=None, data=None, files=None, servicejson=None):
-        """
-        Do a post
-        """
-        url = 'http://{}/api/{}/{}'.format(self.HOST, module, service)
-        return requests.post(url, params=params, data=data, files=files, json=servicejson)
-
 
     def get_demorunner(self, demorunners_workload, requirements=None):
         """
@@ -102,8 +114,7 @@ class DispatcherTests(unittest.TestCase):
         params = {'demorunners_workload': demorunners_workload}
         if requirements is not None:
             params['requirements'] = requirements
-
-        response = self.post(self.module, 'get_demorunner', params=params)
+        response = self.post(self.module, 'get_suitable_demorunner')
         return response.json()
 
 if __name__ == '__main__':

@@ -15,9 +15,9 @@ import random
 import re
 import socket
 import sys
+import xml.etree.ElementTree as ET
 
 import cherrypy
-
 import requests
 
 
@@ -76,11 +76,14 @@ class Dispatcher():
         """
         self.base_directory = os.getcwd()
         self.logs_dir = cherrypy.config.get("logs_dir")
-        self.demorunners = None
-        self.config_common_dir = cherrypy.config.get("config_common_dir")
+        self.authorized_patterns_file = cherrypy.config.get("authorized_patterns_file")
 
         # Default policy: lowest_workload
         self.policy = Policy.factory('lowest_workload')
+
+        self.demorunners = []
+        self.demorunners_file = cherrypy.config.get("demorunners_file")
+        self.refresh_demorunners()
 
         # Logs
         try:
@@ -98,7 +101,7 @@ class Dispatcher():
         Read from the IPs conf file
         """
         # Check if the config file exists
-        authorized_patterns_path = os.path.join(self.config_common_dir, "authorized_patterns.conf")
+        authorized_patterns_path = os.path.join(self.authorized_patterns_file)
         if not os.path.isfile(authorized_patterns_path):
             self.error_log("read_authorized_patterns",
                            "Can't open {}".format(authorized_patterns_path))
@@ -116,44 +119,69 @@ class Dispatcher():
             self.logger.exception("Bad format in {}".format(authorized_patterns_path))
             return []
 
+    @cherrypy.expose
     def refresh_demorunners(self):
         """
-        Refresh the value of the demorunners
-        """
-        url = 'http://{}/api/core/get_demorunners'.format(socket.getfqdn())
-        resp = requests.post(url)
-
-        self.demorunners = []
-        dict_demorunners = json.loads(resp.json()['demorunners'].replace('\'', '\"'))
-
-        for demorunner_name in list(dict_demorunners.keys()):
-            self.demorunners.append(DemoRunnerInfo(
-                dict_demorunners[demorunner_name]["server"],
-                demorunner_name,
-                dict_demorunners[demorunner_name]["capability"]
-            ))
-
-    @cherrypy.expose
-    def set_demorunners(self, demorunners):
-        """
-        Set the list of demoRunners in the system.
+        Update dispatcher's DRs information
         """
         data = {"status": "KO"}
+        self.demorunners = []
+        demorunners = ET.parse(self.demorunners_file).getroot()
+
         try:
-            json_demorunners = json.loads(demorunners)
-            self.demorunners = []
-            for demorunner in json_demorunners:
+            for demorunner in demorunners.findall('demorunner'):
+                capabilities = []
+                for capability in demorunner.findall('capability'):
+                    capabilities.append(capability.text)
+
                 self.demorunners.append(DemoRunnerInfo(
-                    json_demorunners[demorunner]["server"],
-                    demorunner,
-                    json_demorunners[demorunner]["capability"]
+                    demorunner.find('server').text,
+                    demorunner.get('name'),
+                    demorunner.find('serverSSH').text,
+                    capabilities
                 ))
-            data["status"] = "OK"
         except Exception as ex:
-            data["message"] = "Can not refresh the demorunners"
-            self.logger.exception("Can not refresh the demorunners")
-            print("Can not refresh the demorunners", ex)
+            print(ex)
+            self.logger.exception("refresh_demorunners")
+
+        data["status"] = "OK"
         return json.dumps(data).encode()
+
+    @cherrypy.expose
+    def get_demorunners_stats(self):
+        """
+        Get statistic information of all DRs.
+        This is mainly used by external monitoring tools.
+        """
+        demorunners = []
+        for dr in self.demorunners:
+            try:
+                response = requests.get(
+                    'http://{}/api/demorunner/get_workload'.format(dr.server))
+                if not response:
+                    demorunners.append({'status': 'KO', 'name': dr.name})
+                    continue
+
+                json_response = response.json()
+                if json_response.get('status') == 'OK':
+                    workload = float('%.2f' % (json_response.get('workload')))
+                    demorunners.append({'status': 'OK',
+                                        'name': dr.name,
+                                        'workload': workload})
+                else:
+                    demorunners.append({'name': dr.name, 'status': 'KO'})
+
+            except requests.ConnectionError:
+                self.logger.exception("Couldn't reach DR={}".format(dr.name))
+                demorunners.append({'status': 'KO', 'name': dr.name})
+                continue
+            except Exception as ex:
+                message = "Couldn't get the DRs workload. Error = {}".format(ex)
+                print(message)
+                self.logger.exception(message)
+                return json.dumps({'status': 'KO', 'message': message}).encode()
+
+        return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
 
     # ---------------------------------------------------------------------------
     def init_logging(self):
@@ -242,29 +270,74 @@ class Dispatcher():
         return json.dumps(data).encode()
 
     @cherrypy.expose
-    def get_demorunner(self, demorunners_workload, requirements=None):
+    def get_suitable_demorunner(self, requirements=None):
         """
-        Choose a demoRunner meeting the specified requirements according to the current execution policy
+        Return an active DR which meets the requirements
         """
-
         data = {"status": "KO"}
-        try:
-            if self.demorunners is None:
-                self.refresh_demorunners()
+        if self.demorunners is None:
+            self.refresh_demorunners()
 
-            dr_winner = self.policy.execute(self.demorunners, demorunners_workload, requirements)
+        # Get a demorunner for the requirements
+        dr_workloads = self.demorunners_workload()
+        chosen_dr = self.policy.execute(self.demorunners, dr_workloads, requirements)
+        if not chosen_dr:
+            self.error_log("get_suitable_demorunner",
+                           "No DR available with requirement {}".format(requirements))
+            print("No DR available with requirement {}".format(requirements))
+            return json.dumps(data).encode()
 
-            if dr_winner is None:
-                return json.dumps(data).encode()
+        dr_name = chosen_dr.name
+        dr_server = chosen_dr.server
 
-            data["name"] = dr_winner.name
-            data["status"] = "OK"
+        # Check if the DR is up.
+        dr_response = requests.get('http://{}/api/demorunner/ping'.format(dr_server))
+        if not dr_response:
+            self.error_log("get_suitable_demorunner",
+                            "Module {} unresponsive".format(dr_name))
+            print("Module {} unresponsive".format(dr_name))
+            data['unresponsive_dr'] = dr_name
+            return json.dumps(data).encode()
 
-        except Exception as ex:
-            self.logger.exception("No demorunner for the requirements and {} policy".format(self.policy))
-            print("No demorunner for the requirements and {} policy - {}".format(self.policy, ex))
-
+        data['dr_name'] = dr_name
+        data['dr_server'] = dr_server
+        data['status'] = "OK"
         return json.dumps(data).encode()
+
+    def demorunners_workload(self):
+        """
+        Get the workload of each DR
+        """
+        dr_workload = {}
+        for dr_info in self.demorunners:
+            try:
+                dr_server = dr_info.server
+                url = 'http://{}/api/demorunner/get_workload'.format(dr_server)
+                resp = requests.get(url)
+                if not resp:
+                    error_message = "No response from DR='{}'".format(dr_info.name)
+                    self.error_log("demorunners_workload", error_message)
+                    continue
+
+                response = resp.json()
+                if response.get('status', '') == 'OK':
+                    dr_workload[dr_info.name] = response.get('workload')
+                else:
+                    error_message = "get_workload KO response for DR='{}'".format(
+                        dr_info.name)
+                    self.error_log("demorunners_workload", error_message)
+            except requests.ConnectionError:
+                error_message = "get_workload ConnectionError for DR='{}'".format(
+                    dr_info.name)
+                self.error_log("demorunners_workload", error_message)
+                continue
+            except Exception:
+                error_message = "Error when obtaining the workload of '{}'".format(
+                    dr_info)
+                self.logger.exception(error_message)
+                continue
+
+        return dr_workload
 
 
 class Policy():
@@ -364,7 +437,7 @@ class LowestWorkloadPolicy(Policy):
     """
     LowestWorkloadPolicy
     """
-    def execute(self, demorunners, demorunners_workload, requirements=None):
+    def execute(self, demorunners, dr_workloads, requirements=None):
         """
         Chooses the DemoRunner with the lowest workload which
         satisfies the requirements.
@@ -375,15 +448,12 @@ class LowestWorkloadPolicy(Policy):
                 print("LowestWorkloadPolicy could not find any DR available")
                 return None
 
-            # Adds the workload of each demorunner to a dict
-            dict_dr_wl = json.loads(demorunners_workload.replace('\'', '\"'))
-
             min_workload = float("inf")
             lowest_workload_dr = None
-            #
+
             for dr in suitable_drs:
-                if dr.name in dict_dr_wl and float(dict_dr_wl[dr.name]) < min_workload:
-                    min_workload = dict_dr_wl[dr.name]
+                if dr.name in dr_workloads and float(dr_workloads[dr.name]) < min_workload:
+                    min_workload = dr_workloads[dr.name]
                     lowest_workload_dr = dr
 
             return lowest_workload_dr
@@ -398,7 +468,8 @@ class DemoRunnerInfo():
     Demorunner information object
     """
 
-    def __init__(self, server, name, capabilities=None):
+    def __init__(self, server, name, serverSSH, capabilities=None):
         self.capabilities = [] if capabilities is None else capabilities
         self.server = server
         self.name = name
+        self.serverSSH = serverSSH

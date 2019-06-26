@@ -21,7 +21,6 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
 import zipfile
 from collections import OrderedDict
 from datetime import datetime
@@ -33,7 +32,6 @@ from random import random
 import cherrypy
 import magic
 import numpy as np
-
 import requests
 from archive import send_to_archive
 from errors import (IPOLCheckDDLError, IPOLConversionError, IPOLCopyBlobsError,
@@ -82,7 +80,6 @@ def authenticate(func):
         return False
 
     return authenticate_and_call
-
 
 # -------------------------------------------------------------------------------
 class Core():
@@ -139,9 +136,6 @@ class Core():
             else:
                 self.server_environment = '<unknown>'
 
-            self.demorunners_file = cherrypy.config.get("demorunners_file")
-            self.demorunners = {}
-
             self.logger = self.init_logging()
             self.project_folder = cherrypy.config.get("project_folder")
             self.blobs_folder = cherrypy.config.get("blobs_folder")
@@ -167,7 +161,6 @@ class Core():
             self.mkdir_p(self.dl_extras_dir)
             self.mkdir_p(self.demo_extras_main_dir)
 
-            self.load_demorunners()
         except Exception:
             self.logger.exception("__init__")
 
@@ -192,146 +185,6 @@ class Core():
         except configparser.Error:
             self.logger.exception("Bad format in {}".format(self.authorized_patterns_file))
             return []
-
-    def load_demorunners(self):
-        """
-        Load the list of DRs from the configuration file
-        """
-        dict_demorunners = {}
-        tree = ET.parse(self.demorunners_file)
-        root = tree.getroot()
-
-        for demorunner in root.findall('demorunner'):
-            dict_tmp = {}
-            list_tmp = []
-
-            for capability in demorunner.findall('capability'):
-                list_tmp.append(capability.text)
-
-            dict_tmp["server"] = demorunner.find('server').text
-            dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-            dict_tmp["capability"] = list_tmp
-
-            dict_demorunners[demorunner.get('name')] = dict_tmp
-
-        self.demorunners = dict_demorunners
-
-    @cherrypy.expose
-    def refresh_demorunners(self):
-        """
-        Refresh the information of all DRs and notify Dispatcher to update
-        """
-        data = {"status": "KO"}
-
-        try:
-            # Reload DRs config
-            self.load_demorunners()
-
-            demorunners = {"demorunners": json.dumps(self.demorunners)}
-            response = self.post('api/dispatcher/set_demorunners', data=demorunners)
-            if response.json().get('status') == "OK":
-                data['status'] = 'OK'
-
-        except Exception as ex:
-            print(ex)
-            self.logger.exception("refresh_demorunners")
-            data["error"] = "Can not refresh demorunners"
-
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_demorunners(self):
-        """
-        Get the information of all demoRunners
-        """
-        data = {"status": "OK"}
-        try:
-            data["demorunners"] = str(self.demorunners)
-        except Exception as ex:
-            print(ex)
-            self.logger.exception("get_demorunners")
-            data["status"] = "KO"
-            data["message"] = "Can't get demorunners"
-
-        return json.dumps(data).encode()
-
-    @cherrypy.expose
-    def get_demorunners_stats(self):
-        """
-        Get statistic information of all DRs.
-        This is mainly used by external monitoring tools.
-        """
-        demorunners = []
-        #
-        for demorunner in self.demorunners:
-            try:
-                response = {}
-                dr_server = self.demorunners[demorunner].get('server')
-                response = self.post('api/demorunner/get_workload', host=dr_server)
-                if not response.ok:
-                    demorunners.append({'name': demorunner, 'status': 'KO'})
-                    continue
-
-                json_response = response.json()
-                if json_response.get('status') == 'OK':
-                    workload = float('%.2f' % (json_response.get('workload')))
-                    demorunners.append({'name': demorunner,
-                                        'status': 'OK',
-                                        'workload': workload})
-                else:
-                    demorunners.append({'name': demorunner, 'status': 'KO'})
-
-            except requests.ConnectionError:
-                name = demorunner.get("name", "<?>")
-                self.logger.exception("Couldn't get DR={} workload".format(name))
-                demorunners.append({'name': demorunner, 'status': 'KO'})
-                continue
-            except Exception as ex:
-                message = "Couldn't get the DRs workload. Error = {}".format(ex)
-                print(message)
-                self.logger.exception(message)
-                return json.dumps({'status': 'KO', 'message': message}).encode()
-
-        # Return the DRs in the response
-        return json.dumps({'status': 'OK', 'demorunners': demorunners}).encode()
-
-    def demorunners_workload(self):
-        """
-        Get the workload of each DR
-        """
-        dr_workload = {}
-        for dr_name in self.demorunners:
-            try:
-                dr_server = self.demorunners[dr_name]['server']
-                resp = self.post('api/demorunner/get_workload', host=dr_server)
-                if not resp:
-                    error_message = "No response from DR='{}'".format(dr_name)
-                    self.error_log("demorunners_workload", error_message)
-                    continue
-
-                if not resp.ok:
-                    error_message = "Bad post response from DR='{}'".format(dr_name)
-                    self.error_log("demorunners_workload", error_message)
-                    continue
-
-                response = resp.json()
-                if response.get('status', '') == 'OK':
-                    dr_workload[dr_name] = response.get('workload')
-                else:
-                    error_message = "get_workload KO response for DR='{}'".format(dr_name)
-                    self.error_log("demorunners_workload", error_message)
-                    dr_workload[dr_name] = 100.0
-            except requests.ConnectionError:
-                error_message = "get_workload ConnectionError for DR='{}'".format(dr_name)
-                self.error_log("demorunners_workload", error_message)
-                continue
-            except Exception:
-                error_message = "Error when obtaining the workload of '{}'".format(dr_name)
-                self.logger.exception(error_message)
-                dr_workload[dr_name] = 100.0
-                continue
-
-        return dr_workload
 
     @staticmethod
     def mkdir_p(path):
@@ -1222,11 +1075,18 @@ attached the failed experiment data.". \
         else:
             requirements = None
 
-        dr_name, dr_server = self.get_demorunner(self.demorunners_workload(), requirements)
-        if not dr_name:
-            error_message = "No DR satisfies the requirements: {}".format(requirements)
+        resp = self.post('api/dispatcher/get_suitable_demorunner', data=requirements).json()
+        if resp['status'] != 'OK':
+            print(resp, "\n")
+            if 'unresponsive_dr' in resp:
+                self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
+            error_message = "No DR satisfies the requirements: {}".format(
+                requirements)
             raise IPOLFindSuitableDR(error_message)
-        return dr_name, dr_server
+
+        server_name = resp['dr_name']
+        server_ip = resp['dr_server']
+        return server_name, server_ip
 
     @staticmethod
     def get_response_content(response):
@@ -1623,58 +1483,6 @@ attached the failed experiment data.". \
 
         open_file.close()
         return dic
-
-    def get_demorunner(self, demorunners_workload, requirements=None):
-        """
-        Return an active DR which meets the requirements
-        """
-        demorunner_data = {
-            "demorunners_workload": str(demorunners_workload),
-            "requirements": requirements
-        }
-        unresponsive_demorunners = set()
-        # Try twice the length of the DR list before raising an exception
-        for i in range(len(self.demorunners) * 2):
-            # Get a demorunner for the requirements
-            try:
-                dispatcher_response = self.post('api/dispatcher/get_demorunner', data=demorunner_data)
-            except requests.ConnectionError:
-                dispatcher_response = None
-
-            if not dispatcher_response or not dispatcher_response.ok:
-                raise Exception("Dispatcher unresponsive") # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
-
-            # Check if there is a DR for the requirements
-            if dispatcher_response.json()['status'] != 'OK':
-                return None, None
-
-            dr_name = dispatcher_response.json()['name']
-            dr_server = self.demorunners[dr_name]['server']
-
-            # Check if the DR is up. Otherwise add it to the
-            # list of unresponsive DRs
-            try:
-                demorunner_response = self.post('api/demorunner/ping', host=dr_server)
-            except Exception:
-                demorunner_response = None
-
-            if demorunner_response and demorunner_response.ok:
-                if unresponsive_demorunners:
-                    self.send_demorunner_unresponsive_email(unresponsive_demorunners)
-                return dr_name, dr_server
-
-            self.error_log("get_demorunner",
-                           "Module {} unresponsive".format(dr_name))
-            print("Module {} unresponsive".format(dr_name))
-            unresponsive_demorunners.add(dr_name)
-
-            # At half of the tries wait 5 secs and try again
-            if i == len(self.demorunners) - 1:
-                time.sleep(5)
-
-        # If there is no demorunner active send an email with all the unresponsive DRs
-        self.send_demorunner_unresponsive_email(unresponsive_demorunners)
-        raise Exception("No DR available after many tries")  # [Miguel] [ToDo] Use an specific exception, not the too-wide Exception
 
     def post(self, api_url, data=None, host=None):
         """
