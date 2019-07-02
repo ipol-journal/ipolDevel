@@ -14,7 +14,7 @@ function runDemo() {
   setRunPostData();
   
   $.ajax({
-    url: '/api/core/run2',
+    url: '/api/core/run',
     type: 'POST',
     processData: false,
     contentType: false,

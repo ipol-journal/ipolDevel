@@ -1288,7 +1288,7 @@ attached the failed experiment data.". \
         return demorunner_response
 
     @cherrypy.expose
-    def run2(self, **kwargs):
+    def run(self, **kwargs):
         """
         Run a demo. The presentation layer requests the Core to execute a demo.
         """

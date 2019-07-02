@@ -243,7 +243,7 @@ class IntegrationTests(unittest.TestCase):
                     'blobs': {'id_blobs': [blob_id]},                
                     'setId': blobset_id                  
                 }
-        response = self.post('core', 'run2', data={"clientData": json.dumps(params)})
+        response = self.post('core', 'run', data={"clientData": json.dumps(params)})
         return response.json()
 
     def run_demo_with_uploaded_blob(self, demo_id, blob, width, height):
@@ -252,7 +252,7 @@ class IntegrationTests(unittest.TestCase):
                     'params': {},
                   }
         files = {'file_0': blob}
-        response = self.post('core', 'run2', data={"clientData": json.dumps(params)}, files=files)
+        response = self.post('core', 'run', data={"clientData": json.dumps(params)}, files=files)
         return response.json()
 
     def delete_demo_in_demoinfo(self, demo_id):
