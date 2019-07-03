@@ -40,8 +40,8 @@ the chosen blobs where there is a zoom and crop functions when the sets have one
 one blob per set, the user will have the possibility to compare them with the corresponding 'Compare button', but not a crop 
 an area.
 
-\subsubsection{Inpainting controls}
-When an inpainting control is specified in the DDL, the appropriate controls will appear under the blob list, adding the hability to draw on top of the blob. The behaviour will depend on the type of control specified. 
+\subsubsection{Interactive controls}
+When an interactive control is specified in the DDL, the appropriate controls will appear under the blob list, adding the hability to draw on top of the blob. The behaviour will depend on the type of control specified. 
 
 Mask control will enable free drawing on top of the selected blob, color change and an eraser tool and will result in an image containing only the drawn strokes and transparent background.
 
@@ -111,7 +111,7 @@ upload blobs for the demo or a default blob from the list. If this variable is n
 in the DDL.
 
 After the user chooses a blob, the editor and parameter modules will load independently and wait for changes. The Editor control 
-will allow to either zoom, crop, and compare blobs if it is possible, as well as do inpainting operations when the demo requires it. 
+will allow to either zoom, crop, and compare blobs if it is possible, as well as do masking operations when the demo requires it. 
 The parameters will be modifiable according to the DDL specification values and will be stored in a variable in order to achieve 
 parameter visibility dependence and to send this data when the run button is pressed.
 
@@ -158,7 +158,7 @@ the demo or an error response.
 The IPOL platform supports images, audio and video files to use in demos. The new web interface 
 allows choosing a set with any combination of images, audio and video. Depending on the data types and sets length options will vary. 
 If a set contains multiple images, the user will be able to compare and make zoom using any image on the set. If the user chooses a set with only 
-one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as inpainting editing.
+one image blob, options will depend on DDL limitations and will include zoom and crop features, as well as mask editing.
 
 \section{Implementation of Features}
 This section describes how particular features on the web interface are implemented.
