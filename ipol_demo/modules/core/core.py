@@ -16,7 +16,6 @@ import shutil
 import smtplib
 import socket
 import tarfile
-import time
 import traceback
 import urllib.error
 import urllib.parse

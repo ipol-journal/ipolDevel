@@ -411,6 +411,7 @@ class DemoDemoDescriptionDAO():
         row = self.cursor.fetchone()
         if row:
             return {'ddl': row[0]}
+        return None
 
     def read_demo_demodescriptions(self, editorsdemoid):
         """

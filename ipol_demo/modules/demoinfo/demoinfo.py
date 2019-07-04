@@ -23,15 +23,14 @@ import logging
 import os
 import re
 import shutil
-import sqlite3 as lite
 import socket
+import sqlite3 as lite
 import sys
 from collections import OrderedDict
 from math import ceil
 
 import cherrypy
 import magic
-
 from model import (Author, AuthorDAO, Demo, DemoAuthorDAO, DemoDAO,
                    DemoDemoDescriptionDAO, DemoDescriptionDAO, DemoEditorDAO,
                    Editor, EditorDAO, initDb)

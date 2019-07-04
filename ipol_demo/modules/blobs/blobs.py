@@ -20,9 +20,8 @@ import sys
 from threading import Lock
 
 import cherrypy
-import magic
-
 import database
+import magic
 from errors import (IPOLBlobsDataBaseError, IPOLBlobsTemplateError,
                     IPOLBlobsThumbnailError, IPOLRemoveDirError)
 from ipolutils.utils import thumbnail
@@ -707,7 +706,7 @@ class Blobs():
 
         blob_info = {'id': blob['id'],
                      'title': blob['title'],
-                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),          
+                     'blob': os.path.join(blob_url, blob['hash'] + blob['extension']),
                      'format': blob['format'],
                      'credit': blob['credit'],
                      'tags': blob['tags'],
