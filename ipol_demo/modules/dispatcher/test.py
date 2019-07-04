@@ -29,7 +29,7 @@ def load_demorunners(demorunners_file):
 
         dict_tmp["server"] = demorunner.find('server').text
         dict_tmp["serverSSH"] = demorunner.find('serverSSH').text
-        dict_tmp["capabilities"] = ''.join(capabilities)
+        dict_tmp["capabilities"] = ','.join(capabilities)
 
         dict_demorunners[demorunner.get('name')] = dict_tmp
 
