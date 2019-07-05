@@ -1070,7 +1070,7 @@ attached the failed experiment data.". \
         and according to the dispatcher policies
         """
         if 'requirements' in general_info:
-            requirements = general_info['requirements']
+            requirements = {'requirements': general_info['requirements']}
         else:
             requirements = None
 
@@ -1080,7 +1080,7 @@ attached the failed experiment data.". \
             if 'unresponsive_dr' in resp:
                 self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
             error_message = "No DR satisfies the requirements: {}".format(
-                requirements)
+                general_info['requirements'])
             raise IPOLFindSuitableDR(error_message)
 
         server_name = resp['dr_name']
