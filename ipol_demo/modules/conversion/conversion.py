@@ -429,7 +429,7 @@ class ConverterDepth(ConverterImage):
     def convert(self):
         src_dtype = self.im.data.dtype
         self.im.convert_depth(self.dst_depth)
-        return "depth {} -> {}".format(src_dtype, self.im.data.dtype)
+        return "depth {} --> {}".format(src_dtype, self.im.data.dtype)
 
 class ConverterChannels(ConverterImage):
     """
@@ -452,7 +452,7 @@ class ConverterChannels(ConverterImage):
     def convert(self):
         src_channels = self.im.get_channels()
         self.im.convert_channels(self.dst_channels)
-        return "#channels: {} -> {}".format(src_channels, self.dst_channels)
+        return "#channels: {} --> {}".format(src_channels, self.dst_channels)
 
 class ConverterCrop(ConverterImage):
     """
@@ -522,4 +522,4 @@ class ConverterEncoding(ConverterImage):
 
     def convert(self):
         # nothing to do here, will be done when saving the image
-        return "encoding: {} -> {}".format(self.src_type.split('/')[1], self.dst_type.split('/')[1])
+        return "encoding: {} --> {}".format(self.src_type.split('/')[1], self.dst_type.split('/')[1])
