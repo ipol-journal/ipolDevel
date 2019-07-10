@@ -156,7 +156,7 @@ class Dispatcher():
         for dr in self.demorunners:
             try:
                 response = requests.get(
-                    'http://{}/api/demorunner/get_workload'.format(dr.server))
+                    'http://{}/api/demorunner/get_workload'.format(dr.server), timeout=3)
                 if not response:
                     demorunners.append({'status': 'KO', 'name': dr.name})
                     continue
@@ -290,7 +290,7 @@ class Dispatcher():
         dr_server = chosen_dr.server
 
         # Check if the DR is up.
-        dr_response = requests.get('http://{}/api/demorunner/ping'.format(dr_server))
+        dr_response = requests.get('http://{}/api/demorunner/ping'.format(dr_server), timeout=3)
         if not dr_response:
             self.error_log("get_suitable_demorunner",
                            "Module {} unresponsive".format(dr_name))
@@ -312,7 +312,7 @@ class Dispatcher():
             try:
                 dr_server = dr_info.server
                 url = 'http://{}/api/demorunner/get_workload'.format(dr_server)
-                resp = requests.get(url)
+                resp = requests.get(url, timeout=3)
                 if not resp:
                     error_message = "No response from DR='{}'".format(dr_info.name)
                     self.error_log("demorunners_workload", error_message)
