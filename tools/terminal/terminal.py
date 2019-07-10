@@ -240,7 +240,7 @@ class Terminal(object):
             json_response = urllib.request.urlopen("http://{}/api/{}/ping".format(
                 self.dict_modules[name]["server"],
                 self.dict_modules[name]["module"]
-            )).read()
+            ), timeout=3).read()
             response = json.loads(json_response.decode())
             status = response['status']
 
