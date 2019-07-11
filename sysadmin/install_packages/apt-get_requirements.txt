@@ -3,6 +3,8 @@
 debian-keyring
 debian-archive-keyring
 apt-transport-https
+openssh-server
+sshfs
 bash-completion
 mailutils
 cron-apt
@@ -60,7 +62,6 @@ octave-image
 octave-linear-algebra
 octave-splines
 octave-statistics
-sshfs
 libgdal-dev
 gdal-bin
 python-gdal
@@ -76,7 +77,7 @@ libatlas-base-dev
 
 ###################################################################
 
-# The following packages are needed in our of our private projects on satellite imaging
+# The following packages are needed in our private projects on satellite imaging
 libgeos-dev
 
 # Virtualbox. Not really needed by IPOL, but useful to make the most of the machines by sharing them with other lab computations
