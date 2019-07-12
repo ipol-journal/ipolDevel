@@ -26,12 +26,10 @@ ipython==5.1.0
 jaraco.functools==1.20
 joblib==0.12.4
 kiwisolver==1.0.1
-libtiff==0.4.2
 Markdown==2.6.11
 matplotlib==2.2.3
 mgrs==1.3.5
 more-itertools==4.3.0
-netCDF4==1.4.1
 networkx==2.1
 numpy==1.14.5
 opencv-python==3.4.3.18
@@ -40,7 +38,6 @@ planet==1.1.0
 portend==2.3
 protobuf==3.6.1
 psutil==5.4.7
-pyFFTW==0.10.4
 pylint==2.3.1
 pyparsing==2.2.0
 pypng==0.0.18
@@ -63,9 +60,7 @@ sortedcontainers==2.0.5
 SQLAlchemy==1.2.11
 tempora==1.13
 tensorboard==1.10.0
-tensorflow==1.10.1
 setuptools==39.1.0
-torch==0.4.1
 termcolor==1.1.0
 tifffile==0.15.1
 toolz==0.9.0
