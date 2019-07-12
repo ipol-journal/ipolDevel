@@ -1,5 +1,6 @@
 # All the commented lines must start with a "#"
 
+nginx-full
 debian-keyring
 debian-archive-keyring
 apt-transport-https
@@ -38,7 +39,7 @@ python-mako
 python-jsonschema
 gnuplot
 gnuplot-nox
-python-pip
+python3-pip
 python-yaml
 libpq-dev
 texlive-full
