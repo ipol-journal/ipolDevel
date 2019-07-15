@@ -29,7 +29,8 @@ ipol_demo/modules/demorunner/binaries/
 *.sqlite3
 
 # Testing
-ci_tests/*.txt
+ci_tests/send_to.txt
+ci_tests/pdflatex_report.txt
 ci_tests/compilation_folder/
 
 # Sysadmin
