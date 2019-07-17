@@ -3,12 +3,23 @@
 # Very simple script to make backups
 # Miguel Colom, 2016
 
-baksDir="/home/ipol/backups"
-orig="/home/ipol/ipolDevel"
+backupsLocation="/home/ipol/backups"
+folderToBackup="/home/ipol/ipolDevel"
 
-filename=$(date +"backup_%m-%d-%Y.tgz")
-fullFilename=${baksDir}/${filename}
+snapshot=$(date +"snapshot_%q-%Y")
+snapshotName=${backupsLocation}/${snapshot}
 
-mkdir -p ${baksDir}
-tar -zcvf ${fullFilename} $orig
+backupFilename=$(date +"backup_%m-%d-%Y.tgz")
+fullFilename=${backupsLocation}/${backupFilename}
 
+mkdir -p ${backupsLocation}
+tar -g $snapshotName -cpzf $fullFilename $folderToBackup
+
+rsync -azP --delete ${backupsLocation}/ ipol@ipol_dr1:/home/ipol/backups
+
+##############
+# To restore a backup pipe a cat with all .tgz files into tar extract 
+# command and specify a destination path (restore_folder)
+##############
+
+# cat *.tgz | tar xvfz - -g /dev/null --ignore-zeros -C restore_folder
