@@ -758,6 +758,22 @@ It happens sometimes is a previous version of nginx is running and the system ca
 \textbf{I can only access the server's pages or API services using the IP in the URL, but not its domain server}
 
 Nginx checks if the FQDN specified in the URL corresponds to the current server. To do it, it needs to make a request to a DNS server (localhost by default, or specified as {\tt resolver <IP address>;}. The bind9 DNS server needs to be installed in the machine (no configuration change is needed, it should work out of the box).
+\vspace{0.5cm}
+
+\textbf{Modules and tests fail to execute}
+
+The following message is shown when starting a module or a test:
+
+\begin{verbatim}  
+  Could not find platform independent libraries <prefix>
+  Could not find platform dependent libraries <exec_prefix>
+  Consider setting $PYTHONHOME to <prefix>[:<exec_prefix>]
+  Fatal Python error: Py_Initialize: Unable to get the locale encoding
+  ImportError: No module named 'encodings'
+\end{verbatim}
+
+The reason is likely to be an incompatibility with a recently updated python version or other distribution packages. To solve it simply remove and recreate the corresponding virtual environments.
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}
