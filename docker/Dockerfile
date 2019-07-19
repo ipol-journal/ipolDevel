@@ -1,4 +1,4 @@
-FROM debian:stable
+FROM debian:latest
 
 # ipol user config
 RUN useradd -ms /bin/zsh ipol

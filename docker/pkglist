@@ -35,8 +35,6 @@ python3-pip
 python-yaml
 libpq-dev
 libmagic-dev
-libav-tools
-libgsl2
 libgsl-dev
 libgsl-dbg
 libblas-dev
@@ -81,6 +79,9 @@ libjpeg-progs
 
 libsndfile1-dev
 libsndfile1
+
+ffmpeg
+libgslcblas0
 
 nano
 sudo
