@@ -663,12 +663,14 @@ Edit the downloads schedule:
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily.timer
   $ sudo systemctl restart apt-daily.timer
+  $ sudo systemctl status apt-daily.timer
 \end{lstlisting}
 
 Edit the upgrade schedule: 
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ sudo systemctl edit apt-daily-upgrade.timer
   $ sudo systemctl restart apt-daily-upgrade.timer
+  $ sudo systemctl status apt-daily-upgrade.timer
 \end{lstlisting}
 
 Check the next execution: 
@@ -679,6 +681,11 @@ Check the next execution:
 View the installed packages: 
 \begin{lstlisting}[firstnumber=1,breaklines]
   $ cat /var/log/apt/history.log
+\end{lstlisting}
+
+Manually execute unattended upgrade:
+\begin{lstlisting}[firstnumber=1,breaklines]
+  $ sudo unattended-upgrade -d
 \end{lstlisting}
 
 \section{Troubleshooting}
