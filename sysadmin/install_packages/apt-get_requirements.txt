@@ -44,8 +44,7 @@ python-yaml
 libpq-dev
 texlive-full
 libmagic-dev
-libav-tools
-libgsl2
+libgsl23
 libgsl-dev
 libgsl-dbg
 libblas-dev
@@ -75,6 +74,8 @@ libavfilter-dev
 libavutil-dev
 liblas-bin
 libatlas-base-dev
+unattended-upgrades
+apt-listchanges
 
 ###################################################################
 
