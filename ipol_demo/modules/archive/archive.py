@@ -477,7 +477,8 @@ class Archive():
             cursor_db.execute("""SELECT params, execution, timestamp
                 FROM experiments WHERE id = ?""", (experiment_id,))
             row = cursor_db.fetchone()
-            data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
+            if row:
+                data['experiment'] = self.get_data_experiment(conn, experiment_id, row[0], row[1], row[2])
             conn.close()
         except Exception:
             data["status"] = "KO"
@@ -573,7 +574,7 @@ class Archive():
 
             for row in all_rows:
                 path_file, subdirs = self.get_new_path(self.blobs_dir, row[0], row[1])
-                thumb_dir = '{}/{}'.format(self.blobs_thumbs_dir, subdirs)
+                thumb_dir = '{}{}'.format(self.blobs_thumbs_dir, subdirs)
                 thumb_name = '{}.jpeg'.format(row[0])
                 path_thumb = os.path.join(thumb_dir, thumb_name)
                 list_files.append(Archive.get_dict_file(path_file, path_thumb, row[2], row[3]))
@@ -933,17 +934,18 @@ SELECT id_experiment FROM correspondence WHERE id_blob = ?""", \
 
         conn = None
         try:
-            conn = lite.connect(self.database_file)
-            cursor_db = conn.cursor()
+            if old_demo_id != new_demo_id:
+                conn = lite.connect(self.database_file)
+                cursor_db = conn.cursor()
 
-            cursor_db.execute("""
-            UPDATE experiments
-            SET id_demo = ?
-            WHERE id_demo = ?
-            """, (new_demo_id, old_demo_id))
+                cursor_db.execute("""
+                UPDATE experiments
+                SET id_demo = ?
+                WHERE id_demo = ?
+                """, (new_demo_id, old_demo_id))
 
-            conn.commit()
-            conn.close()
+                conn.commit()
+                conn.close()
             status = {"status": "OK"}
 
             return json.dumps(status).encode()
