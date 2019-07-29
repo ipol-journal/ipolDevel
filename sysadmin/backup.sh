@@ -15,8 +15,6 @@ fullFilename=${backupsLocation}/${backupFilename}
 mkdir -p ${backupsLocation}
 tar -g $snapshotName -cpzf $fullFilename $folderToBackup
 
-rsync -azP --delete ${backupsLocation}/ ipol@ipol_dr1:/home/ipol/backups
-
 ##############
 # To restore a backup pipe a cat with all .tgz files into tar extract 
 # command and specify a destination path (restore_folder)
