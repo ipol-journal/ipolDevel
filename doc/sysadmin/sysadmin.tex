@@ -105,12 +105,18 @@ To modify the crontab configuration, the command is {\tt crontab -e}. The format
     \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
 Since we do not want to the backup is not done just because some files can not be read because of their permission, we execute the backup script as the root user (use {\tt sudo crontab -e}).
 
-This script creates incremental backups and and replicates these backups in other servers so in the case of a total failure there are ways of recovering. Every quarter of the year there will be a level 0 backup which will backup the entire project and every week until the next quarter there is a level 1 backup with the incremental changes. Backups will be replicated to other servers using rsync after every backup.
+This script creates incremental backups and and replicates these backups in other servers so in the case of a total failure there are ways of recovering. Every quarter of the year there will be a level 0 backup which will backup the entire project and every week until the next quarter there is a level 1 backup with the incremental changes.
 
 We use the following line to run the backup script once per week at 3:00h:
 
     {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+    
+    \item \textbf{Rsync}: the script {\tt ipolDevel/sysadmin/rsync.sh} synchronizes backups from ipolcore to dr1.
 
+We use the following line to run the backup script once per week after a backup has been done at 3:00h:
+
+    {\tt 0 3 * * 2 /home/ipol/ipolDevel/sysadmin/rsync.sh}
+    
     \item \textbf{Cleanup}: the script {\tt ipolDevel/sysadmin/cleanup.sh} does a cleanup of all temporary files older than one month.
 
     {\tt 0 5 * * 1 /home/ipol/ipolDevel/sysadmin/cleanup.sh}
