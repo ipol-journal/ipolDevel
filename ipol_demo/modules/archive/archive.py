@@ -457,6 +457,39 @@ class Archive():
 
         return json.dumps(data).encode()
 
+    @cherrypy.expose
+    @authenticate
+    def update_experiment_date(self, experiment_id, date, date_format):
+        """
+        MIGRATION
+        Update the date of an experiment.
+        This is used when migrating demos from the old system to this.
+        """
+        conn = None
+        try:
+            status = {'status': 'OK', 'id_experiment': experiment_id}
+            conn = lite.connect(self.database_file)
+            cursor_db = conn.cursor()
+
+            cursor_db.execute("""
+            UPDATE experiments
+            SET timestamp = ?
+            WHERE id = ?
+            """, (datetime.strptime(date, date_format), experiment_id))
+
+            conn.commit()
+            conn.close()
+
+        except Exception as ex:
+            message = "Failed to update the date of experiment #{}: {}".format(ex, date)
+            status = {"status": "KO", "error": message}
+            self.logger.exception(message)
+            if conn:
+                conn.rollback()
+                conn.close()
+
+        return  json.dumps(status).encode()
+
     #####
     # displaying a single experiment of archive
     #####
