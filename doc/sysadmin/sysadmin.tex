@@ -694,6 +694,16 @@ Manually execute unattended upgrade:
   $ sudo unattended-upgrade -d
 \end{lstlisting}
 
+Some package updates require user input to decide wether to keep or renew the possible modified config files. In order to keep our older modified configurations for a package we use the following option in the unattended upgrades configuration:
+
+\begin{lstlisting}[firstnumber=1,breaklines]
+  Dpkg::Options {
+    "--force-confdef";
+    "--force-confold";
+  };
+\end{lstlisting}
+
+
 \section{Troubleshooting}
 
 \textbf{After a new release of Debian Stable the binaries of the demos no longer work}
