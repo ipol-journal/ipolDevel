@@ -77,6 +77,8 @@ libatlas-base-dev
 unattended-upgrades
 apt-listchanges
 
+libcairo2
+
 ###################################################################
 
 # The following packages are needed in our private projects on satellite imaging
