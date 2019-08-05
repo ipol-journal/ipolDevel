@@ -1009,7 +1009,7 @@ attached the failed experiment data.". \
         text = "This is the IPOL Core machine ({}, {}).\n" \
                "\nThere isn't any suitable DR for demo: {}.". \
             format(hostname, hostbyname, demo_id)
-        subject = '[IPOL Core] Not suitable DR'
+        subject = '[IPOL Core] No suitable DR'
         self.send_email(subject, text, emails, config_emails['sender'])
 
     @staticmethod
