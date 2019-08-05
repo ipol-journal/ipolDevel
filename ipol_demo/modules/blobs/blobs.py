@@ -803,18 +803,20 @@ class Blobs():
                     demo_id = dest["demo_id"]
                     blob_data = database.get_blob_data_from_demo(conn, demo_id, blob_set, pos_set)
 
-                    blob_id = blob_data.get('id')
-                    num_refs = database.get_blob_refcount(conn, blob_id)
+                    if blob_data:
+                        blob_id = blob_data.get('id')
+                        num_refs = database.get_blob_refcount(conn, blob_id)
 
-                    database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
+                        database.remove_blob_from_demo(conn, demo_id, blob_set, pos_set)
                 elif dest["dest"] == "template":
                     template_name = dest["name"]
                     blob_data = database.get_blob_data_from_template(conn, template_name, blob_set, pos_set)
+                    
+                    if blob_data:
+                        blob_id = blob_data.get('id')
+                        num_refs = database.get_blob_refcount(conn, blob_id)
 
-                    blob_id = blob_data.get('id')
-                    num_refs = database.get_blob_refcount(conn, blob_id)
-
-                    database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
+                        database.remove_blob_from_template(conn, template_name, blob_set, pos_set)
                 else:
                     self.logger.error("Failed to remove blob. Unknown dest: {}".format(dest["dest"]))
                     return res
