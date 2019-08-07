@@ -78,6 +78,7 @@ unattended-upgrades
 apt-listchanges
 
 libcairo2
+libdevil-dev
 
 ###################################################################
 
