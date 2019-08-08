@@ -18,10 +18,10 @@ input=$1
 output=$2
 
 # High quality
-#avconv -i "$1" -y -c:v libx264 -crf 1 -c:a aac -b:a 320k -strict experimental "${filename}_out.mp4"
+#ffmpeg -i "$1" -y -c:v libx264 -crf 1 -c:a aac -b:a 320k -strict experimental "${filename}_out.mp4"
 
 # -y: overwrite output without asking
 # -an: drop audio
 # We use the 4:2:2 chroma subsampling instead of 4:4:4 (no subsampling) because
 # Firefox can't handle it.
-avconv -i "$input" -y -an -c:v libx264 -crf 1 -pix_fmt yuv420p "$output"
+ffmpeg -i "$input" -y -an -c:v libx264 -crf 1 -pix_fmt yuv420p "$output"

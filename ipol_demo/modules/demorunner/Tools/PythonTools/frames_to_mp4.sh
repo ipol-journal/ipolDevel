@@ -19,9 +19,9 @@ fps=$2 # Frames per second
 output=$3 # Output MP4 filename
 
 # High quality
-#avconv -i "$1" -y -c:v libx264 -crf 1 -c:a aac -b:a 320k -strict experimental "${filename}_out.mp4"
+#ffmpeg -i "$1" -y -c:v libx264 -crf 1 -c:a aac -b:a 320k -strict experimental "${filename}_out.mp4"
 
 # -y: overwrite output without asking
 # -an: drop audio
-#avconv -i "$1" -y -an -c:v libx264 -crf 1 "${filename}_out.mp4"
-avconv -f image2 -i "${frame_filename}" -framerate ${fps} -y -an -c:v libx264 -crf 1 "${output}"
+#ffmpeg -i "$1" -y -an -c:v libx264 -crf 1 "${filename}_out.mp4"
+ffmpeg -f image2 -i "${frame_filename}" -framerate ${fps} -y -an -c:v libx264 -crf 1 "${output}"

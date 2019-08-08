@@ -18,4 +18,4 @@ output=$3 # Output AVI filename
 
 # -y: overwrite output without asking
 # -an: drop audio
-avconv -f image2 -i "${frame_filename}" -framerate ${fps} -y -an -c:v huffyuv -pix_fmt rgb24 "${output}"
+ffmpeg -f image2 -i "${frame_filename}" -framerate ${fps} -y -an -c:v huffyuv -pix_fmt rgb24 "${output}"
