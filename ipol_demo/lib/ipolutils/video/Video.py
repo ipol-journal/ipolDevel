@@ -25,9 +25,8 @@ import os
 import shlex
 from subprocess import Popen
 
-import numpy as np
-
 import cv2
+import numpy as np
 
 from .. import errors
 
@@ -97,7 +96,7 @@ class Video(object):
 
         processed_video = os.path.join(self.get_input_dir(), self.get_input_name() + ".avi")
         avconv_options = self.get_avconv_options(max_pixels, max_frames)
-        avconv_command = "avconv -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
+        avconv_command = "ffmpeg -y -i {} -c:v huffyuv -pix_fmt rgb24 ".format(self.full_path)
         avconv_command += avconv_options
         avconv_command += " -loglevel error " + processed_video
 
