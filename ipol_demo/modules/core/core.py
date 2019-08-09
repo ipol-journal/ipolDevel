@@ -480,21 +480,32 @@ class Core():
         input parameters:
         returns:
         """
-        demo_blobs = self.post('api/blobs/get_blobs', data={'demo_id': demo_id}).json()
-        blobset = demo_blobs["sets"][blobset_id]
-        if demo_blobs['status'] == 'OK':
-            for input_idx, blob in blobset["blobs"].items():
-                blob_path = blob["blob"].split("/api/blobs/")[1]
-                try:
-                    extension = os.path.splitext(blob_path)[1]
-                    final_path = os.path.join(work_dir, 'input_{0}{1}'.format(input_idx, extension))
-                    shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
-                except Exception as ex:
-                    self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
-                    print("Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex))
+        try:
+            demo_blobs = self.post('api/blobs/get_blobs', data={'demo_id': demo_id}).json()
+        except:
+            self.logger.exception(
+                "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location")
+            raise IPOLCopyBlobsError("Couldn't reach blobs")
 
-        else:
-            self.logger.exception("Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location")
+        if not demo_blobs["sets"] or demo_blobs['status'] == 'KO':
+            self.logger.exception(
+                "Blobs get_blobs returned KO at Core's copy_blobset_from_physical_location")
+            raise IPOLCopyBlobsError("Couldn't reach blobs")
+
+        try:
+            blobset = demo_blobs["sets"][blobset_id]
+        except IndexError:
+            raise IPOLCopyBlobsError("Blobset {} doesn't exist".format(blobset_id))
+
+        for input_idx, blob in blobset["blobs"].items():
+            blob_path = blob["blob"].split("/api/blobs/")[1]
+            try:
+                extension = os.path.splitext(blob_path)[1]
+                final_path = os.path.join(work_dir, 'input_{0}{1}'.format(input_idx, extension))
+                shutil.copy(os.path.join(self.blobs_folder, blob_path), final_path)
+            except Exception as ex:
+                self.logger.exception("Error copying blob from {} to {}".format(blob_path, final_path))
+                print("Couldn't copy  blobs from {} to {}. Error: {}".format(blob_path, final_path, ex))
 
     def copy_blobs(self, work_dir, demo_id, input_type, blobs, blobset_id, ddl_inputs):
         """
@@ -1055,7 +1066,11 @@ attached the failed experiment data.". \
         """
         userdata = {'demo_id': demo_id}
         demoinfo_resp = self.post('api/demoinfo/get_ddl', data=userdata)
-        demoinfo_response = demoinfo_resp.json()
+        try:
+            demoinfo_response = demoinfo_resp.json()
+        except Exception as ex:
+            error_message = "Couldn't get DDL for demo {}".format(demo_id)
+            raise IPOLReadDDLError(error_message)
 
         if demoinfo_response['status'] != 'OK':
             raise IPOLReadDDLError("Demoinfo answered KO.")
@@ -1076,7 +1091,6 @@ attached the failed experiment data.". \
 
         resp = self.post('api/dispatcher/get_suitable_demorunner', data=requirements).json()
         if resp['status'] != 'OK':
-            print(resp, "\n")
             if 'unresponsive_dr' in resp:
                 self.send_demorunner_unresponsive_email(resp['unresponsive_dr'])
             error_message = "No DR satisfies the requirements: {}".format(
