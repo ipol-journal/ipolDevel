@@ -275,7 +275,8 @@ class DemoInfo():
 
         try:
             demoextras_folder = os.path.join(self.dl_extras_dir, demo_id)
-            shutil.rmtree(demoextras_folder)
+            if os.path.exists(demoextras_folder):
+                shutil.rmtree(demoextras_folder)
         except Exception as ex:
             data['status'] = "KO"
             self.logger.exception(str(ex))
