@@ -102,16 +102,9 @@ The system needs to periodically execute administration script, to create backup
 To modify the crontab configuration, the command is {\tt crontab -e}. The format of the crontab lines is: minute (m), hour (h), day of month (dom), month (mon), and day of week (dow), or use '*' in these fields (for 'any').
 
 \begin{itemize}
-    \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
-Since we do not want to the backup is not done just because some files can not be read because of their permission, we execute the backup script as the root user (use {\tt sudo crontab -e}).
-
-This script creates incremental backups and and replicates these backups in other servers so in the case of a total failure there are ways of recovering. Every quarter of the year there will be a level 0 backup which will backup the entire project and every week until the next quarter there is a level 1 backup with the incremental changes.
-
-We use the following line to run the backup script once per week at 3:00h:
-
-    {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+    \item \textbf{Backups}: they are done by this script: {\tt ipolDevel/sysadmin/backup.sh}. See Sec.~\ref{sec:backups}.
     
-    \item \textbf{Rsync}: the script {\tt ipolDevel/sysadmin/rsync.sh} synchronizes backups from ipolcore to dr1.
+    \item \textbf{Rsync}: the script {\tt ipolDevel/sysadmin/rsync.sh} synchronizes backups from ipolcore to DR1. See Sec.~\ref{sec:backups}.
 
 We use the following line to run the backup script once per week after a backup has been done at 3:00h:
 
@@ -585,6 +578,24 @@ In order to remove an image. The id or name provided will be available doing "do
   $ docker rmi 'docker_image_id'
 \end{lstlisting}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Backups}
+\label{sec:backups}
+The backups are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
+We execute the backup script as root (use {\tt sudo crontab -e}) to avoid eventual read permission problems.
+
+\ToDo{Explain what an incremental backup is.}
+This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the contents of the Archive). Every quarter of the year a level-0 backup (all the stored data, including temporary files) is performed. A level-1 backup is done every week (until the next quarter, when a new full level-0 backup will start), that will only contain the incremental changes with respect to the last week.
+
+We use the following line to run the backup script once per week at 3:00h:
+
+{\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
+
+\ToDo{Explain (with some examples) how to extract a backup.}
+
+\ToDo{Explain more about why we're copying files from Core to DR1 and the{\tt ipolDevel/sysadmin/rsync.sh} script.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
