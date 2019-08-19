@@ -586,16 +586,21 @@ In order to remove an image. The id or name provided will be available doing "do
 The backups are done by this script: {\tt ipolDevel/sysadmin/backup.sh}
 We execute the backup script as root (use {\tt sudo crontab -e}) to avoid eventual read permission problems.
 
-\ToDo{Explain what an incremental backup is.}
-This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the contents of the Archive). Every quarter of the year a level-0 backup (all the stored data, including temporary files) is performed. A level-1 backup is done every week (until the next quarter, when a new full level-0 backup will start), that will only contain the incremental changes with respect to the last week.
+This script creates incremental backups and copies them to other servers, allowing to recover the data in the system in case of a fatal disk failure (say, the contents of the Archive). An incremental backup is a kind of backup that will only backup incremental changes since the last backup, resulting in smaller sized backups and faster backup process.
+
+Every quarter of the year a level-0 backup (all the stored data, including temporary files) is performed. A level-1 backup is done every week (until the next quarter, when a new full level-0 backup will start), that will only contain the incremental changes with respect to the last week.
 
 We use the following line to run the backup script once per week at 3:00h:
 
 {\tt 0 3 * * 1 /home/ipol/ipolDevel/sysadmin/backup.sh}
 
-\ToDo{Explain (with some examples) how to extract a backup.}
 
-\ToDo{Explain more about why we're copying files from Core to DR1 and the{\tt ipolDevel/sysadmin/rsync.sh} script.}
+To restore a backup, pipe a cat command with all .tgz files into tar extract command and specify a destination path, "restore\_forlder" the example below:
+
+{\tt cat *.tgz | tar xvfz - -g /dev/null --ignore-zeros -C restore\_folder}
+
+
+While making backups is a good way to be able to recover in case of data loss, it is even better to distribute copies of said backups to other servers to improve backup redundancy. Just as data can be corrupt or lost, servers have downtime and there is always the possibility of a server malfunction so, in order to improve backups reliability we synchronize our backup folder with another server just in case of a catastrophe. Along with the backups script there is an rsync script that automatically synchronizes the backup folder form one server to another thus making backups redundant.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
