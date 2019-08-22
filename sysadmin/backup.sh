@@ -3,16 +3,18 @@
 # Very simple script to make backups
 # Miguel Colom, 2016
 
-backupsLocation="/home/ipol/backups"
+backupsFolder="/home/ipol/backups"
 folderToBackup="/home/ipol/ipolDevel"
 
-snapshot=$(date +"snapshot_%q-%Y")
-snapshotName=${backupsLocation}/${snapshot}
+snapshot=$(date +"snapshot_%Y-%q")
+yearPeriod=$(date +"%Y-%q")
+
+snapshotName=${backupsFolder}/${yearPeriod}/${snapshot}
 
 backupFilename=$(date +"backup_%m-%d-%Y.tgz")
-fullFilename=${backupsLocation}/${backupFilename}
+fullFilename=${backupsFolder}/${yearPeriod}/${backupFilename}
 
-mkdir -p ${backupsLocation}
+mkdir -p ${backupsFolder}/${yearPeriod}
 tar -g $snapshotName -cpzf $fullFilename $folderToBackup
 
 ##############
