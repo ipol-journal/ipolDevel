@@ -26,10 +26,9 @@ from subprocess import PIPE, Popen
 from threading import Lock
 
 import cherrypy
-
-import virtualenv
 import Tools.build as build
 import Tools.run_demo_base as run_demo_base
+import virtualenv
 from Tools.run_demo_base import IPOLTimeoutError
 
 
@@ -306,51 +305,54 @@ class DemoRunner():
             shutil.rmtree(path) # Remove directories recursively
 
 
-    def construct(self, path_for_the_compilation, ddl_builds):
+    def construct(self, compilation_path, ddl_builds):
         """
         program build/update
         """
-        dl_dir = os.path.join(path_for_the_compilation, 'dl/')
-        src_dir = os.path.join(path_for_the_compilation, 'src/')
-        bin_dir = os.path.join(path_for_the_compilation, 'bin/')
-        log_file = os.path.join(path_for_the_compilation, 'build.log')
+        dl_dir = os.path.join(compilation_path, 'dl/')
+        src_dir = os.path.join(compilation_path, 'src/')
+        bin_dir = os.path.join(compilation_path, 'bin/')
+        log_file = os.path.join(compilation_path, 'build.log')
+        try:
+            while self.construct_locked(compilation_path):
+                time.sleep(1)
+            self.create_construct_lock(compilation_path)
+            
+            # Ensure needed compilation folders do exist
+            self.mkdir_p(dl_dir)
+            if self.any_extraction_needed(ddl_builds, dl_dir):
+                if os.path.isdir(bin_dir):
+                    shutil.rmtree(bin_dir)
+            self.mkdir_p(bin_dir)
 
-        # Ensure needed compilation folders do exist
-        self.mkdir_p(dl_dir)
-        if self.any_extraction_needed(ddl_builds, dl_dir):
-            if os.path.isdir(bin_dir):
-                shutil.rmtree(bin_dir)
-        self.mkdir_p(bin_dir)
+            for build_item in list(ddl_builds.values()):
+                # These are mandatory
+                url = build_item.get('url')
+                if not url:
+                    raise IPOLMissingBuildItem("url")
 
-        for build_item in list(ddl_builds.values()):
-            # These are mandatory
-            url = build_item.get('url')
-            if not url:
-                raise IPOLMissingBuildItem("url")
+                files_to_move = build_item.get('move')
+                if not files_to_move:
+                    raise IPOLMissingBuildItem("move")
 
-            files_to_move = build_item.get('move')
-            if not files_to_move:
-                raise IPOLMissingBuildItem("move")
+                # These are optional
+                construct = build_item.get('construct')
+                username = build_item.get('username')
+                password = build_item.get('password')
 
-            # These are optional
-            construct = build_item.get('construct')
-            username = build_item.get('username')
-            password = build_item.get('password')
+                zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
+                tgz_file = os.path.join(dl_dir, zip_filename)
 
-            zip_filename = urllib.parse.urlsplit(url).path.split('/')[-1]
-            tgz_file = os.path.join(dl_dir, zip_filename)
+                # Get files to move path
+                files_path = []
+                for f in files_to_move.split(","):
+                    files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
 
-            # Get files to move path
-            files_path = []
-            for f in files_to_move.split(","):
-                files_path.append(os.path.join(bin_dir, os.path.basename(f.strip())))
+                # Download
+                extract_needed = build.download(url, tgz_file, username, password)
 
-            # Download
-            extract_needed = build.download(url, tgz_file, username, password)
-
-            # Check if a rebuild is needed
-            if extract_needed or not self.all_files_exist(files_path):
-                with self.lock_construct:
+                # Check if a rebuild is needed
+                if extract_needed or not self.all_files_exist(files_path):
                     if os.path.isdir(src_dir):
                         shutil.rmtree(src_dir)
                     self.mkdir_p(src_dir)
@@ -387,8 +389,8 @@ class DemoRunner():
                         # Check origin
                         if not os.path.exists(path_from):
                             raise IPOLConstructFileNotFound(\
-"Construct can't move file since it doesn't exist: {}".\
-format(path_from))
+    "Construct can't move file since it doesn't exist: {}".\
+    format(path_from))
 
                         try:
                             # Remove path_to if it exists
@@ -396,14 +398,34 @@ format(path_from))
                             # Do move
                             shutil.move(path_from, path_to)
                         except (IOError, OSError):
+                            os.remove(os.path.join(compilation_path, 'ipol_construct.lock'))
                             self.write_log("construct", "Can't move file {} --> {}".format(path_from, path_to))
                             # If can't move, write in the log file, so
                             # the user can see it
                             f = open(log_file, 'w')
                             f.write("Failed to move {} --> {}".\
-                              format(path_from, path_to))
+                                format(path_from, path_to))
                             f.close()
                             raise
+        finally:
+            os.remove(os.path.join(compilation_path, 'ipol_construct.lock'))
+
+    @staticmethod
+    def construct_locked(compilation_path):
+        lock_filepath = os.path.join(compilation_path, 'ipol_construct.lock')
+        if os.path.isfile(lock_filepath):
+            current_time = time.time()
+            creation_time = os.path.getctime(lock_filepath)
+            if (current_time - creation_time) // 3600 >= 1:
+                os.remove(lock_filepath)
+                return False
+            return True
+
+    @staticmethod
+    def create_construct_lock(compilation_path):
+        lock_file = open(os.path.join(compilation_path,'ipol_construct.lock'),'w+')
+        lock_file.close()
+
 
     @staticmethod
     def any_extraction_needed(ddl_builds, dl_dir):
@@ -439,12 +461,12 @@ format(path_from))
         """
         ddl_build = json.loads(ddl_build)
 
-        path_for_the_compilation = os.path.join(self.main_bin_dir, demo_id)
-        self.mkdir_p(path_for_the_compilation)
+        compilation_path = os.path.join(self.main_bin_dir, demo_id)
+        self.mkdir_p(compilation_path)
         try:
             if 'build1' in ddl_build:
                 # we should have a dict or a list of dict
-                self.compile_source(ddl_build, path_for_the_compilation)
+                self.compile_source(ddl_build, compilation_path)
             else:
                 data = {}
                 data['status'] = 'KO'
@@ -489,10 +511,10 @@ format(str(ex), str(ddl_build))
             print("Build failed with exception " + str(ex) + " in demo " + demo_id)
 
             build_filename = 'build.log'
-            log_file = os.path.join(path_for_the_compilation, build_filename)
+            log_file = os.path.join(compilation_path, build_filename)
 
             if os.path.isfile(log_file):
-                content = DemoRunner.read_workdir_file(path_for_the_compilation, build_filename)
+                content = DemoRunner.read_workdir_file(compilation_path, build_filename)
             else:
                 content = ""
 
@@ -537,17 +559,17 @@ format(str(ex), str(ddl_build))
 
     @cherrypy.expose
     @authenticate
-    def test_compilation(self, ddl_build, path_for_the_compilation):
+    def test_compilation(self, ddl_build, compilation_path):
         """
         Test the compilation in a test path, not in the demo path
         """
         data = {'status':'KO'}
         ddl_build = json.loads(ddl_build)
         try:
-            if os.path.isdir(path_for_the_compilation):
-                shutil.rmtree(path_for_the_compilation)
+            if os.path.isdir(compilation_path):
+                shutil.rmtree(compilation_path)
             if 'build1' in ddl_build:
-                self.compile_source(ddl_build, path_for_the_compilation)
+                self.compile_source(ddl_build, compilation_path)
             else:
                 data['status'] = 'KO'
                 data['error'] = "Bad build syntax: 'build1' not found. Build: {}".format(str(ddl_build))
@@ -570,7 +592,7 @@ format(str(ex), str(ddl_build))
         except Exception as ex:
             self.logger.exception("Exception trying to delete the compilation folder, demo {}. {}".format(demo_id, str(ex)))
 
-    def compile_source(self, ddl_build, path_for_the_compilation):
+    def compile_source(self, ddl_build, compilation_path):
         """
         Do the compilation
         """
@@ -581,7 +603,7 @@ format(str(ex), str(ddl_build))
             builds = ddl_build
 
         for build_block in builds:
-            self.construct(path_for_the_compilation, build_block)
+            self.construct(compilation_path, build_block)
 
     @staticmethod
     def create_venv(build_item, bin_dir, src_dir):
@@ -608,6 +630,8 @@ format(str(ex), str(ddl_build))
         """
         the core algo runner
         """
+        while self.construct_locked(bin_path):
+            time.sleep(1)
         rd = run_demo_base.RunDemoBase(bin_path, work_dir, self.logger, timeout)
         rd.set_algo_params(params)
         rd.set_algo_info(res_data['algo_info'])
